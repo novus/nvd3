@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/d3.css" rel="stylesheet" type="text/css">
+<style>
+
+.sparkline path {
+  fill: none;
+  stroke: #444;
+}
+
+text {
+  font: 10px sans-serif;
+}
+
+</style>
+<body>
+
+  <h2>Sparkline: <span id="test1" class="sparkline"></span></h2>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../lib/jquery.min.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/models/sparkline.js"></script>
+<script>
+
+//Format A
+nv.addGraph({
+  generate: function() {
+    var chart = nv.models.sparkline()
+                  .width(200)
+                  .height(20)
+
+    d3.select("#test1")
+      .datum(sine())
+      .call(chart);
+
+    return chart;
+  },
+  callback: function(graph) {
+    //log("Sparkline rendered");
+  }
+});
+
+
+
+function sine() {
+  var sin = [];
+
+  for (var i = 0; i < 100; i++) {
+    sin.push({x: i, y: Math.sin(i/10)});
+  }
+
+  return sin;
+}
+
+
+</script>

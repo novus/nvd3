@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/d3.css" rel="stylesheet" type="text/css">
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+text {
+  font: 12px sans-serif;
+}
+
+</style>
+<body>
+
+<svg id="test1"></svg>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../lib/jquery.min.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/models/bar.js"></script>
+<script> 
+
+  var testdata = [
+    { 
+      label: "One",
+      y: 5
+    },
+    { 
+      label: "Two",
+      y: 2
+    },
+    { 
+      label: "Three",
+      y: 9
+    },
+    { 
+      label: "Four",
+      y: 7
+    },
+    { 
+      label: "Five",
+      y: 4
+    }
+  ];
+
+//Format A
+nv.addGraph({
+  generate: function() {
+    var width = $(window).width() - 40,
+        height = $(window).height() - 40;
+
+    var chart = nv.models.bar()
+        .width(width)
+        .height(height);
+
+    d3.select("#test1")
+      .attr('width', width)
+      .attr('height', height)
+      .datum(testdata)
+      .call(chart);
+
+    return chart;
+  },
+  callback: function(graph) {
+    $(window).resize(function() {
+      var width = $(window).width() - 40,
+          height = $(window).height() - 40;
+
+      d3.select("#test1")
+        .attr('width', width)
+        .attr('height', height)
+        .call(
+          graph
+            .width($(window).width() - 40)
+            .height($(window).height() - 40)
+        )
+    });
+  }
+});
+
+/*
+//Format B
+nv.addGraph(function() {
+    var selection = d3.select("body")
+        .datum(irwinHallDistribution(10000, 10));
+
+    var chart = nv.models.histogram()
+          .bins(d3.scale.linear().ticks(20))
+          .tickFormat(d3.format(".02f"));
+
+    chart(selection);
+
+    return chart;
+}, function(g) { console.log(g.width(), g.height()) })
+
+//Format C
+nv.addGraph(function() {
+  return nv.models.histogram()
+           .bins(d3.scale.linear().ticks(20))
+           .tickFormat(d3.format(".02f"))(
+             d3.select("body")
+              .datum(irwinHallDistribution(10000, 10))
+             );
+}, function(g) { console.log(g.width(), g.height()) })
+*/
+
+
+
+</script>
