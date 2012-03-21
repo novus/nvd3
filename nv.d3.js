@@ -804,7 +804,7 @@ nv.models.line = function() {
   return chart;
 }
 
-nv.models.lineWithLegend = function() {
+nv.models.lineWithFocus = function() {
   var margin  = {top: 30, right: 20, bottom: 30, left: 60},
       margin2 = {top: 0, right: 20, bottom: 20, left: 60},
       width = 960,

@@ -38,7 +38,7 @@ nv.addGraph({
     var width = $(window).width() - 40,
         height = $(window).height() - 40;
 
-    var chart = nv.models.lineWithLegend()
+    var chart = nv.models.lineWithFocus()
                 .width(width)
                 .height(height)
                 .yTickFormat(d3.format('.2r'))
