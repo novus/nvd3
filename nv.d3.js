@@ -86,7 +86,7 @@
   };
 
 })(jQuery);
-(function(d3, window){
+(function(){
 var nv = {version: "0.0.1"};
 
 window.nv = nv;
@@ -1901,4 +1901,4 @@ nv.models.sparkline = function() {
 
   return chart;
 }
-})(d3, window);
+})();

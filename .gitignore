@@ -2,6 +2,7 @@
 # Random Files #
 ################
 *.swp
+*~
 *.log
 
 
