@@ -30,8 +30,15 @@ text {
 <script src="../src/models/yaxis.js"></script>
 <script src="../src/models/line.js"></script>
 <script src="../src/models/lineWithFocus.js"></script>
+<script src="stream_layers.js"></script>
 <script>
 
+  var test_data = stream_layers(3,128,.1).map(function(data, i) {
+    return { 
+      key: 'Stream' + i,
+      values: data
+    };
+  });
 
 nv.addGraph({
   generate: function() {
@@ -41,6 +48,7 @@ nv.addGraph({
     var chart = nv.models.lineWithFocus()
                 .width(width)
                 .height(height)
+                //.dotRadius(1) //TODO: fix this setting
                 .yTickFormat(d3.format('.2r'))
                 .xTickFormat(d3.format('.2r'))
 
@@ -48,7 +56,7 @@ nv.addGraph({
     var svg = d3.select('#test1 svg')
       .attr('width', width)
       .attr('height', height)
-      .datum(sinAndCos());
+      .datum(test_data);
 
     svg.transition().duration(500).call(chart);
 

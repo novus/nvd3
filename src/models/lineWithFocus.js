@@ -30,12 +30,13 @@ nv.models.lineWithFocus = function() {
             .on('brush', onBrush);
 
 
-  var wrap, gEnter, g, focus, focusLines, contextWrap, focusWrap, contextLines;  //brought all variables to this scope for use within function... is this a bad idea?
+  var wrap, gEnter, g, focus, focusLines, contextWrap, focusWrap, contextLines;  //brought all variables to this scope for use within brush function... is this a bad idea?
 
+  var seriesData;  //Temporarily bringing this data to this scope.... may be bad idea (same with above).. may need to rethink brushing
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.filter(function(d) { return !d.disabled })
+      seriesData = data.filter(function(d) { return !d.disabled })
             .map(function(d) { return d.values });
 
       x2  .domain(d3.extent(d3.merge(seriesData), getX ))
@@ -234,13 +235,26 @@ nv.models.lineWithFocus = function() {
   // ********** FUNCTIONS **********
 
   function onBrush() {
+    var yDomain = brush.empty() ? y2.domain() : d3.extent(d3.merge(seriesData).filter(function(d) {
+      return getX(d) >= brush.extent()[0] && getX(d) <= brush.extent()[1];
+    }), getY);
+
+    if (typeof yDomain[0] == 'undefined') yDomain = y2.domain();
+
+
     x.domain(brush.empty() ? x2.domain() : brush.extent());
+    y.domain(yDomain);
+    //y.domain(brush.empty() ? y2.domain() : d3.extent(d3.merge(seriesData).filter(function(d) {
+      //return getX(d) >= brush.extent()[0] && getX(d) <= brush.extent()[1];
+    //}), getY) || y2.domain() );
 
     focus.xDomain(x.domain());
+    focus.yDomain(y.domain());
 
     focusLines.call(focus)
 
     wrap.select('.x.axis').call(xAxis);
+    wrap.select('.y.axis').call(yAxis);
   }
 
 

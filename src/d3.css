@@ -62,6 +62,16 @@
  */
 
 
+svg {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+
 text {
   font: 12px sans-serif;
 }
@@ -186,6 +196,13 @@ text {
   fill: #eee;
   fill-opacity: 0;
 }
+
+
+
+.indexLine {
+  cursor: ew-resize;
+}
+
 
 
 /**********
