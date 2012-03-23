@@ -8,22 +8,22 @@ nv.models.lineWithFocus = function() {
       height2 = 100,
       dotRadius = function() { return 2.5 },
       color = d3.scale.category10().range(),
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      id = Math.floor(Math.random() * 10000); //Create semi-unique ID incase user doesn't select one
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
       x2 = d3.scale.linear(),
       y2 = d3.scale.linear(),
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
       xAxis = nv.models.xaxis().scale(x),
       yAxis = nv.models.yaxis().scale(y),
       xAxis2 = nv.models.xaxis().scale(x2),
       yAxis2 = nv.models.yaxis().scale(y2),
       legend = nv.models.legend().height(30),
       focus = nv.models.line(),
-      context = nv.models.line().dotRadius(.1).interactive(false);
+      context = nv.models.line().dotRadius(.1).interactive(false),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var brush = d3.svg.brush()
             .x(x2)

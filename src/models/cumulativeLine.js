@@ -1,24 +1,24 @@
 
 nv.models.cumulativeLine = function() {
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+  var margin = {top: 30, right: 20, bottom: 30, left: 60},
       width = 960,
       height = 500,
-      dotRadius = function() { return 2.5 },
       color = d3.scale.category10().range(),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
-      index = {x:0, i:0};
+      dotRadius = function() { return 2.5 },
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      id = Math.floor(Math.random() * 10000); //Create semi-unique ID incase user doesn't select one
 
   var x = d3.scale.linear(),
       dx = d3.scale.linear(),
       y = d3.scale.linear(),
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
       xAxis = nv.models.xaxis().scale(x),
       yAxis = nv.models.yaxis().scale(y),
       legend = nv.models.legend().height(30),
-      lines = nv.models.line();
+      lines = nv.models.line(),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
+      index = {i: 0, x: 0};
 
-  var updateChart;
 
   var indexDrag = d3.behavior.drag()
                     .on('dragstart', dragStart)
@@ -29,41 +29,33 @@ nv.models.cumulativeLine = function() {
 
   function dragMove(d,i) {
     d.x += d3.event.dx;
+    d.i = Math.round(dx.invert(d.x));
 
-    //if (d.x > x.range()[0]) d.x = x.range()[0];
-    if (d.x < 0) d.x = 0;
-    if (d.x > x.range()[1]) d.x = x.range()[1];
-
-    index.i = Math.round(dx.invert(d.x));
+    //d3.transition(d3.select('.chart-' + id)).call(chart);
     d3.select(this).attr("transform", "translate(" + dx(d.i) + ",0)");
   }
 
   function dragEnd(d,i) {
-    updateChart();  //could do thisinside of dragMove, but would need to disable transitions.. and performance may be questionable
+    d3.transition(d3.select('.chart-' + id)).call(chart);
   }
 
 
   function chart(selection) {
-
-    //TODO: Think of a better way to update the chart from moving the 'indexLine'
-    updateChart = function() { 
-      selection.call(chart);
-    };
-
     selection.each(function(data) {
+      var series = indexify(index.i, data);
 
-      data = indexify(index.i, data);
-
-      var series = data.filter(function(d) { return !d.disabled })
+      var seriesData = series
+            .filter(function(d) { return !d.disabled })
             .map(function(d) { return d.values });
 
-      x   .domain(d3.extent(d3.merge(series), getX ))
+      x   .domain(d3.extent(d3.merge(seriesData), getX ))
           .range([0, width - margin.left - margin.right]);
 
-      dx  .domain([0, data[0].values.length - 1])
-          .range([0, width - margin.left - margin.right]);
+      dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
+          .range([0, width - margin.left - margin.right])
+          .clamp(true);
 
-      y   .domain(d3.extent(d3.merge(series), getY ))
+      y   .domain(d3.extent(d3.merge(seriesData), getY ))
           .range([height - margin.top - margin.bottom, 0]);
 
       lines
@@ -74,14 +66,77 @@ nv.models.cumulativeLine = function() {
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithLegend').append('g');
+      var wrap = d3.select(this).classed('chart-' + id, true).selectAll('g.wrap').data([series]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3cumulativeLine').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
       gEnter.append('g').attr('class', 'linesWrap');
       gEnter.append('g').attr('class', 'legendWrap');
 
+
+
+      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+      margin.top = legend.height();
+
+      var g = wrap.select('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      legend.width(width/2 - margin.right);
+
+      g.select('.legendWrap')
+          .datum(data)
+          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
+          .call(legend);
+
+
+      var linesWrap = g.select('.linesWrap')
+          .datum(series.filter(function(d) { return !d.disabled }))
+
+
+      d3.transition(linesWrap).call(lines);
+
+
+      var indexLine = linesWrap.selectAll('.indexLine')
+          .data([index]);
+      indexLine.enter().append('rect').attr('class', 'indexLine')
+          .attr('width', 3)
+          .attr('x', -2)
+          .attr('fill', 'red')
+          .attr('fill-opacity', .5)
+          .call(indexDrag)
+
+      indexLine
+          .attr("transform", function(d) { return "translate(" + dx(d.i) + ",0)" })
+          .attr('height', height - margin.top - margin.bottom)
+
+
+      xAxis
+        .domain(x.domain())
+        .range(x.range())
+        .ticks( width / 100 )
+        .tickSize(-(height - margin.top - margin.bottom), 0);
+
+      g.select('.x.axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+      d3.transition(g.select('.x.axis'))
+          .call(xAxis);
+
+      yAxis
+        .domain(y.domain())
+        .range(y.range())
+        .ticks( height / 36 )
+        .tickSize(-(width - margin.right - margin.left), 0);
+
+      d3.transition(g.select('.y.axis'))
+          .call(yAxis);
+
+
+
+
+
+      // ********** EVENT LISTENERS **********
 
       legend.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
@@ -122,68 +177,14 @@ nv.models.cumulativeLine = function() {
       });
 
 
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + legend.height() + ')');
-
-
-      legend.width(width/2 - margin.right);
-
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-legend.height()) +')')
-          .call(legend);
-
-
-      var linesWrap = g.select('.linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
-
-
-      d3.transition(linesWrap).call(lines);
-
-
-      //g.select('.linesWrap').selectAll('.indexLine')
-     var indexLine = linesWrap.selectAll('.indexLine')
-          .data([index]);
-     indexLine.enter().append('rect').attr('class', 'indexLine')
-          .attr('width', 3)
-          .attr('height', height - margin.top - margin.bottom)
-          .attr('x', -2)
-          .attr('fill', 'red')
-          .attr('fill-opacity', .5)
-          .call(indexDrag)
-
-      indexLine
-          .attr("transform", function(d) { return "translate(" + dx(d.i) + ",0)" })
-
-
-      xAxis
-        .domain(x.domain())
-        .range(x.range())
-        .ticks( width / 100 )
-        .tickSize(-(height - margin.top - margin.bottom), 0);
-
-      g.select('.x.axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.x.axis'))
-          .call(xAxis);
-
-      yAxis
-        .domain(y.domain())
-        .range(y.range())
-        .ticks( height / 36 )
-        .tickSize(-(width - margin.right - margin.left), 0);
-
-      d3.transition(g.select('.y.axis'))
-          .call(yAxis);
-
     });
 
     return chart;
   }
 
+
+
+  // ********** FUNCTIONS **********
 
   /* Normalize the data according to an index point. */
   function indexify(idx, data) {
@@ -193,24 +194,23 @@ nv.models.cumulativeLine = function() {
       return {
         key: line.key,
         values: line.values.map(function(point) {
+          return {'x': getX(point), 'y': (getY(point) - v) / (1 + v) };
+        }),
+        disabled: line.disabled,
+        hover: line.hover
         /*
-        if (line.key == "Short") {
-          if ((options.yaxis.type == 'percent' && v < -90) || (options.yaxis.type == 'bps' && v < -90000)) {
-            shortDisabled = i;
-            return {'x': point.x, 'y': 0 };
-          } else {
-            shortDisabled = -1;
-          }
+        if (v < -.9) {
+          //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
         }
         */
-
-        return {'x': getX(point), 'y': (getY(point) - v) / (1 + v) };
-        })
       };
     });
   };
 
 
+
+
+  // ********** PUBLIC ACCESSORS **********
 
   chart.dispatch = dispatch;
 
