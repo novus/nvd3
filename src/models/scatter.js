@@ -153,7 +153,12 @@ nv.models.scatter = function() {
           .attr('cx', function(d) { return x0(getX(d)) })
           .attr('cy', function(d) { return y0(getY(d)) })
           .attr('r', function(d) { return z0(getSize(d)) });
-      points.exit().remove();
+      //d3.transition(points.exit())
+      d3.transition(groups.exit().selectAll('circle.point'))
+          .attr('cx', function(d) { return x(getX(d)) })
+          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('r', function(d) { return z(getSize(d)) })
+          .remove();
       points.attr('class', function(d,i) { return 'point point-' + i });
       d3.transition(points)
           .attr('cx', function(d) { return x(getX(d)) })
@@ -167,6 +172,11 @@ nv.models.scatter = function() {
       distX.enter().append('line')
           .attr('x1', function(d) { return x0(getX(d)) })
           .attr('x2', function(d) { return x0(getX(d)) })
+      //d3.transition(distX.exit())
+      d3.transition(groups.exit().selectAll('line.distX'))
+          .attr('x1', function(d) { return x(getX(d)) })
+          .attr('x2', function(d) { return x(getX(d)) })
+          .remove();
       distX
           .attr('class', function(d,i) { return 'distX distX-' + i })
           .attr('y1', y.range()[0])
@@ -174,13 +184,17 @@ nv.models.scatter = function() {
       d3.transition(distX)
           .attr('x1', function(d) { return x(getX(d)) })
           .attr('x2', function(d) { return x(getX(d)) })
-      distX.exit().remove();
 
       var distY = groups.selectAll('line.distY')
           .data(function(d) { return d.values })
       distY.enter().append('line')
           .attr('y1', function(d) { return y0(getY(d)) })
           .attr('y2', function(d) { return y0(getY(d)) });
+      //d3.transition(distY.exit())
+      d3.transition(groups.exit().selectAll('line.distY'))
+          .attr('y1', function(d) { return y(getY(d)) })
+          .attr('y2', function(d) { return y(getY(d)) })
+          .remove();
       distY
           .attr('class', function(d,i) { return 'distY distY-' + i })
           .attr('x1', x.range()[0])
@@ -188,7 +202,6 @@ nv.models.scatter = function() {
       d3.transition(distY)
           .attr('y1', function(d) { return y(getY(d)) })
           .attr('y2', function(d) { return y(getY(d)) });
-      distY.exit().remove();
 
 
 

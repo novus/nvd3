@@ -166,7 +166,13 @@ nv.models.line = function() {
             .x(function(d) { return x0(getX(d)) })
             .y(function(d) { return y0(getY(d)) })
           );
-      paths.exit().remove();
+      //d3.transition(paths.exit())
+      d3.transition(lines.exit().selectAll('path'))
+          .attr('d', d3.svg.line()
+            .x(function(d) { return x(getX(d)) })
+            .y(function(d) { return y(getY(d)) })
+          )
+          .remove();
       d3.transition(paths)
           .attr('d', d3.svg.line()
             .x(function(d) { return x(getX(d)) })
@@ -179,7 +185,11 @@ nv.models.line = function() {
       points.enter().append('circle')
           .attr('cx', function(d) { return x0(getX(d)) })
           .attr('cy', function(d) { return y0(getY(d)) });
-      points.exit().remove();
+      //d3.transition(points.exit())
+      d3.transition(lines.exit().selectAll('circle.point'))
+          .attr('cx', function(d) { return x(getX(d)) })
+          .attr('cy', function(d) { return y(getY(d)) })
+          .remove();
       points.attr('class', function(d,i) { return 'point point-' + i });
       d3.transition(points)
           .attr('cx', function(d) { return x(getX(d)) })

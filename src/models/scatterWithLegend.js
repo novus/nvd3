@@ -76,6 +76,7 @@ nv.models.scatterWithLegend = function() {
         //d3.transition(selection).call(chart);
       });
 
+      /*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -85,6 +86,7 @@ nv.models.scatterWithLegend = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
+      */
 
 
 

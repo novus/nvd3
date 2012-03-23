@@ -703,7 +703,13 @@ nv.models.line = function() {
             .x(function(d) { return x0(getX(d)) })
             .y(function(d) { return y0(getY(d)) })
           );
-      paths.exit().remove();
+      //d3.transition(paths.exit())
+      d3.transition(lines.exit().selectAll('path'))
+          .attr('d', d3.svg.line()
+            .x(function(d) { return x(getX(d)) })
+            .y(function(d) { return y(getY(d)) })
+          )
+          .remove();
       d3.transition(paths)
           .attr('d', d3.svg.line()
             .x(function(d) { return x(getX(d)) })
@@ -716,7 +722,11 @@ nv.models.line = function() {
       points.enter().append('circle')
           .attr('cx', function(d) { return x0(getX(d)) })
           .attr('cy', function(d) { return y0(getY(d)) });
-      points.exit().remove();
+      //d3.transition(points.exit())
+      d3.transition(lines.exit().selectAll('circle.point'))
+          .attr('cx', function(d) { return x(getX(d)) })
+          .attr('cy', function(d) { return y(getY(d)) })
+          .remove();
       points.attr('class', function(d,i) { return 'point point-' + i });
       d3.transition(points)
           .attr('cx', function(d) { return x(getX(d)) })
@@ -814,22 +824,22 @@ nv.models.lineWithFocus = function() {
       height2 = 100,
       dotRadius = function() { return 2.5 },
       color = d3.scale.category10().range(),
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      id = Math.floor(Math.random() * 10000); //Create semi-unique ID incase user doesn't select one
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
       x2 = d3.scale.linear(),
       y2 = d3.scale.linear(),
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
       xAxis = nv.models.xaxis().scale(x),
       yAxis = nv.models.yaxis().scale(y),
       xAxis2 = nv.models.xaxis().scale(x2),
       yAxis2 = nv.models.yaxis().scale(y2),
       legend = nv.models.legend().height(30),
       focus = nv.models.line(),
-      context = nv.models.line().dotRadius(.1).interactive(false);
+      context = nv.models.line().dotRadius(.1).interactive(false),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var brush = d3.svg.brush()
             .x(x2)
@@ -1493,7 +1503,12 @@ nv.models.scatter = function() {
           .attr('cx', function(d) { return x0(getX(d)) })
           .attr('cy', function(d) { return y0(getY(d)) })
           .attr('r', function(d) { return z0(getSize(d)) });
-      points.exit().remove();
+      //d3.transition(points.exit())
+      d3.transition(groups.exit().selectAll('circle.point'))
+          .attr('cx', function(d) { return x(getX(d)) })
+          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('r', function(d) { return z(getSize(d)) })
+          .remove();
       points.attr('class', function(d,i) { return 'point point-' + i });
       d3.transition(points)
           .attr('cx', function(d) { return x(getX(d)) })
@@ -1507,6 +1522,11 @@ nv.models.scatter = function() {
       distX.enter().append('line')
           .attr('x1', function(d) { return x0(getX(d)) })
           .attr('x2', function(d) { return x0(getX(d)) })
+      //d3.transition(distX.exit())
+      d3.transition(groups.exit().selectAll('line.distX'))
+          .attr('x1', function(d) { return x(getX(d)) })
+          .attr('x2', function(d) { return x(getX(d)) })
+          .remove();
       distX
           .attr('class', function(d,i) { return 'distX distX-' + i })
           .attr('y1', y.range()[0])
@@ -1514,13 +1534,17 @@ nv.models.scatter = function() {
       d3.transition(distX)
           .attr('x1', function(d) { return x(getX(d)) })
           .attr('x2', function(d) { return x(getX(d)) })
-      distX.exit().remove();
 
       var distY = groups.selectAll('line.distY')
           .data(function(d) { return d.values })
       distY.enter().append('line')
           .attr('y1', function(d) { return y0(getY(d)) })
           .attr('y2', function(d) { return y0(getY(d)) });
+      //d3.transition(distY.exit())
+      d3.transition(groups.exit().selectAll('line.distY'))
+          .attr('y1', function(d) { return y(getY(d)) })
+          .attr('y2', function(d) { return y(getY(d)) })
+          .remove();
       distY
           .attr('class', function(d,i) { return 'distY distY-' + i })
           .attr('x1', x.range()[0])
@@ -1528,7 +1552,6 @@ nv.models.scatter = function() {
       d3.transition(distY)
           .attr('y1', function(d) { return y(getY(d)) })
           .attr('y2', function(d) { return y(getY(d)) });
-      distY.exit().remove();
 
 
 
@@ -1705,6 +1728,7 @@ nv.models.scatterWithLegend = function() {
         //d3.transition(selection).call(chart);
       });
 
+      /*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -1714,6 +1738,7 @@ nv.models.scatterWithLegend = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
+      */
 
 
 
