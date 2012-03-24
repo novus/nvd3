@@ -23,16 +23,14 @@ nv.models.lineWithFocus = function() {
       legend = nv.models.legend().height(30),
       focus = nv.models.line(),
       context = nv.models.line().dotRadius(.1).interactive(false),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
-
-  var brush = d3.svg.brush()
-            .x(x2)
-            .on('brush', onBrush);
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
+      brush = d3.svg.brush()
+            .x(x2);
 
 
-  var wrap, gEnter, g, focus, focusLines, contextWrap, focusWrap, contextLines;  //brought all variables to this scope for use within brush function... is this a bad idea?
+  //var wrap, gEnter, g, focus, focusLines, contextWrap, focusWrap, contextLines;  //brought all variables to this scope for use within brush function... is this a bad idea?
 
-  var seriesData;  //Temporarily bringing this data to this scope.... may be bad idea (same with above).. may need to rethink brushing
+  //var seriesData;  //Temporarily bringing this data to this scope.... may be bad idea (same with above).. may need to rethink brushing
 
   function chart(selection) {
     selection.each(function(data) {
@@ -49,6 +47,7 @@ nv.models.lineWithFocus = function() {
       y   .domain(y2.domain())
           .range([height1 - margin.top - margin.bottom, 0]);
 
+      brush.on('brush', onBrush);
 
       focus
         .width(width - margin.left - margin.right)
@@ -65,10 +64,11 @@ nv.models.lineWithFocus = function() {
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
+      updateFocus();
 
 
-      wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithFocus').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithFocus').append('g');
 
       gEnter.append('g').attr('class', 'focus');
       gEnter.append('g').attr('class', 'context');
@@ -76,7 +76,7 @@ nv.models.lineWithFocus = function() {
 
 
 
-      g = wrap.select('g')
+      var g = wrap.select('g')
           //.attr('transform', 'translate(0,0)');
 
 
@@ -100,7 +100,7 @@ nv.models.lineWithFocus = function() {
 
       // ********** FOCUS **********
 
-      focusWrap = g.select('.focus')
+      var focusWrap = g.select('.focus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       gEnter.select('.focus').append('g').attr('class', 'x axis');
@@ -108,7 +108,7 @@ nv.models.lineWithFocus = function() {
       gEnter.select('.focus').append('g').attr('class', 'focusLines');
 
 
-      focusLines = g.select('.focusLines')
+      var focusLines = focusWrap.select('.focusLines')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(focusLines).call(focus);
@@ -120,7 +120,7 @@ nv.models.lineWithFocus = function() {
         .ticks( width / 100 )
         .tickSize(-(height1 - margin.top - margin.bottom), 0);
 
-      g.select('.x.axis')
+      focusWrap.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
@@ -139,7 +139,7 @@ nv.models.lineWithFocus = function() {
 
       // ********** CONTEXT **********
 
-      contextWrap = g.select('.context')
+      var contextWrap = g.select('.context')
           .attr('transform', 'translate(' + margin2.left + ',' + height1 + ')');
 
       gEnter.select('.context').append('g').attr('class', 'x2 axis');
@@ -152,7 +152,7 @@ nv.models.lineWithFocus = function() {
           .attr('y', -5)
           .attr('height', height2 + 4);
 
-      contextLines = contextWrap.select('.contextLines')
+      var contextLines = contextWrap.select('.contextLines')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(contextLines).call(context);
@@ -225,6 +225,42 @@ nv.models.lineWithFocus = function() {
         dispatch.tooltipHide(e);
       });
 
+
+
+
+
+      function onBrush() {
+        updateFocus();
+
+
+        focusLines.call(focus)
+        wrap.select('.x.axis').call(xAxis);
+        wrap.select('.y.axis').call(yAxis);
+      }
+
+      function updateFocus() {
+        var yDomain = brush.empty() ? y2.domain() : d3.extent(d3.merge(seriesData).filter(function(d) {
+          return getX(d) >= brush.extent()[0] && getX(d) <= brush.extent()[1];
+        }), getY);  //This doesn't account for the 1 point before and the 1 point after the domain.  Would fix, but likely need to change entire methodology here
+
+        if (typeof yDomain[0] == 'undefined') yDomain = y2.domain(); //incase the brush doesn't cover a single point
+
+
+        x.domain(brush.empty() ? x2.domain() : brush.extent());
+        y.domain(yDomain);
+
+        //TODO: Rethink this... performance is horrible, likely need to cut off focus data to within the range
+        //      If I limit the data for focusLines would want to include 1 point before and after the extent,
+        //      Need to figure out an optimized way to accomplish this.
+        //      ***One concern is to try not to make the assumption that all lines are of the same length, and
+        //         points with the same index have the same x value (while this is true in our test cases, may 
+        //         no always be)
+        
+        focus.xDomain(x.domain());
+        focus.yDomain(y.domain());
+      }
+
+
     });
 
     return chart;
@@ -233,29 +269,6 @@ nv.models.lineWithFocus = function() {
 
 
   // ********** FUNCTIONS **********
-
-  function onBrush() {
-    var yDomain = brush.empty() ? y2.domain() : d3.extent(d3.merge(seriesData).filter(function(d) {
-      return getX(d) >= brush.extent()[0] && getX(d) <= brush.extent()[1];
-    }), getY);
-
-    if (typeof yDomain[0] == 'undefined') yDomain = y2.domain();
-
-
-    x.domain(brush.empty() ? x2.domain() : brush.extent());
-    y.domain(yDomain);
-    //y.domain(brush.empty() ? y2.domain() : d3.extent(d3.merge(seriesData).filter(function(d) {
-      //return getX(d) >= brush.extent()[0] && getX(d) <= brush.extent()[1];
-    //}), getY) || y2.domain() );
-
-    focus.xDomain(x.domain());
-    focus.yDomain(y.domain());
-
-    focusLines.call(focus)
-
-    wrap.select('.x.axis').call(xAxis);
-    wrap.select('.y.axis').call(yAxis);
-  }
 
 
 

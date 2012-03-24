@@ -185,7 +185,10 @@ nv.models.line = function() {
       points.enter().append('circle')
           .attr('cx', function(d) { return x0(getX(d)) })
           .attr('cy', function(d) { return y0(getY(d)) });
-      //d3.transition(points.exit())
+      d3.transition(points.exit())
+          .attr('cx', function(d) { return x(getX(d)) })
+          .attr('cy', function(d) { return y(getY(d)) })
+          .remove();
       d3.transition(lines.exit().selectAll('circle.point'))
           .attr('cx', function(d) { return x(getX(d)) })
           .attr('cy', function(d) { return y(getY(d)) })
