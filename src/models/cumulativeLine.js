@@ -115,7 +115,7 @@ nv.models.cumulativeLine = function() {
       xAxis
         .domain(x.domain())
         .range(x.range())
-        .ticks( width / 100 )
+        //.ticks( width / 100 )
         .tickSize(-(height - margin.top - margin.bottom), 0);
 
       g.select('.x.axis')

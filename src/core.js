@@ -83,3 +83,53 @@ nv.strip = function(s) {
   return s.replace(/(\s|&)/g,'');
 }
 
+
+
+
+
+/* An ugly implementation to get month end axis dates
+ * Will hopefully refactor sooner than later
+ */
+
+function daysInMonth(month,year) {
+  var m = [31,28,31,30,31,30,31,31,30,31,30,31];
+  if (month != 2) return m[month - 1];
+  if (year%4 != 0) return m[1];
+  if (year%100 == 0 && year%400 != 0) return m[1];
+  return m[1] + 1;
+}
+
+
+function d3_time_range(floor, step, number) {
+  return function(t0, t1, dt) {
+    var time = floor(t0), times = [];
+    if (time < t0) step(time);
+    if (dt > 1) {
+      while (time < t1) {
+        var date = new Date(+time);
+        if (!(number(date) % dt)) times.push(date);
+        step(time);
+      }
+    } else {
+      while (time < t1) times.push(new Date(+time)), step(time);
+    }
+    return times;
+  };
+}
+
+
+d3.time.monthEnd = function(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 0);
+};
+
+
+d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
+    date.setUTCDate(date.getUTCDate() + 1);
+    date.setDate(daysInMonth(date.getMonth() + 1, date.getFullYear()));
+  }, function(date) {
+    return date.getMonth();
+  }
+);
+
+
+

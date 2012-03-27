@@ -4,14 +4,14 @@ nv.models.xaxis = function() {
       range = [0,1],
       axisLabelText = false;
 
-  var x = d3.scale.linear(),
-      axis = d3.svg.axis().scale(x).orient('bottom');
+  var scale = d3.scale.linear(),
+      axis = d3.svg.axis().scale(scale).orient('bottom');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      x   .domain(domain)
-          .range(range);
+      scale.domain(domain)
+           .range(range);
 
       //TODO: consider calculating height based on whether or not label is added, for reference in charts using this component
 
@@ -53,6 +53,13 @@ nv.models.xaxis = function() {
     return chart;
   };
 
+  chart.scale = function(_) {
+    if (!arguments.length) return scale;
+    scale = _;
+    axis.scale(scale);
+    return chart;
+  };
+
   chart.axisLabel = function(_) {
     if (!arguments.length) return axisLabelText;
     axisLabelText = _;
@@ -60,7 +67,7 @@ nv.models.xaxis = function() {
   }
 
 
-  d3.rebind(chart, axis, 'scale', 'orient', 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  d3.rebind(chart, axis, 'orient', 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
 
   return chart;
 }

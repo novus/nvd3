@@ -173,6 +173,56 @@ nv.strip = function(s) {
 }
 
 
+
+
+
+/* An ugly implementation to get month end axis dates
+ * Will hopefully refactor sooner than later
+ */
+
+function daysInMonth(month,year) {
+  var m = [31,28,31,30,31,30,31,31,30,31,30,31];
+  if (month != 2) return m[month - 1];
+  if (year%4 != 0) return m[1];
+  if (year%100 == 0 && year%400 != 0) return m[1];
+  return m[1] + 1;
+}
+
+
+function d3_time_range(floor, step, number) {
+  return function(t0, t1, dt) {
+    var time = floor(t0), times = [];
+    if (time < t0) step(time);
+    if (dt > 1) {
+      while (time < t1) {
+        var date = new Date(+time);
+        if (!(number(date) % dt)) times.push(date);
+        step(time);
+      }
+    } else {
+      while (time < t1) times.push(new Date(+time)), step(time);
+    }
+    return times;
+  };
+}
+
+
+d3.time.monthEnd = function(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 0);
+};
+
+
+d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
+    date.setUTCDate(date.getUTCDate() + 1);
+    date.setDate(daysInMonth(date.getMonth() + 1, date.getFullYear()));
+  }, function(date) {
+    return date.getMonth();
+  }
+);
+
+
+
+
 nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 10},
       width = 400,
@@ -280,14 +330,14 @@ nv.models.xaxis = function() {
       range = [0,1],
       axisLabelText = false;
 
-  var x = d3.scale.linear(),
-      axis = d3.svg.axis().scale(x).orient('bottom');
+  var scale = d3.scale.linear(),
+      axis = d3.svg.axis().scale(scale).orient('bottom');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      x   .domain(domain)
-          .range(range);
+      scale.domain(domain)
+           .range(range);
 
       //TODO: consider calculating height based on whether or not label is added, for reference in charts using this component
 
@@ -329,6 +379,13 @@ nv.models.xaxis = function() {
     return chart;
   };
 
+  chart.scale = function(_) {
+    if (!arguments.length) return scale;
+    scale = _;
+    axis.scale(scale);
+    return chart;
+  };
+
   chart.axisLabel = function(_) {
     if (!arguments.length) return axisLabelText;
     axisLabelText = _;
@@ -336,7 +393,7 @@ nv.models.xaxis = function() {
   }
 
 
-  d3.rebind(chart, axis, 'scale', 'orient', 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  d3.rebind(chart, axis, 'orient', 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
 
   return chart;
 }
