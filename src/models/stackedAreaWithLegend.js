@@ -144,7 +144,9 @@ nv.models.stackedAreaWithLegend = function() {
 
 
       legend.width(width/2 - margin.right);
-      controls.width(260);
+      controls
+          .width(280)
+          .color(['#666', '#666', '#666']);
 
       g.select('.legendWrap')
           .datum(data)

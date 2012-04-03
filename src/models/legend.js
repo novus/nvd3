@@ -98,5 +98,11 @@ nv.models.legend = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
   return chart;
 }
