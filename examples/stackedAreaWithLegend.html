@@ -25,16 +25,18 @@ text {
 <script src="../nv.d3.js"></script>
 <script src="../src/nvtooltip.js"></script>
 <script src="../src/models/stackedArea.js"></script>
+<script src="../src/models/stackedAreaWithLegend.js"></script>
 <script>
 
 
 //Format A
 nv.addGraph({
   generate: function() {
-    var n = 10, // number of layers
+    var n = 6, // number of layers
         m = 200; // number of samples per layer
         //color = d3.interpolateRgb("#aad", "#556");
 
+    //format data to our liking, add keys
     var data = stream_layers(n,m).map(function(data, i) {
       return { 
         key: 'Stream' + i,
@@ -46,11 +48,9 @@ nv.addGraph({
     var width = $(window).width() - 20,
         height = $(window).height() - 20;
 
-    var chart = nv.models.stackedArea()
+    var chart = nv.models.stackedAreaWithLegend()
                 .width(width)
                 .height(height)
-                //.offset('wiggle')
-                //.order('default')
 
 
     var svg = d3.select('#chart svg')
