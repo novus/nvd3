@@ -27,25 +27,22 @@ nv.models.stackedArea = function() {
         // Need to leave data alone to switch between stacked, stream, and expanded
         var dataCopy = JSON.parse(JSON.stringify(data));
 
-        //log(dataCopy);
-        dataCopy = dataCopy.map(function(series) { return series.values })
 
         //compute the data based on offset and order (calc's y0 for every point)
-        //dataCopy =  d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
-        dataCopy =  d3.layout.stack().offset(offset).order(order)(dataCopy);
+        dataCopy =  d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
 
-        var mx = dataCopy[0].length - 1, // assumes that all layers have same # of samples & that there is at least one layer
+        var mx = dataCopy[0].values.length - 1, // assumes that all layers have same # of samples & that there is at least one layer
             my = d3.max(dataCopy, function(d) {
-                return d3.max(d, function(d) {
+                return d3.max(d.values, function(d) {
                     return d.y0 + d.y;
                 });
             });
 
         // Select the wrapper g, if it exists.
-        var wrap = d3.select(this).selectAll('g.d3stream').data([dataCopy]);
+        var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
 
         // Create the skeletal chart on first load.
-        var gEnter = wrap.enter().append('g').attr('class', 'd3stream').append('g');
+        var gEnter = wrap.enter().append('g').attr('class', 'd3stackedarea').append('g');
 
 
         var g = wrap.select('g')
@@ -68,18 +65,15 @@ nv.models.stackedArea = function() {
 
         var path = g.selectAll('path')
           .data(function(d) { return d });
-          //.data(dataCopy);
         path.enter().append('path');
         d3.transition(path.exit())
-            .attr('d', zeroArea)
+            .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
-            .style('fill-opacity', .75)
-            .style('stroke-opacity', .75)
             .style('fill', function(d,i){ return color[i % 10] })
             .style('stroke', function(d,i){ return color[i % 10] });
         d3.transition(path)
-            .attr('d', area);
+            .attr('d', function(d,i) { return area(d.values,i) })
 
     });
 

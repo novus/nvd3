@@ -41,9 +41,8 @@ nv.models.stackedAreaWithLegend = function() {
       x   .domain(d3.extent(d3.merge(series), getX ))
           .range([0, width - margin.left - margin.right]);
 
-      //TODO: remove if stream
-      y   .domain(stacked.offset() == 'zero' ? 
-            d3.extent(d3.merge(series), getY ) :
+      y   .domain(stacked.offset() == 'zero' ?
+            [0, d3.max(d3.merge(series), getY )] :
             [0, 1]  // 0 - 100%
           )
           .range([height - margin.top - margin.bottom, 0]);

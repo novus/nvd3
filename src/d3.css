@@ -229,3 +229,16 @@ text {
   fill-opacity: 1;
 }
 */
+
+
+/**********
+*  Stacked Area
+*/
+
+.d3stackedarea path {
+  fill-opacity: .75;
+  stroke-opacity: .75;
+}
+
+
+
