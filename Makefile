@@ -12,6 +12,8 @@ JS_FILES = \
 	src/models/scatter.js \
 	src/models/scatterWithLegend.js \
 	src/models/sparkline.js \
+	src/models/stackedArea.js \
+	src/models/stackedAreaWithLegend.js \
 	src/outro.js
 
 JS_COMPILER = \
