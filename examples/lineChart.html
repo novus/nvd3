@@ -34,6 +34,7 @@ text {
 <script src="../lib/d3.v2.js"></script>
 <script src="../lib/jquery.min.js"></script>
 <script src="../nv.d3.js"></script>
+<!-- including all the components so I don't have to minify every time I test in development -->
 <script src="../src/nvtooltip.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/xaxis.js"></script>
@@ -46,8 +47,9 @@ text {
 
 
 nv.charts.line()
-    .data(sinAndCos())
     .selector('#chart1')
+    .data(sinAndCos())
+    .y(function(d) { return d.voltage })
     .yAxisLabel('Voltage (v)')
     .build();
 
@@ -59,8 +61,8 @@ function sinAndCos() {
       cos = [];
 
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
-    cos.push({x: i, y: .5 * Math.cos(i/10)});
+    sin.push({x: i, voltage: Math.sin(i/10)});
+    cos.push({x: i, voltage: .5 * Math.cos(i/10)});
   }
 
   return [

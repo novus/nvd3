@@ -1,40 +1,52 @@
 
-//may make these more specific, like 'time series line with month end data points', etc.
-//  or may make that yet another layer of abstraction.... trying to not get too crazy
+// This is an attempt to make an extremely easy to use chart that is ready to go,
+//    basically the chart models with the extra glue... Queuing, tooltips, automatic resize, etc.
+// I may make these more specific, like 'time series line with month end data points', etc.
+//    or may make yet another layer of abstraction... common settings.
 nv.charts.line = function() {
-
   var selector = null,
       data = [],
-      xTickFormat = d3.format(',r'),
-      yTickFormat = d3.format(',.2f'),
-      xAxisLabel = null,
-      yAxisLabel = null,
-      duration = 500;
+      duration = 500,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
+      };
+
 
   var graph = nv.models.lineWithLegend(),
-      showTooltip = function(e) {  //TODO: simplify so all the calcualtions don't need to be done by the user.
+      showTooltip = function(e) {
         var offset = $(selector).offset(),
             left = e.pos[0] + offset.left,
             top = e.pos[1] + offset.top,
-            formatY = graph.yAxis.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
-            formatX = graph.xAxis.tickFormat();
-
-        // uses the chart's getX and getY, you may customize if x position is not the same as the value you want 
-        //   ex. daily data without weekends, x is the index, while you want the date
-        var content = '<h3>' + e.series.key + '</h3>' +
-                      '<p>' +
-                      formatY(graph.y()(e.point)) + ' at ' + formatX(graph.x()(e.point)) +
-                      '</p>';
+            formatX = graph.xAxis.tickFormat(),
+            formatY = graph.yAxis.tickFormat(),
+            x = formatX(graph.x()(e.point)),
+            y = formatY(graph.y()(e.point)),
+            content = tooltip(e.series.key, x, y, e, graph);
 
         nvtooltip.show([left, top], content);
       };
 
+  //setting component defaults
+  graph.xAxis.tickFormat(d3.format(',r'));
+  graph.yAxis.tickFormat(d3.format(',.2f'));
 
+
+  //TODO: consider a method more similar to how the models are built
   function chart() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph); //consider using transition chaining like in the models
+
     return chart;
   }
 
 
+  // This should always only be called once, then update should be used after, 
+  //     in which case should consider the 'd3 way' and merge this with update, 
+  //     but simply do this on enter... should try anoter example that way
   chart.build = function() {
     if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
 
@@ -49,13 +61,6 @@ nv.charts.line = function() {
             .width(width)
             .height(height);
 
-        graph.xAxis
-            .tickFormat(xTickFormat);
-
-        graph.yAxis
-            .tickFormat(yTickFormat)
-            .axisLabel(yAxisLabel);
-
         svg
             .attr('width', width())
             .attr('height', height())
@@ -68,6 +73,7 @@ nv.charts.line = function() {
         graph.dispatch.on('tooltipShow', showTooltip);
         graph.dispatch.on('tooltipHide', nvtooltip.cleanup);
 
+        //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
         $(window).resize(function() {
           // now that width and height are functions, should be automatic..of course you can always override them
           d3.select(selector + ' svg')
@@ -82,12 +88,18 @@ nv.charts.line = function() {
   };
 
 
+  /*
+  //  moved to chart()
   chart.update = function() {
-    //TODO: create update code
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph);
 
     return chart;
   };
-
+  */
 
   chart.data = function(_) {
     if (!arguments.length) return data;
@@ -107,31 +119,40 @@ nv.charts.line = function() {
     return chart;
   };
 
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
   chart.xTickFormat = function(_) {
-    if (!arguments.length) return xTickFormat;
-    xTickFormat = _;
+    if (!arguments.length) return graph.xAxis.tickFormat();
+    graph.xAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
     return chart;
   };
 
   chart.yTickFormat = function(_) {
-    if (!arguments.length) return yTickFormat;
-    yTickFormat = _;
+    if (!arguments.length) return graph.yAxis.tickFormat();
+    graph.yAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
     return chart;
   };
 
   chart.xAxisLabel = function(_) {
-    if (!arguments.length) return xAxisLabel;
-    xAxisLabel = _;
+    if (!arguments.length) return graph.xAxis.axisLabel();
+    graph.xAxis.axisLabel(_);
     return chart;
   };
 
   chart.yAxisLabel = function(_) {
-    if (!arguments.length) return yAxisLabel;
-    yAxisLabel = _;
+    if (!arguments.length) return graph.yAxis.axisLabel();
+    graph.yAxis.axisLabel(_);
     return chart;
   };
 
+  d3.rebind(chart, graph, 'x', 'y');
+
+  chart.graph = graph; // Give direct access for getter/setters, and dispatchers
 
   return chart;
-}
+};
 

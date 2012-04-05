@@ -1,4 +1,8 @@
-var nv = {version: "0.0.1"};
+var nv = {
+  version: '0.0.1',
+  dev: true //set false when in production
+};
+
 
 window.nv = nv;
 
@@ -7,15 +11,15 @@ nv.charts = {}; //stores all the ready to use charts
 nv.graphs = []; //stores all the graphs currently on the page
 nv.log = {}; //stores some statistics and potential error messages
 
-nv.dispatch = d3.dispatch("render_start", "render_end");
+nv.dispatch = d3.dispatch('render_start', 'render_end');
 
 
 // ********************************************
 //  Public Helper functions, not part of NV
 
 window.log = function(obj) {
-  if ((typeof(window.console) === "object")
-    && (typeof(window.console.log) === "function"))
+  if ((typeof(window.console) === 'object')
+    && (typeof(window.console.log) === 'function'))
       console.log.apply(console, arguments);
 
   return obj;
@@ -27,24 +31,22 @@ window.log = function(obj) {
 // ********************************************
 //  Public Core NV functions
 
-nv.dispatch.on("render_start", function(e) {
+nv.dispatch.on('render_start', function(e) {
   nv.log.startTime = +new Date;
-  //log('start', nv.log.startTime);
 });
 
-nv.dispatch.on("render_end", function(e) {
+nv.dispatch.on('render_end', function(e) {
   nv.log.endTime = +new Date;
   nv.log.totalTime = nv.log.endTime - nv.log.startTime;
-  //log('end', nv.log.endTime);
-  log('total', nv.log.totalTime); //used for development, to keep track of graph generation times
+  if (nv.dev) log('total', nv.log.totalTime); //used for development, to keep track of graph generation times
 });
 
 
 // ********************************************
 //  Public Core NV functions
 
-nv.render = function render(stepSize) {
-  var step = stepSize || 1; // number of graphs to generate in each timout loop
+nv.render = function render(step) {
+  step = step || 1; // number of graphs to generate in each timout loop
 
   render.active = true;
   nv.dispatch.render_start();
@@ -60,7 +62,7 @@ nv.render = function render(stepSize) {
 
     render.queue.splice(0, i);
 
-    if (render.queue.length > 0) setTimeout(arguments.callee, 0);
+    if (render.queue.length) setTimeout(arguments.callee, 0);
     else { 
       nv.render.active = false;
       nv.dispatch.render_end();
@@ -71,13 +73,17 @@ nv.render.queue = [];
 
 
 nv.addGraph = function(obj) {
-  if (typeof arguments[0] === "function")
+  if (typeof arguments[0] === 'function')
     obj = {generate: arguments[0], callback: arguments[1]};
 
   nv.render.queue.push(obj);
 
   if (!nv.render.active) nv.render();
 };
+
+
+
+nv.identity = function(d) { return d };
 
 
 nv.strip = function(s) {

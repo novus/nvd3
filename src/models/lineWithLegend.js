@@ -135,6 +135,9 @@ nv.models.lineWithLegend = function() {
   }
 
   chart.dispatch = dispatch;
+  chart.legend = legend;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -174,17 +177,6 @@ nv.models.lineWithLegend = function() {
     lines.dotRadius = _;
     return chart;
   };
-
-
-  // Expose the x-axis' tickFormat method.
-  //chart.xAxis = {};
-  //d3.rebind(chart.xAxis, xAxis, 'tickFormat');
-  chart.xAxis = xAxis;
-
-  // Expose the y-axis' tickFormat method.
-  //chart.yAxis = {};
-  //d3.rebind(chart.yAxis, yAxis, 'tickFormat');
-  chart.yAxis = yAxis;
 
 
   return chart;
