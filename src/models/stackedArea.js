@@ -4,9 +4,12 @@ nv.models.stackedArea = function() {
       width = 960,
       height = 500,
       color = d3.scale.category10().range(),
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
       style = 'stack',
       offset = 'zero',
-      order = 'default';
+      order = 'default',
+      xDomain, yDomain;
 
 /************************************
  * offset:
@@ -20,29 +23,34 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var lines = nv.models.line();
+  var lines = nv.models.line(),
+      x = d3.scale.linear(),
+      y = d3.scale.linear();
 
   function chart(selection) {
     selection.each(function(data) {
-
         // Need to leave data alone to switch between stacked, stream, and expanded
-        var dataCopy = JSON.parse(JSON.stringify(data));
+        var dataCopy = JSON.parse(JSON.stringify(data)),
+            seriesData = dataCopy.map(function(d) { return d.values }),
+            availableWidth = width - margin.left - margin.right,
+            availableHeight = height - margin.top - margin.bottom;
 
 
         //compute the data based on offset and order (calc's y0 for every point)
-        dataCopy =  d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
+        dataCopy = d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
 
-        var mx = dataCopy[0].values.length - 1, // assumes that all layers have same # of samples & that there is at least one layer
-            my = d3.max(dataCopy, function(d) {
-                return d3.max(d.values, function(d) {
-                    return d.y0 + d.y;
-                });
-            });
+        x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX))
+            .range([0, availableWidth]);
+
+        y   .domain(yDomain || [0, d3.max(dataCopy, function(d) { return d3.max(d.values, function(d) { return d.y0 + d.y }) }) ])
+            .range([availableHeight, 0]);
 
 
         lines
-          .width(width - margin.left - margin.right)
-          .height(height - margin.top - margin.bottom)
+          .width(availableWidth)
+          .height(availableHeight)
+          .xDomain(x.domain())
+          .yDomain(y.domain())
           .y(function(d) { return d.y + d.y0 })
           .color(data.map(function(d,i) {
             return d.color || color[i % 10];
@@ -66,23 +74,19 @@ nv.models.stackedArea = function() {
 
         d3.transition(linesWrap).call(lines);
 
-
-        // Update the stacked graph
-        var availableWidth = width - margin.left - margin.right,
-            availableHeight = height - margin.top - margin.bottom;
-
         var area = d3.svg.area()
-            .x(function(d) { return d.x * availableWidth / mx; })
-            .y0(function(d) { return availableHeight - d.y0 * availableHeight / my; })
-            .y1(function(d) { return availableHeight - (d.y + d.y0) * availableHeight / my; });
+            .x(function(d) { return x(getX(d)) })
+            .y0(function(d) { return y(d.y0) })
+            .y1(function(d) { return y(d.y + d.y0) });
 
         var zeroArea = d3.svg.area()
-            .x(function(d) { return d.x * availableWidth / mx; })
-            .y0(function(d) { return availableHeight - d.y0 * availableHeight / my; })
-            .y1(function(d) { return availableHeight - d.y0 * availableHeight / my; })
+            .x(function(d) { return x(getX(d)) })
+            .y0(function(d) { return y(d.y0) })
+            .y1(function(d) { return y(d.y0) });
+
 
         var path = g.select('.areaWrap').selectAll('path.area')
-          .data(function(d) { return d });
+            .data(function(d) { return d });
         path.enter().append('path').attr('class', 'area');
         d3.transition(path.exit())
             .attr('d', function(d,i) { return zeroArea(d.values,i) })

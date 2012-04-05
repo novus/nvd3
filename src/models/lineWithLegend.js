@@ -20,20 +20,22 @@ nv.models.lineWithLegend = function() {
   function chart(selection) {
     selection.each(function(data) {
       var width = getWidth(),
-          height = getHeight();
+          height = getHeight(),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
       var series = data.filter(function(d) { return !d.disabled })
             .map(function(d) { return d.values });
 
       x   .domain(d3.extent(d3.merge(series), getX ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
 
       y   .domain(d3.extent(d3.merge(series), getY ))
-          .range([height - margin.top - margin.bottom, 0]);
+          .range([availableHeight, 0]);
 
       lines
-        .width(width - margin.left - margin.right)
-        .height(height - margin.top - margin.bottom)
+        .width(availableWidth)
+        .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }))
@@ -62,6 +64,8 @@ nv.models.lineWithLegend = function() {
         selection.transition().call(chart);
       });
 
+/*
+      //
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -71,6 +75,7 @@ nv.models.lineWithLegend = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
+*/
 
       lines.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
@@ -91,14 +96,14 @@ nv.models.lineWithLegend = function() {
       margin.top = legend.height();
 
       var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + legend.height() + ')');
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       legend.width(width/2 - margin.right);
 
       g.select('.legendWrap')
           .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-legend.height()) +')')
+          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
           .call(legend);
 
 
@@ -113,7 +118,7 @@ nv.models.lineWithLegend = function() {
         .domain(x.domain())
         .range(x.range())
         .ticks( width / 100 )
-        .tickSize(-(height - margin.top - margin.bottom), 0);
+        .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
@@ -124,7 +129,7 @@ nv.models.lineWithLegend = function() {
         .domain(y.domain())
         .range(y.range())
         .ticks( height / 36 )
-        .tickSize(-(width - margin.right - margin.left), 0);
+        .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);

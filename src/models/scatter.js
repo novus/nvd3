@@ -19,7 +19,9 @@ nv.models.scatter = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { return d.values });
+      var seriesData = data.map(function(d) { return d.values }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
       x0 = x0 || x;
       y0 = y0 || y;
@@ -40,10 +42,10 @@ nv.models.scatter = function() {
 
       //TODO: figure out the best way to deal with scales with equal MIN and MAX
       x   .domain(d3.extent(d3.merge(seriesData).map( getX ).concat(forceX) ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
 
       y   .domain(d3.extent(d3.merge(seriesData).map( getY ).concat(forceY) ))
-          .range([height - margin.top - margin.bottom, 0]);
+          .range([availableHeight, 0]);
 
       z   .domain(d3.extent(d3.merge(seriesData), getSize ))
           .range([2, 10]);
@@ -51,7 +53,8 @@ nv.models.scatter = function() {
 
       var vertices = d3.merge(data.map(function(group, groupIndex) {
           return group.values.map(function(point, pointIndex) {
-            return [x(getX(point)), y(getY(point)), groupIndex, pointIndex]; //inject series and point index for reference into voronoi
+            //return [x(getX(point)), y(getY(point)), groupIndex, pointIndex]; //inject series and point index for reference into voronoi
+            return [x(getX(point)) * (Math.random() / 1e12 + 1)  , y(getY(point)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
           })
         })
       );
@@ -76,8 +79,8 @@ nv.models.scatter = function() {
       wrap.select('.voronoi-clip rect')
           .attr('x', -10)
           .attr('y', -10)
-          .attr('width', width - margin.left - margin.right + 20)
-          .attr('height', height - margin.top - margin.bottom + 20);
+          .attr('width', availableWidth + 20)
+          .attr('height', availableHeight + 20);
       wrap.select('.point-paths')
           .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
 
@@ -98,7 +101,6 @@ nv.models.scatter = function() {
       var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
 
 
-      //TODO: Need to deal with duplicates, maybe add small amount of noise to all
       var pointPaths = wrap.select('.point-paths').selectAll('path')
           .data(voronoi);
       pointPaths.enter().append('path')

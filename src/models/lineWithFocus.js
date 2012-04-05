@@ -202,6 +202,7 @@ nv.models.lineWithFocus = function() {
         selection.transition().call(chart);
       });
 
+/*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -210,7 +211,7 @@ nv.models.lineWithFocus = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
-
+*/
 
       focus.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({

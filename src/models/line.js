@@ -22,17 +22,20 @@ nv.models.line = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { return d.values });
+      var seriesData = data.map(function(d) { return d.values }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
       x0 = x0 || x;
       y0 = y0 || y;
 
+
       //TODO: consider reusing the parent's scales (almost always making duplicates of the same scale)
       x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData), getY ))
-          .range([height - margin.top - margin.bottom, 0]);
+          .range([availableHeight, 0]);
 
 
       var wrap = d3.select(this).selectAll('g.d3line').data([data]);
@@ -50,8 +53,8 @@ nv.models.line = function() {
           .attr('id', 'chart-clip-path-' + id)
         .append('rect');
       wrap.select('#chart-clip-path-' + id + ' rect')
-          .attr('width', width - margin.left - margin.right)
-          .attr('height', height - margin.top - margin.bottom);
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
       gEnter
           .attr('clip-path', 'url(#chart-clip-path-' + id + ')');
@@ -60,7 +63,10 @@ nv.models.line = function() {
 
 
       //TODO: currently doesnt remove if user renders, then turns off interactions... currently must turn off before the first render (will need to fix)
-      if (interactive) {
+      //TODO: have the interactive component update AFTER transitions are complete
+      function interactiveLayer() {
+        if (!interactive) return false;
+
         shiftWrap.append('g').attr('class', 'point-clips');
         shiftWrap.append('g').attr('class', 'point-paths');
 
@@ -97,8 +103,6 @@ nv.models.line = function() {
 
         pointPaths.enter().append('path')
             .attr('class', function(d,i) { return 'path-'+i; })
-            //.style('fill', d3.rgb(230, 230, 230))
-            //.style('stroke', d3.rgb(200, 200, 200))
             .style('fill-opacity', 0);
 
         pointPaths.exit().remove();
@@ -156,7 +160,9 @@ nv.models.line = function() {
           .style('stroke', function(d,i){ return color[i % 20] })
       d3.transition(lines)
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .5);
+          .style('fill-opacity', .5)
+          .each('end', function(d,i) { if (!i) interactiveLayer()  }); //trying to call this after transitions are over.. not sure if the setTimeout is helpful, or dangerous
+          //.each('end', function(d,i) { if (!i) setTimeout(interactiveLayer,0)  }); //trying to call this after transitions are over.. not sure if the setTimeout is helpful, or dangerous
 
 
       var paths = lines.selectAll('path')

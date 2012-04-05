@@ -58,11 +58,13 @@ nv.charts.line()
 
 function sinAndCos() {
   var sin = [],
-      cos = [];
+      cos = [],
+      r1 = Math.random(),
+      r2 = Math.random();
 
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i, voltage: Math.sin(i/10)});
-    cos.push({x: i, voltage: .5 * Math.cos(i/10)});
+    sin.push({x: i, voltage: r2 * Math.sin(i/10)});
+    cos.push({x: i, voltage: r1 * Math.cos(i/10)});
   }
 
   return [
