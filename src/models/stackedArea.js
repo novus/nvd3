@@ -20,6 +20,7 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
+  var lines = nv.models.line();
 
   function chart(selection) {
     selection.each(function(data) {
@@ -38,15 +39,32 @@ nv.models.stackedArea = function() {
                 });
             });
 
+
+        lines
+          .width(width - margin.left - margin.right)
+          .height(height - margin.top - margin.bottom)
+          .y(function(d) { return d.y + d.y0 })
+          .color(data.map(function(d,i) {
+            return d.color || color[i % 10];
+          }).filter(function(d,i) { return !data[i].disabled }));
+
         // Select the wrapper g, if it exists.
         var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
 
         // Create the skeletal chart on first load.
         var gEnter = wrap.enter().append('g').attr('class', 'd3stackedarea').append('g');
 
+        gEnter.append('g').attr('class', 'areaWrap');
+        gEnter.append('g').attr('class', 'linesWrap');
+
 
         var g = wrap.select('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+        var linesWrap = g.select('.linesWrap')
+            .datum(dataCopy.filter(function(d) { return !d.disabled }))
+
+        d3.transition(linesWrap).call(lines);
 
 
         // Update the stacked graph
@@ -63,9 +81,9 @@ nv.models.stackedArea = function() {
             .y0(function(d) { return availableHeight - d.y0 * availableHeight / my; })
             .y1(function(d) { return availableHeight - d.y0 * availableHeight / my; })
 
-        var path = g.selectAll('path')
+        var path = g.select('.areaWrap').selectAll('path.area')
           .data(function(d) { return d });
-        path.enter().append('path');
+        path.enter().append('path').attr('class', 'area');
         d3.transition(path.exit())
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
@@ -140,6 +158,7 @@ nv.models.stackedArea = function() {
     return chart;
   };
 
+  chart.dispatch = lines.dispatch;
 
   return chart;
 }

@@ -67,15 +67,18 @@ nv.addGraph({
   },
   callback: function(graph) {
 
-/*
     graph.dispatch.on('tooltipShow', function(e) {
       var offset = $('#chart').offset(),
           left = e.pos[0] + offset.left,
           top = e.pos[1] + offset.top,
+          formatterY = graph.stacked.offset() == 'expand' ? d3.format(',.2%') : d3.format(',.2f'), //TODO: stacked format should be set by caller
+          formatterX = function(d) { return d };
+/*
           formatterY = d3.format(",.2%"),
           formatterX = function(d) {
             return d3.time.format('%x')(new Date(d))
           };
+*/
 
       var content = '<h3>' + e.series.key + '</h3>' +
                     '<p>' +
@@ -89,7 +92,6 @@ nv.addGraph({
     graph.dispatch.on('tooltipHide', function(e) {
       nvtooltip.cleanup();
     });
-*/
 
 
 

@@ -13,11 +13,22 @@ text {
   font: 12px sans-serif;
 }
 
+#chart1 {
+  height: 500px;
+  margin: 10px;
+  min-width: 100px;
+  min-height: 100px;
+/*
+  Minimum height and width is a good idea to prevent negative SVG dimensions...
+  For example width should be =< margin.left + margin.right + 1,
+  of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
+*/
+}
+
 </style>
 <body>
 
-  <div id="test1">
-    <svg></svg>
+  <div id="chart1">
   </div>
 
 <script src="../lib/d3.v2.js"></script>
@@ -31,86 +42,76 @@ text {
 <script src="../src/models/lineWithLegend.js"></script>
 <script>
 
+/************
+ * Considering making an nv.charts object which will contain abstractions similar to the one below, 
+ *     but with the usual d3 reusable style.
+ * I could make this abstraction inside the layer above, but this layer incorporates some jQuery, so
+ *     thinking nv.charts can be the glue that's not 100% d3
+ ************/
 
-//Format A
+var selector = '#chart1',
+    chart = nv.models.lineWithLegend(),
+    data = sinAndCos(),
+    xTickFormat = d3.format(',r'),
+    yTickFormat = d3.format(',.2f'),
+    xAxisLabel = null,
+    yAxisLabel = 'Voltage (v)',
+    duration = 500;
+
 nv.addGraph({
   generate: function() {
-    var width = $(window).width() - 40,
-        height = $(window).height() - 40;
+    var container = d3.select(selector),
+        width = function() { return parseInt(container.style('width')) },
+        height = function() { return parseInt(container.style('height')) },
+        svg = container.append('svg');
 
-    var chart = nv.models.lineWithLegend()
-                .width(width)
-                .height(height)
-                //.margin({top: 20, right: 10, bottom: 50, left: 80})
+    chart
+        .width(width)
+        .height(height)
 
-        //chart.yAxis.axisLabel('Cumulative');
-        //chart.xAxis.axisLabel('Date');
+    chart.xAxis
+        .tickFormat(xTickFormat);
 
+    chart.yAxis
+        .tickFormat(yTickFormat)
+        .axisLabel(yAxisLabel);
 
-        chart.yAxis.tickFormat(d3.format(',%'))
-        chart.xAxis.tickFormat(function(d) {
-          return d3.time.format('%x')(new Date(d))
-        })
-
-    //chart.xaxis.tickFormat(d3.format(".02f"))
-
-    var svg = d3.select('#test1 svg')
-      .attr('width', width)
-      .attr('height', height)
-      .datum(sinAndCos())
-
-    svg.transition().duration(500).call(chart);
+    svg
+        .attr('width', width())
+        .attr('height', height())
+        .datum(data)
+      .transition().duration(duration).call(chart);
 
     return chart;
   },
-  callback: function(graph) {
+  callback: function(chart) {
+    var showTooltip = function(e) {
+          var offset = $(selector).offset(),
+              left = e.pos[0] + offset.left,
+              top = e.pos[1] + offset.top,
+              formatY = chart.yAxis.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
+              formatX = chart.xAxis.tickFormat();
 
-    graph.dispatch.on('tooltipShow', function(e) {
-      var offset = $('#test1').offset(),
-          left = e.pos[0] + offset.left,
-          top = e.pos[1] + offset.top,
-          formatterY = d3.format(",.2%"),
-          formatterX = function(d) {
-            return d3.time.format('%x')(new Date(d))
-          };
+          // uses the chart's getX and getY, you may customize if x position is not the same as the value you want 
+          //   ex. daily data without weekends, x is the index, while you want the date
+          var content = '<h3>' + e.series.key + '</h3>' +
+                        '<p>' +
+                        formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
+                        '</p>';
 
-      var content = '<h3>' + e.series.key + '</h3>' +
-                    '<p>' +
-                    formatterY(graph.y()(e.point)) + ' on ' + formatterX(graph.x()(e.point)) +
-                    '</p>';
+          nvtooltip.show([left, top], content);
+        };
 
-      //$('#positionTest').css({'left': left, 'top': top});
-      nvtooltip.show([left, top], content);
-    });
-
-    graph.dispatch.on('tooltipHide', function(e) {
-      nvtooltip.cleanup();
-    });
-
+    chart.dispatch.on('tooltipShow', showTooltip);
+    chart.dispatch.on('tooltipHide', nvtooltip.cleanup);
 
 
     $(window).resize(function() {
-      var width = $(window).width() - 40,
-          height = $(window).height() - 40,
-          margin = graph.margin();
-
-
-      if (width < margin.left + margin.right + 20)
-        width = margin.left + margin.right + 20;
-
-      if (height < margin.top + margin.bottom + 20)
-        height = margin.top + margin.bottom + 20;
-
-
-      graph
-         .width(width)
-         .height(height);
-
-      d3.select('#test1 svg')
-        .attr('width', width)
-        .attr('height', height)
-        .call(graph);
-
+      // now that width and height are functions, should be automatic..of course you can always override them
+      d3.select('#chart1 svg')
+          .attr('width', chart.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
+          .attr('height', chart.height()())
+          .call(chart);
     });
   }
 });

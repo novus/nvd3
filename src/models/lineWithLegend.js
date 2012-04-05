@@ -1,8 +1,8 @@
 
 nv.models.lineWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      width = 960,
-      height = 500,
+      getWidth = function() { return 960 },
+      getHeight = function() { return 500 },
       dotRadius = function() { return 2.5 },
       color = d3.scale.category10().range(),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -19,6 +19,9 @@ nv.models.lineWithLegend = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var width = getWidth(),
+          height = getHeight();
+
       var series = data.filter(function(d) { return !d.disabled })
             .map(function(d) { return d.values });
 
@@ -154,14 +157,14 @@ nv.models.lineWithLegend = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return getWidth;
+    getWidth = d3.functor(_);
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return getHeight;
+    getHeight = d3.functor(_);
     return chart;
   };
 

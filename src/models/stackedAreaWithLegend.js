@@ -117,6 +117,7 @@ nv.models.stackedAreaWithLegend = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
+     */
 
       stacked.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
@@ -132,7 +133,6 @@ nv.models.stackedAreaWithLegend = function() {
         dispatch.tooltipHide(e);
       });
 
-     */
 
 
       //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
@@ -184,7 +184,7 @@ nv.models.stackedAreaWithLegend = function() {
         .range(y.range())
         .ticks( stacked.offset() == 'wiggle' ? 0 : height / 36 )
         .tickSize(-(width - margin.right - margin.left), 0)
-        .tickFormat(stacked.offset() == 'zero' ? d3.format(',2f') : d3.format('%')); //TODO: stacked format should be set by caller
+        .tickFormat(stacked.offset() == 'zero' ? d3.format(',.2f') : d3.format('%')); //TODO: stacked format should be set by caller
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
@@ -235,6 +235,7 @@ nv.models.stackedAreaWithLegend = function() {
     return chart;
   };
 
+  chart.stacked = stacked;
 
   // Expose the x-axis' tickFormat method.
   //chart.xAxis = {};

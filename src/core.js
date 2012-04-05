@@ -2,9 +2,10 @@ var nv = {version: "0.0.1"};
 
 window.nv = nv;
 
-nv.models = {};
-nv.graphs = [];
-nv.log = {};
+nv.models = {}; //stores all the possible models/components
+nv.charts = {}; //stores all the ready to use charts
+nv.graphs = []; //stores all the graphs currently on the page
+nv.log = {}; //stores some statistics and potential error messages
 
 nv.dispatch = d3.dispatch("render_start", "render_end");
 
@@ -35,7 +36,7 @@ nv.dispatch.on("render_end", function(e) {
   nv.log.endTime = +new Date;
   nv.log.totalTime = nv.log.endTime - nv.log.startTime;
   //log('end', nv.log.endTime);
-  log('total', nv.log.totalTime);
+  log('total', nv.log.totalTime); //used for development, to keep track of graph generation times
 });
 
 

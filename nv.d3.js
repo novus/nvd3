@@ -91,9 +91,10 @@ var nv = {version: "0.0.1"};
 
 window.nv = nv;
 
-nv.models = {};
-nv.graphs = [];
-nv.log = {};
+nv.models = {}; //stores all the possible models/components
+nv.charts = {}; //stores all the ready to use charts
+nv.graphs = []; //stores all the graphs currently on the page
+nv.log = {}; //stores some statistics and potential error messages
 
 nv.dispatch = d3.dispatch("render_start", "render_end");
 
@@ -124,7 +125,7 @@ nv.dispatch.on("render_end", function(e) {
   nv.log.endTime = +new Date;
   nv.log.totalTime = nv.log.endTime - nv.log.startTime;
   //log('end', nv.log.endTime);
-  log('total', nv.log.totalTime);
+  log('total', nv.log.totalTime); //used for development, to keep track of graph generation times
 });
 
 
@@ -1242,8 +1243,8 @@ nv.models.lineWithFocus = function() {
 
 nv.models.lineWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      width = 960,
-      height = 500,
+      getWidth = function() { return 960 },
+      getHeight = function() { return 500 },
       dotRadius = function() { return 2.5 },
       color = d3.scale.category10().range(),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -1260,6 +1261,9 @@ nv.models.lineWithLegend = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var width = getWidth(),
+          height = getHeight();
+
       var series = data.filter(function(d) { return !d.disabled })
             .map(function(d) { return d.values });
 
@@ -1395,14 +1399,14 @@ nv.models.lineWithLegend = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return getWidth;
+    getWidth = d3.functor(_);
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return getHeight;
+    getHeight = d3.functor(_);
     return chart;
   };
 
@@ -2042,6 +2046,7 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
+  var lines = nv.models.line();
 
   function chart(selection) {
     selection.each(function(data) {
@@ -2049,29 +2054,43 @@ nv.models.stackedArea = function() {
         // Need to leave data alone to switch between stacked, stream, and expanded
         var dataCopy = JSON.parse(JSON.stringify(data));
 
-        //log(dataCopy);
-        dataCopy = dataCopy.map(function(series) { return series.values })
 
         //compute the data based on offset and order (calc's y0 for every point)
-        //dataCopy =  d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
-        dataCopy =  d3.layout.stack().offset(offset).order(order)(dataCopy);
+        dataCopy =  d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
 
-        var mx = dataCopy[0].length - 1, // assumes that all layers have same # of samples & that there is at least one layer
+        var mx = dataCopy[0].values.length - 1, // assumes that all layers have same # of samples & that there is at least one layer
             my = d3.max(dataCopy, function(d) {
-                return d3.max(d, function(d) {
+                return d3.max(d.values, function(d) {
                     return d.y0 + d.y;
                 });
             });
 
+
+        lines
+          .width(width - margin.left - margin.right)
+          .height(height - margin.top - margin.bottom)
+          .y(function(d) { return d.y + d.y0 })
+          .color(data.map(function(d,i) {
+            return d.color || color[i % 10];
+          }).filter(function(d,i) { return !data[i].disabled }));
+
         // Select the wrapper g, if it exists.
-        var wrap = d3.select(this).selectAll('g.d3stream').data([dataCopy]);
+        var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
 
         // Create the skeletal chart on first load.
-        var gEnter = wrap.enter().append('g').attr('class', 'd3stream').append('g');
+        var gEnter = wrap.enter().append('g').attr('class', 'd3stackedarea').append('g');
+
+        gEnter.append('g').attr('class', 'areaWrap');
+        gEnter.append('g').attr('class', 'linesWrap');
 
 
         var g = wrap.select('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+        var linesWrap = g.select('.linesWrap')
+            .datum(dataCopy.filter(function(d) { return !d.disabled }))
+
+        d3.transition(linesWrap).call(lines);
 
 
         // Update the stacked graph
@@ -2088,20 +2107,17 @@ nv.models.stackedArea = function() {
             .y0(function(d) { return availableHeight - d.y0 * availableHeight / my; })
             .y1(function(d) { return availableHeight - d.y0 * availableHeight / my; })
 
-        var path = g.selectAll('path')
+        var path = g.select('.areaWrap').selectAll('path.area')
           .data(function(d) { return d });
-          //.data(dataCopy);
-        path.enter().append('path');
+        path.enter().append('path').attr('class', 'area');
         d3.transition(path.exit())
-            .attr('d', zeroArea)
+            .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
-            .style('fill-opacity', .75)
-            .style('stroke-opacity', .75)
             .style('fill', function(d,i){ return color[i % 10] })
             .style('stroke', function(d,i){ return color[i % 10] });
         d3.transition(path)
-            .attr('d', area);
+            .attr('d', function(d,i) { return area(d.values,i) })
 
     });
 
@@ -2168,6 +2184,7 @@ nv.models.stackedArea = function() {
     return chart;
   };
 
+  chart.dispatch = lines.dispatch;
 
   return chart;
 }
@@ -2214,9 +2231,8 @@ nv.models.stackedAreaWithLegend = function() {
       x   .domain(d3.extent(d3.merge(series), getX ))
           .range([0, width - margin.left - margin.right]);
 
-      //TODO: remove if stream
-      y   .domain(stacked.offset() == 'zero' ? 
-            d3.extent(d3.merge(series), getY ) :
+      y   .domain(stacked.offset() == 'zero' ?
+            [0, d3.max(d3.merge(series), getY )] :
             [0, 1]  // 0 - 100%
           )
           .range([height - margin.top - margin.bottom, 0]);
@@ -2291,6 +2307,7 @@ nv.models.stackedAreaWithLegend = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
+     */
 
       stacked.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
@@ -2306,7 +2323,6 @@ nv.models.stackedAreaWithLegend = function() {
         dispatch.tooltipHide(e);
       });
 
-     */
 
 
       //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
@@ -2358,7 +2374,7 @@ nv.models.stackedAreaWithLegend = function() {
         .range(y.range())
         .ticks( stacked.offset() == 'wiggle' ? 0 : height / 36 )
         .tickSize(-(width - margin.right - margin.left), 0)
-        .tickFormat(stacked.offset() == 'zero' ? d3.format(',2f') : d3.format('%')); //TODO: stacked format should be set by caller
+        .tickFormat(stacked.offset() == 'zero' ? d3.format(',.2f') : d3.format('%')); //TODO: stacked format should be set by caller
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
@@ -2409,6 +2425,7 @@ nv.models.stackedAreaWithLegend = function() {
     return chart;
   };
 
+  chart.stacked = stacked;
 
   // Expose the x-axis' tickFormat method.
   //chart.xAxis = {};

@@ -49,6 +49,7 @@
 .nvtooltip p {
   margin: 0;
   padding: 0;
+  text-align: center;
 }
 
 .nvtooltip span {
@@ -235,10 +236,26 @@ text {
 *  Stacked Area
 */
 
-.d3stackedarea path {
+.d3stackedarea path.area {
   fill-opacity: .75;
   stroke-opacity: .75;
 }
 
+.d3stackedarea .lines path {
+  stroke-opacity: 0;
+}
 
 
+.d3stackedarea .lines .point {
+  stroke-opacity: 0;
+  fill-opacity: 0;
+  transition: all 250ms linear;
+  -moz-transition: all 250ms linear;
+  -webkit-transition: all 250ms linear;
+}
+
+.d3stackedarea .lines .point.hover {
+  stroke-width: 20px;
+  stroke-opacity: .75;
+  fill-opacity: 1;
+}
