@@ -13,6 +13,11 @@ text {
   font: 12px sans-serif;
 }
 
+#chart {
+  margin: 10px;
+  height: 500px;
+}
+
 </style>
 <body>
 
@@ -33,94 +38,71 @@ text {
 <script>
 
 
-//Format A
-nv.addGraph({
-  generate: function() {
-    var n = 4, // number of layers
-        m = 120; // number of samples per layer... 10 years of monthly
-        //color = d3.interpolateRgb("#aad", "#556");
+var n = 4, // number of layers
+    m = 120; // number of samples per layer
+    //color = d3.interpolateRgb("#aad", "#556");
 
-    //format data to our liking, add keys
-    var data = stream_layers(n,m).map(function(data, i) {
-      return { 
-        key: 'Stream' + i,
-        values: data
-      };
-    });
+//format data to our liking, add keys
+var data = stream_layers(n,m).map(function(data, i) {
+  return { 
+    key: 'Stream' + i,
+    values: data
+  };
+});
 
 
-    var width = $(window).width() - 20,
-        height = $(window).height() - 40;
+var width = function() { return parseInt(d3.select('#chart').style('width')) },
+    height = function() { return parseInt(d3.select('#chart').style('height')) };
 
-    var chart = nv.models.stackedAreaWithLegend()
-                .width(width)
-                .height(height)
+var chart = nv.models.stackedAreaWithLegend()
+            .width(width)
+            .height(height)
+            //.y(function(d) { return d.ytest }) //not ready yet for custom accessor, almost there
 
 
-    var svg = d3.select('#chart svg')
-      .attr('width', width)
-      .attr('height', height)
-      .datum(data)
+var svg = d3.select('#chart svg')
+  .attr('width', width())
+  .attr('height', height())
+  .datum(data)
 
-    svg.transition().duration(500).call(chart);
+svg.transition().duration(500).call(chart);
 
-    return chart;
-  },
-  callback: function(graph) {
 
-    graph.dispatch.on('tooltipShow', function(e) {
-      var offset = $('#chart').offset(),
-          left = e.pos[0] + offset.left,
-          top = e.pos[1] + offset.top,
-          formatterY = graph.stacked.offset() == 'expand' ? d3.format(',.2%') : d3.format(',.2f'), //TODO: stacked format should be set by caller
-          formatterX = function(d) { return d };
+chart.dispatch.on('tooltipShow', function(e) {
+  var offset = $('#chart').offset(),
+      left = e.pos[0] + offset.left,
+      top = e.pos[1] + offset.top,
+      formatterY = chart.stacked.offset() == 'expand' ? d3.format(',.2%') : d3.format(',.2f'), //TODO: stacked format should be set by caller
+      formatterX = function(d) { return d };
 /*
-          formatterY = d3.format(",.2%"),
-          formatterX = function(d) {
-            return d3.time.format('%x')(new Date(d))
-          };
+      formatterY = d3.format(",.2%"),
+      formatterX = function(d) {
+        return d3.time.format('%x')(new Date(d))
+      };
 */
 
-      var content = '<h3>' + e.series.key + '</h3>' +
-                    '<p>' +
-                    formatterY(graph.y()(e.point)) + ' on ' + formatterX(graph.x()(e.point)) +
-                    '</p>';
+  var content = '<h3>' + e.series.key + '</h3>' +
+                '<p>' +
+                formatterY(chart.y()(e.point)) + ' on ' + formatterX(chart.x()(e.point)) +
+                '</p>';
 
-      //$('#positionTest').css({'left': left, 'top': top});
-      nvtooltip.show([left, top], content);
-    });
-
-    graph.dispatch.on('tooltipHide', function(e) {
-      nvtooltip.cleanup();
-    });
-
-
-
-    $(window).resize(function() {
-      var width = $(window).width() - 20,
-          height = $(window).height() - 40,
-          margin = graph.margin();
-
-
-      if (width < margin.left + margin.right + 20)
-        width = margin.left + margin.right + 20;
-
-      if (height < margin.top + margin.bottom + 20)
-        height = margin.top + margin.bottom + 20;
-
-
-      graph
-         .width(width)
-         .height(height);
-
-      d3.select('#chart svg')
-        .attr('width', width)
-        .attr('height', height)
-        .call(graph);
-
-    });
-  }
+  nvtooltip.show([left, top], content);
 });
+
+chart.dispatch.on('tooltipHide', function(e) {
+  nvtooltip.cleanup();
+});
+
+
+
+$(window).resize(function() {
+  d3.select('#chart svg')
+    .attr('width', width())
+    .attr('height', height())
+    .call(chart);
+});
+
+
 
 
 
@@ -156,6 +138,7 @@ function stream_waves(n, m) {
 }
 
 function stream_index(d, i) {
+  //return {x: i, ytest: Math.max(0, d)}; //Minor error with custom y getter/setter and stacked, need to fix
   return {x: i, y: Math.max(0, d)};
 }
 

@@ -37,17 +37,25 @@ nv.models.stackedArea = function() {
 
 
         //compute the data based on offset and order (calc's y0 for every point)
-        dataCopy = d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
+        dataCopy = d3.layout.stack()
+                     .offset(offset)
+                     .order(order)
+                     .values(function(d){ return d.values })
+                     .y(getY)
+                     (dataCopy);
+
 
         x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX))
             .range([0, availableWidth]);
 
-        y   .domain(yDomain || [0, d3.max(dataCopy, function(d) { return d3.max(d.values, function(d) { return d.y0 + d.y }) }) ])
+        y   .domain(yDomain || [0, d3.max(dataCopy, function(d) {
+              return d3.max(d.values, function(d) { return d.y0 + d.y })
+            }) ])
             .range([availableHeight, 0]);
 
 
         lines
-          //.interactive(false)
+          //.interactive(false) //if we were to turn off interactive, the whole line chart should be removed
           .width(availableWidth)
           .height(availableHeight)
           .xDomain(x.domain())
@@ -57,10 +65,7 @@ nv.models.stackedArea = function() {
             return d.color || color[i % 10];
           }).filter(function(d,i) { return !data[i].disabled }));
 
-        // Select the wrapper g, if it exists.
         var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
-
-        // Create the skeletal chart on first load.
         var gEnter = wrap.enter().append('g').attr('class', 'd3stackedarea').append('g');
 
         gEnter.append('g').attr('class', 'areaWrap');
@@ -70,10 +75,12 @@ nv.models.stackedArea = function() {
         var g = wrap.select('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+
         var linesWrap = g.select('.linesWrap')
             .datum(dataCopy.filter(function(d) { return !d.disabled }))
 
         d3.transition(linesWrap).call(lines);
+
 
         var area = d3.svg.area()
             .x(function(d) { return x(getX(d)) })
@@ -103,6 +110,17 @@ nv.models.stackedArea = function() {
     return chart;
   }
 
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = d3.functor(_);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = d3.functor(_);
+    return chart;
+  }
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
