@@ -47,6 +47,7 @@ nv.models.stackedArea = function() {
 
 
         lines
+          //.interactive(false)
           .width(availableWidth)
           .height(availableHeight)
           .xDomain(x.domain())

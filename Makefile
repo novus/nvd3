@@ -14,6 +14,7 @@ JS_FILES = \
 	src/models/sparkline.js \
 	src/models/stackedArea.js \
 	src/models/stackedAreaWithLegend.js \
+	src/charts/lineChart.js \
 	src/outro.js
 
 JS_COMPILER = \

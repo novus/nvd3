@@ -619,6 +619,7 @@ nv.models.line = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       interactive = true,
+      clipVoronoi = true,
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -629,17 +630,19 @@ nv.models.line = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { return d.values });
+      var seriesData = data.map(function(d) { return d.values }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
       x0 = x0 || x;
       y0 = y0 || y;
 
-      //TODO: consider reusing the parent's scales (almost always making duplicates of the same scale)
+
       x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData), getY ))
-          .range([height - margin.top - margin.bottom, 0]);
+          .range([availableHeight, 0]);
 
 
       var wrap = d3.select(this).selectAll('g.d3line').data([data]);
@@ -657,8 +660,8 @@ nv.models.line = function() {
           .attr('id', 'chart-clip-path-' + id)
         .append('rect');
       wrap.select('#chart-clip-path-' + id + ' rect')
-          .attr('width', width - margin.left - margin.right)
-          .attr('height', height - margin.top - margin.bottom);
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
       gEnter
           .attr('clip-path', 'url(#chart-clip-path-' + id + ')');
@@ -666,11 +669,17 @@ nv.models.line = function() {
       var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
 
 
-      //TODO: currently doesnt remove if user renders, then turns off interactions... currently must turn off before the first render (will need to fix)
-      if (interactive) {
+
+      // destroy interactive layer during transition,
+      //   VERY needed because of performance issues
+      g.selectAll('.point-clips *, .point-paths *').remove();
+
+
+      function interactiveLayer() {
+        if (!interactive) return false;
+
         shiftWrap.append('g').attr('class', 'point-clips');
         shiftWrap.append('g').attr('class', 'point-paths');
-
 
         var vertices = d3.merge(data.map(function(line, lineIndex) {
             return line.values.map(function(point, pointIndex) {
@@ -680,8 +689,7 @@ nv.models.line = function() {
           })
         );
 
-
-
+        // ***These clips are more than half the cause for the slowdown***
         //var pointClips = wrap.select('.point-clips').selectAll('clipPath') // **BROWSER BUG** can't reselect camel cased elements
         var pointClips = wrap.select('.point-clips').selectAll('.clip-path')
             .data(vertices);
@@ -695,23 +703,19 @@ nv.models.line = function() {
 
 
         //inject series and point index for reference into voronoi
+        // considering adding a removeZeros option, may be useful for the stacked chart and maybe others
         var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
 
 
         //TODO: Add small amount noise to prevent duplicates
         var pointPaths = wrap.select('.point-paths').selectAll('path')
             .data(voronoi);
-
         pointPaths.enter().append('path')
             .attr('class', function(d,i) { return 'path-'+i; })
-            //.style('fill', d3.rgb(230, 230, 230))
-            //.style('stroke', d3.rgb(200, 200, 200))
             .style('fill-opacity', 0);
-
         pointPaths.exit().remove();
-
         pointPaths
-            .attr('clip-path', function(d,i) { return 'url(#clip-' + id + '-' + d.series + '-' + d.point +')' })
+            .attr('clip-path', function(d,i) { return clipVoronoi ? 'url(#clip-' + id + '-' + d.series + '-' + d.point +')' : '' })
             .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
             .on('mouseover', function(d) {
               var series = data[d.series],
@@ -759,12 +763,15 @@ nv.models.line = function() {
       lines
           .attr('class', function(d,i) { return 'line series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % 20] })
-          .style('stroke', function(d,i){ return color[i % 20] })
+          .style('fill', function(d,i){ return color[i % 10] })
+          .style('stroke', function(d,i){ return color[i % 10] })
       d3.transition(lines)
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .5);
+          .style('fill-opacity', .5)
+          //.each('end', function(d,i) { if (!i) setTimeout(interactiveLayer, 0) }); //trying to call this after transitions are over, doesn't work on resize!
+          //.each('end', function(d,i) { if (!i) interactiveLayer()  }); //trying to call this after transitions are over, not sure if the timeout gains anything
 
+      setTimeout(interactiveLayer, 1000); //seems not to work as well as above... BUT fixes broken resize
 
       var paths = lines.selectAll('path')
           .data(function(d, i) { return [d.values] });
@@ -863,6 +870,12 @@ nv.models.line = function() {
   chart.interactive = function(_) {
     if (!arguments.length) return interactive;
     interactive = _;
+    return chart;
+  };
+
+  chart.clipVoronoi= function(_) {
+    if (!arguments.length) return clipVoronoi;
+    clipVoronoi = _;
     return chart;
   };
 
@@ -1091,6 +1104,7 @@ nv.models.lineWithFocus = function() {
         selection.transition().call(chart);
       });
 
+/*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -1099,7 +1113,7 @@ nv.models.lineWithFocus = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
-
+*/
 
       focus.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
@@ -1268,20 +1282,22 @@ nv.models.lineWithLegend = function() {
   function chart(selection) {
     selection.each(function(data) {
       var width = getWidth(),
-          height = getHeight();
+          height = getHeight(),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
       var series = data.filter(function(d) { return !d.disabled })
             .map(function(d) { return d.values });
 
       x   .domain(d3.extent(d3.merge(series), getX ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
 
       y   .domain(d3.extent(d3.merge(series), getY ))
-          .range([height - margin.top - margin.bottom, 0]);
+          .range([availableHeight, 0]);
 
       lines
-        .width(width - margin.left - margin.right)
-        .height(height - margin.top - margin.bottom)
+        .width(availableWidth)
+        .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }))
@@ -1310,6 +1326,8 @@ nv.models.lineWithLegend = function() {
         selection.transition().call(chart);
       });
 
+/*
+      //
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -1319,6 +1337,7 @@ nv.models.lineWithLegend = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
+*/
 
       lines.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
@@ -1339,14 +1358,14 @@ nv.models.lineWithLegend = function() {
       margin.top = legend.height();
 
       var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + legend.height() + ')');
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       legend.width(width/2 - margin.right);
 
       g.select('.legendWrap')
           .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-legend.height()) +')')
+          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
           .call(legend);
 
 
@@ -1361,7 +1380,7 @@ nv.models.lineWithLegend = function() {
         .domain(x.domain())
         .range(x.range())
         .ticks( width / 100 )
-        .tickSize(-(height - margin.top - margin.bottom), 0);
+        .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
@@ -1372,7 +1391,7 @@ nv.models.lineWithLegend = function() {
         .domain(y.domain())
         .range(y.range())
         .ticks( height / 36 )
-        .tickSize(-(width - margin.right - margin.left), 0);
+        .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
@@ -1450,7 +1469,9 @@ nv.models.scatter = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { return d.values });
+      var seriesData = data.map(function(d) { return d.values }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
       x0 = x0 || x;
       y0 = y0 || y;
@@ -1471,10 +1492,10 @@ nv.models.scatter = function() {
 
       //TODO: figure out the best way to deal with scales with equal MIN and MAX
       x   .domain(d3.extent(d3.merge(seriesData).map( getX ).concat(forceX) ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
 
       y   .domain(d3.extent(d3.merge(seriesData).map( getY ).concat(forceY) ))
-          .range([height - margin.top - margin.bottom, 0]);
+          .range([availableHeight, 0]);
 
       z   .domain(d3.extent(d3.merge(seriesData), getSize ))
           .range([2, 10]);
@@ -1482,7 +1503,8 @@ nv.models.scatter = function() {
 
       var vertices = d3.merge(data.map(function(group, groupIndex) {
           return group.values.map(function(point, pointIndex) {
-            return [x(getX(point)), y(getY(point)), groupIndex, pointIndex]; //inject series and point index for reference into voronoi
+            //return [x(getX(point)), y(getY(point)), groupIndex, pointIndex]; //inject series and point index for reference into voronoi
+            return [x(getX(point)) * (Math.random() / 1e12 + 1)  , y(getY(point)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
           })
         })
       );
@@ -1507,8 +1529,8 @@ nv.models.scatter = function() {
       wrap.select('.voronoi-clip rect')
           .attr('x', -10)
           .attr('y', -10)
-          .attr('width', width - margin.left - margin.right + 20)
-          .attr('height', height - margin.top - margin.bottom + 20);
+          .attr('width', availableWidth + 20)
+          .attr('height', availableHeight + 20);
       wrap.select('.point-paths')
           .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
 
@@ -1529,7 +1551,6 @@ nv.models.scatter = function() {
       var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
 
 
-      //TODO: Need to deal with duplicates, maybe add small amount of noise to all
       var pointPaths = wrap.select('.point-paths').selectAll('path')
           .data(voronoi);
       pointPaths.enter().append('path')
@@ -2028,9 +2049,12 @@ nv.models.stackedArea = function() {
       width = 960,
       height = 500,
       color = d3.scale.category10().range(),
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
       style = 'stack',
       offset = 'zero',
-      order = 'default';
+      order = 'default',
+      xDomain, yDomain;
 
 /************************************
  * offset:
@@ -2044,29 +2068,35 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var lines = nv.models.line();
+  var lines = nv.models.line(),
+      x = d3.scale.linear(),
+      y = d3.scale.linear();
 
   function chart(selection) {
     selection.each(function(data) {
-
         // Need to leave data alone to switch between stacked, stream, and expanded
-        var dataCopy = JSON.parse(JSON.stringify(data));
+        var dataCopy = JSON.parse(JSON.stringify(data)),
+            seriesData = dataCopy.map(function(d) { return d.values }),
+            availableWidth = width - margin.left - margin.right,
+            availableHeight = height - margin.top - margin.bottom;
 
 
         //compute the data based on offset and order (calc's y0 for every point)
-        dataCopy =  d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
+        dataCopy = d3.layout.stack().offset(offset).order(order).values(function(d){ return d.values })(dataCopy);
 
-        var mx = dataCopy[0].values.length - 1, // assumes that all layers have same # of samples & that there is at least one layer
-            my = d3.max(dataCopy, function(d) {
-                return d3.max(d.values, function(d) {
-                    return d.y0 + d.y;
-                });
-            });
+        x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX))
+            .range([0, availableWidth]);
+
+        y   .domain(yDomain || [0, d3.max(dataCopy, function(d) { return d3.max(d.values, function(d) { return d.y0 + d.y }) }) ])
+            .range([availableHeight, 0]);
 
 
         lines
-          .width(width - margin.left - margin.right)
-          .height(height - margin.top - margin.bottom)
+          //.interactive(false)
+          .width(availableWidth)
+          .height(availableHeight)
+          .xDomain(x.domain())
+          .yDomain(y.domain())
           .y(function(d) { return d.y + d.y0 })
           .color(data.map(function(d,i) {
             return d.color || color[i % 10];
@@ -2090,23 +2120,19 @@ nv.models.stackedArea = function() {
 
         d3.transition(linesWrap).call(lines);
 
-
-        // Update the stacked graph
-        var availableWidth = width - margin.left - margin.right,
-            availableHeight = height - margin.top - margin.bottom;
-
         var area = d3.svg.area()
-            .x(function(d) { return d.x * availableWidth / mx; })
-            .y0(function(d) { return availableHeight - d.y0 * availableHeight / my; })
-            .y1(function(d) { return availableHeight - (d.y + d.y0) * availableHeight / my; });
+            .x(function(d) { return x(getX(d)) })
+            .y0(function(d) { return y(d.y0) })
+            .y1(function(d) { return y(d.y + d.y0) });
 
         var zeroArea = d3.svg.area()
-            .x(function(d) { return d.x * availableWidth / mx; })
-            .y0(function(d) { return availableHeight - d.y0 * availableHeight / my; })
-            .y1(function(d) { return availableHeight - d.y0 * availableHeight / my; })
+            .x(function(d) { return x(getX(d)) })
+            .y0(function(d) { return y(d.y0) })
+            .y1(function(d) { return y(d.y0) });
+
 
         var path = g.select('.areaWrap').selectAll('path.area')
-          .data(function(d) { return d });
+            .data(function(d) { return d });
         path.enter().append('path').attr('class', 'area');
         d3.transition(path.exit())
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
@@ -2438,4 +2464,162 @@ nv.models.stackedAreaWithLegend = function() {
 
   return chart;
 }
+
+// This is an attempt to make an extremely easy to use chart that is ready to go,
+//    basically the chart models with the extra glue... Queuing, tooltips, automatic resize, etc.
+// I may make these more specific, like 'time series line with month end data points', etc.
+//    or may make yet another layer of abstraction... common settings.
+nv.charts.line = function() {
+  var selector = null,
+      data = [],
+      duration = 500,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
+      };
+
+
+  var graph = nv.models.lineWithLegend(),
+      showTooltip = function(e) {
+        var offset = $(selector).offset(),
+            left = e.pos[0] + offset.left,
+            top = e.pos[1] + offset.top,
+            formatX = graph.xAxis.tickFormat(),
+            formatY = graph.yAxis.tickFormat(),
+            x = formatX(graph.x()(e.point)),
+            y = formatY(graph.y()(e.point)),
+            content = tooltip(e.series.key, x, y, e, graph);
+
+        nvtooltip.show([left, top], content);
+      };
+
+  //setting component defaults
+  graph.xAxis.tickFormat(d3.format(',r'));
+  graph.yAxis.tickFormat(d3.format(',.2f'));
+
+
+  //TODO: consider a method more similar to how the models are built
+  function chart() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph); //consider using transition chaining like in the models
+
+    return chart;
+  }
+
+
+  // This should always only be called once, then update should be used after, 
+  //     in which case should consider the 'd3 way' and merge this with update, 
+  //     but simply do this on enter... should try anoter example that way
+  chart.build = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    nv.addGraph({
+      generate: function() {
+        var container = d3.select(selector),
+            width = function() { return parseInt(container.style('width')) },
+            height = function() { return parseInt(container.style('height')) },
+            svg = container.append('svg');
+
+        graph
+            .width(width)
+            .height(height);
+
+        svg
+            .attr('width', width())
+            .attr('height', height())
+            .datum(data)
+          .transition().duration(duration).call(graph);
+
+        return graph;
+      },
+      callback: function(graph) {
+        graph.dispatch.on('tooltipShow', showTooltip);
+        graph.dispatch.on('tooltipHide', nvtooltip.cleanup);
+
+        //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
+        $(window).resize(function() {
+          // now that width and height are functions, should be automatic..of course you can always override them
+          d3.select(selector + ' svg')
+              .attr('width', graph.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
+              .attr('height', graph.height()())
+              .call(graph);
+        });
+      }
+    });
+
+    return chart;
+  };
+
+
+  /*
+  //  moved to chart()
+  chart.update = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph);
+
+    return chart;
+  };
+  */
+
+  chart.data = function(_) {
+    if (!arguments.length) return data;
+    data = _;
+    return chart;
+  };
+
+  chart.selector = function(_) {
+    if (!arguments.length) return selector;
+    selector = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
+  chart.xTickFormat = function(_) {
+    if (!arguments.length) return graph.xAxis.tickFormat();
+    graph.xAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.yTickFormat = function(_) {
+    if (!arguments.length) return graph.yAxis.tickFormat();
+    graph.yAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.xAxisLabel = function(_) {
+    if (!arguments.length) return graph.xAxis.axisLabel();
+    graph.xAxis.axisLabel(_);
+    return chart;
+  };
+
+  chart.yAxisLabel = function(_) {
+    if (!arguments.length) return graph.yAxis.axisLabel();
+    graph.yAxis.axisLabel(_);
+    return chart;
+  };
+
+  d3.rebind(chart, graph, 'x', 'y');
+
+  chart.graph = graph; // Give direct access for getter/setters, and dispatchers
+
+  return chart;
+};
+
 })();
