@@ -123,17 +123,18 @@ nv.models.stackedAreaWithLegend = function() {
       });
       */
 
-      stacked.dispatch.on('pointMouseover.tooltip', function(e) {
+
+      stacked.dispatch.on('tooltipShow', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
-          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
+          pos: [e.pos[0] + margin.left,  e.pos[1] + margin.top],
           seriesIndex: e.seriesIndex,
           pointIndex: e.pointIndex
         });
       });
 
-      stacked.dispatch.on('pointMouseout.tooltip', function(e) {
+      stacked.dispatch.on('tooltipHide', function(e) {
         dispatch.tooltipHide(e);
       });
 

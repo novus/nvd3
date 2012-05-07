@@ -41,9 +41,8 @@ div {
 </div>
 
 <script src="../lib/d3.v2.js"></script>
-<script src="../lib/jquery.min.js"></script>
-<script src="../src/nvtooltip.js"></script>
 <script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/xaxis.js"></script>
 <script src="../src/models/yaxis.js"></script>
@@ -56,10 +55,10 @@ div {
 //Format A
 nv.addGraph({
   generate: function() {
-    var width = $(window).width() - 20,
-        height = $(window).height() - 20;
+      var width = nv.utils.windowSize().width - 40,
+          height = nv.utils.windowSize().height - 40;
 
-    var chart = nv.models.scatterWithLegend()
+      var chart = nv.models.scatterWithLegend()
                 .width(width)
                 .height(height)
                 //.width(width)
@@ -87,10 +86,10 @@ nv.addGraph({
   callback: function(graph) {
 
     graph.dispatch.on('tooltipShow', function(e) {
-      var offset = $('#test1').offset(),
-          left = e.pos[0] + offset.left,
-          top = e.pos[1] + offset.top,
-          formatter = d3.format(".2f");
+        var offsetElement = document.getElementById("test1"),
+                left = e.pos[0] + offsetElement.offsetLeft,
+                top = e.pos[1] + offsetElement.offsetTop,
+                formatter = d3.format(".2f");
 
 
       /*
@@ -105,20 +104,22 @@ nv.addGraph({
 
       var contentX = '<strong>' + formatter(e.point.x) + '</strong>';
       var contentY = '<strong>' + formatter(e.point.y) + '</strong>';
-      nvtooltip.show([left, $(window).height() - 30], contentX, 'n', 1);
-      nvtooltip.show([5, top], contentY, 'w', 1);
+      var height = nv.utils.windowSize().height - 40;
+
+      nv.tooltip.show([left, height - 50], contentX, 'n', 1);
+      nv.tooltip.show([5, top], contentY, 'w', 1);
     });
 
 
     graph.dispatch.on('tooltipHide', function(e) {
-      nvtooltip.cleanup();
+      nv.tooltip.cleanup();
     });
 
-    $(window).resize(function() {
-      var width = $(window).width() - 20,
-          height = $(window).height() - 20,
-          margin = graph.margin(),
-          animate = graph.animate();
+    window.onresize = function() {
+     var width = nv.utils.windowSize().width - 40,
+        height = nv.utils.windowSize().height - 40,
+        margin = graph.margin(),
+        animate = graph.animate();
 
 
       if (width < margin.left + margin.right + 20)
@@ -137,7 +138,7 @@ nv.addGraph({
         .attr('height', height)
         .call(graph);
 
-      });
+      };
   }
 });
 

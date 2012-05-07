@@ -21,9 +21,8 @@ text {
   </div>
 
 <script src="../lib/d3.v2.js"></script>
-<script src="../lib/jquery.min.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/nvtooltip.js"></script>
+<script src="../src/tooltip.js"></script>
 <script src="../src/models/stackedArea.js"></script>
 <script>
 
@@ -43,8 +42,8 @@ nv.addGraph({
     });
 
 
-    var width = $(window).width() - 20,
-        height = $(window).height() - 20;
+    var width = nv.utils.windowSize().width - 20,
+        height = nv.utils.windowSize().height - 20;
 
     var chart = nv.models.stackedArea()
                 .width(width)
@@ -64,35 +63,35 @@ nv.addGraph({
   },
   callback: function(graph) {
 
-/*
+
+
     graph.dispatch.on('tooltipShow', function(e) {
-      var offset = $('#chart').offset(),
-          left = e.pos[0] + offset.left,
-          top = e.pos[1] + offset.top,
-          formatterY = d3.format(",.2%"),
+        var offsetElement = document.getElementById("chart"),
+                left = e.pos[0] + offsetElement.offsetLeft,
+                top = e.pos[1] + offsetElement.offsetTop,
+                formatterY = d3.format(",.2%"),
           formatterX = function(d) {
-            return d3.time.format('%x')(new Date(d))
+            return   d3.time.format('%x')(new Date(d))
           };
 
       var content = '<h3>' + e.series.key + '</h3>' +
                     '<p>' +
-                    formatterY(graph.y()(e.point)) + ' on ' + formatterX(graph.x()(e.point)) +
+                    formatterY(graph.y()(e.point)) + ' at ' + formatterX(graph.x()(e.point)) +
                     '</p>';
 
       //$('#positionTest').css({'left': left, 'top': top});
-      nvtooltip.show([left, top], content);
+      nv.tooltip.show([left, top], content);
     });
 
     graph.dispatch.on('tooltipHide', function(e) {
-      nvtooltip.cleanup();
+      nv.tooltip.cleanup();
     });
-*/
 
 
 
-    $(window).resize(function() {
-      var width = $(window).width() - 20,
-          height = $(window).height() - 20,
+	window.onResize = function() {
+      var width = nv.utils.windowSize().width - 20,
+          height = nv.utils.windowSize().height - 20,
           margin = graph.margin();
 
 
@@ -112,7 +111,7 @@ nv.addGraph({
         .attr('height', height)
         .call(graph);
 
-    });
+    }
   }
 });
 

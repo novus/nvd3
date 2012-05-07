@@ -32,9 +32,8 @@ text {
   </div>
 
 <script src="../lib/d3.v2.js"></script>
-<script src="../lib/jquery.min.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/nvtooltip.js"></script>
+<script src="../src/tooltip.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/xaxis.js"></script>
 <script src="../src/models/yaxis.js"></script>
@@ -86,33 +85,34 @@ nv.addGraph({
   },
   callback: function(chart) {
     var showTooltip = function(e) {
-          var offset = $(selector).offset(),
-              left = e.pos[0] + offset.left,
-              top = e.pos[1] + offset.top,
-              formatY = chart.yAxis.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
+          var offsetElement = document.getElementById(selector.substr(1)),
+                left = e.pos[0] + offsetElement.offsetLeft,
+                top = e.pos[1] + offsetElement.offsetTop,
+
+        formatY = chart.yAxis.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
               formatX = chart.xAxis.tickFormat();
 
-          // uses the chart's getX and getY, you may customize if x position is not the same as the value you want 
+        // uses the chart's getX and getY, you may customize if x position is not the same as the value you want
           //   ex. daily data without weekends, x is the index, while you want the date
           var content = '<h3>' + e.series.key + '</h3>' +
                         '<p>' +
                         formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
                         '</p>';
 
-          nvtooltip.show([left, top], content);
+          nv.tooltip.show([left, top], content);
         };
 
     chart.dispatch.on('tooltipShow', showTooltip);
-    chart.dispatch.on('tooltipHide', nvtooltip.cleanup);
+    chart.dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
 
-    $(window).resize(function() {
+    window.onresize= function() {
       // now that width and height are functions, should be automatic..of course you can always override them
       d3.select('#chart1 svg')
           .attr('width', chart.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
           .attr('height', chart.height()())
           .call(chart);
-    });
+    };
   }
 });
 

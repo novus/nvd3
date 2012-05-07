@@ -1,30 +1,19 @@
 var nv = {
-  version: '0.0.1',
+  version: '0.0.1a',
   dev: true //set false when in production
 };
 
 
 window.nv = nv;
 
+nv.tooltip = {}; // For the tooltip system
+nv.utils = {}; // Utility subsystem
 nv.models = {}; //stores all the possible models/components
 nv.charts = {}; //stores all the ready to use charts
 nv.graphs = []; //stores all the graphs currently on the page
 nv.log = {}; //stores some statistics and potential error messages
 
 nv.dispatch = d3.dispatch('render_start', 'render_end');
-
-
-// ********************************************
-//  Public Helper functions, not part of NV
-
-window.log = function(obj) {
-  if ((typeof(window.console) === 'object')
-    && (typeof(window.console.log) === 'function'))
-      console.log.apply(console, arguments);
-
-  return obj;
-};
-
 
 
 
@@ -38,7 +27,7 @@ nv.dispatch.on('render_start', function(e) {
 nv.dispatch.on('render_end', function(e) {
   nv.log.endTime = +new Date;
   nv.log.totalTime = nv.log.endTime - nv.log.startTime;
-  if (nv.dev) log('total', nv.log.totalTime); //used for development, to keep track of graph generation times
+  if (nv.dev && console.log) console.log('total', nv.log.totalTime); //used for development, to keep track of graph generation times
 });
 
 
@@ -82,16 +71,12 @@ nv.addGraph = function(obj) {
 };
 
 
-
 nv.identity = function(d) { return d };
 
 
 nv.strip = function(s) {
   return s.replace(/(\s|&)/g,'');
 }
-
-
-
 
 
 /* An ugly implementation to get month end axis dates
@@ -139,4 +124,29 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 );
 
 
+nv.utils.windowSize = function() {
+    // Sane defaults
+    var size = {width: 640, height: 480};
+
+    // Earlier IE uses Doc.body
+    if (document.body && document.body.offsetWidth) {
+        size.width = document.body.offsetWidth;
+        size.height = document.body.offsetHeight;
+    }
+
+    // IE can use depending on mode it is in
+    if (document.compatMode=='CSS1Compat' &&
+        document.documentElement &&
+        document.documentElement.offsetWidth ) {
+        size.width = document.documentElement.offsetWidth;
+        size.height = document.documentElement.offsetHeight;
+    }
+
+    // Most recent browsers use
+    if (window.innerWidth && window.innerHeight) {
+        size.width = window.innerWidth;
+        size.height = window.innerHeight;
+    }
+    return (size);
+};
 

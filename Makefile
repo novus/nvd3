@@ -1,7 +1,8 @@
 JS_FILES = \
-	src/nvtooltip.js \
 	src/intro.js \
 	src/core.js \
+	src/tooltip.js \
+	src/utils.js \
 	src/models/legend.js \
 	src/models/xaxis.js \
 	src/models/yaxis.js \
