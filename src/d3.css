@@ -154,7 +154,21 @@ text {
   fill: rgba(0,0,0,1);
 }
 
+/***********
+*  Pie Chart
+*/
 
+.pie .hover path {
+    fill: lightblue;
+}
+
+.pie text {
+    fill: rgba(0,0,0,0);
+}
+
+.pie .hover text {
+    fill: black;
+}
 
 /**********
 * Lines 

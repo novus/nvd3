@@ -3,27 +3,28 @@ nv.models.bar = function() {
   var margin = {top: 20, right: 10, bottom: 20, left: 60},
       width = 960,
       height = 500,
-      animate = 500;
+      animate = 500,
+      label ='label',
+      field ='y';
 
   var x = d3.scale.ordinal(),
       y = d3.scale.linear(),
-      xAxis = d3.svg.axis().scale(x).orient('bottom').ticks(5),
+      xAxis = d3.svg.axis().scale(x).orient('bottom'),
       yAxis = d3.svg.axis().scale(y).orient('left');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      //x   .domain(data.map(function(d,i) { return d.label }))
-      x   .domain(["One", "Two", "Three", "Four", "Five"])
+      x   .domain(data.map(function(d,i) { return d[label] }))
           .rangeRoundBands([0, width - margin.left - margin.right], .1);
 
-      y   .domain([0, d3.max(data, function(d) { return d.y; })])
+      y   .domain([0, d3.max(data, function(d) { return d[field]; })])
           .range([height - margin.top - margin.bottom, 0]);
 
       xAxis.ticks( width / 100 );
       yAxis.ticks( height / 36 ).tickSize(-(width - margin.right - margin.left), 0);
 
-      yAxis.tickSize(-(width - margin.right - margin.left), 0);
+     // yAxis.tickSize(-(width - margin.right - margin.left), 0);
 
       var wrap = d3.select(this).selectAll('g.wrap').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap').append('g');
@@ -57,20 +58,20 @@ nv.models.bar = function() {
 
 
       bars
-          .attr('transform', function(d,i) { return 'translate(' + x(d.label) + ',0)' })
+          .attr('transform', function(d,i) { return 'translate(' + x(d[label]) + ',0)' })
       bars.selectAll('rect')
           .order()
           .attr('width', x.rangeBand )
         .transition()
           .duration(animate)
           .attr('x', 0 )
-          .attr('y', function(d) { return y(d.y) })
-          .attr('height', function(d) { return y.range()[0] - y(d.y) });
+          .attr('y', function(d) { return y(d[field]) })
+          .attr('height', function(d) { return y.range()[0] - y(d[field]) });
       bars.selectAll('text')
           .attr('x', 0 )
-          .attr('y', function(d) { return y(d.y) })
+          .attr('y', function(d) { return y(d[field]) })
           .attr('dx', x.rangeBand() / 2)
-          .text(function(d) { return d.y });
+          .text(function(d) { return d[field] });
 
 
       g.select('.x.axis')
@@ -111,6 +112,18 @@ nv.models.bar = function() {
   chart.animate = function(_) {
     if (!arguments.length) return animate;
     animate = _;
+    return chart;
+  };
+
+  chart.labelField = function(_) {
+    if (!arguments.length) return (label);
+      label = _;
+      return chart;
+  };
+
+  chart.dataField = function(_) {
+    if (!arguments.length) return (field);
+    field = _;
     return chart;
   };
 

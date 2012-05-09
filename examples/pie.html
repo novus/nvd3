@@ -18,7 +18,7 @@ text {
 
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/models/bar.js"></script>
+<script src="../src/models/pie.js"></script>
 <script> 
 
   var testdata = [
@@ -54,11 +54,11 @@ nv.addGraph({
     var width = nv.utils.windowSize().width - 40,
         height = nv.utils.windowSize().height - 40;
 
-    var chart = nv.models.bar()
+
+
+    var chart = nv.models.pie()
         .width(width)
-        .height(height)
-        .labelField('label')
-        .dataField('y');
+        .height(height);
 
     d3.select("#test1")
       .attr('width', width)
@@ -84,33 +84,6 @@ nv.addGraph({
     };
   }
 });
-
-/*
-//Format B
-nv.addGraph(function() {
-    var selection = d3.select("body")
-        .datum(irwinHallDistribution(10000, 10));
-
-    var chart = nv.models.histogram()
-          .bins(d3.scale.linear().ticks(20))
-          .tickFormat(d3.format(".02f"));
-
-    chart(selection);
-
-    return chart;
-}, function(g) { console.log(g.width(), g.height()) })
-
-//Format C
-nv.addGraph(function() {
-  return nv.models.histogram()
-           .bins(d3.scale.linear().ticks(20))
-           .tickFormat(d3.format(".02f"))(
-             d3.select("body")
-              .datum(irwinHallDistribution(10000, 10))
-             );
-}, function(g) { console.log(g.width(), g.height()) })
-*/
-
 
 
 </script>
