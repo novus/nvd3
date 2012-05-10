@@ -12,6 +12,7 @@ nv.models.line = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       interactive = true,
+      clipEdge = false,
       clipVoronoi = true,
       xDomain, yDomain;
 
@@ -57,7 +58,7 @@ nv.models.line = function() {
           .attr('height', availableHeight);
 
       gEnter
-          .attr('clip-path', 'url(#chart-clip-path-' + id + ')');
+          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
 
       var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
 
@@ -263,6 +264,12 @@ nv.models.line = function() {
   chart.interactive = function(_) {
     if (!arguments.length) return interactive;
     interactive = _;
+    return chart;
+  };
+
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
     return chart;
   };
 
