@@ -66,10 +66,33 @@ nv.addGraph({
       .datum(testdata)
       .call(chart);
 
+
+
     return chart;
   },
   callback: function(graph) {
-    window.onresize = function() {
+
+      graph.dispatch.on('tooltipShow', function(e) {
+          var offsetElement = document.getElementById("chart"),
+                  left = e.pos[0],
+                  top = e.pos[1];
+
+          var content = '<h3>' + e.label + '</h3>' +
+                  '<p>' +
+                  e.value +
+                  '</p>';
+
+          nv.tooltip.show([left, top], content);
+      });
+
+      graph.dispatch.on('tooltipHide', function(e) {
+           nv.tooltip.cleanup();
+      });
+
+      graph.dispatch.on('elementClick', function(e) { console.log("Clicked on Element",e); });
+      graph.dispatch.on('chartClick', function(e) { console.log("Clicked on chart",e); });
+
+      window.onresize = function() {
       var width = nv.utils.windowSize().width - 40,
           height = nv.utils.windowSize().height - 40;
 

@@ -7,24 +7,28 @@ nv.models.pie = function() {
       radius = Math.min(width, height) / 2,
       label ='label',
       field ='y',
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       color = d3.scale.category20(),
-      labelColor = 'purple';
+      hasLabel = false;
 
 
+  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'tooltipShow', 'tooltipHide');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      // Create the Wrapper Element
-/*     var wrap = d3.select(this)
-          .data([data])
-          .attr('width', width)
-          .attr('height', height)
-          .append("svg:g")
-            .attr("transform", "translate(" + radius + "," + radius + ")"); */
+      var parent = d3.select(this)
+          .on("click", function(d,i) {
+              dispatch.chartClick({
+                  data: d,
+                  index: i,
+                  pos: d3.event,
+                  id: id
+              });
+          });
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap');
+      var wrap = parent.selectAll('g.wrap').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap').attr('id','wrap-'+id);
 
         wrap.attr('width', width)
             .attr('height', height)
@@ -33,7 +37,7 @@ nv.models.pie = function() {
         gEnter.append('g').attr('class', 'pie');
 
         var arc = d3.svg.arc()
-          .outerRadius((radius-(radius / 3)));
+          .outerRadius((radius-(radius / 5)));
 
         // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
@@ -47,16 +51,49 @@ nv.models.pie = function() {
 
      var ae = slices.enter().append("svg:g")
               .attr("class", "slice")
-              .on('mouseover', function(d,i){ d3.select(this).classed('hover', true) })
-              .on('mouseout', function(d,i){ d3.select(this).classed('hover', false) });
+              .on('mouseover', function(d,i){
+                        d3.select(this).classed('hover', true);
+                        dispatch.tooltipShow({
+                            label: d.data[label],
+                            value: d.data[field],
+                            data: d.data,
+                            index: i,
+                            pos: [d3.event.pageX, d3.event.pageY],
+                            id: id
+                        });
+
+              })
+              .on('mouseout', function(d,i){
+                        d3.select(this).classed('hover', false);
+                        dispatch.tooltipHide({
+                            label: d.data[label],
+                            value: d.data[field],
+                            data: d.data,
+                            index: i,
+                            id: id
+                        });
+              })
+              .on('click', function(d,i) {
+                    dispatch.elementClick({
+                        label: d.data[label],
+                        value: d.data[field],
+                        data: d.data,
+                        index: i,
+                        pos: d3.event,
+                        id: id
+                    });
+                    d3.event.stopPropagation();
+              });
+
 
 
       var paths = ae.append("svg:path")
             .attr("fill", function(d, i) { return color(i); })
             .attr('d', arc);
 
-        // This does the normal label
-        ae.append("text")
+        if (hasLabel) {
+          // This does the normal label
+          ae.append("text")
              .attr("transform", function(d) {
                 d.outerRadius = radius + 10; // Set Outer Coordinate
                 d.innerRadius = radius + 15; // Set Inner Coordinate
@@ -65,7 +102,7 @@ nv.models.pie = function() {
             .attr("text-anchor", "middle") //center the text on it's origin
             .style("font", "bold 12px Arial")
             .text(function(d, i) {  return d.data[label] + ': ' + d.data[field];  });
-
+        }
 
 
         // Computes the angle of an arc, converting from radians to degrees.
@@ -82,20 +119,6 @@ nv.models.pie = function() {
 
 
 
-/*        var slices = wrap.select('.slice').selectAll('.slice')
-            .data(function(d) { return d }); */
-/*
-        var barsEnter = arcs.enter().append('g')
-          .attr('class', 'slice')
-          .on('mouseover', function(d,i){ d3.select(this).classed('hover', true) })
-          .on('mouseout', function(d,i){ d3.select(this).classed('hover', false) });
-
-      barsEnter.append('rect')
-          .attr('y', function(d) { return y(0) });
-      barsEnter.append('text')
-          .attr('text-anchor', 'middle')
-          .attr('dy', '-4px');
-*/
 
         function tweenPie(b) {
             b.innerRadius = 0;
@@ -157,6 +180,15 @@ nv.models.pie = function() {
     return chart;
   };
 
+  chart.id = function(_) {
+        if (!arguments.length) return id;
+        id = _;
+        return chart;
+  };
 
-  return chart;
+  chart.dispatch = dispatch;
+
+
+
+    return chart;
 }

@@ -256,29 +256,50 @@ nv.models.bar = function() {
       height = 500,
       animate = 500,
       label ='label',
+      hasLabel = false,
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       field ='y';
 
   var x = d3.scale.ordinal(),
       y = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(x).orient('bottom'),
-      yAxis = d3.svg.axis().scale(y).orient('left');
+      yAxis = d3.svg.axis().scale(y).orient('left'),
+      dispatch = d3.dispatch('chartClick', 'elementClick', 'tooltipShow', 'tooltipHide');
 
-  function chart(selection) {
+
+    function chart(selection) {
     selection.each(function(data) {
 
-      x   .domain(data.map(function(d,i) { return d[label] }))
+      x   .domain(data.map(function(d,i) { return d[label]; }))
           .rangeRoundBands([0, width - margin.left - margin.right], .1);
 
-      y   .domain([0, d3.max(data, function(d) { return d[field]; })])
-          .range([height - margin.top - margin.bottom, 0]);
+       var min = d3.min(data, function(d) { return d[field]; });
+       var max = d3.max(data, function(d) { return d[field]; });
+       var x0 = Math.max(-min, max);
+       var x1 = -x0;
+       // If we have no negative values, then lets stack this with just positive bars
+       if (min > 0) x1 = 0;
+
+       y   .domain([x1, x0 ])
+           .range([height - margin.top - margin.bottom, 0])
+           .nice();
 
       xAxis.ticks( width / 100 );
       yAxis.ticks( height / 36 ).tickSize(-(width - margin.right - margin.left), 0);
 
-     // yAxis.tickSize(-(width - margin.right - margin.left), 0);
+      var parent = d3.select(this)
+          .on("click", function(d,i) {
+            dispatch.chartClick({
+                data: d,
+                index: i,
+                pos: d3.event,
+                id: id
+            });
+          });
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap').append('g');
+      var wrap = parent.selectAll('g.wrap').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -294,36 +315,75 @@ nv.models.bar = function() {
 
       var bars = wrap.select('.bars').selectAll('.bar')
           .data(function(d) { return d });
+
       bars.exit().remove();
 
-
       var barsEnter = bars.enter().append('g')
-          .attr('class', 'bar')
-          .on('mouseover', function(d,i){ d3.select(this).classed('hover', true) })
-          .on('mouseout', function(d,i){ d3.select(this).classed('hover', false) });
-      barsEnter.append('rect')
-          .attr('y', function(d) { return y(0) });
-      barsEnter.append('text')
+//          .attr('class', 'bar')
+          .attr("class", function(d, i) { return d[field] < 0 ? "bar negative" : "bar positive"; })
+          .on('mouseover', function(d,i){
+            d3.select(this).classed('hover', true);
+            dispatch.tooltipShow({
+                label: d[label],
+                value: d[field],
+                data: d,
+                index: i,
+                // TODO: Calculate the center to the bar
+                pos: [d3.event.pageX, d3.event.pageY],
+                id: id
+            });
+
+          })
+          .on('mouseout', function(d,i){
+                d3.select(this).classed('hover', false);
+                dispatch.tooltipHide({
+                    label: d[label],
+                    value: d[field],
+                    data: d,
+                    index: i,
+                    id: id
+                });
+          })
+          .on('click', function(d,i) {
+                dispatch.elementClick({
+                    label: d[label],
+                    value: d[field],
+                    data: d,
+                    index: i,
+                    pos: d3.event,
+                    id: id
+                });
+              d3.event.stopPropagation();
+          });
+
+
+        barsEnter.append('rect')
+          .attr('y', function(d) { return y(0); }); //Math.min(0, d[field]));  });
+        barsEnter.append('text')
           .attr('text-anchor', 'middle')
           .attr('dy', '-4px');
 
 
       bars
-          .attr('transform', function(d,i) { return 'translate(' + x(d[label]) + ',0)' })
+          .attr('transform', function(d,i) { return 'translate(' + x(d[label]) + ',0)'; });
+
       bars.selectAll('rect')
           .order()
           .attr('width', x.rangeBand )
-        .transition()
+          .transition()
           .duration(animate)
           .attr('x', 0 )
-          .attr('y', function(d) { return y(d[field]) })
-          .attr('height', function(d) { return y.range()[0] - y(d[field]) });
+          .attr('y', function(d) { return y(Math.max(0, d[field])) })
+          .attr('height', function(d) { return Math.abs(y(d[field]) - y(0)); });
+           // function(d) { return y.range()[0] - y(d[field]) });
+
+      if (hasLabel) {
       bars.selectAll('text')
           .attr('x', 0 )
           .attr('y', function(d) { return y(d[field]) })
           .attr('dx', x.rangeBand() / 2)
           .text(function(d) { return d[field] });
-
+      }
 
       g.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')')
@@ -345,7 +405,7 @@ nv.models.bar = function() {
   chart.width = function(_) {
     if (!arguments.length) return width;
     if (margin.left + margin.right + 20 > _)
-      width = margin.left + margin.right + 20 // Min width
+      width = margin.left + margin.right + 20; // Min width
     else
       width = _;
     return chart;
@@ -354,7 +414,7 @@ nv.models.bar = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     if (margin.top + margin.bottom + 20 > _)
-      height = margin.top + margin.bottom + 20 // Min height
+      height = margin.top + margin.bottom + 20; // Min height
     else
       height = _;
     return chart;
@@ -378,13 +438,22 @@ nv.models.bar = function() {
     return chart;
   };
 
-  chart.xaxis = {};
+  chart.id = function(_) {
+        if (!arguments.length) return id;
+        id = _;
+        return chart;
+  };
+
+
+    chart.xaxis = {};
   // Expose the x-axis' tickFormat method.
   d3.rebind(chart.xaxis, xAxis, 'tickFormat');
 
   chart.yaxis = {};
   // Expose the y-axis' tickFormat method.
   d3.rebind(chart.yaxis, yAxis, 'tickFormat');
+
+  chart.dispatch = dispatch;
 
   return chart;
 }
@@ -1619,24 +1688,28 @@ nv.models.pie = function() {
       radius = Math.min(width, height) / 2,
       label ='label',
       field ='y',
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       color = d3.scale.category20(),
-      labelColor = 'purple';
+      hasLabel = false;
 
 
+  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'tooltipShow', 'tooltipHide');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      // Create the Wrapper Element
-/*     var wrap = d3.select(this)
-          .data([data])
-          .attr('width', width)
-          .attr('height', height)
-          .append("svg:g")
-            .attr("transform", "translate(" + radius + "," + radius + ")"); */
+      var parent = d3.select(this)
+          .on("click", function(d,i) {
+              dispatch.chartClick({
+                  data: d,
+                  index: i,
+                  pos: d3.event,
+                  id: id
+              });
+          });
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap');
+      var wrap = parent.selectAll('g.wrap').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap').attr('id','wrap-'+id);
 
         wrap.attr('width', width)
             .attr('height', height)
@@ -1645,7 +1718,7 @@ nv.models.pie = function() {
         gEnter.append('g').attr('class', 'pie');
 
         var arc = d3.svg.arc()
-          .outerRadius((radius-(radius / 3)));
+          .outerRadius((radius-(radius / 5)));
 
         // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
@@ -1659,16 +1732,49 @@ nv.models.pie = function() {
 
      var ae = slices.enter().append("svg:g")
               .attr("class", "slice")
-              .on('mouseover', function(d,i){ d3.select(this).classed('hover', true) })
-              .on('mouseout', function(d,i){ d3.select(this).classed('hover', false) });
+              .on('mouseover', function(d,i){
+                        d3.select(this).classed('hover', true);
+                        dispatch.tooltipShow({
+                            label: d.data[label],
+                            value: d.data[field],
+                            data: d.data,
+                            index: i,
+                            pos: [d3.event.pageX, d3.event.pageY],
+                            id: id
+                        });
+
+              })
+              .on('mouseout', function(d,i){
+                        d3.select(this).classed('hover', false);
+                        dispatch.tooltipHide({
+                            label: d.data[label],
+                            value: d.data[field],
+                            data: d.data,
+                            index: i,
+                            id: id
+                        });
+              })
+              .on('click', function(d,i) {
+                    dispatch.elementClick({
+                        label: d.data[label],
+                        value: d.data[field],
+                        data: d.data,
+                        index: i,
+                        pos: d3.event,
+                        id: id
+                    });
+                    d3.event.stopPropagation();
+              });
+
 
 
       var paths = ae.append("svg:path")
             .attr("fill", function(d, i) { return color(i); })
             .attr('d', arc);
 
-        // This does the normal label
-        ae.append("text")
+        if (hasLabel) {
+          // This does the normal label
+          ae.append("text")
              .attr("transform", function(d) {
                 d.outerRadius = radius + 10; // Set Outer Coordinate
                 d.innerRadius = radius + 15; // Set Inner Coordinate
@@ -1677,7 +1783,7 @@ nv.models.pie = function() {
             .attr("text-anchor", "middle") //center the text on it's origin
             .style("font", "bold 12px Arial")
             .text(function(d, i) {  return d.data[label] + ': ' + d.data[field];  });
-
+        }
 
 
         // Computes the angle of an arc, converting from radians to degrees.
@@ -1694,20 +1800,6 @@ nv.models.pie = function() {
 
 
 
-/*        var slices = wrap.select('.slice').selectAll('.slice')
-            .data(function(d) { return d }); */
-/*
-        var barsEnter = arcs.enter().append('g')
-          .attr('class', 'slice')
-          .on('mouseover', function(d,i){ d3.select(this).classed('hover', true) })
-          .on('mouseout', function(d,i){ d3.select(this).classed('hover', false) });
-
-      barsEnter.append('rect')
-          .attr('y', function(d) { return y(0) });
-      barsEnter.append('text')
-          .attr('text-anchor', 'middle')
-          .attr('dy', '-4px');
-*/
 
         function tweenPie(b) {
             b.innerRadius = 0;
@@ -1769,8 +1861,17 @@ nv.models.pie = function() {
     return chart;
   };
 
+  chart.id = function(_) {
+        if (!arguments.length) return id;
+        id = _;
+        return chart;
+  };
 
-  return chart;
+  chart.dispatch = dispatch;
+
+
+
+    return chart;
 }
 
 nv.models.scatter = function() {

@@ -137,6 +137,11 @@ text {
 *  Bars
 */
 
+.bars .negative rect {
+    fill: brown;
+    cursor: pointer;
+}
+
 .bars rect {
   fill: steelblue;
   cursor: pointer;
