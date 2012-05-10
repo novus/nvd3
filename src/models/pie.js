@@ -1,18 +1,20 @@
 
 nv.models.pie = function() {
-  var margin = {top: 20, right: 10, bottom: 20, left: 60},
+  var margin = {top: 20, right: 20, bottom: 20, left: 20},
       width = 500,
       height = 500,
       animate = 2000,
-      radius = Math.min(width, height) / 2,
+      radius = Math.min(width-(margin.right+margin.left), height-(margin.top+margin.bottom)) / 2,
       label ='label',
       field ='y',
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       color = d3.scale.category20(),
-      hasLabel = false;
+      showLabels = true,
+      donut = false,
+      title = '';
 
 
-  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'tooltipShow', 'tooltipHide');
+  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'tooltipShow', 'tooltipHide');
 
   function chart(selection) {
     selection.each(function(data) {
@@ -27,17 +29,30 @@ nv.models.pie = function() {
               });
           });
 
+        parent.append("text")
+            .attr("class", "title")
+            .attr("dy", ".91em")
+            .attr("text-anchor", "start")
+            .text(title);
+
+        parent = parent.append('svg').attr('x', margin.left).attr('y', margin.top).style('overflow','visible');
+
       var wrap = parent.selectAll('g.wrap').data([data]);
+
+
+
       var gEnter = wrap.enter().append('g').attr('class', 'wrap').attr('id','wrap-'+id);
 
-        wrap.attr('width', width)
-            .attr('height', height)
+        wrap.attr('width', width) //-(margin.left+margin.right))
+            .attr('height', height) //-(margin.top+margin.bottom))
             .attr("transform", "translate(" + radius + "," + radius + ")");
 
         gEnter.append('g').attr('class', 'pie');
 
         var arc = d3.svg.arc()
           .outerRadius((radius-(radius / 5)));
+
+        if (donut) arc.innerRadius(radius / 2);
 
         // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
@@ -49,7 +64,8 @@ nv.models.pie = function() {
           slices.exit().remove();
 
 
-     var ae = slices.enter().append("svg:g")
+
+        var ae = slices.enter().append("svg:g")
               .attr("class", "slice")
               .on('mouseover', function(d,i){
                         d3.select(this).classed('hover', true);
@@ -83,6 +99,17 @@ nv.models.pie = function() {
                         id: id
                     });
                     d3.event.stopPropagation();
+              })
+              .on('dblclick', function(d,i) {
+                dispatch.elementDblClick({
+                    label: d.data[label],
+                    value: d.data[field],
+                    data: d.data,
+                    index: i,
+                    pos: d3.event,
+                    id: id
+                });
+                 d3.event.stopPropagation();
               });
 
 
@@ -91,7 +118,7 @@ nv.models.pie = function() {
             .attr("fill", function(d, i) { return color(i); })
             .attr('d', arc);
 
-        if (hasLabel) {
+        if (showLabels) {
           // This does the normal label
           ae.append("text")
              .attr("transform", function(d) {
@@ -101,7 +128,8 @@ nv.models.pie = function() {
             })
             .attr("text-anchor", "middle") //center the text on it's origin
             .style("font", "bold 12px Arial")
-            .text(function(d, i) {  return d.data[label] + ': ' + d.data[field];  });
+            //.attr("fill", function(d, i) { return color(i); })
+            .text(function(d, i) {  return d.data[label]; });
         }
 
 
@@ -147,7 +175,7 @@ nv.models.pie = function() {
     } else {
       width = _;
     }
-    radius = Math.min(width, height) / 2;
+    radius = Math.min(width-(margin.left+margin.right), height-(margin.top+margin.bottom)) / 2;
     return chart;
   };
 
@@ -158,7 +186,7 @@ nv.models.pie = function() {
     } else {
       height = _;
     }
-    radius = Math.min(width, height) / 2;
+    radius = Math.min(width-(margin.left+margin.right), height-(margin.top+margin.bottom)) / 2;
     return chart;
   };
 
@@ -178,6 +206,24 @@ nv.models.pie = function() {
     if (!arguments.length) return (field);
     field = _;
     return chart;
+  };
+
+  chart.showLabels = function(_) {
+      if (!arguments.length) return (showLabels);
+      showLabels = _;
+      return chart;
+  };
+
+  chart.donut = function(_) {
+        if (!arguments.length) return (donut);
+        donut = _;
+        return chart;
+  };
+
+  chart.title = function(_) {
+        if (!arguments.length) return (title);
+        title = _;
+        return chart;
   };
 
   chart.id = function(_) {

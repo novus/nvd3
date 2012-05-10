@@ -1,34 +1,38 @@
 
 nv.models.bar = function() {
-  var margin = {top: 20, right: 10, bottom: 20, left: 60},
+  var margin = {top: 20, right: 10, bottom: 80, left: 60},
       width = 960,
       height = 500,
       animate = 500,
       label ='label',
-      hasLabel = false,
+      rotatedLabel = true,
+      showLabels = true,
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      field ='y';
+      color = d3.scale.category20(),
+      field ='y',
+      title = '';
 
   var x = d3.scale.ordinal(),
       y = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(x).orient('bottom'),
       yAxis = d3.svg.axis().scale(y).orient('left'),
-      dispatch = d3.dispatch('chartClick', 'elementClick', 'tooltipShow', 'tooltipHide');
+      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'tooltipShow', 'tooltipHide');
 
 
-    function chart(selection) {
+  function chart(selection) {
     selection.each(function(data) {
       x   .domain(data.map(function(d,i) { return d[label]; }))
           .rangeRoundBands([0, width - margin.left - margin.right], .1);
 
-       var min = d3.min(data, function(d) { return d[field]; });
-       var max = d3.max(data, function(d) { return d[field]; });
+       var min = d3.min(data, function(d) { return d[field] });
+       var max = d3.max(data, function(d) { return d[field] });
        var x0 = Math.max(-min, max);
        var x1 = -x0;
-       // If we have no negative values, then lets stack this with just positive bars
-       if (min > 0) x1 = 0;
 
-       y   .domain([x1, x0 ])
+        // If we have no negative values, then lets stack this with just positive bars
+       if (min >= 0) x1 = 0;
+
+       y   .domain([x1, x0])
            .range([height - margin.top - margin.bottom, 0])
            .nice();
 
@@ -45,8 +49,16 @@ nv.models.bar = function() {
             });
           });
 
-      var wrap = parent.selectAll('g.wrap').data([data]);
+      parent.append("text")
+            .attr("class", "title")
+            .attr("dy", ".91em")
+            .attr("text-anchor", "start")
+            .text(title);
+
+
+        var wrap = parent.selectAll('g.wrap').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+
 
 
       gEnter.append('g').attr('class', 'x axis');
@@ -67,7 +79,6 @@ nv.models.bar = function() {
       bars.exit().remove();
 
       var barsEnter = bars.enter().append('g')
-//          .attr('class', 'bar')
           .attr("class", function(d, i) { return d[field] < 0 ? "bar negative" : "bar positive"; })
           .on('mouseover', function(d,i){
             d3.select(this).classed('hover', true);
@@ -102,11 +113,25 @@ nv.models.bar = function() {
                     id: id
                 });
               d3.event.stopPropagation();
+          })
+          .on('dblclick', function(d,i) {
+              dispatch.elementDblClick({
+                  label: d.data[label],
+                  value: d.data[field],
+                  data: d.data,
+                  index: i,
+                  pos: d3.event,
+                  id: id
+              });
+              d3.event.stopPropagation();
           });
 
 
         barsEnter.append('rect')
-          .attr('y', function(d) { return y(0); });
+          .attr('y', function(d) { return y(0); })
+          .attr("fill", function(d, i) { return color(i); });
+
+
         barsEnter.append('text')
           .attr('text-anchor', 'middle')
           .attr('dy', '-4px');
@@ -125,19 +150,36 @@ nv.models.bar = function() {
           .attr('height', function(d) { return Math.abs(y(d[field]) - y(0)); });
            // function(d) { return y.range()[0] - y(d[field]) });
 
-      if (hasLabel) {
+/*      if (hasLabel) {
         bars.selectAll('text')
           .attr('x', 0 )
           .attr('y', function(d) { return y(d[field]) })
           .attr('dx', x.rangeBand() / 2)
           .text(function(d) { return d[field] });
-      }
+      } */
 
       g.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')')
           .call(xAxis);
 
-      g.select('.y.axis')
+
+        if (rotatedLabel) {
+          g.select('.x.axis').selectAll('text').attr('text-anchor','start').attr("transform", function(d) {
+            return "rotate(35)translate(" + this.getBBox().height/2 + "," + '0' + ")";
+          });
+        }
+        if (!showLabels) {
+            g.select('.x.axis').selectAll('text').attr('fill', 'rgba(0,0,0,0)');
+            g.select('.x.axis').selectAll('line').attr('style', 'opacity: 0');
+        }
+        /*else {
+            g.select('.x.axis').selectAll('text').attr('fill', 'rgba(0,0,0,1)');
+            g.select('.x.axis').selectAll('line').attr('style', 'opacity: 1');
+        }*/
+
+
+
+        g.select('.y.axis')
           .call(yAxis);
     });
 
@@ -192,8 +234,25 @@ nv.models.bar = function() {
         return chart;
   };
 
+  chart.rotatedLabel = function(_) {
+        if (!arguments.length) return rotatedLabel;
+        rotatedLabel = _;
+        return chart;
+  };
 
-    chart.xaxis = {};
+  chart.showLabels = function(_) {
+        if (!arguments.length) return (showLabels);
+        showLabels = _;
+        return chart;
+  };
+
+  chart.title = function(_) {
+      if (!arguments.length) return (title);
+      title = _;
+      return chart;
+  };
+
+  chart.xaxis = {};
   // Expose the x-axis' tickFormat method.
   d3.rebind(chart.xaxis, xAxis, 'tickFormat');
 

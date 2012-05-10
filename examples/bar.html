@@ -23,12 +23,12 @@ text {
 
   var testdata = [
     { 
-      label: "One",
+      label: "One is a very long",
       y: 5
     },
     { 
-      label: "Two",
-      y: 2
+      label: "Two is also very long",
+      y: null
     },
     { 
       label: "Three",
@@ -36,7 +36,7 @@ text {
     },
     { 
       label: "Four",
-      y:  -7
+      y:  7
     },
     { 
       label: "Five",
@@ -58,7 +58,10 @@ nv.addGraph({
         .width(width)
         .height(height)
         .labelField('label')
-        .dataField('y');
+        .dataField('y')
+        .showLabels(true)
+        .title("This is a sample chart title")
+         ;
 
     d3.select("#test1")
       .attr('width', width)

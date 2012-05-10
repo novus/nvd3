@@ -58,7 +58,9 @@ nv.addGraph({
 
     var chart = nv.models.pie()
         .width(width)
-        .height(height);
+        .height(height)
+        .title('Hi this is the chart title')
+            ;
 
     d3.select("#test1")
       .attr('width', width)
@@ -90,6 +92,7 @@ nv.addGraph({
       });
 
       graph.dispatch.on('elementClick', function(e) { console.log("Clicked on Element",e); });
+      graph.dispatch.on('elementDblClick', function(e) { console.log("Double Clicked on Element",e); });
       graph.dispatch.on('chartClick', function(e) { console.log("Clicked on chart",e); });
 
       window.onresize = function() {
