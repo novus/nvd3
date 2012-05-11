@@ -13,13 +13,16 @@ nv.models.pie = function() {
       donut = false,
       title = '';
 
+      var lastWidth = 0,
+      lastHeight = 0;
+
 
   var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'tooltipShow', 'tooltipHide');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      var parent = d3.select(this)
+      var svg = d3.select(this)
           .on("click", function(d,i) {
               dispatch.chartClick({
                   data: d,
@@ -29,36 +32,62 @@ nv.models.pie = function() {
               });
           });
 
+
+
+        var background = svg.selectAll('svg.margin').data([data]);
+        var parent = background.enter();
         parent.append("text")
             .attr("class", "title")
             .attr("dy", ".91em")
             .attr("text-anchor", "start")
             .text(title);
+        parent.append('svg')
+            .attr('class','margin')
+            .attr('x', margin.left)
+            .attr('y', margin.top)
+            .style('overflow','visible');
 
-        parent = parent.append('svg').attr('x', margin.left).attr('y', margin.top).style('overflow','visible');
+        var wrap = background.selectAll('g.wrap').data([data]);
+        wrap.exit().remove();
+        var wEnter = wrap.enter();
 
-      var wrap = parent.selectAll('g.wrap').data([data]);
+        wEnter
+          .append('g')
+            .attr('class', 'wrap')
+            .attr('id','wrap-'+id)
+          .append('g')
+            .attr('class', 'pie');
 
 
 
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap').attr('id','wrap-'+id);
-
-        wrap.attr('width', width) //-(margin.left+margin.right))
+        wrap
+            .attr('width', width) //-(margin.left+margin.right))
             .attr('height', height) //-(margin.top+margin.bottom))
             .attr("transform", "translate(" + radius + "," + radius + ")");
 
-        gEnter.append('g').attr('class', 'pie');
+
+
 
         var arc = d3.svg.arc()
           .outerRadius((radius-(radius / 5)));
 
         if (donut) arc.innerRadius(radius / 2);
 
+
+
+       // TODO: figure a better way to remove old chart on a redraw
+       if (lastWidth != width || lastHeight != height) {
+         background.select('.pie').selectAll(".slice").remove();
+         lastWidth = width;
+         lastHeight = height;
+       }
+
+
         // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
          .value(function (d) { return d[field]; });
 
-      var slices = wrap.select('.pie').selectAll(".slice")
+      var slices = background.select('.pie').selectAll(".slice")
             .data(pie);
 
           slices.exit().remove();
