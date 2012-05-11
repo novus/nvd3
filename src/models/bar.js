@@ -49,15 +49,16 @@ nv.models.bar = function() {
             });
           });
 
-      parent.append("text")
+
+
+        var wrap = parent.selectAll('g.wrap').data([data]);
+      var gEnter = wrap.enter();
+        gEnter.append("text")
             .attr("class", "title")
             .attr("dy", ".91em")
             .attr("text-anchor", "start")
             .text(title);
-
-
-        var wrap = parent.selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+        gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
 
 
 
