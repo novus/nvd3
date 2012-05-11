@@ -9,6 +9,7 @@ JS_FILES = \
 	src/models/line.js \
 	src/models/lineWithFocus.js \
 	src/models/lineWithLegend.js \
+	src/models/cumulativeLine.js \
 	src/models/scatter.js \
 	src/models/scatterWithLegend.js \
 	src/models/sparkline.js \

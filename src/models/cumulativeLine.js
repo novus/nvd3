@@ -152,6 +152,7 @@ nv.models.cumulativeLine = function() {
         selection.transition().call(chart);
       });
 
+      /*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -161,6 +162,7 @@ nv.models.cumulativeLine = function() {
         d.hover = false;
         selection.transition().call(chart)
       });
+      */
 
       lines.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
