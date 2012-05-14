@@ -28,7 +28,7 @@ text {
     },
     { 
       label: "Two is also very long",
-      y: null
+      y: 2
     },
     { 
       label: "Three",
@@ -48,6 +48,34 @@ text {
     }
   ];
 
+
+  var testdata2 = [
+      {
+          label: "One is a very long",
+          y: 1
+      },
+      {
+          label: "Two is also very long",
+          y: 12
+      },
+      {
+          label: "Three",
+          y: -9
+      },
+      {
+          label: "Four",
+          y:  4
+      },
+      {
+          label: "Five",
+          y: 6
+      }
+  ];
+
+  var td = 0;
+  var a = (Math.random()*10)+1;
+  if (a > 5) td = 1;
+
 //Format A
 nv.addGraph({
   generate: function() {
@@ -63,11 +91,19 @@ nv.addGraph({
         .title("This is a sample chart title")
          ;
 
-    d3.select("#test1")
-      .attr('width', width)
-      .attr('height', height)
-      .datum(testdata)
-      .call(chart);
+    if (td === 0) {
+      d3.select("#test1")
+        .attr('width', width)
+        .attr('height', height)
+        .datum(testdata)
+        .call(chart);
+    } else {
+        d3.select("#test1")
+                .attr('width', width)
+                .attr('height', height)
+                .datum(testdata2)
+                .call(chart);
+    }
 
     return chart;
   },
@@ -97,6 +133,23 @@ nv.addGraph({
       graph.dispatch.on('chartClick', function(e) {
           console.log("Chart Click",e);
       });
+
+      graph.dispatch.on('chartClick', function(e) {
+          console.log('Click Switching to');
+          if (td === 0) {
+              d3.select("#test1")
+                      .datum(testdata2)
+                      .call(graph);
+              td = 1;
+
+          } else {
+              d3.select("#test1")
+                      .datum(testdata)
+                      .call(graph);
+              td = 0;
+          }
+      });
+
 
       window.onresize = function() {
       var width = nv.utils.windowSize().width - 40,

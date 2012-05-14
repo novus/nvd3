@@ -275,6 +275,7 @@ nv.models.bar = function() {
       x   .domain(data.map(function(d,i) { return d[label]; }))
           .rangeRoundBands([0, width - margin.left - margin.right], .1);
 
+
        var min = d3.min(data, function(d) { return d[field] });
        var max = d3.max(data, function(d) { return d[field] });
        var x0 = Math.max(-min, max);
@@ -301,7 +302,6 @@ nv.models.bar = function() {
           });
 
 
-
       var wrap = parent.selectAll('g.wrap').data([data]);
       var gEnter = wrap.enter();
         gEnter.append("text")
@@ -326,12 +326,15 @@ nv.models.bar = function() {
 
 
       var bars = wrap.select('.bars').selectAll('.bar')
-          .data(function(d) { return d });
+          .data(function(d) { return d; });
 
-      bars.exit().remove();
+          bars.exit().remove();
 
-      var barsEnter = bars.enter().append('g')
-          .attr("class", function(d, i) { return d[field] < 0 ? "bar negative" : "bar positive"; })
+
+        var barsEnter = bars.enter().append('svg:rect')
+          .attr('class', function(d) { return d[field] < 0 ? "bar negative" : "bar positive"})
+          .attr("fill", function(d, i) { return color(i); })
+          .attr('x', 0 )
           .on('mouseover', function(d,i){
             d3.select(this).classed('hover', true);
             dispatch.tooltipShow({
@@ -368,9 +371,9 @@ nv.models.bar = function() {
           })
           .on('dblclick', function(d,i) {
               dispatch.elementDblClick({
-                  label: d.data[label],
-                  value: d.data[field],
-                  data: d.data,
+                  label: d[label],
+                  value: d[field],
+                  data: d,
                   index: i,
                   pos: d3.event,
                   id: id
@@ -379,36 +382,16 @@ nv.models.bar = function() {
           });
 
 
-        barsEnter.append('rect')
-          .attr('y', function(d) { return y(0); })
-          .attr("fill", function(d, i) { return color(i); });
-
-
-        barsEnter.append('text')
-          .attr('text-anchor', 'middle')
-          .attr('dy', '-4px');
-
-
-      bars
-          .attr('transform', function(d,i) { return 'translate(' + x(d[label]) + ',0)'; });
-
-      bars.selectAll('rect')
-          .order()
+        bars
+          .attr('class', function(d) { return d[field] < 0 ? "bar negative" : "bar positive"})
+          .attr('transform', function(d,i) { return 'translate(' + x(d[label]) + ',0)'; })
           .attr('width', x.rangeBand )
+          .order()
           .transition()
           .duration(animate)
-          .attr('x', 0 )
-          .attr('y', function(d) { return y(Math.max(0, d[field])) })
-          .attr('height', function(d) { return Math.abs(y(d[field]) - y(0)); });
-           // function(d) { return y.range()[0] - y(d[field]) });
+          .attr('y', function(d) {  return y(Math.max(0, d[field])); })
+          .attr('height', function(d) { return Math.abs(y(d[field]) - y(0));  });
 
-/*      if (hasLabel) {
-        bars.selectAll('text')
-          .attr('x', 0 )
-          .attr('y', function(d) { return y(d[field]) })
-          .attr('dx', x.rangeBand() / 2)
-          .text(function(d) { return d[field] });
-      } */
 
       g.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')')
@@ -1814,16 +1797,7 @@ nv.models.pie = function() {
         if (donut) arc.innerRadius(radius / 2);
 
 
-
-       // TODO: figure a better way to remove old chart on a redraw
-       if (lastWidth != width || lastHeight != height) {
-         background.select('.pie').selectAll(".slice").remove();
-         lastWidth = width;
-         lastHeight = height;
-       }
-
-
-        // Setup the Pie chart and choose the data element
+      // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
          .value(function (d) { return d[field]; });
 
@@ -1831,8 +1805,6 @@ nv.models.pie = function() {
             .data(pie);
 
           slices.exit().remove();
-
-
 
         var ae = slices.enter().append("svg:g")
               .attr("class", "slice")
@@ -1881,24 +1853,34 @@ nv.models.pie = function() {
                  d3.event.stopPropagation();
               });
 
+        var paths = ae.append("svg:path")
+            .attr('class','path')
+            .attr("fill", function(d, i) { return color(i); });
+            //.attr('d', arc);
 
-
-      var paths = ae.append("svg:path")
-            .attr("fill", function(d, i) { return color(i); })
-            .attr('d', arc);
+        slices.select('.path')
+            .attr('d', arc)
+            .transition()
+            .ease("bounce")
+            .duration(animate)
+            .attrTween("d", tweenPie);
 
         if (showLabels) {
-          // This does the normal label
-          ae.append("text")
-             .attr("transform", function(d) {
-                d.outerRadius = radius + 10; // Set Outer Coordinate
-                d.innerRadius = radius + 15; // Set Inner Coordinate
-                return "translate(" + arc.centroid(d) + ")";
-            })
-            .attr("text-anchor", "middle") //center the text on it's origin
-            .style("font", "bold 12px Arial")
-            //.attr("fill", function(d, i) { return color(i); })
-            .text(function(d, i) {  return d.data[label]; });
+            // This does the normal label
+            ae.append("text");
+
+            slices.select("text")
+              .transition()
+              .duration(animate)
+              .ease('bounce')
+              .attr("transform", function(d) {
+                 d.outerRadius = radius + 10; // Set Outer Coordinate
+                 d.innerRadius = radius + 15; // Set Inner Coordinate
+                 return "translate(" + arc.centroid(d) + ")";
+              })
+              .attr("text-anchor", "middle") //center the text on it's origin
+              .style("font", "bold 12px Arial")
+              .text(function(d, i) {  return d.data[label]; });
         }
 
 
@@ -1908,11 +1890,6 @@ nv.models.pie = function() {
             return a > 90 ? a - 180 : a;
         }
 
-        // Animation
-         paths.transition()
-            .ease("bounce")
-            .duration(animate)
-            .attrTween("d", tweenPie);
 
 
 

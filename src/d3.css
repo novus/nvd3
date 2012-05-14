@@ -21,6 +21,7 @@
   background-color: rgba(255,255,255,1);
   padding: 10px;
   border: 1px solid #ddd;
+  z-index: 10000;
 
   font-family: Arial;
   font-size: 13px;

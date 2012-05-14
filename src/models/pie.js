@@ -74,16 +74,7 @@ nv.models.pie = function() {
         if (donut) arc.innerRadius(radius / 2);
 
 
-
-       // TODO: figure a better way to remove old chart on a redraw
-       if (lastWidth != width || lastHeight != height) {
-         background.select('.pie').selectAll(".slice").remove();
-         lastWidth = width;
-         lastHeight = height;
-       }
-
-
-        // Setup the Pie chart and choose the data element
+      // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
          .value(function (d) { return d[field]; });
 
@@ -91,8 +82,6 @@ nv.models.pie = function() {
             .data(pie);
 
           slices.exit().remove();
-
-
 
         var ae = slices.enter().append("svg:g")
               .attr("class", "slice")
@@ -141,24 +130,34 @@ nv.models.pie = function() {
                  d3.event.stopPropagation();
               });
 
+        var paths = ae.append("svg:path")
+            .attr('class','path')
+            .attr("fill", function(d, i) { return color(i); });
+            //.attr('d', arc);
 
-
-      var paths = ae.append("svg:path")
-            .attr("fill", function(d, i) { return color(i); })
-            .attr('d', arc);
+        slices.select('.path')
+            .attr('d', arc)
+            .transition()
+            .ease("bounce")
+            .duration(animate)
+            .attrTween("d", tweenPie);
 
         if (showLabels) {
-          // This does the normal label
-          ae.append("text")
-             .attr("transform", function(d) {
-                d.outerRadius = radius + 10; // Set Outer Coordinate
-                d.innerRadius = radius + 15; // Set Inner Coordinate
-                return "translate(" + arc.centroid(d) + ")";
-            })
-            .attr("text-anchor", "middle") //center the text on it's origin
-            .style("font", "bold 12px Arial")
-            //.attr("fill", function(d, i) { return color(i); })
-            .text(function(d, i) {  return d.data[label]; });
+            // This does the normal label
+            ae.append("text");
+
+            slices.select("text")
+              .transition()
+              .duration(animate)
+              .ease('bounce')
+              .attr("transform", function(d) {
+                 d.outerRadius = radius + 10; // Set Outer Coordinate
+                 d.innerRadius = radius + 15; // Set Inner Coordinate
+                 return "translate(" + arc.centroid(d) + ")";
+              })
+              .attr("text-anchor", "middle") //center the text on it's origin
+              .style("font", "bold 12px Arial")
+              .text(function(d, i) {  return d.data[label]; });
         }
 
 
@@ -168,11 +167,6 @@ nv.models.pie = function() {
             return a > 90 ? a - 180 : a;
         }
 
-        // Animation
-         paths.transition()
-            .ease("bounce")
-            .duration(animate)
-            .attrTween("d", tweenPie);
 
 
 

@@ -48,7 +48,35 @@ text {
     }
   ];
 
-//Format A
+  var testdata2 = [
+      {
+          label: "One",
+          y: 10
+      },
+      {
+          label: "Two",
+          y: 5
+      },
+      {
+          label: "Three",
+          y: 3
+      },
+      {
+          label: "Four",
+          y: 7
+      },
+      {
+          label: "Five",
+          y: 2
+      }
+
+  ];
+
+  var td = 0;
+  var a = (Math.random()*10)+1;
+  if (a > 5) td = 1;
+
+  //Format A
 nv.addGraph({
   generate: function() {
     var width = nv.utils.windowSize().width - 40,
@@ -62,11 +90,19 @@ nv.addGraph({
         .title('Hi this is the chart title')
             ;
 
+    if (td === 0) {
     d3.select("#test1")
       .attr('width', width)
       .attr('height', height)
       .datum(testdata)
       .call(chart);
+    } else {
+        d3.select("#test1")
+                .attr('width', width)
+                .attr('height', height)
+                .datum(testdata2)
+                .call(chart);
+    }
 
 
 
@@ -91,9 +127,25 @@ nv.addGraph({
            nv.tooltip.cleanup();
       });
 
+      graph.dispatch.on('chartClick', function(e) {
+          console.log('Click Switching to');
+         if (td === 0) {
+             d3.select("#test1")
+                     .datum(testdata2)
+                     .call(graph);
+             td = 1;
+
+         } else {
+          d3.select("#test1")
+                  .datum(testdata)
+                  .call(graph);
+             td = 0;
+         }
+      });
+
       graph.dispatch.on('elementClick', function(e) { console.log("Clicked on Element",e); });
       graph.dispatch.on('elementDblClick', function(e) { console.log("Double Clicked on Element",e); });
-      graph.dispatch.on('chartClick', function(e) { console.log("Clicked on chart",e); });
+      //graph.dispatch.on('chartClick', function(e) { console.log("Clicked on chart",e); });
 
       window.onresize = function() {
       var width = nv.utils.windowSize().width - 40,
