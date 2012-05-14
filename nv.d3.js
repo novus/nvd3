@@ -1469,8 +1469,8 @@ nv.models.lineWithLegend = function() {
 
 nv.models.cumulativeLine = function() {
   var margin = {top: 30, right: 20, bottom: 30, left: 60},
-      width = 960,
-      height = 500,
+      getWidth = function() { return 960 },
+      getHeight = function() { return 500 },
       color = d3.scale.category10().range(),
       dotRadius = function() { return 2.5 },
       getX = function(d) { return d.x },
@@ -1510,21 +1510,27 @@ nv.models.cumulativeLine = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var width = getWidth(),
+          height = getHeight(),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
       var series = indexify(index.i, data);
 
       var seriesData = series
             .filter(function(d) { return !d.disabled })
             .map(function(d) { return d.values });
 
-      x   .domain(d3.extent(d3.merge(seriesData), getX ))
+      x   .domain(d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
           .range([0, width - margin.left - margin.right]);
 
       dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
           .range([0, width - margin.left - margin.right])
           .clamp(true);
 
-      y   .domain(d3.extent(d3.merge(seriesData), getY ))
+      y   .domain(d3.extent(d3.merge(seriesData), function(d) { return d.y } ))
           .range([height - margin.top - margin.bottom, 0]);
+
 
       lines
         .width(width - margin.left - margin.right)
@@ -1659,12 +1665,12 @@ nv.models.cumulativeLine = function() {
   /* Normalize the data according to an index point. */
   function indexify(idx, data) {
     return data.map(function(line, i) {
-      var v = getY(line.values[idx]);
+      var v = getY(line.values[idx], idx);
 
       return {
         key: line.key,
-        values: line.values.map(function(point) {
-          return {'x': getX(point), 'y': (getY(point) - v) / (1 + v) };
+        values: line.values.map(function(point, pointIndex) {
+          return {'x': getX(point, pointIndex), 'y': (getY(point, pointIndex) - v) / (1 + v) };
         }),
         disabled: line.disabled,
         hover: line.hover
@@ -1687,14 +1693,14 @@ nv.models.cumulativeLine = function() {
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
-    lines.x(_);
+    //lines.x(_);
     return chart;
   };
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
-    lines.y(_);
+    //lines.y(_);
     return chart;
   };
 
@@ -1704,6 +1710,7 @@ nv.models.cumulativeLine = function() {
     return chart;
   };
 
+  /*
   chart.width = function(_) {
     if (!arguments.length) return width;
     width = _;
@@ -1713,6 +1720,19 @@ nv.models.cumulativeLine = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+  */
+
+  chart.width = function(_) {
+    if (!arguments.length) return getWidth;
+    getWidth = d3.functor(_);
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return getHeight;
+    getHeight = d3.functor(_);
     return chart;
   };
 

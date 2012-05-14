@@ -3,7 +3,7 @@
 //    basically the chart models with the extra glue... Queuing, tooltips, automatic resize, etc.
 // I may make these more specific, like 'time series line with month end data points', etc.
 //    or may make yet another layer of abstraction... common settings.
-nv.charts.lineChartDaily = function() {
+nv.charts.cumulativeLineChartDaily = function() {
   var selector = null,
       data = [],
       duration = 500,
@@ -13,7 +13,7 @@ nv.charts.lineChartDaily = function() {
       };
 
 
-  var graph = nv.models.lineWithLegend()
+  var graph = nv.models.cumulativeLine()
                 .x(function(d,i) { return i }),
       showTooltip = function(e) {
         var offset = $(selector).offset(),
@@ -33,7 +33,6 @@ nv.charts.lineChartDaily = function() {
   //graph.xAxis.tickFormat(d3.format(',r'));
   graph.xAxis.tickFormat(function(d) {
     //return d3.time.format('%x')(new Date(d))
-    //log(d, data[0].values[d]);
     return d3.time.format('%x')(new Date(data[0].values[d].x))
   });
 
