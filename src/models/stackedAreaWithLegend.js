@@ -125,6 +125,7 @@ nv.models.stackedAreaWithLegend = function() {
 
       stacked.dispatch.on('pointMouseover.tooltip', function(e) {
         //disable tooltips when value ~= 0
+        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
         if (!Math.round(getY(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
           setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
           return false;

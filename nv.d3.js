@@ -631,7 +631,11 @@ nv.models.line = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { return d.values }),
+      var seriesData = data.map(function(d) { 
+            return d.values.map(function(d,i) {
+              return { x: getX(d,i), y: getY(d,i) }
+            })
+          }),
           availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
@@ -639,10 +643,10 @@ nv.models.line = function() {
       y0 = y0 || y;
 
 
-      x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX ))
+      x   .domain(xDomain || d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
           .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData), getY ))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData), function(d) { return d.y } ))
           .range([availableHeight, 0]);
 
 
@@ -685,7 +689,7 @@ nv.models.line = function() {
         var vertices = d3.merge(data.map(function(line, lineIndex) {
             return line.values.map(function(point, pointIndex) {
               //return [x(getX(point)), y(getY(point)), lineIndex, pointIndex]; //inject series and point index for reference into voronoi
-              return [x(getX(point)) * (Math.random() / 1e12 + 1)  , y(getY(point)) * (Math.random() / 1e12 + 1), lineIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
+              return [x(getX(point, pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point, pointIndex)) * (Math.random() / 1e12 + 1), lineIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
             })
           })
         );
@@ -725,7 +729,7 @@ nv.models.line = function() {
               dispatch.pointMouseover({
                 point: point,
                 series:series,
-                pos: [x(getX(point)) + margin.left, y(getY(point)) + margin.top],
+                pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 seriesIndex: d.series,
                 pointIndex: d.point
               });
@@ -778,40 +782,40 @@ nv.models.line = function() {
           .data(function(d, i) { return [d.values] });
       paths.enter().append('path')
           .attr('d', d3.svg.line()
-            .x(function(d) { return x0(getX(d)) })
-            .y(function(d) { return y0(getY(d)) })
+            .x(function(d,i) { return x0(getX(d,i)) })
+            .y(function(d,i) { return y0(getY(d,i)) })
           );
       //d3.transition(paths.exit())
       d3.transition(lines.exit().selectAll('path'))
           .attr('d', d3.svg.line()
-            .x(function(d) { return x(getX(d)) })
-            .y(function(d) { return y(getY(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
           )
           .remove();
       d3.transition(paths)
           .attr('d', d3.svg.line()
-            .x(function(d) { return x(getX(d)) })
-            .y(function(d) { return y(getY(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
           );
 
 
       var points = lines.selectAll('circle.point')
           .data(function(d) { return d.values });
       points.enter().append('circle')
-          .attr('cx', function(d) { return x0(getX(d)) })
-          .attr('cy', function(d) { return y0(getY(d)) });
+          .attr('cx', function(d,i) { return x0(getX(d,i)) })
+          .attr('cy', function(d,i) { return y0(getY(d,i)) });
       d3.transition(points.exit())
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .remove();
       d3.transition(lines.exit().selectAll('circle.point'))
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .remove();
       points.attr('class', function(d,i) { return 'point point-' + i });
       d3.transition(points)
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', dotRadius);
 
 
@@ -1273,13 +1277,13 @@ nv.models.lineWithLegend = function() {
       getWidth = function() { return 960 },
       getHeight = function() { return 500 },
       dotRadius = function() { return 2.5 },
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
       color = d3.scale.category10().range(),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
       xAxis = nv.models.xaxis().scale(x),
       yAxis = nv.models.yaxis().scale(y),
       legend = nv.models.legend().height(30),
@@ -1294,12 +1298,16 @@ nv.models.lineWithLegend = function() {
           availableHeight = height - margin.top - margin.bottom;
 
       var series = data.filter(function(d) { return !d.disabled })
-            .map(function(d) { return d.values });
+            .map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i) }
+              })
+            });
 
-      x   .domain(d3.extent(d3.merge(series), getX ))
+      x   .domain(d3.extent(d3.merge(series), function(d) { return d.x } ))
           .range([0, availableWidth]);
 
-      y   .domain(d3.extent(d3.merge(series), getY ))
+      y   .domain(d3.extent(d3.merge(series), function(d) { return d.y } ))
           .range([availableHeight, 0]);
 
       lines
@@ -1412,6 +1420,9 @@ nv.models.lineWithLegend = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+
+  d3.rebind(chart, lines, 'interactive');
+  //consider rebinding x and y as well
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -2635,6 +2646,7 @@ nv.models.stackedAreaWithLegend = function() {
 
       stacked.dispatch.on('pointMouseover.tooltip', function(e) {
         //disable tooltips when value ~= 0
+        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
         if (!Math.round(getY(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
           setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
           return false;

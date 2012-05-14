@@ -24,7 +24,11 @@ nv.models.line = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { return d.values }),
+      var seriesData = data.map(function(d) { 
+            return d.values.map(function(d,i) {
+              return { x: getX(d,i), y: getY(d,i) }
+            })
+          }),
           availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
@@ -32,10 +36,10 @@ nv.models.line = function() {
       y0 = y0 || y;
 
 
-      x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX ))
+      x   .domain(xDomain || d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
           .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData), getY ))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData), function(d) { return d.y } ))
           .range([availableHeight, 0]);
 
 
@@ -78,7 +82,7 @@ nv.models.line = function() {
         var vertices = d3.merge(data.map(function(line, lineIndex) {
             return line.values.map(function(point, pointIndex) {
               //return [x(getX(point)), y(getY(point)), lineIndex, pointIndex]; //inject series and point index for reference into voronoi
-              return [x(getX(point)) * (Math.random() / 1e12 + 1)  , y(getY(point)) * (Math.random() / 1e12 + 1), lineIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
+              return [x(getX(point, pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point, pointIndex)) * (Math.random() / 1e12 + 1), lineIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
             })
           })
         );
@@ -118,7 +122,7 @@ nv.models.line = function() {
               dispatch.pointMouseover({
                 point: point,
                 series:series,
-                pos: [x(getX(point)) + margin.left, y(getY(point)) + margin.top],
+                pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 seriesIndex: d.series,
                 pointIndex: d.point
               });
@@ -171,40 +175,40 @@ nv.models.line = function() {
           .data(function(d, i) { return [d.values] });
       paths.enter().append('path')
           .attr('d', d3.svg.line()
-            .x(function(d) { return x0(getX(d)) })
-            .y(function(d) { return y0(getY(d)) })
+            .x(function(d,i) { return x0(getX(d,i)) })
+            .y(function(d,i) { return y0(getY(d,i)) })
           );
       //d3.transition(paths.exit())
       d3.transition(lines.exit().selectAll('path'))
           .attr('d', d3.svg.line()
-            .x(function(d) { return x(getX(d)) })
-            .y(function(d) { return y(getY(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
           )
           .remove();
       d3.transition(paths)
           .attr('d', d3.svg.line()
-            .x(function(d) { return x(getX(d)) })
-            .y(function(d) { return y(getY(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
           );
 
 
       var points = lines.selectAll('circle.point')
           .data(function(d) { return d.values });
       points.enter().append('circle')
-          .attr('cx', function(d) { return x0(getX(d)) })
-          .attr('cy', function(d) { return y0(getY(d)) });
+          .attr('cx', function(d,i) { return x0(getX(d,i)) })
+          .attr('cy', function(d,i) { return y0(getY(d,i)) });
       d3.transition(points.exit())
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .remove();
       d3.transition(lines.exit().selectAll('circle.point'))
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .remove();
       points.attr('class', function(d,i) { return 'point point-' + i });
       d3.transition(points)
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', dotRadius);
 
 

@@ -4,13 +4,13 @@ nv.models.lineWithLegend = function() {
       getWidth = function() { return 960 },
       getHeight = function() { return 500 },
       dotRadius = function() { return 2.5 },
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
       color = d3.scale.category10().range(),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
       xAxis = nv.models.xaxis().scale(x),
       yAxis = nv.models.yaxis().scale(y),
       legend = nv.models.legend().height(30),
@@ -25,12 +25,16 @@ nv.models.lineWithLegend = function() {
           availableHeight = height - margin.top - margin.bottom;
 
       var series = data.filter(function(d) { return !d.disabled })
-            .map(function(d) { return d.values });
+            .map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i) }
+              })
+            });
 
-      x   .domain(d3.extent(d3.merge(series), getX ))
+      x   .domain(d3.extent(d3.merge(series), function(d) { return d.x } ))
           .range([0, availableWidth]);
 
-      y   .domain(d3.extent(d3.merge(series), getY ))
+      y   .domain(d3.extent(d3.merge(series), function(d) { return d.y } ))
           .range([availableHeight, 0]);
 
       lines
@@ -143,6 +147,9 @@ nv.models.lineWithLegend = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+
+  d3.rebind(chart, lines, 'interactive');
+  //consider rebinding x and y as well
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
