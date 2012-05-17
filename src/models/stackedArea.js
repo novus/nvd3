@@ -23,7 +23,7 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var lines = nv.models.line(),
+  var lines = nv.models.line(), //TODO: this really should just be a scatterplot overlayed, not a line
       x = d3.scale.linear(),
       y = d3.scale.linear();
 

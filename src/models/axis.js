@@ -21,6 +21,20 @@ nv.models.axis = function() {
       var axisLabel = d3.select(this).selectAll('text.axislabel')
           .data([axisLabelText || null]);
       switch (orient) {
+        case 'top':
+          axisLabel.enter().append('text').attr('class', 'axislabel')
+              .attr('text-anchor', 'middle')
+              .attr('y', 0);
+          axisLabel
+              .attr('x', range[1] / 2);
+              break;
+        case 'right':
+          axisLabel.enter().append('text').attr('class', 'axislabel')
+               .attr('transform', 'rotate(90)')
+              .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+          axisLabel
+              .attr('x', -range[0] / 2);
+              break;
         case 'bottom':
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
