@@ -7,5 +7,3 @@ Currently in an early stage of development, but will be a very active project.  
 
 You can also check out the [examples page](http://novus.github.com/nvd3/)
 
-
-#### **Project is not dead, the creator is just recovering from surgery, after breaking his clavicle.  Will be back soon.
