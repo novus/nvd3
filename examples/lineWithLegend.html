@@ -65,7 +65,7 @@ nv.addGraph({
 
     chart
         .width(width)
-        .height(height)
+        .height(height);
 
     chart.xAxis
         .tickFormat(xTickFormat);
@@ -84,22 +84,21 @@ nv.addGraph({
   },
   callback: function(chart) {
     var showTooltip = function(e) {
-          var offsetElement = document.getElementById(selector.substr(1)),
-                left = e.pos[0] + offsetElement.offsetLeft,
-                top = e.pos[1] + offsetElement.offsetTop,
+      var offsetElement = document.getElementById(selector.substr(1)),
+          left = e.pos[0] + offsetElement.offsetLeft,
+          top = e.pos[1] + offsetElement.offsetTop,
+          formatY = chart.yAxis.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
+          formatX = chart.xAxis.tickFormat();
 
-        formatY = chart.yAxis.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
-              formatX = chart.xAxis.tickFormat();
+      // uses the chart's getX and getY, you may customize if x position is not the same as the value you want
+      //   ex. daily data without weekends, x is the index, while you want the date
+      var content = '<h3>' + e.series.key + '</h3>' +
+                    '<p>' +
+                    formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
+                    '</p>';
 
-        // uses the chart's getX and getY, you may customize if x position is not the same as the value you want
-          //   ex. daily data without weekends, x is the index, while you want the date
-          var content = '<h3>' + e.series.key + '</h3>' +
-                        '<p>' +
-                        formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
-                        '</p>';
-
-          nv.tooltip.show([left, top], content);
-        };
+      nv.tooltip.show([left, top], content);
+    };
 
     chart.dispatch.on('tooltipShow', showTooltip);
     chart.dispatch.on('tooltipHide', nv.tooltip.cleanup);

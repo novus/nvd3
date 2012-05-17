@@ -74,7 +74,7 @@ nv.charts.line = function() {
         graph.dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
         //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
-        window.onResize =
+        window.onresize =
         function() {
           // now that width and height are functions, should be automatic..of course you can always override them
           d3.select(selector + ' svg')

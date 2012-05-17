@@ -16,9 +16,9 @@ nv.charts.lineChartDaily = function() {
   var graph = nv.models.lineWithLegend()
                 .x(function(d,i) { return i }),
       showTooltip = function(e) {
-        var offset = $(selector).offset(),
-            left = e.pos[0] + offset.left,
-            top = e.pos[1] + offset.top,
+        var offsetElement = document.getElementById(selector.substr(1)),
+            left = e.pos[0] + offsetElement.offsetLeft,
+            top = e.pos[1] + offsetElement.offsetTop,
             formatX = graph.xAxis.tickFormat(),
             formatY = graph.yAxis.tickFormat(),
             x = formatX(graph.x()(e, e.pointIndex)),
@@ -26,7 +26,7 @@ nv.charts.lineChartDaily = function() {
             y = formatY(graph.y()(e.point)),
             content = tooltip(e.series.key, x, y, e, graph);
 
-        nvtooltip.show([left, top], content);
+        nv.tooltip.show([left, top], content);
       };
 
   //setting component defaults
@@ -80,16 +80,17 @@ nv.charts.lineChartDaily = function() {
       },
       callback: function(graph) {
         graph.dispatch.on('tooltipShow', showTooltip);
-        graph.dispatch.on('tooltipHide', nvtooltip.cleanup);
+        graph.dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
         //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
-        $(window).resize(function() {
+        window.onresize =
+        function() {
           // now that width and height are functions, should be automatic..of course you can always override them
           d3.select(selector + ' svg')
               .attr('width', graph.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
               .attr('height', graph.height()())
               .call(graph);
-        });
+        };
       }
     });
 
