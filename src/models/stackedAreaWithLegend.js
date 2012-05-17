@@ -123,7 +123,7 @@ nv.models.stackedAreaWithLegend = function() {
       });
       */
 
-      stacked.dispatch.on('pointMouseover.tooltip', function(e) {
+      stacked.dispatch.on('tooltipShow', function(e) {
         //disable tooltips when value ~= 0
         //// TODO: consider removing points from voronoi that have 0 value instead of this hack
         if (!Math.round(getY(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
@@ -134,13 +134,13 @@ nv.models.stackedAreaWithLegend = function() {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
-          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
+          pos: [e.pos[0] + margin.left,  e.pos[1] + margin.top],
           seriesIndex: e.seriesIndex,
           pointIndex: e.pointIndex
         });
       });
 
-      stacked.dispatch.on('pointMouseout.tooltip', function(e) {
+      stacked.dispatch.on('tooltipHide', function(e) {
         dispatch.tooltipHide(e);
       });
 

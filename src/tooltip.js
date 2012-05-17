@@ -3,27 +3,33 @@
  * A no frills tooltip implementation.
  *****/
 
-(function($) {
 
-  var nvtooltip = window.nvtooltip = {};
+(function() {
+
+  var nvtooltip = window.nv.tooltip = {};
 
   nvtooltip.show = function(pos, content, gravity, dist) {
-    var container = $('<div class="nvtooltip">');
+
+    var container = document.createElement("div");
+        container.className = "nvtooltip";
 
     gravity = gravity || 's';
     dist = dist || 20;
 
-    container
-      .html(content)
-      .css({left: -1000, top: -1000, opacity: 0})
-      .appendTo('body'); //append the container out of view so we can get measurements
+    var body = document.getElementsByTagName("body")[0];
 
-    var height = container.height() + parseInt(container.css('padding-top'))  + parseInt(container.css('padding-bottom')),
-        width = container.width() + parseInt(container.css('padding-left'))  + parseInt(container.css('padding-right')),
-        windowWidth = $(window).width(),
-        windowHeight = $(window).height(),
-        scrollTop = $('body').scrollTop(),
-        scrollLeft = $('body').scrollLeft(),
+    container.innerHTML = content;
+    container.style.left = 1;
+    container.style.top = 1;
+    container.style.opacity = 0;
+    body.appendChild(container);
+
+    var height = parseInt(container.offsetHeight),
+        width = parseInt(container.offsetWidth),
+        windowWidth = nv.utils.windowSize().width,
+        windowHeight = nv.utils.windowSize().height,
+        scrollTop = body.scrollTop,
+        scrollLeft = body.scrollLeft,
         left, top;
 
 
@@ -59,30 +65,34 @@
     }
 
 
-    container
-        .css({
-          left: left,
-          top: top,
-          opacity: 1
-        });
+    container.style.left = left+"px";
+    container.style.top = top+"px";
+    container.style.opacity = 1;
 
     return container;
   };
 
   nvtooltip.cleanup = function() {
-    var tooltips = $('.nvtooltip');
 
-    tooltips.css({
-        'transition-delay': '0 !important',
-        '-moz-transition-delay': '0 !important',
-        '-webkit-transition-delay': '0 !important'
-    });
+      // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
+      var tooltips = document.getElementsByClassName('nvtooltip');
+      var purging = [];
+      while(tooltips.length) {
+        purging.push(tooltips[0]);
+        tooltips[0].style.transitionDelay = "0 !important";
+        tooltips[0].style.opacity = 0;
+        tooltips[0].className = "nvtooltip-pending-removal";
+      }
 
-    tooltips.css('opacity',0);
 
-    setTimeout(function() {
-      tooltips.remove()
+      setTimeout(function() {
+
+          while (purging.length) {
+             var removeMe = purging.pop();
+              removeMe.parentNode.removeChild(removeMe);
+          }
     }, 500);
   };
 
-})(jQuery);
+
+})();

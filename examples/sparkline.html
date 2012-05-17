@@ -18,7 +18,6 @@ text {
   <h2>Sparkline: <span id="test1" class="sparkline"></span></h2>
 
 <script src="../lib/d3.v2.js"></script>
-<script src="../lib/jquery.min.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/models/sparkline.js"></script>
 <script>
@@ -27,8 +26,8 @@ text {
 nv.addGraph({
   generate: function() {
     var chart = nv.models.sparkline()
-                  .width(200)
-                  .height(20)
+                  .width(400)
+                  .height(80)
 
     d3.select("#test1")
       .datum(sine())

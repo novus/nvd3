@@ -9,7 +9,8 @@ nv.models.stackedArea = function() {
       style = 'stack',
       offset = 'zero',
       order = 'default',
-      xDomain, yDomain;
+      xDomain, yDomain,
+      dispatch =  d3.dispatch('tooltipShow', 'tooltipHide');
 
 /************************************
  * offset:
@@ -181,7 +182,22 @@ nv.models.stackedArea = function() {
     return chart;
   };
 
-  chart.dispatch = lines.dispatch;
+  chart.dispatch = dispatch;
+
+  lines.dispatch.on('pointMouseover.tooltip', function(e) {
+        dispatch.tooltipShow({
+            point: e.point,
+            series: e.series,
+            pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
+            seriesIndex: e.seriesIndex,
+            pointIndex: e.pointIndex
+        });
+  });
+
+  lines.dispatch.on('pointMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+  });
+
 
   return chart;
 }

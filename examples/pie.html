@@ -18,16 +18,16 @@ text {
 
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/models/bar.js"></script>
+<script src="../src/models/pie.js"></script>
 <script> 
 
   var testdata = [
     { 
-      label: "One is a very long",
+      label: "One",
       y: 5
     },
     { 
-      label: "Two is also very long",
+      label: "Two",
       y: 2
     },
     { 
@@ -36,7 +36,7 @@ text {
     },
     { 
       label: "Four",
-      y:  7
+      y: 7
     },
     { 
       label: "Five",
@@ -48,55 +48,54 @@ text {
     }
   ];
 
-
   var testdata2 = [
       {
-          label: "One is a very long",
-          y: 1
+          label: "One",
+          y: 10
       },
       {
-          label: "Two is also very long",
-          y: 12
+          label: "Two",
+          y: 5
       },
       {
           label: "Three",
-          y: -9
+          y: 3
       },
       {
           label: "Four",
-          y:  4
+          y: 7
       },
       {
           label: "Five",
-          y: 6
+          y: 2
       }
+
   ];
 
   var td = 0;
   var a = (Math.random()*10)+1;
   if (a > 5) td = 1;
 
-//Format A
+  //Format A
 nv.addGraph({
   generate: function() {
     var width = nv.utils.windowSize().width - 40,
         height = nv.utils.windowSize().height - 40;
 
-    var chart = nv.models.bar()
+
+
+    var chart = nv.models.pie()
         .width(width)
         .height(height)
-        .labelField('label')
-        .dataField('y')
-        .showLabels(true)
-        .title("This is a sample chart title")
-         ;
+        .title('Hi this is the chart title')
+            ;
 
     if (td === 0) {
-      d3.select("#test1")
-        .attr('width', width)
-        .attr('height', height)
-        .datum(testdata)
-        .call(chart);
+    d3.select("#test1")
+      .attr('width', width)
+      .attr('height', height)
+      .datum(testdata)
+      .call(chart);
     } else {
         d3.select("#test1")
                 .attr('width', width)
@@ -104,6 +103,8 @@ nv.addGraph({
                 .datum(testdata2)
                 .call(chart);
     }
+
+
 
     return chart;
   },
@@ -123,33 +124,28 @@ nv.addGraph({
       });
 
       graph.dispatch.on('tooltipHide', function(e) {
-          nv.tooltip.cleanup();
-      });
-
-      graph.dispatch.on('elementClick', function(e) {
-          console.log("Bar Click",e);
-      });
-
-      graph.dispatch.on('chartClick', function(e) {
-          console.log("Chart Click",e);
+           nv.tooltip.cleanup();
       });
 
       graph.dispatch.on('chartClick', function(e) {
           console.log('Click Switching to');
-          if (td === 0) {
-              d3.select("#test1")
-                      .datum(testdata2)
-                      .call(graph);
-              td = 1;
+         if (td === 0) {
+             d3.select("#test1")
+                     .datum(testdata2)
+                     .call(graph);
+             td = 1;
 
-          } else {
-              d3.select("#test1")
-                      .datum(testdata)
-                      .call(graph);
-              td = 0;
-          }
+         } else {
+          d3.select("#test1")
+                  .datum(testdata)
+                  .call(graph);
+             td = 0;
+         }
       });
 
+      graph.dispatch.on('elementClick', function(e) { console.log("Clicked on Element",e); });
+      graph.dispatch.on('elementDblClick', function(e) { console.log("Double Clicked on Element",e); });
+      //graph.dispatch.on('chartClick', function(e) { console.log("Clicked on chart",e); });
 
       window.onresize = function() {
       var width = nv.utils.windowSize().width - 40,
@@ -166,33 +162,6 @@ nv.addGraph({
     };
   }
 });
-
-/*
-//Format B
-nv.addGraph(function() {
-    var selection = d3.select("body")
-        .datum(irwinHallDistribution(10000, 10));
-
-    var chart = nv.models.histogram()
-          .bins(d3.scale.linear().ticks(20))
-          .tickFormat(d3.format(".02f"));
-
-    chart(selection);
-
-    return chart;
-}, function(g) { console.log(g.width(), g.height()) })
-
-//Format C
-nv.addGraph(function() {
-  return nv.models.histogram()
-           .bins(d3.scale.linear().ticks(20))
-           .tickFormat(d3.format(".02f"))(
-             d3.select("body")
-              .datum(irwinHallDistribution(10000, 10))
-             );
-}, function(g) { console.log(g.width(), g.height()) })
-*/
-
 
 
 </script>

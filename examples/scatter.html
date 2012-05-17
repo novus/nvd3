@@ -13,7 +13,6 @@ body {
 <svg id="test1"></svg>
 
 <script src="../lib/d3.v2.js"></script>
-<script src="../lib/jquery.min.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/scatter.js"></script>
@@ -23,10 +22,10 @@ body {
 //Format A
 nv.addGraph({
   generate: function() {
-    var width = $(window).width() - 40,
-        height = $(window).height() - 40;
+      var width = nv.utils.windowSize().width - 40,
+          height = nv.utils.windowSize().height - 40;
 
-    var chart = nv.models.scatter()
+      var chart = nv.models.scatter()
                 .width(width)
                 .height(height)
                 .margin({top: 20, right: 20, bottom: 20, left: 20})
@@ -42,10 +41,10 @@ nv.addGraph({
     return chart;
   },
   callback: function(graph) {
-    $(window).resize(function() {
-      var width = $(window).width() - 40,
-          height = $(window).height() - 40,
-          margin = graph.margin();
+    window.onresize = function() {
+        var width = nv.utils.windowSize().width - 40,
+             height = nv.utils.windowSize().height - 40,
+        margin = graph.margin();
 
 
       if (width < margin.left + margin.right + 20)
@@ -64,7 +63,7 @@ nv.addGraph({
         .attr('height', height)
         .call(graph);
 
-    });
+    };
   }
 });
 

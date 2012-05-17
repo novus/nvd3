@@ -11,6 +11,7 @@
 }
 
 
+
 /********************
  * TOOLTIP CSS 
  */
@@ -20,6 +21,7 @@
   background-color: rgba(255,255,255,1);
   padding: 10px;
   border: 1px solid #ddd;
+  z-index: 10000;
 
   font-family: Arial;
   font-size: 13px;
@@ -77,7 +79,9 @@ text {
   font: 12px sans-serif;
 }
 
-
+svg .title {
+ font: bold 14px Arial;
+}
 
 /**********
 *  Brush
@@ -137,8 +141,13 @@ text {
 *  Bars
 */
 
+.bars .negative rect {
+    zfill: brown;
+    cursor: pointer;
+}
+
 .bars rect {
-  fill: steelblue;
+  zfill: steelblue;
   cursor: pointer;
 }
 
@@ -154,7 +163,16 @@ text {
   fill: rgba(0,0,0,1);
 }
 
+.x.axis text {
+  transform: rotate(90);
+}
+/***********
+*  Pie Chart
+*/
 
+.pie .hover path {
+    fill: lightblue;
+}
 
 /**********
 * Lines 

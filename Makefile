@@ -1,10 +1,12 @@
 JS_FILES = \
-	src/nvtooltip.js \
 	src/intro.js \
 	src/core.js \
+	src/tooltip.js \
+	src/utils.js \
 	src/models/legend.js \
 	src/models/axis.js \
 	src/models/bar.js \
+	src/models/pie.js \
 	src/models/line.js \
 	src/models/lineWithFocus.js \
 	src/models/lineWithLegend.js \
