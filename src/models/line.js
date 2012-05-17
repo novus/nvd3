@@ -137,12 +137,10 @@ nv.models.line = function() {
 
 
         dispatch.on('pointMouseover.point', function(d) {
-          log('test')
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
         dispatch.on('pointMouseout.point', function(d) {
-          log('test')
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });

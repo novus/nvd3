@@ -697,12 +697,10 @@ nv.models.line = function() {
 
 
         dispatch.on('pointMouseover.point', function(d) {
-          log('test')
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
         dispatch.on('pointMouseout.point', function(d) {
-          log('test')
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });
@@ -3064,10 +3062,11 @@ nv.charts.lineChartDaily = function() {
 };
 
 
-// This is an attempt to make an extremely easy to use chart that is ready to go,
-//    basically the chart models with the extra glue... Queuing, tooltips, automatic resize, etc.
-// I may make these more specific, like 'time series line with month end data points', etc.
-//    or may make yet another layer of abstraction... common settings.
+// This technique works AS IS for month end data points
+//   In fact, this works for any series where each value is evenly spaced,
+//   and every series starts at the same value and is 1 to 1
+//     In other words, values at the same index, need to have the same x value
+//     for all series
 nv.charts.cumulativeLineChartDaily = function() {
   var selector = null,
       data = [],
