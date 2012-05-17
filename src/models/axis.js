@@ -1,11 +1,12 @@
 
-nv.models.xaxis = function() {
+nv.models.axis = function() {
   var domain = [0,1], //just to have something to start with, maybe I dont need this
       range = [0,1],
+      orient = 'bottom',
       axisLabelText = false;
 
   var scale = d3.scale.linear(),
-      axis = d3.svg.axis().scale(scale).orient('bottom');
+      axis = d3.svg.axis().scale(scale);
 
   function chart(selection) {
     selection.each(function(data) {
@@ -13,16 +14,31 @@ nv.models.xaxis = function() {
       scale.domain(domain)
            .range(range);
 
+      axis.orient(orient);
+
       //TODO: consider calculating height based on whether or not label is added, for reference in charts using this component
 
       var axisLabel = d3.select(this).selectAll('text.axislabel')
           .data([axisLabelText || null]);
-      axisLabel.enter().append('text').attr('class', 'axislabel')
-          .attr('text-anchor', 'middle')
-          .attr('x', range[1] / 2)
-          .attr('y', 25);
+      switch (orient) {
+        case 'bottom':
+          axisLabel.enter().append('text').attr('class', 'axislabel')
+              .attr('text-anchor', 'middle')
+              .attr('y', 25);
+          axisLabel
+              .attr('x', range[1] / 2);
+              break;
+        case 'left':
+          axisLabel.enter().append('text').attr('class', 'axislabel')
+               .attr('transform', 'rotate(-90)')
+              .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+          axisLabel
+              .attr('x', -range[0] / 2);
+              break;
+      }
       axisLabel.exit().remove();
-      axisLabel.text(function(d) { return d });
+      axisLabel
+          .text(function(d) { return d });
 
 
       //d3.select(this)
@@ -32,7 +48,7 @@ nv.models.xaxis = function() {
       d3.select(this)
         .selectAll('line.tick')
         //.filter(function(d) { return !parseFloat(d) })
-        .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) })
+        .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
           .classed('zero', true);
 
     });
@@ -40,6 +56,12 @@ nv.models.xaxis = function() {
     return chart;
   }
 
+
+  chart.orient = function(_) {
+    if (!arguments.length) return orient;
+    orient = _;
+    return chart;
+  };
 
   chart.domain = function(_) {
     if (!arguments.length) return domain;
@@ -67,7 +89,7 @@ nv.models.xaxis = function() {
   }
 
 
-  d3.rebind(chart, axis, 'orient', 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  d3.rebind(chart, axis, 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
 
   return chart;
 }

@@ -11,8 +11,8 @@ nv.models.lineWithLegend = function() {
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      xAxis = nv.models.xaxis().scale(x),
-      yAxis = nv.models.yaxis().scale(y),
+      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       lines = nv.models.line();
 

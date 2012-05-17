@@ -18,8 +18,8 @@ nv.models.scatterWithLegend = function() {
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      xAxis = nv.models.xaxis().scale(x).tickPadding(10),
-      yAxis = nv.models.yaxis().scale(y).tickPadding(10),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(10),
+      yAxis = nv.models.axis().scale(y).orient('left').tickPadding(10),
       legend = nv.models.legend().height(30),
       scatter = nv.models.scatter();
 

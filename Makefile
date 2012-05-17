@@ -3,8 +3,7 @@ JS_FILES = \
 	src/intro.js \
 	src/core.js \
 	src/models/legend.js \
-	src/models/xaxis.js \
-	src/models/yaxis.js \
+	src/models/axis.js \
 	src/models/bar.js \
 	src/models/line.js \
 	src/models/lineWithFocus.js \
@@ -16,6 +15,8 @@ JS_FILES = \
 	src/models/stackedArea.js \
 	src/models/stackedAreaWithLegend.js \
 	src/charts/lineChart.js \
+	src/charts/lineChartDaily.js \
+	src/charts/cumulativeLineChartDaily.js \
 	src/outro.js
 
 JS_COMPILER = \

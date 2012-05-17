@@ -105,7 +105,6 @@ nv.models.line = function() {
         var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
 
 
-        //TODO: Add small amount noise to prevent duplicates
         var pointPaths = wrap.select('.point-paths').selectAll('path')
             .data(voronoi);
         pointPaths.enter().append('path')
@@ -138,11 +137,13 @@ nv.models.line = function() {
 
 
         dispatch.on('pointMouseover.point', function(d) {
+          log('test')
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
         dispatch.on('pointMouseout.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' circle.point-' + d.pointIndex)
+          log('test')
+            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });
       }

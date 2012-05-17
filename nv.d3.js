@@ -338,13 +338,14 @@ nv.models.legend = function() {
   return chart;
 }
 
-nv.models.xaxis = function() {
+nv.models.axis = function() {
   var domain = [0,1], //just to have something to start with, maybe I dont need this
       range = [0,1],
+      orient = 'bottom',
       axisLabelText = false;
 
   var scale = d3.scale.linear(),
-      axis = d3.svg.axis().scale(scale).orient('bottom');
+      axis = d3.svg.axis().scale(scale);
 
   function chart(selection) {
     selection.each(function(data) {
@@ -352,16 +353,31 @@ nv.models.xaxis = function() {
       scale.domain(domain)
            .range(range);
 
+      axis.orient(orient);
+
       //TODO: consider calculating height based on whether or not label is added, for reference in charts using this component
 
       var axisLabel = d3.select(this).selectAll('text.axislabel')
           .data([axisLabelText || null]);
-      axisLabel.enter().append('text').attr('class', 'axislabel')
-          .attr('text-anchor', 'middle')
-          .attr('x', range[1] / 2)
-          .attr('y', 25);
+      switch (orient) {
+        case 'bottom':
+          axisLabel.enter().append('text').attr('class', 'axislabel')
+              .attr('text-anchor', 'middle')
+              .attr('y', 25);
+          axisLabel
+              .attr('x', range[1] / 2);
+              break;
+        case 'left':
+          axisLabel.enter().append('text').attr('class', 'axislabel')
+               .attr('transform', 'rotate(-90)')
+              .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+          axisLabel
+              .attr('x', -range[0] / 2);
+              break;
+      }
       axisLabel.exit().remove();
-      axisLabel.text(function(d) { return d });
+      axisLabel
+          .text(function(d) { return d });
 
 
       //d3.select(this)
@@ -371,7 +387,7 @@ nv.models.xaxis = function() {
       d3.select(this)
         .selectAll('line.tick')
         //.filter(function(d) { return !parseFloat(d) })
-        .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) })
+        .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
           .classed('zero', true);
 
     });
@@ -379,6 +395,12 @@ nv.models.xaxis = function() {
     return chart;
   }
 
+
+  chart.orient = function(_) {
+    if (!arguments.length) return orient;
+    orient = _;
+    return chart;
+  };
 
   chart.domain = function(_) {
     if (!arguments.length) return domain;
@@ -406,76 +428,7 @@ nv.models.xaxis = function() {
   }
 
 
-  d3.rebind(chart, axis, 'orient', 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
-
-  return chart;
-}
-
-nv.models.yaxis = function() {
-  var domain = [0,1], //just to have something to start with
-      range = [0,1],
-      axisLabelText = false;
-
-  var y = d3.scale.linear(),
-      axis = d3.svg.axis().scale(y).orient('left');
-
-  function chart(selection) {
-    selection.each(function(data) {
-
-      y   .domain(domain)
-          .range(range);
-
-
-      //TODO: consider calculating width based on whether or not label is added, for reference in charts using this component
-
-      var axisLabel = d3.select(this).selectAll('text.axislabel')
-          .data([axisLabelText || null]);
-      axisLabel.enter().append('text').attr('class', 'axislabel')
-          .attr('transform', 'rotate(-90)')
-          .attr('text-anchor', 'middle')
-          .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
-      axisLabel.exit().remove();
-      axisLabel
-          .attr('x', -range[0] / 2)
-          .text(function(d) { return d });
-
-
-      //d3.select(this)
-      d3.transition(d3.select(this))
-          .call(axis);
-
-      d3.select(this)
-        .selectAll('line.tick')
-        //.filter(function(d) { return !parseFloat(d) })
-        .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) })
-          .classed('zero', true);
-
-    });
-
-    return chart;
-  }
-
-
-  chart.domain = function(_) {
-    if (!arguments.length) return domain;
-    domain = _;
-    return chart;
-  };
-
-  chart.range = function(_) {
-    if (!arguments.length) return range;
-    range = _;
-    return chart;
-  };
-
-  chart.axisLabel = function(_) {
-    if (!arguments.length) return axisLabelText;
-    axisLabelText = _;
-    return chart;
-  }
-
-
-  d3.rebind(chart, axis, 'scale', 'orient', 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  d3.rebind(chart, axis, 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
 
   return chart;
 }
@@ -712,7 +665,6 @@ nv.models.line = function() {
         var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
 
 
-        //TODO: Add small amount noise to prevent duplicates
         var pointPaths = wrap.select('.point-paths').selectAll('path')
             .data(voronoi);
         pointPaths.enter().append('path')
@@ -745,11 +697,13 @@ nv.models.line = function() {
 
 
         dispatch.on('pointMouseover.point', function(d) {
+          log('test')
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
         dispatch.on('pointMouseout.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' circle.point-' + d.pointIndex)
+          log('test')
+            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });
       }
@@ -929,10 +883,10 @@ nv.models.lineWithFocus = function() {
       y = d3.scale.linear(),
       x2 = d3.scale.linear(),
       y2 = d3.scale.linear(),
-      xAxis = nv.models.xaxis().scale(x),
-      yAxis = nv.models.yaxis().scale(y),
-      xAxis2 = nv.models.xaxis().scale(x2),
-      yAxis2 = nv.models.yaxis().scale(y2),
+      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      yAxis = nv.models.axis().scale(y).orient('left'),
+      xAxis2 = nv.models.axis().scale(x2).orient('bottom'),
+      yAxis2 = nv.models.axis().scale(y2).orient('left'),
       legend = nv.models.legend().height(30),
       focus = nv.models.line().clipEdge(true),
       context = nv.models.line().dotRadius(.1).interactive(false),
@@ -1284,8 +1238,8 @@ nv.models.lineWithLegend = function() {
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      xAxis = nv.models.xaxis().scale(x),
-      yAxis = nv.models.yaxis().scale(y),
+      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       lines = nv.models.line();
 
@@ -1480,8 +1434,8 @@ nv.models.cumulativeLine = function() {
   var x = d3.scale.linear(),
       dx = d3.scale.linear(),
       y = d3.scale.linear(),
-      xAxis = nv.models.xaxis().scale(x),
-      yAxis = nv.models.yaxis().scale(y),
+      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       lines = nv.models.line(),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
@@ -2081,8 +2035,8 @@ nv.models.scatterWithLegend = function() {
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      xAxis = nv.models.xaxis().scale(x).tickPadding(10),
-      yAxis = nv.models.yaxis().scale(y).tickPadding(10),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(10),
+      yAxis = nv.models.axis().scale(y).orient('left').tickPadding(10),
       legend = nv.models.legend().height(30),
       scatter = nv.models.scatter();
 
@@ -2552,8 +2506,8 @@ nv.models.stackedAreaWithLegend = function() {
       y = d3.scale.linear(),
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      xAxis = nv.models.xaxis().scale(x),
-      yAxis = nv.models.yaxis().scale(y),
+      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
       stacked = nv.models.stackedArea();
@@ -2816,6 +2770,339 @@ nv.charts.line = function() {
   //setting component defaults
   graph.xAxis.tickFormat(d3.format(',r'));
   graph.yAxis.tickFormat(d3.format(',.2f'));
+
+
+  //TODO: consider a method more similar to how the models are built
+  function chart() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph); //consider using transition chaining like in the models
+
+    return chart;
+  }
+
+
+  // This should always only be called once, then update should be used after, 
+  //     in which case should consider the 'd3 way' and merge this with update, 
+  //     but simply do this on enter... should try anoter example that way
+  chart.build = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    nv.addGraph({
+      generate: function() {
+        var container = d3.select(selector),
+            width = function() { return parseInt(container.style('width')) },
+            height = function() { return parseInt(container.style('height')) },
+            svg = container.append('svg');
+
+        graph
+            .width(width)
+            .height(height);
+
+        svg
+            .attr('width', width())
+            .attr('height', height())
+            .datum(data)
+          .transition().duration(duration).call(graph);
+
+        return graph;
+      },
+      callback: function(graph) {
+        graph.dispatch.on('tooltipShow', showTooltip);
+        graph.dispatch.on('tooltipHide', nvtooltip.cleanup);
+
+        //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
+        $(window).resize(function() {
+          // now that width and height are functions, should be automatic..of course you can always override them
+          d3.select(selector + ' svg')
+              .attr('width', graph.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
+              .attr('height', graph.height()())
+              .call(graph);
+        });
+      }
+    });
+
+    return chart;
+  };
+
+
+  /*
+  //  moved to chart()
+  chart.update = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph);
+
+    return chart;
+  };
+  */
+
+  chart.data = function(_) {
+    if (!arguments.length) return data;
+    data = _;
+    return chart;
+  };
+
+  chart.selector = function(_) {
+    if (!arguments.length) return selector;
+    selector = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
+  chart.xTickFormat = function(_) {
+    if (!arguments.length) return graph.xAxis.tickFormat();
+    graph.xAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.yTickFormat = function(_) {
+    if (!arguments.length) return graph.yAxis.tickFormat();
+    graph.yAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.xAxisLabel = function(_) {
+    if (!arguments.length) return graph.xAxis.axisLabel();
+    graph.xAxis.axisLabel(_);
+    return chart;
+  };
+
+  chart.yAxisLabel = function(_) {
+    if (!arguments.length) return graph.yAxis.axisLabel();
+    graph.yAxis.axisLabel(_);
+    return chart;
+  };
+
+  d3.rebind(chart, graph, 'x', 'y');
+
+  chart.graph = graph; // Give direct access for getter/setters, and dispatchers
+
+  return chart;
+};
+
+
+// This is an attempt to make an extremely easy to use chart that is ready to go,
+//    basically the chart models with the extra glue... Queuing, tooltips, automatic resize, etc.
+// I may make these more specific, like 'time series line with month end data points', etc.
+//    or may make yet another layer of abstraction... common settings.
+nv.charts.lineChartDaily = function() {
+  var selector = null,
+      data = [],
+      duration = 500,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
+      };
+
+
+  var graph = nv.models.lineWithLegend()
+                .x(function(d,i) { return i }),
+      showTooltip = function(e) {
+        var offset = $(selector).offset(),
+            left = e.pos[0] + offset.left,
+            top = e.pos[1] + offset.top,
+            formatX = graph.xAxis.tickFormat(),
+            formatY = graph.yAxis.tickFormat(),
+            x = formatX(graph.x()(e, e.pointIndex)),
+            //x = formatX(graph.x()(e.point)),
+            y = formatY(graph.y()(e.point)),
+            content = tooltip(e.series.key, x, y, e, graph);
+
+        nvtooltip.show([left, top], content);
+      };
+
+  //setting component defaults
+  //graph.xAxis.tickFormat(d3.format(',r'));
+  graph.xAxis.tickFormat(function(d) {
+    //return d3.time.format('%x')(new Date(d))
+    //log(d, data[0].values[d]);
+    return d3.time.format('%x')(new Date(data[0].values[d].x))
+  });
+
+  //graph.yAxis.tickFormat(d3.format(',.2f'));
+  graph.yAxis.tickFormat(d3.format(',.2%'));
+
+
+  //TODO: consider a method more similar to how the models are built
+  function chart() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph); //consider using transition chaining like in the models
+
+    return chart;
+  }
+
+
+  // This should always only be called once, then update should be used after, 
+  //     in which case should consider the 'd3 way' and merge this with update, 
+  //     but simply do this on enter... should try anoter example that way
+  chart.build = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    nv.addGraph({
+      generate: function() {
+        var container = d3.select(selector),
+            width = function() { return parseInt(container.style('width')) },
+            height = function() { return parseInt(container.style('height')) },
+            svg = container.append('svg');
+
+        graph
+            .width(width)
+            .height(height);
+
+        svg
+            .attr('width', width())
+            .attr('height', height())
+            .datum(data)
+          .transition().duration(duration).call(graph);
+
+        return graph;
+      },
+      callback: function(graph) {
+        graph.dispatch.on('tooltipShow', showTooltip);
+        graph.dispatch.on('tooltipHide', nvtooltip.cleanup);
+
+        //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
+        $(window).resize(function() {
+          // now that width and height are functions, should be automatic..of course you can always override them
+          d3.select(selector + ' svg')
+              .attr('width', graph.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
+              .attr('height', graph.height()())
+              .call(graph);
+        });
+      }
+    });
+
+    return chart;
+  };
+
+
+  /*
+  //  moved to chart()
+  chart.update = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph);
+
+    return chart;
+  };
+  */
+
+  chart.data = function(_) {
+    if (!arguments.length) return data;
+    data = _;
+    return chart;
+  };
+
+  chart.selector = function(_) {
+    if (!arguments.length) return selector;
+    selector = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
+  chart.xTickFormat = function(_) {
+    if (!arguments.length) return graph.xAxis.tickFormat();
+    graph.xAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.yTickFormat = function(_) {
+    if (!arguments.length) return graph.yAxis.tickFormat();
+    graph.yAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.xAxisLabel = function(_) {
+    if (!arguments.length) return graph.xAxis.axisLabel();
+    graph.xAxis.axisLabel(_);
+    return chart;
+  };
+
+  chart.yAxisLabel = function(_) {
+    if (!arguments.length) return graph.yAxis.axisLabel();
+    graph.yAxis.axisLabel(_);
+    return chart;
+  };
+
+  d3.rebind(chart, graph, 'x', 'y');
+
+  chart.graph = graph; // Give direct access for getter/setters, and dispatchers
+
+  return chart;
+};
+
+
+// This is an attempt to make an extremely easy to use chart that is ready to go,
+//    basically the chart models with the extra glue... Queuing, tooltips, automatic resize, etc.
+// I may make these more specific, like 'time series line with month end data points', etc.
+//    or may make yet another layer of abstraction... common settings.
+nv.charts.cumulativeLineChartDaily = function() {
+  var selector = null,
+      data = [],
+      duration = 500,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
+      };
+
+
+  var graph = nv.models.cumulativeLine()
+                .x(function(d,i) { return i }),
+      showTooltip = function(e) {
+        var offset = $(selector).offset(),
+            left = e.pos[0] + offset.left,
+            top = e.pos[1] + offset.top,
+            formatX = graph.xAxis.tickFormat(),
+            formatY = graph.yAxis.tickFormat(),
+            x = formatX(graph.x()(e, e.pointIndex)),
+            //x = formatX(graph.x()(e.point)),
+            y = formatY(graph.y()(e.point)),
+            content = tooltip(e.series.key, x, y, e, graph);
+
+        nvtooltip.show([left, top], content);
+      };
+
+  //setting component defaults
+  //graph.xAxis.tickFormat(d3.format(',r'));
+  graph.xAxis.tickFormat(function(d) {
+    //return d3.time.format('%x')(new Date(d))
+    return d3.time.format('%x')(new Date(data[0].values[d].x))
+  });
+
+  //graph.yAxis.tickFormat(d3.format(',.2f'));
+  graph.yAxis.tickFormat(d3.format(',.2%'));
 
 
   //TODO: consider a method more similar to how the models are built
