@@ -36,7 +36,7 @@ nv.models.stackedAreaWithLegend = function() {
             //.map(function(d) { return d.values });
             .reduce(function(prev, curr, index) {  //sum up all the y's
                 curr.values.forEach(function(d,i) {
-                  if (!index) prev[i] = {x: d.x, y:0};
+                  if (!index) prev[i] = {x: getX(d.x,i), y:0};
                   prev[i].y += getY(d);
                 });
                 return prev;
@@ -200,7 +200,7 @@ nv.models.stackedAreaWithLegend = function() {
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
-    getX = d3.functor(_);
+    getX = d3.functor(_); //not used locally, so could jsut be a rebind
     stacked.x(getX);
     return chart;
   };

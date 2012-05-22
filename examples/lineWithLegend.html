@@ -40,12 +40,6 @@ text {
 <script src="../src/models/lineWithLegend.js"></script>
 <script>
 
-/************
- * Considering making an nv.charts object which will contain abstractions similar to the one below, 
- *     but with the usual d3 reusable style.
- * I could make this abstraction inside the layer above, but this layer incorporates some jQuery, so
- *     thinking nv.charts can be the glue that's not 100% d3
- ************/
 
 var selector = '#chart1',
     chart = nv.models.lineWithLegend(),

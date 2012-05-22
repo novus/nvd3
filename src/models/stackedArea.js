@@ -32,7 +32,11 @@ nv.models.stackedArea = function() {
     selection.each(function(data) {
         // Need to leave data alone to switch between stacked, stream, and expanded
         var dataCopy = JSON.parse(JSON.stringify(data)),
-            seriesData = dataCopy.map(function(d) { return d.values }),
+            seriesData = dataCopy.map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i) }
+              })
+            }),
             availableWidth = width - margin.left - margin.right,
             availableHeight = height - margin.top - margin.bottom;
 
@@ -46,10 +50,10 @@ nv.models.stackedArea = function() {
                      (dataCopy);
 
 
-        x   .domain(xDomain || d3.extent(d3.merge(seriesData), getX))
+        x   .domain(xDomain || d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
             .range([0, availableWidth]);
 
-        y   .domain(yDomain || [0, d3.max(dataCopy, function(d) {
+        y   .domain(yDomain || [0, d3.max(dataCopy, function(d) {   //TODO; if dataCopy not fed {x, y} (custom getX or getY), this will probably cause an error
               return d3.max(d.values, function(d) { return d.y0 + d.y })
             }) ])
             .range([availableHeight, 0]);
@@ -61,6 +65,7 @@ nv.models.stackedArea = function() {
           .height(availableHeight)
           .xDomain(x.domain())
           .yDomain(y.domain())
+          .x(getX)
           .y(function(d) { return d.y + d.y0 })
           .color(data.map(function(d,i) {
             return d.color || color[i % 10];
@@ -84,12 +89,12 @@ nv.models.stackedArea = function() {
 
 
         var area = d3.svg.area()
-            .x(function(d) { return x(getX(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
             .y0(function(d) { return y(d.y0) })
             .y1(function(d) { return y(d.y + d.y0) });
 
         var zeroArea = d3.svg.area()
-            .x(function(d) { return x(getX(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
             .y0(function(d) { return y(d.y0) })
             .y1(function(d) { return y(d.y0) });
 

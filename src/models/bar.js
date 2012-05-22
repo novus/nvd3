@@ -21,21 +21,21 @@ nv.models.bar = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      x   .domain(data.map(function(d,i) { return d[label]; }))
-          .rangeRoundBands([0, width - margin.left - margin.right], .1);
+      x .domain(data.map(function(d,i) { return d[label]; }))
+        .rangeRoundBands([0, width - margin.left - margin.right], .1);
 
 
-       var min = d3.min(data, function(d) { return d[field] });
-       var max = d3.max(data, function(d) { return d[field] });
-       var x0 = Math.max(-min, max);
-       var x1 = -x0;
+      var min = d3.min(data, function(d) { return d[field] });
+      var max = d3.max(data, function(d) { return d[field] });
+      var x0 = Math.max(-min, max);
+      var x1 = -x0;
 
-        // If we have no negative values, then lets stack this with just positive bars
-       if (min >= 0) x1 = 0;
+      // If we have no negative values, then lets stack this with just positive bars
+      if (min >= 0) x1 = 0;
 
-       y   .domain([x1, x0])
-           .range([height - margin.top - margin.bottom, 0])
-           .nice();
+      y .domain([x1, x0])
+        .range([height - margin.top - margin.bottom, 0])
+        .nice();
 
       xAxis.ticks( width / 100 );
       yAxis.ticks( height / 36 ).tickSize(-(width - margin.right - margin.left), 0);
@@ -53,12 +53,12 @@ nv.models.bar = function() {
 
       var wrap = parent.selectAll('g.wrap').data([data]);
       var gEnter = wrap.enter();
-        gEnter.append("text")
-            .attr("class", "title")
-            .attr("dy", ".91em")
-            .attr("text-anchor", "start")
-            .text(title);
-        gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+      gEnter.append("text")
+          .attr("class", "title")
+          .attr("dy", ".91em")
+          .attr("text-anchor", "start")
+          .text(title);
+      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
 
 
 
@@ -77,10 +77,10 @@ nv.models.bar = function() {
       var bars = wrap.select('.bars').selectAll('.bar')
           .data(function(d) { return d; });
 
-          bars.exit().remove();
+      bars.exit().remove();
 
 
-        var barsEnter = bars.enter().append('svg:rect')
+      var barsEnter = bars.enter().append('svg:rect')
           .attr('class', function(d) { return d[field] < 0 ? "bar negative" : "bar positive"})
           .attr("fill", function(d, i) { return color(i); })
           .attr('x', 0 )
@@ -131,7 +131,7 @@ nv.models.bar = function() {
           });
 
 
-        bars
+      bars
           .attr('class', function(d) { return d[field] < 0 ? "bar negative" : "bar positive"})
           .attr('transform', function(d,i) { return 'translate(' + x(d[label]) + ',0)'; })
           .attr('width', x.rangeBand )
@@ -147,24 +147,24 @@ nv.models.bar = function() {
           .call(xAxis);
 
 
-        if (rotatedLabel) {
-          g.select('.x.axis').selectAll('text').attr('text-anchor','start').attr("transform", function(d) {
-            return "rotate(35)translate(" + this.getBBox().height/2 + "," + '0' + ")";
-          });
-        }
-        if (!showLabels) {
-            g.select('.x.axis').selectAll('text').attr('fill', 'rgba(0,0,0,0)');
-            g.select('.x.axis').selectAll('line').attr('style', 'opacity: 0');
-        }
-        /*else {
-            g.select('.x.axis').selectAll('text').attr('fill', 'rgba(0,0,0,1)');
-            g.select('.x.axis').selectAll('line').attr('style', 'opacity: 1');
-        }*/
+      if (rotatedLabel) {
+        g.select('.x.axis').selectAll('text').attr('text-anchor','start').attr("transform", function(d) {
+          return "rotate(35)translate(" + this.getBBox().height/2 + "," + '0' + ")";
+        });
+      }
+      if (!showLabels) {
+        g.select('.x.axis').selectAll('text').attr('fill', 'rgba(0,0,0,0)');
+        g.select('.x.axis').selectAll('line').attr('style', 'opacity: 0');
+      }
+      /*else {
+        g.select('.x.axis').selectAll('text').attr('fill', 'rgba(0,0,0,1)');
+        g.select('.x.axis').selectAll('line').attr('style', 'opacity: 1');
+      }*/
 
 
 
-        g.select('.y.axis')
-          .call(yAxis);
+      g.select('.y.axis')
+        .call(yAxis);
     });
 
     return chart;
