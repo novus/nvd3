@@ -64,7 +64,7 @@ nv.models.scatter = function() {
       var gEnter = wrap.enter().append('g').attr('class', 'd3scatter').append('g');
 
       gEnter.append('g').attr('class', 'groups');
-      gEnter.append('g').attr('class', 'point-clips');
+      gEnter.append('g').attr('class', 'point-clips').append('clipPath').attr('id', 'voronoi-clip-path-' + id);
       gEnter.append('g').attr('class', 'point-paths');
       gEnter.append('g').attr('class', 'distribution');
 
@@ -72,6 +72,8 @@ nv.models.scatter = function() {
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
+/*
+      // Probably don't need this on top of the clipping below
       var voronoiClip =  gEnter.append('g').attr('class', 'voronoi-clip')
         .append('clipPath')
           .attr('id', 'voronoi-clip-path-' + id)
@@ -83,18 +85,20 @@ nv.models.scatter = function() {
           .attr('height', availableHeight + 20);
       wrap.select('.point-paths')
           .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
+*/
 
 
-      //var pointClips = wrap.select('.point-clips').selectAll('clipPath') // **BROWSER BUG** can't reselect camel cased elements
-      var pointClips = wrap.select('.point-clips').selectAll('.clip-path')
+      var pointClips = wrap.select('#voronoi-clip-path-' + id).selectAll('circle')
           .data(vertices);
-      pointClips.enter().append('clipPath').attr('class', 'clip-path')
-        .append('circle')
+      pointClips.enter().append('circle')
           .attr('r', 25);
       pointClips.exit().remove();
       pointClips
-          .attr('id', function(d, i) { return 'clip-' + id + '-' + d[2] + '-' + d[3] })
-          .attr('transform', function(d) { return 'translate(' + d[0] + ',' + d[1] + ')' })
+          .attr('cx', function(d) { return d[0] })
+          .attr('cy', function(d) { return d[1] });
+
+      wrap.select('.point-paths')
+          .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
 
 
       //inject series and point index for reference into voronoi
@@ -107,7 +111,6 @@ nv.models.scatter = function() {
           .attr('class', function(d,i) { return 'path-'+i; });
       pointPaths.exit().remove();
       pointPaths
-          .attr('clip-path', function(d,i) { return 'url(#clip-' + id + '-' + d.series + '-' + d.point +')' })
           .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
           .on('mouseover', function(d) {
             dispatch.pointMouseover({
