@@ -72,13 +72,14 @@ nv.models.line = function() {
 
       // destroy interactive layer during transition,
       //   VERY needed because of performance issues
+      // TODO: check if this is necessary with new interaction
       g.selectAll('.point-clips *, .point-paths *').remove();
 
 
       function interactiveLayer() {
         if (!interactive) return false;
 
-        shiftWrap.append('g').attr('class', 'point-clips');
+        shiftWrap.append('g').attr('class', 'point-clips').append('clipPath').attr('id', 'voronoi-clip-path-' + id);
         shiftWrap.append('g').attr('class', 'point-paths');
 
         var vertices = d3.merge(data.map(function(line, lineIndex) {
@@ -89,6 +90,7 @@ nv.models.line = function() {
           })
         );
 
+        /*
         // ***These clips are more than half the cause for the slowdown***
         //var pointClips = wrap.select('.point-clips').selectAll('clipPath') // **BROWSER BUG** can't reselect camel cased elements
         var pointClips = wrap.select('.point-clips').selectAll('.clip-path')
@@ -100,6 +102,19 @@ nv.models.line = function() {
         pointClips
             .attr('id', function(d, i) { return 'clip-' + id + '-' + d[2] + '-' + d[3] })
             .attr('transform', function(d) { return 'translate(' + d[0] + ',' + d[1] + ')' })
+            */
+
+        var pointClips = wrap.select('#voronoi-clip-path-' + id).selectAll('circle')
+            .data(vertices);
+        pointClips.enter().append('circle')
+            .attr('r', 25);
+        pointClips.exit().remove();
+        pointClips
+            .attr('cx', function(d) { return d[0] })
+            .attr('cy', function(d) { return d[1] });
+
+        wrap.select('.point-paths')
+            .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
 
 
         //inject series and point index for reference into voronoi
@@ -114,7 +129,7 @@ nv.models.line = function() {
             .style('fill-opacity', 0);
         pointPaths.exit().remove();
         pointPaths
-            .attr('clip-path', function(d,i) { return clipVoronoi ? 'url(#clip-' + id + '-' + d.series + '-' + d.point +')' : '' })
+            //.attr('clip-path', function(d,i) { return clipVoronoi ? 'url(#clip-' + id + '-' + d.series + '-' + d.point +')' : '' })
             .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
             .on('mouseover', function(d) {
               var series = data[d.series],
