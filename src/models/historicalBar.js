@@ -11,7 +11,7 @@ nv.models.historicalBar = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category10(),
+      color = d3.scale.category10().range(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -72,18 +72,18 @@ nv.models.historicalBar = function() {
       var barsEnter = bars.enter().append('svg:rect')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('fill', function(d, i) { return color(i); })
-          .attr('fill', function(d,i) { return color(0); })
+          .attr('fill', function(d,i) { return color[0]; })
           .attr('x', 0 )
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
             dispatch.tooltipShow({
                 //label: d[label],
-                value: getY(d),
+                value: getY(d,i),
                 data: d,
                 index: i,
-                pos: [x(getX(d) + .5), y(getY(d))],  // TODO: Figure out why the value appears to be shifted
+                pos: [x(getX(d,i) + .5), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
                 //pos: [d3.event.pageX, d3.event.pageY],
-                    e: d3.event,
+                e: d3.event,
                 id: id
             });
 
@@ -92,7 +92,7 @@ nv.models.historicalBar = function() {
                 d3.select(this).classed('hover', false);
                 dispatch.tooltipHide({
                     //label: d[label],
-                    value: getY(d),
+                    value: getY(d,i),
                     data: d,
                     index: i,
                     id: id
@@ -101,10 +101,10 @@ nv.models.historicalBar = function() {
           .on('click', function(d,i) {
                 dispatch.elementClick({
                     //label: d[label],
-                    value: getY(d),
+                    value: getY(d,i),
                     data: d,
                     index: i,
-                    pos: [x(getX(d)), y(getY(d))],
+                    pos: [x(getX(d,i)), y(getY(d,i))],
                     e: d3.event,
                     id: id
                 });
@@ -113,21 +113,23 @@ nv.models.historicalBar = function() {
           .on('dblclick', function(d,i) {
               dispatch.elementDblClick({
                   //label: d[label],
-                  value: getY(d),
+                  value: getY(d,i),
                   data: d,
                   index: i,
-                  pos: [x(getX(d)), y(getY(d))],
+                  pos: [x(getX(d,i)), y(getY(d,i))],
                   e: d3.event,
                   id: id
               });
               d3.event.stopPropagation();
           });
 
+      bars
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) //TODO: this assumes that each bar is an integer apart, it shouldn't
+          .attr('width', x(.9) ) //TODO: this assumes that each bar is an integar apart
+          .attr('y', y(0));
 
       d3.transition(bars)
-          .attr('class', function(d) { return getY(d) < 0 ? 'bar negative' : 'bar positive'})
-          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
-          .attr('width', x(.9) )
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
           //.order();  // not sure if this makes any sense for this model
@@ -187,6 +189,13 @@ nv.models.historicalBar = function() {
     yDomain = _;
     return chart;
   };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
 
   chart.id = function(_) {
         if (!arguments.length) return id;

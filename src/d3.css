@@ -149,6 +149,11 @@ svg .title {
 .bars rect {
   zfill: steelblue;
   cursor: pointer;
+  fill-opacity: .75;
+}
+
+.bars rect:hover {
+  fill-opacity: 1;
 }
 
 .bars .hover rect {

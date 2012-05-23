@@ -56,7 +56,7 @@ nv.addGraph({
 
         var content = '<p>' + e.value + '</p>';
 
-        nv.tooltip.show([left, top], content);
+        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
     });
 
     graph.dispatch.on('tooltipHide', function(e) {
