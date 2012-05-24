@@ -11,6 +11,8 @@ nv.models.historicalBar = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
+      forceX = [],
+      forceY = [],
       clipEdge = true,
       color = d3.scale.category10().range(),
       xDomain, yDomain;
@@ -207,6 +209,18 @@ nv.models.historicalBar = function() {
   chart.yDomain = function(_) {
     if (!arguments.length) return yDomain;
     yDomain = _;
+    return chart;
+  };
+
+  chart.forceX = function(_) {
+    if (!arguments.length) return forceX;
+    forceX = _;
+    return chart;
+  };
+
+  chart.forceY = function(_) {
+    if (!arguments.length) return forceY;
+    forceY = _;
     return chart;
   };
 

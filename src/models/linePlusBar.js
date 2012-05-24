@@ -27,14 +27,14 @@ nv.models.linePlusBar = function() {
           availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
-      var series1 = data.filter(function(d) { return !d.disabled && !d.bar })
+      var series1 = data.filter(function(d) { return !d.disabled && d.bar })
             .map(function(d) { 
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
             });
 
-      var series2 = data.filter(function(d) { return !d.disabled && d.bar })
+      var series2 = data.filter(function(d) { return !d.disabled && !d.bar })
             .map(function(d) { 
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
@@ -133,7 +133,10 @@ nv.models.linePlusBar = function() {
       legend.width(width/2 - margin.right);
 
       g.select('.legendWrap')
-          .datum(data)
+          .datum(data.map(function(series) { 
+            series.key = series.key + (series.bar ? ' (left axis)' : ' (right axis)');
+            return series;
+          }))
           .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
           .call(legend);
 
@@ -204,6 +207,7 @@ nv.models.linePlusBar = function() {
     if (!arguments.length) return getX;
     getX = _;
     lines.x(_);
+    bars.x(_);
     return chart;
   };
 
@@ -211,6 +215,7 @@ nv.models.linePlusBar = function() {
     if (!arguments.length) return getY;
     getY = _;
     lines.y(_);
+    bars.y(_);
     return chart;
   };
 
