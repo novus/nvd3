@@ -220,6 +220,7 @@ nv.models.line = function() {
       clearTimeout(timeoutID);
       timeoutID = setTimeout(updateInteractiveLayer, 750);
 
+      //store old scales for use in transitions on update, to animate from old to new positions
       x0 = x.copy();
       y0 = y.copy();
 

@@ -1229,6 +1229,7 @@ nv.models.line = function() {
       clearTimeout(timeoutID);
       timeoutID = setTimeout(updateInteractiveLayer, 750);
 
+      //store old scales for use in transitions on update, to animate from old to new positions
       x0 = x.copy();
       y0 = y.copy();
 
@@ -2490,7 +2491,7 @@ nv.models.scatter = function() {
           return false;
         }
 
-        gEnter.append('g').attr('class', 'point-clips').append('clipPath').attr('id', 'points-clip-' + id);
+        defsEnter.append('clipPath').attr('id', 'points-clip-' + id);
         gEnter.append('g').attr('class', 'point-paths');
 
         var vertices = d3.merge(data.map(function(group, groupIndex) {
@@ -2654,7 +2655,7 @@ nv.models.scatter = function() {
       clearTimeout(timeoutID);
       timeoutID = setTimeout(updateInteractiveLayer, 750);
 
-      //store old scales for use in transitions on update
+      //store old scales for use in transitions on update, to animate from old to new positions, and sizes
       x0 = x.copy();
       y0 = y.copy();
       z0 = z.copy();
