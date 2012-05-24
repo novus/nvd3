@@ -23,8 +23,8 @@ body {
 //Format A
 nv.addGraph({
   generate: function() {
-      var width = nv.utils.windowSize().width - 40,
-          height = nv.utils.windowSize().height - 40;
+    var width = nv.utils.windowSize().width - 40,
+        height = nv.utils.windowSize().height - 40;
 
     var chart = nv.models.line()
                 .width(width)
@@ -44,8 +44,7 @@ nv.addGraph({
     window.onresize = function() {
       var width = nv.utils.windowSize().width - 40,
           height = nv.utils.windowSize().height - 40,
-          margin = graph.margin(),
-         animate = graph.animate();
+          margin = graph.margin();
 
 
       if (width < margin.left + margin.right + 20)
