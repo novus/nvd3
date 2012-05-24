@@ -283,3 +283,17 @@ svg .title {
   stroke-opacity: .75;
   fill-opacity: 1;
 }
+
+
+
+/**********
+*  Line Plus Bar
+*/
+
+.d3linePlusBar .bar rect {
+  fill-opacity: .75;
+}
+
+.d3linePlusBar .bar rect:hover {
+  fill-opacity: 1;
+}

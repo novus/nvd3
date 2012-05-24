@@ -11,6 +11,7 @@ nv.models.historicalBar = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
+      clipEdge = true,
       color = d3.scale.category10().range(),
       xDomain, yDomain;
 
@@ -18,7 +19,7 @@ nv.models.historicalBar = function() {
       y = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(x).orient('bottom'),
       yAxis = d3.svg.axis().scale(y).orient('left'),
-      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'tooltipShow', 'tooltipHide');
+      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
   function chart(selection) {
@@ -26,13 +27,11 @@ nv.models.historicalBar = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
-      data = data[0].values; //currently only using a single series for this
 
-
-      x   .domain(xDomain || d3.extent(data, getX ))
+      x   .domain(xDomain || d3.extent(data[0].values, getX ))
           .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(data, getY )) //Should 0 always be forced in bar charts?
+      y   .domain(yDomain || d3.extent(data[0].values, getY )) //Should 0 always be forced in bar charts?
           .range([availableHeight, 0]);
           //.nice(); // remove for consistency?
 
@@ -47,11 +46,20 @@ nv.models.historicalBar = function() {
             });
           });
 
-
+/*
       var wrap = parent.selectAll('g.wrap').data([data]);
       var gEnter = wrap.enter();
       gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
 
+      var wrap = parent.selectAll('g.wrap').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'bar');
+      var gEnter = wrapEnter.append('g');
+      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+     */
+
+      var wrap = d3.select(this).selectAll('g.d3bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'd3bar');
+      var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'bars');
 
@@ -63,6 +71,20 @@ nv.models.historicalBar = function() {
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
+      wrapEnter.append('defs').append('clipPath')
+          .attr('id', 'chart-clip-path-' + id)
+        .append('rect');
+      wrap.select('#chart-clip-path-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      gEnter
+          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+
+      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+
+
+
       var bars = wrap.select('.bars').selectAll('.bar')
           .data(function(d) { return d });
 
@@ -71,31 +93,30 @@ nv.models.historicalBar = function() {
 
       var barsEnter = bars.enter().append('svg:rect')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          //.attr('fill', function(d, i) { return color(i); })
           .attr('fill', function(d,i) { return color[0]; })
           .attr('x', 0 )
+          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
-            dispatch.tooltipShow({
-                //label: d[label],
-                value: getY(d,i),
-                data: d,
-                index: i,
+            dispatch.elementMouseover({
+                point: d,
+                series: data[0],
                 pos: [x(getX(d,i) + .5), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
-                //pos: [d3.event.pageX, d3.event.pageY],
-                e: d3.event,
-                id: id
+                pointIndex: i,
+                seriesIndex: 0,
+                e: d3.event
             });
 
           })
           .on('mouseout', function(d,i) {
                 d3.select(this).classed('hover', false);
-                dispatch.tooltipHide({
-                    //label: d[label],
-                    value: getY(d,i),
-                    data: d,
-                    index: i,
-                    id: id
+                dispatch.elementMouseout({
+                    point: d,
+                    series: data[0],
+                    pointIndex: i,
+                    seriesIndex: 0,
+                    e: d3.event
                 });
           })
           .on('click', function(d,i) {
@@ -127,7 +148,6 @@ nv.models.historicalBar = function() {
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) //TODO: this assumes that each bar is an integer apart, it shouldn't
           .attr('width', x(.9) ) //TODO: this assumes that each bar is an integar apart
-          .attr('y', y(0));
 
       d3.transition(bars)
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
@@ -190,12 +210,17 @@ nv.models.historicalBar = function() {
     return chart;
   };
 
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
+    return chart;
+  };
+
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
     return chart;
   };
-
 
   chart.id = function(_) {
         if (!arguments.length) return id;

@@ -42,7 +42,7 @@ nv.addGraph({
   },
   callback: function(graph) {
 
-    graph.dispatch.on('tooltipShow', function(e) {
+    graph.dispatch.on('elementMouseover', function(e) {
         var offsetElement = document.getElementById("chart"),
                 left = e.pos[0],
                 top = e.pos[1];
@@ -54,12 +54,12 @@ nv.addGraph({
                 '</p>';
                 */
 
-        var content = '<p>' + e.value + '</p>';
+        var content = '<p>' + e.point.y + '</p>';
 
         nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
     });
 
-    graph.dispatch.on('tooltipHide', function(e) {
+    graph.dispatch.on('elementMouseout', function(e) {
         nv.tooltip.cleanup();
     });
 

@@ -93,7 +93,7 @@ nv.addGraph({
                     formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
                     '</p>';
 
-      nv.tooltip.show([left, top], content);
+                    nv.tooltip.show([left, top], content, chart.y()(e.point) < 0 ? 'n' : 's' );
     };
 
     chart.dispatch.on('tooltipShow', showTooltip);
@@ -117,8 +117,8 @@ function sinAndCos() {
       cos = [];
 
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
-    cos.push({x: i, y: .5 * Math.cos(i/10)});
+    sin.push({x: i, y: Math.sin(i/10) + 1});
+    cos.push({x: i, y: .5 * Math.cos(i/10) + .5});
   }
 
   return [

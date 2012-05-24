@@ -106,6 +106,23 @@ nv.models.linePlusBar = function() {
       });
 
 
+
+      bars.dispatch.on('elementMouseover', function(e) {
+        dispatch.tooltipShow({
+          point: e.point,
+          series: e.series,
+          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
+          seriesIndex: e.seriesIndex,
+          pointIndex: e.pointIndex
+        });
+      });
+
+      bars.dispatch.on('elementMouseout', function(e) {
+        dispatch.tooltipHide(e);
+      });
+
+
+
       //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
       margin.top = legend.height();
 
@@ -121,8 +138,11 @@ nv.models.linePlusBar = function() {
           .call(legend);
 
 
+      var barsData = data.filter(function(d) { return !d.disabled && d.bar });
+
       var barsWrap = g.select('.barsWrap')
-          .datum(data.filter(function(d) { return !d.disabled && d.bar }))
+          .datum(barsData.length ? barsData : [{values:[]}])
+          //.datum(data.filter(function(d) { return !d.disabled && d.bar }))
 
       var linesWrap = g.select('.linesWrap')
           .datum(data.filter(function(d) { return !d.disabled && !d.bar }))
@@ -156,7 +176,8 @@ nv.models.linePlusBar = function() {
         .domain(y2.domain())
         .range(y2.range())
         .ticks( height / 36 )
-        .tickSize(-availableWidth, 0);
+        .tickSize(0, 0);
+        //.tickSize(-availableWidth, 0);
 
       g.select('.y2.axis')
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
@@ -171,11 +192,13 @@ nv.models.linePlusBar = function() {
 
   chart.dispatch = dispatch;
   chart.legend = legend;
+  chart.lines = lines;
+  chart.bars = bars;
   chart.xAxis = xAxis;
   chart.yAxis1 = yAxis1;
   chart.yAxis2 = yAxis2;
 
-  d3.rebind(chart, lines, 'interactive');
+  //d3.rebind(chart, lines, 'interactive');
   //consider rebinding x and y as well
 
   chart.x = function(_) {
