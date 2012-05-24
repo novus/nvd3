@@ -41,7 +41,7 @@ nv.models.linePlusBar = function() {
               })
             });
 
-      x   .domain(d3.extent(d3.merge(series1), function(d) { return d.x } )) //Should check BOTH series here
+      x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
           .range([0, availableWidth]);
 
       y1  .domain(d3.extent(d3.merge(series1), function(d) { return d.y } ))
@@ -107,7 +107,7 @@ nv.models.linePlusBar = function() {
 
 
 
-      bars.dispatch.on('elementMouseover', function(e) {
+      bars.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -117,7 +117,7 @@ nv.models.linePlusBar = function() {
         });
       });
 
-      bars.dispatch.on('elementMouseout', function(e) {
+      bars.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 
@@ -176,8 +176,7 @@ nv.models.linePlusBar = function() {
         .domain(y2.domain())
         .range(y2.range())
         .ticks( height / 36 )
-        .tickSize(0, 0);
-        //.tickSize(-availableWidth, 0);
+        .tickSize(series1.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
       g.select('.y2.axis')
           .attr('transform', 'translate(' + x.range()[1] + ',0)');

@@ -72,21 +72,6 @@ nv.models.scatter = function() {
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-/*
-      // Probably don't need this on top of the clipping below
-      var voronoiClip =  gEnter.append('g').attr('class', 'voronoi-clip')
-        .append('clipPath')
-          .attr('id', 'voronoi-clip-path-' + id)
-        .append('rect');
-      wrap.select('.voronoi-clip rect')
-          .attr('x', -10)
-          .attr('y', -10)
-          .attr('width', availableWidth + 20)
-          .attr('height', availableHeight + 20);
-      wrap.select('.point-paths')
-          .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
-*/
-
 
       var pointClips = wrap.select('#voronoi-clip-path-' + id).selectAll('circle')
           .data(vertices);

@@ -125,33 +125,6 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 );
 
 
-nv.utils.windowSize = function() {
-    // Sane defaults
-    var size = {width: 640, height: 480};
-
-    // Earlier IE uses Doc.body
-    if (document.body && document.body.offsetWidth) {
-        size.width = document.body.offsetWidth;
-        size.height = document.body.offsetHeight;
-    }
-
-    // IE can use depending on mode it is in
-    if (document.compatMode=='CSS1Compat' &&
-        document.documentElement &&
-        document.documentElement.offsetWidth ) {
-        size.width = document.documentElement.offsetWidth;
-        size.height = document.documentElement.offsetHeight;
-    }
-
-    // Most recent browsers use
-    if (window.innerWidth && window.innerHeight) {
-        size.width = window.innerWidth;
-        size.height = window.innerHeight;
-    }
-    return (size);
-};
-
-
 /*****
  * A no frills tooltip implementation.
  *****/
@@ -249,6 +222,33 @@ nv.utils.windowSize = function() {
 
 
 })();
+
+nv.utils.windowSize = function() {
+    // Sane defaults
+    var size = {width: 640, height: 480};
+
+    // Earlier IE uses Doc.body
+    if (document.body && document.body.offsetWidth) {
+        size.width = document.body.offsetWidth;
+        size.height = document.body.offsetHeight;
+    }
+
+    // IE can use depending on mode it is in
+    if (document.compatMode=='CSS1Compat' &&
+        document.documentElement &&
+        document.documentElement.offsetWidth ) {
+        size.width = document.documentElement.offsetWidth;
+        size.height = document.documentElement.offsetHeight;
+    }
+
+    // Most recent browsers use
+    if (window.innerWidth && window.innerHeight) {
+        size.width = window.innerWidth;
+        size.height = window.innerHeight;
+    }
+    return (size);
+};
+
 
 nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 10},
@@ -1031,10 +1031,11 @@ nv.models.line = function() {
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'lines');
+      gEnter.append('g').attr('class', 'point-clips').append('clipPath').attr('id', 'voronoi-clip-path-' + id);
+      gEnter.append('g').attr('class', 'point-paths');
 
       var g = wrap.select('g')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
 
 
       wrapEnter.append('defs').append('clipPath')
@@ -1044,105 +1045,78 @@ nv.models.line = function() {
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
+
       gEnter
           .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
 
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
 
-
-
-      // destroy interactive layer during transition,
-      //   VERY needed because of performance issues
-      // TODO: check if this is necessary with new interaction
-      g.selectAll('.point-clips *, .point-paths *').remove();
-
-
-      function interactiveLayer() {
-        if (!interactive) return false;
-
-        shiftWrap.append('g').attr('class', 'point-clips').append('clipPath').attr('id', 'voronoi-clip-path-' + id);
-        shiftWrap.append('g').attr('class', 'point-paths');
-
-        var vertices = d3.merge(data.map(function(line, lineIndex) {
-            return line.values.map(function(point, pointIndex) {
-              //return [x(getX(point)), y(getY(point)), lineIndex, pointIndex]; //inject series and point index for reference into voronoi
-              return [x(getX(point, pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point, pointIndex)) * (Math.random() / 1e12 + 1), lineIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
-            })
+      var vertices = d3.merge(data.map(function(line, lineIndex) {
+          return line.values.map(function(point, pointIndex) {
+            //return [x(getX(point)), y(getY(point)), lineIndex, pointIndex]; //inject series and point index for reference into voronoi
+            return [x(getX(point, pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point, pointIndex)) * (Math.random() / 1e12 + 1), lineIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
           })
-        );
+        })
+      );
 
-        /*
-        // ***These clips are more than half the cause for the slowdown***
-        //var pointClips = wrap.select('.point-clips').selectAll('clipPath') // **BROWSER BUG** can't reselect camel cased elements
-        var pointClips = wrap.select('.point-clips').selectAll('.clip-path')
-            .data(vertices);
-        pointClips.enter().append('clipPath').attr('class', 'clip-path')
-          .append('circle')
-            .attr('r', 25);
-        pointClips.exit().remove();
-        pointClips
-            .attr('id', function(d, i) { return 'clip-' + id + '-' + d[2] + '-' + d[3] })
-            .attr('transform', function(d) { return 'translate(' + d[0] + ',' + d[1] + ')' })
-            */
+      var pointClips = wrap.select('#voronoi-clip-path-' + id).selectAll('circle')
+          .data(vertices);
+      pointClips.enter().append('circle')
+          .attr('r', 25);
+      pointClips.exit().remove();
+      pointClips
+          .attr('cx', function(d) { return d[0] })
+          .attr('cy', function(d) { return d[1] });
 
-        var pointClips = wrap.select('#voronoi-clip-path-' + id).selectAll('circle')
-            .data(vertices);
-        pointClips.enter().append('circle')
-            .attr('r', 25);
-        pointClips.exit().remove();
-        pointClips
-            .attr('cx', function(d) { return d[0] })
-            .attr('cy', function(d) { return d[1] });
-
-        wrap.select('.point-paths')
-            .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
+      wrap.select('.point-paths')
+          .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
 
 
-        //inject series and point index for reference into voronoi
-        // considering adding a removeZeros option, may be useful for the stacked chart and maybe others
-        var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
+      //inject series and point index for reference into voronoi
+      // considering adding a removeZeros option, may be useful for the stacked chart and maybe others
+      var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
 
 
-        var pointPaths = wrap.select('.point-paths').selectAll('path')
-            .data(voronoi);
-        pointPaths.enter().append('path')
-            .attr('class', function(d,i) { return 'path-'+i; })
-            .style('fill-opacity', 0);
-        pointPaths.exit().remove();
-        pointPaths
-            //.attr('clip-path', function(d,i) { return clipVoronoi ? 'url(#clip-' + id + '-' + d.series + '-' + d.point +')' : '' })
-            .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
-            .on('mouseover', function(d) {
-              var series = data[d.series],
-                  point  = series.values[d.point];
+      var pointPaths = wrap.select('.point-paths').selectAll('path')
+          .data(voronoi);
+      pointPaths.enter().append('path')
+          .attr('class', function(d,i) { return 'path-'+i; })
+          .style('fill-opacity', 0);
+      pointPaths.exit().remove();
+      pointPaths
+          //.attr('clip-path', function(d,i) { return clipVoronoi ? 'url(#clip-' + id + '-' + d.series + '-' + d.point +')' : '' })
+          .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
+          .on('mouseover', function(d) {
+            var series = data[d.series],
+                point  = series.values[d.point];
 
-              dispatch.pointMouseover({
-                point: point,
-                series:series,
-                pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
-                seriesIndex: d.series,
-                pointIndex: d.point
-              });
-            })
-            .on('mouseout', function(d, i) {
-              dispatch.pointMouseout({
-                point: data[d.series].values[d.point],
-                series: data[d.series],
-                seriesIndex: d.series,
-                pointIndex: d.point
-              });
+            dispatch.pointMouseover({
+              point: point,
+              series:series,
+              pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+              seriesIndex: d.series,
+              pointIndex: d.point
             });
+          })
+          .on('mouseout', function(d, i) {
+            dispatch.pointMouseout({
+              point: data[d.series].values[d.point],
+              series: data[d.series],
+              seriesIndex: d.series,
+              pointIndex: d.point
+            });
+          });
 
 
-        dispatch.on('pointMouseover.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
-                .classed('hover', true);
-        });
-        dispatch.on('pointMouseout.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
-                .classed('hover', false);
-        });
-      }
+      dispatch.on('pointMouseover.point', function(d) {
+          wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+              .classed('hover', true);
+      });
+      dispatch.on('pointMouseout.point', function(d) {
+          wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+              .classed('hover', false);
+      });
+
+
 
 
 
@@ -1166,7 +1140,7 @@ nv.models.line = function() {
           //.each('end', function(d,i) { if (!i) setTimeout(interactiveLayer, 0) }); //trying to call this after transitions are over, doesn't work on resize!
           //.each('end', function(d,i) { if (!i) interactiveLayer()  }); //trying to call this after transitions are over, not sure if the timeout gains anything
 
-      setTimeout(interactiveLayer, 1000); //seems not to work as well as above... BUT fixes broken resize
+      //setTimeout(interactiveLayer, 1000); //seems not to work as well as above... BUT fixes broken resize
 
       var paths = lines.selectAll('path')
           .data(function(d, i) { return [d.values] });
@@ -2220,21 +2194,6 @@ nv.models.scatter = function() {
       var g = wrap.select('g')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-
-/*
-      // Probably don't need this on top of the clipping below
-      var voronoiClip =  gEnter.append('g').attr('class', 'voronoi-clip')
-        .append('clipPath')
-          .attr('id', 'voronoi-clip-path-' + id)
-        .append('rect');
-      wrap.select('.voronoi-clip rect')
-          .attr('x', -10)
-          .attr('y', -10)
-          .attr('width', availableWidth + 20)
-          .attr('height', availableHeight + 20);
-      wrap.select('.point-paths')
-          .attr('clip-path', 'url(#voronoi-clip-path-' + id + ')');
-*/
 
 
       var pointClips = wrap.select('#voronoi-clip-path-' + id).selectAll('circle')
