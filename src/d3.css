@@ -316,3 +316,36 @@ svg .title {
 .bullet .measure.s1 { fill: darkblue; }
 .bullet .title { font-size: 14px; font-weight: bold; }
 .bullet .subtitle { fill: #999; }
+
+
+
+
+/**********
+* Sparkline plus 
+*/
+
+.sparklineplus .hoverValue line {
+  stroke: #f44;
+  stroke-width: 1px;
+ }
+
+.sparklineplus,
+.sparklineplus g {
+  pointer-events: all;
+}
+
+.sparklineplus .hoverArea {
+  fill-opacity: 0;
+  stroke-opacity: 0;
+}
+
+.sparklineplus .xValue,
+.sparklineplus .yValue {
+  stroke: #666;
+  font-size: .4em;
+  font-weight: normal;
+}
+
+.sparklineplus .yValue {
+  stroke: #f66;
+}

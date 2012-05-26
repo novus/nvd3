@@ -1,35 +1,42 @@
 
 nv.models.sparkline = function() {
-  var margin = {top: 3, right: 3, bottom: 3, left: 3},
-      width = 200,
-      height = 20,
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
+      width = 400,
+      height = 32,
       animate = true,
-      color = d3.scale.category20().range();
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      color = d3.scale.category20().range(),
+      xDomain, yDomain;
 
   var x = d3.scale.linear(),
       y = d3.scale.linear();
 
   function chart(selection) {
     selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
 
-      x   .domain(d3.extent(data, function(d) { return d.x } ))
-          .range([0, width - margin.left - margin.right]);
+      x   .domain(xDomain || d3.extent(data, getX ))
+          .range([0, availableWidth]);
 
-      y   .domain(d3.extent(data, function(d) { return d.y } ))
-          .range([height - margin.top - margin.bottom, 0]);
+      y   .domain(yDomain || d3.extent(data,getY ))
+          .range([availableHeight, 0]);
 
 
-      var svg = d3.select(this).selectAll('svg').data([data]);
+      var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
 
-      var gEnter = svg.enter().append('svg').append('g');
+      var gEnter = wrap.enter().append('g');
+      //var gEnter = svg.enter().append('svg').append('g');
       gEnter.append('g').attr('class', 'sparkline')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
           //.style('fill', function(d, i){ return d.color || color[i * 2 % 20] })
           .style('stroke', function(d, i){ return d.color || color[i * 2 % 20] });
 
 
-      svg .attr('width', width)
+      d3.select(this)
+          .attr('width', width)
           .attr('height', height);
 
 
@@ -39,18 +46,19 @@ nv.models.sparkline = function() {
       paths.exit().remove();
       paths
           .attr('d', d3.svg.line()
-            .x(function(d) { return x(d.x) })
-            .y(function(d) { return y(d.y) })
+            .x(function(d) { return x(getX(d)) })
+            .y(function(d) { return y(getY(d)) })
           );
 
 
+      // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
       var points = gEnter.select('.sparkline').selectAll('circle.point')
           .data(function(d) { return d.filter(function(p) { return y.domain().indexOf(p.y) != -1  }) });
       points.enter().append('circle').attr('class', 'point');
       points.exit().remove();
       points
-          .attr('cx', function(d) { return x(d.x) })
-          .attr('cy', function(d) { return y(d.y) })
+          .attr('cx', function(d) { return x(getX(d)) })
+          .attr('cy', function(d) { return y(getY(d)) })
           .attr('r', 2)
           .style('stroke', function(d, i){ return d.y == y.domain()[0] ? '#d62728' : '#2ca02c' })
           .style('fill', function(d, i){ return d.y == y.domain()[0] ? '#d62728' : '#2ca02c' });
@@ -75,6 +83,30 @@ nv.models.sparkline = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = d3.functor(_);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = d3.functor(_);
+    return chart;
+  };
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.yDomain = function(_) {
+    if (!arguments.length) return yDomain;
+    yDomain = _;
     return chart;
   };
 
