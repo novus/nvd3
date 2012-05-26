@@ -104,7 +104,7 @@ nv.models.historicalBar = function() {
             dispatch.elementMouseover({
                 point: d,
                 series: data[0],
-                pos: [x(getX(d,i) + .5), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
+                pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
                 pointIndex: i,
                 seriesIndex: 0,
                 e: d3.event

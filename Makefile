@@ -5,6 +5,7 @@ JS_FILES = \
 	src/utils.js \
 	src/models/axis.js \
 	src/models/bar.js \
+	src/models/bullet.js \
 	src/models/cumulativeLine.js \
 	src/models/legend.js \
 	src/models/line.js \

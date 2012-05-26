@@ -303,13 +303,16 @@ svg .title {
 *  Bullet
 */
 
-.bullet { font: 10px sans-serif; }
+.bullet { font: 10px sans-serif; cursor: pointer; }
+.bullet rect { fill-opacity: .6; }
+.bullet rect:hover { fill-opacity: 1; }
 .bullet .marker { stroke: #000; stroke-width: 2px; }
+.bullet .markerTriangle { stroke: #000; fill: #fff; stroke-width: 1.5px; }
 .bullet .tick line { stroke: #666; stroke-width: .5px; }
 .bullet .range.s0 { fill: #eee; }
 .bullet .range.s1 { fill: #ddd; }
 .bullet .range.s2 { fill: #ccc; }
-.bullet .measure.s0 { fill: lightsteelblue; }
-.bullet .measure.s1 { fill: steelblue; }
+.bullet .measure.s0 { fill: steelblue; }
+.bullet .measure.s1 { fill: darkblue; }
 .bullet .title { font-size: 14px; font-weight: bold; }
 .bullet .subtitle { fill: #999; }

@@ -2,16 +2,18 @@
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
-function bulletChart() {
+nv.models.bullet = function() {
   var orient = "left", // TODO top & bottom
       reverse = false,
       duration = 0,
-      ranges = bulletRanges,
-      markers = bulletMarkers,
-      measures = bulletMeasures,
+      ranges = function(d) { return d.ranges },
+      markers = function(d) { return d.markers },
+      measures = function(d) { return d.measures },
       width = 380,
       height = 30,
       tickFormat = null;
+
+  var dispatch = d3.dispatch('elementMouseover', 'elementMouseout');
 
   // For each small multipleâ€¦
   function bullet(g) {
@@ -34,19 +36,51 @@ function bulletChart() {
       // Stash the new scale.
       this.__chart__ = x1;
 
+      /*
       // Derive width-scales from the x-scales.
       var w0 = bulletWidth(x0),
           w1 = bulletWidth(x1);
+
+      function bulletWidth(x) {
+        var x0 = x(0);
+        return function(d) {
+          return Math.abs(x(d) - x(0));
+        };
+      }
+
+      function bulletTranslate(x) {
+        return function(d) {
+          return "translate(" + x(d) + ",0)";
+        };
+      }
+      */
+
+      var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
+          w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
+
 
       // Update the range rects.
       var range = g.selectAll("rect.range")
           .data(rangez);
 
-      range.enter().append("svg:rect")
+      range.enter().append("rect")
           .attr("class", function(d, i) { return "range s" + i; })
           .attr("width", w0)
           .attr("height", height)
           .attr("x", reverse ? x0 : 0)
+          .on('mouseover', function(d,i) { 
+              dispatch.elementMouseover({
+                value: d,
+                label: (i <= 0) ? 'Maximum' : (i > 1) ? 'Minimum' : 'Mean', //TODO: make these labels a variable
+                pos: [x1(d), height/2]
+              })
+          })
+          .on('mouseout', function(d,i) { 
+              dispatch.elementMouseout({
+                value: d,
+                label: (i <= 0) ? 'Minimum' : (i >=1) ? 'Maximum' : 'Mean', //TODO: make these labels a variable
+              })
+          })
         .transition()
           .duration(duration)
           .attr("width", w1)
@@ -58,20 +92,34 @@ function bulletChart() {
           .attr("width", w1)
           .attr("height", height);
 
+
       // Update the measure rects.
       var measure = g.selectAll("rect.measure")
           .data(measurez);
 
-      measure.enter().append("svg:rect")
+      measure.enter().append("rect")
           .attr("class", function(d, i) { return "measure s" + i; })
           .attr("width", w0)
           .attr("height", height / 3)
           .attr("x", reverse ? x0 : 0)
           .attr("y", height / 3)
+          .on('mouseover', function(d) { 
+              dispatch.elementMouseover({
+                value: d,
+                label: 'Current', //TODO: make these labels a variable
+                pos: [x1(d), height/2]
+              })
+          })
+          .on('mouseout', function(d) { 
+              dispatch.elementMouseout({
+                value: d,
+                label: 'Current' //TODO: make these labels a variable
+              })
+          })
         .transition()
           .duration(duration)
           .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
+          .attr("x", reverse ? x1 : 0)
 
       measure.transition()
           .duration(duration)
@@ -80,11 +128,39 @@ function bulletChart() {
           .attr("x", reverse ? x1 : 0)
           .attr("y", height / 3);
 
+
+
       // Update the marker lines.
-      var marker = g.selectAll("line.marker")
+      var marker = g.selectAll("path.markerTriangle")
           .data(markerz);
 
-      marker.enter().append("svg:line")
+      var h3 =  height / 6;
+      marker.enter().append("path")
+          .attr("class", "markerTriangle")
+          .attr('transform', function(d) { return 'translate(' + x0(d) + ',' + (height / 2) + ')' })
+          .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
+          .on('mouseover', function(d,i) { 
+              dispatch.elementMouseover({
+                value: d,
+                label: 'Previous',
+                pos: [x1(d), height/2]
+              })
+          })
+          .on('mouseout', function(d,i) { 
+              dispatch.elementMouseout({
+                value: d,
+                label: 'Previous'
+              })
+          });
+
+      marker.transition().duration(duration)
+          .attr('transform', function(d) { return 'translate(' + x1(d) + ',' + (height / 2) + ')' });
+
+      marker.exit().remove();
+
+
+/*
+      marker.enter().append("line")
           .attr("class", "marker")
           .attr("x1", x0)
           .attr("x2", x0)
@@ -95,12 +171,14 @@ function bulletChart() {
           .attr("x1", x1)
           .attr("x2", x1);
 
-      marker.transition()
+
+      marker.transition(
           .duration(duration)
           .attr("x1", x1)
           .attr("x2", x1)
           .attr("y1", height / 6)
           .attr("y2", height * 5 / 6);
+         */
 
       // Compute the tick format.
       var format = tickFormat || x1.tickFormat(8);
@@ -112,16 +190,16 @@ function bulletChart() {
           });
 
       // Initialize the ticks with the old scale, x0.
-      var tickEnter = tick.enter().append("svg:g")
+      var tickEnter = tick.enter().append("g")
           .attr("class", "tick")
-          .attr("transform", bulletTranslate(x0))
+          .attr("transform", function(d) { return "translate(" + x0(d) + ",0)" })
           .style("opacity", 1e-6);
 
-      tickEnter.append("svg:line")
+      tickEnter.append("line")
           .attr("y1", height)
           .attr("y2", height * 7 / 6);
 
-      tickEnter.append("svg:text")
+      tickEnter.append("text")
           .attr("text-anchor", "middle")
           .attr("dy", "1em")
           .attr("y", height * 7 / 6)
@@ -130,13 +208,13 @@ function bulletChart() {
       // Transition the entering ticks to the new scale, x1.
       tickEnter.transition()
           .duration(duration)
-          .attr("transform", bulletTranslate(x1))
+          .attr("transform", function(d) { return "translate(" + x1(d) + ",0)" })
           .style("opacity", 1);
 
       // Transition the updating ticks to the new scale, x1.
       var tickUpdate = tick.transition()
           .duration(duration)
-          .attr("transform", bulletTranslate(x1))
+          .attr("transform", function(d) { return "translate(" + x1(d) + ",0)" })
           .style("opacity", 1);
 
       tickUpdate.select("line")
@@ -149,12 +227,15 @@ function bulletChart() {
       // Transition the exiting ticks to the new scale, x1.
       tick.exit().transition()
           .duration(duration)
-          .attr("transform", bulletTranslate(x1))
+          .attr("transform", function(d) { return "translate(" + x1(d) + ",0)" })
           .style("opacity", 1e-6)
           .remove();
     });
     d3.timer.flush();
   }
+
+
+  bullet.dispatch = dispatch;
 
   // left, right, top, bottom
   bullet.orient = function(x) {
@@ -212,27 +293,4 @@ function bulletChart() {
   return bullet;
 };
 
-function bulletRanges(d) {
-  return d.ranges;
-}
 
-function bulletMarkers(d) {
-  return d.markers;
-}
-
-function bulletMeasures(d) {
-  return d.measures;
-}
-
-function bulletTranslate(x) {
-  return function(d) {
-    return "translate(" + x(d) + ",0)";
-  };
-}
-
-function bulletWidth(x) {
-  var x0 = x(0);
-  return function(d) {
-    return Math.abs(x(d) - x0);
-  };
-}

@@ -10,6 +10,8 @@ body {
 </style>
 <body>
 
+<br> <br> <br> <br> <br>
+
 <div class="gallery" id="chart"></div>
 
 <script src="../lib/d3.v2.js"></script>
@@ -17,22 +19,24 @@ body {
 <script src="../src/models/bullet.js"></script>
 <script>
 
-
 var width = 960,
-    height = 50,
+    height = 55,
     margin = {top: 5, right: 40, bottom: 20, left: 120};
 
-var chart = bulletChart()
+var chart = nv.models.bullet()
     .width(width - margin.right - margin.left)
     .height(height - margin.top - margin.bottom);
 
 
   data = [
-  {"title":"Revenue","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[220,270],"markers":[250]},
-  {"title":"Profit","subtitle":"%","ranges":[20,25,30],"measures":[21,23],"markers":[26]},
-  {"title":"Order Size","subtitle":"US$, average","ranges":[350,500,600],"measures":[100,320],"markers":[550]},
-  {"title":"New Customers","subtitle":"count","ranges":[1400,2000,2500],"measures":[1000,1650],"markers":[2100]},
+  {"title":"Revenue","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[220],"markers":[250]}
+  /*
+  ,
+  {"title":"Profit","subtitle":"%","ranges":[20,25,30],"measures":[21],"markers":[26]},
+  {"title":"Order Size","subtitle":"US$, average","ranges":[350,500,600],"measures":[100],"markers":[550]},
+  {"title":"New Customers","subtitle":"count","ranges":[1400,2000,2500],"measures":[1000],"markers":[1000]},
   {"title":"Satisfaction","subtitle":"out of 5","ranges":[3.5,4.25,5],"measures":[3.2,4.7],"markers":[4.4]}
+  */
 ];
 
   var vis = d3.select("#chart").selectAll("svg")
@@ -48,7 +52,6 @@ var chart = bulletChart()
   var title = vis.append("g")
       .attr("text-anchor", "end")
       .attr("transform", "translate(-6," + (height - margin.top - margin.bottom) / 2 + ")");
-
   title.append("text")
       .attr("class", "title")
       .text(function(d) { return d.title; });
@@ -59,9 +62,40 @@ var chart = bulletChart()
       .text(function(d) { return d.subtitle; });
 
   chart.duration(1000);
+
+
   window.transition = function() {
     vis.datum(randomize).call(chart);
   };
+
+
+
+
+
+
+  chart.dispatch.on('elementMouseover', function(e) {
+      var offsetElement = document.getElementById("chart"),
+          left = e.pos[0] + offsetElement.offsetLeft + margin.left,
+          top = e.pos[1] + offsetElement.offsetTop + margin.top;
+
+      var content = '<h3>' + e.label + '</h3>' +
+              '<p>' +
+              e.value +
+              '</p>';
+
+      nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w');
+  });
+
+
+  chart.dispatch.on('elementMouseout', function(e) {
+      nv.tooltip.cleanup();
+  });
+
+
+
+
+
+
 
 
 function randomize(d) {
@@ -79,6 +113,10 @@ function randomizer(d) {
   };
 }
 
+
+
+
+d3.select('body').on('click', window.transition);
 
 
 </script>
