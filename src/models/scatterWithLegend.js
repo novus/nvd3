@@ -158,6 +158,8 @@ nv.models.scatterWithLegend = function() {
 
   chart.dispatch = dispatch;
 
+  d3.rebind(chart, scatter, 'showDistX', 'showDistY');
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin = _;

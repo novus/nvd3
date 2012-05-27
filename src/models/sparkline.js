@@ -27,41 +27,44 @@ nv.models.sparkline = function() {
 
       var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
 
-      var gEnter = wrap.enter().append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'sparkline');
       //var gEnter = svg.enter().append('svg').append('g');
-      gEnter.append('g').attr('class', 'sparkline')
+      //gEnter.append('g').attr('class', 'sparkline')
+      gEnter
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
           //.style('fill', function(d, i){ return d.color || color[i * 2 % 20] })
-          .style('stroke', function(d, i){ return d.color || color[i * 2 % 20] });
+          .style('stroke', function(d,i) { return d.color || color[i * 2 % 20] });
 
-
+/*
       d3.select(this)
           .attr('width', width)
           .attr('height', height);
+         */
 
 
-      var paths = gEnter.select('.sparkline').selectAll('path')
+      //var paths = gEnter.select('.sparkline').selectAll('path')
+      var paths = gEnter.selectAll('path')
           .data(function(d) { return [d] });
       paths.enter().append('path');
       paths.exit().remove();
       paths
           .attr('d', d3.svg.line()
-            .x(function(d) { return x(getX(d)) })
-            .y(function(d) { return y(getY(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
           );
 
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = gEnter.select('.sparkline').selectAll('circle.point')
-          .data(function(d) { return d.filter(function(p) { return y.domain().indexOf(p.y) != -1  }) });
+      var points = gEnter.selectAll('circle.point')
+          .data(function(d) { return d.filter(function(p,i) { return y.domain().indexOf(getY(p,i)) != -1 || getX(p,i) == x.domain()[1]  }) });
       points.enter().append('circle').attr('class', 'point');
       points.exit().remove();
       points
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', 2)
-          .style('stroke', function(d, i){ return d.y == y.domain()[0] ? '#d62728' : '#2ca02c' })
-          .style('fill', function(d, i){ return d.y == y.domain()[0] ? '#d62728' : '#2ca02c' });
+          .style('stroke', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' })
+          .style('fill', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' });
     });
 
     return chart;

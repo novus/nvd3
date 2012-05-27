@@ -264,13 +264,15 @@ svg .title {
   stroke-opacity: .75;
   stroke-width: 0.1px;
 }
-
+/*
 .d3stackedarea .lines path {
   stroke-opacity: 0;
 }
+  */
 
 
-.d3stackedarea .lines .point {
+
+.d3stackedarea .groups .point {
   stroke-opacity: 0;
   fill-opacity: 0;
   transition: all 250ms linear;
@@ -278,7 +280,7 @@ svg .title {
   -webkit-transition: all 250ms linear;
 }
 
-.d3stackedarea .lines .point.hover {
+.d3stackedarea .groups .point.hover {
   stroke-width: 20px;
   stroke-opacity: .75;
   fill-opacity: 1;
@@ -326,7 +328,7 @@ svg .title {
 
 .sparklineplus .hoverValue line {
   stroke: #f44;
-  stroke-width: 1px;
+  stroke-width: 1.5px;
  }
 
 .sparklineplus,
@@ -342,7 +344,7 @@ svg .title {
 .sparklineplus .xValue,
 .sparklineplus .yValue {
   stroke: #666;
-  font-size: .4em;
+  font-size: .5em;
   font-weight: normal;
 }
 

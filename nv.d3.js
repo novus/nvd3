@@ -2710,6 +2710,8 @@ nv.models.scatter = function() {
       forceX = [],
       forceY = [],
       forceSize = [],
+      showDistX = false,
+      showDistY = false,
       interactive = true,
       clipEdge = false,
       clipVoronoi = true,
@@ -2856,19 +2858,23 @@ nv.models.scatter = function() {
         dispatch.on('pointMouseover.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
-            wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
-                .attr('y1', d.pos[1] - margin.top);
-            wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
-                .attr('x1', d.pos[0] - margin.left);
+            if (showDistX)
+              wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
+                  .attr('y1', d.pos[1] - margin.top);
+            if (showDistY) 
+              wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
+                  .attr('x1', d.pos[0] - margin.left);
         });
 
         dispatch.on('pointMouseout.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' circle.point-' + d.pointIndex)
                 .classed('hover', false);
-            wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
-                .attr('y1', y.range()[0]);
-            wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
-                .attr('x1', x.range()[0]);
+            if (showDistX)
+              wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
+                  .attr('y1', y.range()[0]);
+            if (showDistY) 
+              wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
+                  .attr('x1', x.range()[0]);
         });
 
       }
@@ -2916,41 +2922,45 @@ nv.models.scatter = function() {
 
       // TODO: make axis distributions options... maybe even abstract out of this file
 
-      var distX = groups.selectAll('line.distX')
-          .data(function(d) { return d.values })
-      distX.enter().append('line')
-          .attr('x1', function(d,i) { return x0(getX(d,i)) })
-          .attr('x2', function(d,i) { return x0(getX(d,i)) })
-      //d3.transition(distX.exit())
-      d3.transition(groups.exit().selectAll('line.distX'))
-          .attr('x1', function(d,i) { return x(getX(d,i)) })
-          .attr('x2', function(d,i) { return x(getX(d,i)) })
-          .remove();
-      distX
-          .attr('class', function(d,i) { return 'distX distX-' + i })
-          .attr('y1', y.range()[0])
-          .attr('y2', y.range()[0] + 8);
-      d3.transition(distX)
-          .attr('x1', function(d,i) { return x(getX(d,i)) })
-          .attr('x2', function(d,i) { return x(getX(d,i)) })
+      if (showDistX) {
+        var distX = groups.selectAll('line.distX')
+            .data(function(d) { return d.values })
+        distX.enter().append('line')
+            .attr('x1', function(d,i) { return x0(getX(d,i)) })
+            .attr('x2', function(d,i) { return x0(getX(d,i)) })
+        //d3.transition(distX.exit())
+        d3.transition(groups.exit().selectAll('line.distX'))
+            .attr('x1', function(d,i) { return x(getX(d,i)) })
+            .attr('x2', function(d,i) { return x(getX(d,i)) })
+            .remove();
+        distX
+            .attr('class', function(d,i) { return 'distX distX-' + i })
+            .attr('y1', y.range()[0])
+            .attr('y2', y.range()[0] + 8);
+        d3.transition(distX)
+            .attr('x1', function(d,i) { return x(getX(d,i)) })
+            .attr('x2', function(d,i) { return x(getX(d,i)) })
+      }
 
-      var distY = groups.selectAll('line.distY')
-          .data(function(d) { return d.values })
-      distY.enter().append('line')
-          .attr('y1', function(d,i) { return y0(getY(d,i)) })
-          .attr('y2', function(d,i) { return y0(getY(d,i)) });
-      //d3.transition(distY.exit())
-      d3.transition(groups.exit().selectAll('line.distY'))
-          .attr('y1', function(d,i) { return y(getY(d,i)) })
-          .attr('y2', function(d,i) { return y(getY(d,i)) })
-          .remove();
-      distY
-          .attr('class', function(d,i) { return 'distY distY-' + i })
-          .attr('x1', x.range()[0])
-          .attr('x2', x.range()[0] - 8)
-      d3.transition(distY)
-          .attr('y1', function(d,i) { return y(getY(d,i)) })
-          .attr('y2', function(d,i) { return y(getY(d,i)) });
+      if (showDistY) {
+        var distY = groups.selectAll('line.distY')
+            .data(function(d) { return d.values })
+        distY.enter().append('line')
+            .attr('y1', function(d,i) { return y0(getY(d,i)) })
+            .attr('y2', function(d,i) { return y0(getY(d,i)) });
+        //d3.transition(distY.exit())
+        d3.transition(groups.exit().selectAll('line.distY'))
+            .attr('y1', function(d,i) { return y(getY(d,i)) })
+            .attr('y2', function(d,i) { return y(getY(d,i)) })
+            .remove();
+        distY
+            .attr('class', function(d,i) { return 'distY distY-' + i })
+            .attr('x1', x.range()[0])
+            .attr('x2', x.range()[0] - 8)
+        d3.transition(distY)
+            .attr('y1', function(d,i) { return y(getY(d,i)) })
+            .attr('y2', function(d,i) { return y(getY(d,i)) });
+      }
 
 
       clearTimeout(timeoutID);
@@ -3044,6 +3054,18 @@ nv.models.scatter = function() {
   chart.interactive = function(_) {
     if (!arguments.length) return interactive;
     interactive = _;
+    return chart;
+  };
+
+  chart.showDistX = function(_) {
+    if (!arguments.length) return showDistX;
+    showDistX = _;
+    return chart;
+  };
+
+  chart.showDistY = function(_) {
+    if (!arguments.length) return showDistY;
+    showDistY = _;
     return chart;
   };
 
@@ -3234,6 +3256,8 @@ nv.models.scatterWithLegend = function() {
 
   chart.dispatch = dispatch;
 
+  d3.rebind(chart, scatter, 'showDistX', 'showDistY');
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin = _;
@@ -3306,41 +3330,44 @@ nv.models.sparkline = function() {
 
       var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
 
-      var gEnter = wrap.enter().append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'sparkline');
       //var gEnter = svg.enter().append('svg').append('g');
-      gEnter.append('g').attr('class', 'sparkline')
+      //gEnter.append('g').attr('class', 'sparkline')
+      gEnter
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
           //.style('fill', function(d, i){ return d.color || color[i * 2 % 20] })
-          .style('stroke', function(d, i){ return d.color || color[i * 2 % 20] });
+          .style('stroke', function(d,i) { return d.color || color[i * 2 % 20] });
 
-
+/*
       d3.select(this)
           .attr('width', width)
           .attr('height', height);
+         */
 
 
-      var paths = gEnter.select('.sparkline').selectAll('path')
+      //var paths = gEnter.select('.sparkline').selectAll('path')
+      var paths = gEnter.selectAll('path')
           .data(function(d) { return [d] });
       paths.enter().append('path');
       paths.exit().remove();
       paths
           .attr('d', d3.svg.line()
-            .x(function(d) { return x(getX(d)) })
-            .y(function(d) { return y(getY(d)) })
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
           );
 
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = gEnter.select('.sparkline').selectAll('circle.point')
-          .data(function(d) { return d.filter(function(p) { return y.domain().indexOf(p.y) != -1  }) });
+      var points = gEnter.selectAll('circle.point')
+          .data(function(d) { return d.filter(function(p,i) { return y.domain().indexOf(getY(p,i)) != -1 || getX(p,i) == x.domain()[1]  }) });
       points.enter().append('circle').attr('class', 'point');
       points.exit().remove();
       points
-          .attr('cx', function(d) { return x(getX(d)) })
-          .attr('cy', function(d) { return y(getY(d)) })
+          .attr('cx', function(d,i) { return x(getX(d,i)) })
+          .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', 2)
-          .style('stroke', function(d, i){ return d.y == y.domain()[0] ? '#d62728' : '#2ca02c' })
-          .style('fill', function(d, i){ return d.y == y.domain()[0] ? '#d62728' : '#2ca02c' });
+          .style('stroke', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' })
+          .style('fill', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' });
     });
 
     return chart;
@@ -3399,7 +3426,7 @@ nv.models.sparkline = function() {
 }
 
 nv.models.sparklinePlus = function() {
-  var margin = {top: 15, right: 30, bottom: 3, left: 30},
+  var margin = {top: 15, right: 40, bottom: 3, left: 40},
       width = 400,
       height = 50,
       animate = true,
@@ -3446,12 +3473,11 @@ nv.models.sparklinePlus = function() {
           //.attr('height', height)
           .call(sparkline);
 
-      var hoverArea = sparklineWrap.append('rect').attr('class', 'hoverArea')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight)
-          .on('mousemove', sparklineHover);
-
       var hoverValue = sparklineWrap.append('g').attr('class', 'hoverValue');
+      var hoverArea = sparklineWrap.append('g').attr('class', 'hoverArea');
+
+
+      hoverValue.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' });
 
       var hoverLine = hoverValue.append('line')
           .attr('x1', x.range()[1])
@@ -3460,21 +3486,24 @@ nv.models.sparklinePlus = function() {
           .attr('y2', height)
 
      var hoverX = hoverValue.append('text').attr('class', 'xValue')
-          .attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'end')
-          .attr('dy', '1em')
+          .attr('dy', '.9em')
 
      var hoverY = hoverValue.append('text').attr('class', 'yValue')
-          .attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
+          //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'start')
-          .attr('dy', '1em')
+          .attr('dy', '.9em')
 
+
+      hoverArea.append('rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight)
+          .on('mousemove', sparklineHover);
 
 
 
       function sparklineHover() { 
         var pos = d3.event.offsetX - margin.left;
-        //console.log(data.length, pos, x.invert(pos), x(pos) );
 
         hoverLine
             .attr('x1', pos)
@@ -3482,12 +3511,13 @@ nv.models.sparklinePlus = function() {
 
         hoverX
             .attr('transform', function(d) { return 'translate(' + (pos - 6) + ',' + (-margin.top) + ')' })
-            .text(xTickFormat(pos));
+            //.text(xTickFormat(pos));
+            .text(xTickFormat(Math.round(x.invert(pos)))); //TODO: refactor this line
 
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
             //.text(data[pos] && yTickFormat(data[pos].y));
-            .text(yTickFormat(getY(data[Math.round(x.invert(pos))])));
+            .text(yTickFormat(getY(data[Math.round(x.invert(pos))]))); //TODO: refactor this line
       }
 
     });
@@ -3570,7 +3600,7 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var lines = nv.models.line(), //TODO: this really should just be a scatterplot overlayed, not a line
+  var scatter= nv.models.scatter().size(2), //TODO: this really should just be a scatterplot overlayed, not a line
       x = d3.scale.linear(),
       y = d3.scale.linear();
 
@@ -3605,7 +3635,7 @@ nv.models.stackedArea = function() {
             .range([availableHeight, 0]);
 
 
-        lines
+        scatter
           //.interactive(false) //if we were to turn off interactive, the whole line chart should be removed
           .width(availableWidth)
           .height(availableHeight)
@@ -3621,17 +3651,17 @@ nv.models.stackedArea = function() {
         var gEnter = wrap.enter().append('g').attr('class', 'd3stackedarea').append('g');
 
         gEnter.append('g').attr('class', 'areaWrap');
-        gEnter.append('g').attr('class', 'linesWrap');
+        gEnter.append('g').attr('class', 'scatterWrap');
 
 
         var g = wrap.select('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-        var linesWrap = g.select('.linesWrap')
+        var scatterWrap= g.select('.scatterWrap')
             .datum(dataCopy.filter(function(d) { return !d.disabled }))
 
-        d3.transition(linesWrap).call(lines);
+        d3.transition(scatterWrap).call(scatter);
 
 
         var area = d3.svg.area()
@@ -3735,7 +3765,7 @@ nv.models.stackedArea = function() {
 
   chart.dispatch = dispatch;
 
-  lines.dispatch.on('pointMouseover.tooltip', function(e) {
+  scatter.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
             point: e.point,
             series: e.series,
@@ -3745,7 +3775,7 @@ nv.models.stackedArea = function() {
         });
   });
 
-  lines.dispatch.on('pointMouseout.tooltip', function(e) {
+  scatter.dispatch.on('pointMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
   });
 

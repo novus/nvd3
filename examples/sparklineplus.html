@@ -14,7 +14,7 @@ text {
 
 #chart1 {
   width: 400px;
-  height: 50px;
+  height: 90px;
 }
 
 </style>
@@ -33,7 +33,7 @@ nv.addGraph({
   generate: function() {
     var chart = nv.models.sparklinePlus()
                   .width(400)
-                  .height(50)
+                  .height(90)
 
     d3.select("#chart1")
       .datum(sine())
@@ -52,7 +52,7 @@ function sine() {
   var sin = [];
 
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
+    sin.push({x: i + 100, y: Math.sin(i/10)});
   }
 
   return sin;

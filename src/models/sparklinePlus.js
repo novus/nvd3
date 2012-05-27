@@ -1,6 +1,6 @@
 
 nv.models.sparklinePlus = function() {
-  var margin = {top: 15, right: 30, bottom: 3, left: 30},
+  var margin = {top: 15, right: 40, bottom: 3, left: 40},
       width = 400,
       height = 50,
       animate = true,
@@ -47,12 +47,11 @@ nv.models.sparklinePlus = function() {
           //.attr('height', height)
           .call(sparkline);
 
-      var hoverArea = sparklineWrap.append('rect').attr('class', 'hoverArea')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight)
-          .on('mousemove', sparklineHover);
-
       var hoverValue = sparklineWrap.append('g').attr('class', 'hoverValue');
+      var hoverArea = sparklineWrap.append('g').attr('class', 'hoverArea');
+
+
+      hoverValue.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' });
 
       var hoverLine = hoverValue.append('line')
           .attr('x1', x.range()[1])
@@ -61,21 +60,24 @@ nv.models.sparklinePlus = function() {
           .attr('y2', height)
 
      var hoverX = hoverValue.append('text').attr('class', 'xValue')
-          .attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'end')
-          .attr('dy', '1em')
+          .attr('dy', '.9em')
 
      var hoverY = hoverValue.append('text').attr('class', 'yValue')
-          .attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
+          //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'start')
-          .attr('dy', '1em')
+          .attr('dy', '.9em')
 
+
+      hoverArea.append('rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight)
+          .on('mousemove', sparklineHover);
 
 
 
       function sparklineHover() { 
         var pos = d3.event.offsetX - margin.left;
-        //console.log(data.length, pos, x.invert(pos), x(pos) );
 
         hoverLine
             .attr('x1', pos)
@@ -83,12 +85,13 @@ nv.models.sparklinePlus = function() {
 
         hoverX
             .attr('transform', function(d) { return 'translate(' + (pos - 6) + ',' + (-margin.top) + ')' })
-            .text(xTickFormat(pos));
+            //.text(xTickFormat(pos));
+            .text(xTickFormat(Math.round(x.invert(pos)))); //TODO: refactor this line
 
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
             //.text(data[pos] && yTickFormat(data[pos].y));
-            .text(yTickFormat(getY(data[Math.round(x.invert(pos))])));
+            .text(yTickFormat(getY(data[Math.round(x.invert(pos))]))); //TODO: refactor this line
       }
 
     });

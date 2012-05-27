@@ -24,7 +24,7 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var lines = nv.models.line(), //TODO: this really should just be a scatterplot overlayed, not a line
+  var scatter= nv.models.scatter().size(2), //TODO: this really should just be a scatterplot overlayed, not a line
       x = d3.scale.linear(),
       y = d3.scale.linear();
 
@@ -59,7 +59,7 @@ nv.models.stackedArea = function() {
             .range([availableHeight, 0]);
 
 
-        lines
+        scatter
           //.interactive(false) //if we were to turn off interactive, the whole line chart should be removed
           .width(availableWidth)
           .height(availableHeight)
@@ -75,17 +75,17 @@ nv.models.stackedArea = function() {
         var gEnter = wrap.enter().append('g').attr('class', 'd3stackedarea').append('g');
 
         gEnter.append('g').attr('class', 'areaWrap');
-        gEnter.append('g').attr('class', 'linesWrap');
+        gEnter.append('g').attr('class', 'scatterWrap');
 
 
         var g = wrap.select('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-        var linesWrap = g.select('.linesWrap')
+        var scatterWrap= g.select('.scatterWrap')
             .datum(dataCopy.filter(function(d) { return !d.disabled }))
 
-        d3.transition(linesWrap).call(lines);
+        d3.transition(scatterWrap).call(scatter);
 
 
         var area = d3.svg.area()
@@ -189,7 +189,7 @@ nv.models.stackedArea = function() {
 
   chart.dispatch = dispatch;
 
-  lines.dispatch.on('pointMouseover.tooltip', function(e) {
+  scatter.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
             point: e.point,
             series: e.series,
@@ -199,7 +199,7 @@ nv.models.stackedArea = function() {
         });
   });
 
-  lines.dispatch.on('pointMouseout.tooltip', function(e) {
+  scatter.dispatch.on('pointMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
   });
 
