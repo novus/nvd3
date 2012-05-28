@@ -14,7 +14,7 @@ nv.models.scatter = function() {
       interactive = true, // If true, plots a voronoi overlay for advanced point interection
       clipEdge = false, // if true, masks lines within x and y scale
       clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
-      clipRadius = function() { return 25 },
+      clipRadius = function() { return 25 }, // function to get the radius for point clips
       xDomain, yDomain, sizeDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
   var x = d3.scale.linear(),
@@ -78,6 +78,7 @@ nv.models.scatter = function() {
         defsEnter.append('clipPath')
             .attr('id', 'edge-clip-' + id)
           .append('rect');
+
         wrap.select('#edge-clip-' + id + ' rect')
             .attr('width', availableWidth)
             .attr('height', availableHeight);
@@ -328,6 +329,12 @@ nv.models.scatter = function() {
   chart.clipVoronoi= function(_) {
     if (!arguments.length) return clipVoronoi;
     clipVoronoi = _;
+    return chart;
+  };
+
+  chart.clipRadius = function(_) {
+    if (!arguments.length) return clipRadius;
+    clipRadius = _;
     return chart;
   };
 

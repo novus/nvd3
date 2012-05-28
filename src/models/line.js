@@ -1,7 +1,7 @@
 
 nv.models.line = function() {
   //Default Settings
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}, 
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
       color = d3.scale.category10().range(),
@@ -59,6 +59,7 @@ nv.models.line = function() {
         defsEnter.append('clipPath')
             .attr('id', 'edge-clip-' + id)
           .append('rect');
+
         wrap.select('#edge-clip-' + id + ' rect')
             .attr('width', availableWidth)
             .attr('height', availableHeight);
@@ -79,7 +80,7 @@ nv.models.line = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
-     groups
+      groups
           .attr('class', function(d,i) { return 'line series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % 10] })

@@ -4,8 +4,7 @@ nv.models.stackedAreaWithLegend = function() {
       getWidth = function() { return 960 },
       getHeight = function() { return 500 },
       dotRadius = function() { return 2.5 },
-      color = d3.scale.category10().range(),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      color = d3.scale.category10().range();
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
@@ -15,7 +14,8 @@ nv.models.stackedAreaWithLegend = function() {
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
-      stacked = nv.models.stackedArea();
+      stacked = nv.models.stackedArea(),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   //TODO: let user select default
   var controlsData = [
@@ -66,7 +66,58 @@ nv.models.stackedAreaWithLegend = function() {
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'controlsWrap');
 
-      stacked.dispatch.on('areaClick.test', function(e) {
+
+
+      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+      margin.top = legend.height();
+
+      var g = wrap.select('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      legend.width(width/2 - margin.right);
+      g.select('.legendWrap')
+          .datum(data)
+          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
+          .call(legend);
+
+      controls.width(280).color(['#444', '#444', '#444']);
+      g.select('.controlsWrap')
+          .datum(controlsData)
+          .attr('transform', 'translate(0,' + (-margin.top) +')')
+          .call(controls);
+
+
+      var stackedWrap = g.select('.stackedWrap')
+          .datum(data);
+      d3.transition(stackedWrap).call(stacked);
+
+
+      xAxis
+        .domain(x.domain())
+        .range(x.range())
+        .ticks( width / 100 )
+        .tickSize(-availableHeight, 0);
+
+      g.select('.x.axis')
+          .attr('transform', 'translate(0,' + availableHeight + ')');
+      d3.transition(g.select('.x.axis'))
+          .call(xAxis);
+
+      yAxis
+        .domain(y.domain())
+        .range(y.range())
+        .ticks(stacked.offset() == 'wiggle' ? 0 : height / 36)
+        .tickSize(-availableWidth, 0)
+        .tickFormat(stacked.offset() == 'zero' ? d3.format(',.2f') : d3.format('%')); //TODO: stacked format should be set by caller
+
+      d3.transition(g.select('.y.axis'))
+          .call(yAxis);
+
+
+
+      //TODO: FIX Logic error, screws up when series are disabled by clicking legend, then series are desiabled by clicking the area
+      stacked.dispatch.on('areaClick.toggle', function(e) {
         if (data.filter(function(d) { return !d.disabled }).length === 1)
           data = data.map(function(d) { 
             d.disabled = false; 
@@ -164,54 +215,6 @@ nv.models.stackedAreaWithLegend = function() {
       stacked.dispatch.on('tooltipHide', function(e) {
         dispatch.tooltipHide(e);
       });
-
-
-
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-
-      legend.width(width/2 - margin.right);
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
-          .call(legend);
-
-      controls.width(280).color(['#444', '#444', '#444']);
-      g.select('.controlsWrap')
-          .datum(controlsData)
-          .attr('transform', 'translate(0,' + (-margin.top) +')')
-          .call(controls);
-
-
-      var stackedWrap = g.select('.stackedWrap')
-          .datum(data);
-      d3.transition(stackedWrap).call(stacked);
-
-
-      xAxis
-        .domain(x.domain())
-        .range(x.range())
-        .ticks( width / 100 )
-        .tickSize(-availableHeight, 0);
-
-      g.select('.x.axis')
-          .attr('transform', 'translate(0,' + availableHeight + ')');
-      d3.transition(g.select('.x.axis'))
-          .call(xAxis);
-
-      yAxis
-        .domain(y.domain())
-        .range(y.range())
-        .ticks(stacked.offset() == 'wiggle' ? 0 : height / 36)
-        .tickSize(-availableWidth, 0)
-        .tickFormat(stacked.offset() == 'zero' ? d3.format(',.2f') : d3.format('%')); //TODO: stacked format should be set by caller
-
-      d3.transition(g.select('.y.axis'))
-          .call(yAxis);
     });
 
     return chart;

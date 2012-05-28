@@ -1,5 +1,6 @@
 
 nv.models.stackedArea = function() {
+  //Default Settings
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
@@ -9,8 +10,8 @@ nv.models.stackedArea = function() {
       style = 'stack',
       offset = 'zero',
       order = 'default',
-      xDomain, yDomain,
-      dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout' );
+      clipEdge = false, // if true, masks lines within x and y scale
+      xDomain, yDomain;
 
 /************************************
  * offset:
@@ -26,7 +27,8 @@ nv.models.stackedArea = function() {
 
   var scatter= nv.models.scatter().size(2),
       x = d3.scale.linear(),
-      y = d3.scale.linear();
+      y = d3.scale.linear(),
+      dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
@@ -53,10 +55,40 @@ nv.models.stackedArea = function() {
         x   .domain(xDomain || d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
             .range([0, availableWidth]);
 
+        //TODO: deal with negative stacked charts
         y   .domain(yDomain || [0, d3.max(dataCopy, function(d) {   //TODO; if dataCopy not fed {x, y} (custom getX or getY), this will probably cause an error
               return d3.max(d.values, function(d) { return d.y0 + d.y })
             }) ])
             .range([availableHeight, 0]);
+
+
+
+        var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
+        var wrapEnter = wrap.enter().append('g').attr('class', 'd3stackedarea');
+        var defsEnter = wrapEnter.append('defs');
+        var gEnter = wrapEnter.append('g');
+        var g = wrap.select('g');
+
+        gEnter.append('g').attr('class', 'areaWrap');
+        gEnter.append('g').attr('class', 'scatterWrap');
+
+
+        wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+        if (clipEdge) {
+          defsEnter.append('clipPath')
+              .attr('id', 'edge-clip-' + id)
+            .append('rect');
+
+          wrap.select('#edge-clip-' + id + ' rect')
+              .attr('width', availableWidth)
+              .attr('height', availableHeight);
+
+          gEnter
+              .attr('clip-path', 'url(#edge-clip-' + id + ')');
+        }
+
 
 
         scatter
@@ -69,17 +101,6 @@ nv.models.stackedArea = function() {
           .color(data.map(function(d,i) {
             return d.color || color[i % 10];
           }).filter(function(d,i) { return !data[i].disabled }));
-
-        var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
-        var gEnter = wrap.enter().append('g').attr('class', 'd3stackedarea').append('g');
-
-        gEnter.append('g').attr('class', 'areaWrap');
-        gEnter.append('g').attr('class', 'scatterWrap');
-
-
-        var g = wrap.select('g')
-            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
 
         var scatterWrap= g.select('.scatterWrap')
             .datum(dataCopy.filter(function(d) { return !d.disabled }))
@@ -144,6 +165,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return area(d.values,i) })
 
 
+        //TODO: these disptach handlers don't need to be called everytime the chart
+        //      is called, but 'g' is only in this scope... so need to rethink.
         scatter.dispatch.on('pointClick.area', function(e) {
           dispatch.areaClick(e);
         })
@@ -187,6 +210,12 @@ nv.models.stackedArea = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
     return chart;
   };
 
@@ -236,13 +265,8 @@ nv.models.stackedArea = function() {
 
 
   scatter.dispatch.on('pointMouseover.tooltip', function(e) {
-        dispatch.tooltipShow({
-            point: e.point,
-            series: e.series,
-            pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
-            seriesIndex: e.seriesIndex,
-            pointIndex: e.pointIndex
-        });
+        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+        dispatch.tooltipShow(e);
   });
 
   scatter.dispatch.on('pointMouseout.tooltip', function(e) {

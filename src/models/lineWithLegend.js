@@ -3,15 +3,15 @@ nv.models.lineWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = function() { return 960 },
       height = function() { return 500 },
-      color = d3.scale.category10().range(),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      color = d3.scale.category10().range();
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
       xAxis = nv.models.axis().scale(x).orient('bottom'),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
-      lines = nv.models.line();
+      lines = nv.models.line(),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
 
   function chart(selection) {
@@ -42,6 +42,7 @@ nv.models.lineWithLegend = function() {
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
+
       var wrap = d3.select(this).selectAll('g.wrap').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithLegend').append('g');
 
@@ -50,47 +51,6 @@ nv.models.lineWithLegend = function() {
       gEnter.append('g').attr('class', 'linesWrap');
       gEnter.append('g').attr('class', 'legendWrap');
 
-
-      legend.dispatch.on('legendClick', function(d,i) { 
-        d.disabled = !d.disabled;
-
-        if (!data.filter(function(d) { return !d.disabled }).length) {
-          data.map(function(d) {
-            d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
-            return d;
-          });
-        }
-
-        selection.transition().call(chart);
-      });
-
-/*
-      //
-      legend.dispatch.on('legendMouseover', function(d, i) {
-        d.hover = true;
-        selection.transition().call(chart)
-      });
-
-      legend.dispatch.on('legendMouseout', function(d, i) {
-        d.hover = false;
-        selection.transition().call(chart)
-      });
-*/
-
-      lines.dispatch.on('pointMouseover.tooltip', function(e) {
-        dispatch.tooltipShow({
-          point: e.point,
-          series: e.series,
-          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
-          seriesIndex: e.seriesIndex,
-          pointIndex: e.pointIndex
-        });
-      });
-
-      lines.dispatch.on('pointMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
 
 
       //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
@@ -135,6 +95,50 @@ nv.models.lineWithLegend = function() {
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
+
+
+
+
+      legend.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
+            d.disabled = false;
+            wrap.selectAll('.series').classed('disabled', false);
+            return d;
+          });
+        }
+
+        selection.transition().call(chart);
+      });
+
+/*
+      //
+      legend.dispatch.on('legendMouseover', function(d, i) {
+        d.hover = true;
+        selection.transition().call(chart)
+      });
+
+      legend.dispatch.on('legendMouseout', function(d, i) {
+        d.hover = false;
+        selection.transition().call(chart)
+      });
+*/
+
+      lines.dispatch.on('pointMouseover.tooltip', function(e) {
+        dispatch.tooltipShow({
+          point: e.point,
+          series: e.series,
+          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
+          seriesIndex: e.seriesIndex,
+          pointIndex: e.pointIndex
+        });
+      });
+
+      lines.dispatch.on('pointMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+      });
 
     });
 
