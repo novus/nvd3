@@ -7,6 +7,8 @@ nv.models.scatterWithLegend = function() {
       yAxisRender = true,
       xAxisLabelText = false,
       yAxisLabelText = false,
+      showDistX = false,
+      showDistY = false,
       color = d3.scale.category10().range(),
       forceX = [],
       forceY = [],
@@ -234,6 +236,18 @@ nv.models.scatterWithLegend = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = d3.functor(_);
+    return chart;
+  };
+
+  chart.showDistX = function(_) {
+    if (!arguments.length) return showDistX;
+    showDistX = _;
+    return chart;
+  };
+
+  chart.showDistY = function(_) {
+    if (!arguments.length) return showDistY;
+    showDistY = _;
     return chart;
   };
 

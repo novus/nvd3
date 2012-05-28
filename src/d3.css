@@ -264,6 +264,11 @@ svg .title {
   stroke-opacity: .75;
   stroke-width: 0.1px;
 }
+
+.d3stackedarea path.area.hover {
+  fill-opacity: 1;
+  stroke-opacity: 1;
+}
 /*
 .d3stackedarea .groups path {
   stroke-opacity: 0;

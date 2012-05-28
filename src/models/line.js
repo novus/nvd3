@@ -108,24 +108,6 @@ nv.models.line = function() {
             .y(function(d,i) { return y(getY(d,i)) })
           );
 
-/*
-      var points = groups.selectAll('circle.point')
-          .data(function(d) { return d.values });
-      points.enter().append('circle')
-          .attr('cx', function(d,i) { return x0(getX(d,i)) })
-          .attr('cy', function(d,i) { return y0(getY(d,i)) });
-      d3.transition(groups.exit().selectAll('circle.point'))
-          .attr('cx', function(d,i) { return x(getX(d,i)) })
-          .attr('cy', function(d,i) { return y(getY(d,i)) })
-          .remove();
-      d3.transition(points)
-          .attr('class', function(d,i) { return 'point point-' + i })
-          .attr('cx', function(d,i) { return x(getX(d,i)) })
-          .attr('cy', function(d,i) { return y(getY(d,i)) })
-          .attr('r', getSize);
-
-*/
-
 
       scatter
         .size(getSize)

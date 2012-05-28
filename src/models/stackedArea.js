@@ -10,7 +10,7 @@ nv.models.stackedArea = function() {
       offset = 'zero',
       order = 'default',
       xDomain, yDomain,
-      dispatch =  d3.dispatch('tooltipShow', 'tooltipHide');
+      dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout' );
 
 /************************************
  * offset:
@@ -24,7 +24,7 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var scatter= nv.models.scatter().size(2), //TODO: this really should just be a scatterplot overlayed, not a line
+  var scatter= nv.models.scatter().size(2),
       x = d3.scale.linear(),
       y = d3.scale.linear();
 
@@ -60,13 +60,12 @@ nv.models.stackedArea = function() {
 
 
         scatter
-          //.interactive(false) //if we were to turn off interactive, the whole line chart should be removed
           .width(availableWidth)
           .height(availableHeight)
           .xDomain(x.domain())
           .yDomain(y.domain())
           .x(getX)
-          .y(function(d) { return d.y + d.y0 })
+          .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
           .color(data.map(function(d,i) {
             return d.color || color[i % 10];
           }).filter(function(d,i) { return !data[i].disabled }));
@@ -101,7 +100,40 @@ nv.models.stackedArea = function() {
 
         var path = g.select('.areaWrap').selectAll('path.area')
             .data(function(d) { return d });
-        path.enter().append('path').attr('class', 'area');
+        path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
+            .on('mouseover', function(d,i) {
+              d3.select(this).classed('hover', true);
+              dispatch.areaMouseover({
+                point: d,
+                series: d.key,
+                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                pos: [d3.event.pageX, d3.event.pageY],
+                seriesIndex: i
+                //pointIndex: d.point
+              });
+            })
+            .on('mouseout', function(d,i) {
+              d3.select(this).classed('hover', false);
+              dispatch.areaMouseout({
+                point: d,
+                series: d.key,
+                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                pos: [d3.event.pageX, d3.event.pageY],
+                seriesIndex: i
+                //pointIndex: d.point
+              });
+            })
+            .on('click', function(d,i) {
+              d3.select(this).classed('hover', false);
+              dispatch.areaClick({
+                point: d,
+                series: d.key,
+                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                pos: [d3.event.pageX, d3.event.pageY],
+                seriesIndex: i
+                //pointIndex: d.point
+              });
+            })
         d3.transition(path.exit())
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
@@ -111,7 +143,16 @@ nv.models.stackedArea = function() {
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 
+
+        scatter.dispatch.on('pointMouseover.area', function(e) {
+          g.select('.area-' + e.seriesIndex).classed('hover', true);
+        });
+        scatter.dispatch.on('pointMouseout.area', function(e) {
+          g.select('.area-' + e.seriesIndex).classed('hover', false);
+        });
+
     });
+
 
     return chart;
   }
@@ -188,6 +229,7 @@ nv.models.stackedArea = function() {
   };
 
   chart.dispatch = dispatch;
+
 
   scatter.dispatch.on('pointMouseover.tooltip', function(e) {
         dispatch.tooltipShow({

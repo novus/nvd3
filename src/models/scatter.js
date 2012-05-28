@@ -11,8 +11,6 @@ nv.models.scatter = function() {
       forceX = [], // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
       forceY = [], // List of numbers to Force into the Y scale 
       forceSize = [], // List of numbers to Force into the Size scale 
-      showDistX = false,
-      showDistY = false,
       interactive = true, // If true, plots a voronoi overlay for advanced point interection
       clipEdge = false, // if true, masks lines within x and y scale
       clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
@@ -71,7 +69,6 @@ nv.models.scatter = function() {
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'groups');
-      //gEnter.append('g').attr('class', 'distribution');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -164,27 +161,11 @@ nv.models.scatter = function() {
         dispatch.on('pointMouseover.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
-            /*
-            if (showDistX)
-              wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
-                  .attr('y1', d.pos[1] - margin.top);
-            if (showDistY) 
-              wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
-                  .attr('x1', d.pos[0] - margin.left);
-            */
         });
 
         dispatch.on('pointMouseout.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' circle.point-' + d.pointIndex)
                 .classed('hover', false);
-            /*
-            if (showDistX)
-              wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
-                  .attr('y1', y.range()[0]);
-            if (showDistY) 
-              wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
-                  .attr('x1', x.range()[0]);
-            */
         });
 
       }
@@ -229,48 +210,6 @@ nv.models.scatter = function() {
           .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', function(d,i) { return z(getSize(d,i)) });
 
-
-      /*
-      if (showDistX) {
-        var distX = groups.selectAll('line.distX')
-            .data(function(d) { return d.values })
-        distX.enter().append('line')
-            .attr('x1', function(d,i) { return x0(getX(d,i)) })
-            .attr('x2', function(d,i) { return x0(getX(d,i)) })
-        //d3.transition(distX.exit())
-        d3.transition(groups.exit().selectAll('line.distX'))
-            .attr('x1', function(d,i) { return x(getX(d,i)) })
-            .attr('x2', function(d,i) { return x(getX(d,i)) })
-            .remove();
-        distX
-            .attr('class', function(d,i) { return 'distX distX-' + i })
-            .attr('y1', y.range()[0])
-            .attr('y2', y.range()[0] + 8);
-        d3.transition(distX)
-            .attr('x1', function(d,i) { return x(getX(d,i)) })
-            .attr('x2', function(d,i) { return x(getX(d,i)) })
-      }
-
-      if (showDistY) {
-        var distY = groups.selectAll('line.distY')
-            .data(function(d) { return d.values })
-        distY.enter().append('line')
-            .attr('y1', function(d,i) { return y0(getY(d,i)) })
-            .attr('y2', function(d,i) { return y0(getY(d,i)) });
-        //d3.transition(distY.exit())
-        d3.transition(groups.exit().selectAll('line.distY'))
-            .attr('y1', function(d,i) { return y(getY(d,i)) })
-            .attr('y2', function(d,i) { return y(getY(d,i)) })
-            .remove();
-        distY
-            .attr('class', function(d,i) { return 'distY distY-' + i })
-            .attr('x1', x.range()[0])
-            .attr('x2', x.range()[0] - 8)
-        d3.transition(distY)
-            .attr('y1', function(d,i) { return y(getY(d,i)) })
-            .attr('y2', function(d,i) { return y(getY(d,i)) });
-      }
-      */
 
 
       clearTimeout(timeoutID);
@@ -364,18 +303,6 @@ nv.models.scatter = function() {
   chart.interactive = function(_) {
     if (!arguments.length) return interactive;
     interactive = _;
-    return chart;
-  };
-
-  chart.showDistX = function(_) {
-    if (!arguments.length) return showDistX;
-    showDistX = _;
-    return chart;
-  };
-
-  chart.showDistY = function(_) {
-    if (!arguments.length) return showDistY;
-    showDistY = _;
     return chart;
   };
 
