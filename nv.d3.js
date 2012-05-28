@@ -1200,8 +1200,9 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 10},
       width = 400,
       height = 20,
-      color = d3.scale.category10().range(),
-      dispatch = d3.dispatch('legendClick', 'legendMouseover', 'legendMouseout');
+      color = d3.scale.category10().range();
+
+  var dispatch = d3.dispatch('legendClick', 'legendMouseover', 'legendMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
@@ -1218,7 +1219,7 @@ nv.models.legend = function() {
           .data(function(d) { return d });
       var seriesEnter = series.enter().append('g').attr('class', 'series')
           .on('mouseover', function(d,i) {
-            dispatch.legendMouseover(d,i);
+            dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
           })
           .on('mouseout', function(d,i) {
             dispatch.legendMouseout(d,i);
@@ -1418,6 +1419,7 @@ nv.models.line = function() {
       scatter
         .size(getSize)
         .id(id)
+        .interactive(interactive)
         .width(availableWidth)
         .height(availableHeight)
         .xDomain(x.domain())
@@ -1447,12 +1449,14 @@ nv.models.line = function() {
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
+    scatter.x(_);
     return chart;
   };
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
+    scatter.y(_);
     return chart;
   };
 
@@ -1587,6 +1591,8 @@ nv.models.linePlusBar = function() {
       lines
         .width(availableWidth)
         .height(availableHeight)
+        //.x(getX)
+        //.y(getY)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
@@ -3485,6 +3491,7 @@ nv.models.stackedArea = function() {
       style = 'stack',
       offset = 'zero',
       order = 'default',
+      interactive = true, // If true, plots a voronoi overlay for advanced point interection
       clipEdge = false, // if true, masks lines within x and y scale
       xDomain, yDomain;
 
@@ -3545,7 +3552,6 @@ nv.models.stackedArea = function() {
         var g = wrap.select('g');
 
         gEnter.append('g').attr('class', 'areaWrap');
-        gEnter.append('g').attr('class', 'scatterWrap');
 
 
         wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -3566,21 +3572,25 @@ nv.models.stackedArea = function() {
 
 
 
-        scatter
-          .width(availableWidth)
-          .height(availableHeight)
-          .xDomain(x.domain())
-          .yDomain(y.domain())
-          .x(getX)
-          .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
-          .color(data.map(function(d,i) {
-            return d.color || color[i % 10];
-          }).filter(function(d,i) { return !data[i].disabled }));
+        //TODO: need to also remove area Hover/Click to turn off interactive
+        if (interactive) {
+          scatter
+            .width(availableWidth)
+            .height(availableHeight)
+            .xDomain(x.domain())
+            .yDomain(y.domain())
+            .x(getX)
+            .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
+            .color(data.map(function(d,i) {
+              return d.color || color[i % 10];
+            }).filter(function(d,i) { return !data[i].disabled }));
 
-        var scatterWrap= g.select('.scatterWrap')
-            .datum(dataCopy.filter(function(d) { return !d.disabled }))
+          gEnter.append('g').attr('class', 'scatterWrap');
+          var scatterWrap= g.select('.scatterWrap')
+              .datum(dataCopy.filter(function(d) { return !d.disabled }))
 
-        d3.transition(scatterWrap).call(scatter);
+          d3.transition(scatterWrap).call(scatter);
+        }
 
 
         var area = d3.svg.area()
@@ -3688,6 +3698,12 @@ nv.models.stackedArea = function() {
     return chart;
   };
 
+  chart.interactive = function(_) {
+    if (!arguments.length) return interactive;
+    interactive = _;
+    return chart;
+  };
+
   chart.clipEdge = function(_) {
     if (!arguments.length) return clipEdge;
     clipEdge = _;
@@ -3789,8 +3805,8 @@ nv.models.stackedAreaWithLegend = function() {
             //.map(function(d) { return d.values });
             .reduce(function(prev, curr, index) {  //sum up all the y's
                 curr.values.forEach(function(d,i) {
-                  if (!index) prev[i] = {x: getX(d.x,i), y:0};
-                  prev[i].y += getY(d);
+                  if (!index) prev[i] = {x: getX(d,i), y:0};
+                  prev[i].y += getY(d,i);
                 });
                 return prev;
               }, []);
@@ -3974,6 +3990,8 @@ nv.models.stackedAreaWithLegend = function() {
   }
 
   chart.dispatch = dispatch;
+
+  d3.rebind(chart, stacked, 'interactive');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;

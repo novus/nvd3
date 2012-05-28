@@ -143,12 +143,14 @@ nv.models.line = function() {
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
+    scatter.x(_);
     return chart;
   };
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
+    scatter.y(_);
     return chart;
   };
 

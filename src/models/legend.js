@@ -3,8 +3,9 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 10},
       width = 400,
       height = 20,
-      color = d3.scale.category10().range(),
-      dispatch = d3.dispatch('legendClick', 'legendMouseover', 'legendMouseout');
+      color = d3.scale.category10().range();
+
+  var dispatch = d3.dispatch('legendClick', 'legendMouseover', 'legendMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
@@ -21,7 +22,7 @@ nv.models.legend = function() {
           .data(function(d) { return d });
       var seriesEnter = series.enter().append('g').attr('class', 'series')
           .on('mouseover', function(d,i) {
-            dispatch.legendMouseover(d,i);
+            dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
           })
           .on('mouseout', function(d,i) {
             dispatch.legendMouseout(d,i);
