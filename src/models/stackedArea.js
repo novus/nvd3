@@ -144,6 +144,9 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return area(d.values,i) })
 
 
+        scatter.dispatch.on('pointClick.area', function(e) {
+          dispatch.areaClick(e);
+        })
         scatter.dispatch.on('pointMouseover.area', function(e) {
           g.select('.area-' + e.seriesIndex).classed('hover', true);
         });
@@ -229,6 +232,7 @@ nv.models.stackedArea = function() {
   };
 
   chart.dispatch = dispatch;
+  chart.scatter = scatter;
 
 
   scatter.dispatch.on('pointMouseover.tooltip', function(e) {

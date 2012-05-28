@@ -14,12 +14,13 @@ nv.models.scatter = function() {
       interactive = true, // If true, plots a voronoi overlay for advanced point interection
       clipEdge = false, // if true, masks lines within x and y scale
       clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
+      clipRadius = function() { return 25 },
       xDomain, yDomain, sizeDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
       z = d3.scale.sqrt(), //sqrt because point size is done by area, not radius
-      dispatch = d3.dispatch('pointMouseover', 'pointMouseout'),//TODO: consider renaming to elementMouseove and elementMouseout for consistency
+      dispatch = d3.dispatch('pointClick', 'pointMouseover', 'pointMouseout'),//TODO: consider renaming to elementMouseove and elementMouseout for consistency
       x0, y0, z0,
       timeoutID;
 
@@ -114,7 +115,7 @@ nv.models.scatter = function() {
           var pointClips = wrap.select('#points-clip-' + id).selectAll('circle')
               .data(vertices);
           pointClips.enter().append('circle')
-              .attr('r', 25);
+              .attr('r', clipRadius);
           pointClips.exit().remove();
           pointClips
               .attr('cx', function(d) { return d[0] })
@@ -137,6 +138,18 @@ nv.models.scatter = function() {
         pointPaths.exit().remove();
         pointPaths
             .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
+            .on('click', function(d) {
+              var series = data[d.series],
+                  point  = series.values[d.point];
+
+              dispatch.pointClick({
+                point: point,
+                series:series,
+                pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                seriesIndex: d.series,
+                pointIndex: d.point
+              });
+            })
             .on('mouseover', function(d) {
               var series = data[d.series],
                   point  = series.values[d.point];

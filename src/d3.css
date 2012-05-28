@@ -260,14 +260,25 @@ svg .title {
 */
 
 .d3stackedarea path.area {
-  fill-opacity: .75;
-  stroke-opacity: .75;
+  fill-opacity: .65;
+  stroke-opacity: .65;
   stroke-width: 0.1px;
+
+  transition: all 500ms linear;
+  -moz-transition: all 500ms linear;
+  -webkit-transition: all 500ms linear;
+
+  /*
+  transition-delay: 500ms;
+  -moz-transition-delay: 500ms;
+  -webkit-transition-delay: 500ms;
+  */
+
 }
 
 .d3stackedarea path.area.hover {
-  fill-opacity: 1;
-  stroke-opacity: 1;
+  fill-opacity: .85;
+  stroke-opacity: .85;
 }
 /*
 .d3stackedarea .groups path {

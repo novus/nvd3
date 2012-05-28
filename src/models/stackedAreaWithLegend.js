@@ -66,7 +66,28 @@ nv.models.stackedAreaWithLegend = function() {
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'controlsWrap');
 
+      stacked.dispatch.on('areaClick.test', function(e) {
+        if (data.filter(function(d) { return !d.disabled }).length === 1)
+          data = data.map(function(d) { 
+            d.disabled = false; 
+            if (d.disabled)
+              d.values.map(function(p) { p._y = p.y; p.y = 0; return p }); //TODO: need to use value from getY, not always d.y
+            else
+              d.values.map(function(p) { p.y = p._y || p.y; return p }); // ....
+            return d 
+          });
+        else
+          data = data.map(function(d,i) { 
+            d.disabled = (i != e.seriesIndex); 
+            if (d.disabled)
+              d.values.map(function(p) { p._y = p.y; p.y = 0; return p }); //TODO: need to use value from getY, not always d.y
+            else
+              d.values.map(function(p) { p.y = p._y || p.y; return p }); // ....
+            return d 
+          });
 
+        selection.transition().call(chart);
+      });
       legend.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
 
