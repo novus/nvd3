@@ -5,18 +5,18 @@ nv.models.scatter = function() {
       height = 500,
       color = d3.scale.category10().range(),
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
-      getX = function(d) { return d.x }, // or d[0]
-      getY = function(d) { return d.y }, // or d[1]
-      getSize = function(d) { return d.size }, // or d[2]
-      forceX = [],
-      forceY = [],
-      forceSize = [],
+      getX = function(d) { return d.x }, // accessor to get the x value from a data point
+      getY = function(d) { return d.y }, // accessor to get the y value from a data point
+      getSize = function(d) { return d.size }, // accessor to get the point radius from a data point
+      forceX = [], // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
+      forceY = [], // List of numbers to Force into the Y scale 
+      forceSize = [], // List of numbers to Force into the Size scale 
       showDistX = false,
       showDistY = false,
-      interactive = true,
-      clipEdge = false,
-      clipVoronoi = true,
-      xDomain, yDomain, sizeDomain;
+      interactive = true, // If true, plots a voronoi overlay for advanced point interection
+      clipEdge = false, // if true, masks lines within x and y scale
+      clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
+      xDomain, yDomain, sizeDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
@@ -71,7 +71,7 @@ nv.models.scatter = function() {
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'groups');
-      gEnter.append('g').attr('class', 'distribution');
+      //gEnter.append('g').attr('class', 'distribution');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -164,23 +164,27 @@ nv.models.scatter = function() {
         dispatch.on('pointMouseover.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
+            /*
             if (showDistX)
               wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
                   .attr('y1', d.pos[1] - margin.top);
             if (showDistY) 
               wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
                   .attr('x1', d.pos[0] - margin.left);
+            */
         });
 
         dispatch.on('pointMouseout.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' circle.point-' + d.pointIndex)
                 .classed('hover', false);
+            /*
             if (showDistX)
               wrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
                   .attr('y1', y.range()[0]);
             if (showDistY) 
               wrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
                   .attr('x1', x.range()[0]);
+            */
         });
 
       }
@@ -226,8 +230,7 @@ nv.models.scatter = function() {
           .attr('r', function(d,i) { return z(getSize(d,i)) });
 
 
-      // TODO: consider abstracting Axis distributions out of this file
-
+      /*
       if (showDistX) {
         var distX = groups.selectAll('line.distX')
             .data(function(d) { return d.values })
@@ -267,6 +270,7 @@ nv.models.scatter = function() {
             .attr('y1', function(d,i) { return y(getY(d,i)) })
             .attr('y2', function(d,i) { return y(getY(d,i)) });
       }
+      */
 
 
       clearTimeout(timeoutID);

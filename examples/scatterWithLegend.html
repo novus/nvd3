@@ -60,7 +60,7 @@ nv.addGraph({
       var chart = nv.models.scatterWithLegend()
                 .width(width)
                 .height(height)
-                .showDistX(true)
+                .showDistX(false)
                 .showDistY(true)
                 //.width(width)
                 //.height(height)
@@ -119,8 +119,7 @@ nv.addGraph({
     window.onresize = function() {
      var width = nv.utils.windowSize().width - 40,
         height = nv.utils.windowSize().height - 40,
-        margin = graph.margin(),
-        animate = graph.animate();
+        margin = graph.margin();
 
 
       if (width < margin.left + margin.right + 20)

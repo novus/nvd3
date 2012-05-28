@@ -183,7 +183,7 @@ svg .title {
 * Lines 
 */
 
-.lines path {
+.groups path {
   fill: none;
   stroke-width: 1.5px;
   stroke-linecap: round;
@@ -202,13 +202,13 @@ svg .title {
   stroke-width: 6px;
 }
 
-.lines .point {
+.groups .point {
   transition: all 250ms linear;
   -moz-transition: all 250ms linear;
   -webkit-transition: all 250ms linear;
 }
 
-.lines .point.hover {
+.groups .point.hover {
   stroke-width: 20px;
   stroke-opacity: .5;
 }
@@ -265,7 +265,7 @@ svg .title {
   stroke-width: 0.1px;
 }
 /*
-.d3stackedarea .lines path {
+.d3stackedarea .groups path {
   stroke-opacity: 0;
 }
   */

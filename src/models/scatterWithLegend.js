@@ -3,7 +3,6 @@ nv.models.scatterWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = function() { return 960 },
       height = function() { return 500 },
-      animate = 500,
       xAxisRender = true,
       yAxisRender = true,
       xAxisLabelText = false,
@@ -56,6 +55,7 @@ nv.models.scatterWithLegend = function() {
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
       gEnter.append('g').attr('class', 'scatterWrap');
+      //gEnter.append('g').attr('class', 'distWrap');
 
 
       legend.dispatch.on('legendClick', function(d,i, that) {
@@ -69,7 +69,7 @@ nv.models.scatterWithLegend = function() {
           });
         }
 
-        selection.transition(animate).call(chart)
+        selection.transition().call(chart)
       });
 
       /*
@@ -100,6 +100,18 @@ nv.models.scatterWithLegend = function() {
         dispatch.tooltipHide(e);
       });
 
+      scatter.dispatch.on('pointMouseover.dist', function(d) {
+          scatterWrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
+              .attr('y1', d.pos[1]);
+          scatterWrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
+              .attr('x1', d.pos[0]);
+      });
+      scatter.dispatch.on('pointMouseout.dist', function(d) {
+          scatterWrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
+              .attr('y1', y.range()[0]);
+          scatterWrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
+              .attr('x1', x.range()[0]);
+      });
 
       //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
       margin.top = legend.height();
@@ -120,9 +132,55 @@ nv.models.scatterWithLegend = function() {
       var scatterWrap = wrap.select('.scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }));
 
-      //log(d3.transition()[0][0].duration); //get parent's duration
 
       d3.transition(scatterWrap).call(scatter);
+
+
+//need to fix the point rotate on enable/disable series
+      var distWrap = scatterWrap.selectAll('g.distribution')
+            .data(function(d) { return d })
+
+      distWrap.enter().append('g').attr('class', function(d,i) { return 'distribution series-' + i })
+
+      distWrap.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % 10] })
+
+      var distX = distWrap.selectAll('line.distX')
+            .data(function(d) { return d.values })
+      distX.enter().append('line')
+          //.attr('x1', function(d,i) { return x0(scatter.x()(d,i)) })
+          //.attr('x2', function(d,i) { return x0(scatter.x()(d,i)) })
+      //d3.transition(distX.exit())
+      d3.transition(distWrap.exit().selectAll('line.distX'))
+          .attr('x1', function(d,i) { return x(scatter.x()(d,i)) })
+          .attr('x2', function(d,i) { return x(scatter.x()(d,i)) })
+          .remove();
+      distX
+          .attr('class', function(d,i) { return 'distX distX-' + i })
+          .attr('y1', y.range()[0])
+          .attr('y2', y.range()[0] + 8);
+      d3.transition(distX)
+          .attr('x1', function(d,i) { return x(scatter.x()(d,i)) })
+          .attr('x2', function(d,i) { return x(scatter.x()(d,i)) })
+
+
+        var distY = distWrap.selectAll('line.distY')
+            .data(function(d) { return d.values })
+        distY.enter().append('line')
+            //.attr('y1', function(d,i) { return y0(scatter.y()(d,i)) })
+            //.attr('y2', function(d,i) { return y0(scatter.y()(d,i)) });
+        //d3.transition(distY.exit())
+        d3.transition(distWrap.exit().selectAll('line.distY'))
+            .attr('y1', function(d,i) { return y(scatter.y()(d,i)) })
+            .attr('y2', function(d,i) { return y(scatter.y()(d,i)) })
+            .remove();
+        distY
+            .attr('class', function(d,i) { return 'distY distY-' + i })
+            .attr('x1', x.range()[0])
+            .attr('x2', x.range()[0] - 8)
+        d3.transition(distY)
+            .attr('y1', function(d,i) { return y(scatter.y()(d,i)) })
+            .attr('y2', function(d,i) { return y(scatter.y()(d,i)) });
+
 
 
       xAxis
