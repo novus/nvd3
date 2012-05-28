@@ -10,6 +10,7 @@ nv.models.stackedArea = function() {
       style = 'stack',
       offset = 'zero',
       order = 'default',
+      interactive = true, // If true, plots a voronoi overlay for advanced point interection
       clipEdge = false, // if true, masks lines within x and y scale
       xDomain, yDomain;
 
@@ -70,7 +71,6 @@ nv.models.stackedArea = function() {
         var g = wrap.select('g');
 
         gEnter.append('g').attr('class', 'areaWrap');
-        gEnter.append('g').attr('class', 'scatterWrap');
 
 
         wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -91,21 +91,25 @@ nv.models.stackedArea = function() {
 
 
 
-        scatter
-          .width(availableWidth)
-          .height(availableHeight)
-          .xDomain(x.domain())
-          .yDomain(y.domain())
-          .x(getX)
-          .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
-          .color(data.map(function(d,i) {
-            return d.color || color[i % 10];
-          }).filter(function(d,i) { return !data[i].disabled }));
+        //TODO: need to also remove area Hover/Click to turn off interactive
+        if (interactive) {
+          scatter
+            .width(availableWidth)
+            .height(availableHeight)
+            .xDomain(x.domain())
+            .yDomain(y.domain())
+            .x(getX)
+            .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
+            .color(data.map(function(d,i) {
+              return d.color || color[i % 10];
+            }).filter(function(d,i) { return !data[i].disabled }));
 
-        var scatterWrap= g.select('.scatterWrap')
-            .datum(dataCopy.filter(function(d) { return !d.disabled }))
+          gEnter.append('g').attr('class', 'scatterWrap');
+          var scatterWrap= g.select('.scatterWrap')
+              .datum(dataCopy.filter(function(d) { return !d.disabled }))
 
-        d3.transition(scatterWrap).call(scatter);
+          d3.transition(scatterWrap).call(scatter);
+        }
 
 
         var area = d3.svg.area()
@@ -210,6 +214,12 @@ nv.models.stackedArea = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.interactive = function(_) {
+    if (!arguments.length) return interactive;
+    interactive = _;
     return chart;
   };
 

@@ -36,8 +36,8 @@ nv.models.stackedAreaWithLegend = function() {
             //.map(function(d) { return d.values });
             .reduce(function(prev, curr, index) {  //sum up all the y's
                 curr.values.forEach(function(d,i) {
-                  if (!index) prev[i] = {x: getX(d.x,i), y:0};
-                  prev[i].y += getY(d);
+                  if (!index) prev[i] = {x: getX(d,i), y:0};
+                  prev[i].y += getY(d,i);
                 });
                 return prev;
               }, []);
@@ -221,6 +221,8 @@ nv.models.stackedAreaWithLegend = function() {
   }
 
   chart.dispatch = dispatch;
+
+  d3.rebind(chart, stacked, 'interactive');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;

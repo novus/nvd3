@@ -113,6 +113,7 @@ nv.models.line = function() {
       scatter
         .size(getSize)
         .id(id)
+        .interactive(interactive)
         .width(availableWidth)
         .height(availableHeight)
         .xDomain(x.domain())
