@@ -23,7 +23,6 @@ nv.models.line = function() {
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
       scatter = nv.models.scatter().size(getSize).id(id),
-      //dispatch = d3.dispatch('pointMouseover', 'pointMouseout'), //TODO: consider renaming to elementMouseove and elementMouseout for consistency
       x0, y0,
       timeoutID;
 
@@ -77,42 +76,6 @@ nv.models.line = function() {
 
 
 
-      function updateInteractiveLayer() {
-
-        if (!interactive) {
-          wrap.select('#points-clip-' + id).remove();
-          wrap.select('.point-paths').remove();
-          return false;
-        }
-
-        scatter
-          .width(availableWidth)
-          .height(availableHeight)
-          .xDomain(x.domain())
-          .yDomain(y.domain())
-
-
-        wrapEnter.append('g').attr('class', 'scatterWrap');
-        var scatterWrap = wrap.select('.scatterWrap').datum(data);
-
-        d3.transition(scatterWrap).call(scatter);
-
-
-/*
-        scatter.dispatch.on('pointMouseover.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
-                .classed('hover', true);
-        });
-        scatter.dispatch.on('pointMouseout.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
-                .classed('hover', false);
-        });
-*/
-      }
-
-
-
-
       var lines = wrap.select('.lines').selectAll('.line')
           .data(function(d) { return d }, function(d) { return d.key });
       lines.enter().append('g')
@@ -131,7 +94,6 @@ nv.models.line = function() {
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5)
 
-      //setTimeout(interactiveLayer, 1000); //seems not to work as well as above... BUT fixes broken resize
 
       var paths = lines.selectAll('path')
           .data(function(d, i) { return [d.values] });
@@ -167,10 +129,22 @@ nv.models.line = function() {
           .attr('cx', function(d,i) { return x(getX(d,i)) })
           .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', getSize);
+
 */
 
-      clearTimeout(timeoutID);
-      timeoutID = setTimeout(updateInteractiveLayer, 750);
+
+      scatter
+        .width(availableWidth)
+        .height(availableHeight)
+        .xDomain(x.domain())
+        .yDomain(y.domain())
+
+
+      wrapEnter.append('g').attr('class', 'scatterWrap');
+      var scatterWrap = wrap.select('.scatterWrap').datum(data);
+
+      d3.transition(scatterWrap).call(scatter);
+
 
       //store old scales for use in transitions on update, to animate from old to new positions
       x0 = x.copy();
@@ -197,14 +171,6 @@ nv.models.line = function() {
     getY = _;
     return chart;
   };
-
-  /*
-  chart.size = function(_) {
-    if (!arguments.length) return getSize;
-    getSize = d3.functor(_);
-    return chart;
-  };
- */
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
