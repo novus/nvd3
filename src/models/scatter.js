@@ -21,7 +21,7 @@ nv.models.scatter = function() {
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
       z = d3.scale.sqrt(), //sqrt because point size is done by area, not radius
-      dispatch = d3.dispatch('pointMouseover', 'pointMouseout'),
+      dispatch = d3.dispatch('pointMouseover', 'pointMouseout'),//TODO: consider renaming to elementMouseove and elementMouseout for consistency
       x0, y0, z0,
       timeoutID;
 
@@ -76,15 +76,18 @@ nv.models.scatter = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
-        .append('rect');
-      wrap.select('#edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
+      if (clipEdge) {
+        defsEnter.append('clipPath')
+            .attr('id', 'edge-clip-' + id)
+          .append('rect');
+        wrap.select('#edge-clip-' + id + ' rect')
+            .attr('width', availableWidth)
+            .attr('height', availableHeight);
 
-      gEnter
-          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : null);
+        gEnter
+            .attr('clip-path', 'url(#edge-clip-' + id + ')');
+      }
+
 
 
       function updateInteractiveLayer() {
@@ -95,7 +98,6 @@ nv.models.scatter = function() {
           return false;
         }
 
-        defsEnter.append('clipPath').attr('id', 'points-clip-' + id);
         gEnter.append('g').attr('class', 'point-paths');
 
         var vertices = d3.merge(data.map(function(group, groupIndex) {
@@ -109,18 +111,21 @@ nv.models.scatter = function() {
         );
 
 
+        if (clipVoronoi) {
+          defsEnter.append('clipPath').attr('id', 'points-clip-' + id);
 
-        var pointClips = wrap.select('#points-clip-' + id).selectAll('circle')
-            .data(vertices);
-        pointClips.enter().append('circle')
-            .attr('r', 25);
-        pointClips.exit().remove();
-        pointClips
-            .attr('cx', function(d) { return d[0] })
-            .attr('cy', function(d) { return d[1] });
+          var pointClips = wrap.select('#points-clip-' + id).selectAll('circle')
+              .data(vertices);
+          pointClips.enter().append('circle')
+              .attr('r', 25);
+          pointClips.exit().remove();
+          pointClips
+              .attr('cx', function(d) { return d[0] })
+              .attr('cy', function(d) { return d[1] });
 
-        wrap.select('.point-paths')
-            .attr('clip-path', 'url(#points-clip-' + id + ')');
+          wrap.select('.point-paths')
+              .attr('clip-path', 'url(#points-clip-' + id + ')');
+        }
 
 
         //inject series and point index for reference into voronoi
@@ -221,7 +226,7 @@ nv.models.scatter = function() {
           .attr('r', function(d,i) { return z(getSize(d,i)) });
 
 
-      // TODO: make axis distributions options... maybe even abstract out of this file
+      // TODO: consider abstracting Axis distributions out of this file
 
       if (showDistX) {
         var distX = groups.selectAll('line.distX')
@@ -280,24 +285,6 @@ nv.models.scatter = function() {
 
   chart.dispatch = dispatch;
 
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin = _;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
@@ -313,6 +300,24 @@ nv.models.scatter = function() {
   chart.size = function(_) {
     if (!arguments.length) return getSize;
     getSize = d3.functor(_);
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
     return chart;
   };
 

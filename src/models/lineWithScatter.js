@@ -1,4 +1,8 @@
 
+// This is an attempt to use a scatter plot with the line plot do do point interaction
+//   If this performs good, will likely use as the line implementation, this way the
+//   point interaction using a voronoi will only be in the scatter not in the exact same code
+//   in both the scatter and the line
 nv.models.line = function() {
   //Default Settings
   var margin = {top: 0, right: 0, bottom: 0, left: 0}, 
@@ -18,7 +22,8 @@ nv.models.line = function() {
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      dispatch = d3.dispatch('pointMouseover', 'pointMouseout'), //TODO: consider renaming to elementMouseove and elementMouseout for consistency
+      scatter = nv.models.scatter().size(getSize).id(id),
+      //dispatch = d3.dispatch('pointMouseover', 'pointMouseout'), //TODO: consider renaming to elementMouseove and elementMouseout for consistency
       x0, y0,
       timeoutID;
 
@@ -46,7 +51,6 @@ nv.models.line = function() {
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
           .range([availableHeight, 0]);
-
 
       var wrap = d3.select(this).selectAll('g.d3line').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'd3line');
@@ -81,79 +85,29 @@ nv.models.line = function() {
           return false;
         }
 
-        gEnter.append('g').attr('class', 'point-paths');
+        scatter
+          .width(availableWidth)
+          .height(availableHeight)
+          .xDomain(x.domain())
+          .yDomain(y.domain())
 
 
-        var vertices = d3.merge(data.map(function(line, lineIndex) {
-            return line.values.map(function(point, pointIndex) {
-              // Adding noise to make duplicates very unlikely
-              // Inject series and point index for reference
-              // TODO: see how much time this consumes
-              return [x(getX(point, pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point, pointIndex)) * (Math.random() / 1e12 + 1), lineIndex, pointIndex]; 
-            })
-          })
-        );
+        wrapEnter.append('g').attr('class', 'scatterWrap');
+        var scatterWrap = wrap.select('.scatterWrap').datum(data);
 
-        if (clipVoronoi) {
-          defsEnter.append('clipPath').attr('id', 'points-clip-' + id);
-
-          var pointClips = wrap.select('#points-clip-' + id).selectAll('circle')
-              .data(vertices);
-          pointClips.enter().append('circle')
-              .attr('r', 25);
-          pointClips.exit().remove();
-          pointClips
-              .attr('cx', function(d) { return d[0] })
-              .attr('cy', function(d) { return d[1] });
-
-          wrap.select('.point-paths')
-              .attr('clip-path', 'url(#points-clip-' + id + ')');
-        }
+        d3.transition(scatterWrap).call(scatter);
 
 
-        //inject series and point index for reference into voronoi
-        // considering adding a removeZeros option, may be useful for the stacked chart and maybe others
-        var voronoi = d3.geom.voronoi(vertices).map(function(d,i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
-
-
-        var pointPaths = wrap.select('.point-paths').selectAll('path')
-            .data(voronoi);
-        pointPaths.enter().append('path')
-            .attr('class', function(d,i) { return 'path-'+i; });
-        pointPaths.exit().remove();
-        pointPaths
-            .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
-            .on('mouseover', function(d) {
-              var series = data[d.series],
-                  point  = series.values[d.point];
-
-              dispatch.pointMouseover({
-                point: point,
-                series:series,
-                pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
-                seriesIndex: d.series,
-                pointIndex: d.point
-              });
-            })
-            .on('mouseout', function(d, i) {
-              dispatch.pointMouseout({
-                point: data[d.series].values[d.point],
-                series: data[d.series],
-                seriesIndex: d.series,
-                pointIndex: d.point
-              });
-            });
-
-
-        dispatch.on('pointMouseover.point', function(d) {
+/*
+        scatter.dispatch.on('pointMouseover.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
-        dispatch.on('pointMouseout.point', function(d) {
+        scatter.dispatch.on('pointMouseout.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });
-
+*/
       }
 
 
@@ -198,19 +152,12 @@ nv.models.line = function() {
             .y(function(d,i) { return y(getY(d,i)) })
           );
 
-
+/*
       var points = lines.selectAll('circle.point')
           .data(function(d) { return d.values });
       points.enter().append('circle')
           .attr('cx', function(d,i) { return x0(getX(d,i)) })
           .attr('cy', function(d,i) { return y0(getY(d,i)) });
-          /*
-      // I think this is redundant with below, but originally put this here for a reason
-      d3.transition(points.exit())
-          .attr('cx', function(d,i) { return x(getX(d,i)) })
-          .attr('cy', function(d,i) { return y(getY(d,i)) })
-          .remove();
-         */
       d3.transition(lines.exit().selectAll('circle.point'))
           .attr('cx', function(d,i) { return x(getX(d,i)) })
           .attr('cy', function(d,i) { return y(getY(d,i)) })
@@ -220,7 +167,7 @@ nv.models.line = function() {
           .attr('cx', function(d,i) { return x(getX(d,i)) })
           .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', getSize);
-
+*/
 
       clearTimeout(timeoutID);
       timeoutID = setTimeout(updateInteractiveLayer, 750);
@@ -235,7 +182,9 @@ nv.models.line = function() {
   }
 
 
-  chart.dispatch = dispatch;
+  chart.dispatch = scatter.dispatch;
+
+  d3.rebind(chart, scatter, 'size');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -249,11 +198,13 @@ nv.models.line = function() {
     return chart;
   };
 
+  /*
   chart.size = function(_) {
     if (!arguments.length) return getSize;
     getSize = d3.functor(_);
     return chart;
   };
+ */
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -318,6 +269,7 @@ nv.models.line = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
+    scatter.color(_);
     return chart;
   };
 
