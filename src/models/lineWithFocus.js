@@ -6,7 +6,6 @@ nv.models.lineWithFocus = function() {
       height = 500,
       height1 = 400,
       height2 = 100,
-      dotRadius = function() { return 2.5 },
       color = d3.scale.category20().range(),
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
@@ -22,7 +21,7 @@ nv.models.lineWithFocus = function() {
       yAxis2 = nv.models.axis().scale(y2).orient('left'),
       legend = nv.models.legend().height(30),
       focus = nv.models.line().clipEdge(true),
-      context = nv.models.line().dotRadius(.1).interactive(false),
+      context = nv.models.line().interactive(false),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
       brush = d3.svg.brush()
             .x(x2);
@@ -317,13 +316,6 @@ nv.models.lineWithFocus = function() {
     if (!arguments.length) return height2;
     height2 = _;
     height1 = height - _;
-    return chart;
-  };
-
-  chart.dotRadius = function(_) {
-    if (!arguments.length) return dotRadius;
-    dotRadius = d3.functor(_);
-    focus.dotRadius = _;
     return chart;
   };
 
