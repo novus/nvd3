@@ -1,9 +1,10 @@
 
 nv.models.scatter = function() {
+  //Default Settings
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category10().range(),
+      color = d3.scale.category20().range(), // array of colors to be used in order
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point

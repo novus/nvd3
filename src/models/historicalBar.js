@@ -14,7 +14,7 @@ nv.models.historicalBar = function() {
       forceX = [],
       forceY = [],
       clipEdge = true,
-      color = d3.scale.category10().range(),
+      color = d3.scale.category20().range(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),

@@ -3,7 +3,7 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 10},
       width = 400,
       height = 20,
-      color = d3.scale.category10().range();
+      color = d3.scale.category20().range();
 
   var dispatch = d3.dispatch('legendClick', 'legendMouseover', 'legendMouseout');
 

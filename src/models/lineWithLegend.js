@@ -3,7 +3,7 @@ nv.models.lineWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = function() { return 960 },
       height = function() { return 500 },
-      color = d3.scale.category10().range();
+      color = d3.scale.category20().range();
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),

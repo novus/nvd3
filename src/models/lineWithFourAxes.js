@@ -6,7 +6,7 @@ nv.models.lineWithLegend = function() {
       dotRadius = function() { return 2.5 },
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category10().range(),
+      color = d3.scale.category20().range(),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var x = d3.scale.linear(),

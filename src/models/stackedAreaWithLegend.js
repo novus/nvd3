@@ -4,7 +4,7 @@ nv.models.stackedAreaWithLegend = function() {
       getWidth = function() { return 960 },
       getHeight = function() { return 500 },
       dotRadius = function() { return 2.5 },
-      color = d3.scale.category10().range();
+      color = d3.scale.category20().range();
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
@@ -55,6 +55,7 @@ nv.models.stackedAreaWithLegend = function() {
       stacked
         .width(availableWidth)
         .height(availableHeight)
+        .color(color)
 
 
       var wrap = d3.select(this).selectAll('g.wrap').data([data]);
@@ -75,7 +76,10 @@ nv.models.stackedAreaWithLegend = function() {
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      legend.width(width/2 - margin.right);
+      legend
+        .width(width/2 - margin.right)
+        .color(color);
+
       g.select('.legendWrap')
           .datum(data)
           .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')

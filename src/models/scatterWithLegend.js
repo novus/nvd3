@@ -9,7 +9,7 @@ nv.models.scatterWithLegend = function() {
       yAxisLabelText = false,
       showDistX = false,
       showDistY = false,
-      color = d3.scale.category10().range(),
+      color = d3.scale.category20().range(),
       forceX = [],
       forceY = [];
 
@@ -66,6 +66,7 @@ nv.models.scatterWithLegend = function() {
 
 
       //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+      //TODO: Fix height issue on first render if legend height is larger than margin.top, NEED TO FIX EVERY MODEL WITH A LEGEND
       margin.top = legend.height();
 
       var g = wrap.select('g')

@@ -4,15 +4,15 @@ nv.models.stackedArea = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category10().range(),
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
+      color = d3.scale.category20().range(), // array of colors to be used in order
+      getX = function(d) { return d.x }, // accessor to get the x value from a data point
+      getY = function(d) { return d.y }, // accessor to get the y value from a data point
       style = 'stack',
       offset = 'zero',
       order = 'default',
       interactive = true, // If true, plots a voronoi overlay for advanced point interection
       clipEdge = false, // if true, masks lines within x and y scale
-      xDomain, yDomain;
+      xDomain, yDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
 /************************************
  * offset:
