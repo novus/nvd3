@@ -2591,24 +2591,26 @@ nv.models.multiBar = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            data.map(function(d) { 
-              return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i) }
-              })
-            }),
-          availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
 
-
-      //var stackedData = d3.layout.stack()
       if (stacked) {
+      //var stackedData = d3.layout.stack()
         data = d3.layout.stack()
                      .offset('zero')
                      .values(function(d){ return d.values })
                      .y(getY)
                      (data);
       }
+
+      var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
+            data.map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
+              })
+            }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
+
 
 
       //x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
@@ -2617,7 +2619,7 @@ nv.models.multiBar = function() {
           .rangeRoundBands([0, availableWidth], .1);
           //.range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY)))
           .range([availableHeight, 0]);
 
 
@@ -2750,9 +2752,7 @@ nv.models.multiBar = function() {
                 y(Math.max(0, d.y + d.y0)) 
               : y(Math.max(0, getY(d,i))) 
           })
-          .attr('height', function(d,i) { return stacked ? 
-                Math.abs(y(d.y) - y(0)) 
-              : Math.abs(y(getY(d,i)) - y(0)) 
+          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) 
           });
 
     });
@@ -2783,19 +2783,13 @@ nv.models.multiBar = function() {
 
   chart.width = function(_) {
     if (!arguments.length) return width;
-    if (margin.left + margin.right + 20 > _)
-      width = margin.left + margin.right + 20; // Min width.... while this is a good idea, I may move this somewhere else.. OR need to implement in all other logical spots
-    else
-      width = _;
+    width = _;
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
-    if (margin.top + margin.bottom + 20 > _)
-      height = margin.top + margin.bottom + 20; // Min height
-    else
-      height = _;
+    height = _;
     return chart;
   };
 
