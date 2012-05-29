@@ -2619,7 +2619,8 @@ nv.models.multiBar = function() {
           .rangeRoundBands([0, availableWidth], .1);
           //.range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY)))
+      //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY)))
+      y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY))])
           .range([availableHeight, 0]);
 
 
@@ -2743,16 +2744,16 @@ nv.models.multiBar = function() {
           });
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          //.attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) 
-          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; }) 
+          //.attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; })
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
           //.attr('width', x(.9) / data.length ) //TODO: this should not assume that each consecutive bar x = x + 1
           .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
       d3.transition(bars)
-          .attr('y', function(d,i) {  return stacked ?
-                y(Math.max(0, d.y + d.y0)) 
-              : y(Math.max(0, getY(d,i))) 
+          .attr('y', function(d,i) {
+            return y(getY(d,i) + (d.y0 || 0));
           })
-          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) 
+          .attr('height', function(d,i) {
+            return Math.abs(y(d.y + (d.y0 || 0)) - y((d.y0 || 0)))
           });
 
     });
@@ -3720,6 +3721,13 @@ nv.models.scatterWithLegend = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = d3.functor(_);
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
     return chart;
   };
 
