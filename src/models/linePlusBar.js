@@ -53,8 +53,6 @@ nv.models.linePlusBar = function() {
       lines
         .width(availableWidth)
         .height(availableHeight)
-        //.x(getX)
-        //.y(getY)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
