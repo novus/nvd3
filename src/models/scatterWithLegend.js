@@ -255,6 +255,13 @@ nv.models.scatterWithLegend = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
   chart.showDistX = function(_) {
     if (!arguments.length) return showDistX;
     showDistX = _;
