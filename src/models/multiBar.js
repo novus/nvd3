@@ -93,7 +93,7 @@ nv.models.multiBar = function() {
           .attr('transform', function(d,i) {
               return stacked ? 
                         'translate(0,0)'
-                      : 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
+                      : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
           });
       d3.transition(groups.exit())
           .style('stroke-opacity', 1e-6)
@@ -108,7 +108,7 @@ nv.models.multiBar = function() {
           .attr('transform', function(d,i) {
               return stacked ? 
                         'translate(0,0)'
-                      : 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
+                      : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
           })
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);

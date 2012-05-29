@@ -31,7 +31,7 @@ text {
 <script>
 
   //var test_data = stream_layers(3,128,.1).map(function(data, i) {
-  var test_data = stream_layers(3,12,.1).map(function(data, i) {
+  var test_data = stream_layers(3,128,.1).map(function(data, i) {
     return {
       key: 'Stream' + i,
       values: data
@@ -41,7 +41,7 @@ text {
 nv.addGraph({
   generate: function() {
       var width = nv.utils.windowSize().width - 40,
-          height = nv.utils.windowSize().height - 40;
+      height = nv.utils.windowSize().height - 40;
 
       var chart = nv.models.multiBar()
                 .width(width)
