@@ -25,14 +25,16 @@ nv.models.scatter = function() {
       x0, y0, z0,
       timeoutID;
 
-
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { 
-            return d.values.map(function(d,i) {
-              return { x: getX(d,i), y: getY(d,i), size: getSize(d,i) }
-            })
-          }),
+      //var seriesData = data.map(function(d) { 
+      var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
+        //console.log('recalculating');
+            data.map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i), size: getSize(d,i) }
+              })
+            }),
           availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 

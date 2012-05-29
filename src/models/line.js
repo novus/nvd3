@@ -8,7 +8,6 @@ nv.models.line = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
-      getSize = function() { return 2.5 }, // accessor to get the point radius from a data point
       forceX = [], // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
       forceY = [], // List of numbers to Force into the Y scale 
       interactive = true, // If true, plots a voronoi overlay for advanced point interection
@@ -18,7 +17,9 @@ nv.models.line = function() {
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      scatter = nv.models.scatter(),
+      scatter = nv.models.scatter()
+        .size(2.5) // default size
+        .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
       x0, y0,
       timeoutID;
 
@@ -71,7 +72,7 @@ nv.models.line = function() {
 
 
 
-      var groups = wrap.select('.groups').selectAll('.line')
+      var groups = wrap.select('.groups').selectAll('.group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -81,7 +82,7 @@ nv.models.line = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'line series-' + i })
+          .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % 10] })
           .style('stroke', function(d,i){ return color[i % 10] })
@@ -111,13 +112,12 @@ nv.models.line = function() {
 
 
       scatter
-        .size(getSize)
         .id(id)
         .interactive(interactive)
         .width(availableWidth)
         .height(availableHeight)
         .xDomain(x.domain())
-        .yDomain(y.domain());
+        .yDomain(y.domain())
 
 
       wrapEnter.append('g').attr('class', 'scatterWrap');

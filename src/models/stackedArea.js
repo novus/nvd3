@@ -26,7 +26,9 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var scatter= nv.models.scatter().size(2),
+  var scatter= nv.models.scatter()
+        .size(2.2) // default size
+        .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
       x = d3.scale.linear(),
       y = d3.scale.linear(),
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
