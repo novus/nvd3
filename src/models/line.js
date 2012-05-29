@@ -84,8 +84,8 @@ nv.models.line = function() {
       groups
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % 10] })
-          .style('stroke', function(d,i){ return color[i % 10] })
+          .style('fill', function(d,i){ return color[i % 20] })
+          .style('stroke', function(d,i){ return color[i % 20] })
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5)
@@ -205,6 +205,7 @@ nv.models.line = function() {
   chart.clipEdge = function(_) {
     if (!arguments.length) return clipEdge;
     clipEdge = _;
+    scatter.clipEdge(_);
     return chart;
   };
 

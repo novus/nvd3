@@ -33,31 +33,34 @@ nv.models.lineWithFocus = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      seriesData = data.filter(function(d) { return !d.disabled })
-            .map(function(d) { return d.values });
+      var seriesData = data.filter(function(d) { return !d.disabled })
+            .map(function(d) { return d.values }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight1 = height1 - margin.top - margin.bottom,
+          availableHeight2 = height2 - margin2.top - margin2.bottom;
 
       x2  .domain(d3.extent(d3.merge(seriesData), getX ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
       y2  .domain(d3.extent(d3.merge(seriesData), getY ))
-          .range([height2 - margin2.top - margin2.bottom, 0]);
+          .range([availableHeight2, 0]);
 
       x   .domain(brush.empty() ? x2.domain() : brush.extent())
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
       y   .domain(y2.domain())
-          .range([height1 - margin.top - margin.bottom, 0]);
+          .range([availableHeight1, 0]);
 
       brush.on('brush', onBrush);
 
       focus
-        .width(width - margin.left - margin.right)
-        .height(height1 - margin.top - margin.bottom)
+        .width(availableWidth)
+        .height(availableHeight1)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }))
 
       context
-        .width(width - margin.left - margin.right)
-        .height(height2 - margin2.top - margin2.bottom)
+        .width(availableWidth)
+        .height(availableHeight2)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }))
@@ -87,7 +90,7 @@ nv.models.lineWithFocus = function() {
 
       g.select('.legendWrap')
           .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',0)')
+          .attr('transform', 'translate(' + (availableWidth / 2) + ',0)')
           .call(legend);
 
 
@@ -117,7 +120,7 @@ nv.models.lineWithFocus = function() {
         .domain(x.domain())
         .range(x.range())
         .ticks( width / 100 )
-        .tickSize(-(height1 - margin.top - margin.bottom), 0);
+        .tickSize(-(availableHeight1), 0);
 
       focusWrap.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
@@ -128,7 +131,7 @@ nv.models.lineWithFocus = function() {
         .domain(y.domain())
         .range(y.range())
         .ticks( height / 36 )
-        .tickSize(-(width - margin.right - margin.left), 0);
+        .tickSize(-(availableWidth), 0);
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
@@ -161,7 +164,7 @@ nv.models.lineWithFocus = function() {
         .domain(x2.domain())
         .range(x2.range())
         .ticks( width / 100 )
-        .tickSize(-(height2 - margin2.top - margin2.bottom), 0);
+        .tickSize(-(availableHeight2), 0);
 
       contextWrap.select('.x2.axis')
           .attr('transform', 'translate(0,' + y2.range()[0] + ')');
@@ -172,8 +175,8 @@ nv.models.lineWithFocus = function() {
       yAxis2
         .domain(y2.domain())
         .range(y2.range())
-        .ticks( (height2 - margin2.top  - margin2.bottom) / 24 )
-        .tickSize(-(width - margin2.right - margin2.left), 0);
+        .ticks( availableHeight2 / 24 )
+        .tickSize(-(availableWidth), 0);
 
       contextWrap.select('.y2.axis');
 
@@ -254,7 +257,7 @@ nv.models.lineWithFocus = function() {
         //      Need to figure out an optimized way to accomplish this.
         //      ***One concern is to try not to make the assumption that all lines are of the same length, and
         //         points with the same index have the same x value (while this is true in our test cases, may 
-        //         no always be)
+        //         not always be)
         
         focus.xDomain(x.domain());
         focus.yDomain(y.domain());

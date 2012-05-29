@@ -609,6 +609,254 @@ nv.models.bar = function() {
   return chart;
 }
 
+/***
+ * Creating a separate bar chart for historical view of a single series
+ *   this will likely be merged into the bar representation, just developing
+ *   it separately to not interfere with the regular bar model
+ */
+nv.models.historicalBar = function() {
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
+      width = 960,
+      height = 500,
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      forceX = [],
+      forceY = [],
+      clipEdge = true,
+      color = d3.scale.category20().range(),
+      xDomain, yDomain;
+
+  var x = d3.scale.linear(),
+      y = d3.scale.linear(),
+      xAxis = d3.svg.axis().scale(x).orient('bottom'),
+      yAxis = d3.svg.axis().scale(y).orient('left'),
+      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
+
+      x   .domain(xDomain || d3.extent(data[0].values, getX ))
+          .range([0, availableWidth]);
+
+      y   .domain(yDomain || d3.extent(data[0].values, getY )) //Should 0 always be forced in bar charts?
+          .range([availableHeight, 0]);
+          //.nice(); // remove for consistency?
+
+
+      var parent = d3.select(this)
+          .on('click', function(d,i) {
+            dispatch.chartClick({
+                data: d,
+                index: i,
+                pos: d3.event,
+                id: id
+            });
+          });
+
+/*
+      var wrap = parent.selectAll('g.wrap').data([data]);
+      var gEnter = wrap.enter();
+      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+
+      var wrap = parent.selectAll('g.wrap').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'bar');
+      var gEnter = wrapEnter.append('g');
+      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+     */
+
+      var wrap = d3.select(this).selectAll('g.d3bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'd3bar');
+      var gEnter = wrapEnter.append('g');
+
+      gEnter.append('g').attr('class', 'bars');
+
+
+      wrap.attr('width', width)
+          .attr('height', height);
+
+      var g = wrap.select('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      wrapEnter.append('defs').append('clipPath')
+          .attr('id', 'chart-clip-path-' + id)
+        .append('rect');
+      wrap.select('#chart-clip-path-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      gEnter
+          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+
+      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+
+
+
+      var bars = wrap.select('.bars').selectAll('.bar')
+          .data(function(d) { return d });
+
+      bars.exit().remove();
+
+
+      var barsEnter = bars.enter().append('svg:rect')
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('fill', function(d,i) { return color[0]; })
+          .attr('x', 0 )
+          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
+          .on('mouseover', function(d,i) {
+            d3.select(this).classed('hover', true);
+            dispatch.elementMouseover({
+                point: d,
+                series: data[0],
+                pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
+                pointIndex: i,
+                seriesIndex: 0,
+                e: d3.event
+            });
+
+          })
+          .on('mouseout', function(d,i) {
+                d3.select(this).classed('hover', false);
+                dispatch.elementMouseout({
+                    point: d,
+                    series: data[0],
+                    pointIndex: i,
+                    seriesIndex: 0,
+                    e: d3.event
+                });
+          })
+          .on('click', function(d,i) {
+                dispatch.elementClick({
+                    //label: d[label],
+                    value: getY(d,i),
+                    data: d,
+                    index: i,
+                    pos: [x(getX(d,i)), y(getY(d,i))],
+                    e: d3.event,
+                    id: id
+                });
+              d3.event.stopPropagation();
+          })
+          .on('dblclick', function(d,i) {
+              dispatch.elementDblClick({
+                  //label: d[label],
+                  value: getY(d,i),
+                  data: d,
+                  index: i,
+                  pos: [x(getX(d,i)), y(getY(d,i))],
+                  e: d3.event,
+                  id: id
+              });
+              d3.event.stopPropagation();
+          });
+
+      bars
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) //TODO: this assumes that each bar is an integer apart, it shouldn't
+          .attr('width', x(.9) ) //TODO: this assumes that each bar is an integar apart
+
+      d3.transition(bars)
+          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
+          //.order();  // not sure if this makes any sense for this model
+
+    });
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = _;
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    if (margin.left + margin.right + 20 > _)
+      width = margin.left + margin.right + 20; // Min width.... while this is a good idea, I may move this somewhere else.. OR need to implement in all other logical spots
+    else
+      width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    if (margin.top + margin.bottom + 20 > _)
+      height = margin.top + margin.bottom + 20; // Min height
+    else
+      height = _;
+    return chart;
+  };
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.yDomain = function(_) {
+    if (!arguments.length) return yDomain;
+    yDomain = _;
+    return chart;
+  };
+
+  chart.forceX = function(_) {
+    if (!arguments.length) return forceX;
+    forceX = _;
+    return chart;
+  };
+
+  chart.forceY = function(_) {
+    if (!arguments.length) return forceY;
+    forceY = _;
+    return chart;
+  };
+
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
+  chart.id = function(_) {
+        if (!arguments.length) return id;
+        id = _;
+        return chart;
+  };
+
+
+
+  return chart;
+}
+
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
@@ -1310,11 +1558,10 @@ nv.models.line = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(),
+      color = d3.scale.category20().range(), // array of colors to be used in order
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
-      getSize = function() { return 2.5 }, // accessor to get the point radius from a data point
       forceX = [], // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
       forceY = [], // List of numbers to Force into the Y scale 
       interactive = true, // If true, plots a voronoi overlay for advanced point interection
@@ -1324,7 +1571,9 @@ nv.models.line = function() {
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
-      scatter = nv.models.scatter(),
+      scatter = nv.models.scatter()
+        .size(2.5) // default size
+        .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
       x0, y0,
       timeoutID;
 
@@ -1377,7 +1626,7 @@ nv.models.line = function() {
 
 
 
-      var groups = wrap.select('.groups').selectAll('.line')
+      var groups = wrap.select('.groups').selectAll('.group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -1387,10 +1636,10 @@ nv.models.line = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'line series-' + i })
+          .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % 10] })
-          .style('stroke', function(d,i){ return color[i % 10] })
+          .style('fill', function(d,i){ return color[i % 20] })
+          .style('stroke', function(d,i){ return color[i % 20] })
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5)
@@ -1417,13 +1666,12 @@ nv.models.line = function() {
 
 
       scatter
-        .size(getSize)
         .id(id)
         .interactive(interactive)
         .width(availableWidth)
         .height(availableHeight)
         .xDomain(x.domain())
-        .yDomain(y.domain());
+        .yDomain(y.domain())
 
 
       wrapEnter.append('g').attr('class', 'scatterWrap');
@@ -1511,6 +1759,7 @@ nv.models.line = function() {
   chart.clipEdge = function(_) {
     if (!arguments.length) return clipEdge;
     clipEdge = _;
+    scatter.clipEdge(_);
     return chart;
   };
 
@@ -1793,7 +2042,6 @@ nv.models.lineWithFocus = function() {
       height = 500,
       height1 = 400,
       height2 = 100,
-      dotRadius = function() { return 2.5 },
       color = d3.scale.category20().range(),
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
@@ -1809,7 +2057,7 @@ nv.models.lineWithFocus = function() {
       yAxis2 = nv.models.axis().scale(y2).orient('left'),
       legend = nv.models.legend().height(30),
       focus = nv.models.line().clipEdge(true),
-      context = nv.models.line().dotRadius(.1).interactive(false),
+      context = nv.models.line().interactive(false),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
       brush = d3.svg.brush()
             .x(x2);
@@ -1821,31 +2069,34 @@ nv.models.lineWithFocus = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      seriesData = data.filter(function(d) { return !d.disabled })
-            .map(function(d) { return d.values });
+      var seriesData = data.filter(function(d) { return !d.disabled })
+            .map(function(d) { return d.values }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight1 = height1 - margin.top - margin.bottom,
+          availableHeight2 = height2 - margin2.top - margin2.bottom;
 
       x2  .domain(d3.extent(d3.merge(seriesData), getX ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
       y2  .domain(d3.extent(d3.merge(seriesData), getY ))
-          .range([height2 - margin2.top - margin2.bottom, 0]);
+          .range([availableHeight2, 0]);
 
       x   .domain(brush.empty() ? x2.domain() : brush.extent())
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
       y   .domain(y2.domain())
-          .range([height1 - margin.top - margin.bottom, 0]);
+          .range([availableHeight1, 0]);
 
       brush.on('brush', onBrush);
 
       focus
-        .width(width - margin.left - margin.right)
-        .height(height1 - margin.top - margin.bottom)
+        .width(availableWidth)
+        .height(availableHeight1)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }))
 
       context
-        .width(width - margin.left - margin.right)
-        .height(height2 - margin2.top - margin2.bottom)
+        .width(availableWidth)
+        .height(availableHeight2)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }))
@@ -1875,7 +2126,7 @@ nv.models.lineWithFocus = function() {
 
       g.select('.legendWrap')
           .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',0)')
+          .attr('transform', 'translate(' + (availableWidth / 2) + ',0)')
           .call(legend);
 
 
@@ -1905,7 +2156,7 @@ nv.models.lineWithFocus = function() {
         .domain(x.domain())
         .range(x.range())
         .ticks( width / 100 )
-        .tickSize(-(height1 - margin.top - margin.bottom), 0);
+        .tickSize(-(availableHeight1), 0);
 
       focusWrap.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
@@ -1916,7 +2167,7 @@ nv.models.lineWithFocus = function() {
         .domain(y.domain())
         .range(y.range())
         .ticks( height / 36 )
-        .tickSize(-(width - margin.right - margin.left), 0);
+        .tickSize(-(availableWidth), 0);
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
@@ -1949,7 +2200,7 @@ nv.models.lineWithFocus = function() {
         .domain(x2.domain())
         .range(x2.range())
         .ticks( width / 100 )
-        .tickSize(-(height2 - margin2.top - margin2.bottom), 0);
+        .tickSize(-(availableHeight2), 0);
 
       contextWrap.select('.x2.axis')
           .attr('transform', 'translate(0,' + y2.range()[0] + ')');
@@ -1960,8 +2211,8 @@ nv.models.lineWithFocus = function() {
       yAxis2
         .domain(y2.domain())
         .range(y2.range())
-        .ticks( (height2 - margin2.top  - margin2.bottom) / 24 )
-        .tickSize(-(width - margin2.right - margin2.left), 0);
+        .ticks( availableHeight2 / 24 )
+        .tickSize(-(availableWidth), 0);
 
       contextWrap.select('.y2.axis');
 
@@ -2042,7 +2293,7 @@ nv.models.lineWithFocus = function() {
         //      Need to figure out an optimized way to accomplish this.
         //      ***One concern is to try not to make the assumption that all lines are of the same length, and
         //         points with the same index have the same x value (while this is true in our test cases, may 
-        //         no always be)
+        //         not always be)
         
         focus.xDomain(x.domain());
         focus.yDomain(y.domain());
@@ -2104,13 +2355,6 @@ nv.models.lineWithFocus = function() {
     if (!arguments.length) return height2;
     height2 = _;
     height1 = height - _;
-    return chart;
-  };
-
-  chart.dotRadius = function(_) {
-    if (!arguments.length) return dotRadius;
-    dotRadius = d3.functor(_);
-    focus.dotRadius = _;
     return chart;
   };
 
@@ -2318,6 +2562,291 @@ nv.models.lineWithLegend = function() {
     height = d3.functor(_);
     return chart;
   };
+
+
+  return chart;
+}
+
+nv.models.multiBar = function() {
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
+      width = 960,
+      height = 500,
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      forceX = [], // May not work the same with ordinal scale?
+      forceY = [],
+      clipEdge = true,
+      stacked = false,
+      color = d3.scale.category20().range(),
+      xDomain, yDomain;
+
+  //var x = d3.scale.linear(),
+  var x = d3.scale.ordinal(), //TODO: Need to figure out how to use axis model with ordinal scale
+      y = d3.scale.linear(),
+      xAxis = d3.svg.axis().scale(x).orient('bottom'),
+      yAxis = d3.svg.axis().scale(y).orient('left'),
+      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
+            data.map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i) }
+              })
+            }),
+          availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
+
+      //var stackedData = d3.layout.stack()
+      if (stacked) {
+        data = d3.layout.stack()
+                     .offset('zero')
+                     .values(function(d){ return d.values })
+                     .y(getY)
+                     (data);
+      }
+
+
+      //x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
+      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
+      //x   .domain(seriesData[0].map(function(d) { return d.x }))
+          .rangeRoundBands([0, availableWidth], .1);
+          //.range([0, availableWidth]);
+
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
+          .range([availableHeight, 0]);
+
+
+
+      var wrap = d3.select(this).selectAll('g.d3multibar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'd3multibar');
+      var defsEnter = wrapEnter.append('defs');
+      var gEnter = wrapEnter.append('g');
+
+      gEnter.append('g').attr('class', 'groups');
+
+
+      var g = wrap.select('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+/*
+      defsEnter.append('clipPath')
+          .attr('id', 'chart-clip-path-' + id)
+        .append('rect');
+      wrap.select('#chart-clip-path-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      gEnter
+          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+         */
+
+
+      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+
+
+
+      var groups = wrap.select('.groups').selectAll('.group')
+          .data(function(d) { return d }, function(d) { return d.key });
+      groups.enter().append('g')
+          .style('stroke-opacity', 1e-6)
+          .style('fill-opacity', 1e-6)
+          .attr('transform', function(d,i) {
+              return stacked ? 
+                        'translate(0,0)'
+                      : 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
+          });
+      d3.transition(groups.exit())
+          .style('stroke-opacity', 1e-6)
+          .style('fill-opacity', 1e-6)
+          .remove();
+      groups
+          .attr('class', function(d,i) { return 'group series-' + i })
+          .classed('hover', function(d) { return d.hover })
+          .style('fill', function(d,i){ return color[i % 10] })
+          .style('stroke', function(d,i){ return color[i % 10] });
+      d3.transition(groups)
+          .attr('transform', function(d,i) {
+              return stacked ? 
+                        'translate(0,0)'
+                      : 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
+          })
+          .style('stroke-opacity', 1)
+          .style('fill-opacity', .5);
+
+
+      var bars = groups.selectAll('rect.bar')
+          .data(function(d) { return d.values });
+
+      bars.exit().remove();
+
+
+      var barsEnter = bars.enter().append('rect')
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          //.attr('fill', function(d,i) { return color[0]; })
+          .attr('x', 0 )
+          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
+          .attr('y', y(0))
+          .attr('height', 0)
+          .on('mouseover', function(d,i) {
+            d3.select(this).classed('hover', true);
+            dispatch.elementMouseover({
+                point: d,
+                series: data[0],
+                pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
+                pointIndex: i,
+                seriesIndex: 0,
+                e: d3.event
+            });
+
+          })
+          .on('mouseout', function(d,i) {
+                d3.select(this).classed('hover', false);
+                dispatch.elementMouseout({
+                    point: d,
+                    series: data[0],
+                    pointIndex: i,
+                    seriesIndex: 0,
+                    e: d3.event
+                });
+          })
+          .on('click', function(d,i) {
+                dispatch.elementClick({
+                    //label: d[label],
+                    value: getY(d,i),
+                    data: d,
+                    index: i,
+                    pos: [x(getX(d,i)), y(getY(d,i))],
+                    e: d3.event,
+                    id: id
+                });
+              d3.event.stopPropagation();
+          })
+          .on('dblclick', function(d,i) {
+              dispatch.elementDblClick({
+                  //label: d[label],
+                  value: getY(d,i),
+                  data: d,
+                  index: i,
+                  pos: [x(getX(d,i)), y(getY(d,i))],
+                  e: d3.event,
+                  id: id
+              });
+              d3.event.stopPropagation();
+          });
+      bars
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          //.attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) 
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; }) 
+          //.attr('width', x(.9) / data.length ) //TODO: this should not assume that each consecutive bar x = x + 1
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+      d3.transition(bars)
+          .attr('y', function(d,i) {  return stacked ?
+                y(Math.max(0, d.y + d.y0)) 
+              : y(Math.max(0, getY(d,i))) 
+          })
+          .attr('height', function(d,i) { return stacked ? 
+                Math.abs(y(d.y) - y(0)) 
+              : Math.abs(y(getY(d,i)) - y(0)) 
+          });
+
+    });
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = _;
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    if (margin.left + margin.right + 20 > _)
+      width = margin.left + margin.right + 20; // Min width.... while this is a good idea, I may move this somewhere else.. OR need to implement in all other logical spots
+    else
+      width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    if (margin.top + margin.bottom + 20 > _)
+      height = margin.top + margin.bottom + 20; // Min height
+    else
+      height = _;
+    return chart;
+  };
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.yDomain = function(_) {
+    if (!arguments.length) return yDomain;
+    yDomain = _;
+    return chart;
+  };
+
+  chart.forceX = function(_) {
+    if (!arguments.length) return forceX;
+    forceX = _;
+    return chart;
+  };
+
+  chart.forceY = function(_) {
+    if (!arguments.length) return forceY;
+    forceY = _;
+    return chart;
+  };
+
+  chart.stacked = function(_) {
+    if (!arguments.length) return stacked;
+    stacked = _;
+    return chart;
+  };
+
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
+  chart.id = function(_) {
+        if (!arguments.length) return id;
+        id = _;
+        return chart;
+  };
+
 
 
   return chart;
@@ -2591,7 +3120,7 @@ nv.models.scatter = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(),
+      color = d3.scale.category20().range(), // array of colors to be used in order
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
@@ -2612,14 +3141,16 @@ nv.models.scatter = function() {
       x0, y0, z0,
       timeoutID;
 
-
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = data.map(function(d) { 
-            return d.values.map(function(d,i) {
-              return { x: getX(d,i), y: getY(d,i), size: getSize(d,i) }
-            })
-          }),
+      //var seriesData = data.map(function(d) { 
+      var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
+        //console.log('recalculating');
+            data.map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i), size: getSize(d,i) }
+              })
+            }),
           availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
@@ -2788,8 +3319,8 @@ nv.models.scatter = function() {
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover && !d.disabled });
       d3.transition(groups)
-          .style('fill', function(d,i) { return color[i % 10] })
-          .style('stroke', function(d,i) { return color[i % 10] })
+          .style('fill', function(d,i) { return color[i % 20] })
+          .style('stroke', function(d,i) { return color[i % 20] })
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -3492,7 +4023,7 @@ nv.models.stackedArea = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(),
+      color = d3.scale.category20().range(), // array of colors to be used in order
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
       style = 'stack',
@@ -3514,7 +4045,9 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var scatter= nv.models.scatter().size(2),
+  var scatter= nv.models.scatter()
+        .size(2.2) // default size
+        .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
       x = d3.scale.linear(),
       y = d3.scale.linear(),
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
@@ -3523,7 +4056,7 @@ nv.models.stackedArea = function() {
     selection.each(function(data) {
         // Need to leave data alone to switch between stacked, stream, and expanded
         var dataCopy = JSON.parse(JSON.stringify(data)),
-            seriesData = dataCopy.map(function(d) { 
+            seriesData = dataCopy.map(function(d) {  //TODO: series data is barely used, can probably remove this pretty easily
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
@@ -3589,7 +4122,7 @@ nv.models.stackedArea = function() {
             .x(getX)
             .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
             .color(data.map(function(d,i) {
-              return d.color || color[i % 10];
+              return d.color || color[i % 20];
             }).filter(function(d,i) { return !data[i].disabled }));
 
           gEnter.append('g').attr('class', 'scatterWrap');
@@ -3651,8 +4184,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
-            .style('fill', function(d,i){ return color[i % 10] })
-            .style('stroke', function(d,i){ return color[i % 10] });
+            .style('fill', function(d,i){ return color[i % 20] })
+            .style('stroke', function(d,i){ return color[i % 20] });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 
@@ -4453,6 +4986,183 @@ nv.charts.lineChartDaily = function() {
             .attr('height', height())
             .datum(data)
           .transition().duration(duration).call(graph);
+
+        return graph;
+      },
+      callback: function(graph) {
+        graph.dispatch.on('tooltipShow', showTooltip);
+        graph.dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+        //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
+        window.onresize =
+        function() {
+          // now that width and height are functions, should be automatic..of course you can always override them
+          d3.select(selector + ' svg')
+              .attr('width', graph.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
+              .attr('height', graph.height()())
+              .call(graph);
+        };
+      }
+    });
+
+    return chart;
+  };
+
+
+  /*
+  //  moved to chart()
+  chart.update = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration).call(graph);
+
+    return chart;
+  };
+  */
+
+  chart.data = function(_) {
+    if (!arguments.length) return data;
+    data = _;
+    return chart;
+  };
+
+  chart.selector = function(_) {
+    if (!arguments.length) return selector;
+    selector = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
+  chart.xTickFormat = function(_) {
+    if (!arguments.length) return graph.xAxis.tickFormat();
+    graph.xAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.yTickFormat = function(_) {
+    if (!arguments.length) return graph.yAxis.tickFormat();
+    graph.yAxis.tickFormat(typeof _ === 'function' ? _ : d3.format(_));
+    return chart;
+  };
+
+  chart.xAxisLabel = function(_) {
+    if (!arguments.length) return graph.xAxis.axisLabel();
+    graph.xAxis.axisLabel(_);
+    return chart;
+  };
+
+  chart.yAxisLabel = function(_) {
+    if (!arguments.length) return graph.yAxis.axisLabel();
+    graph.yAxis.axisLabel(_);
+    return chart;
+  };
+
+  d3.rebind(chart, graph, 'x', 'y');
+
+  chart.graph = graph; // Give direct access for getter/setters, and dispatchers
+
+  return chart;
+};
+
+
+/***
+ * This chart treats the X position as the INDEX, not the value
+ * Each series at the same index MUST be the same x value for a valid representation
+ * This is needed specifically for daily data where the gap between Friday and Monday
+ * should be equal to the gap from Monday to Tuesday. (and of course, holidays can be 
+ * omitted without issue, as long as ALL series omit the same days).
+ * An intentional side effect is that ALL ticks will land on actual data points,
+ * so this visualization can also be used for Month End data points, showing Month End
+ * ticks on the X axis
+ ***/
+
+nv.charts.stackedAreaChart = function() {
+  var selector = null,
+      data = [],
+      duration = 500,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
+      };
+
+
+  var graph = nv.models.stackedAreaWithLegend()
+                .x(function(d,i) { return i }),
+      showTooltip = function(e) {
+        var offsetElement = document.getElementById(selector.substr(1)),
+            left = e.pos[0] + offsetElement.offsetLeft,
+            top = e.pos[1] + offsetElement.offsetTop,
+            formatX = graph.xAxis.tickFormat(),
+            formatY = graph.yAxis.tickFormat(),
+            x = formatX(graph.x()(e, e.pointIndex)),
+            //x = formatX(graph.x()(e.point)),
+            y = formatY(graph.y()(e.point)),
+            content = tooltip(e.series.key, x, y, e, graph);
+
+        nv.tooltip.show([left, top], content);
+      };
+
+  //setting component defaults
+  //graph.xAxis.tickFormat(d3.format(',r'));
+  graph.xAxis.tickFormat(function(d) {
+    //return d3.time.format('%x')(new Date(d))
+    //log(d, data[0].values[d]);
+    return d3.time.format('%x')(new Date(data[0].values[d].x))
+  });
+
+  //graph.yAxis.tickFormat(d3.format(',.2f'));
+  graph.yAxis.tickFormat(d3.format(',.2%'));
+
+
+  //TODO: consider a method more similar to how the models are built
+  function chart() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    d3.select(selector).select('svg')
+        .datum(data)
+      .transition().duration(duration)
+        .call(graph); //consider using transition chaining like in the models
+
+    return chart;
+  }
+
+
+  // This should always only be called once, then update should be used after, 
+  //     in which case should consider the 'd3 way' and merge this with update, 
+  //     but simply do this on enter... should try anoter example that way
+  chart.build = function() {
+    if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
+
+    nv.addGraph({
+      generate: function() {
+        var container = d3.select(selector),
+            width = function() { return parseInt(container.style('width')) },
+            height = function() { return parseInt(container.style('height')) },
+            svg = container.append('svg');
+
+        graph
+            .width(width)
+            .height(height);
+
+        svg
+            .attr('width', width())
+            .attr('height', height())
+            .datum(data)
+          .transition().duration(duration)
+            .call(graph);
 
         return graph;
       },

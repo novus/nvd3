@@ -37,7 +37,7 @@ nv.models.stackedArea = function() {
     selection.each(function(data) {
         // Need to leave data alone to switch between stacked, stream, and expanded
         var dataCopy = JSON.parse(JSON.stringify(data)),
-            seriesData = dataCopy.map(function(d) { 
+            seriesData = dataCopy.map(function(d) {  //TODO: series data is barely used, can probably remove this pretty easily
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
@@ -103,7 +103,7 @@ nv.models.stackedArea = function() {
             .x(getX)
             .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
             .color(data.map(function(d,i) {
-              return d.color || color[i % 10];
+              return d.color || color[i % 20];
             }).filter(function(d,i) { return !data[i].disabled }));
 
           gEnter.append('g').attr('class', 'scatterWrap');
@@ -165,8 +165,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
-            .style('fill', function(d,i){ return color[i % 10] })
-            .style('stroke', function(d,i){ return color[i % 10] });
+            .style('fill', function(d,i){ return color[i % 20] })
+            .style('stroke', function(d,i){ return color[i % 20] });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 

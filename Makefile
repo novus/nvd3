@@ -5,6 +5,7 @@ JS_FILES = \
 	src/utils.js \
 	src/models/axis.js \
 	src/models/bar.js \
+	src/models/historicalBar.js \
 	src/models/bullet.js \
 	src/models/cumulativeLine.js \
 	src/models/legend.js \
@@ -12,6 +13,7 @@ JS_FILES = \
 	src/models/linePlusBar.js \
 	src/models/lineWithFocus.js \
 	src/models/lineWithLegend.js \
+	src/models/multiBar.js \
 	src/models/pie.js \
 	src/models/scatter.js \
 	src/models/scatterWithLegend.js \
@@ -22,6 +24,7 @@ JS_FILES = \
 	src/charts/cumulativeLineChartDaily.js \
 	src/charts/lineChart.js \
 	src/charts/lineChartDaily.js \
+	src/charts/stackedAreaChart.js \
 	src/outro.js
 
 JS_COMPILER = \

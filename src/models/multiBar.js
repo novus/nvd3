@@ -1,9 +1,4 @@
 
-/***
- * Creating a separate bar chart for historical view of a single series
- *   this will likely be merged into the bar representation, just developing
- *   it separately to not interfere with the regular bar model
- */
 nv.models.multiBar = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
@@ -19,7 +14,7 @@ nv.models.multiBar = function() {
       xDomain, yDomain;
 
   //var x = d3.scale.linear(),
-  var x = d3.scale.ordinal(),
+  var x = d3.scale.ordinal(), //TODO: Need to figure out how to use axis model with ordinal scale
       y = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(x).orient('bottom'),
       yAxis = d3.svg.axis().scale(y).orient('left'),
@@ -38,10 +33,20 @@ nv.models.multiBar = function() {
           availableHeight = height - margin.top - margin.bottom;
 
 
+      //var stackedData = d3.layout.stack()
+      if (stacked) {
+        data = d3.layout.stack()
+                     .offset('zero')
+                     .values(function(d){ return d.values })
+                     .y(getY)
+                     (data);
+      }
+
+
       //x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
       //x   .domain(seriesData[0].map(function(d) { return d.x }))
-          .rangeRoundBands([0, availableWidth], .2);
+          .rangeRoundBands([0, availableWidth], .1);
           //.range([0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
@@ -83,7 +88,9 @@ nv.models.multiBar = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .attr('transform', function(d,i) {
-              return 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
+              return stacked ? 
+                        'translate(0,0)'
+                      : 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
           });
       d3.transition(groups.exit())
           .style('stroke-opacity', 1e-6)
@@ -96,7 +103,9 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i){ return color[i % 10] });
       d3.transition(groups)
           .attr('transform', function(d,i) {
-              return 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
+              return stacked ? 
+                        'translate(0,0)'
+                      : 'translate(' + (i * x.rangeBand(.9) / data.length ) + ',0)'
           })
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
@@ -167,10 +176,16 @@ nv.models.multiBar = function() {
           //.attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) 
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; }) 
           //.attr('width', x(.9) / data.length ) //TODO: this should not assume that each consecutive bar x = x + 1
-          .attr('width', x.rangeBand() / data.length )
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
       d3.transition(bars)
-          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
+          .attr('y', function(d,i) {  return stacked ?
+                y(Math.max(0, d.y + d.y0)) 
+              : y(Math.max(0, getY(d,i))) 
+          })
+          .attr('height', function(d,i) { return stacked ? 
+                Math.abs(y(d.y) - y(0)) 
+              : Math.abs(y(getY(d,i)) - y(0)) 
+          });
 
     });
 
@@ -237,6 +252,12 @@ nv.models.multiBar = function() {
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
+    return chart;
+  };
+
+  chart.stacked = function(_) {
+    if (!arguments.length) return stacked;
+    stacked = _;
     return chart;
   };
 
