@@ -43,16 +43,25 @@ nv.models.multiBar = function() {
           availableHeight = height - margin.top - margin.bottom;
 
 
+      //add series index to each data point for reference
+      data = data.map(function(series, i) {
+        series.values = series.values.map(function(point) {
+          point.series = i;
+          return point;
+        });
+        return series;
+      });
 
 
       //x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
       //x   .domain(seriesData[0].map(function(d) { return d.x }))
-          .rangeRoundBands([0, availableWidth], .1);
+          .rangeBands([0, availableWidth], .1);
+          //.rangeRoundBands([0, availableWidth], .1);
           //.range([0, availableWidth]);
 
       //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY)))
-      y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY))])
+      y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY))])
           .range([availableHeight, 0]);
 
 
@@ -111,7 +120,7 @@ nv.models.multiBar = function() {
                       : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
           })
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .5);
+          .style('fill-opacity', .75);
 
 
       var bars = groups.selectAll('rect.bar')
@@ -124,18 +133,19 @@ nv.models.multiBar = function() {
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('fill', function(d,i) { return color[0]; })
           .attr('x', 0 )
-          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .attr('y', y(0))
           .attr('height', 0)
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
                 point: d,
-                series: data[0],
-                pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
+                series: data[d.series],
+                pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
                 pointIndex: i,
-                seriesIndex: 0,
+                seriesIndex: d.series,
                 e: d3.event
             });
 
@@ -144,9 +154,9 @@ nv.models.multiBar = function() {
                 d3.select(this).classed('hover', false);
                 dispatch.elementMouseout({
                     point: d,
-                    series: data[0],
+                    series: data[d.series],
                     pointIndex: i,
-                    seriesIndex: 0,
+                    seriesIndex: d.series,
                     e: d3.event
                 });
           })
@@ -179,14 +189,32 @@ nv.models.multiBar = function() {
           //.attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; })
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
           //.attr('width', x(.9) / data.length ) //TODO: this should not assume that each consecutive bar x = x + 1
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
       d3.transition(bars)
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
           .attr('y', function(d,i) {
-            return y(getY(d,i) + (d.y0 || 0));
+            return y(getY(d,i) + (stacked ? d.y0 : 0));
           })
           .attr('height', function(d,i) {
-            return Math.abs(y(d.y + (d.y0 || 0)) - y((d.y0 || 0)))
+            return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
           });
+
+
+      function transitionStacked() {
+        stacked = true;
+        selection.transition().call(chart);
+      }
+
+      function transitionGrouped() {
+        stacked = false;
+        selection.transition().call(chart);
+      }
+
+      window.grouped = transitionGrouped;
+      window.stacked = transitionStacked;
+
+      chart.update = function() {
+        selection.transition().call(chart);
+      }
 
     });
 

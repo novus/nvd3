@@ -108,13 +108,8 @@ nv.models.linePlusBar = function() {
 
 
       bars.dispatch.on('elementMouseover.tooltip', function(e) {
-        dispatch.tooltipShow({
-          point: e.point,
-          series: e.series,
-          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
-          seriesIndex: e.seriesIndex,
-          pointIndex: e.pointIndex
-        });
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
       });
 
       bars.dispatch.on('elementMouseout.tooltip', function(e) {

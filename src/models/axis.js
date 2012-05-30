@@ -11,10 +11,12 @@ nv.models.axis = function() {
   function chart(selection) {
     selection.each(function(data) {
 
-      scale.domain(domain)
-           .range(range);
+      //scale.domain(domain)
+           //.range(range);
 
-      axis.orient(orient);
+      //axis.orient(orient);
+      if (orient == 'top' || orient == 'bottom')
+        axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
       //TODO: consider calculating height based on whether or not label is added, for reference in charts using this component
 
@@ -26,28 +28,28 @@ nv.models.axis = function() {
               .attr('text-anchor', 'middle')
               .attr('y', 0);
           axisLabel
-              .attr('x', range[1] / 2);
+              .attr('x', scale.range()[1] / 2);
               break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'axislabel')
                .attr('transform', 'rotate(90)')
               .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', -range[0] / 2);
+              .attr('x', -scale.range()[0] / 2);
               break;
         case 'bottom':
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 25);
           axisLabel
-              .attr('x', range[1] / 2);
+              .attr('x', scale.range()[1] / 2);
               break;
         case 'left':
           axisLabel.enter().append('text').attr('class', 'axislabel')
                .attr('transform', 'rotate(-90)')
               .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', -range[0] / 2);
+              .attr('x', -scale.range()[0] / 2);
               break;
       }
       axisLabel.exit().remove();
@@ -59,11 +61,12 @@ nv.models.axis = function() {
       d3.transition(d3.select(this))
           .call(axis);
 
-      d3.select(this)
-        .selectAll('line.tick')
-        //.filter(function(d) { return !parseFloat(d) })
-        .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
-          .classed('zero', true);
+      if (orient == 'left' || orient == 'right')
+        d3.select(this)
+          .selectAll('line.tick')
+          //.filter(function(d) { return !parseFloat(d) })
+          .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
+            .classed('zero', true);
 
     });
 
@@ -71,21 +74,25 @@ nv.models.axis = function() {
   }
 
 
+  //TODO: orient, domain, and range could be rebind's... but then they won't return the chart component
   chart.orient = function(_) {
     if (!arguments.length) return orient;
     orient = _;
+    axis.orient(_);
     return chart;
   };
 
   chart.domain = function(_) {
     if (!arguments.length) return domain;
-    domain = _;
+    //domain = _;
+    scale.domain(_);
     return chart;
   };
 
   chart.range = function(_) {
     if (!arguments.length) return range;
-    range = _;
+    //range = _;
+    scale.range(_);
     return chart;
   };
 
@@ -102,7 +109,7 @@ nv.models.axis = function() {
     return chart;
   }
 
-
+  //d3.rebind(chart, scale, 'domain', 'range', 'rangRoundBands', 'rangeBands'); //would implement, but will break because domain and range won't return chart... will likelu implement later
   d3.rebind(chart, axis, 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
 
   return chart;

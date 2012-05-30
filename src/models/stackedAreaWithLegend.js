@@ -32,8 +32,7 @@ nv.models.stackedAreaWithLegend = function() {
           availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
-      var series = data.filter(function(d) { return !d.disabled })
-            //.map(function(d) { return d.values });
+      var seriesData = data.filter(function(d) { return !d.disabled })
             .reduce(function(prev, curr, index) {  //sum up all the y's
                 curr.values.forEach(function(d,i) {
                   if (!index) prev[i] = {x: getX(d,i), y:0};
@@ -43,11 +42,11 @@ nv.models.stackedAreaWithLegend = function() {
               }, []);
 
 
-      x   .domain(d3.extent(d3.merge(series), function(d) { return d.x } ))
+      x   .domain(d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
           .range([0, availableWidth]);
 
       y   .domain(stacked.offset() == 'zero' ?
-            [0, d3.max(series, function(d) { return d.y } )] :
+            [0, d3.max(seriesData, function(d) { return d.y } )] :
             [0, 1]  // 0 - 100%
           )
           .range([availableHeight, 0]);

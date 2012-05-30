@@ -171,6 +171,20 @@ svg .title {
 .x.axis text {
   transform: rotate(90);
 }
+
+
+/**********
+*  Bars
+*/
+
+.d3multibar .groups rect {
+  stroke-opacity: 0;
+}
+
+.d3multibar .groups rect:hover {
+  fill-opacity: 1;
+}
+
 /***********
 *  Pie Chart
 */
