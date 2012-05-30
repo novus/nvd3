@@ -11,7 +11,8 @@ nv.models.multiBar = function() {
       clipEdge = true,
       stacked = false,
       color = d3.scale.category20().range(),
-      xDomain, yDomain;
+      xDomain, yDomain,
+      x0, y0;
 
   //var x = d3.scale.linear(),
   var x = d3.scale.ordinal(), //TODO: Need to figure out how to use axis model with ordinal scale
@@ -42,6 +43,9 @@ nv.models.multiBar = function() {
           availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
+      //store old scales if they exist
+      x0 = x0 || x;
+      y0 = y0 || y;
 
       //add series index to each data point for reference
       data = data.map(function(series, i) {
@@ -135,7 +139,7 @@ nv.models.multiBar = function() {
           .attr('x', 0 )
           //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
-          .attr('y', y(0))
+          .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
           .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
           .on('mouseover', function(d,i) {
@@ -199,22 +203,13 @@ nv.models.multiBar = function() {
           });
 
 
-      function transitionStacked() {
-        stacked = true;
-        selection.transition().call(chart);
-      }
-
-      function transitionGrouped() {
-        stacked = false;
-        selection.transition().call(chart);
-      }
-
-      window.grouped = transitionGrouped;
-      window.stacked = transitionStacked;
-
       chart.update = function() {
         selection.transition().call(chart);
       }
+
+      //store old scales for use in transitions on update, to animate from old to new positions, and sizes
+      x0 = x.copy();
+      y0 = y.copy();
 
     });
 

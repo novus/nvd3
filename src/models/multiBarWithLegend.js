@@ -118,6 +118,17 @@ nv.models.multiBarWithLegend = function() {
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
+      var xTicks = g.select('.x.axis').selectAll('g');
+
+      xTicks
+          .selectAll('line, text')
+          .style('opacity', 1)
+
+      xTicks.filter(function(d,i) {
+            return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
+          })
+          .selectAll('line, text')
+          .style('opacity', 0)
 
       yAxis
         .domain(y.domain())
