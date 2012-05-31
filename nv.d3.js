@@ -309,7 +309,7 @@ nv.models.axis = function() {
       d3.transition(d3.select(this))
           .call(axis);
 
-      //highlight zero line
+      //highlight zero line ... Maybe should not be an option and should just be in CSS?
       if (highlightZero)
         d3.select(this)
           .selectAll('line.tick')
@@ -1575,6 +1575,7 @@ nv.models.line = function() {
       var wrapEnter = wrap.enter().append('g').attr('class', 'd3line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
 
       wrapEnter.append('g').attr('class', 'scatterWrap');
       var scatterWrap = wrap.select('.scatterWrap').datum(data);
@@ -1599,21 +1600,17 @@ nv.models.line = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      //TODO: this doesn't remove if turned off after on...
-      if (clipEdge) {
-        defsEnter.append('clipPath')
-            .attr('id', 'edge-clip-' + id)
-          .append('rect');
+      defsEnter.append('clipPath')
+          .attr('id', 'edge-clip-' + id)
+        .append('rect');
 
-        wrap.select('#edge-clip-' + id + ' rect')
-            .attr('width', availableWidth)
-            .attr('height', availableHeight);
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
-        gEnter
-            .attr('clip-path', 'url(#edge-clip-' + id + ')');
-        scatterWrap
-            .attr('clip-path', 'url(#edge-clip-' + id + ')');
-      }
+      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      scatterWrap
+          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 
@@ -2509,7 +2506,6 @@ nv.models.multiBar = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      forceX = [], // May not work the same with ordinal scale?
       forceY = [],
       clipEdge = true,
       stacked = false,
@@ -2518,15 +2514,19 @@ nv.models.multiBar = function() {
       x0, y0;
 
   //var x = d3.scale.linear(),
-  var x = d3.scale.ordinal(), //TODO: Need to figure out how to use axis model with ordinal scale
+  var x = d3.scale.ordinal(),
       y = d3.scale.linear(),
-      xAxis = d3.svg.axis().scale(x).orient('bottom'),
-      yAxis = d3.svg.axis().scale(y).orient('left'),
       dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
   function chart(selection) {
     selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
+      //store old scales if they exist
+      x0 = x0 || x;
+      y0 = y0 || y;
 
       if (stacked) {
       //var stackedData = d3.layout.stack()
@@ -2537,18 +2537,7 @@ nv.models.multiBar = function() {
                      (data);
       }
 
-      var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            data.map(function(d) { 
-              return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
-              })
-            }),
-          availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
 
-      //store old scales if they exist
-      x0 = x0 || x;
-      y0 = y0 || y;
 
       //add series index to each data point for reference
       data = data.map(function(series, i) {
@@ -2560,14 +2549,16 @@ nv.models.multiBar = function() {
       });
 
 
-      //x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
-      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-      //x   .domain(seriesData[0].map(function(d) { return d.x }))
-          .rangeBands([0, availableWidth], .1);
-          //.rangeRoundBands([0, availableWidth], .1);
-          //.range([0, availableWidth]);
+      var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
+            data.map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
+              })
+            });
 
-      //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY)))
+      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
+          .rangeBands([0, availableWidth], .1);
+
       y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY))])
           .range([availableHeight, 0]);
 
@@ -2580,24 +2571,19 @@ nv.models.multiBar = function() {
 
       gEnter.append('g').attr('class', 'groups');
 
-
       var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-/*
+
+
       defsEnter.append('clipPath')
-          .attr('id', 'chart-clip-path-' + id)
+          .attr('id', 'edge-clip-' + id)
         .append('rect');
-      wrap.select('#chart-clip-path-' + id + ' rect')
+      wrap.select('#edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      gEnter
-          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
-         */
-
-
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 
@@ -2606,11 +2592,13 @@ nv.models.multiBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
+          /*
           .attr('transform', function(d,i) {
               return stacked ? 
                         'translate(0,0)'
                       : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
           });
+         */
       d3.transition(groups.exit())
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
@@ -2621,11 +2609,13 @@ nv.models.multiBar = function() {
           .style('fill', function(d,i){ return color[i % 10] })
           .style('stroke', function(d,i){ return color[i % 10] });
       d3.transition(groups)
+      /*
           .attr('transform', function(d,i) {
               return stacked ? 
                         'translate(0,0)'
                       : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
           })
+         */
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -2639,73 +2629,101 @@ nv.models.multiBar = function() {
       var barsEnter = bars.enter().append('rect')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('fill', function(d,i) { return color[0]; })
-          .attr('x', 0 )
+          .attr('x', function(d,i,j) {
+              return stacked ? 0 : (j * x.rangeBand() / data.length )
+          })
           //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
           .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
-          .on('mouseover', function(d,i) {
+          .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
-                point: d,
-                series: data[d.series],
-                pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
-                pointIndex: i,
-                seriesIndex: d.series,
-                e: d3.event
+              value: getY(d,i),
+              point: d,
+              series: data[d.series],
+              pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
+              pointIndex: i,
+              seriesIndex: d.series,
+              e: d3.event
             });
-
           })
           .on('mouseout', function(d,i) {
-                d3.select(this).classed('hover', false);
-                dispatch.elementMouseout({
-                    point: d,
-                    series: data[d.series],
-                    pointIndex: i,
-                    seriesIndex: d.series,
-                    e: d3.event
-                });
+            d3.select(this).classed('hover', false);
+            dispatch.elementMouseout({
+              value: getY(d,i),
+              point: d,
+              series: data[d.series],
+              pointIndex: i,
+              seriesIndex: d.series,
+              e: d3.event
+            });
           })
           .on('click', function(d,i) {
-                dispatch.elementClick({
-                    //label: d[label],
-                    value: getY(d,i),
-                    data: d,
-                    index: i,
-                    pos: [x(getX(d,i)), y(getY(d,i))],
-                    e: d3.event,
-                    id: id
-                });
-              d3.event.stopPropagation();
+            dispatch.elementClick({
+              value: getY(d,i),
+              point: d,
+              series: data[d.series],
+              pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
+              pointIndex: i,
+              seriesIndex: d.series,
+              e: d3.event
+            });
+            d3.event.stopPropagation();
           })
           .on('dblclick', function(d,i) {
-              dispatch.elementDblClick({
-                  //label: d[label],
-                  value: getY(d,i),
-                  data: d,
-                  index: i,
-                  pos: [x(getX(d,i)), y(getY(d,i))],
-                  e: d3.event,
-                  id: id
-              });
-              d3.event.stopPropagation();
+            dispatch.elementDblClick({
+              value: getY(d,i),
+              point: d,
+              series: data[d.series],
+              pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
+              pointIndex: i,
+              seriesIndex: d.series,
+              e: d3.event
+            });
+            d3.event.stopPropagation();
           });
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          //.attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; })
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
-          //.attr('width', x(.9) / data.length ) //TODO: this should not assume that each consecutive bar x = x + 1
-      d3.transition(bars)
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
-          .attr('y', function(d,i) {
-            return y(getY(d,i) + (stacked ? d.y0 : 0));
-          })
-          .attr('height', function(d,i) {
-            return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
-          });
+      if (stacked)
+        d3.transition(bars)
+            .delay(function(d,i) { return i * 1000 / data[0].values.length })
+            .attr('y', function(d,i) {
+              return y(getY(d,i) + (stacked ? d.y0 : 0));
+            })
+            .attr('height', function(d,i) {
+              return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
+            })
+            .each('end', function() {
+              d3.transition(d3.select(this))
+                .attr('x', function(d,i) {
+                  return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+                })
+                .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+            })
+      else
+        d3.transition(bars)
+          .delay(function(d,i) { return i * 1200 / data[0].values.length })
+            .attr('x', function(d,i) {
+              return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+            })
+            .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+            .each('end', function() {
+              d3.transition(d3.select(this))
+                .attr('y', function(d,i) {
+                  return y(getY(d,i) + (stacked ? d.y0 : 0));
+                })
+                .attr('height', function(d,i) {
+                  return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
+                });
+            })
 
 
+
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
       chart.update = function() {
         selection.transition().call(chart);
       }
@@ -2764,12 +2782,6 @@ nv.models.multiBar = function() {
     return chart;
   };
 
-  chart.forceX = function(_) {
-    if (!arguments.length) return forceX;
-    forceX = _;
-    return chart;
-  };
-
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
@@ -2814,7 +2826,7 @@ nv.models.multiBarWithLegend = function() {
   //var x = d3.scale.linear(),
   var x = d3.scale.ordinal(),
       y = d3.scale.linear(),
-      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
@@ -3363,24 +3375,22 @@ nv.models.scatter = function() {
       var wrapEnter = wrap.enter().append('g').attr('class', 'd3scatter');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
 
       gEnter.append('g').attr('class', 'groups');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      if (clipEdge) {
-        defsEnter.append('clipPath')
-            .attr('id', 'edge-clip-' + id)
-          .append('rect');
+      defsEnter.append('clipPath')
+          .attr('id', 'edge-clip-' + id)
+        .append('rect');
 
-        wrap.select('#edge-clip-' + id + ' rect')
-            .attr('width', availableWidth)
-            .attr('height', availableHeight);
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
-        gEnter
-            .attr('clip-path', 'url(#edge-clip-' + id + ')');
-      }
+      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 
@@ -3398,7 +3408,6 @@ nv.models.scatter = function() {
             return group.values.map(function(point, pointIndex) {
               // Adding noise to make duplicates very unlikely
               // Inject series and point index for reference
-              // TODO: see how much time this consumes
               return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
             })
           })
@@ -4289,18 +4298,15 @@ nv.models.stackedArea = function() {
         wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-        if (clipEdge) {
-          defsEnter.append('clipPath')
-              .attr('id', 'edge-clip-' + id)
-            .append('rect');
+        defsEnter.append('clipPath')
+            .attr('id', 'edge-clip-' + id)
+          .append('rect');
 
-          wrap.select('#edge-clip-' + id + ' rect')
-              .attr('width', availableWidth)
-              .attr('height', availableHeight);
+        wrap.select('#edge-clip-' + id + ' rect')
+            .attr('width', availableWidth)
+            .attr('height', availableHeight);
 
-          gEnter
-              .attr('clip-path', 'url(#edge-clip-' + id + ')');
-        }
+        g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 

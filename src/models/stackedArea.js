@@ -87,18 +87,15 @@ nv.models.stackedArea = function() {
         wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-        if (clipEdge) {
-          defsEnter.append('clipPath')
-              .attr('id', 'edge-clip-' + id)
-            .append('rect');
+        defsEnter.append('clipPath')
+            .attr('id', 'edge-clip-' + id)
+          .append('rect');
 
-          wrap.select('#edge-clip-' + id + ' rect')
-              .attr('width', availableWidth)
-              .attr('height', availableHeight);
+        wrap.select('#edge-clip-' + id + ' rect')
+            .attr('width', availableWidth)
+            .attr('height', availableHeight);
 
-          gEnter
-              .attr('clip-path', 'url(#edge-clip-' + id + ')');
-        }
+        g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 

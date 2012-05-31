@@ -31,6 +31,7 @@ nv.models.line = function() {
       var wrapEnter = wrap.enter().append('g').attr('class', 'd3line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
 
       wrapEnter.append('g').attr('class', 'scatterWrap');
       var scatterWrap = wrap.select('.scatterWrap').datum(data);
@@ -55,21 +56,17 @@ nv.models.line = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      //TODO: this doesn't remove if turned off after on...
-      if (clipEdge) {
-        defsEnter.append('clipPath')
-            .attr('id', 'edge-clip-' + id)
-          .append('rect');
+      defsEnter.append('clipPath')
+          .attr('id', 'edge-clip-' + id)
+        .append('rect');
 
-        wrap.select('#edge-clip-' + id + ' rect')
-            .attr('width', availableWidth)
-            .attr('height', availableHeight);
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
-        gEnter
-            .attr('clip-path', 'url(#edge-clip-' + id + ')');
-        scatterWrap
-            .attr('clip-path', 'url(#edge-clip-' + id + ')');
-      }
+      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      scatterWrap
+          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 

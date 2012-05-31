@@ -71,24 +71,22 @@ nv.models.scatter = function() {
       var wrapEnter = wrap.enter().append('g').attr('class', 'd3scatter');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
 
       gEnter.append('g').attr('class', 'groups');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      if (clipEdge) {
-        defsEnter.append('clipPath')
-            .attr('id', 'edge-clip-' + id)
-          .append('rect');
+      defsEnter.append('clipPath')
+          .attr('id', 'edge-clip-' + id)
+        .append('rect');
 
-        wrap.select('#edge-clip-' + id + ' rect')
-            .attr('width', availableWidth)
-            .attr('height', availableHeight);
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
-        gEnter
-            .attr('clip-path', 'url(#edge-clip-' + id + ')');
-      }
+      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 
@@ -106,7 +104,6 @@ nv.models.scatter = function() {
             return group.values.map(function(point, pointIndex) {
               // Adding noise to make duplicates very unlikely
               // Inject series and point index for reference
-              // TODO: see how much time this consumes
               return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
             })
           })
