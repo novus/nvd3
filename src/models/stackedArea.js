@@ -11,8 +11,7 @@ nv.models.stackedArea = function() {
       style = 'stack',
       offset = 'zero',
       order = 'default',
-      clipEdge = false, // if true, masks lines within x and y scale
-      xDomain, yDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
+      clipEdge = false; // if true, masks lines within x and y scale
 
 /************************************
  * offset:
@@ -29,8 +28,6 @@ nv.models.stackedArea = function() {
   var scatter= nv.models.scatter()
         .size(2.2) // default size
         .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x2 = d3.scale.linear(),
-      y2 = d3.scale.linear(),
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
@@ -51,23 +48,6 @@ nv.models.stackedArea = function() {
                      .y(getY)
                      (dataCopy);
 
-
-
-/*
-        var seriesData = dataCopy.map(function(d) {  //TODO: series data is barely used, can probably remove this pretty easily
-              return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i) }
-              })
-            });
-
-        x2  .domain(xDomain || d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
-            .range([0, availableWidth]);
-
-        y2  .domain(yDomain || [0, d3.max(dataCopy, function(d) {   //TODO; if dataCopy not fed {x, y} (custom getX or getY), this will probably cause an error
-              return d3.max(d.values, function(d) { return d.y0 + d.y })
-            }) ])
-            .range([availableHeight, 0]);
-*/
 
 
         var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
