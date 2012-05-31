@@ -1,8 +1,8 @@
 
 /***
- * Creating a separate bar chart for historical view of a single series
- *   this will likely be merged into the bar representation, just developing
- *   it separately to not interfere with the regular bar model
+ * multiBar will likely be used instead of this, wherever this would have been useful,
+ *   multiBar lets you view 1 or more bars per an x value, either grouped (side by side)
+ *   or stacked (layered on top of each other).
  */
 nv.models.historicalBar = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},

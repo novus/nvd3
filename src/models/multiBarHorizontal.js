@@ -1,5 +1,12 @@
 
-nv.models.multiBar = function() {
+/***
+ * This should be pretty close to identical to the multiBar model, but this model
+ * has the bars horizontal.
+ * Currently naming the vertical axis X, due to helper functions that think the 
+ * bars are vertical
+ */
+
+nv.models.multiBarHorizontal = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
@@ -57,10 +64,10 @@ nv.models.multiBar = function() {
             });
 
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-          .rangeBands([0, availableWidth], .1);
+          .rangeBands([0, availableHeight], .1);
 
       y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY))])
-          .range([availableHeight, 0]);
+          .range([0, availableWidth]);
 
 
 
@@ -129,14 +136,14 @@ nv.models.multiBar = function() {
       var barsEnter = bars.enter().append('rect')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('fill', function(d,i) { return color[0]; })
-          .attr('x', function(d,i,j) {
+          .attr('y', function(d,i,j) {
               return stacked ? 0 : (j * x.rangeBand() / data.length )
           })
           //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
-          .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
-          .attr('height', 0)
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+          .attr('x', function(d) { return y0(stacked ? d.y0 : 0) })
+          .attr('width', 0)
+          .attr('height', x.rangeBand() / (stacked ? 1 : data.length) )
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
@@ -186,37 +193,42 @@ nv.models.multiBar = function() {
           });
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
+          .attr('transform', function(d,i) { return 'translate(0,' + x(getX(d,i)) + ')'; })
       if (stacked)
         d3.transition(bars)
             .delay(function(d,i) { return i * 1000 / data[0].values.length })
-            .attr('y', function(d,i) {
-              return y(getY(d,i) + (stacked ? d.y0 : 0));
+            .attr('x', function(d,i) {
+              return y(d.y0);
+              //return y(getY(d,i) + d.y0);
+              //return y(getY(d,i) + (stacked ? d.y0 : 0));
             })
-            .attr('height', function(d,i) {
-              return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
+            .attr('width', function(d,i) {
+              return Math.abs(y(d.y + d.y0) - y(d.y0))
             })
             .each('end', function() {
               d3.transition(d3.select(this))
-                .attr('x', function(d,i) {
-                  return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+                .attr('y', function(d,i) {
+                  return 0
                 })
-                .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+                .attr('height', x.rangeBand() );
             })
       else
         d3.transition(bars)
           .delay(function(d,i) { return i * 1200 / data[0].values.length })
-            .attr('x', function(d,i) {
+            .attr('y', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
-            .attr('width', x.rangeBand() / data.length)
+            .attr('height', x.rangeBand() / data.length )
             .each('end', function() {
               d3.transition(d3.select(this))
-                .attr('y', function(d,i) {
-                  return y(getY(d,i));
+                .attr('x', function(d,i) {
+                  return getY(d,i) < 0 ? //TODO: stacked must be all positive or all negative, not both?
+                      y(getY(d,i)) :
+                      y(0)
                 })
-                .attr('height', function(d,i) {
+                .attr('width', function(d,i) {
                   return Math.abs(y(d.y) - y(0))
+                  //return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
                 });
             })
 
