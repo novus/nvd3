@@ -58,7 +58,7 @@ nv.models.axis = function() {
       d3.transition(d3.select(this))
           .call(axis);
 
-      //highlight zero line
+      //highlight zero line ... Maybe should not be an option and should just be in CSS?
       if (highlightZero)
         d3.select(this)
           .selectAll('line.tick')

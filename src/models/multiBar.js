@@ -17,13 +17,13 @@ nv.models.multiBar = function() {
   //var x = d3.scale.linear(),
   var x = d3.scale.ordinal(), //TODO: Need to figure out how to use axis model with ordinal scale
       y = d3.scale.linear(),
-      xAxis = d3.svg.axis().scale(x).orient('bottom'),
-      yAxis = d3.svg.axis().scale(y).orient('left'),
       dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
   function chart(selection) {
     selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
       if (stacked) {
       //var stackedData = d3.layout.stack()
@@ -39,9 +39,7 @@ nv.models.multiBar = function() {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
               })
-            }),
-          availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+            });
 
       //store old scales if they exist
       x0 = x0 || x;
@@ -57,14 +55,9 @@ nv.models.multiBar = function() {
       });
 
 
-      //x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-      //x   .domain(seriesData[0].map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
-          //.rangeRoundBands([0, availableWidth], .1);
-          //.range([0, availableWidth]);
 
-      //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (d.y0 || 0) }).concat(forceY)))
       y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY))])
           .range([availableHeight, 0]);
 
@@ -94,20 +87,19 @@ nv.models.multiBar = function() {
          */
 
 
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
-
-
 
       var groups = wrap.select('.groups').selectAll('.group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
+          /*
           .attr('transform', function(d,i) {
               return stacked ? 
                         'translate(0,0)'
                       : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
           });
+         */
       d3.transition(groups.exit())
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
@@ -118,11 +110,13 @@ nv.models.multiBar = function() {
           .style('fill', function(d,i){ return color[i % 10] })
           .style('stroke', function(d,i){ return color[i % 10] });
       d3.transition(groups)
+      /*
           .attr('transform', function(d,i) {
               return stacked ? 
                         'translate(0,0)'
                       : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
           })
+         */
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -136,7 +130,9 @@ nv.models.multiBar = function() {
       var barsEnter = bars.enter().append('rect')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('fill', function(d,i) { return color[0]; })
-          .attr('x', 0 )
+          .attr('x', function(d,i) {
+              return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+          })
           //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
@@ -190,17 +186,56 @@ nv.models.multiBar = function() {
           });
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          //.attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; })
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
-          //.attr('width', x(.9) / data.length ) //TODO: this should not assume that each consecutive bar x = x + 1
       d3.transition(bars)
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+.delay(function(d,i) { return i * 1000 / data[0].values.length }) //TODO: errors on resize since resize is not a transition...
+          .attr('x', function(d,i) {
+              return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+          })
           .attr('y', function(d,i) {
             return y(getY(d,i) + (stacked ? d.y0 : 0));
           })
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
           .attr('height', function(d,i) {
             return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
           });
+
+
+
+/*
+//just a test from d3 example, probably won't go this route, will just set stacked and run update
+      chart.transitionStack = function() {
+        data = d3.layout.stack()
+                     .offset('zero')
+                     .values(function(d){ return d.values })
+                     .y(getY)
+                     (data);
+
+        seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
+            data.map(function(d) { 
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
+              })
+            });
+
+        y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY))])
+            .range([availableHeight, 0]);
+
+        //d3.transition(bars)
+        bars.transition()
+          .delay(function(d,i) { console.log(i); return i *100 })
+          .attr('x', 0)
+          .attr('y', function(d,i) {
+            console.log(y(getY(d,i) + d.y0),  getY(d,i), d.y0);
+            return y(getY(d,i) + d.y0);
+          })
+          .attr('width', x.rangeBand() )
+          .attr('height', function(d,i) {
+            return Math.abs(y(d.y + d.y0) - y(d.y0))
+          });
+      }
+*/
+
 
 
       chart.update = function() {
