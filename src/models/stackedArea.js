@@ -5,12 +5,12 @@ nv.models.stackedArea = function() {
       width = 960,
       height = 500,
       color = d3.scale.category20().range(), // array of colors to be used in order
+      id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
       style = 'stack',
       offset = 'zero',
       order = 'default',
-      interactive = true, // If true, plots a voronoi overlay for advanced point interection
       clipEdge = false, // if true, masks lines within x and y scale
       xDomain, yDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
@@ -29,22 +29,19 @@ nv.models.stackedArea = function() {
   var scatter= nv.models.scatter()
         .size(2.2) // default size
         .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x = d3.scale.linear(),
-      y = d3.scale.linear(),
+      x2 = d3.scale.linear(),
+      y2 = d3.scale.linear(),
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
         // Need to leave data alone to switch between stacked, stream, and expanded
         var dataCopy = JSON.parse(JSON.stringify(data)),
-            seriesData = dataCopy.map(function(d) {  //TODO: series data is barely used, can probably remove this pretty easily
-              return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i) }
-              })
-            }),
             availableWidth = width - margin.left - margin.right,
             availableHeight = height - margin.top - margin.bottom;
 
+
+        //TODO: deal with negative stacked charts
 
         //compute the data based on offset and order (calc's y0 for every point)
         dataCopy = d3.layout.stack()
@@ -55,15 +52,22 @@ nv.models.stackedArea = function() {
                      (dataCopy);
 
 
-        x   .domain(xDomain || d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
+
+/*
+        var seriesData = dataCopy.map(function(d) {  //TODO: series data is barely used, can probably remove this pretty easily
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i) }
+              })
+            });
+
+        x2  .domain(xDomain || d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
             .range([0, availableWidth]);
 
-        //TODO: deal with negative stacked charts
-        y   .domain(yDomain || [0, d3.max(dataCopy, function(d) {   //TODO; if dataCopy not fed {x, y} (custom getX or getY), this will probably cause an error
+        y2  .domain(yDomain || [0, d3.max(dataCopy, function(d) {   //TODO; if dataCopy not fed {x, y} (custom getX or getY), this will probably cause an error
               return d3.max(d.values, function(d) { return d.y0 + d.y })
             }) ])
             .range([availableHeight, 0]);
-
+*/
 
 
         var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
@@ -73,6 +77,31 @@ nv.models.stackedArea = function() {
         var g = wrap.select('g');
 
         gEnter.append('g').attr('class', 'areaWrap');
+
+
+        scatter
+          .width(availableWidth)
+          .height(availableHeight)
+          .x(getX)
+          .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
+          .forceY([0])
+          .color(data.map(function(d,i) {
+            return d.color || color[i % 20];
+          }).filter(function(d,i) { return !data[i].disabled }));
+
+        gEnter.append('g').attr('class', 'scatterWrap');
+        var scatterWrap= g.select('.scatterWrap')
+            .datum(dataCopy.filter(function(d) { return !d.disabled }))
+
+        d3.transition(scatterWrap).call(scatter);
+
+
+
+        x = scatter.xScale();
+        y = scatter.yScale();
+
+
+
 
 
         wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -92,26 +121,6 @@ nv.models.stackedArea = function() {
         }
 
 
-
-        //TODO: need to also remove area Hover/Click to turn off interactive
-        if (interactive) {
-          scatter
-            .width(availableWidth)
-            .height(availableHeight)
-            .xDomain(x.domain())
-            .yDomain(y.domain())
-            .x(getX)
-            .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
-            .color(data.map(function(d,i) {
-              return d.color || color[i % 20];
-            }).filter(function(d,i) { return !data[i].disabled }));
-
-          gEnter.append('g').attr('class', 'scatterWrap');
-          var scatterWrap= g.select('.scatterWrap')
-              .datum(dataCopy.filter(function(d) { return !d.disabled }))
-
-          d3.transition(scatterWrap).call(scatter);
-        }
 
 
         var area = d3.svg.area()
@@ -173,13 +182,13 @@ nv.models.stackedArea = function() {
 
         //TODO: these disptach handlers don't need to be called everytime the chart
         //      is called, but 'g' is only in this scope... so need to rethink.
-        scatter.dispatch.on('pointClick.area', function(e) {
+        scatter.dispatch.on('elementClick.area', function(e) {
           dispatch.areaClick(e);
         })
-        scatter.dispatch.on('pointMouseover.area', function(e) {
+        scatter.dispatch.on('elementMouseover.area', function(e) {
           g.select('.area-' + e.seriesIndex).classed('hover', true);
         });
-        scatter.dispatch.on('pointMouseout.area', function(e) {
+        scatter.dispatch.on('elementMouseout.area', function(e) {
           g.select('.area-' + e.seriesIndex).classed('hover', false);
         });
 
@@ -188,6 +197,12 @@ nv.models.stackedArea = function() {
 
     return chart;
   }
+
+
+  chart.dispatch = dispatch;
+  chart.scatter = scatter;
+
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -216,12 +231,6 @@ nv.models.stackedArea = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
-    return chart;
-  };
-
-  chart.interactive = function(_) {
-    if (!arguments.length) return interactive;
-    interactive = _;
     return chart;
   };
 
@@ -272,16 +281,14 @@ nv.models.stackedArea = function() {
     return chart;
   };
 
-  chart.dispatch = dispatch;
-  chart.scatter = scatter;
 
 
-  scatter.dispatch.on('pointMouseover.tooltip', function(e) {
+  scatter.dispatch.on('elementMouseover.tooltip', function(e) {
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
         dispatch.tooltipShow(e);
   });
 
-  scatter.dispatch.on('pointMouseout.tooltip', function(e) {
+  scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
   });
 

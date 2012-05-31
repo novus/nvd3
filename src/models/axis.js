@@ -1,28 +1,27 @@
 
 nv.models.axis = function() {
-  var domain = [0,1], //just to have something to start with, maybe I dont need this
-      range = [0,1],
-      orient = 'bottom',
-      axisLabelText = false;
-
+  //Default Settings
   var scale = d3.scale.linear(),
-      axis = d3.svg.axis().scale(scale);
+      axisLabelText = null,
+      highlightZero = true;
+      //TODO: considering adding margin
+
+  var axis = d3.svg.axis()
+               .scale(scale)
+               .orient('bottom');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      //scale.domain(domain)
-           //.range(range);
-
-      //axis.orient(orient);
-      if (orient == 'top' || orient == 'bottom')
+      if (axis.orient() == 'top' || axis.orient() == 'bottom')
         axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
       //TODO: consider calculating height based on whether or not label is added, for reference in charts using this component
 
       var axisLabel = d3.select(this).selectAll('text.axislabel')
           .data([axisLabelText || null]);
-      switch (orient) {
+      axisLabel.exit().remove();
+      switch (axis.orient()) {
         case 'top':
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
@@ -52,19 +51,17 @@ nv.models.axis = function() {
               .attr('x', -scale.range()[0] / 2);
               break;
       }
-      axisLabel.exit().remove();
       axisLabel
           .text(function(d) { return d });
 
 
-      //d3.select(this)
       d3.transition(d3.select(this))
           .call(axis);
 
-      if (orient == 'left' || orient == 'right')
+      //highlight zero line
+      if (highlightZero)
         d3.select(this)
           .selectAll('line.tick')
-          //.filter(function(d) { return !parseFloat(d) })
           .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
@@ -74,34 +71,8 @@ nv.models.axis = function() {
   }
 
 
-  //TODO: orient, domain, and range could be rebind's... but then they won't return the chart component
-  chart.orient = function(_) {
-    if (!arguments.length) return orient;
-    orient = _;
-    axis.orient(_);
-    return chart;
-  };
-
-  chart.domain = function(_) {
-    if (!arguments.length) return domain;
-    //domain = _;
-    scale.domain(_);
-    return chart;
-  };
-
-  chart.range = function(_) {
-    if (!arguments.length) return range;
-    //range = _;
-    scale.range(_);
-    return chart;
-  };
-
-  chart.scale = function(_) {
-    if (!arguments.length) return scale;
-    scale = _;
-    axis.scale(scale);
-    return chart;
-  };
+  d3.rebind(chart, axis, 'orient', 'ticks', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
 
   chart.axisLabel = function(_) {
     if (!arguments.length) return axisLabelText;
@@ -109,8 +80,20 @@ nv.models.axis = function() {
     return chart;
   }
 
-  //d3.rebind(chart, scale, 'domain', 'range', 'rangRoundBands', 'rangeBands'); //would implement, but will break because domain and range won't return chart... will likelu implement later
-  d3.rebind(chart, axis, 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  chart.highlightZero = function(_) {
+    if (!arguments.length) return highlightZero;
+    highlightZero = _;
+    return chart;
+  }
+
+  chart.scale = function(_) {
+    if (!arguments.length) return scale;
+    scale = _;
+    axis.scale(scale);
+    d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
+    return chart;
+  }
+
 
   return chart;
 }

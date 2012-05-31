@@ -128,6 +128,7 @@ var width = function() { return parseInt(d3.select('#chart').style('width')) },
 var chart = nv.models.stackedAreaWithLegend()
             .width(width)
             .height(height)
+            .clipEdge(true)
             //.y(function(d) { return d.ytest }) //not ready yet for custom accessor, almost there
 
 chart.xAxis

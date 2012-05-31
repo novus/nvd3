@@ -190,7 +190,7 @@ nv.models.scatterWithLegend = function() {
       */
 
 
-      scatter.dispatch.on('pointMouseover.tooltip', function(e) {
+      scatter.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -200,18 +200,18 @@ nv.models.scatterWithLegend = function() {
         });
       });
 
-      scatter.dispatch.on('pointMouseout.tooltip', function(e) {
+      scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 
-      scatter.dispatch.on('pointMouseover.dist', function(d) {
+      scatter.dispatch.on('elementMouseover.dist', function(d) {
           scatterWrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
               .attr('y1', d.pos[1]);
           scatterWrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
               .attr('x1', d.pos[0]);
       });
 
-      scatter.dispatch.on('pointMouseout.dist', function(d) {
+      scatter.dispatch.on('elementMouseout.dist', function(d) {
           scatterWrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
               .attr('y1', y.range()[0]);
           scatterWrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)

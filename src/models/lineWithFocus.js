@@ -215,7 +215,7 @@ nv.models.lineWithFocus = function() {
       });
 */
 
-      focus.dispatch.on('pointMouseover.tooltip', function(e) {
+      focus.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -224,7 +224,7 @@ nv.models.lineWithFocus = function() {
           pointIndex: e.pointIndex
         });
       });
-      focus.dispatch.on('pointMouseout.tooltip', function(e) {
+      focus.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 

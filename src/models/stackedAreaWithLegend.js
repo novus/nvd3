@@ -225,7 +225,7 @@ nv.models.stackedAreaWithLegend = function() {
 
   chart.dispatch = dispatch;
 
-  d3.rebind(chart, stacked, 'interactive');
+  d3.rebind(chart, stacked, 'interactive', 'clipEdge');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;

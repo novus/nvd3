@@ -251,29 +251,28 @@ nv.utils.windowSize = function() {
 
 
 nv.models.axis = function() {
-  var domain = [0,1], //just to have something to start with, maybe I dont need this
-      range = [0,1],
-      orient = 'bottom',
-      axisLabelText = false;
-
+  //Default Settings
   var scale = d3.scale.linear(),
-      axis = d3.svg.axis().scale(scale);
+      axisLabelText = null,
+      highlightZero = true;
+      //TODO: considering adding margin
+
+  var axis = d3.svg.axis()
+               .scale(scale)
+               .orient('bottom');
 
   function chart(selection) {
     selection.each(function(data) {
 
-      //scale.domain(domain)
-           //.range(range);
-
-      //axis.orient(orient);
-      if (orient == 'top' || orient == 'bottom')
+      if (axis.orient() == 'top' || axis.orient() == 'bottom')
         axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
       //TODO: consider calculating height based on whether or not label is added, for reference in charts using this component
 
       var axisLabel = d3.select(this).selectAll('text.axislabel')
           .data([axisLabelText || null]);
-      switch (orient) {
+      axisLabel.exit().remove();
+      switch (axis.orient()) {
         case 'top':
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
@@ -303,19 +302,17 @@ nv.models.axis = function() {
               .attr('x', -scale.range()[0] / 2);
               break;
       }
-      axisLabel.exit().remove();
       axisLabel
           .text(function(d) { return d });
 
 
-      //d3.select(this)
       d3.transition(d3.select(this))
           .call(axis);
 
-      if (orient == 'left' || orient == 'right')
+      //highlight zero line
+      if (highlightZero)
         d3.select(this)
           .selectAll('line.tick')
-          //.filter(function(d) { return !parseFloat(d) })
           .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
@@ -325,34 +322,8 @@ nv.models.axis = function() {
   }
 
 
-  //TODO: orient, domain, and range could be rebind's... but then they won't return the chart component
-  chart.orient = function(_) {
-    if (!arguments.length) return orient;
-    orient = _;
-    axis.orient(_);
-    return chart;
-  };
-
-  chart.domain = function(_) {
-    if (!arguments.length) return domain;
-    //domain = _;
-    scale.domain(_);
-    return chart;
-  };
-
-  chart.range = function(_) {
-    if (!arguments.length) return range;
-    //range = _;
-    scale.range(_);
-    return chart;
-  };
-
-  chart.scale = function(_) {
-    if (!arguments.length) return scale;
-    scale = _;
-    axis.scale(scale);
-    return chart;
-  };
+  d3.rebind(chart, axis, 'orient', 'ticks', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
 
   chart.axisLabel = function(_) {
     if (!arguments.length) return axisLabelText;
@@ -360,8 +331,20 @@ nv.models.axis = function() {
     return chart;
   }
 
-  //d3.rebind(chart, scale, 'domain', 'range', 'rangRoundBands', 'rangeBands'); //would implement, but will break because domain and range won't return chart... will likelu implement later
-  d3.rebind(chart, axis, 'ticks', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  chart.highlightZero = function(_) {
+    if (!arguments.length) return highlightZero;
+    highlightZero = _;
+    return chart;
+  }
+
+  chart.scale = function(_) {
+    if (!arguments.length) return scale;
+    scale = _;
+    axis.scale(scale);
+    d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
+    return chart;
+  }
+
 
   return chart;
 }
@@ -1331,7 +1314,7 @@ nv.models.cumulativeLine = function() {
       });
       */
 
-      lines.dispatch.on('pointMouseover.tooltip', function(e) {
+      lines.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -1341,7 +1324,7 @@ nv.models.cumulativeLine = function() {
         });
       });
 
-      lines.dispatch.on('pointMouseout.tooltip', function(e) {
+      lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 
@@ -1885,7 +1868,7 @@ nv.models.linePlusBar = function() {
       });
 
 
-      lines.dispatch.on('pointMouseover.tooltip', function(e) {
+      lines.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -1895,7 +1878,7 @@ nv.models.linePlusBar = function() {
         });
       });
 
-      lines.dispatch.on('pointMouseout.tooltip', function(e) {
+      lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 
@@ -2253,7 +2236,7 @@ nv.models.lineWithFocus = function() {
       });
 */
 
-      focus.dispatch.on('pointMouseover.tooltip', function(e) {
+      focus.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -2262,7 +2245,7 @@ nv.models.lineWithFocus = function() {
           pointIndex: e.pointIndex
         });
       });
-      focus.dispatch.on('pointMouseout.tooltip', function(e) {
+      focus.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 
@@ -2519,7 +2502,7 @@ nv.models.lineWithLegend = function() {
       });
 */
 
-      lines.dispatch.on('pointMouseover.tooltip', function(e) {
+      lines.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -2529,7 +2512,7 @@ nv.models.lineWithLegend = function() {
         });
       });
 
-      lines.dispatch.on('pointMouseout.tooltip', function(e) {
+      lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 
@@ -3380,16 +3363,15 @@ nv.models.scatter = function() {
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
       z = d3.scale.sqrt(), //sqrt because point size is done by area, not radius
-      dispatch = d3.dispatch('pointClick', 'pointMouseover', 'pointMouseout'),//TODO: consider renaming to elementMouseove and elementMouseout for consistency
+      dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout'),//TODO: consider renaming to elementMouseove and elementMouseout for consistency
       x0, y0, z0,
       timeoutID;
 
   function chart(selection) {
     selection.each(function(data) {
-      //var seriesData = data.map(function(d) { 
+      //var seriesData = data.map(function(d) {
       var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
-        //console.log('recalculating');
-            data.map(function(d) { 
+            data.map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i), size: getSize(d,i) }
               })
@@ -3405,8 +3387,6 @@ nv.models.scatter = function() {
       //add series index to each data point for reference
       data = data.map(function(series, i) {
         series.values = series.values.map(function(point) {
-          //point.label = series.label;
-          //point.color = series.color;
           point.series = i;
           return point;
         });
@@ -3415,6 +3395,7 @@ nv.models.scatter = function() {
 
 
       //TODO: figure out the best way to deal with scales with equal MIN and MAX
+      //TODO: think of a good way to re-use scales
       x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
           .range([0, availableWidth]);
 
@@ -3505,7 +3486,7 @@ nv.models.scatter = function() {
               var series = data[d.series],
                   point  = series.values[d.point];
 
-              dispatch.pointClick({
+              dispatch.elementClick({
                 point: point,
                 series:series,
                 pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
@@ -3517,7 +3498,7 @@ nv.models.scatter = function() {
               var series = data[d.series],
                   point  = series.values[d.point];
 
-              dispatch.pointMouseover({
+              dispatch.elementMouseover({
                 point: point,
                 series:series,
                 pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
@@ -3526,7 +3507,7 @@ nv.models.scatter = function() {
               });
             })
             .on('mouseout', function(d, i) {
-              dispatch.pointMouseout({
+              dispatch.elementMouseout({
                 point: data[d.series].values[d.point],
                 series: data[d.series],
                 seriesIndex: d.series,
@@ -3534,12 +3515,12 @@ nv.models.scatter = function() {
               });
             });
 
-        dispatch.on('pointMouseover.point', function(d) {
+        dispatch.on('elementMouseover.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
 
-        dispatch.on('pointMouseout.point', function(d) {
+        dispatch.on('elementMouseout.point', function(d) {
             wrap.select('.series-' + d.seriesIndex + ' circle.point-' + d.pointIndex)
                 .classed('hover', false);
         });
@@ -3907,7 +3888,7 @@ nv.models.scatterWithLegend = function() {
       */
 
 
-      scatter.dispatch.on('pointMouseover.tooltip', function(e) {
+      scatter.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -3917,18 +3898,18 @@ nv.models.scatterWithLegend = function() {
         });
       });
 
-      scatter.dispatch.on('pointMouseout.tooltip', function(e) {
+      scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 
-      scatter.dispatch.on('pointMouseover.dist', function(d) {
+      scatter.dispatch.on('elementMouseover.dist', function(d) {
           scatterWrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
               .attr('y1', d.pos[1]);
           scatterWrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
               .attr('x1', d.pos[0]);
       });
 
-      scatter.dispatch.on('pointMouseout.dist', function(d) {
+      scatter.dispatch.on('elementMouseout.dist', function(d) {
           scatterWrap.select('.series-' + d.seriesIndex + ' .distX-' + d.pointIndex)
               .attr('y1', y.range()[0]);
           scatterWrap.select('.series-' + d.seriesIndex + ' .distY-' + d.pointIndex)
@@ -4442,13 +4423,13 @@ nv.models.stackedArea = function() {
 
         //TODO: these disptach handlers don't need to be called everytime the chart
         //      is called, but 'g' is only in this scope... so need to rethink.
-        scatter.dispatch.on('pointClick.area', function(e) {
+        scatter.dispatch.on('elementClick.area', function(e) {
           dispatch.areaClick(e);
         })
-        scatter.dispatch.on('pointMouseover.area', function(e) {
+        scatter.dispatch.on('elementMouseover.area', function(e) {
           g.select('.area-' + e.seriesIndex).classed('hover', true);
         });
-        scatter.dispatch.on('pointMouseout.area', function(e) {
+        scatter.dispatch.on('elementMouseout.area', function(e) {
           g.select('.area-' + e.seriesIndex).classed('hover', false);
         });
 
@@ -4545,12 +4526,12 @@ nv.models.stackedArea = function() {
   chart.scatter = scatter;
 
 
-  scatter.dispatch.on('pointMouseover.tooltip', function(e) {
+  scatter.dispatch.on('elementMouseover.tooltip', function(e) {
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
         dispatch.tooltipShow(e);
   });
 
-  scatter.dispatch.on('pointMouseout.tooltip', function(e) {
+  scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
   });
 

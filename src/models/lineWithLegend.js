@@ -126,7 +126,7 @@ nv.models.lineWithLegend = function() {
       });
 */
 
-      lines.dispatch.on('pointMouseover.tooltip', function(e) {
+      lines.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
           point: e.point,
           series: e.series,
@@ -136,7 +136,7 @@ nv.models.lineWithLegend = function() {
         });
       });
 
-      lines.dispatch.on('pointMouseout.tooltip', function(e) {
+      lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
 

@@ -8,54 +8,54 @@ nv.models.line = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
-      forceX = [], // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
-      forceY = [], // List of numbers to Force into the Y scale 
-      interactive = true, // If true, plots a voronoi overlay for advanced point interection
-      clipEdge = false, // if true, masks lines within x and y scale
-      clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
-      xDomain, yDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
+      clipEdge = false; // if true, masks lines within x and y scale
 
-  var x = d3.scale.linear(),
-      y = d3.scale.linear(),
-      scatter = nv.models.scatter()
+  var scatter = nv.models.scatter()
         .size(2.5) // default size
         .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x0, y0,
+      x, y, x0, y0,
       timeoutID;
 
 
   function chart(selection) {
     selection.each(function(data) {
-      var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            data.map(function(d) { 
-              return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i) }
-              })
-            }),
-          availableWidth = width - margin.left - margin.right,
+      var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
       //store old scales if they exist
-      x0 = x0 || x;
-      y0 = y0 || y;
+      x0 = x0 || scatter.xScale();
+      y0 = y0 || scatter.yScale();
 
-
-      x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
-          .range([0, availableWidth]);
-
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
-          .range([availableHeight, 0]);
 
       var wrap = d3.select(this).selectAll('g.d3line').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'd3line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
+      wrapEnter.append('g').attr('class', 'scatterWrap');
+      var scatterWrap = wrap.select('.scatterWrap').datum(data);
+
       gEnter.append('g').attr('class', 'groups');
+
+
+
+      scatter
+        .id(id)
+        .width(availableWidth)
+        .height(availableHeight)
+
+      d3.transition(scatterWrap).call(scatter);
+
+
+      x = scatter.xScale();
+      y = scatter.yScale();
+
+
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
+      //TODO: this doesn't remove if turned off after on...
       if (clipEdge) {
         defsEnter.append('clipPath')
             .attr('id', 'edge-clip-' + id)
@@ -66,6 +66,8 @@ nv.models.line = function() {
             .attr('height', availableHeight);
 
         gEnter
+            .attr('clip-path', 'url(#edge-clip-' + id + ')');
+        scatterWrap
             .attr('clip-path', 'url(#edge-clip-' + id + ')');
       }
 
@@ -111,21 +113,6 @@ nv.models.line = function() {
           );
 
 
-      scatter
-        .id(id)
-        .interactive(interactive)
-        .width(availableWidth)
-        .height(availableHeight)
-        .xDomain(x.domain())
-        .yDomain(y.domain())
-
-
-      wrapEnter.append('g').attr('class', 'scatterWrap');
-      var scatterWrap = wrap.select('.scatterWrap').datum(data);
-
-      d3.transition(scatterWrap).call(scatter);
-
-
       //store old scales for use in transitions on update, to animate from old to new positions
       x0 = x.copy();
       y0 = y.copy();
@@ -138,7 +125,7 @@ nv.models.line = function() {
 
   chart.dispatch = scatter.dispatch;
 
-  d3.rebind(chart, scatter, 'size');
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -172,46 +159,9 @@ nv.models.line = function() {
     return chart;
   };
 
-  chart.xDomain = function(_) {
-    if (!arguments.length) return xDomain;
-    xDomain = _;
-    return chart;
-  };
-
-  chart.yDomain = function(_) {
-    if (!arguments.length) return yDomain;
-    yDomain = _;
-    return chart;
-  };
-
-  chart.forceX = function(_) {
-    if (!arguments.length) return forceX;
-    forceX = _;
-    return chart;
-  };
-
-  chart.forceY = function(_) {
-    if (!arguments.length) return forceY;
-    forceY = _;
-    return chart;
-  };
-
-  chart.interactive = function(_) {
-    if (!arguments.length) return interactive;
-    interactive = _;
-    return chart;
-  };
-
   chart.clipEdge = function(_) {
     if (!arguments.length) return clipEdge;
     clipEdge = _;
-    scatter.clipEdge(_);
-    return chart;
-  };
-
-  chart.clipVoronoi= function(_) {
-    if (!arguments.length) return clipVoronoi;
-    clipVoronoi = _;
     return chart;
   };
 
