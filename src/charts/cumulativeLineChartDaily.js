@@ -15,7 +15,8 @@ nv.charts.cumulativeLineChartDaily = function() {
 
 
   var graph = nv.models.cumulativeLine()
-                .x(function(d,i) { return i }),
+                .x(function(d,i) { return i })
+                .color(d3.scale.category10().range()),
       showTooltip = function(e) {
         var offsetElement = document.getElementById(selector.substr(1)),
             left = e.pos[0] + offsetElement.offsetLeft,

@@ -7,7 +7,8 @@ nv.models.cumulativeLine = function() {
       dotRadius = function() { return 2.5 },
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      id = Math.floor(Math.random() * 10000); //Create semi-unique ID incase user doesn't select one
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
+      rescaleY = true;
 
   var x = d3.scale.linear(),
       dx = d3.scale.linear(),
@@ -15,10 +16,15 @@ nv.models.cumulativeLine = function() {
       xAxis = nv.models.axis().scale(x).orient('bottom'),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
+      controls = nv.models.legend().height(30),
       lines = nv.models.line(),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
       index = {i: 0, x: 0};
 
+  //TODO: let user select default
+  var controlsData = [
+    { key: 'Re-scale y-axis' }
+  ];
 
   var indexDrag = d3.behavior.drag()
                     .on('dragstart', dragStart)
@@ -50,23 +56,24 @@ nv.models.cumulativeLine = function() {
       var series = indexify(index.i, data);
 
       var seriesData = series
-            .filter(function(d) { return !d.disabled })
+            .filter(function(d) { return !rescaleY || !d.disabled }) // only filter out if rescaling y axis
             .map(function(d) { return d.values });
 
+
       x   .domain(d3.extent(d3.merge(seriesData), function(d) { return d.x } ))
-          .range([0, width - margin.left - margin.right]);
+          .range([0, availableWidth]);
 
       dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
-          .range([0, width - margin.left - margin.right])
+          .range([0, availableWidth])
           .clamp(true);
 
       y   .domain(d3.extent(d3.merge(seriesData), function(d) { return d.y } ))
-          .range([height - margin.top - margin.bottom, 0]);
+          .range([availableHeight, 0]);
 
 
       lines
-        .width(width - margin.left - margin.right)
-        .height(height - margin.top - margin.bottom)
+        .width(availableWidth)
+        .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }))
@@ -79,6 +86,7 @@ nv.models.cumulativeLine = function() {
       gEnter.append('g').attr('class', 'y axis');
       gEnter.append('g').attr('class', 'linesWrap');
       gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
 
 
 
@@ -95,6 +103,12 @@ nv.models.cumulativeLine = function() {
           .datum(data)
           .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
           .call(legend);
+
+      controls.width(140).color(['#444', '#444', '#444']);
+      g.select('.controlsWrap')
+          .datum(controlsData)
+          .attr('transform', 'translate(0,' + (-margin.top) +')')
+          .call(controls);
 
 
       var linesWrap = g.select('.linesWrap')
@@ -115,14 +129,14 @@ nv.models.cumulativeLine = function() {
 
       indexLine
           .attr("transform", function(d) { return "translate(" + dx(d.i) + ",0)" })
-          .attr('height', height - margin.top - margin.bottom)
+          .attr('height', availableHeight)
 
 
       xAxis
         .domain(x.domain())
         .range(x.range())
         .ticks( width / 100 )
-        .tickSize(-(height - margin.top - margin.bottom), 0);
+        .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
@@ -133,7 +147,7 @@ nv.models.cumulativeLine = function() {
         .domain(y.domain())
         .range(y.range())
         .ticks( height / 36 )
-        .tickSize(-(width - margin.right - margin.left), 0);
+        .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
@@ -169,6 +183,19 @@ nv.models.cumulativeLine = function() {
         selection.transition().call(chart)
       });
       */
+
+
+      controls.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+        rescaleY = !d.disabled;
+
+        //console.log(d,i,arguments);
+
+        selection.transition().call(chart);
+      });
+
+
+
 
       lines.dispatch.on('elementMouseover.tooltip', function(e) {
         dispatch.tooltipShow({
@@ -265,6 +292,12 @@ nv.models.cumulativeLine = function() {
   chart.height = function(_) {
     if (!arguments.length) return getHeight;
     getHeight = d3.functor(_);
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
     return chart;
   };
 
