@@ -8,6 +8,7 @@ nv.models.cumulativeLine = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
+      showRescaleToggle = true,
       rescaleY = true;
 
   var x = d3.scale.linear(),
@@ -104,11 +105,13 @@ nv.models.cumulativeLine = function() {
           .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
           .call(legend);
 
-      controls.width(140).color(['#444', '#444', '#444']);
-      g.select('.controlsWrap')
-          .datum(controlsData)
-          .attr('transform', 'translate(0,' + (-margin.top) +')')
-          .call(controls);
+      if (showRescaleToggle) {
+        controls.width(140).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
 
 
       var linesWrap = g.select('.linesWrap')
@@ -298,6 +301,7 @@ nv.models.cumulativeLine = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
+    legend.color(_);
     return chart;
   };
 
@@ -305,6 +309,12 @@ nv.models.cumulativeLine = function() {
     if (!arguments.length) return dotRadius;
     dotRadius = d3.functor(_);
     lines.dotRadius = _;
+    return chart;
+  };
+
+  chart.showRescaleToggle = function(_) {
+    if (!arguments.length) return showRescaleToggle;
+    showRescaleToggle = _;
     return chart;
   };
 
