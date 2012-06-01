@@ -58,7 +58,7 @@ nv.models.bar = function() {
           .attr("dy", ".91em")
           .attr("text-anchor", "start")
           .text(title);
-      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+      gEnter = gEnter.append('g').attr('class', 'nvd3 wrap').attr('id','wrap-'+id).append('g');
 
 
 

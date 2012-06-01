@@ -11,7 +11,7 @@ nv.models.legend = function() {
     selection.each(function(data) {
 
       var wrap = d3.select(this).selectAll('g.legend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'legend').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 legend').append('g');
 
 
       var g = wrap.select('g')

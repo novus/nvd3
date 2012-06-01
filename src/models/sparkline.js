@@ -27,7 +27,7 @@ nv.models.sparkline = function() {
 
       var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
 
-      var gEnter = wrap.enter().append('g').attr('class', 'sparkline');
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 sparkline');
       //var gEnter = svg.enter().append('svg').append('g');
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter

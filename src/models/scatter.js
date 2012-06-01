@@ -67,8 +67,8 @@ nv.models.scatter = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.d3scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3scatter');
+      var wrap = d3.select(this).selectAll('g.wrap.scatter').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')

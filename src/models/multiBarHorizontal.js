@@ -72,7 +72,7 @@ nv.models.multiBarHorizontal = function() {
 
 
       var wrap = d3.select(this).selectAll('g.d3multibar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3multibar');
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 multibar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 

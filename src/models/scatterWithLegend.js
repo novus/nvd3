@@ -27,8 +27,8 @@ nv.models.scatterWithLegend = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3scatterWithLegend').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.scatterWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x axis');

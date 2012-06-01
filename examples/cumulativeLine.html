@@ -65,6 +65,7 @@ nv.addGraph({
     var chart = nv.models.cumulativeLine()
                 .width(width)
                 .height(height)
+                .color(d3.scale.category10().range())
                 //.margin({top: 20, right: 10, bottom: 50, left: 80})
 
         //chart.yAxis.axisLabel('Cumulative');

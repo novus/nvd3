@@ -81,7 +81,7 @@ nv.models.cumulativeLine = function() {
 
 
       var wrap = d3.select(this).classed('chart-' + id, true).selectAll('g.wrap').data([series]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3cumulativeLine').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 cumulativeLine').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');

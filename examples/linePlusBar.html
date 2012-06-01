@@ -83,7 +83,8 @@ nv.addGraph({
     chart
         .x(function(d,i) { return i })
         .width(width)
-        .height(height);
+        .height(height)
+        .color(d3.scale.category10().range());
 
     chart.xAxis.tickFormat(function(d) {
       var dx = data[0].values[d] && data[0].values[d].x || 0;

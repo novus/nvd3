@@ -70,7 +70,7 @@ nv.models.lineWithFocus = function() {
 
 
       var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithFocus').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap .nvd3 .lineWithFocus').append('g');
 
       gEnter.append('g').attr('class', 'focus');
       gEnter.append('g').attr('class', 'context');

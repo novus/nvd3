@@ -4,6 +4,9 @@
 //   and every series starts at the same value and is 1 to 1
 //     In other words, values at the same index, need to have the same x value
 //     for all series
+//
+// TODO: now that tooltips don't use jquery, could likely get rid of the charts 
+//       collection by simply adding some optional functionality to the model
 nv.charts.cumulativeLineChartDaily = function() {
   var selector = null,
       data = [],
@@ -56,7 +59,7 @@ nv.charts.cumulativeLineChartDaily = function() {
 
   // This should always only be called once, then update should be used after, 
   //     in which case should consider the 'd3 way' and merge this with update, 
-  //     but simply do this on enter... should try anoter example that way
+  //     but simply do this on enter... will try another example the d3 way
   chart.build = function() {
     if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
 
@@ -83,6 +86,7 @@ nv.charts.cumulativeLineChartDaily = function() {
         graph.dispatch.on('tooltipShow', showTooltip);
         graph.dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
+        //TODO: fix issue of multiple graphs failing on resize
         //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
         window.onresize =
         function() {
@@ -166,4 +170,5 @@ nv.charts.cumulativeLineChartDaily = function() {
 
   return chart;
 };
+
 

@@ -65,8 +65,8 @@ nv.models.linePlusBar = function() {
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3linePlusBar').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.linePlusBar').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 linePlusBar').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y1 axis');
@@ -239,6 +239,12 @@ nv.models.linePlusBar = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
 
   return chart;
 }

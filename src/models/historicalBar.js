@@ -48,19 +48,9 @@ nv.models.historicalBar = function() {
             });
           });
 
-/*
-      var wrap = parent.selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter();
-      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
 
-      var wrap = parent.selectAll('g.wrap').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'bar');
-      var gEnter = wrapEnter.append('g');
-      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
-     */
-
-      var wrap = d3.select(this).selectAll('g.d3bar').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3bar');
+      var wrap = d3.select(this).selectAll('g.wrap.bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bar');
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'bars');

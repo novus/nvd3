@@ -50,8 +50,8 @@ nv.models.stackedArea = function() {
 
 
 
-        var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
-        var wrapEnter = wrap.enter().append('g').attr('class', 'd3stackedarea');
+        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([dataCopy]);
+        var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedarea');
         var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
         var g = wrap.select('g');

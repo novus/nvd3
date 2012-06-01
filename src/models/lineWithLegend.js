@@ -43,8 +43,8 @@ nv.models.lineWithLegend = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithLegend').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.lineWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');

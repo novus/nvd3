@@ -27,8 +27,8 @@ nv.models.line = function() {
       y0 = y0 || scatter.yScale();
 
 
-      var wrap = d3.select(this).selectAll('g.d3line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3line');
+      var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
