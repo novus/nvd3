@@ -22,7 +22,7 @@ JS_FILES = \
 	src/models/sparklinePlus.js \
 	src/models/stackedArea.js \
 	src/models/stackedAreaWithLegend.js \
-	src/charts/cumulativeLineChartDaily.js \
+	src/charts/cumulativeLineChart.js \
 	src/charts/lineChart.js \
 	src/charts/lineChartDaily.js \
 	src/charts/stackedAreaChart.js \

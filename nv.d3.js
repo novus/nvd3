@@ -250,6 +250,18 @@ nv.utils.windowSize = function() {
 };
 
 
+
+// Easy way to bind multiple functions to window.onresize
+// TODO: give a way to remove a function after its bound, other than removing alkl of them
+nv.utils.windowResize = function(fun){
+  var oldresize = window.onresize;
+
+  window.onresize = function(e) {
+    oldresize(e);
+    fun(e);
+  }
+}
+
 nv.models.axis = function() {
   //Default Settings
   var scale = d3.scale.linear(),
@@ -408,7 +420,7 @@ nv.models.bar = function() {
           .attr("dy", ".91em")
           .attr("text-anchor", "start")
           .text(title);
-      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
+      gEnter = gEnter.append('g').attr('class', 'nvd3 wrap').attr('id','wrap-'+id).append('g');
 
 
 
@@ -648,19 +660,9 @@ nv.models.historicalBar = function() {
             });
           });
 
-/*
-      var wrap = parent.selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter();
-      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
 
-      var wrap = parent.selectAll('g.wrap').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'bar');
-      var gEnter = wrapEnter.append('g');
-      gEnter = gEnter.append('g').attr('class', 'wrap').attr('id','wrap-'+id).append('g');
-     */
-
-      var wrap = d3.select(this).selectAll('g.d3bar').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3bar');
+      var wrap = d3.select(this).selectAll('g.wrap.bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bar');
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'bars');
@@ -1152,6 +1154,7 @@ nv.models.cumulativeLine = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
+      showRescaleToggle = true,
       rescaleY = true;
 
   var x = d3.scale.linear(),
@@ -1224,7 +1227,7 @@ nv.models.cumulativeLine = function() {
 
 
       var wrap = d3.select(this).classed('chart-' + id, true).selectAll('g.wrap').data([series]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3cumulativeLine').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 cumulativeLine').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -1248,11 +1251,13 @@ nv.models.cumulativeLine = function() {
           .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
           .call(legend);
 
-      controls.width(140).color(['#444', '#444', '#444']);
-      g.select('.controlsWrap')
-          .datum(controlsData)
-          .attr('transform', 'translate(0,' + (-margin.top) +')')
-          .call(controls);
+      if (showRescaleToggle) {
+        controls.width(140).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
 
 
       var linesWrap = g.select('.linesWrap')
@@ -1442,6 +1447,7 @@ nv.models.cumulativeLine = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
+    legend.color(_);
     return chart;
   };
 
@@ -1449,6 +1455,12 @@ nv.models.cumulativeLine = function() {
     if (!arguments.length) return dotRadius;
     dotRadius = d3.functor(_);
     lines.dotRadius = _;
+    return chart;
+  };
+
+  chart.showRescaleToggle = function(_) {
+    if (!arguments.length) return showRescaleToggle;
+    showRescaleToggle = _;
     return chart;
   };
 
@@ -1479,7 +1491,7 @@ nv.models.legend = function() {
     selection.each(function(data) {
 
       var wrap = d3.select(this).selectAll('g.legend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'legend').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 legend').append('g');
 
 
       var g = wrap.select('g')
@@ -1604,8 +1616,8 @@ nv.models.line = function() {
       y0 = y0 || scatter.yScale();
 
 
-      var wrap = d3.select(this).selectAll('g.d3line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3line');
+      var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
@@ -1822,8 +1834,8 @@ nv.models.linePlusBar = function() {
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3linePlusBar').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.linePlusBar').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 linePlusBar').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y1 axis');
@@ -1996,6 +2008,12 @@ nv.models.linePlusBar = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
 
   return chart;
 }
@@ -2071,7 +2089,7 @@ nv.models.lineWithFocus = function() {
 
 
       var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithFocus').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithFocus').append('g');
 
       gEnter.append('g').attr('class', 'focus');
       gEnter.append('g').attr('class', 'context');
@@ -2399,8 +2417,8 @@ nv.models.lineWithLegend = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithLegend').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.lineWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -2597,8 +2615,8 @@ nv.models.multiBar = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.d3multibar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3multibar');
+      var wrap = d3.select(this).selectAll('g.wrap.multibar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multibar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
@@ -2918,8 +2936,8 @@ nv.models.multiBarWithLegend = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3lineWithLegend').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.multiBarWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -3404,8 +3422,8 @@ nv.models.scatter = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.d3scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'd3scatter');
+      var wrap = d3.select(this).selectAll('g.wrap.scatter').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
@@ -3737,8 +3755,8 @@ nv.models.scatterWithLegend = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3scatterWithLegend').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.scatterWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x axis');
@@ -3998,7 +4016,7 @@ nv.models.sparkline = function() {
 
       var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
 
-      var gEnter = wrap.enter().append('g').attr('class', 'sparkline');
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 sparkline');
       //var gEnter = svg.enter().append('svg').append('g');
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter
@@ -4126,7 +4144,7 @@ nv.models.sparklinePlus = function() {
 
       var gEnter = wrap.enter().append('g')
       //var gEnter = svg.enter().append('svg').append('g');
-      var sparklineWrap = gEnter.append('g').attr('class', 'sparklineplus')
+      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
           //.style('fill', function(d, i){ return d.color || color[i % 10] })
           .style('stroke', function(d, i){ return d.color || color[i % 10] });
@@ -4294,8 +4312,8 @@ nv.models.stackedArea = function() {
 
 
 
-        var wrap = d3.select(this).selectAll('g.d3stackedarea').data([dataCopy]);
-        var wrapEnter = wrap.enter().append('g').attr('class', 'd3stackedarea');
+        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([dataCopy]);
+        var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedarea');
         var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
         var g = wrap.select('g');
@@ -4575,8 +4593,8 @@ nv.models.stackedAreaWithLegend = function() {
         .color(color)
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap d3stackedWithLegend').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.stackedAreaWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -4796,6 +4814,9 @@ nv.models.stackedAreaWithLegend = function() {
 //   and every series starts at the same value and is 1 to 1
 //     In other words, values at the same index, need to have the same x value
 //     for all series
+//
+// TODO: now that tooltips don't use jquery, could likely get rid of the charts 
+//       collection by simply adding some optional functionality to the model
 nv.charts.cumulativeLineChartDaily = function() {
   var selector = null,
       data = [],
@@ -4848,7 +4869,7 @@ nv.charts.cumulativeLineChartDaily = function() {
 
   // This should always only be called once, then update should be used after, 
   //     in which case should consider the 'd3 way' and merge this with update, 
-  //     but simply do this on enter... should try anoter example that way
+  //     but simply do this on enter... will try another example the d3 way
   chart.build = function() {
     if (!selector || !data.length) return chart; //do nothing if you have nothing to work with
 
@@ -4875,6 +4896,7 @@ nv.charts.cumulativeLineChartDaily = function() {
         graph.dispatch.on('tooltipShow', showTooltip);
         graph.dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
+        //TODO: fix issue of multiple graphs failing on resize
         //TODO: create resize queue and have nv core handle resize instead of binding all to window resize
         window.onresize =
         function() {
@@ -4958,6 +4980,7 @@ nv.charts.cumulativeLineChartDaily = function() {
 
   return chart;
 };
+
 
 
 // This is an attempt to make an extremely easy to use chart that is ready to go,
