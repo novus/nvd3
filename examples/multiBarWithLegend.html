@@ -41,7 +41,7 @@ text {
 <script src="stream_layers.js"></script>
 <script>
 
-var test_data = stream_layers(3,64,.1).map(function(data, i) {
+var test_data = stream_layers(3,Math.random()*200,.1).map(function(data, i) {
   return {
     key: 'Stream' + i,
     values: data

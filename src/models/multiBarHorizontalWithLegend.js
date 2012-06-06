@@ -3,7 +3,8 @@ nv.models.multiBarHorizontalWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = function() { return 960 },
       height = function() { return 500 },
-      color = d3.scale.category20().range();
+      color = d3.scale.category20().range(),
+      showControls = true;
 
   //var x = d3.scale.linear(),
   var x = d3.scale.ordinal(),
@@ -92,11 +93,13 @@ nv.models.multiBarHorizontalWithLegend = function() {
           .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
           .call(legend);
 
-      controls.width(180).color(['#444', '#444', '#444']);
-      g.select('.controlsWrap')
-          .datum(controlsData)
-          .attr('transform', 'translate(0,' + (-margin.top) +')')
-          .call(controls);
+      if (showControls) {
+        controls.width(180).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
 
 
       var linesWrap = g.select('.linesWrap')
@@ -217,6 +220,12 @@ nv.models.multiBarHorizontalWithLegend = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = d3.functor(_);
+    return chart;
+  };
+
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
     return chart;
   };
 

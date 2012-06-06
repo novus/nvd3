@@ -66,13 +66,13 @@ nv.models.multiBarHorizontal = function() {
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableHeight], .1);
 
-      y   .domain(yDomain || [0,d3.max(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY))])
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY)))
           .range([0, availableWidth]);
 
 
 
-      var wrap = d3.select(this).selectAll('g.d3multibar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 multibar');
+      var wrap = d3.select(this).selectAll('g.wrap.multibar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multibar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
