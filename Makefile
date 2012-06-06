@@ -15,6 +15,8 @@ JS_FILES = \
 	src/models/lineWithLegend.js \
 	src/models/multiBar.js \
 	src/models/multiBarWithLegend.js \
+	src/models/multiBarHorizontal.js \
+	src/models/multiBarHorizontalWithLegend.js \
 	src/models/pie.js \
 	src/models/scatter.js \
 	src/models/scatterWithLegend.js \
