@@ -192,10 +192,11 @@ nv.addGraph({
       //   ex. daily data without weekends, x is the index, while you want the date
       var content = '<h3>' + e.series.key + '</h3>' +
                     '<p>' +
-                    formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
+                    formatX(chart.x()(e.point)) + ': ' + formatY(chart.y()(e.point)) +
+                    //formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
                     '</p>';
 
-      nv.tooltip.show([left, top], content);
+      nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w');
     };
 
     chart.dispatch.on('tooltipShow', showTooltip);

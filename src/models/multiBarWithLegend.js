@@ -18,7 +18,7 @@ nv.models.multiBarWithLegend = function() {
   //TODO: let user select default
   var controlsData = [
     { key: 'Grouped' },
-    { key: 'Stacked', disabled: true },
+    { key: 'Stacked', disabled: true }
   ];
 
   function chart(selection) {
