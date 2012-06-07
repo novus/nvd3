@@ -143,8 +143,7 @@ long_short_data = [
   chart = nv.models.multiBarHorizontalWithLegend()
             .x(function(d) { return d.label })
             .margin({top: 30, right: 20, bottom: 50, left: 160})
-            .showControls(false)
-            .forceY([0]),
+            .showControls(false),
       data = long_short_data,
       //data = test_data,
       xTickFormat = function(d) { return d },
@@ -181,7 +180,7 @@ nv.addGraph({
     return chart;
   },
   callback: function(chart) {
-    var showTooltip = function(e) {
+    var showTooltip = function showTooltip(e) {
       var offsetElement = document.getElementById(selector.substr(1)),
           left = e.pos[0] + offsetElement.offsetLeft,
           top = e.pos[1] + offsetElement.offsetTop,
@@ -196,7 +195,15 @@ nv.addGraph({
                     //formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
                     '</p>';
 
-      nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w');
+      var tooltip = nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w');
+
+      /*
+      if (!arguments[1]) {
+        tooltip.onmouseenter = function() { showTooltip(e, 1) }; //working on geting tooltips to stay if mouse hovers over them
+        //tooltip.onmouseout = function() { console.log('mouseout'); };
+        tooltip.onmouseout = nv.tooltip.cleanup;
+      }
+      */
     };
 
     chart.dispatch.on('tooltipShow', showTooltip);

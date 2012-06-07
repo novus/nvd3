@@ -58,7 +58,7 @@ nv.models.stackedAreaWithLegend = function() {
 
 
       var wrap = d3.select(this).selectAll('g.wrap.stackedAreaWithLegend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedWithLegend').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedAreaWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
