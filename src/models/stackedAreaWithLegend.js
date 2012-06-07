@@ -3,7 +3,6 @@ nv.models.stackedAreaWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       getWidth = function() { return 960 },
       getHeight = function() { return 500 },
-      dotRadius = function() { return 2.5 },
       color = d3.scale.category20().range();
 
   var x = d3.scale.linear(),
@@ -225,7 +224,7 @@ nv.models.stackedAreaWithLegend = function() {
 
   chart.dispatch = dispatch;
 
-  d3.rebind(chart, stacked, 'interactive', 'clipEdge');
+  d3.rebind(chart, stacked, 'interactive', 'clipEdge', 'size');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -256,13 +255,6 @@ nv.models.stackedAreaWithLegend = function() {
   chart.height = function(_) {
     if (!arguments.length) return getHeight;
     getHeight = d3.functor(_);
-    return chart;
-  };
-
-  chart.dotRadius = function(_) {
-    if (!arguments.length) return dotRadius;
-    dotRadius = d3.functor(_);
-    stacked.dotRadius = _;
     return chart;
   };
 
