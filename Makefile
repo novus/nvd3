@@ -27,6 +27,7 @@ JS_FILES = \
 	src/models/stackedArea.js \
 	src/models/stackedAreaWithLegend.js \
 	src/charts/cumulativeLineChart.js \
+	src/charts/discreteBarChart.js \
 	src/charts/lineChart.js \
 	src/charts/lineChartDaily.js \
 	src/charts/stackedAreaChart.js \

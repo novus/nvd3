@@ -177,11 +177,13 @@ svg .title {
 *  Bars
 */
 
-.nvd3 .multibar .groups rect {
+.nvd3 .multibar .groups rect,
+.nvd3 .discretebar .groups rect {
   stroke-opacity: 0;
 }
 
-.nvd3 .multibar .groups rect:hover {
+.nvd3 .multibar .groups rect:hover,
+.nvd3 .discretebar .groups rect:hover {
   fill-opacity: 1;
 }
 
