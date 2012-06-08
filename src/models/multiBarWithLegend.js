@@ -3,7 +3,9 @@ nv.models.multiBarWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = function() { return 960 },
       height = function() { return 500 },
-      color = d3.scale.category20().range();
+      color = d3.scale.category20().range(),
+      showControls = true,
+      showLegend = true;
 
   //var x = d3.scale.linear(),
   var x = d3.scale.ordinal(),
@@ -62,7 +64,7 @@ nv.models.multiBarWithLegend = function() {
         //.xDomain(x.domain())
         //.yDomain(y.domain())
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % 20];
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -78,26 +80,31 @@ nv.models.multiBarWithLegend = function() {
 
 
 
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var g = wrap.select('g');
 
 
-      legend.width(availableWidth / 2);
+      if (showLegend) {
+        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+        margin.top = legend.height();
 
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
-          .call(legend);
+        legend.width(availableWidth / 2);
 
-      controls.width(180).color(['#444', '#444', '#444']);
-      g.select('.controlsWrap')
-          .datum(controlsData)
-          .attr('transform', 'translate(0,' + (-margin.top) +')')
-          .call(controls);
+        g.select('.legendWrap')
+            .datum(data)
+            .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
+            .call(legend);
+      }
 
+      if (showControls) {
+        controls.width(180).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       var linesWrap = g.select('.linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
@@ -215,6 +222,18 @@ nv.models.multiBarWithLegend = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = d3.functor(_);
+    return chart;
+  };
+
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
     return chart;
   };
 

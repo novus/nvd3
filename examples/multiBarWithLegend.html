@@ -48,10 +48,72 @@ var test_data = stream_layers(3,Math.random()*200,.1).map(function(data, i) {
   };
 });
 
+
+
+
+
+
+historicalBarChart = [ 
+  {
+    key: "Cumulative Return",
+    values: [
+      { 
+        "label" : "CDS / Options" ,
+        "color": true,
+        "value" : -29.765957771107
+      } , 
+      { 
+        "label" : "Cash" , 
+        "color": true,
+        "value" : 0
+      } , 
+      { 
+        "label" : "Corporate Bonds" , 
+        "color": true,
+        "value" : 32.807804682612
+      } , 
+      { 
+        "label" : "Equity" , 
+        "color": true,
+        "value" : 196.45946739256
+      } , 
+      { 
+        "label" : "Index Futures" ,
+        "color": true,
+        "value" : 0.19434030906893
+      } , 
+      { 
+        "label" : "Options" , 
+        "color": true,
+        "value" : -98.079782601442
+      } , 
+      { 
+        "label" : "Preferred" , 
+        "color": true,
+        "value" : -13.925743130903
+      } , 
+      { 
+        "label" : "Not Available" , 
+        "color": true,
+        "value" : -5.1387322875705
+      }
+    ]
+  }
+];
+ 
+
+
+
+
+
 var selector = '#chart1',
-    chart = nv.models.multiBarWithLegend(),
-    data = test_data,
-    xTickFormat = d3.format(',r'),
+    chart = nv.models.multiBarWithLegend()
+              .x(function(d) { return d.label })
+              .y(function(d) { return d.value })
+              .showControls(false)
+              .showLegend(false),
+    data = historicalBarChart,
+    xTickFormat = function(d) { return d },
     yTickFormat = d3.format(',.2f'),
     xAxisLabel = null,
     yAxisLabel = null,
@@ -98,7 +160,7 @@ nv.addGraph({
                     formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
                     '</p>';
 
-      nv.tooltip.show([left, top], content);
+      nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
     };
 
     chart.dispatch.on('tooltipShow', showTooltip);

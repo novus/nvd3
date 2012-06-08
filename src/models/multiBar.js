@@ -16,6 +16,7 @@ nv.models.multiBar = function() {
   //var x = d3.scale.linear(),
   var x = d3.scale.ordinal(),
       y = d3.scale.linear(),
+      colors = d3.scale.category10().range(), //Temporary hack to have a list of colors always available
       dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
@@ -137,6 +138,8 @@ nv.models.multiBar = function() {
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
           .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+          .style('fill', function(d,i){  return d.color && typeof d.color === 'boolean' ? colors[i % 10] : d.color }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
+          .style('stroke', function(d,i){ return d.color && typeof d.color === 'boolean' ? colors[i % 10] : d.color })
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
@@ -213,10 +216,12 @@ nv.models.multiBar = function() {
             .each('end', function() {
               d3.transition(d3.select(this))
                 .attr('y', function(d,i) {
-                  return y(getY(d,i));
+                  return getY(d,i) < 0 ?
+                    y(0) :
+                    y(getY(d,i)) 
                 })
                 .attr('height', function(d,i) {
-                  return Math.abs(y(d.y) - y(0))
+                  return Math.abs(y(getY(d,i)) - y(0))
                 });
             })
 
