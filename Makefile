@@ -8,6 +8,8 @@ JS_FILES = \
 	src/models/historicalBar.js \
 	src/models/bullet.js \
 	src/models/cumulativeLine.js \
+	src/models/discreteBar.js \
+	src/models/discreteBarWithAxes.js \
 	src/models/legend.js \
 	src/models/line.js \
 	src/models/linePlusBar.js \

@@ -34,33 +34,66 @@ text {
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
-<script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
-<script src="../src/models/multiBar.js"></script>
-<script src="../src/models/multiBarWithLegend.js"></script>
+<script src="../src/models/discreteBar.js"></script>
+<script src="../src/models/discreteBarWithAxes.js"></script>
 <script src="stream_layers.js"></script>
 <script>
 
-var test_data = stream_layers(3,Math.random()*200,.1).map(function(data, i) {
-  return {
-    key: 'Stream' + i,
-    values: data
-  };
-});
 
 
-
+historicalBarChart = [ 
+  {
+    key: "Cumulative Return",
+    values: [
+      { 
+        "label" : "CDS / Options" ,
+        "value" : -29.765957771107
+      } , 
+      { 
+        "label" : "Cash" , 
+        "value" : 0
+      } , 
+      { 
+        "label" : "Corporate Bonds" , 
+        "value" : 32.807804682612
+      } , 
+      { 
+        "label" : "Equity" , 
+        "value" : 196.45946739256
+      } , 
+      { 
+        "label" : "Index Futures" ,
+        "value" : 0.19434030906893
+      } , 
+      { 
+        "label" : "Options" , 
+        "value" : -98.079782601442
+      } , 
+      { 
+        "label" : "Preferred" , 
+        "value" : -13.925743130903
+      } , 
+      { 
+        "label" : "Not Available" , 
+        "value" : -5.1387322875705
+      }
+    ]
+  }
+];
+ 
 
 
 
 
 
 var selector = '#chart1',
-    chart = nv.models.multiBarWithLegend(),
-              //.x(function(d) { return d.label })
-              //.y(function(d) { return d.value })
-    data = test_data,
-    xTickFormat = d3.format(',f'),
+    chart = nv.models.discreteBarWithAxes()
+              .color(d3.scale.category10().range())
+              .x(function(d) { return d.label })
+              .y(function(d) { return d.value }),
+    data = historicalBarChart,
+    xTickFormat = function(d) { return d },
     yTickFormat = d3.format(',.2f'),
     xAxisLabel = null,
     yAxisLabel = null,
@@ -102,9 +135,9 @@ nv.addGraph({
 
       // uses the chart's getX and getY, you may customize if x position is not the same as the value you want
       //   ex. daily data without weekends, x is the index, while you want the date
-      var content = '<h3>' + e.series.key + '</h3>' +
+      var content = '<h3>' + formatX(chart.x()(e.point))  + '</h3>' +
                     '<p>' +
-                    formatY(chart.y()(e.point)) + ' at ' + formatX(chart.x()(e.point)) +
+                    formatY(chart.y()(e.point)) + 
                     '</p>';
 
       nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
@@ -133,30 +166,6 @@ nv.addGraph({
   }
 });
 
-
-
-function sinAndCos() {
-  var sin = [],
-      cos = [];
-
-  for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
-    cos.push({x: i, y: .5 * Math.cos(i/10)});
-  }
-
-  return [
-    {
-      values: sin,
-      key: "Sine Wave",
-      color: "#ff7f0e"
-    },
-    {
-      values: cos,
-      key: "Cosine Wave",
-      color: "#2ca02c"
-    }
-  ];
-}
 
 
 </script>

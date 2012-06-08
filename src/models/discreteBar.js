@@ -1,5 +1,5 @@
 
-nv.models.multiBar = function() {
+nv.models.discreteBar = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
@@ -19,6 +19,7 @@ nv.models.multiBar = function() {
       dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
+//TODO: remove all the code taht deals with multiple series
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
@@ -64,8 +65,8 @@ nv.models.multiBar = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.multibar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multibar');
+      var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discretebar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
@@ -87,18 +88,12 @@ nv.models.multiBar = function() {
 
 
 
+      //TODO: by definiteion, the discrete bar should not have multiple groups, will modify/remove later
       var groups = wrap.select('.groups').selectAll('.group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
-          /*
-          .attr('transform', function(d,i) {
-              return stacked ? 
-                        'translate(0,0)'
-                      : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
-          });
-         */
       d3.transition(groups.exit())
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
@@ -106,16 +101,9 @@ nv.models.multiBar = function() {
       groups
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % 10] })
-          .style('stroke', function(d,i){ return color[i % 10] });
+          //.style('fill', function(d,i){ return color[i % 10] })
+          //.style('stroke', function(d,i){ return color[i % 10] });
       d3.transition(groups)
-      /*
-          .attr('transform', function(d,i) {
-              return stacked ? 
-                        'translate(0,0)'
-                      : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
-          })
-         */
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -137,6 +125,8 @@ nv.models.multiBar = function() {
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
           .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+          .style('fill', function(d,i){  return d.color || color[i % 10] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
+          .style('stroke', function(d,i){ return d.color || color[i % 10] })
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
