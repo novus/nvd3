@@ -368,7 +368,7 @@ svg .title {
   pointer-events: all;
 }
 
-.nvd3 .sparklineplus .hoverArea {
+.nvd3 .hoverArea {
   fill-opacity: 0;
   stroke-opacity: 0;
 }
