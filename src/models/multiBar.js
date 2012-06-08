@@ -16,7 +16,7 @@ nv.models.multiBar = function() {
   //var x = d3.scale.linear(),
   var x = d3.scale.ordinal(),
       y = d3.scale.linear(),
-      colors = d3.scale.category10().range(), //Temporary hack to have a list of colors always available
+      colors = d3.scale.category10().range(), //Temporary hack to have a list of colors always available... TODO: THIS is why there needs to be a separate, DISCRETE bar implementation, instead of making this one ugly
       dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
