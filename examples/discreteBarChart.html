@@ -93,6 +93,7 @@ nv.charts.discreteBar()
     .data(historicalBarChart)
     .x(function(d) { return d.label })
     .y(function(d) { return d.value })
+    .staggerLabels(historicalBarChart[0].values.length > 8)
     .build();
 
 

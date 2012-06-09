@@ -3,7 +3,8 @@ nv.models.discreteBarWithAxes = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = function() { return 960 },
       height = function() { return 500 },
-      color = d3.scale.category20().range();
+      color = d3.scale.category20().range(),
+      staggerLabels = false;
 
   var discretebar = nv.models.discreteBar(),
       x = discretebar.xScale(),
@@ -68,19 +69,21 @@ nv.models.discreteBarWithAxes = function() {
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
+
       var xTicks = g.select('.x.axis').selectAll('g');
 
-/*
-      xTicks
-          .selectAll('line, text')
-          .style('opacity', 1)
+      if (staggerLabels)
+        xTicks
+            .selectAll('text')
+            .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '0' : '12') + ')' })
 
+          /*
       xTicks.filter(function(d,i) {
             return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
           })
           .selectAll('line, text')
           .style('opacity', 0)
-*/
+         */
 
       yAxis
         .scale(y)
@@ -135,6 +138,12 @@ nv.models.discreteBarWithAxes = function() {
     if (!arguments.length) return color;
     color = _;
     discretebar.color(_);
+    return chart;
+  };
+
+  chart.staggerLabels = function(_) {
+    if (!arguments.length) return staggerLabels;
+    staggerLabels = _;
     return chart;
   };
 

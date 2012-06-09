@@ -76,7 +76,8 @@ nv.charts.discreteBar = function() {
             d3.select(selector + ' svg')
                 .attr('width', graph.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
                 .attr('height', graph.height()())
-                .call(graph);
+                .transition().duration(duration).call(graph);
+                //.call(graph);
           }
         );
       }
@@ -147,7 +148,7 @@ nv.charts.discreteBar = function() {
     return chart;
   };
 
-  d3.rebind(chart, graph, 'x', 'y');
+  d3.rebind(chart, graph, 'x', 'y', 'staggerLabels');
 
   chart.graph = graph; // Give direct access for getter/setters, and dispatchers
 
