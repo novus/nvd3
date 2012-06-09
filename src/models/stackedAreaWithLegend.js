@@ -122,20 +122,23 @@ nv.models.stackedAreaWithLegend = function() {
       stacked.dispatch.on('areaClick.toggle', function(e) {
         if (data.filter(function(d) { return !d.disabled }).length === 1)
           data = data.map(function(d) { 
-            d.disabled = false; 
             if (d.disabled)
-              d.values.map(function(p) { p._y = p.y; p.y = 0; return p }); //TODO: need to use value from getY, not always d.y
-            else
               d.values.map(function(p) { p.y = p._y || p.y; return p }); // ....
+
+            d.disabled = false; 
+
             return d 
           });
         else
           data = data.map(function(d,i) { 
-            d.disabled = (i != e.seriesIndex); 
-            if (d.disabled)
+            if (!d.disabled && i !== e.seriesIndex)
               d.values.map(function(p) { p._y = p.y; p.y = 0; return p }); //TODO: need to use value from getY, not always d.y
-            else
+
+            if (d.disabled && i === e.seriesIndex)
               d.values.map(function(p) { p.y = p._y || p.y; return p }); // ....
+
+            d.disabled = (i != e.seriesIndex); 
+
             return d 
           });
 
@@ -205,19 +208,23 @@ nv.models.stackedAreaWithLegend = function() {
           return false;
         }
 
-        dispatch.tooltipShow({
-          point: e.point,
-          series: e.series,
-          pos: [e.pos[0] + margin.left,  e.pos[1] + margin.top],
-          seriesIndex: e.seriesIndex,
-          pointIndex: e.pointIndex
-        });
+        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+        dispatch.tooltipShow(e);
       });
 
       stacked.dispatch.on('tooltipHide', function(e) {
         dispatch.tooltipHide(e);
       });
     });
+
+
+
+    /*
+    // If the legend changed the margin's height, need to recalc positions... should think of a better way to prevent duplicate work
+    if (margin.top != legend.height())
+      chart(selection);
+     */
+
 
     return chart;
   }

@@ -155,9 +155,11 @@ nv.models.lineWithLegend = function() {
     });
 
 
+    /*
     // If the legend changed the margin's height, need to recalc positions... should think of a better way to prevent duplicate work
     if (margin.top != legend.height())
       chart(selection);
+     */
 
 
     //TODO: decide if this is a good idea, and if it should be in all models

@@ -28,6 +28,8 @@ nv.models.stackedArea = function() {
   var scatter= nv.models.scatter()
         .size(2.2) // default size
         .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+      x = scatter.xScale(),
+      y = scatter.yScale(),
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
@@ -62,24 +64,18 @@ nv.models.stackedArea = function() {
         scatter
           .width(availableWidth)
           .height(availableHeight)
-          .x(getX)
+          //.x(getX)
           .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
           .forceY([0])
-          .color(data.map(function(d,i) {
+          .color(dataCopy.map(function(d,i) {
             return d.color || color[i % 20];
-          }).filter(function(d,i) { return !data[i].disabled }));
+          }).filter(function(d,i) { return !dataCopy[i].disabled }));
 
         gEnter.append('g').attr('class', 'scatterWrap');
         var scatterWrap= g.select('.scatterWrap')
             .datum(dataCopy.filter(function(d) { return !d.disabled }))
 
         d3.transition(scatterWrap).call(scatter);
-
-
-
-        x = scatter.xScale();
-        y = scatter.yScale();
-
 
 
 
@@ -184,12 +180,14 @@ nv.models.stackedArea = function() {
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
+    scatter.x(_);
     return chart;
   };
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = d3.functor(_);
+    //scatter.y(_);
     return chart;
   }
 

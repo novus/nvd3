@@ -117,67 +117,69 @@ var histcatexplong = [
 
 
 
+nv.addGraph(function() {
 
 
-var width = function() { return parseInt(d3.select('#chart').style('width')) },
-    height = function() { return parseInt(d3.select('#chart').style('height')) };
-    //xTickFormat = d3.format(',r'),
-    xTickFormat = function(d) { return d3.time.format('%x')(new Date(d)) },
-    yTickFormat = d3.format(',.2f');
+  var width = function() { return parseInt(d3.select('#chart').style('width')) },
+      height = function() { return parseInt(d3.select('#chart').style('height')) };
+      //xTickFormat = d3.format(',r'),
+      xTickFormat = function(d) { return d3.time.format('%x')(new Date(d)) },
+      yTickFormat = d3.format(',.2f');
 
-var chart = nv.models.stackedAreaWithLegend()
-            .width(width)
-            .height(height)
-            .clipEdge(true)
-            //.y(function(d) { return d.ytest }) //not ready yet for custom accessor, almost there
+  var chart = nv.models.stackedAreaWithLegend()
+              .width(width)
+              .height(height)
+              .clipEdge(true)
+              //.y(function(d) { return d.ytest }) //not ready yet for custom accessor, almost there
 
-chart.xAxis
-    .tickFormat(xTickFormat);
+  chart.xAxis
+      .tickFormat(xTickFormat);
 
-chart.yAxis
-    .tickFormat(yTickFormat);
-
-
-
-var svg = d3.select('#chart svg')
-  .attr('width', width())
-  .attr('height', height())
-  .datum(histcatexplong)
-  //.datum(data)
-
-svg.transition().duration(500).call(chart);
-
-
-chart.dispatch.on('tooltipShow', function(e) {
-    var offsetElement = document.getElementById("chart"),
-            left = e.pos[0] + offsetElement.offsetLeft,
-            top = e.pos[1] + offsetElement.offsetTop,
-            formatterY = chart.stacked.offset() == 'expand' ? d3.format(',.2%') : d3.format(',.2f'); //TODO: stacked format should be set by caller
-      //formatterX = function(d) { return d };
-
-  var content = '<h3>' + e.series.key + '</h3>' +
-                '<p>' +
-                formatterY(chart.y()(e.point)) + ' on ' + xTickFormat(chart.x()(e.point)) +
-                '</p>';
-
-  nv.tooltip.show([left, top], content);
-});
-
-chart.dispatch.on('tooltipHide', function(e) {
-  nv.tooltip.cleanup();
-});
+  chart.yAxis
+      .tickFormat(yTickFormat);
 
 
 
-window.onresize = function() {
-  d3.select('#chart svg')
+  var svg = d3.select('#chart svg')
     .attr('width', width())
     .attr('height', height())
-    .call(chart);
-};
+    .datum(histcatexplong)
+    //.datum(data)
+
+  svg.transition().duration(500).call(chart);
+
+
+  chart.dispatch.on('tooltipShow', function(e) {
+      var offsetElement = document.getElementById("chart"),
+              left = e.pos[0] + offsetElement.offsetLeft,
+              top = e.pos[1] + offsetElement.offsetTop,
+              formatterY = chart.stacked.offset() == 'expand' ? d3.format(',.2%') : d3.format(',.2f'); //TODO: stacked format should be set by caller
+        //formatterX = function(d) { return d };
+
+    var content = '<h3>' + e.series.key + '</h3>' +
+                  '<p>' +
+                  formatterY(chart.y()(e.point)) + ' on ' + xTickFormat(chart.x()(e.point)) +
+                  '</p>';
+
+    nv.tooltip.show([left, top], content);
+  });
+
+  chart.dispatch.on('tooltipHide', function(e) {
+    nv.tooltip.cleanup();
+  });
 
 
 
+  window.onresize = function() {
+    d3.select('#chart svg')
+      .attr('width', width())
+      .attr('height', height())
+      .call(chart);
+  };
+
+
+  return chart;
+});
 
 
 
