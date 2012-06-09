@@ -25,7 +25,7 @@ nv.charts.discreteBar = function() {
 
   //setting component defaults
   graph.xAxis.tickFormat(function(d) { return d });
-  graph.yAxis.tickFormat(d3.format(',.2f'));
+  graph.yAxis.tickFormat(d3.format(',.f'));
 
 
   //TODO: consider a method more similar to how the models are built

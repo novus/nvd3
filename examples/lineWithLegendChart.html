@@ -50,7 +50,7 @@ svg {
 
 // Wrapping in nv.addGraph allows for '0 timeout render', stors rendered charts in nv.graphs, and may do more in the future... it's NOT required
 nv.addGraph(function() {  
-  chart = nv.models.lineWithLegend();
+  chart = nv.models.lineChart();
 
   chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the partent chart, so need to chain separately
       .tickFormat(d3.format(',r'));

@@ -1,5 +1,5 @@
 
-nv.models.lineWithLegend = function() {
+nv.models.lineChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       color = d3.scale.category20().range(),
       width = null, 
@@ -86,8 +86,7 @@ nv.models.lineWithLegend = function() {
 
 
       xAxis
-        .domain(x.domain())
-        .range(x.range())
+        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -98,8 +97,7 @@ nv.models.lineWithLegend = function() {
 
 
       yAxis
-        .domain(y.domain())
-        .range(y.range())
+        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
@@ -137,13 +135,8 @@ nv.models.lineWithLegend = function() {
 */
 
       lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        dispatch.tooltipShow({
-          point: e.point,
-          series: e.series,
-          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
-          seriesIndex: e.seriesIndex,
-          pointIndex: e.pointIndex
-        });
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
       });
       dispatch.on('tooltipShow', function(e) { showTooltip(e, this) } ); // TODO: maybe merge with above?
 

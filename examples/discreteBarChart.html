@@ -13,12 +13,16 @@ text {
   font: 12px sans-serif;
 }
 
-#chart1 {
+svg {
+  display: block;
+}
+
+#chart1 svg{
   height: 500px;
-  margin: 10px;
   min-width: 100px;
   min-height: 100px;
 /*
+  margin: 10px;
   Minimum height and width is a good idea to prevent negative SVG dimensions...
   For example width should be =< margin.left + margin.right + 1,
   of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
@@ -29,6 +33,7 @@ text {
 <body>
 
   <div id="chart1">
+    <svg></svg>
   </div>
 
 <script src="../lib/d3.v2.js"></script>
@@ -38,7 +43,7 @@ text {
 <script src="../src/models/axis.js"></script>
 <script src="../src/models/discreteBar.js"></script>
 <script src="../src/models/discreteBarWithAxes.js"></script>
-<script src="../src/charts/discreteBarChart.js"></script>
+<script src="../src/models/discreteBarChart.js"></script>
 <script>
 
 
@@ -88,13 +93,17 @@ historicalBarChart = [
 
 
 
-nv.charts.discreteBar()
-    .selector('#chart1')
-    .data(historicalBarChart)
+var chart = nv.models.discreteBarChart()
     .x(function(d) { return d.label })
     .y(function(d) { return d.value })
     .staggerLabels(historicalBarChart[0].values.length > 8)
-    .build();
+
+
+d3.select('#chart1 svg')
+    .datum(historicalBarChart)
+  .transition().duration(500)
+    .call(chart);
+
 
 
 </script>
