@@ -5,12 +5,11 @@ nv.models.discreteBarWithAxes = function() {
       height = function() { return 500 },
       color = d3.scale.category20().range();
 
-  //var x = d3.scale.linear(),
-  var x = d3.scale.ordinal(),
-      y = d3.scale.linear(),
+  var discretebar = nv.models.discreteBar(),
+      x = discretebar.xScale(),
+      y = discretebar.yScale(),
       xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false),
       yAxis = nv.models.axis().scale(y).orient('left'),
-      discretebar = nv.models.discreteBar().stacked(false),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   //TODO: let user select default
@@ -22,47 +21,20 @@ nv.models.discreteBarWithAxes = function() {
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width() - margin.left - margin.right,
-          availableHeight = height() - margin.top - margin.bottom,
-          seriesData;
+          availableHeight = height() - margin.top - margin.bottom;
 
-      if (discretebar.stacked()) {
-        seriesData = data.filter(function(d) { return !d.disabled })
-          .reduce(function(prev, curr, index) {  //sum up all the y's
-              curr.values.forEach(function(d,i) {
-                if (!index) prev[i] = {x: discretebar.x()(d,i), y:0};
-                prev[i].y += discretebar.y()(d,i);
-              });
-              return prev;
-            }, []);
-      } else {
-        seriesData = data.filter(function(d) { return !d.disabled })
+      var seriesData = data.filter(function(d) { return !d.disabled })
           .map(function(d) { 
             return d.values.map(function(d,i) {
               return { x: discretebar.x()(d,i), y: discretebar.y()(d,i) }
             })
           });
-      }
 
 
-      //x   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(discretebar.forceX) ))
-          //.range([0, availableWidth]);
-
-      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-          .rangeBands([0, availableWidth], .1);
-          //.rangeRoundBands([0, availableWidth], .1);
-
-      y   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(discretebar.forceY) ))
-          .range([availableHeight, 0]);
 
       discretebar
         .width(availableWidth)
-        .height(availableHeight)
-        //.xDomain(x.domain())
-        //.yDomain(y.domain())
-        //.color(data.map(function(d,i) {
-          //return d.color || color[i % 20];
-        //}).filter(function(d,i) { return !data[i].disabled }))
-
+        .height(availableHeight);
 
 
       var wrap = d3.select(this).selectAll('g.wrap.discreteBarWithAxes').data([data]);
@@ -70,7 +42,7 @@ nv.models.discreteBarWithAxes = function() {
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'linesWrap');
+      gEnter.append('g').attr('class', 'barsWrap');
 
 
 
@@ -79,17 +51,15 @@ nv.models.discreteBarWithAxes = function() {
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      var linesWrap = g.select('.linesWrap')
+      var barsWrap = g.select('.barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
 
-      d3.transition(linesWrap).call(discretebar);
+      d3.transition(barsWrap).call(discretebar);
 
 
       xAxis
         .scale(x)
-        //.domain(x.domain())
-        //.range(x.range())
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -100,6 +70,7 @@ nv.models.discreteBarWithAxes = function() {
 
       var xTicks = g.select('.x.axis').selectAll('g');
 
+/*
       xTicks
           .selectAll('line, text')
           .style('opacity', 1)
@@ -109,10 +80,10 @@ nv.models.discreteBarWithAxes = function() {
           })
           .selectAll('line, text')
           .style('opacity', 0)
+*/
 
       yAxis
-        .domain(y.domain())
-        .range(y.range())
+        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 

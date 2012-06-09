@@ -4,19 +4,18 @@ nv.models.discreteBar = function() {
       width = 960,
       height = 500,
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
+      x = d3.scale.ordinal(),
+      y = d3.scale.linear(),
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
       clipEdge = true,
-      stacked = false,
       color = d3.scale.category20().range(),
       xDomain, yDomain,
       x0, y0;
 
   //var x = d3.scale.linear(),
-  var x = d3.scale.ordinal(),
-      y = d3.scale.linear(),
-      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+  var dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
 //TODO: remove all the code taht deals with multiple series
@@ -28,15 +27,6 @@ nv.models.discreteBar = function() {
       //store old scales if they exist
       x0 = x0 || x;
       y0 = y0 || y;
-
-      if (stacked) {
-      //var stackedData = d3.layout.stack()
-        data = d3.layout.stack()
-                     .offset('zero')
-                     .values(function(d){ return d.values })
-                     .y(getY)
-                     (data);
-      }
 
 
 
@@ -60,7 +50,7 @@ nv.models.discreteBar = function() {
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY)))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
           .range([availableHeight, 0]);
 
 
@@ -118,13 +108,13 @@ nv.models.discreteBar = function() {
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('fill', function(d,i) { return color[0]; })
           .attr('x', function(d,i,j) {
-              return stacked ? 0 : (j * x.rangeBand() / data.length )
+              return j * x.rangeBand() / data.length
           })
           //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
-          .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
+          .attr('y', function(d) { return y0(0) })
           .attr('height', 0)
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+          .attr('width', x.rangeBand() / data.length )
           .style('fill', function(d,i){  return d.color || color[i % 10] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
           .style('stroke', function(d,i){ return d.color || color[i % 10] })
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
@@ -133,7 +123,7 @@ nv.models.discreteBar = function() {
               value: getY(d,i),
               point: d,
               series: data[d.series],
-              pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
+              pos: [x(getX(d,i)) + (x.rangeBand() * (d.series + .5) / data.length), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
               pointIndex: i,
               seriesIndex: d.series,
               e: d3.event
@@ -155,7 +145,7 @@ nv.models.discreteBar = function() {
               value: getY(d,i),
               point: d,
               series: data[d.series],
-              pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
+              pos: [x(getX(d,i)) + (x.rangeBand() * (d.series + .5) / data.length), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
               pointIndex: i,
               seriesIndex: d.series,
               e: d3.event
@@ -167,7 +157,7 @@ nv.models.discreteBar = function() {
               value: getY(d,i),
               point: d,
               series: data[d.series],
-              pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
+              pos: [x(getX(d,i)) + (x.rangeBand() * (d.series + .5) / data.length), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
               pointIndex: i,
               seriesIndex: d.series,
               e: d3.event
@@ -177,40 +167,23 @@ nv.models.discreteBar = function() {
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
-      if (stacked)
-        d3.transition(bars)
-            .delay(function(d,i) { return i * 1000 / data[0].values.length })
-            .attr('y', function(d,i) {
-              return y(getY(d,i) + (stacked ? d.y0 : 0));
-            })
-            .attr('height', function(d,i) {
-              return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
-            })
-            .each('end', function() {
-              d3.transition(d3.select(this))
-                .attr('x', function(d,i) {
-                  return stacked ? 0 : (d.series * x.rangeBand() / data.length )
-                })
-                .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
-            })
-      else
-        d3.transition(bars)
-          .delay(function(d,i) { return i * 1200 / data[0].values.length })
-            .attr('x', function(d,i) {
-              return d.series * x.rangeBand() / data.length
-            })
-            .attr('width', x.rangeBand() / data.length)
-            .each('end', function() {
-              d3.transition(d3.select(this))
-                .attr('y', function(d,i) {
-                  return getY(d,i) < 0 ?
-                    y(0) :
-                    y(getY(d,i)) 
-                })
-                .attr('height', function(d,i) {
-                  return Math.abs(y(getY(d,i)) - y(0))
-                });
-            })
+      d3.transition(bars)
+        .delay(function(d,i) { return i * 1200 / data[0].values.length })
+          .attr('x', function(d,i) {
+            return d.series * x.rangeBand() / data.length
+          })
+          .attr('width', x.rangeBand() / data.length)
+          .each('end', function() {
+            d3.transition(d3.select(this))
+              .attr('y', function(d,i) {
+                return getY(d,i) < 0 ?
+                  y(0) :
+                  y(getY(d,i)) 
+              })
+              .attr('height', function(d,i) {
+                return Math.abs(y(getY(d,i)) - y(0))
+              });
+          })
 
 
 
@@ -262,6 +235,18 @@ nv.models.discreteBar = function() {
     return chart;
   };
 
+  chart.xScale = function(_) {
+    if (!arguments.length) return x;
+    x = _;
+    return chart;
+  };
+
+  chart.yScale = function(_) {
+    if (!arguments.length) return y;
+    y = _;
+    return chart;
+  };
+
   chart.xDomain = function(_) {
     if (!arguments.length) return xDomain;
     xDomain = _;
@@ -277,12 +262,6 @@ nv.models.discreteBar = function() {
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
-    return chart;
-  };
-
-  chart.stacked = function(_) {
-    if (!arguments.length) return stacked;
-    stacked = _;
     return chart;
   };
 
