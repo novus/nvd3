@@ -10,10 +10,15 @@ nv.models.line = function() {
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
       clipEdge = false; // if true, masks lines within x and y scale
 
+
   var scatter = nv.models.scatter()
-        .size(2.5) // default size
-        .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x, y, x0, y0,
+                  .id(id)
+                  .size(2.5) // default size
+                  .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+      x = scatter.xScale(),
+      y = scatter.yScale(),
+      x0 = x, 
+      y0 = y,
       timeoutID;
 
 
@@ -21,10 +26,6 @@ nv.models.line = function() {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
-
-      //store old scales if they exist
-      x0 = x0 || scatter.xScale();
-      y0 = y0 || scatter.yScale();
 
 
       var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
@@ -39,18 +40,11 @@ nv.models.line = function() {
       gEnter.append('g').attr('class', 'groups');
 
 
-
       scatter
-        .id(id)
         .width(availableWidth)
         .height(availableHeight)
 
       d3.transition(scatterWrap).call(scatter);
-
-
-      x = scatter.xScale();
-      y = scatter.yScale();
-
 
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');

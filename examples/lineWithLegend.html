@@ -13,6 +13,10 @@ text {
   font: 12px sans-serif;
 }
 
+svg {
+  display: block;
+}
+
 #chart1 {
   height: 500px;
   margin: 10px;
@@ -56,11 +60,11 @@ nv.addGraph({
     var container = d3.select(selector),
         width = function() { return parseInt(container.style('width')) },
         height = function() { return parseInt(container.style('height')) },
-        svg = container.append('svg');
+        svg = container.append('svg').style('height', '500px');
 
     chart
-        .width(width)
-        .height(height);
+        //.width(width)
+        //.height(height);
 
     chart.xAxis
         .tickFormat(xTickFormat);
@@ -70,8 +74,8 @@ nv.addGraph({
         .axisLabel(yAxisLabel);
 
     svg
-        .attr('width', width())
-        .attr('height', height())
+        //.attr('width', width())
+        //.attr('height', height())
         .datum(data)
       .transition().duration(duration).call(chart);
 
@@ -102,8 +106,8 @@ nv.addGraph({
     window.onresize= function() {
       // now that width and height are functions, should be automatic..of course you can always override them
       d3.select('#chart1 svg')
-          .attr('width', chart.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
-          .attr('height', chart.height()())
+          //.attr('width', chart.width()()) //need to set SVG dimensions, chart is not aware of the SVG component
+          //.attr('height', chart.height()())
           .call(chart);
     };
   }

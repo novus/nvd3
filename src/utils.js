@@ -33,7 +33,7 @@ nv.utils.windowResize = function(fun){
   var oldresize = window.onresize;
 
   window.onresize = function(e) {
-    oldresize(e);
+    if (typeof oldresize == 'function') oldresize(e);
     fun(e);
   }
 }

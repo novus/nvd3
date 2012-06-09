@@ -12,6 +12,7 @@ JS_FILES = \
 	src/models/discreteBarWithAxes.js \
 	src/models/legend.js \
 	src/models/line.js \
+	src/models/lineChart.js \
 	src/models/linePlusBar.js \
 	src/models/lineWithFocus.js \
 	src/models/lineWithLegend.js \

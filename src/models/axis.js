@@ -8,7 +8,8 @@ nv.models.axis = function() {
 
   var axis = d3.svg.axis()
                .scale(scale)
-               .orient('bottom');
+               .orient('bottom')
+               .tickFormat(function(d) { return d }); //TODO: decide if we want to keep this
 
   function chart(selection) {
     selection.each(function(data) {
