@@ -47,10 +47,11 @@ nv.models.discreteBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this);
 
-      var availableWidth = (width  || parseInt(d3.select(this).style('width')) || 960)
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(d3.select(this).style('height')) || 400)
+          availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
 
@@ -59,7 +60,7 @@ nv.models.discreteBarChart = function() {
         .height(availableHeight);
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.discreteBarWithAxes').data([data]);
+      var wrap = container.selectAll('g.wrap.discreteBarWithAxes').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discreteBarWithAxes').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
@@ -112,7 +113,7 @@ nv.models.discreteBarChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, this) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);

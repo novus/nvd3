@@ -36,10 +36,11 @@ nv.models.lineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this);
 
-      var availableWidth = (width  || parseInt(d3.select(this).style('width')) || 960)
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(d3.select(this).style('height')) || 400)
+          availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
 
@@ -51,7 +52,7 @@ nv.models.lineChart = function() {
           }).filter(function(d,i) { return !data[i].disabled }));
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.lineWithLegend').data([data]);
+      var wrap = container.selectAll('g.wrap.lineWithLegend').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
@@ -138,7 +139,7 @@ nv.models.lineChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      dispatch.on('tooltipShow', function(e) { showTooltip(e, this) } ); // TODO: maybe merge with above?
+      dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
