@@ -161,12 +161,15 @@ nv.models.multiBarHorizontal = function() {
 
       if (showValues && !stacked) {
         barsEnter.append('text')
-          .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'end' : 'start' })
+            .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'end' : 'start' })
         bars.selectAll('text')
-          .attr('y', x.rangeBand() / 2)
-          .attr('dy', '-.5em')
-          .attr('dx', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
-          .text(function(d,i) { return valueFormat(getY(d,i)) })
+            .attr('y', x.rangeBand() / 2)
+            .attr('dy', '-.5em')
+            .text(function(d,i) { return valueFormat(getY(d,i)) })
+        d3.transition(bars)
+            .delay(function(d,i) { return i * 1000 / data[0].values.length })
+          .selectAll('text')
+            .attr('dx', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
       } else {
         bars.selectAll('text').remove();
       }
