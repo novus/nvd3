@@ -72,7 +72,9 @@ svg {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  /* Trying to get SVG to act like a greedy block in all browsers */
   display: block;
+  width:100%;
 }
 
 
