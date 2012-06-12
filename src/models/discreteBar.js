@@ -168,7 +168,7 @@ nv.models.discreteBar = function() {
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
       d3.transition(bars)
-        .delay(function(d,i) { return i * 1200 / data[0].values.length })
+        //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y(0) : y(getY(d,i))) + ')' 
           })
