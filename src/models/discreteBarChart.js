@@ -5,9 +5,10 @@ nv.models.discreteBarChart = function() {
       height = null,
       color = d3.scale.category20().range(),
       staggerLabels = false,
+      tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
-        return '<h3>' + key + '</h3>' +
-               '<p>' +  y + ' at ' + x + '</p>'
+        return '<h3>' + x + '</h3>' +
+               '<p>' +  y + '</p>'
       };
 
 
@@ -85,7 +86,7 @@ nv.models.discreteBarChart = function() {
         .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+          .attr('transform', 'translate(0,' + (y.range()[0] + (discretebar.showValues() ? 16 : 0)) + ')');
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
@@ -118,12 +119,12 @@ nv.models.discreteBarChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      dispatch.on('tooltipShow', function(e) { showTooltip(e, this) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, this) } ); // TODO: maybe merge with above?
 
       discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
-      dispatch.on('tooltipHide', nv.tooltip.cleanup);
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
 
@@ -135,7 +136,7 @@ nv.models.discreteBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id');
+  d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
 
 
   chart.margin = function(_) {
@@ -166,6 +167,18 @@ nv.models.discreteBarChart = function() {
   chart.staggerLabels = function(_) {
     if (!arguments.length) return staggerLabels;
     staggerLabels = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 

@@ -187,6 +187,10 @@ svg .title {
   fill-opacity: 1;
 }
 
+.nvd3 .discretebar .groups text {
+  font-weight: bold;
+}
+
 /***********
 *  Pie Chart
 */

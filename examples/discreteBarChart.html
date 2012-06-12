@@ -99,6 +99,8 @@ nv.addGraph(function() {
       .y(function(d) { return d.value })
       .staggerLabels(true)
       //.staggerLabels(historicalBarChart[0].values.length > 8)
+      .tooltips(false)
+      .showValues(true)
 
 
   d3.select('#chart1 svg')
