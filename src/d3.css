@@ -187,8 +187,11 @@ svg .title {
   fill-opacity: 1;
 }
 
-.nvd3 .discretebar .groups text {
+.nvd3 .discretebar .groups text,
+.nvd3 .multibarHorizontal .groups text {
   font-weight: bold;
+  fill: rgba(0,0,0,1);
+  stroke: rgba(0,0,0,0);
 }
 
 /***********

@@ -96,7 +96,6 @@ nv.models.discreteBar = function() {
 
 
       var barsEnter = bars.enter().append('g')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           .attr('transform', function(d,i,j) {
               return 'translate(' + x(getX(d,i)) + ', ' + y(0) + ')' 
           })
@@ -161,6 +160,8 @@ nv.models.discreteBar = function() {
           .attr('dx', x.rangeBand() / 2)
           .attr('dy', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
           .text(function(d,i) { return valueFormat(getY(d,i)) })
+      } else {
+        bars.selectAll('text').remove();
       }
 
       bars
