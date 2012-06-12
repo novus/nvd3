@@ -66,7 +66,6 @@ nv.addGraph(function() {
 
   //TODO: Figure out a good way to do this automatically
   nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
-  //nv.utils.windowResize(chart.update); //update has transition stored, above does not transition on resize
 
   return chart;
 });

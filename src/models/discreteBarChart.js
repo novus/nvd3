@@ -98,13 +98,6 @@ nv.models.discreteBarChart = function() {
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '0' : '12') + ')' })
 
-          /*
-      xTicks.filter(function(d,i) {
-            return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
-          })
-          .selectAll('line, text')
-          .style('opacity', 0)
-         */
 
       yAxis
         .scale(y)
