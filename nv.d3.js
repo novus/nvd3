@@ -1490,8 +1490,9 @@ nv.models.discreteBar = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      clipEdge = true,
       color = d3.scale.category20().range(),
+      showValues = false,
+      valueFormat = d3.format(',.2f'),
       xDomain, yDomain,
       x0, y0;
 
@@ -1532,8 +1533,10 @@ nv.models.discreteBar = function() {
           .rangeBands([0, availableWidth], .1);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
-          .range([availableHeight, 0]);
+          //.range([availableHeight, 0]);
 
+      if (showValues) y.range([availableHeight - (y.domain()[0] < 0 ? 12 : 0), y.domain()[1] < 0 ? 0 : 12]);
+      else y.range([availableHeight, 0]);
 
 
       var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
@@ -1547,15 +1550,6 @@ nv.models.discreteBar = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-
-      defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
-        .append('rect');
-      wrap.select('#edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
-
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 
@@ -1572,32 +1566,22 @@ nv.models.discreteBar = function() {
       groups
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
-          //.style('fill', function(d,i){ return color[i % 10] })
-          //.style('stroke', function(d,i){ return color[i % 10] });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
 
-      var bars = groups.selectAll('rect.bar')
+      var bars = groups.selectAll('g.bar')
           .data(function(d) { return d.values });
 
       bars.exit().remove();
 
 
-      var barsEnter = bars.enter().append('rect')
+      var barsEnter = bars.enter().append('g')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          //.attr('fill', function(d,i) { return color[0]; })
-          .attr('x', function(d,i,j) {
-              return j * x.rangeBand() / data.length
+          .attr('transform', function(d,i,j) {
+              return 'translate(' + x(getX(d,i)) + ', ' + y(0) + ')' 
           })
-          //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-          //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
-          .attr('y', function(d) { return y0(0) })
-          .attr('height', 0)
-          .attr('width', x.rangeBand() / data.length )
-          .style('fill', function(d,i){  return d.color || color[i % 10] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
-          .style('stroke', function(d,i){ return d.color || color[i % 10] })
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
@@ -1645,26 +1629,35 @@ nv.models.discreteBar = function() {
             });
             d3.event.stopPropagation();
           });
+
+      barsEnter.append('rect')
+          .attr('height', 0)
+          .attr('width', x.rangeBand() / data.length )
+          .style('fill', function(d,i){  return d.color || color[i % 10] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
+          .style('stroke', function(d,i){ return d.color || color[i % 10] })
+
+      if (showValues) {
+        barsEnter.append('text')
+          .attr('text-anchor', 'middle')
+        bars.selectAll('text')
+          .attr('dx', x.rangeBand() / 2)
+          .attr('dy', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
+          .text(function(d,i) { return valueFormat(getY(d,i)) })
+      }
+
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
+          //.attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
       d3.transition(bars)
         .delay(function(d,i) { return i * 1200 / data[0].values.length })
-          .attr('x', function(d,i) {
-            return d.series * x.rangeBand() / data.length
+          .attr('transform', function(d,i) {
+              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y(0) : y(getY(d,i))) + ')' 
           })
+        .selectAll('rect')
           .attr('width', x.rangeBand() / data.length)
-          .each('end', function() {
-            d3.transition(d3.select(this))
-              .attr('y', function(d,i) {
-                return getY(d,i) < 0 ?
-                  y(0) :
-                  y(getY(d,i)) 
-              })
-              .attr('height', function(d,i) {
-                return Math.abs(y(getY(d,i)) - y(0))
-              });
-          })
+          .attr('height', function(d,i) {
+             return Math.abs(y(getY(d,i)) - y(0))
+           });
 
 
 
@@ -1746,12 +1739,6 @@ nv.models.discreteBar = function() {
     return chart;
   };
 
-  chart.clipEdge = function(_) {
-    if (!arguments.length) return clipEdge;
-    clipEdge = _;
-    return chart;
-  };
-
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
@@ -1759,11 +1746,22 @@ nv.models.discreteBar = function() {
   };
 
   chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
   };
 
+  chart.showValues = function(_) {
+    if (!arguments.length) return showValues;
+    showValues = _;
+    return chart;
+  };
+
+  chart.valuesFormat= function(_) {
+    if (!arguments.length) return valueFormat;
+    valueFormat = _;
+    return chart;
+  };
 
 
   return chart;
@@ -1775,9 +1773,10 @@ nv.models.discreteBarChart = function() {
       height = null,
       color = d3.scale.category20().range(),
       staggerLabels = false,
+      tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
-        return '<h3>' + key + '</h3>' +
-               '<p>' +  y + ' at ' + x + '</p>'
+        return '<h3>' + x + '</h3>' +
+               '<p>' +  y + '</p>'
       };
 
 
@@ -1816,10 +1815,11 @@ nv.models.discreteBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this);
 
-      var availableWidth = (width  || parseInt(d3.select(this).style('width')) || 960)
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(d3.select(this).style('height')) || 400)
+          availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
 
@@ -1828,7 +1828,7 @@ nv.models.discreteBarChart = function() {
         .height(availableHeight);
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.discreteBarWithAxes').data([data]);
+      var wrap = container.selectAll('g.wrap.discreteBarWithAxes').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discreteBarWithAxes').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
@@ -1855,7 +1855,7 @@ nv.models.discreteBarChart = function() {
         .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+          .attr('transform', 'translate(0,' + (y.range()[0] + (discretebar.showValues() ? 16 : 0)) + ')');
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
@@ -1867,13 +1867,6 @@ nv.models.discreteBarChart = function() {
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '0' : '12') + ')' })
 
-          /*
-      xTicks.filter(function(d,i) {
-            return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
-          })
-          .selectAll('line, text')
-          .style('opacity', 0)
-         */
 
       yAxis
         .scale(y)
@@ -1888,12 +1881,12 @@ nv.models.discreteBarChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      dispatch.on('tooltipShow', function(e) { showTooltip(e, this) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
-      dispatch.on('tooltipHide', nv.tooltip.cleanup);
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
 
@@ -1905,7 +1898,7 @@ nv.models.discreteBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id');
+  d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
 
 
   chart.margin = function(_) {
@@ -1936,6 +1929,18 @@ nv.models.discreteBarChart = function() {
   chart.staggerLabels = function(_) {
     if (!arguments.length) return staggerLabels;
     staggerLabels = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 
@@ -2415,10 +2420,11 @@ nv.models.lineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this);
 
-      var availableWidth = (width  || parseInt(d3.select(this).style('width')) || 960)
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(d3.select(this).style('height')) || 400)
+          availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
 
@@ -2430,7 +2436,7 @@ nv.models.lineChart = function() {
           }).filter(function(d,i) { return !data[i].disabled }));
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.lineWithLegend').data([data]);
+      var wrap = container.selectAll('g.wrap.lineWithLegend').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
@@ -2517,7 +2523,7 @@ nv.models.lineChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      dispatch.on('tooltipShow', function(e) { showTooltip(e, this) } ); // TODO: maybe merge with above?
+      dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
