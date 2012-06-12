@@ -15,7 +15,6 @@ nv.models.discreteBar = function() {
       xDomain, yDomain,
       x0, y0;
 
-  //var x = d3.scale.linear(),
   var dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 

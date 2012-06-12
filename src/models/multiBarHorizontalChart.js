@@ -1,20 +1,43 @@
 
-nv.models.multiBarHorizontalWithLegend = function() {
+nv.models.multiBarHorizontalChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      width = function() { return 960 },
-      height = function() { return 500 },
+      width = null,
+      height = null,
       color = d3.scale.category20().range(),
-      showControls = true;
+      showControls = true,
+      tooltips = true,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + x + '</h3>' +
+               '<p>' +  y + '</p>'
+      };
 
-  //var x = d3.scale.linear(),
-  var x = d3.scale.ordinal(),
-      y = d3.scale.linear(),
+
+  var multibar = nv.models.multiBarHorizontal().stacked(false),
+      x = multibar.xScale(),
+      y = multibar.yScale(),
       xAxis = nv.models.axis().scale(x).orient('left').highlightZero(false),
       yAxis = nv.models.axis().scale(y).orient('bottom'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
-      multibar = nv.models.multiBarHorizontal().stacked(false),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+
+  xAxis.tickFormat(function(d) { return d });
+  yAxis.tickFormat(d3.format(',.1f'));
+
+  var showTooltip = function(e, offsetElement) {
+    //console.log('left: ' + offsetElement.offsetLeft);
+    //console.log('top: ' + offsetElement.offsetLeft);
+
+    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
+    //var offsetElement = document.getElementById(selector.substr(1)),
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = xAxis.tickFormat()(multibar.x()(e.point)),
+        y = yAxis.tickFormat()(multibar.y()(e.point)),
+        content = tooltip(e.series.key, x, y, e, chart);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w');
+  };
 
   //TODO: let user select default
   var controlsData = [
@@ -24,34 +47,13 @@ nv.models.multiBarHorizontalWithLegend = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width() - margin.left - margin.right,
-          availableHeight = height() - margin.top - margin.bottom,
-          seriesData;
+      var container = d3.select(this);
 
-      if (multibar.stacked()) {
-        seriesData = data.filter(function(d) { return !d.disabled })
-          .reduce(function(prev, curr, index) {  //sum up all the y's
-              curr.values.forEach(function(d,i) {
-                if (!index) prev[i] = {x: multibar.x()(d,i), y:0};
-                prev[i].y += multibar.y()(d,i);
-              });
-              return prev;
-            }, []);
-      } else {
-        seriesData = data.filter(function(d) { return !d.disabled })
-          .map(function(d) { 
-            return d.values.map(function(d,i) {
-              return { x: multibar.x()(d,i), y: multibar.y()(d,i) }
-            })
-          });
-      }
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
 
-
-      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-          .rangeBands([0, availableHeight], .1);
-
-      y   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(multibar.forceY) ))
-          .range([0, availableWidth]);
 
       multibar
         .width(availableWidth)
@@ -62,8 +64,8 @@ nv.models.multiBarHorizontalWithLegend = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarHorizontalWithLegend').append('g');
+      var wrap = d3.select(this).selectAll('g.wrap.multiBarHorizontalChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarHorizontalChart').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -108,8 +110,6 @@ nv.models.multiBarHorizontalWithLegend = function() {
         .ticks( availableHeight / 24 )
         .tickSize(-availableWidth, 0);
 
-      //g.select('.x.axis')
-          //.attr('transform', 'translate(0,' + y.range()[0] + ')');
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
@@ -178,10 +178,12 @@ nv.models.multiBarHorizontalWithLegend = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       multibar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
 
@@ -218,6 +220,18 @@ nv.models.multiBarHorizontalWithLegend = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 
