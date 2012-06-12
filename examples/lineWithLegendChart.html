@@ -65,7 +65,8 @@ nv.addGraph(function() {
       .call(chart);
 
   //TODO: Figure out a good way to do this automatically
-  nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
+  nv.utils.windowResize(chart.update);
+  //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
 
   return chart;
 });

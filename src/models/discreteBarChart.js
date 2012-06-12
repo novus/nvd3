@@ -120,6 +120,12 @@ nv.models.discreteBarChart = function() {
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() {
+        selection.transition().call(chart);
+      }
+
     });
 
     return chart;
