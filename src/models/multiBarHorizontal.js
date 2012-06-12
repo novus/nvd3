@@ -1,11 +1,4 @@
 
-/***
- * This should be pretty close to identical to the multiBar model, but this model
- * has the bars horizontal.
- * Currently naming the vertical axis X, due to helper functions that think the 
- * bars are vertical
- */
-
 nv.models.multiBarHorizontal = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
@@ -16,9 +9,10 @@ nv.models.multiBarHorizontal = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      clipEdge = true,
-      stacked = false,
       color = d3.scale.category20().range(),
+      stacked = false,
+      showValues = false,
+      valueFormat = d3.format(',.2f'),
       xDomain, yDomain,
       x0, y0;
 
@@ -34,15 +28,12 @@ nv.models.multiBarHorizontal = function() {
       x0 = x0 || x;
       y0 = y0 || y;
 
-      if (stacked) {
-      //var stackedData = d3.layout.stack()
+      if (stacked)
         data = d3.layout.stack()
                      .offset('zero')
                      .values(function(d){ return d.values })
                      .y(getY)
                      (data);
-      }
-
 
 
       //add series index to each data point for reference
@@ -62,7 +53,7 @@ nv.models.multiBarHorizontal = function() {
               })
             });
 
-      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
+      x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableHeight], .1);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY)))
@@ -79,17 +70,6 @@ nv.models.multiBarHorizontal = function() {
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-
-
-      defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
-        .append('rect');
-      wrap.select('#edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
-
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
 
 
 
@@ -297,12 +277,6 @@ nv.models.multiBarHorizontal = function() {
     return chart;
   };
 
-  chart.clipEdge = function(_) {
-    if (!arguments.length) return clipEdge;
-    clipEdge = _;
-    return chart;
-  };
-
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
@@ -315,6 +289,17 @@ nv.models.multiBarHorizontal = function() {
         return chart;
   };
 
+  chart.showValues = function(_) {
+    if (!arguments.length) return showValues;
+    showValues = _;
+    return chart;
+  };
+
+  chart.valuesFormat= function(_) {
+    if (!arguments.length) return valueFormat;
+    valueFormat = _;
+    return chart;
+  };
 
 
   return chart;

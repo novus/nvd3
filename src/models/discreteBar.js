@@ -47,7 +47,7 @@ nv.models.discreteBar = function() {
               })
             });
 
-      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
+      x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))

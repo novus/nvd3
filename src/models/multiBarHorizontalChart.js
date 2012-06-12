@@ -64,7 +64,7 @@ nv.models.multiBarHorizontalChart = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.multiBarHorizontalChart').data([data]);
+      var wrap = container.selectAll('g.wrap.multiBarHorizontalChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarHorizontalChart').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
