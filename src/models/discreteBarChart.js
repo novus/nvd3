@@ -62,6 +62,7 @@ nv.models.discreteBarChart = function() {
 
       var wrap = container.selectAll('g.wrap.discreteBarWithAxes').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discreteBarWithAxes').append('g');
+      var defsEnter = gEnter.append('defs');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -81,6 +82,41 @@ nv.models.discreteBarChart = function() {
       d3.transition(barsWrap).call(discretebar);
 
 
+      defsEnter.append('clipPath')
+          .attr('id', 'x-label-clip-' + discretebar.id())
+        .append('rect')
+
+      g.select('#x-label-clip-' + discretebar.id() + ' rect')
+          .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
+          .attr('height', 16)
+          .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
+
+      /*
+      var evenLabelClips = defsEnter.append('clipPath')
+          .attr('id', 'x-label-clip-even-' + discretebar.id())
+        .selectAll('rect')
+          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 0 }) });
+
+      evenLabelClips.enter().append('rect')
+            .attr('width', x.rangeBand())
+            .attr('height', 32)
+            .attr('y', y.range()[0])
+            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
+
+      var oddLabelClips = defsEnter.append('clipPath')
+          .attr('id', 'x-label-clip-odd-' + discretebar.id())
+        .selectAll('rect')
+          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 1 }) });
+
+      oddLabelClips.enter().append('rect')
+            .attr('width', x.rangeBand())
+            .attr('height', 16)
+            .attr('y', y.range()[0] + 16 + (staggerLabels ? 12: 0))
+            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
+            */
+
+
+
       xAxis
         .scale(x)
         .ticks( availableWidth / 100 )
@@ -98,6 +134,10 @@ nv.models.discreteBarChart = function() {
         xTicks
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '0' : '12') + ')' })
+
+      xTicks
+          .selectAll('text')
+          .attr('clip-path', function(d,i,j) { return 'url(#x-label-clip-' + discretebar.id() + ')' });
 
 
       yAxis
@@ -133,6 +173,7 @@ nv.models.discreteBarChart = function() {
 
 
   chart.dispatch = dispatch;
+  chart.discretebar = discretebar; // really just makign the accessible for discretebar.dispatch, may rethink slightly
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 

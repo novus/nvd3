@@ -59,7 +59,6 @@ nv.models.discreteBar = function() {
 
       var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discretebar');
-      var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'groups');

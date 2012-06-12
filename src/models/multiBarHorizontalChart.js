@@ -198,6 +198,7 @@ nv.models.multiBarHorizontalChart = function() {
 
 
   chart.dispatch = dispatch;
+  chart.multibar = multibar; // really just makign the accessible for multibar.dispatch, may rethink slightly
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
