@@ -217,6 +217,7 @@ svg .title {
   stroke-linecap: round;
   shape-rendering: geometricPrecision;
 
+  /*
   transition: stroke-width 250ms linear;
   -moz-transition: stroke-width 250ms linear;
   -webkit-transition: stroke-width 250ms linear;
@@ -224,6 +225,7 @@ svg .title {
   transition-delay: 250ms
   -moz-transition-delay: 250ms;
   -webkit-transition-delay: 250ms;
+  */
 }
 
 .nvd3 .line.hover path {
@@ -231,9 +233,9 @@ svg .title {
 }
 
 .nvd3 .groups .point {
-  transition: all 250ms linear;
-  -moz-transition: all 250ms linear;
-  -webkit-transition: all 250ms linear;
+  transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
+  -moz-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
+  -webkit-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
 }
 
 .nvd3 .groups .point.hover {
@@ -261,12 +263,6 @@ svg .title {
 *  Scatter 
 */
 
-.nvd3 .groups .point {
-  transition: all 250ms linear;
-  -moz-transition: all 250ms linear;
-  -webkit-transition: all 250ms linear;
-}
-
 .nvd3 .groups .point.hover {
   stroke-width: 20px;
   stroke-opacity: .5;
@@ -288,13 +284,16 @@ svg .title {
 */
 
 .nvd3 .stackedarea path.area {
-  fill-opacity: .65;
+  fill-opacity: .7;
+  /*
   stroke-opacity: .65;
-  stroke-width: 0.1px;
+  fill-opacity: 1;
+  */
+  stroke-opacity: 0;
 
-  transition: all 500ms linear;
-  -moz-transition: all 500ms linear;
-  -webkit-transition: all 500ms linear;
+  transition: fill-opacity 500ms linear, stroke-opacity 250ms linear;
+  -moz-transition: fill-opacity 500ms linear, stroke-opacity 250ms linear;
+  -webkit-transition: fill-opacity 500ms linear, stroke-opacity 250ms linear;
 
   /*
   transition-delay: 500ms;
@@ -305,8 +304,10 @@ svg .title {
 }
 
 .nvd3 .stackedarea path.area.hover {
-  fill-opacity: .85;
+  fill-opacity: .9;
+  /*
   stroke-opacity: .85;
+  */
 }
 /*
 .d3stackedarea .groups path {
@@ -319,9 +320,6 @@ svg .title {
 .nvd3 .stackedarea .groups .point {
   stroke-opacity: 0;
   fill-opacity: 0;
-  transition: all 250ms linear;
-  -moz-transition: all 250ms linear;
-  -webkit-transition: all 250ms linear;
 }
 
 .nvd3 .stackedarea .groups .point.hover {
