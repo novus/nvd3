@@ -240,14 +240,22 @@ svg .title {
   stroke-width: 6px;
 }
 
+.nvd3.line .nvd3.scatter .groups circle.point {
+  fill-opacity: 0.1;
+  stroke-opacity: 0.1;
+}
+
+
 .nvd3 .groups .point {
   transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
   -moz-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
   -webkit-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
 }
 
+.nvd3.line .nvd3.scatter .groups circle.point.hover,
 .nvd3 .groups .point.hover {
   stroke-width: 20px;
+  fill-opacity: .5;
   stroke-opacity: .5;
 }
 
