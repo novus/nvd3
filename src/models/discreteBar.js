@@ -15,7 +15,6 @@ nv.models.discreteBar = function() {
       xDomain, yDomain,
       x0, y0;
 
-  //var x = d3.scale.linear(),
   var dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
 
@@ -48,7 +47,7 @@ nv.models.discreteBar = function() {
               })
             });
 
-      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
+      x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
@@ -60,7 +59,6 @@ nv.models.discreteBar = function() {
 
       var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discretebar');
-      var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'groups');
@@ -97,7 +95,6 @@ nv.models.discreteBar = function() {
 
 
       var barsEnter = bars.enter().append('g')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           .attr('transform', function(d,i,j) {
               return 'translate(' + x(getX(d,i)) + ', ' + y(0) + ')' 
           })
@@ -162,6 +159,8 @@ nv.models.discreteBar = function() {
           .attr('dx', x.rangeBand() / 2)
           .attr('dy', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
           .text(function(d,i) { return valueFormat(getY(d,i)) })
+      } else {
+        bars.selectAll('text').remove();
       }
 
       bars
