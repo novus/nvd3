@@ -153,6 +153,10 @@ svg .title {
   zfill: steelblue;
   cursor: pointer;
   fill-opacity: .75;
+
+  transition: fill-opacity 250ms linear;
+  -moz-transition: fill-opacity 250ms linear;
+  -webkit-transition: fill-opacity 250ms linear;
 }
 
 .nvd3 .bars rect:hover {
@@ -184,6 +188,10 @@ svg .title {
 .nvd3 .multibarHorizontal .groups rect,
 .nvd3 .discretebar .groups rect {
   stroke-opacity: 0;
+
+  transition: fill-opacity 250ms linear;
+  -moz-transition: fill-opacity 250ms linear;
+  -webkit-transition: fill-opacity 250ms linear;
 }
 
 .nvd3 .multibar .groups rect:hover,
