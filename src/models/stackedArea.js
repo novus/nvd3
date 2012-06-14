@@ -145,7 +145,7 @@ nv.models.stackedArea = function() {
               });
             })
         d3.transition(path.exit())
-            .attr('d', function(d,i) { return zeroArea(d.values,i) })
+            //.attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
             .remove();
         path
             .style('fill', function(d,i){ return color[i % 20] })
