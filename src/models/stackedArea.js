@@ -40,6 +40,17 @@ nv.models.stackedArea = function() {
             availableHeight = height - margin.top - margin.bottom;
 
 
+        //console.log(dataCopy);
+        dataCopy = dataCopy.map(function(series,i) {
+          if (series.disabled)
+            series.values = series.values.map(function(d,i) {
+              d._y = d.y; d.y = 0;  //TODO: need to use value from getY, not always d.y
+              return d 
+            });
+          return series;
+        });
+
+
         //TODO: deal with negative stacked charts
 
         //compute the data based on offset and order (calc's y0 for every point)
@@ -97,19 +108,19 @@ nv.models.stackedArea = function() {
 
 
         var area = d3.svg.area()
-            .x(function(d,i) { return x(getX(d,i)) })
+            .x(function(d,i) { return x(scatter.x()(d,i)) })
             .y0(function(d) { return y(d.y0) })
             .y1(function(d) { return y(d.y + d.y0) });
 
         var zeroArea = d3.svg.area()
-            .x(function(d,i) { return x(getX(d,i)) })
+            .x(function(d,i) { return x(scatter.x()(d,i)) })
             .y0(function(d) { return y(d.y0) })
             .y1(function(d) { return y(d.y0) });
 
 
         var path = g.select('.areaWrap').selectAll('path.area')
-            //.data(function(d) { return d });
-            .data(function(d) { return d }, function(d) { return d.key });
+            .data(function(d) { return d });
+            //.data(function(d) { return d }, function(d) { return d.key });
         path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
             .on('mouseover', function(d,i) {
               d3.select(this).classed('hover', true);
@@ -145,7 +156,7 @@ nv.models.stackedArea = function() {
               });
             })
         d3.transition(path.exit())
-            //.attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
+            .attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
             .remove();
         path
             .style('fill', function(d,i){ return color[i % 20] })
@@ -154,8 +165,6 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return area(d.values,i) })
 
 
-        //TODO: these disptach handlers don't need to be called everytime the chart
-        //      is called, but 'g' is only in this scope... so need to rethink.
         scatter.dispatch.on('elementClick.area', function(e) {
           dispatch.areaClick(e);
         })
@@ -176,14 +185,16 @@ nv.models.stackedArea = function() {
   chart.dispatch = dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'x', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
+  /*
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
     scatter.x(_);
     return chart;
   };
+  */
 
   chart.y = function(_) {
     if (!arguments.length) return getY;

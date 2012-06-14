@@ -106,7 +106,6 @@ nv.models.multiBarHorizontalChart = function() {
 
 
       xAxis
-        .scale(x)
         .ticks( availableHeight / 24 )
         .tickSize(-availableWidth, 0);
 
@@ -126,8 +125,6 @@ nv.models.multiBarHorizontalChart = function() {
           .style('opacity', 0)
 
       yAxis
-        .domain(y.domain())
-        .range(y.range())
         .ticks( availableWidth / 100 )
         .tickSize( -availableHeight, 0);
 
@@ -214,13 +211,13 @@ nv.models.multiBarHorizontalChart = function() {
 
   chart.width = function(_) {
     if (!arguments.length) return width;
-    width = d3.functor(_);
+    width = _;
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
-    height = d3.functor(_);
+    height = _;
     return chart;
   };
 

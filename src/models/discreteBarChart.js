@@ -118,7 +118,6 @@ nv.models.discreteBarChart = function() {
 
 
       xAxis
-        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -141,7 +140,6 @@ nv.models.discreteBarChart = function() {
 
 
       yAxis
-        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
