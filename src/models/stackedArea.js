@@ -44,7 +44,8 @@ nv.models.stackedArea = function() {
         dataCopy = dataCopy.map(function(series,i) {
           if (series.disabled)
             series.values = series.values.map(function(d,i) {
-              d._y = d.y; d.y = 0;  //TODO: need to use value from getY, not always d.y
+              d._y = d.y || d._y; 
+              d.y = 0;  //TODO: need to use value from getY, not always d.y
               return d 
             });
           return series;
@@ -159,8 +160,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
             .remove();
         path
-            .style('fill', function(d,i){ return color[i % 20] })
-            .style('stroke', function(d,i){ return color[i % 20] });
+            .style('fill', function(d,i){ return d.color || color[i % 20] })
+            .style('stroke', function(d,i){ return d.color || color[i % 20] });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 
