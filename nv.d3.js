@@ -1885,7 +1885,6 @@ nv.models.discreteBarChart = function() {
 
 
       xAxis
-        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -1908,7 +1907,6 @@ nv.models.discreteBarChart = function() {
 
 
       yAxis
-        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
@@ -4455,7 +4453,6 @@ nv.models.multiBarHorizontalChart = function() {
 
 
       xAxis
-        .scale(x)
         .ticks( availableHeight / 24 )
         .tickSize(-availableWidth, 0);
 
@@ -4475,8 +4472,6 @@ nv.models.multiBarHorizontalChart = function() {
           .style('opacity', 0)
 
       yAxis
-        .domain(y.domain())
-        .range(y.range())
         .ticks( availableWidth / 100 )
         .tickSize( -availableHeight, 0);
 
@@ -4563,13 +4558,13 @@ nv.models.multiBarHorizontalChart = function() {
 
   chart.width = function(_) {
     if (!arguments.length) return width;
-    width = d3.functor(_);
+    width = _;
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
-    height = d3.functor(_);
+    height = _;
     return chart;
   };
 
@@ -6032,6 +6027,17 @@ nv.models.stackedArea = function() {
             availableHeight = height - margin.top - margin.bottom;
 
 
+        //console.log(dataCopy);
+        dataCopy = dataCopy.map(function(series,i) {
+          if (series.disabled)
+            series.values = series.values.map(function(d,i) {
+              d._y = d.y; d.y = 0;  //TODO: need to use value from getY, not always d.y
+              return d 
+            });
+          return series;
+        });
+
+
         //TODO: deal with negative stacked charts
 
         //compute the data based on offset and order (calc's y0 for every point)
@@ -6089,19 +6095,19 @@ nv.models.stackedArea = function() {
 
 
         var area = d3.svg.area()
-            .x(function(d,i) { return x(getX(d,i)) })
+            .x(function(d,i) { return x(scatter.x()(d,i)) })
             .y0(function(d) { return y(d.y0) })
             .y1(function(d) { return y(d.y + d.y0) });
 
         var zeroArea = d3.svg.area()
-            .x(function(d,i) { return x(getX(d,i)) })
+            .x(function(d,i) { return x(scatter.x()(d,i)) })
             .y0(function(d) { return y(d.y0) })
             .y1(function(d) { return y(d.y0) });
 
 
         var path = g.select('.areaWrap').selectAll('path.area')
-            //.data(function(d) { return d });
-            .data(function(d) { return d }, function(d) { return d.key });
+            .data(function(d) { return d });
+            //.data(function(d) { return d }, function(d) { return d.key });
         path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
             .on('mouseover', function(d,i) {
               d3.select(this).classed('hover', true);
@@ -6137,7 +6143,7 @@ nv.models.stackedArea = function() {
               });
             })
         d3.transition(path.exit())
-            //.attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
+            .attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
             .remove();
         path
             .style('fill', function(d,i){ return color[i % 20] })
@@ -6146,8 +6152,6 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return area(d.values,i) })
 
 
-        //TODO: these disptach handlers don't need to be called everytime the chart
-        //      is called, but 'g' is only in this scope... so need to rethink.
         scatter.dispatch.on('elementClick.area', function(e) {
           dispatch.areaClick(e);
         })
@@ -6168,14 +6172,16 @@ nv.models.stackedArea = function() {
   chart.dispatch = dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'x', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
+  /*
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
     scatter.x(_);
     return chart;
   };
+  */
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
@@ -6542,6 +6548,277 @@ nv.models.stackedAreaWithLegend = function() {
   chart.height = function(_) {
     if (!arguments.length) return getHeight;
     getHeight = d3.functor(_);
+    return chart;
+  };
+
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
+
+
+  return chart;
+}
+
+nv.models.stackedAreaChart = function() {
+  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+      width = null,
+      height = null,
+      color = d3.scale.category20().range(),
+      showControls = true,
+      showLegend = true,
+      tooltips = true,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' on ' + x + '</p>'
+      };
+
+
+  var stacked = nv.models.stackedArea(),
+      x = stacked.xScale(),
+      y = stacked.yScale(),
+      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      yAxis = nv.models.axis().scale(y).orient('left'),
+      legend = nv.models.legend().height(30),
+      controls = nv.models.legend().height(30),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+
+  //TODO: let user select default
+  var controlsData = [
+    { key: 'Stacked' },
+    { key: 'Stream', disabled: true },
+    { key: 'Expanded', disabled: true }
+  ];
+
+  var showTooltip = function(e, offsetElement) {
+    //console.log('left: ' + offsetElement.offsetLeft);
+    //console.log('top: ' + offsetElement.offsetLeft);
+
+    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
+    //var offsetElement = document.getElementById(selector.substr(1)),
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = xAxis.tickFormat()(stacked.x()(e.point)),
+        y = yAxis.tickFormat()(stacked.y()(e.point)),
+        content = tooltip(e.series.key, x, y, e, chart);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+  };
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var container = d3.select(this);
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+
+
+      stacked
+        .width(availableWidth)
+        .height(availableHeight)
+
+
+      var wrap = container.selectAll('g.wrap.stackedAreaChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedAreaChart').append('g');
+
+      gEnter.append('g').attr('class', 'x axis');
+      gEnter.append('g').attr('class', 'y axis');
+      gEnter.append('g').attr('class', 'stackedWrap');
+      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
+
+
+      var g = wrap.select('g');
+
+
+      if (showLegend) {
+        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+        margin.top = legend.height();
+
+        legend
+          .width(availableWidth/2 - margin.right)
+          .color(color);
+
+        g.select('.legendWrap')
+            .datum(data)
+            .attr('transform', 'translate(' + (availableWidth/2 - margin.left) + ',' + (-margin.top) +')')
+            .call(legend);
+      }
+
+
+      if (showControls) {
+        controls.width(280).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      var stackedWrap = g.select('.stackedWrap')
+          .datum(data);
+      d3.transition(stackedWrap).call(stacked);
+
+
+      xAxis
+        .ticks( availableWidth / 100 )
+        .tickSize( -availableHeight, 0);
+
+      g.select('.x.axis')
+          .attr('transform', 'translate(0,' + availableHeight + ')');
+      d3.transition(g.select('.x.axis'))
+          .call(xAxis);
+
+      yAxis
+        .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
+        .tickSize(-availableWidth, 0)
+        .tickFormat(stacked.offset() == 'zero' ? d3.format(',.2f') : d3.format('%')); //TODO: stacked format should be set by caller
+
+      d3.transition(g.select('.y.axis'))
+          .call(yAxis);
+
+
+
+      stacked.dispatch.on('areaClick.toggle', function(e) {
+        if (data.filter(function(d) { return !d.disabled }).length === 1)
+          data = data.map(function(d) {
+            d.disabled = false; 
+            return d
+          });
+        else
+          data = data.map(function(d,i) {
+            d.disabled = (i != e.seriesIndex);
+            return d
+          });
+
+        selection.transition().call(chart);
+      });
+
+      legend.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
+            d.disabled = false;
+            return d;
+          });
+        }
+
+        selection.transition().call(chart);
+      });
+
+      controls.dispatch.on('legendClick', function(d,i) { 
+        if (!d.disabled) return;
+
+        controlsData = controlsData.map(function(s) {
+          s.disabled = true;
+          return s;
+        });
+        d.disabled = false;
+
+        switch (d.key) {
+          case 'Stacked':
+            stacked.style('stack');
+            break;
+          case 'Stream':
+            stacked.style('stream');
+            break;
+          case 'Expanded':
+            stacked.style('expand');
+            break;
+        }
+
+        selection.transition().call(chart);
+      });
+
+
+      stacked.dispatch.on('tooltipShow', function(e) {
+        //disable tooltips when value ~= 0
+        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
+        if (!Math.round(stacked.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
+          setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
+          return false;
+        }
+
+        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+        dispatch.tooltipShow(e);
+      });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+
+      stacked.dispatch.on('tooltipHide', function(e) {
+        dispatch.tooltipHide(e);
+      });
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() {
+        selection.transition().call(chart);
+      }
+
+    });
+
+    /*
+    // If the legend changed the margin's height, need to recalc positions... should think of a better way to prevent duplicate work
+    if (margin.top != legend.height())
+      chart(selection);
+     */
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+  chart.stacked = stacked;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+
+  d3.rebind(chart, stacked, 'x', 'y', 'interactive', 'offset', 'order', 'style', 'clipEdge', 'size', 'forceX', 'forceY', 'forceSize');
+
+  /*
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = d3.functor(_); //not used locally, so could jsut be a rebind
+    stacked.x(getX);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = d3.functor(_);
+    stacked.y(getY);
+    return chart;
+  };
+  */
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return getWidth;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return getHeight;
+    height = _;
     return chart;
   };
 
