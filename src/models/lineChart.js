@@ -4,6 +4,7 @@ nv.models.lineChart = function() {
       color = d3.scale.category20().range(),
       width = null, 
       height = null,
+      showLegend = true,
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
@@ -61,22 +62,27 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'legendWrap');
 
 
-
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var g = wrap.select('g');
 
 
 
-      legend.width(availableWidth / 2);
 
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
-          .call(legend);
+      if (showLegend) {
+        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+        margin.top = legend.height();
 
+        legend.width(availableWidth);
+        //legend.width(availableWidth / 2);
+
+        g.select('.legendWrap')
+            .datum(data)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(legend);
+      }
+
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       var linesWrap = g.select('.linesWrap')
@@ -189,6 +195,12 @@ nv.models.lineChart = function() {
     if (!arguments.length) return height;
     height = _;
     //height = d3.functor(_);
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
     return chart;
   };
 

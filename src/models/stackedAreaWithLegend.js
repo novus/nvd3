@@ -3,7 +3,9 @@ nv.models.stackedAreaWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       getWidth = function() { return 960 },
       getHeight = function() { return 500 },
-      color = d3.scale.category20().range();
+      color = d3.scale.category20().range(),
+      showControls = true,
+      showLegend = true;
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
@@ -53,7 +55,10 @@ nv.models.stackedAreaWithLegend = function() {
       stacked
         .width(availableWidth)
         .height(availableHeight)
-        .color(color)
+        //.color(color)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % 20];
+        }).filter(function(d,i) { return !data[i].disabled }))
 
 
       var wrap = d3.select(this).selectAll('g.wrap.stackedAreaWithLegend').data([data]);
@@ -66,28 +71,34 @@ nv.models.stackedAreaWithLegend = function() {
       gEnter.append('g').attr('class', 'controlsWrap');
 
 
-
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var g = wrap.select('g');
 
 
-      legend
-        .width(width/2 - margin.right)
-        .color(color);
+      if (showLegend) {
+        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+        margin.top = legend.height();
 
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
-          .call(legend);
+        legend
+          .width(width/2 - margin.right)
+          .color(color);
 
-      controls.width(280).color(['#444', '#444', '#444']);
-      g.select('.controlsWrap')
-          .datum(controlsData)
-          .attr('transform', 'translate(0,' + (-margin.top) +')')
-          .call(controls);
+        g.select('.legendWrap')
+            .datum(data)
+            .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
+            .call(legend);
+      }
+
+
+      if (showControls) {
+        controls.width(280).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       var stackedWrap = g.select('.stackedWrap')
@@ -229,9 +240,13 @@ nv.models.stackedAreaWithLegend = function() {
     return chart;
   }
 
-  chart.dispatch = dispatch;
 
-  d3.rebind(chart, stacked, 'interactive', 'clipEdge', 'size');
+  chart.dispatch = dispatch;
+  chart.stacked = stacked;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+
+  d3.rebind(chart, stacked, 'interactive', 'offset', 'order', 'style', 'clipEdge', 'size', 'forceX', 'forceY', 'forceSize');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -265,9 +280,18 @@ nv.models.stackedAreaWithLegend = function() {
     return chart;
   };
 
-  chart.stacked = stacked;
-  chart.xAxis = xAxis;
-  chart.yAxis = yAxis;
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
+
 
   return chart;
 }

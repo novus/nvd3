@@ -108,7 +108,8 @@ nv.models.stackedArea = function() {
 
 
         var path = g.select('.areaWrap').selectAll('path.area')
-            .data(function(d) { return d });
+            //.data(function(d) { return d });
+            .data(function(d) { return d }, function(d) { return d.key });
         path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
             .on('mouseover', function(d,i) {
               d3.select(this).classed('hover', true);

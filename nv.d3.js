@@ -1540,7 +1540,6 @@ nv.models.discreteBar = function() {
 
       var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discretebar');
-      var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
       gEnter.append('g').attr('class', 'groups');
@@ -1830,6 +1829,7 @@ nv.models.discreteBarChart = function() {
 
       var wrap = container.selectAll('g.wrap.discreteBarWithAxes').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discreteBarWithAxes').append('g');
+      var defsEnter = gEnter.append('defs');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -1849,6 +1849,41 @@ nv.models.discreteBarChart = function() {
       d3.transition(barsWrap).call(discretebar);
 
 
+      defsEnter.append('clipPath')
+          .attr('id', 'x-label-clip-' + discretebar.id())
+        .append('rect')
+
+      g.select('#x-label-clip-' + discretebar.id() + ' rect')
+          .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
+          .attr('height', 16)
+          .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
+
+      /*
+      var evenLabelClips = defsEnter.append('clipPath')
+          .attr('id', 'x-label-clip-even-' + discretebar.id())
+        .selectAll('rect')
+          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 0 }) });
+
+      evenLabelClips.enter().append('rect')
+            .attr('width', x.rangeBand())
+            .attr('height', 32)
+            .attr('y', y.range()[0])
+            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
+
+      var oddLabelClips = defsEnter.append('clipPath')
+          .attr('id', 'x-label-clip-odd-' + discretebar.id())
+        .selectAll('rect')
+          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 1 }) });
+
+      oddLabelClips.enter().append('rect')
+            .attr('width', x.rangeBand())
+            .attr('height', 16)
+            .attr('y', y.range()[0] + 16 + (staggerLabels ? 12: 0))
+            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
+            */
+
+
+
       xAxis
         .scale(x)
         .ticks( availableWidth / 100 )
@@ -1866,6 +1901,10 @@ nv.models.discreteBarChart = function() {
         xTicks
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '0' : '12') + ')' })
+
+      xTicks
+          .selectAll('text')
+          .attr('clip-path', function(d,i,j) { return 'url(#x-label-clip-' + discretebar.id() + ')' });
 
 
       yAxis
@@ -1888,6 +1927,12 @@ nv.models.discreteBarChart = function() {
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() {
+        selection.transition().call(chart);
+      }
+
     });
 
     return chart;
@@ -1895,6 +1940,7 @@ nv.models.discreteBarChart = function() {
 
 
   chart.dispatch = dispatch;
+  chart.discretebar = discretebar; // really just makign the accessible for discretebar.dispatch, may rethink slightly
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
@@ -2388,6 +2434,7 @@ nv.models.lineChart = function() {
       color = d3.scale.category20().range(),
       width = null, 
       height = null,
+      showLegend = true,
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
@@ -2445,22 +2492,27 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'legendWrap');
 
 
-
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var g = wrap.select('g');
 
 
 
-      legend.width(availableWidth / 2);
 
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
-          .call(legend);
+      if (showLegend) {
+        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+        margin.top = legend.height();
 
+        legend.width(availableWidth);
+        //legend.width(availableWidth / 2);
+
+        g.select('.legendWrap')
+            .datum(data)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(legend);
+      }
+
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       var linesWrap = g.select('.linesWrap')
@@ -2573,6 +2625,12 @@ nv.models.lineChart = function() {
     if (!arguments.length) return height;
     height = _;
     //height = d3.functor(_);
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
     return chart;
   };
 
@@ -3886,7 +3944,7 @@ nv.models.multiBarWithLegend = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked');
 
 
   chart.margin = function(_) {
@@ -4476,6 +4534,12 @@ nv.models.multiBarHorizontalChart = function() {
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() {
+        selection.transition().call(chart);
+      }
+
     });
 
     return chart;
@@ -4483,6 +4547,7 @@ nv.models.multiBarHorizontalChart = function() {
 
 
   chart.dispatch = dispatch;
+  chart.multibar = multibar; // really just makign the accessible for multibar.dispatch, may rethink slightly
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
@@ -6035,7 +6100,8 @@ nv.models.stackedArea = function() {
 
 
         var path = g.select('.areaWrap').selectAll('path.area')
-            .data(function(d) { return d });
+            //.data(function(d) { return d });
+            .data(function(d) { return d }, function(d) { return d.key });
         path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
             .on('mouseover', function(d,i) {
               d3.select(this).classed('hover', true);
@@ -6202,7 +6268,9 @@ nv.models.stackedAreaWithLegend = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       getWidth = function() { return 960 },
       getHeight = function() { return 500 },
-      color = d3.scale.category20().range();
+      color = d3.scale.category20().range(),
+      showControls = true,
+      showLegend = true;
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
@@ -6252,7 +6320,10 @@ nv.models.stackedAreaWithLegend = function() {
       stacked
         .width(availableWidth)
         .height(availableHeight)
-        .color(color)
+        //.color(color)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % 20];
+        }).filter(function(d,i) { return !data[i].disabled }))
 
 
       var wrap = d3.select(this).selectAll('g.wrap.stackedAreaWithLegend').data([data]);
@@ -6265,28 +6336,34 @@ nv.models.stackedAreaWithLegend = function() {
       gEnter.append('g').attr('class', 'controlsWrap');
 
 
-
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var g = wrap.select('g');
 
 
-      legend
-        .width(width/2 - margin.right)
-        .color(color);
+      if (showLegend) {
+        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
+        margin.top = legend.height();
 
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
-          .call(legend);
+        legend
+          .width(width/2 - margin.right)
+          .color(color);
 
-      controls.width(280).color(['#444', '#444', '#444']);
-      g.select('.controlsWrap')
-          .datum(controlsData)
-          .attr('transform', 'translate(0,' + (-margin.top) +')')
-          .call(controls);
+        g.select('.legendWrap')
+            .datum(data)
+            .attr('transform', 'translate(' + (width/2 - margin.left) + ',' + (-margin.top) +')')
+            .call(legend);
+      }
+
+
+      if (showControls) {
+        controls.width(280).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       var stackedWrap = g.select('.stackedWrap')
@@ -6428,9 +6505,13 @@ nv.models.stackedAreaWithLegend = function() {
     return chart;
   }
 
-  chart.dispatch = dispatch;
 
-  d3.rebind(chart, stacked, 'interactive', 'clipEdge', 'size');
+  chart.dispatch = dispatch;
+  chart.stacked = stacked;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+
+  d3.rebind(chart, stacked, 'interactive', 'offset', 'order', 'style', 'clipEdge', 'size', 'forceX', 'forceY', 'forceSize');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -6464,9 +6545,18 @@ nv.models.stackedAreaWithLegend = function() {
     return chart;
   };
 
-  chart.stacked = stacked;
-  chart.xAxis = xAxis;
-  chart.yAxis = yAxis;
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
+
 
   return chart;
 }

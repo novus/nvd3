@@ -333,12 +333,12 @@ svg .title {
 
 
 
-.nvd3 .stackedarea .groups .point {
+.nvd3.stackedarea .groups .point {
   stroke-opacity: 0;
   fill-opacity: 0;
 }
 
-.nvd3 .stackedarea .groups .point.hover {
+.nvd3.stackedarea .groups .point.hover {
   stroke-width: 20px;
   stroke-opacity: .75;
   fill-opacity: 1;
