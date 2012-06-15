@@ -18,6 +18,7 @@ JS_FILES = \
 	src/models/lineWithFocus.js \
 	src/models/lineWithLegend.js \
 	src/models/multiBar.js \
+	src/models/multiBarChart.js \
 	src/models/multiBarWithLegend.js \
 	src/models/multiBarHorizontal.js \
 	src/models/multiBarHorizontalChart.js \

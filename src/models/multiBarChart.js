@@ -222,6 +222,9 @@ nv.models.multiBarChart = function() {
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
+
+      chart.update = function() { selection.transition().call(chart) };
+
     });
 
     return chart;
