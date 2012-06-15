@@ -225,6 +225,13 @@ nv.models.multiBarWithLegend = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
