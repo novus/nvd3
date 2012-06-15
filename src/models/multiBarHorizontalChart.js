@@ -5,6 +5,7 @@ nv.models.multiBarHorizontalChart = function() {
       height = null,
       color = d3.scale.category20().range(),
       showControls = true,
+      showLegend = true,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + x + '</h3>' +
@@ -55,13 +56,6 @@ nv.models.multiBarHorizontalChart = function() {
                              - margin.top - margin.bottom;
 
 
-      multibar
-        .width(availableWidth)
-        .height(availableHeight)
-        .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
-        }).filter(function(d,i) { return !data[i].disabled }))
-
 
 
       var wrap = container.selectAll('g.wrap.multiBarHorizontalChart').data([data]);
@@ -69,7 +63,7 @@ nv.models.multiBarHorizontalChart = function() {
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'linesWrap');
+      gEnter.append('g').attr('class', 'barsWrap');
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'controlsWrap');
 
@@ -78,16 +72,35 @@ nv.models.multiBarHorizontalChart = function() {
       //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
       margin.top = legend.height();
 
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var g = wrap.select('g');
 
 
-      legend.width(availableWidth / 2);
+      if (showLegend) {
+        legend.width(availableWidth / 2);
 
-      g.select('.legendWrap')
-          .datum(data)
-          .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
-          .call(legend);
+        g.select('.legendWrap')
+            .datum(data)
+            .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        g.select('.legendWrap')
+            .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
+      }
+
+
+      multibar
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % 10];
+        }).filter(function(d,i) { return !data[i].disabled }))
+
+
 
       if (showControls) {
         controls.width(180).color(['#444', '#444', '#444']);
@@ -98,11 +111,14 @@ nv.models.multiBarHorizontalChart = function() {
       }
 
 
-      var linesWrap = g.select('.linesWrap')
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      
+      var barsWrap = g.select('.barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
 
-      d3.transition(linesWrap).call(multibar);
+      d3.transition(barsWrap).call(multibar);
 
 
       xAxis
@@ -184,9 +200,7 @@ nv.models.multiBarHorizontalChart = function() {
 
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() {
-        selection.transition().call(chart);
-      }
+      chart.update = function() { selection.transition().call(chart) };
 
     });
 
@@ -221,9 +235,22 @@ nv.models.multiBarHorizontalChart = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
     return chart;
   };
 

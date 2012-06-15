@@ -47,6 +47,10 @@ nv.models.stackedAreaChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() { selection.transition().call(chart) };
+
       var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
@@ -54,10 +58,6 @@ nv.models.stackedAreaChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-
-      stacked
-        .width(availableWidth)
-        .height(availableHeight)
 
 
       var wrap = container.selectAll('g.wrap.stackedAreaChart').data([data]);
@@ -74,18 +74,28 @@ nv.models.stackedAreaChart = function() {
 
 
       if (showLegend) {
-        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-        margin.top = legend.height();
-
         legend
-          .width(availableWidth/2 - margin.right)
-          .color(color);
+          .width(availableWidth/2 - margin.right);
 
         g.select('.legendWrap')
             .datum(data)
-            .attr('transform', 'translate(' + (availableWidth/2 - margin.left) + ',' + (-margin.top) +')')
             .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        g.select('.legendWrap')
+            .attr('transform', 'translate(' + (availableWidth/2 - margin.left) + ',' + (-margin.top) +')');
       }
+
+
+      stacked
+        .width(availableWidth)
+        .height(availableHeight)
+
 
 
       if (showControls) {
@@ -196,18 +206,8 @@ nv.models.stackedAreaChart = function() {
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
 
-      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() {
-        selection.transition().call(chart);
-      }
-
     });
 
-    /*
-    // If the legend changed the margin's height, need to recalc positions... should think of a better way to prevent duplicate work
-    if (margin.top != legend.height())
-      chart(selection);
-     */
 
     return chart;
   }
@@ -254,6 +254,13 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
@@ -263,6 +270,18 @@ nv.models.stackedAreaChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 

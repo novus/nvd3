@@ -5,6 +5,7 @@ nv.models.lineChart = function() {
       width = null, 
       height = null,
       showLegend = true,
+      tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
@@ -45,13 +46,6 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      lines
-        .width(availableWidth)
-        .height(availableHeight)
-        .color(data.map(function(d,i) {
-            return d.color || color[i % 10];
-          }).filter(function(d,i) { return !data[i].disabled }));
-
 
       var wrap = container.selectAll('g.wrap.lineWithLegend').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithLegend').append('g');
@@ -68,17 +62,29 @@ nv.models.lineChart = function() {
 
 
       if (showLegend) {
-        //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-        margin.top = legend.height();
-
         legend.width(availableWidth);
-        //legend.width(availableWidth / 2);
 
         g.select('.legendWrap')
             .datum(data)
-            .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        g.select('.legendWrap')
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
+
+
+      lines
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % 10];
+        }).filter(function(d,i) { return !data[i].disabled }));
 
 
 
@@ -145,21 +151,14 @@ nv.models.lineChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
-      dispatch.on('tooltipHide', nv.tooltip.cleanup);
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
-
-
-    /*
-    // If the legend changed the margin's height, need to recalc positions... should think of a better way to prevent duplicate work
-    if (margin.top != legend.height())
-      chart(selection);
-     */
 
 
     //TODO: decide if this is a good idea, and if it should be in all models
@@ -198,9 +197,28 @@ nv.models.lineChart = function() {
     return chart;
   };
 
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 
