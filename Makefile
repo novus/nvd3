@@ -25,6 +25,7 @@ JS_FILES = \
 	src/models/multiBarHorizontalWithLegend.js \
 	src/models/pie.js \
 	src/models/scatter.js \
+	src/models/scatterChart.js \
 	src/models/scatterWithLegend.js \
 	src/models/sparkline.js \
 	src/models/sparklinePlus.js \

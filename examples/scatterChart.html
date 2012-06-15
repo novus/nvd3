@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/d3.css" rel="stylesheet" type="text/css">
+
+<style>
+
+body {
+  overflow-y:scroll;
+  margin: 0;
+  padding: 0;
+}
+
+svg {
+  overflow: hidden;
+}
+
+div {
+  border: 0;
+  margin: 0;
+}
+
+
+#offsetDiv {
+}
+
+
+#test1 {
+  margin: 0;
+}
+
+
+</style>
+
+<body>
+
+<div id="offsetDiv">
+  <div id="test1" class="chartWrap">
+    <svg></svg>
+  </div>
+</div>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/scatter.js"></script>
+<script src="../src/models/scatterChart.js"></script>
+<script>
+
+
+
+//Format A
+nv.addGraph(function() {
+  var chart = nv.models.scatterChart()
+                .showDistX(true)
+                .showDistY(true)
+                .color(d3.scale.category10().range());
+
+  chart.xAxis.tickFormat(d3.format('.02f'))
+  chart.yAxis.tickFormat(d3.format('.02f'))
+
+  d3.select('#test1 svg')
+      .datum(randomData())
+    .transition().duration(500)
+      .call(chart);
+
+  nv.utils.windowResize(chart.update);
+
+  return chart;
+});
+
+
+function randomData() {
+  var data = [],
+      random = d3.random.normal();
+
+  for (i = 0; i < 2; i++) {
+    data.push({
+      key: 'Group ' + i,
+      values: []
+    });
+
+    for (j = 0; j < 100; j++) {
+      data[i].values.push({x: random(), y: random(), size: Math.random()});
+    }
+  }
+
+  return data;
+}
+
+
+
+</script>

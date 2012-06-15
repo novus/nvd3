@@ -75,7 +75,7 @@ nv.models.stackedAreaChart = function() {
 
       if (showLegend) {
         legend
-          .width(availableWidth/2 - margin.right);
+          .width( availableWidth / 2 );
 
         g.select('.legendWrap')
             .datum(data)
