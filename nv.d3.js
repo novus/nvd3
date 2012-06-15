@@ -3527,17 +3527,14 @@ nv.models.multiBar = function() {
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
-          .style('fill-opacity', 1e-6)
-          /*
-          .attr('transform', function(d,i) {
-              return stacked ? 
-                        'translate(0,0)'
-                      : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
-          });
-         */
+          .style('fill-opacity', 1e-6);
       d3.transition(groups.exit())
-          .style('stroke-opacity', 1e-6)
-          .style('fill-opacity', 1e-6)
+          //.style('stroke-opacity', 1e-6)
+          //.style('fill-opacity', 1e-6)
+        .selectAll('rect.bar')
+        .delay(function(d,i) { return i * 1000 / data[0].values.length })
+          .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
+          .attr('height', 0)
           .remove();
       groups
           .attr('class', function(d,i) { return 'group series-' + i })
@@ -3545,13 +3542,6 @@ nv.models.multiBar = function() {
           .style('fill', function(d,i){ return color[i % 10] })
           .style('stroke', function(d,i){ return color[i % 10] });
       d3.transition(groups)
-      /*
-          .attr('transform', function(d,i) {
-              return stacked ? 
-                        'translate(0,0)'
-                      : 'translate(' + (i * x.rangeBand() / data.length ) + ',0)'
-          })
-         */
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -3564,12 +3554,9 @@ nv.models.multiBar = function() {
 
       var barsEnter = bars.enter().append('rect')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          //.attr('fill', function(d,i) { return color[0]; })
           .attr('x', function(d,i,j) {
               return stacked ? 0 : (j * x.rangeBand() / data.length )
           })
-          //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-          //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
           .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
@@ -3657,7 +3644,6 @@ nv.models.multiBar = function() {
                   return Math.abs(y(getY(d,i)) - y(0))
                 });
             })
-
 
 
 
