@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/d3.css" rel="stylesheet" type="text/css">
+
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+text {
+  font: 12px sans-serif;
+}
+
+#chart1 {
+  height: 500px;
+  margin: 10px;
+  min-width: 100px;
+  min-height: 100px;
+/*
+  Minimum height and width is a good idea to prevent negative SVG dimensions...
+  For example width should be =< margin.left + margin.right + 1,
+  of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
+*/
+}
+
+</style>
+<body>
+
+  <div id="chart1">
+    <svg></svg>
+  </div>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/multiBar.js"></script>
+<script src="../src/models/multiBarChart.js"></script>
+<script src="stream_layers.js"></script>
+<script>
+
+var test_data = stream_layers(3,10+Math.random()*100,.1).map(function(data, i) {
+  return {
+    key: 'Stream' + i,
+    values: data
+  };
+});
+
+
+
+nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+
+    chart.xAxis
+        .tickFormat(d3.format(',f'));
+
+    chart.yAxis
+        .tickFormat(d3.format(',.1f'));
+
+    d3.select('#chart1 svg')
+        .datum(test_data)
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+});
+
+
+
+
+</script>

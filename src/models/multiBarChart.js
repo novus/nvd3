@@ -1,5 +1,5 @@
 
-nv.models.multiBarHorizontalChart = function() {
+nv.models.multiBarChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = null,
       height = null,
@@ -8,16 +8,15 @@ nv.models.multiBarHorizontalChart = function() {
       showLegend = true,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
-        return '<h3>' + x + '</h3>' +
-               '<p>' +  y + '</p>'
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' on ' + x + '</p>'
       };
 
-
-  var multibar = nv.models.multiBarHorizontal().stacked(false),
+  var multibar = nv.models.multiBar().stacked(false),
       x = multibar.xScale(),
       y = multibar.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('left').highlightZero(false),
-      yAxis = nv.models.axis().scale(y).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false),
+      yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -37,13 +36,13 @@ nv.models.multiBarHorizontalChart = function() {
         y = yAxis.tickFormat()(multibar.y()(e.point)),
         content = tooltip(e.series.key, x, y, e, chart);
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w');
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
 
   //TODO: let user select default
   var controlsData = [
     { key: 'Grouped' },
-    { key: 'Stacked', disabled: true },
+    { key: 'Stacked', disabled: true }
   ];
 
   function chart(selection) {
@@ -54,12 +53,40 @@ nv.models.multiBarHorizontalChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+/*
+      var seriesData;
+
+      if (multibar.stacked()) {
+        seriesData = data.filter(function(d) { return !d.disabled })
+          .reduce(function(prev, curr, index) {  //sum up all the y's
+              curr.values.forEach(function(d,i) {
+                if (!index) prev[i] = {x: multibar.x()(d,i), y:0};
+                prev[i].y += multibar.y()(d,i);
+              });
+              return prev;
+            }, []);
+      } else {
+        seriesData = data.filter(function(d) { return !d.disabled })
+          .map(function(d) { 
+            return d.values.map(function(d,i) {
+              return { x: multibar.x()(d,i), y: multibar.y()(d,i) }
+            })
+          });
+      }
 
 
+      //x   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(multibar.forceX) ))
+          //.range([0, availableWidth]);
+      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
+          .rangeBands([0, availableWidth], .1);
+
+      y   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(multibar.forceY) ))
+          .range([availableHeight, 0]);
+          */
 
 
-      var wrap = container.selectAll('g.wrap.multiBarHorizontalChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarHorizontalChart').append('g');
+      var wrap = container.selectAll('g.wrap.multiBarWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarWithLegend').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
@@ -68,9 +95,6 @@ nv.models.multiBarHorizontalChart = function() {
       gEnter.append('g').attr('class', 'controlsWrap');
 
 
-
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
 
       var g = wrap.select('g');
 
@@ -89,7 +113,7 @@ nv.models.multiBarHorizontalChart = function() {
         }
 
         g.select('.legendWrap')
-            .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
+            .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
       }
 
 
@@ -97,7 +121,7 @@ nv.models.multiBarHorizontalChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % 20];
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -122,9 +146,11 @@ nv.models.multiBarHorizontalChart = function() {
 
 
       xAxis
-        .ticks( availableHeight / 24 )
-        .tickSize(-availableWidth, 0);
+        .ticks( availableWidth / 100 )
+        .tickSize(-availableHeight, 0);
 
+      g.select('.x.axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
@@ -141,11 +167,9 @@ nv.models.multiBarHorizontalChart = function() {
           .style('opacity', 0)
 
       yAxis
-        .ticks( availableWidth / 100 )
-        .tickSize( -availableHeight, 0);
+        .ticks( availableHeight / 36 )
+        .tickSize( -availableWidth, 0);
 
-      g.select('.y.axis')
-          .attr('transform', 'translate(0,' + availableHeight + ')');
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
 
@@ -187,7 +211,7 @@ nv.models.multiBarHorizontalChart = function() {
       });
 
 
-      multibar.dispatch.on('elementMouseover.tooltip', function(e) {
+      multibar.dispatch.on('elementMouseover.tooltip2', function(e) {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
@@ -198,10 +222,6 @@ nv.models.multiBarHorizontalChart = function() {
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
-
-      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() { selection.transition().call(chart) };
-
     });
 
     return chart;
@@ -209,12 +229,11 @@ nv.models.multiBarHorizontalChart = function() {
 
 
   chart.dispatch = dispatch;
-  chart.multibar = multibar; // really just makign the accessible for multibar.dispatch, may rethink slightly
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'showValues', 'valueFormat');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked');
 
 
   chart.margin = function(_) {
@@ -225,13 +244,13 @@ nv.models.multiBarHorizontalChart = function() {
 
   chart.width = function(_) {
     if (!arguments.length) return width;
-    width = _;
+    width = d3.functor(_);
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
-    height = _;
+    height = d3.functor(_);
     return chart;
   };
 
@@ -251,18 +270,6 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    return chart;
-  };
-
-  chart.tooltips = function(_) {
-    if (!arguments.length) return tooltips;
-    tooltips = _;
-    return chart;
-  };
-
-  chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
     return chart;
   };
 
