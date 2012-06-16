@@ -10,33 +10,23 @@ JS_FILES = \
 	src/models/cumulativeLine.js \
 	src/models/discreteBar.js \
 	src/models/discreteBarChart.js \
-	src/models/discreteBarWithAxes.js \
 	src/models/legend.js \
 	src/models/line.js \
 	src/models/lineChart.js \
 	src/models/linePlusBar.js \
 	src/models/linePlusBarChart.js \
 	src/models/lineWithFocus.js \
-	src/models/lineWithLegend.js \
 	src/models/multiBar.js \
 	src/models/multiBarChart.js \
-	src/models/multiBarWithLegend.js \
 	src/models/multiBarHorizontal.js \
 	src/models/multiBarHorizontalChart.js \
-	src/models/multiBarHorizontalWithLegend.js \
 	src/models/pie.js \
 	src/models/scatter.js \
 	src/models/scatterChart.js \
-	src/models/scatterWithLegend.js \
 	src/models/sparkline.js \
 	src/models/sparklinePlus.js \
 	src/models/stackedArea.js \
-	src/models/stackedAreaWithLegend.js \
 	src/models/stackedAreaChart.js \
-	src/charts/cumulativeLineChart.js \
-	src/charts/lineChart.js \
-	src/charts/lineChartDaily.js \
-	src/charts/stackedAreaChart.js \
 	src/outro.js
 
 JS_COMPILER = \
