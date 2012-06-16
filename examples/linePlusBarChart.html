@@ -29,6 +29,7 @@ text {
 <body>
 
   <div id="chart1">
+    <svg> </svg>
   </div>
 
 <script src="../lib/d3.v2.js"></script>
@@ -44,7 +45,7 @@ text {
 
 
 
-var valueVsQuantity = [ 
+var testdata = [ 
   { 
     "key" : "Quantity" , 
     "bar": true,
@@ -62,104 +63,30 @@ var valueVsQuantity = [
 
 
 
-
-
-var selector = '#chart1',
-    chart = nv.models.linePlusBarChart(),
-    //data = sinAndCos(),
-    data = valueVsQuantity,
-    xTickFormat = d3.format(',r'),
-    y1TickFormat = d3.format(',f'),
-    y2TickFormat = function(d) { return '$' + d3.format(',f')(d) },
-    duration = 500;
-
-nv.addGraph({
-  generate: function() {
-    var container = d3.select(selector),
-        svg = container.append('svg');
-
-    chart
+nv.addGraph(function() {
+    var chart = nv.models.linePlusBarChart()
         .x(function(d,i) { return i })
         .color(d3.scale.category10().range());
 
     chart.xAxis.tickFormat(function(d) {
-      var dx = data[0].values[d] && data[0].values[d].x || 0;
+      var dx = testdata[0].values[d] && testdata[0].values[d].x || 0;
       return d3.time.format('%x')(new Date(dx))
-      //return d3.time.format('%x')(new Date(data[0].values[d].x))
     });
 
     chart.yAxis1
-        .tickFormat(y1TickFormat)
+        .tickFormat(d3.format(',f'));
+
     chart.yAxis2
-        .tickFormat(y2TickFormat)
+        .tickFormat(function(d) { return '$' + d3.format(',f')(d) });
 
     chart.bars.forceY([0]);
     //chart.lines.forceY([0]);
 
-    svg
-        .datum(data)
-      .transition().duration(duration).call(chart);
+    d3.select('#chart1 svg')
+        .datum(testdata)
+      .transition().duration(500).call(chart);
 
     return chart;
-  },
-  callback: function(chart) {
-    var showTooltip = function(e) {
-      var offsetElement = document.getElementById(selector.substr(1)),
-          left = e.pos[0] + offsetElement.offsetLeft,
-          top = e.pos[1] + offsetElement.offsetTop,
-          formatY1 = chart.yAxis1.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
-          formatY2 = chart.yAxis2.tickFormat(), //Assumes using same format as axis, can customize to show higher precision, etc.
-          formatX = chart.xAxis.tickFormat(),
-          x = formatX(chart.x()(e, e.pointIndex)),
-          y = e.series.bar ? formatY1(chart.y()(e.point)) : formatY2(chart.y()(e.point));
-
-
-
-      // uses the chart's getX and getY, you may customize if x position is not the same as the value you want
-      //   ex. daily data without weekends, x is the index, while you want the date
-      var content = '<h3>' + e.series.key.replace(/\s*\(.*\)/, '') + '</h3>' + //removing the (left/right axis) note from series label in tooltip
-                    '<p>' +
-                    y + ' at ' + x +
-                    '</p>';
-
-                    nv.tooltip.show([left, top], content, chart.y()(e.point) < 0 ? 'n' : 's' );
-    };
-
-    chart.dispatch.on('tooltipShow', showTooltip);
-    chart.dispatch.on('tooltipHide', nv.tooltip.cleanup);
-
-
-    window.onresize= function() {
-      // now that width and height are functions, should be automatic..of course you can always override them
-      d3.select('#chart1 svg')
-          .call(chart);
-    };
-  }
 });
-
-
-
-function sinAndCos() {
-  var sin = [],
-      cos = [];
-
-  for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10) + 1});
-    cos.push({x: i, y: .5 * Math.cos(i/10) + .5});
-  }
-
-  return [
-    {
-      values: sin,
-      key: "Sine Wave",
-      bar: true
-    },
-    {
-      values: cos,
-      key: "Cosine Wave"
-    }
-  ];
-}
-
 
 </script>

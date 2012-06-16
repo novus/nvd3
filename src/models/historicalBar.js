@@ -1,9 +1,4 @@
 
-/***
- * multiBar will likely be used instead of this, wherever this would have been useful,
- *   multiBar lets you view 1 or more bars per an x value, either grouped (side by side)
- *   or stacked (layered on top of each other).
- */
 nv.models.historicalBar = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
@@ -174,19 +169,25 @@ nv.models.historicalBar = function() {
 
   chart.width = function(_) {
     if (!arguments.length) return width;
-    if (margin.left + margin.right + 20 > _)
-      width = margin.left + margin.right + 20; // Min width.... while this is a good idea, I may move this somewhere else.. OR need to implement in all other logical spots
-    else
-      width = _;
+    width = _;
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
-    if (margin.top + margin.bottom + 20 > _)
-      height = margin.top + margin.bottom + 20; // Min height
-    else
-      height = _;
+    height = _;
+    return chart;
+  };
+
+  chart.xScale = function(_) {
+    if (!arguments.length) return x;
+    x = _;
+    return chart;
+  };
+
+  chart.yScale = function(_) {
+    if (!arguments.length) return y;
+    y = _;
     return chart;
   };
 

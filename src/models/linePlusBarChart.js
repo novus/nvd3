@@ -17,14 +17,30 @@ nv.models.linePlusBarChart = function() {
 
   var lines = nv.models.line(),
       bars = nv.models.historicalBar(),
-      x = d3.scale.linear(),
-      y1 = d3.scale.linear(),
-      y2 = d3.scale.linear(),
+      x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
+      y1 = bars.yScale(),
+      y2 = lines.yScale(),
       xAxis = nv.models.axis().scale(x).orient('bottom'),
       yAxis1 = nv.models.axis().scale(y1).orient('left'),
       yAxis2 = nv.models.axis().scale(y2).orient('right'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+
+  var showTooltip = function(e, offsetElement) {
+    //console.log('left: ' + offsetElement.offsetLeft);
+    //console.log('top: ' + offsetElement.offsetLeft);
+
+    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
+    //var offsetElement = document.getElementById(selector.substr(1)),
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = xAxis.tickFormat()(lines.x()(e.point)),
+        y = yAxis1.tickFormat()(lines.y()(e.point)),
+        content = tooltip(e.series.key, x, y, e, chart);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+  };
+
 
 
   function chart(selection) {
@@ -37,21 +53,35 @@ nv.models.linePlusBarChart = function() {
                              - margin.top - margin.bottom;
 
 
-      var dataBars = data.filter(function(d) { return !d.disabled && d.bar })
+      var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
+
+      var dataLines = data.filter(function(d) { return !d.disabled && !d.bar });
+
+
+
+      //TODO: try to remove x scale computation from this layer
+
+      var series1 = data.filter(function(d) { return !d.disabled && d.bar })
             .map(function(d) { 
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
             });
 
-      var dataLines = data.filter(function(d) { return !d.disabled && !d.bar })
+      var series2 = data.filter(function(d) { return !d.disabled && !d.bar })
             .map(function(d) { 
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
             });
 
-      x   .domain(d3.extent(d3.merge(dataBars.concat(dataLines)), function(d) { return d.x } ))
+      x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
+          .range([0, availableWidth]);
+
+
+
+          /*
+      x   .domain(d3.extent(d3.merge(data.map(function(d) { return d.values })), getX ))
           .range([0, availableWidth]);
 
       y1  .domain(d3.extent(d3.merge(dataBars), function(d) { return d.y } ))
@@ -59,6 +89,8 @@ nv.models.linePlusBarChart = function() {
 
       y2  .domain(d3.extent(d3.merge(dataLines), function(d) { return d.y } ))
           .range([availableHeight, 0]);
+         */
+
 
       lines
         .width(availableWidth)
@@ -87,12 +119,7 @@ nv.models.linePlusBarChart = function() {
 
 
 
-
-      //TODO: margins should be adjusted based on what components are used: axes, axis labels, legend
-      margin.top = legend.height();
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var g = wrap.select('g');
 
 
       if (showLegend) {
@@ -116,23 +143,22 @@ nv.models.linePlusBarChart = function() {
       }
 
 
-      var barsData = data.filter(function(d) { return !d.disabled && d.bar });
 
       var barsWrap = g.select('.barsWrap')
-          .datum(barsData.length ? barsData : [{values:[]}])
-          //.datum(data.filter(function(d) { return !d.disabled && d.bar }))
+          .datum(dataBars.length ? dataBars : [{values:[]}])
 
       var linesWrap = g.select('.linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled && !d.bar }))
+          .datum(dataLines.length ? dataLines : [{values:[]}])
 
 
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);
 
 
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
       xAxis
-        .domain(x.domain())
-        .range(x.range())
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -141,18 +167,16 @@ nv.models.linePlusBarChart = function() {
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
+
       yAxis1
-        .domain(y1.domain())
-        .range(y1.range())
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.y1.axis'))
           .call(yAxis1);
 
+
       yAxis2
-        .domain(y2.domain())
-        .range(y2.range())
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
@@ -180,31 +204,30 @@ nv.models.linePlusBarChart = function() {
 
 
       lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        dispatch.tooltipShow({
-          point: e.point,
-          series: e.series,
-          pos: [e.pos[0] + margin.left, e.pos[1] + margin.top],
-          seriesIndex: e.seriesIndex,
-          pointIndex: e.pointIndex
-        });
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
       });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
-
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
 
       bars.dispatch.on('elementMouseover.tooltip', function(e) {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
 
       bars.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
 
+      chart.update = function() { selection.transition().call(chart) };
 
     });
 
