@@ -186,13 +186,13 @@ nv.models.discreteBarChart = function() {
 
   chart.width = function(_) {
     if (!arguments.length) return width;
-    width = d3.functor(_);
+    width = _;
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
-    height = d3.functor(_);
+    height = _;
     return chart;
   };
 

@@ -186,14 +186,12 @@ nv.models.lineChart = function() {
   chart.width = function(_) {
     if (!arguments.length) return width;
     width = _;
-    //width = d3.functor(_);
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
-    //height = d3.functor(_);
     return chart;
   };
 
