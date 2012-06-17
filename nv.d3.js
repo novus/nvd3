@@ -5323,16 +5323,20 @@ nv.models.scatterChart = function() {
 
     //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
     //var offsetElement = document.getElementById(selector.substr(1)),
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    //var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        //top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        topX = y.range()[0] + 30 + ( offsetElement.offsetTop || 0),
+        leftY = x.range()[0] + ( offsetElement.offsetLeft || 0 ),
+        topY = e.pos[1] + ( offsetElement.offsetTop || 0),
         xVal = xAxis.tickFormat()(scatter.x()(e.point)),
         yVal = yAxis.tickFormat()(scatter.y()(e.point)),
         contentX = tooltipX(e.series.key, xVal, yVal, e, chart),
         contentY = tooltipY(e.series.key, xVal, yVal, e, chart),
         content = tooltip(e.series.key, xVal, yVal, e, chart);
 
-    nv.tooltip.show([left, y.range()[0] + 30], contentX, 'n', 1);
-    nv.tooltip.show([x.range()[0], top], contentY, 'w', 1);
+    nv.tooltip.show([leftX, topX], contentX, 'n', 1);
+    nv.tooltip.show([leftY, topY], contentY, 'w', 1);
     //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
 
