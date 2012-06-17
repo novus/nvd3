@@ -33,14 +33,14 @@ nv.models.scatterChart = function() {
     //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(scatter.x()(e.point)),
-        y = yAxis.tickFormat()(scatter.y()(e.point)),
-        contentX = tooltipX(e.series.key, x, y, e, chart),
-        contentY = tooltipY(e.series.key, x, y, e, chart),
-        content = tooltip(e.series.key, x, y, e, chart);
+        xVal = xAxis.tickFormat()(scatter.x()(e.point)),
+        yVal = yAxis.tickFormat()(scatter.y()(e.point)),
+        contentX = tooltipX(e.series.key, xVal, yVal, e, chart),
+        contentY = tooltipY(e.series.key, xVal, yVal, e, chart),
+        content = tooltip(e.series.key, xVal, yVal, e, chart);
 
-    nv.tooltip.show([left, height - 50], contentX, 'n', 1);
-    nv.tooltip.show([5, top], contentY, 'w', 1);
+    nv.tooltip.show([left, y.range()[0] + 30], contentX, 'n', 1);
+    nv.tooltip.show([x.range()[0], top], contentY, 'w', 1);
     //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
 
