@@ -5300,6 +5300,8 @@ nv.models.scatterChart = function() {
       showDistY = false,
       showLegend = true,
       tooltips = true,
+      tooltipX = function(key, x, y) { return '<strong>' + x + '</strong>' },
+      tooltipY = function(key, x, y) { return '<strong>' + y + '</strong>' },
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
@@ -5325,9 +5327,13 @@ nv.models.scatterChart = function() {
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(scatter.x()(e.point)),
         y = yAxis.tickFormat()(scatter.y()(e.point)),
+        contentX = tooltipX(e.series.key, x, y, e, chart),
+        contentY = tooltipY(e.series.key, x, y, e, chart),
         content = tooltip(e.series.key, x, y, e, chart);
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+    nv.tooltip.show([left, height - 50], contentX, 'n', 1);
+    nv.tooltip.show([5, top], contentY, 'w', 1);
+    //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
 
 
