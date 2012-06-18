@@ -1587,7 +1587,7 @@ nv.models.cumulativeLineChart = function() {
         legend.width(availableWidth);
 
         g.select('.legendWrap')
-            .datum(series)
+            .datum(data)
             .call(legend);
 
         if ( margin.top != legend.height()) {
