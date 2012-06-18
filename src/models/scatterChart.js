@@ -69,8 +69,8 @@ nv.models.scatterChart = function() {
 
 
 
-      var wrap = container.selectAll('g.wrap.scatterWithLegend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterWithLegend').append('g');
+      var wrap = container.selectAll('g.wrap.scatterChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart').append('g');
 
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x axis');

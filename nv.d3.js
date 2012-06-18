@@ -5317,7 +5317,7 @@ nv.models.scatter = function() {
 
 
       var wrap = d3.select(this).selectAll('g.wrap.scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter');
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' +id);
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
@@ -5422,12 +5422,14 @@ nv.models.scatter = function() {
             });
 
         dispatch.on('elementMouseover.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+            //wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+            d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
 
         dispatch.on('elementMouseout.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+            //wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+            d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });
 
@@ -5730,8 +5732,8 @@ nv.models.scatterChart = function() {
 
 
 
-      var wrap = container.selectAll('g.wrap.scatterWithLegend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterWithLegend').append('g');
+      var wrap = container.selectAll('g.wrap.scatterChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart').append('g');
 
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x axis');
