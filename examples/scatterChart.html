@@ -74,7 +74,7 @@ nv.addGraph(function() {
 
 function randomData(groups, points) { //# groups,# points per group
   var data = [],
-      shapes = ['circle', 'cross', 'triangle-up', 'triangle-down'],
+      shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
       random = d3.random.normal();
 
   for (i = 0; i < groups; i++) {
@@ -88,7 +88,7 @@ function randomData(groups, points) { //# groups,# points per group
         x: random(), 
         y: random(), 
         size: Math.random(), 
-        shape: shapes[i]
+        shape: shapes[i % 6]
       });
     }
   }
