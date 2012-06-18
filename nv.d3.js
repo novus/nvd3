@@ -1544,7 +1544,8 @@ nv.models.cumulativeLineChart = function() {
   }
 
   function dragEnd(d,i) {
-    d3.transition(d3.select('.chart-' + id)).call(chart);
+    //d3.transition(d3.select('.chart-' + id)).call(chart);
+    chart.update();
   }
 
 
