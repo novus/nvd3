@@ -5733,7 +5733,7 @@ nv.models.scatterChart = function() {
 
 
       var wrap = container.selectAll('g.wrap.scatterChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart').append('g');
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart chart-' + scatter.id()).append('g');
 
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x axis');
@@ -5878,9 +5878,11 @@ nv.models.scatterChart = function() {
 
 
       scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-        scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
             .attr('y1', e.pos[1]);
-        scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
             .attr('x1', e.pos[0]);
 
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
@@ -5891,9 +5893,11 @@ nv.models.scatterChart = function() {
       scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
 
-        scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
             .attr('y1', y.range()[0]);
-        scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
             .attr('x1', x.range()[0]);
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
