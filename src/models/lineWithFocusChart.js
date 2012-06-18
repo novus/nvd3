@@ -229,7 +229,7 @@ nv.models.lineWithFocusChart = function() {
       }
 
       function updateFocus() {
-        var yDomain = brush.empty() ? y2.domain() : d3.extent(d3.merge(data.map(function(d) { return d.values })).filter(function(d) {
+        var yDomain = brush.empty() ? y2.domain() : d3.extent(d3.merge(data.filter(function(d) { return !d.disabled }).map(function(d) { return d.values })).filter(function(d) {
           return lines.x()(d) >= brush.extent()[0] && lines.x()(d) <= brush.extent()[1];
         }), lines.y());  //This doesn't account for the 1 point before and the 1 point after the domain.  Would fix, but likely need to change entire methodology here
 

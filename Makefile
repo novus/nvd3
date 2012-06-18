@@ -4,7 +4,6 @@ JS_FILES = \
 	src/tooltip.js \
 	src/utils.js \
 	src/models/axis.js \
-	src/models/bar.js \
 	src/models/historicalBar.js \
 	src/models/bullet.js \
 	src/models/cumulativeLine.js \
@@ -14,9 +13,7 @@ JS_FILES = \
 	src/models/legend.js \
 	src/models/line.js \
 	src/models/lineChart.js \
-	src/models/linePlusBar.js \
 	src/models/linePlusBarChart.js \
-	src/models/lineWithFocus.js \
 	src/models/lineWithFocusChart.js \
 	src/models/multiBar.js \
 	src/models/multiBarChart.js \
