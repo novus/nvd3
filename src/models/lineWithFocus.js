@@ -235,7 +235,6 @@ nv.models.lineWithFocus = function() {
       function onBrush() {
         updateFocus();
 
-
         focusLines.call(focus)
         wrap.select('.x.axis').call(xAxis);
         wrap.select('.y.axis').call(yAxis);

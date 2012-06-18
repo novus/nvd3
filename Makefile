@@ -17,6 +17,7 @@ JS_FILES = \
 	src/models/linePlusBar.js \
 	src/models/linePlusBarChart.js \
 	src/models/lineWithFocus.js \
+	src/models/lineWithFocusChart.js \
 	src/models/multiBar.js \
 	src/models/multiBarChart.js \
 	src/models/multiBarHorizontal.js \

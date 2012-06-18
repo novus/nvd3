@@ -23,7 +23,7 @@ nv.models.scatter = function() {
       clipRadius = function() { return 25 }, // function to get the radius for point clips
       xDomain, yDomain, sizeDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
-  var dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout'),//TODO: consider renaming to elementMouseove and elementMouseout for consistency
+  var dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout'),
       x0, y0, z0,
       timeoutID;
 
@@ -57,7 +57,6 @@ nv.models.scatter = function() {
             });
 
       //TODO: figure out the best way to deal with scales with equal MIN and MAX
-      //TODO: think of a good way to re-use scales
       x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)))
           .range([0, availableWidth]);
 
