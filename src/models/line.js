@@ -13,8 +13,8 @@ nv.models.line = function() {
 
   var scatter = nv.models.scatter()
                   .id(id)
-                  .size(2.5) // default size
-                  .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+                  .size(16) // default size
+                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
       x = scatter.xScale(),
       y = scatter.yScale(),
       x0 = x, 
@@ -87,6 +87,7 @@ nv.models.line = function() {
       var paths = groups.selectAll('path')
           .data(function(d, i) { return [d.values] });
       paths.enter().append('path')
+          .attr('class', 'line')
           .attr('d', d3.svg.line()
             .x(function(d,i) { return x0(getX(d,i)) })
             .y(function(d,i) { return y0(getY(d,i)) })

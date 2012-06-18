@@ -5,10 +5,12 @@ nv.models.scatter = function() {
       width = 960,
       height = 500,
       color = d3.scale.category20().range(), // array of colors to be used in order
+      shape = 'circle',
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       x = d3.scale.linear(),
       y = d3.scale.linear(),
-      z = d3.scale.sqrt(), //sqrt because point size is done by area, not radius
+      z = d3.scale.linear(), //linear because d3.svg.shape.size is treated as area
+      //z = d3.scale.sqrt(), //sqrt because point size is done by area, not radius
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
       getSize = function(d) { return d.size }, // accessor to get the point radius from a data point //TODO: consider renamig size to z
@@ -63,7 +65,8 @@ nv.models.scatter = function() {
           .range([availableHeight, 0]);
 
       z   .domain(sizeDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.size }).concat(forceSize)))
-          .range([2, 10]);
+          .range([16, 256]);
+          //.range([2, 10]);
 
 
 
@@ -178,7 +181,7 @@ nv.models.scatter = function() {
         });
 
         dispatch.on('elementMouseout.point', function(d) {
-            wrap.select('.series-' + d.seriesIndex + ' circle.point-' + d.pointIndex)
+            wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });
 
@@ -206,6 +209,7 @@ nv.models.scatter = function() {
           .style('fill-opacity', .5);
 
 
+          /*
       var points = groups.selectAll('circle.point')
           .data(function(d) { return d.values });
       points.enter().append('circle')
@@ -223,6 +227,38 @@ nv.models.scatter = function() {
           .attr('cx', function(d,i) { return x(getX(d,i)) })
           .attr('cy', function(d,i) { return y(getY(d,i)) })
           .attr('r', function(d,i) { return z(getSize(d,i)) });
+         */
+
+      var points = groups.selectAll('path.point')
+          .data(function(d) { return d.values });
+      points.enter().append('path')
+          .attr('transform', function(d,i) {
+            return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
+          })
+          .attr('d', 
+                d3.svg.symbol()
+                  .type(function(d,i) { return d.shape || shape })
+                  .size(function(d,i) { return z(getSize(d,i)) })
+               );
+          //.attr('r', function(d,i) { return z0(getSize(d,i)) });
+      //d3.transition(points.exit())
+      d3.transition(groups.exit().selectAll('path.point'))
+          .attr('transform', function(d,i) {
+            return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+          })
+          //.attr('r', function(d,i) { return z(getSize(d,i)) })
+          .remove();
+      points.attr('class', function(d,i) { return 'point point-' + i });
+      d3.transition(points)
+          .attr('transform', function(d,i) {
+            return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+          })
+          .attr('d', 
+                d3.svg.symbol()
+                  .type(function(d,i) { return d.shape || shape })
+                  .size(function(d,i) { return z(getSize(d,i)) })
+               );
+          //.attr('r', function(d,i) { return z(getSize(d,i)) });
 
 
 
@@ -359,6 +395,12 @@ nv.models.scatter = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
+    return chart;
+  };
+
+  chart.shape= function(_) {
+    if (!arguments.length) return shape;
+    shape = _;
     return chart;
   };
 

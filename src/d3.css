@@ -219,7 +219,7 @@ svg .title {
 * Lines 
 */
 
-.nvd3 .groups path {
+.nvd3 .groups path.line {
   fill: none;
   stroke-width: 2.5px;
   stroke-linecap: round;
@@ -240,9 +240,16 @@ svg .title {
   stroke-width: 6px;
 }
 
-.nvd3.line .nvd3.scatter .groups circle.point {
+/*
+.nvd3.scatter .groups .point {
   fill-opacity: 0.1;
   stroke-opacity: 0.1;
+}
+  */
+
+.nvd3.line .nvd3.scatter .groups .point {
+  fill-opacity: 0;
+  stroke-opacity: 0;
 }
 
 
@@ -252,11 +259,11 @@ svg .title {
   -webkit-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
 }
 
-.nvd3.line .nvd3.scatter .groups circle.point.hover,
+.nvd3.scatter .groups .point.hover,
 .nvd3 .groups .point.hover {
   stroke-width: 20px;
-  fill-opacity: .5;
-  stroke-opacity: .5;
+  fill-opacity: .5 !important;
+  stroke-opacity: .5 !important;
 }
 
 
@@ -363,19 +370,19 @@ svg .title {
 *  Bullet
 */
 
-.nvd3 .bullet { font: 10px sans-serif; cursor: pointer; }
-.nvd3 .bullet rect { fill-opacity: .6; }
-.nvd3 .bullet rect:hover { fill-opacity: 1; }
-.nvd3 .bullet .marker { stroke: #000; stroke-width: 2px; }
-.nvd3 .bullet .markerTriangle { stroke: #000; fill: #fff; stroke-width: 1.5px; }
-.nvd3 .bullet .tick line { stroke: #666; stroke-width: .5px; }
-.nvd3 .bullet .range.s0 { fill: #eee; }
-.nvd3 .bullet .range.s1 { fill: #ddd; }
-.nvd3 .bullet .range.s2 { fill: #ccc; }
-.nvd3 .bullet .measure.s0 { fill: steelblue; }
-.nvd3 .bullet .measure.s1 { fill: darkblue; }
-.nvd3 .bullet .title { font-size: 14px; font-weight: bold; }
-.nvd3 .bullet .subtitle { fill: #999; }
+.nvd3.bullet { font: 10px sans-serif; cursor: pointer; }
+.nvd3.bullet rect { fill-opacity: .6; }
+.nvd3.bullet rect:hover { fill-opacity: 1; }
+.nvd3.bullet .marker { stroke: #000; stroke-width: 2px; }
+.nvd3.bullet .markerTriangle { stroke: #000; fill: #fff; stroke-width: 1.5px; }
+.nvd3.bullet .tick line { stroke: #666; stroke-width: .5px; }
+.nvd3.bullet .range.s0 { fill: #eee; }
+.nvd3.bullet .range.s1 { fill: #ddd; }
+.nvd3.bullet .range.s2 { fill: #ccc; }
+.nvd3.bullet .measure.s0 { fill: steelblue; }
+.nvd3.bullet .measure.s1 { fill: darkblue; }
+.nvd3.bullet .title { font-size: 14px; font-weight: bold; }
+.nvd3.bullet .subtitle { fill: #999; }
 
 
 
