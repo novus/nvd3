@@ -24,10 +24,6 @@ nv.models.discreteBar = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
-      //store old scales if they exist
-      x0 = x0 || x;
-      y0 = y0 || y;
-
 
 
       //add series index to each data point for reference
@@ -53,9 +49,13 @@ nv.models.discreteBar = function() {
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)))
           //.range([availableHeight, 0]);
 
+
       if (showValues) y.range([availableHeight - (y.domain()[0] < 0 ? 12 : 0), y.domain()[1] < 0 ? 0 : 12]);
       else y.range([availableHeight, 0]);
 
+      //store old scales if they exist
+      x0 = x0 || x; //TODO: decide whether or not to keep
+      y0 = y0 || d3.scale.linear().domain(y.domain()).range([y(0),y(0)]);
 
       var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discretebar');
@@ -166,13 +166,18 @@ nv.models.discreteBar = function() {
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
           //.attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
+          .attr('transform', function(d,i) {
+              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y0(0) : y0(getY(d,i))) + ')' 
+          })
+        .selectAll('rect')
+          .attr('width', x.rangeBand() / data.length)
       d3.transition(bars)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y(0) : y(getY(d,i))) + ')' 
           })
         .selectAll('rect')
-          .attr('width', x.rangeBand() / data.length)
+          //.attr('width', x.rangeBand() / data.length)
           .attr('height', function(d,i) {
              return Math.abs(y(getY(d,i)) - y(0))
            });

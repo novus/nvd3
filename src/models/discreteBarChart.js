@@ -122,8 +122,9 @@ nv.models.discreteBarChart = function() {
         .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
-          .attr('transform', 'translate(0,' + (y.range()[0] + (discretebar.showValues() ? 16 : 0)) + ')');
-      d3.transition(g.select('.x.axis'))
+          .attr('transform', 'translate(0,' + (y.range()[0] + (discretebar.showValues() ? 16 : 0)) + ')')
+      //d3.transition(g.select('.x.axis'))
+      g.select('.x.axis').transition().duration(0)
           .call(xAxis);
 
 
