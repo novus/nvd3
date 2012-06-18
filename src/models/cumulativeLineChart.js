@@ -1,5 +1,5 @@
 
-nv.models.lineChart = function() {
+nv.models.cumulativeLineChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       color = d3.scale.category20().range(),
       width = null, 
@@ -9,16 +9,26 @@ nv.models.lineChart = function() {
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      };
+      },
+      showRescaleToggle = false,
+      rescaleY = true;
 
   var lines = nv.models.line(),
       x = lines.xScale(),
       y = lines.yScale(),
+      dx = d3.scale.linear(),
+      id = lines.id(),
       xAxis = nv.models.axis().scale(x).orient('bottom'),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      controls = nv.models.legend().height(30),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
+      index = {i: 0, x: 0};
 
+  //TODO: let user select default
+  var controlsData = [
+    { key: 'Re-scale y-axis' }
+  ];
 
   var showTooltip = function(e, offsetElement) {
     //console.log('left: ' + offsetElement.offsetLeft);
@@ -36,9 +46,30 @@ nv.models.lineChart = function() {
   };
 
 
+  var indexDrag = d3.behavior.drag()
+                    .on('dragstart', dragStart)
+                    .on('drag', dragMove)
+                    .on('dragend', dragEnd);
+
+  function dragStart(d,i) {}
+
+  function dragMove(d,i) {
+    d.x += d3.event.dx;
+    d.i = Math.round(dx.invert(d.x));
+
+    //d3.transition(d3.select('.chart-' + id)).call(chart);
+    d3.select(this).attr("transform", "translate(" + dx(d.i) + ",0)");
+  }
+
+  function dragEnd(d,i) {
+    d3.transition(d3.select('.chart-' + id)).call(chart);
+  }
+
+
+
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this).classed('chart-' + id, true);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -46,14 +77,23 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
 
 
+      var series = indexify(index.i, data);
 
-      var wrap = container.selectAll('g.wrap.lineChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineChart').append('g');
+
+      dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
+          .range([0, availableWidth])
+          .clamp(true);
+
+
+
+      var wrap = container.selectAll('g.wrap.cumulativeLine').data([series]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 cumulativeLine').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
       gEnter.append('g').attr('class', 'linesWrap');
       gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
 
 
       var g = wrap.select('g');
@@ -65,7 +105,7 @@ nv.models.lineChart = function() {
         legend.width(availableWidth);
 
         g.select('.legendWrap')
-            .datum(data)
+            .datum(series)
             .call(legend);
 
         if ( margin.top != legend.height()) {
@@ -79,10 +119,20 @@ nv.models.lineChart = function() {
       }
 
 
+      if (showRescaleToggle) {
+        controls.width(140).color(['#444', '#444', '#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
+
+
+
       lines
         .width(availableWidth)
         .height(availableHeight)
-        .color(data.map(function(d,i) {
+        .color(series.map(function(d,i) {
           return d.color || color[i % 10];
         }).filter(function(d,i) { return !data[i].disabled }));
 
@@ -92,9 +142,23 @@ nv.models.lineChart = function() {
 
 
       var linesWrap = g.select('.linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(series.filter(function(d) { return !d.disabled }))
 
       d3.transition(linesWrap).call(lines);
+
+
+      var indexLine = linesWrap.selectAll('.indexLine')
+          .data([index]);
+      indexLine.enter().append('rect').attr('class', 'indexLine')
+          .attr('width', 3)
+          .attr('x', -2)
+          .attr('fill', 'red')
+          .attr('fill-opacity', .5)
+          .call(indexDrag)
+
+      indexLine
+          .attr("transform", function(d) { return "translate(" + dx(d.i) + ",0)" })
+          .attr('height', availableHeight)
 
 
 
@@ -118,6 +182,14 @@ nv.models.lineChart = function() {
           .call(yAxis);
 
 
+      controls.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+        rescaleY = !d.disabled;
+
+        //console.log(d,i,arguments);
+
+        selection.transition().call(chart);
+      });
 
 
       legend.dispatch.on('legendClick', function(d,i) { 
@@ -219,6 +291,34 @@ nv.models.lineChart = function() {
     tooltip = _;
     return chart;
   };
+
+
+
+  // ********** FUNCTIONS **********
+
+  /* Normalize the data according to an index point. */
+  function indexify(idx, data) {
+    return data.map(function(line, i) {
+      var v = lines.y()(line.values[idx], idx);
+
+      return {
+        key: line.key,
+        values: line.values.map(function(point, pointIndex) {
+          return {'x': lines.x()(point, pointIndex), 'y': (lines.y()(point, pointIndex) - v) / (1 + v) };
+        }),
+        disabled: line.disabled,
+        hover: line.hover
+        /*
+        if (v < -.9) {
+          //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
+        }
+        */
+      };
+    });
+  };
+
+
+
 
 
   return chart;
