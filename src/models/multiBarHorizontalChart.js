@@ -125,7 +125,8 @@ nv.models.multiBarHorizontalChart = function() {
         .ticks( availableHeight / 24 )
         .tickSize(-availableWidth, 0);
 
-      d3.transition(g.select('.x.axis'))
+      //d3.transition(g.select('.x.axis'))
+      g.select('.x.axis').transition().duration(0)
           .call(xAxis);
 
       var xTicks = g.select('.x.axis').selectAll('g');
@@ -147,6 +148,7 @@ nv.models.multiBarHorizontalChart = function() {
       g.select('.y.axis')
           .attr('transform', 'translate(0,' + availableHeight + ')');
       d3.transition(g.select('.y.axis'))
+      //g.select('.y.axis').transition().duration(0)
           .call(yAxis);
 
 
@@ -214,7 +216,7 @@ nv.models.multiBarHorizontalChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'showValues', 'valueFormat');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'delay', 'showValues', 'valueFormat');
 
 
   chart.margin = function(_) {
