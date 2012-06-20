@@ -6,7 +6,7 @@ nv.models.legend = function() {
       color = d3.scale.category20().range(),
       align = true;
 
-  var dispatch = d3.dispatch('legendClick', 'legendMouseover', 'legendMouseout');
+  var dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout'); //TODO: theres are really element or series events, there are currently no 'LEGEND' events (as in entire legend)... decide if they are needed
 
   function chart(selection) {
     selection.each(function(data) {
@@ -31,6 +31,9 @@ nv.models.legend = function() {
           })
           .on('click', function(d,i) {
             dispatch.legendClick(d,i);
+          })
+          .on('dblclick', function(d,i) {
+            dispatch.legendDblclick(d,i);
           });
       seriesEnter.append('circle')
           .style('fill', function(d,i) { return d.color || color[i % color.length] })
