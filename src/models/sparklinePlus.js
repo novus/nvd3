@@ -34,8 +34,7 @@ nv.models.sparklinePlus = function() {
       //var gEnter = svg.enter().append('svg').append('g');
       var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          //.style('fill', function(d, i){ return d.color || color[i % 10] })
-          .style('stroke', function(d, i){ return d.color || color[i % 10] });
+          .style('stroke', function(d, i){ return d.color || color[i % color.length] });
 
       sparkline
         .xDomain(x.domain())

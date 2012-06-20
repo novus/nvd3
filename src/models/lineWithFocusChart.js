@@ -98,14 +98,14 @@ nv.models.lineWithFocusChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
 
       lines2
         .width(availableWidth)
         .height(availableHeight2)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
 
 

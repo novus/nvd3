@@ -33,8 +33,8 @@ nv.models.legend = function() {
             dispatch.legendClick(d,i);
           });
       seriesEnter.append('circle')
-          .style('fill', function(d,i) { return d.color || color[i % 20] })
-          .style('stroke', function(d,i) { return d.color || color[i % 20] })
+          .style('fill', function(d,i) { return d.color || color[i % color.length] })
+          .style('stroke', function(d,i) { return d.color || color[i % color.length] })
           .style('stroke-width', 2)
           .attr('r', 5);
       seriesEnter.append('text')

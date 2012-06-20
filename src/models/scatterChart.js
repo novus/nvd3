@@ -100,7 +100,7 @@ nv.models.scatterChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 20];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -139,7 +139,7 @@ nv.models.scatterChart = function() {
 
         distWrap.enter().append('g').attr('class', function(d,i) { return 'distribution series-' + i })
 
-        distWrap.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % 10] })
+        distWrap.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] })
       }
 
       if (showDistX) {

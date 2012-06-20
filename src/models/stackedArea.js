@@ -80,7 +80,7 @@ nv.models.stackedArea = function() {
           .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
           .forceY([0])
           .color(dataCopy.map(function(d,i) {
-            return d.color || color[i % 20];
+            return d.color || color[i % color.length];
           }).filter(function(d,i) { return !dataCopy[i].disabled }));
 
         gEnter.append('g').attr('class', 'scatterWrap');
@@ -160,8 +160,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
             .remove();
         path
-            .style('fill', function(d,i){ return d.color || color[i % 20] })
-            .style('stroke', function(d,i){ return d.color || color[i % 20] });
+            .style('fill', function(d,i){ return d.color || color[i % color.length] })
+            .style('stroke', function(d,i){ return d.color || color[i % color.length] });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 

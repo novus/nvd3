@@ -3,7 +3,6 @@ nv.models.linePlusBarChart = function() {
   var margin = {top: 30, right: 60, bottom: 50, left: 60},
       width = null,
       height = null,
-      dotRadius = function() { return 2.5 },
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       color = d3.scale.category20().range(),
@@ -92,14 +91,14 @@ nv.models.linePlusBarChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
 
       bars
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
 
 

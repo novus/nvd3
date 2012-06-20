@@ -974,7 +974,7 @@ nv.models.cumulativeLine = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -1367,7 +1367,7 @@ nv.models.cumulativeLineChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(series.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -1708,8 +1708,8 @@ nv.models.discreteBar = function() {
       barsEnter.append('rect')
           .attr('height', 0)
           .attr('width', x.rangeBand() / data.length )
-          .style('fill', function(d,i){  return d.color || color[i % 10] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
-          .style('stroke', function(d,i){ return d.color || color[i % 10] })
+          .style('fill', function(d,i){  return d.color || color[i % color.length] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
+          .style('stroke', function(d,i){ return d.color || color[i % color.length] })
 
       if (showValues) {
         barsEnter.append('text')
@@ -2106,8 +2106,8 @@ nv.models.legend = function() {
             dispatch.legendClick(d,i);
           });
       seriesEnter.append('circle')
-          .style('fill', function(d,i) { return d.color || color[i % 20] })
-          .style('stroke', function(d,i) { return d.color || color[i % 20] })
+          .style('fill', function(d,i) { return d.color || color[i % color.length] })
+          .style('stroke', function(d,i) { return d.color || color[i % color.length] })
           .style('stroke-width', 2)
           .attr('r', 5);
       seriesEnter.append('text')
@@ -2119,9 +2119,10 @@ nv.models.legend = function() {
       series.exit().remove();
 
 
+      //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
 
 
-      // NEW ALIGNING CODE, TODO: drastically clean up ... just initial code to make sure the math is right
+      // NEW ALIGNING CODE, TODO: drastically clean up ... this is just the ugly initial code to make sure the math is right
       if (align) {
         var seriesWidths = [];
         series.each(function(d,i) {
@@ -2320,8 +2321,8 @@ nv.models.line = function() {
       groups
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % 20] })
-          .style('stroke', function(d,i){ return color[i % 20] })
+          .style('fill', function(d,i){ return color[i % color.length] })
+          .style('stroke', function(d,i){ return color[i % color.length] })
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5)
@@ -2497,7 +2498,7 @@ nv.models.lineChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -2642,7 +2643,6 @@ nv.models.linePlusBarChart = function() {
   var margin = {top: 30, right: 60, bottom: 50, left: 60},
       width = null,
       height = null,
-      dotRadius = function() { return 2.5 },
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       color = d3.scale.category20().range(),
@@ -2731,14 +2731,14 @@ nv.models.linePlusBarChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
 
       bars
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
 
 
@@ -3045,14 +3045,14 @@ nv.models.lineWithFocusChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
 
       lines2
         .width(availableWidth)
         .height(availableHeight2)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -3367,8 +3367,8 @@ nv.models.multiBar = function() {
       groups
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % 10] })
-          .style('stroke', function(d,i){ return color[i % 10] });
+          .style('fill', function(d,i){ return color[i % color.length] })
+          .style('stroke', function(d,i){ return color[i % color.length] });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
@@ -3704,7 +3704,7 @@ nv.models.multiBarChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 20];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -3954,8 +3954,8 @@ nv.models.multiBarHorizontal = function() {
       groups
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % 10] })
-          .style('stroke', function(d,i){ return color[i % 10] });
+          .style('fill', function(d,i){ return color[i % color.length] })
+          .style('stroke', function(d,i){ return color[i % color.length] });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
@@ -4330,7 +4330,7 @@ nv.models.multiBarHorizontalChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 10];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -4980,8 +4980,8 @@ nv.models.scatter = function() {
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover });
       d3.transition(groups)
-          .style('fill', function(d,i) { return color[i % 20] })
-          .style('stroke', function(d,i) { return color[i % 20] })
+          .style('fill', function(d,i) { return color[i % color.length] })
+          .style('stroke', function(d,i) { return color[i % color.length] })
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -5335,7 +5335,7 @@ nv.models.scatterChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % 20];
+          return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -5374,7 +5374,7 @@ nv.models.scatterChart = function() {
 
         distWrap.enter().append('g').attr('class', function(d,i) { return 'distribution series-' + i })
 
-        distWrap.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % 10] })
+        distWrap.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] })
       }
 
       if (showDistX) {
@@ -5590,8 +5590,7 @@ nv.models.sparkline = function() {
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          //.style('fill', function(d, i){ return d.color || color[i * 2 % 20] })
-          .style('stroke', function(d,i) { return d.color || color[i * 2 % 20] });
+          .style('stroke', function(d,i) { return d.color || color[i * color.length] });
 
 /*
       d3.select(this)
@@ -5715,8 +5714,7 @@ nv.models.sparklinePlus = function() {
       //var gEnter = svg.enter().append('svg').append('g');
       var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          //.style('fill', function(d, i){ return d.color || color[i % 10] })
-          .style('stroke', function(d, i){ return d.color || color[i % 10] });
+          .style('stroke', function(d, i){ return d.color || color[i % color.length] });
 
       sparkline
         .xDomain(x.domain())
@@ -5911,7 +5909,7 @@ nv.models.stackedArea = function() {
           .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
           .forceY([0])
           .color(dataCopy.map(function(d,i) {
-            return d.color || color[i % 20];
+            return d.color || color[i % color.length];
           }).filter(function(d,i) { return !dataCopy[i].disabled }));
 
         gEnter.append('g').attr('class', 'scatterWrap');
@@ -5991,8 +5989,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
             .remove();
         path
-            .style('fill', function(d,i){ return d.color || color[i % 20] })
-            .style('stroke', function(d,i){ return d.color || color[i % 20] });
+            .style('fill', function(d,i){ return d.color || color[i % color.length] })
+            .style('stroke', function(d,i){ return d.color || color[i % color.length] });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 
