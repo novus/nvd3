@@ -13,6 +13,7 @@ body {
 <svg id="test1"></svg>
 
 <script src="../lib/d3.v2.js"></script>
+<script src="../lib/fisheye.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/scatter.js"></script>
@@ -29,7 +30,9 @@ nv.addGraph({
                 .width(width)
                 .height(height)
                 .margin({top: 20, right: 20, bottom: 20, left: 20})
-                .size(10)
+                .size(function(d) { return d.z })
+                //.interactive(false)
+                .fisheye(true)
 
 
     d3.select('#test1')
@@ -69,29 +72,6 @@ nv.addGraph({
 
 
 
-function sinAndCos() {
-  var sin = [],
-      cos = [];
-
-  for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
-    cos.push({x: i, y: .5 * Math.cos(i/10)});
-  }
-
-  return [
-    {
-      values: sin,
-      key: "Sine Wave",
-      color: "#ff7f0e"
-    },
-    {
-      values: cos,
-      key: "Cosine Wave",
-      color: "#2ca02c"
-    }
-  ];
-}
-
 
 function randomData() {
   var data = [];
@@ -103,7 +83,7 @@ function randomData() {
     });
 
     for (j = 0; j < 100; j++) {
-      data[i].values.push({x: Math.random(), y: Math.random()});
+      data[i].values.push({x: Math.random(), y: Math.random(), z: Math.random()});
     }
   }
 
