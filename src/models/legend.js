@@ -1,6 +1,6 @@
 
 nv.models.legend = function() {
-  var margin = {top: 5, right: 0, bottom: 5, left: 10},
+  var margin = {top: 5, right: 0, bottom: 5, left: 0},
       width = 400,
       height = 20,
       color = d3.scale.category20().range(),
@@ -96,7 +96,7 @@ nv.models.legend = function() {
         //position legend as far right as possible within the total width
         g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
 
-        height = margin.top + margin.bottom + (5 + Math.ceil(seriesWidths.length / seriesPerRow) * 20) + 15;
+        height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 20);
       } else {
 
         var ypos = 5,
