@@ -46,9 +46,10 @@ nv.models.legend = function() {
       series.exit().remove();
 
 
+      //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
 
 
-      // NEW ALIGNING CODE, TODO: drastically clean up ... just initial code to make sure the math is right
+      // NEW ALIGNING CODE, TODO: drastically clean up ... this is just the ugly initial code to make sure the math is right
       if (align) {
         var seriesWidths = [];
         series.each(function(d,i) {
