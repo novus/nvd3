@@ -29,11 +29,6 @@ nv.models.lineWithFocusChart = function() {
 
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point)),
@@ -46,7 +41,8 @@ nv.models.lineWithFocusChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -210,7 +206,7 @@ nv.models.lineWithFocusChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);

@@ -22,11 +22,14 @@ div {
 
 
 #offsetDiv {
+  margin-left: 100px;
+  margin-top: 100px;
 }
 
 
 #test1 {
   margin: 0;
+  height: 500px;
 }
 
 
@@ -57,6 +60,7 @@ nv.addGraph(function() {
   var chart = nv.models.scatterChart()
                 .showDistX(true)
                 .showDistY(true)
+                //.height(500)
                 .color(d3.scale.category10().range());
 
   chart.xAxis.tickFormat(d3.format('.02f'))

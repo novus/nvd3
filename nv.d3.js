@@ -1302,7 +1302,8 @@ nv.models.cumulativeLineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this).classed('chart-' + id, true);
+      var container = d3.select(this).classed('chart-' + id, true),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -1456,7 +1457,7 @@ nv.models.cumulativeLineChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -1873,11 +1874,6 @@ nv.models.discreteBarChart = function() {
 
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(discretebar.x()(e.point)),
@@ -1896,7 +1892,8 @@ nv.models.discreteBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -2001,7 +1998,7 @@ nv.models.discreteBarChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -2076,7 +2073,7 @@ nv.models.discreteBarChart = function() {
 }
 
 nv.models.legend = function() {
-  var margin = {top: 5, right: 0, bottom: 5, left: 10},
+  var margin = {top: 5, right: 0, bottom: 5, left: 0},
       width = 400,
       height = 20,
       color = d3.scale.category20().range(),
@@ -2172,7 +2169,7 @@ nv.models.legend = function() {
         //position legend as far right as possible within the total width
         g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
 
-        height = margin.top + margin.bottom + (5 + Math.ceil(seriesWidths.length / seriesPerRow) * 20) + 15;
+        height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 20);
       } else {
 
         var ypos = 5,
@@ -2442,11 +2439,6 @@ nv.models.lineChart = function() {
 
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point)),
@@ -2459,7 +2451,8 @@ nv.models.lineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -2572,7 +2565,7 @@ nv.models.lineChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -2673,11 +2666,6 @@ nv.models.linePlusBarChart = function() {
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point)),
@@ -2691,7 +2679,8 @@ nv.models.linePlusBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -2853,7 +2842,7 @@ nv.models.linePlusBarChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -2865,7 +2854,7 @@ nv.models.linePlusBarChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       bars.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -2987,11 +2976,6 @@ nv.models.lineWithFocusChart = function() {
 
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point)),
@@ -3004,7 +2988,8 @@ nv.models.lineWithFocusChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -3168,7 +3153,7 @@ nv.models.lineWithFocusChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -3627,11 +3612,6 @@ nv.models.multiBarChart = function() {
   yAxis.tickFormat(d3.format(',.1f'));
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(multibar.x()(e.point)),
@@ -3649,7 +3629,8 @@ nv.models.multiBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -3817,7 +3798,7 @@ nv.models.multiBarChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       multibar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -4282,11 +4263,6 @@ nv.models.multiBarHorizontalChart = function() {
   yAxis.tickFormat(d3.format(',.1f'));
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(multibar.x()(e.point)),
@@ -4304,7 +4280,8 @@ nv.models.multiBarHorizontalChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var container = d3.select(this),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -4449,7 +4426,7 @@ nv.models.multiBarHorizontalChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       multibar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -4813,17 +4790,24 @@ nv.models.scatter = function() {
       clipEdge = false, // if true, masks lines within x and y scale
       clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
       clipRadius = function() { return 25 }, // function to get the radius for point clips
+      fisheyeEnabled = false,
+      fisheyeRadius = 150,
       xDomain, yDomain, sizeDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
   var dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout'),
       x0, y0, z0,
       timeoutID;
 
+  if (d3.fisheye) 
+    var fisheye = d3.fisheye();
+      //.radius(fisheyeRadius);
+
   function chart(selection) {
     selection.each(function(data) {
       //var seriesData = data.map(function(d) {
       var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
       //store old scales if they exist
       x0 = x0 || x;
@@ -4861,7 +4845,7 @@ nv.models.scatter = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.scatter').data([data]);
+      var wrap = container.selectAll('g.wrap.scatter').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' +id);
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
@@ -4887,8 +4871,8 @@ nv.models.scatter = function() {
       function updateInteractiveLayer() {
 
         if (!interactive) {
-          wrap.select('#points-clip-' + id).remove();
-          wrap.select('.point-paths').remove();
+          //wrap.select('#points-clip-' + id).remove();
+          //wrap.select('.point-paths').remove();
           return false;
         }
 
@@ -5054,6 +5038,37 @@ nv.models.scatter = function() {
           //.attr('r', function(d,i) { return z(getSize(d,i)) });
 
 
+      if (fisheyeEnabled) {
+        var fisheyeBox = container.append('rect')
+                          .attr('class', 'fisheyeBox')
+                          .style('fill-opacity', 0)
+                          .style('stroke-opacity', 0)
+                          .attr('width', availableWidth)
+                          .attr('height', availableHeight);
+
+        fisheye.radius(fisheyeRadius);
+
+        fisheyeBox.on("mousemove", function() {
+          if (!fisheyeEnabled) return true;
+
+          fisheye.center(d3.mouse(this));
+
+          points
+              .each(function(d,i) { d.display = fisheye({x: x(getX(d,i)), y: y(getY(d,i)) }); })
+              .attr('transform', function(d,i) {
+                return 'translate(' + d.display.x + ',' + d.display.y + ')'
+              })
+              .attr('d',
+                    d3.svg.symbol()
+                      .type(function(d,i) { return d.shape || shape })
+                      .size(function(d,i) { return z(getSize(d,i)) * d.display.z })
+                   );
+        });
+
+      } else {
+        container.select('.fisheyeBox').remove();
+      }
+
 
       clearTimeout(timeoutID);
       timeoutID = setTimeout(updateInteractiveLayer, 750);
@@ -5203,6 +5218,18 @@ nv.models.scatter = function() {
     return chart;
   };
 
+  chart.fisheye = function(_) {
+    if (!arguments.length) return fisheyeEnabled;
+    fisheyeEnabled = _;
+    return chart;
+  };
+
+  chart.fisheyeRadius = function(_) {
+    if (!arguments.length) return fisheyeRadius;
+    fisheyeRadius = _;
+    return chart;
+  };
+
 
   return chart;
 }
@@ -5234,11 +5261,8 @@ nv.models.scatterChart = function() {
       x0, y0; //TODO: abstract distribution component and have old scales stored there
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
+    //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
 
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     //var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         //top = e.pos[1] + ( offsetElement.offsetTop || 0),
     var leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -5248,8 +5272,8 @@ nv.models.scatterChart = function() {
         xVal = xAxis.tickFormat()(scatter.x()(e.point)),
         yVal = yAxis.tickFormat()(scatter.y()(e.point)),
         contentX = tooltipX(e.series.key, xVal, yVal, e, chart),
-        contentY = tooltipY(e.series.key, xVal, yVal, e, chart),
-        content = tooltip(e.series.key, xVal, yVal, e, chart);
+        contentY = tooltipY(e.series.key, xVal, yVal, e, chart);
+        //content = tooltip(e.series.key, xVal, yVal, e, chart);
 
     nv.tooltip.show([leftX, topX], contentX, 'n', 1);
     nv.tooltip.show([leftY, topY], contentY, 'e', 1);
@@ -5259,11 +5283,12 @@ nv.models.scatterChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
       chart.update = function() { selection.transition().call(chart) };
 
-      var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -5433,7 +5458,8 @@ nv.models.scatterChart = function() {
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      //if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0].parentNode) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
@@ -5463,7 +5489,7 @@ nv.models.scatterChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, scatter, 'interactive', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'interactive', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'fisheye', 'fisheyeRadius');
 
 
   chart.margin = function(_) {
@@ -6120,11 +6146,6 @@ nv.models.stackedAreaChart = function() {
   ];
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(stacked.x()(e.point)),
@@ -6137,11 +6158,12 @@ nv.models.stackedAreaChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
       chart.update = function() { selection.transition().call(chart) };
 
-      var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -6288,7 +6310,7 @@ nv.models.stackedAreaChart = function() {
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       stacked.dispatch.on('tooltipHide', function(e) {
         dispatch.tooltipHide(e);

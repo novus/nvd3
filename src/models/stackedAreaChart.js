@@ -30,11 +30,6 @@ nv.models.stackedAreaChart = function() {
   ];
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(stacked.x()(e.point)),
@@ -47,11 +42,12 @@ nv.models.stackedAreaChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
       chart.update = function() { selection.transition().call(chart) };
 
-      var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -198,7 +194,7 @@ nv.models.stackedAreaChart = function() {
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       stacked.dispatch.on('tooltipHide', function(e) {
         dispatch.tooltipHide(e);

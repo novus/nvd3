@@ -26,11 +26,8 @@ nv.models.scatterChart = function() {
       x0, y0; //TODO: abstract distribution component and have old scales stored there
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
+    //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
 
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     //var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         //top = e.pos[1] + ( offsetElement.offsetTop || 0),
     var leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -40,8 +37,8 @@ nv.models.scatterChart = function() {
         xVal = xAxis.tickFormat()(scatter.x()(e.point)),
         yVal = yAxis.tickFormat()(scatter.y()(e.point)),
         contentX = tooltipX(e.series.key, xVal, yVal, e, chart),
-        contentY = tooltipY(e.series.key, xVal, yVal, e, chart),
-        content = tooltip(e.series.key, xVal, yVal, e, chart);
+        contentY = tooltipY(e.series.key, xVal, yVal, e, chart);
+        //content = tooltip(e.series.key, xVal, yVal, e, chart);
 
     nv.tooltip.show([leftX, topX], contentX, 'n', 1);
     nv.tooltip.show([leftY, topY], contentY, 'e', 1);
@@ -51,11 +48,12 @@ nv.models.scatterChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
       chart.update = function() { selection.transition().call(chart) };
 
-      var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -225,7 +223,8 @@ nv.models.scatterChart = function() {
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      //if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0].parentNode) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);

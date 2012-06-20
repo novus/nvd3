@@ -70,7 +70,8 @@ nv.models.cumulativeLineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this).classed('chart-' + id, true);
+      var container = d3.select(this).classed('chart-' + id, true),
+          that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -224,7 +225,7 @@ nv.models.cumulativeLineChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0]) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
