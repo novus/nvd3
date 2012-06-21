@@ -139,6 +139,16 @@ svg .title {
 }
 
 
+/**********
+*  Brush
+*/
+
+.brush .resize path {
+  fill: #eee;
+  stroke: #666;
+}
+
+
 
 /**********
 *  Bars
