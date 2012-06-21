@@ -2476,7 +2476,7 @@ nv.models.indentedTree = function() {
         options.columns.forEach(function(column) {
           theadRow1
             .append('th')
-              .attr('width', column.width ? column.width : 5)
+              .attr('width', column.width ? column.width : '10%')
               .style('text-align', column.type == 'numeric' ? 'right' : 'left')
             .append('span')
               .text(column.label);
