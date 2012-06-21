@@ -12,6 +12,7 @@ JS_FILES = \
 	src/models/discreteBarChart.js \
 	src/models/legend.js \
 	src/models/line.js \
+	src/models/indentedTree.js \
 	src/models/lineChart.js \
 	src/models/linePlusBarChart.js \
 	src/models/lineWithFocusChart.js \
