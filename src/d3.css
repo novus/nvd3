@@ -423,13 +423,6 @@ svg .title {
 * Indented Tree
 */
 
-.nvd3.indentedtree {
-  margin-top: 0 !important;
-  /*
-  -webkit-user-select:none;
-  -moz-user-select:none;
-  */
-}
 
 .indentedtree .name {
   margin-left: 5px;
@@ -454,7 +447,6 @@ svg .title {
   */
 }
 
-
 .nvd3.indentedtree .clickable {
   color: #08C;
   cursor: pointer;
@@ -462,32 +454,6 @@ svg .title {
 
 .nvd3.indentedtree span.clickable:hover {
   color: #005580;
-  text-decoration: underline !important;
+  text-decoration: underline;
 }
-
-.nvd3.indentedtree thead {
-  background: #bbb;
-}
-
-.nvd3.indentedtree thead th {
-  padding: 2px 8px;
-}
-
-.nvd3.indentedtree thead td {
-  padding: 2px 8px;
-}
-
-.nvd3.indentedtree tr:hover td {
-  -webkit-transition: background 200ms linear;
-  -moz-transition: background 200ms linear;
-}
-
-.nvd3.indentedtree tr:nth-child(even) {
-  background-color: rgba(153,153,153,0.2);
-}
-
-.nvd3.indentedtree tr:hover td {
-  background: #c9d8f3;
-}
-
 

@@ -9,7 +9,8 @@ nv.models.indentedTree = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       childIndent = 20,
       berHeight = 20,
-      options = {columns:[{key:'key', label: 'Name', type:'text'}]};
+      options = {columns:[{key:'key', label: 'Name', type:'text'}]},
+      tableClass = null;
 
 
 
@@ -37,7 +38,7 @@ nv.models.indentedTree = function() {
       var wrap = d3.select(this).selectAll('div').data([[nodes]]);
       var wrapEnter = wrap.enter().append('div').attr('class', 'wrap nvd3 indentedtree');
       var tableEnter = wrapEnter.append('table');
-      var table = wrap.select('table').attr('width', '100%');
+      var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
 
 
       //clear the container, start from scratch
@@ -227,6 +228,12 @@ nv.models.indentedTree = function() {
   chart.options = function(_) {
     if (!arguments.length) return options;
     options = _;
+    return chart;
+  };
+
+  chart.tableClass = function(_) {
+    if (!arguments.length) return tableClass;
+    tableClass = _;
     return chart;
   };
 
