@@ -133,7 +133,7 @@ nv.models.indentedTree = function() {
         tbody.selectAll("tr")
             //.data(nodes, function(d) { return d.id || (d.id = ++i); })
             .order()
-            .classed('highlight', function(_,i) { return i % 2;}); //used to alternate background color
+            //.classed('highlight', function(_,i) { return i % 2;}); //used to alternate background color
 
         if (column.click)
           nodeName.select('span').on('click', column.click);
