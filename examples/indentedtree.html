@@ -89,33 +89,31 @@ var testTree = [{
 
 
 
-var testOptions = {
-  columns: [
-    {
-      key: 'key',
-      label: 'Name',
-      showCount: true,
-      width: '75%',
-      type: 'text',
-      classes: function(d) { return d.url ? 'clickable name' : 'name' },
-      click: function(d) {
-         if (d.url) window.location.href = d.url;
-      }
-    },
-    {
-      key: 'type',
-      label: 'Type',
-      width: '25%',
-      type: 'text'
+var testColumns = [
+  {
+    key: 'key',
+    label: 'Name',
+    showCount: true,
+    width: '75%',
+    type: 'text',
+    classes: function(d) { return d.url ? 'clickable name' : 'name' },
+    click: function(d) {
+       if (d.url) window.location.href = d.url;
     }
-  ]
-};
+  },
+  {
+    key: 'type',
+    label: 'Type',
+    width: '25%',
+    type: 'text'
+  }
+];
 
 
 
 nv.addGraph(function() {
   var chart = nv.models.indentedTree()
-                .options(testOptions);
+                .columns(testColumns);
 
   d3.select('#example1')
       .datum(testTree)

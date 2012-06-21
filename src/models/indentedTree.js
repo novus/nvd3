@@ -10,7 +10,7 @@ nv.models.indentedTree = function() {
       header = true,
       noResultsText = 'No Results found.'
       childIndent = 20,
-      options = {columns:[{key:'key', label: 'Name', type:'text'}]}, //TODO: get rid of
+      columns = [{key:'key', label: 'Name', type:'text'}], //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
       tableClass = null,
       iconOpen = 'images/grey-plus.png', //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
       iconClose = 'images/grey-minus.png';
@@ -52,7 +52,7 @@ nv.models.indentedTree = function() {
 
         var theadRow1 = thead.append('tr');
 
-        options.columns.forEach(function(column) {
+        columns.forEach(function(column) {
           theadRow1
             .append('th')
               .attr('width', column.width ? column.width : '10%')
@@ -81,10 +81,6 @@ nv.models.indentedTree = function() {
 
       node.exit().remove();
 
-/*
-      if (options.click)
-        node.on('click', options.click);
-*/
 
       node.select('img.treeicon')
           .attr('src', icon)
@@ -93,7 +89,7 @@ nv.models.indentedTree = function() {
       var nodeEnter = node.enter().append('tr');
 
 
-      options.columns.forEach(function(column, index) {
+      columns.forEach(function(column, index) {
 
         var nodeName = nodeEnter.append('td')
             .style('padding-left', function(d) { return (index ? 0 : d.depth * childIndent + 12 + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
@@ -175,7 +171,7 @@ nv.models.indentedTree = function() {
         if(d3.event.shiftKey && !unshift) {
           //If you shift-click, it'll toggle fold all the children, instead of itself
           d3.event.shiftKey = false;
-          d.values.forEach(function(node){
+          d.values && d.values.forEach(function(node){
             if (node.values || node._values) {
               click(node, 0, true);
             }
@@ -263,9 +259,9 @@ nv.models.indentedTree = function() {
     return chart;
   };
 
-  chart.options = function(_) {
-    if (!arguments.length) return options;
-    options = _;
+  chart.columns = function(_) {
+    if (!arguments.length) return columns;
+    columns = _;
     return chart;
   };
 
