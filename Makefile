@@ -10,6 +10,7 @@ JS_FILES = \
 	src/models/cumulativeLineChart.js \
 	src/models/discreteBar.js \
 	src/models/discreteBarChart.js \
+	src/models/distribution.js \
 	src/models/legend.js \
 	src/models/line.js \
 	src/models/indentedTree.js \

@@ -22,6 +22,8 @@ nv.models.scatterChart = function() {
       xAxis = nv.models.axis().orient('bottom').scale(x).tickPadding(10),
       yAxis = nv.models.axis().orient('left').scale(y).tickPadding(10),
       legend = nv.models.legend().height(30),
+      distX = nv.models.distribution().axis('x'),
+      distY = nv.models.distribution().axis('y'),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
       x0, y0; //TODO: abstract distribution component and have old scales stored there
 
@@ -74,7 +76,7 @@ nv.models.scatterChart = function() {
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
       gEnter.append('g').attr('class', 'scatterWrap');
-      //gEnter.append('g').attr('class', 'distWrap');
+      gEnter.append('g').attr('class', 'distWrap');
 
       var g = wrap.select('g')
 
@@ -130,58 +132,20 @@ nv.models.scatterChart = function() {
           .call(yAxis);
 
 
+      distX.domain(x.domain()).width(availableWidth);
+      gEnter.select('.distWrap').append('g')
+          .attr('class', 'distributionX')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+      g.select('.distributionX')
+          .call(distX);
 
 
-      //TODO abstract Distribution into its own component
-      if ( showDistX || showDistY) {
-        var distWrap = scatterWrap.selectAll('g.distribution')
-            .data(function(d) { return d }, function(d) { return d.key });
-
-        distWrap.enter().append('g').attr('class', function(d,i) { return 'distribution series-' + i })
-
-        distWrap.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] })
-      }
-
-      if (showDistX) {
-        var distX = distWrap.selectAll('line.distX')
-              .data(function(d) { return d.values })
-        distX.enter().append('line')
-            .attr('x1', function(d,i) { return x0(scatter.x()(d,i)) })
-            .attr('x2', function(d,i) { return x0(scatter.x()(d,i)) })
-        //d3.transition(distX.exit())
-        d3.transition(distWrap.exit().selectAll('line.distX'))
-            .attr('x1', function(d,i) { return x(scatter.x()(d,i)) })
-            .attr('x2', function(d,i) { return x(scatter.x()(d,i)) })
-            .remove();
-        distX
-            .attr('class', function(d,i) { return 'distX distX-' + i })
-            .attr('y1', y.range()[0])
-            .attr('y2', y.range()[0] + 8);
-        d3.transition(distX)
-            .attr('x1', function(d,i) { return x(scatter.x()(d,i)) })
-            .attr('x2', function(d,i) { return x(scatter.x()(d,i)) })
-      }
-
-
-      if (showDistY) {
-        var distY = distWrap.selectAll('line.distY')
-            .data(function(d) { return d.values })
-        distY.enter().append('line')
-            .attr('y1', function(d,i) { return y0(scatter.y()(d,i)) })
-            .attr('y2', function(d,i) { return y0(scatter.y()(d,i)) });
-        //d3.transition(distY.exit())
-        d3.transition(distWrap.exit().selectAll('line.distY'))
-            .attr('y1', function(d,i) { return y(scatter.y()(d,i)) })
-            .attr('y2', function(d,i) { return y(scatter.y()(d,i)) })
-            .remove();
-        distY
-            .attr('class', function(d,i) { return 'distY distY-' + i })
-            .attr('x1', x.range()[0])
-            .attr('x2', x.range()[0] - 8)
-        d3.transition(distY)
-            .attr('y1', function(d,i) { return y(scatter.y()(d,i)) }) .attr('y2', function(d,i) { return y(scatter.y()(d,i)) });
-      }
-
+      distY.domain(y.domain()).width(availableHeight);
+      gEnter.select('.distWrap').append('g')
+          .attr('class', 'distributionY')
+          .attr('transform', 'translate(-' + distY.size() + ',0)');
+      g.select('.distributionY')
+          .call(distY);
 
 
 

@@ -1,19 +1,22 @@
 
-nv.models.sparkline = function() {
+nv.models.distribution = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      length = 400,
+      width = 400, //technically width or height depending on x or y....
       size = 8,
       axis = 'x', // 'x' or 'y'... horizontal or vertical
       getData = function(d) { return d[axis] },  // defaults d.x or d.y
       color = d3.scale.category20().range(),
       domain;
 
-  var scale = d3.scale.linear();
+  var scale = d3.scale.linear(),
+      scale0;
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableLength = length - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
+      var availableLength = width - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
           naxis = axis == 'x' ? 'y' : 'x';
+
+          console.log(data);
 
       //store old scales if they exist
       scale0 = scale0 || scale;
@@ -22,17 +25,17 @@ nv.models.sparkline = function() {
           .domain(domain || d3.extent(data, getData))
           .range([0, availableLength]);
 
+          console.log(scale.domain());
 
       var wrap = d3.select(this).selectAll('g.distribution').data([data]);
-
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 distribution');
-      gEnter
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 distribution');
+      var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
 
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
       var distWrap = g.selectAll('g.dist')
-          .data(function(d) { return d }, function(d) { return d.key });
+          .data(function(d) {console.log('tets', d);  return d }, function(d) { return d.key });
 
       distWrap.enter().append('g')
           .attr('class', function(d,i) { return 'dist series-' + i });
@@ -71,9 +74,15 @@ nv.models.sparkline = function() {
     return chart;
   };
 
-  chart.length = function(_) {
-    if (!arguments.length) return length;
-    length = _;
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.axis = function(_) {
+    if (!arguments.length) return axis;
+    axis = _;
     return chart;
   };
 
