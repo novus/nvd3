@@ -44,6 +44,8 @@
 
   -moz-border-radius: 15px;
   border-radius: 15px;
+
+  pointer-events: none;
 }
 
 .nvtooltip h3 {
