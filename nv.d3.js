@@ -3444,6 +3444,7 @@ nv.models.lineWithFocusChart = function() {
 
 
 
+      // Taken from crossfilter (http://square.github.com/crossfilter/)
       function resizePath(d) {
         var e = +(d == "e"),
             x = e ? 1 : -1,
@@ -5088,17 +5089,12 @@ nv.models.scatter = function() {
       clipEdge = false, // if true, masks lines within x and y scale
       clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
       clipRadius = function() { return 25 }, // function to get the radius for point clips
-      fisheyeEnabled = false,
-      fisheyeRadius = 150,
       xDomain, yDomain, sizeDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
   var dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout'),
       x0, y0, z0,
       timeoutID;
 
-  if (d3.fisheye) 
-    var fisheye = d3.fisheye();
-      //.radius(fisheyeRadius);
 
   function chart(selection) {
     selection.each(function(data) {
@@ -5336,37 +5332,6 @@ nv.models.scatter = function() {
           //.attr('r', function(d,i) { return z(getSize(d,i)) });
 
 
-      if (fisheyeEnabled) {
-        var fisheyeBox = container.append('rect')
-                          .attr('class', 'fisheyeBox')
-                          .style('fill-opacity', 0)
-                          .style('stroke-opacity', 0)
-                          .attr('width', availableWidth)
-                          .attr('height', availableHeight);
-
-        fisheye.radius(fisheyeRadius);
-
-        fisheyeBox.on("mousemove", function() {
-          if (!fisheyeEnabled) return true;
-
-          fisheye.center(d3.mouse(this));
-
-          points
-              .each(function(d,i) { d.display = fisheye({x: x(getX(d,i)), y: y(getY(d,i)) }); })
-              .attr('transform', function(d,i) {
-                return 'translate(' + d.display.x + ',' + d.display.y + ')'
-              })
-              .attr('d',
-                    d3.svg.symbol()
-                      .type(function(d,i) { return d.shape || shape })
-                      .size(function(d,i) { return z(getSize(d,i)) * d.display.z })
-                   );
-        });
-
-      } else {
-        container.select('.fisheyeBox').remove();
-      }
-
 
       clearTimeout(timeoutID);
       timeoutID = setTimeout(updateInteractiveLayer, 750);
@@ -5513,18 +5478,6 @@ nv.models.scatter = function() {
   chart.id = function(_) {
     if (!arguments.length) return id;
     id = _;
-    return chart;
-  };
-
-  chart.fisheye = function(_) {
-    if (!arguments.length) return fisheyeEnabled;
-    fisheyeEnabled = _;
-    return chart;
-  };
-
-  chart.fisheyeRadius = function(_) {
-    if (!arguments.length) return fisheyeRadius;
-    fisheyeRadius = _;
     return chart;
   };
 
