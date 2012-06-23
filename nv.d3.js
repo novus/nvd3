@@ -2089,16 +2089,14 @@ nv.models.distribution = function() {
       var availableLength = width - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
           naxis = axis == 'x' ? 'y' : 'x';
 
-          console.log(data);
 
       //store old scales if they exist
       scale0 = scale0 || scale;
 
       scale
           .domain(domain || d3.extent(data, getData))
-          .range([0, availableLength]);
+          .range(axis == 'x' ? [0, availableLength] : [availableLength,0]);
 
-          console.log(scale.domain());
 
       var wrap = d3.select(this).selectAll('g.distribution').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 distribution');
@@ -2108,7 +2106,7 @@ nv.models.distribution = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
       var distWrap = g.selectAll('g.dist')
-          .data(function(d) {console.log('tets', d);  return d }, function(d) { return d.key });
+          .data(function(d) { return d }, function(d) { return d.key });
 
       distWrap.enter().append('g')
           .attr('class', function(d,i) { return 'dist series-' + i });
@@ -2125,7 +2123,7 @@ nv.models.distribution = function() {
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
           .remove();
       dist
-          .attr('class', function(d,i) { return 'dist' + axis + ' dist-' + i })
+          .attr('class', function(d,i) { return 'dist' + axis + ' dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
       d3.transition(dist)
@@ -2174,6 +2172,12 @@ nv.models.distribution = function() {
   chart.domain = function(_) {
     if (!arguments.length) return domain;
     domain = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
     return chart;
   };
 
@@ -5771,28 +5775,23 @@ nv.models.scatterChart = function() {
 
 
       scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-            .attr('y1', e.pos[1]);
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-            .attr('x1', e.pos[0]);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distx-' + e.pointIndex)
+            .attr('y1', e.pos[1] - availableHeight);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .disty-' + e.pointIndex)
+            .attr('x2', e.pos[0] + distX.size());
 
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      //if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0].parentNode) } ); // TODO: maybe merge with above?
       if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
 
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-            .attr('y1', y.range()[0]);
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-            .attr('x1', x.range()[0]);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distx-' + e.pointIndex)
+            .attr('y1', 0);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .disty-' + e.pointIndex)
+            .attr('x2', distY.size());
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
@@ -5837,6 +5836,8 @@ nv.models.scatterChart = function() {
     if (!arguments.length) return color;
     color = _;
     legend.color(_);
+    distX.color(_);
+    distY.color(_);
     return chart;
   };
 

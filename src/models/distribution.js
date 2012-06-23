@@ -16,16 +16,14 @@ nv.models.distribution = function() {
       var availableLength = width - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
           naxis = axis == 'x' ? 'y' : 'x';
 
-          console.log(data);
 
       //store old scales if they exist
       scale0 = scale0 || scale;
 
       scale
           .domain(domain || d3.extent(data, getData))
-          .range([0, availableLength]);
+          .range(axis == 'x' ? [0, availableLength] : [availableLength,0]);
 
-          console.log(scale.domain());
 
       var wrap = d3.select(this).selectAll('g.distribution').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 distribution');
@@ -35,7 +33,7 @@ nv.models.distribution = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
       var distWrap = g.selectAll('g.dist')
-          .data(function(d) {console.log('tets', d);  return d }, function(d) { return d.key });
+          .data(function(d) { return d }, function(d) { return d.key });
 
       distWrap.enter().append('g')
           .attr('class', function(d,i) { return 'dist series-' + i });
@@ -52,7 +50,7 @@ nv.models.distribution = function() {
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
           .remove();
       dist
-          .attr('class', function(d,i) { return 'dist' + axis + ' dist-' + i })
+          .attr('class', function(d,i) { return 'dist' + axis + ' dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
       d3.transition(dist)
@@ -101,6 +99,12 @@ nv.models.distribution = function() {
   chart.domain = function(_) {
     if (!arguments.length) return domain;
     domain = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
     return chart;
   };
 

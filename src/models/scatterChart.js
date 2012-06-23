@@ -177,28 +177,23 @@ nv.models.scatterChart = function() {
 
 
       scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-            .attr('y1', e.pos[1]);
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-            .attr('x1', e.pos[0]);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distx-' + e.pointIndex)
+            .attr('y1', e.pos[1] - availableHeight);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .disty-' + e.pointIndex)
+            .attr('x2', e.pos[0] + distX.size());
 
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      //if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0].parentNode) } ); // TODO: maybe merge with above?
       if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
       scatter.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
 
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
-            .attr('y1', y.range()[0]);
-        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
-            .attr('x1', x.range()[0]);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distx-' + e.pointIndex)
+            .attr('y1', 0);
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .disty-' + e.pointIndex)
+            .attr('x2', distY.size());
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
@@ -243,6 +238,8 @@ nv.models.scatterChart = function() {
     if (!arguments.length) return color;
     color = _;
     legend.color(_);
+    distX.color(_);
+    distY.color(_);
     return chart;
   };
 
