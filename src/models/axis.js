@@ -10,7 +10,8 @@ nv.models.axis = function() {
   var axis = d3.svg.axis()
                .scale(scale)
                .orient('bottom')
-               .tickFormat(function(d) { return d }); //TODO: decide if we want to keep this
+               .tickFormat(function(d) { return d }), //TODO: decide if we want to keep this
+      scale0 = scale;
 
   function chart(selection) {
     selection.each(function(data) {
@@ -58,7 +59,7 @@ nv.models.axis = function() {
             //container.selectAll('g.axisMaxMin')
             axisMaxMin
                 .attr('transform', function(d,i) {
-                  return 'translate(0,' + scale.range()[i] + ')'
+                  return 'translate(0,' + scale(d) + ')'
                 })
               .select('text')
                 .attr('dy', '.32em')
@@ -66,7 +67,11 @@ nv.models.axis = function() {
                 .attr('text-anchor', 'start')
                 .text(function(d,i) {
                   return axis.tickFormat()(d)
-                })
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(0,' + scale.range()[i] + ')'
+                });
           }
           break;
         case 'left':
@@ -82,7 +87,7 @@ nv.models.axis = function() {
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
-                  return 'translate(0,' + scale.range()[i] + ')'
+                  return 'translate(0,' + scale0(d) + ')'
                 })
               .select('text')
                 .attr('dy', '.32em')
@@ -90,7 +95,11 @@ nv.models.axis = function() {
                 .attr('text-anchor', 'end')
                 .text(function(d,i) {
                   return axis.tickFormat()(d)
-                })
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(0,' + scale.range()[i] + ')'
+                });
           }
           break;
       }
@@ -117,7 +126,10 @@ nv.models.axis = function() {
           .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
+      scale0 = scale.copy();
+
     });
+
 
     return chart;
   }

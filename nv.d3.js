@@ -273,7 +273,8 @@ nv.models.axis = function() {
   var axis = d3.svg.axis()
                .scale(scale)
                .orient('bottom')
-               .tickFormat(function(d) { return d }); //TODO: decide if we want to keep this
+               .tickFormat(function(d) { return d }), //TODO: decide if we want to keep this
+      scale0 = scale;
 
   function chart(selection) {
     selection.each(function(data) {
@@ -321,7 +322,7 @@ nv.models.axis = function() {
             //container.selectAll('g.axisMaxMin')
             axisMaxMin
                 .attr('transform', function(d,i) {
-                  return 'translate(0,' + scale.range()[i] + ')'
+                  return 'translate(0,' + scale(d) + ')'
                 })
               .select('text')
                 .attr('dy', '.32em')
@@ -329,7 +330,11 @@ nv.models.axis = function() {
                 .attr('text-anchor', 'start')
                 .text(function(d,i) {
                   return axis.tickFormat()(d)
-                })
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(0,' + scale.range()[i] + ')'
+                });
           }
           break;
         case 'left':
@@ -345,7 +350,7 @@ nv.models.axis = function() {
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
-                  return 'translate(0,' + scale.range()[i] + ')'
+                  return 'translate(0,' + scale0(d) + ')'
                 })
               .select('text')
                 .attr('dy', '.32em')
@@ -353,7 +358,11 @@ nv.models.axis = function() {
                 .attr('text-anchor', 'end')
                 .text(function(d,i) {
                   return axis.tickFormat()(d)
-                })
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(0,' + scale.range()[i] + ')'
+                });
           }
           break;
       }
@@ -380,7 +389,10 @@ nv.models.axis = function() {
           .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
+      scale0 = scale.copy();
+
     });
+
 
     return chart;
   }
@@ -2150,9 +2162,11 @@ nv.models.distribution = function() {
       //store old scales if they exist
       scale0 = scale0 || scale;
 
+/*
       scale
           .domain(domain || d3.extent(data, getData))
           .range(axis == 'x' ? [0, availableLength] : [availableLength,0]);
+*/
 
 
       var wrap = d3.select(this).selectAll('g.distribution').data([data]);
@@ -2226,9 +2240,9 @@ nv.models.distribution = function() {
     return chart;
   };
 
-  chart.domain = function(_) {
-    if (!arguments.length) return domain;
-    domain = _;
+  chart.scale = function(_) {
+    if (!arguments.length) return scale;
+    scale = _;
     return chart;
   };
 
@@ -5677,8 +5691,8 @@ nv.models.scatterChart = function() {
       xAxis = nv.models.axis().orient('bottom').scale(x).tickPadding(10),
       yAxis = nv.models.axis().orient('left').scale(y).tickPadding(10),
       legend = nv.models.legend().height(30),
-      distX = nv.models.distribution().axis('x'),
-      distY = nv.models.distribution().axis('y'),
+      distX = nv.models.distribution().axis('x').scale(x),
+      distY = nv.models.distribution().axis('y').scale(y),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
       x0, y0; //TODO: abstract distribution component and have old scales stored there
 
@@ -5787,7 +5801,7 @@ nv.models.scatterChart = function() {
           .call(yAxis);
 
 
-      distX.domain(x.domain()).width(availableWidth);
+      distX.width(availableWidth);
       gEnter.select('.distWrap').append('g')
           .attr('class', 'distributionX')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
@@ -5795,7 +5809,7 @@ nv.models.scatterChart = function() {
           .call(distX);
 
 
-      distY.domain(y.domain()).width(availableHeight);
+      distY.width(availableHeight);
       gEnter.select('.distWrap').append('g')
           .attr('class', 'distributionY')
           .attr('transform', 'translate(-' + distY.size() + ',0)');
