@@ -20,9 +20,11 @@ nv.models.distribution = function() {
       //store old scales if they exist
       scale0 = scale0 || scale;
 
+/*
       scale
           .domain(domain || d3.extent(data, getData))
           .range(axis == 'x' ? [0, availableLength] : [availableLength,0]);
+*/
 
 
       var wrap = d3.select(this).selectAll('g.distribution').data([data]);
@@ -96,9 +98,9 @@ nv.models.distribution = function() {
     return chart;
   };
 
-  chart.domain = function(_) {
-    if (!arguments.length) return domain;
-    domain = _;
+  chart.scale = function(_) {
+    if (!arguments.length) return scale;
+    scale = _;
     return chart;
   };
 

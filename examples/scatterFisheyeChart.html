@@ -52,17 +52,18 @@ div {
 <script src="../src/tooltip.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
+<script src="../src/models/distribution.js"></script>
 <script src="../src/models/scatter.js"></script>
-<script src="../src/models/scatterFisheyeChart.js"></script>
+<script src="../src/models/scatterWithFisheyeChart.js"></script>
 <script>
 
 
 
 //Format A
 nv.addGraph(function() {
-  var chart = nv.models.scatterFisheyeChart()
-                .showDistX(false)
-                .showDistY(false)
+  var chart = nv.models.scatterChart()
+                .showDistX(true)
+                .showDistY(true)
                 //.height(500)
                 .color(d3.scale.category10().range());
 

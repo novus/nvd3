@@ -7,6 +7,9 @@ nv.models.scatterChart = function() {
       showDistX = false,
       showDistY = false,
       showLegend = true,
+      showControls = true,
+      fisheye = 0,
+      pauseFisheye = false,
       tooltips = true,
       tooltipX = function(key, x, y) { return '<strong>' + x + '</strong>' },
       tooltipY = function(key, x, y) { return '<strong>' + y + '</strong>' },
@@ -16,12 +19,16 @@ nv.models.scatterChart = function() {
       };
 
 
-  var scatter = nv.models.scatter(),
-      x = scatter.xScale(),
-      y = scatter.yScale(),
+  var x = d3.fisheye.scale(d3.scale.linear).distortion(0),
+      y = d3.fisheye.scale(d3.scale.linear).distortion(0);
+
+  var scatter = nv.models.scatter().xScale(x).yScale(y),
+      //x = scatter.xScale(),
+      //y = scatter.yScale(),
       xAxis = nv.models.axis().orient('bottom').scale(x).tickPadding(10),
       yAxis = nv.models.axis().orient('left').scale(y).tickPadding(10),
       legend = nv.models.legend().height(30),
+      controls = nv.models.legend().height(30),
       distX = nv.models.distribution().axis('x').scale(x),
       distY = nv.models.distribution().axis('y').scale(y),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
@@ -46,6 +53,10 @@ nv.models.scatterChart = function() {
     nv.tooltip.show([leftY, topY], contentY, 'e', 1);
     //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
+
+  var controlsData = [
+    { key: 'Magnify', disabled: true }
+  ];
 
 
   function chart(selection) {
@@ -72,11 +83,19 @@ nv.models.scatterChart = function() {
       var wrap = container.selectAll('g.wrap.scatterChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart chart-' + scatter.id()).append('g');
 
-      gEnter.append('g').attr('class', 'legendWrap');
+
+      gEnter.append('rect')
+          .attr('class', 'nvd3 background')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
       gEnter.append('g').attr('class', 'scatterWrap');
       gEnter.append('g').attr('class', 'distWrap');
+      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
 
       var g = wrap.select('g')
 
@@ -95,6 +114,14 @@ nv.models.scatterChart = function() {
 
         wrap.select('.legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+      }
+
+      if (showControls) {
+        controls.width(180).color(['#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
       }
 
 
@@ -147,6 +174,59 @@ nv.models.scatterChart = function() {
       g.select('.distributionY')
           .call(distY);
 
+
+      g.select('.background').on('mousemove', updateFisheye);
+      g.select('.background').on('click', function() { pauseFisheye = !pauseFisheye; });
+      //g.select('.point-paths').on('mousemove', updateFisheye);
+
+
+      function updateFisheye() {
+        if (pauseFisheye) {
+          //g.select('.background') .style('pointer-events', 'none');
+          g.select('.point-paths').style('pointer-events', 'all');
+          return false;
+        }
+
+        g.select('.background') .style('pointer-events', 'all');
+        g.select('.point-paths').style('pointer-events', 'none' );
+
+        var mouse = d3.mouse(this);
+        x.distortion(fisheye).focus(mouse[0]);
+        y.distortion(fisheye).focus(mouse[1]);
+
+        scatterWrap.call(scatter);
+        g.select('.x.axis').call(xAxis);
+        g.select('.y.axis').call(yAxis);
+        g.select('.distributionX').call(distX);
+        g.select('.distributionY').call(distY);
+      }
+
+
+
+
+      controls.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        fisheye = d.disabled ? 0 : 2.5;
+        g.select('.background') .style('pointer-events', d.disabled ? 'none' : 'all');
+        g.select('.point-paths').style('pointer-events', d.disabled ? 'all' : 'none' );
+
+        //scatter.interactive(d.disabled);
+        //tooltips = d.disabled;
+
+        if (d.disabled) {
+          x.distortion(fisheye).focus(0);
+          y.distortion(fisheye).focus(0);
+
+          scatterWrap.call(scatter);
+          g.select('.x.axis').call(xAxis);
+          g.select('.y.axis').call(yAxis);
+        } else {
+          pauseFisheye = false;
+        }
+
+        selection.transition().call(chart);
+      });
 
 
       legend.dispatch.on('legendClick', function(d,i, that) {
@@ -264,6 +344,12 @@ nv.models.scatterChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.fisheye = function(_) {
+    if (!arguments.length) return fisheye;
+    fisheye = _;
     return chart;
   };
 
