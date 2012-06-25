@@ -156,6 +156,7 @@ nv.models.lineWithFocusChart = function() {
 
 
       x2Axis
+        .tickFormat(xAxis.tickFormat()) //TODO: make sure everythign set on the Axes is set on both x and x2, and y and y2 respectively
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
@@ -166,6 +167,7 @@ nv.models.lineWithFocusChart = function() {
 
 
       y2Axis
+        .tickFormat(yAxis.tickFormat())
         .ticks( availableHeight2 / 36 )
         .tickSize( -availableWidth, 0);
 
