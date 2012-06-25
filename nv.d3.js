@@ -274,7 +274,7 @@ nv.models.axis = function() {
                .scale(scale)
                .orient('bottom')
                .tickFormat(function(d) { return d }), //TODO: decide if we want to keep this
-      scale0 = scale;
+      scale0;
 
   function chart(selection) {
     selection.each(function(data) {
@@ -289,6 +289,12 @@ nv.models.axis = function() {
         axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
+
+
+      d3.transition(g)
+          .call(axis);
+
+      scale0 = scale0 || axis.scale();
 
       var axisLabel = g.selectAll('text.axislabel')
           .data([axisLabelText || null]);
@@ -368,9 +374,6 @@ nv.models.axis = function() {
       axisLabel
           .text(function(d) { return d });
 
-
-      d3.transition(g)
-          .call(axis);
 
       //check if max and min overlap other values, if so, hide the values that overlap
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
@@ -2179,9 +2182,10 @@ nv.models.distribution = function() {
           .data(function(d) { return d }, function(d) { return d.key });
 
       distWrap.enter().append('g')
-          .attr('class', function(d,i) { return 'dist series-' + i });
       distWrap
-        .style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
+          .attr('class', function(d,i) { return 'dist series-' + i })
+          .style('stroke', function(d,i) { return color[i % color.length] });
+          //.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
 
       var dist = distWrap.selectAll('line.dist' + axis)
           .data(function(d) { return d.values })
@@ -2191,12 +2195,15 @@ nv.models.distribution = function() {
       d3.transition(distWrap.exit().selectAll('line.dist' + axis))
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
+          .style('stroke-opacity', 0)
           .remove();
       dist
+      //distWrap.selectAll('line.dist' + axis)
           .attr('class', function(d,i) { return 'dist' + axis + ' dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
       d3.transition(dist)
+      //d3.transition(distWrap.selectAll('line.dist' + axis))
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
 
@@ -5800,19 +5807,29 @@ nv.models.scatterChart = function() {
           .call(yAxis);
 
 
-      distX.width(availableWidth);
+      distX
+        .width(availableWidth)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.distWrap').append('g')
           .attr('class', 'distributionX')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
       g.select('.distributionX')
+          .datum(data.filter(function(d) { return !d.disabled }))
           .call(distX);
 
 
-      distY.width(availableHeight);
+      distY
+        .width(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.distWrap').append('g')
           .attr('class', 'distributionY')
           .attr('transform', 'translate(-' + distY.size() + ',0)');
       g.select('.distributionY')
+          .datum(data.filter(function(d) { return !d.disabled }))
           .call(distY);
 
 

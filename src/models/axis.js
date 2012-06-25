@@ -11,7 +11,7 @@ nv.models.axis = function() {
                .scale(scale)
                .orient('bottom')
                .tickFormat(function(d) { return d }), //TODO: decide if we want to keep this
-      scale0 = scale;
+      scale0;
 
   function chart(selection) {
     selection.each(function(data) {
@@ -26,6 +26,12 @@ nv.models.axis = function() {
         axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
+
+
+      d3.transition(g)
+          .call(axis);
+
+      scale0 = scale0 || axis.scale();
 
       var axisLabel = g.selectAll('text.axislabel')
           .data([axisLabelText || null]);
@@ -105,9 +111,6 @@ nv.models.axis = function() {
       axisLabel
           .text(function(d) { return d });
 
-
-      d3.transition(g)
-          .call(axis);
 
       //check if max and min overlap other values, if so, hide the values that overlap
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {

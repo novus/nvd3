@@ -38,9 +38,10 @@ nv.models.distribution = function() {
           .data(function(d) { return d }, function(d) { return d.key });
 
       distWrap.enter().append('g')
-          .attr('class', function(d,i) { return 'dist series-' + i });
       distWrap
-        .style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
+          .attr('class', function(d,i) { return 'dist series-' + i })
+          .style('stroke', function(d,i) { return color[i % color.length] });
+          //.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
 
       var dist = distWrap.selectAll('line.dist' + axis)
           .data(function(d) { return d.values })
@@ -50,12 +51,15 @@ nv.models.distribution = function() {
       d3.transition(distWrap.exit().selectAll('line.dist' + axis))
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
+          .style('stroke-opacity', 0)
           .remove();
       dist
+      //distWrap.selectAll('line.dist' + axis)
           .attr('class', function(d,i) { return 'dist' + axis + ' dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
       d3.transition(dist)
+      //d3.transition(distWrap.selectAll('line.dist' + axis))
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
 

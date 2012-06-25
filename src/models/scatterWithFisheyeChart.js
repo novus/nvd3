@@ -159,19 +159,29 @@ nv.models.scatterChart = function() {
           .call(yAxis);
 
 
-      distX.width(availableWidth);
+      distX
+        .width(availableWidth)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.distWrap').append('g')
           .attr('class', 'distributionX')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
       g.select('.distributionX')
+          .datum(data.filter(function(d) { return !d.disabled }))
           .call(distX);
 
 
-      distY.width(availableHeight);
+      distY
+        .width(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.distWrap').append('g')
           .attr('class', 'distributionY')
           .attr('transform', 'translate(-' + distY.size() + ',0)');
       g.select('.distributionY')
+          .datum(data.filter(function(d) { return !d.disabled }))
           .call(distY);
 
 
