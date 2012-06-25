@@ -3,7 +3,7 @@ nv.models.axis = function() {
   //Default Settings
   var scale = d3.scale.linear(),
       axisLabelText = null,
-      showMaxMin = true,
+      showMaxMin = true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
       highlightZero = true;
       //TODO: considering adding margin
 
@@ -56,7 +56,6 @@ nv.models.axis = function() {
                            .data(scale.domain());
             axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
             axisMaxMin.exit().remove();
-            //container.selectAll('g.axisMaxMin')
             axisMaxMin
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale(d) + ')'

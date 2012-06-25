@@ -266,7 +266,7 @@ nv.models.axis = function() {
   //Default Settings
   var scale = d3.scale.linear(),
       axisLabelText = null,
-      showMaxMin = true,
+      showMaxMin = true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
       highlightZero = true;
       //TODO: considering adding margin
 
@@ -319,7 +319,6 @@ nv.models.axis = function() {
                            .data(scale.domain());
             axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
             axisMaxMin.exit().remove();
-            //container.selectAll('g.axisMaxMin')
             axisMaxMin
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale(d) + ')'
@@ -4735,7 +4734,7 @@ nv.models.multiBarHorizontalChart = function() {
   var multibar = nv.models.multiBarHorizontal().stacked(false),
       x = multibar.xScale(),
       y = multibar.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('left').highlightZero(false),
+      xAxis = nv.models.axis().scale(x).orient('left').highlightZero(false).showMaxMin(false),
       yAxis = nv.models.axis().scale(y).orient('bottom'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
