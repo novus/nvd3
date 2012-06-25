@@ -131,11 +131,14 @@ nv.models.multiBarHorizontalChart = function() {
           .selectAll('line, text')
           .style('opacity', 1)
 
+          /*
+      //I think this was just leaft over from the multiBar chart this was built from.. commented to maek sure
       xTicks.filter(function(d,i) {
             return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
           })
           .selectAll('line, text')
           .style('opacity', 0)
+          */
 
       yAxis
         .ticks( availableWidth / 100 )
