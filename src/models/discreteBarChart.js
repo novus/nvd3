@@ -15,7 +15,7 @@ nv.models.discreteBarChart = function() {
   var discretebar = nv.models.discreteBar(),
       x = discretebar.xScale(),
       y = discretebar.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false),
+      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false).showMaxMin(false),
       yAxis = nv.models.axis().scale(y).orient('left'),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 

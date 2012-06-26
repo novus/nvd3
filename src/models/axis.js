@@ -43,6 +43,27 @@ nv.models.axis = function() {
               .attr('y', 0);
           axisLabel
               .attr('x', scale.range()[1] / 2);
+          if (showMaxMin) {
+            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+                           .data(scale.domain());
+            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.exit().remove();
+            axisMaxMin
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale(d) + ',0)'
+                })
+              .select('text')
+                .attr('dy', '0em')
+                .attr('y', -axis.tickPadding())
+                .attr('text-anchor', 'middle')
+                .text(function(d,i) {
+                  return axis.tickFormat()(d)
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale.range()[i] + ',0)'
+                });
+          }
           break;
         case 'bottom':
           axisLabel.enter().append('text').attr('class', 'axislabel')
@@ -50,6 +71,27 @@ nv.models.axis = function() {
               .attr('y', 25);
           axisLabel
               .attr('x', scale.range()[1] / 2);
+          if (showMaxMin) {
+            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+                           .data(scale.domain());
+            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.exit().remove();
+            axisMaxMin
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale(d) + ',0)'
+                })
+              .select('text')
+                .attr('dy', '.71em')
+                .attr('y', axis.tickPadding())
+                .attr('text-anchor', 'middle')
+                .text(function(d,i) {
+                  return axis.tickFormat()(d)
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale.range()[i] + ',0)'
+                });
+          }
           break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'axislabel')
@@ -123,6 +165,22 @@ nv.models.axis = function() {
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
               return scale(d) < 8 || scale(d) > scale.range()[0] - 8; // 8 is assuming text height is 16
+            })
+            .remove();
+      }
+
+      if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
+        var maxMinRange = [];
+        wrap.selectAll('g.axisMaxMin')
+            .each(function(d,i) {
+              if (i) // i== 1, max position
+                maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+              else // i==0, min position
+                maxMinRange.push(scale(d) + this.getBBox().width + 4)
+            });
+        g.selectAll('g') // the g's wrapping each tick
+            .filter(function(d,i) {
+              return scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1];
             })
             .remove();
       }

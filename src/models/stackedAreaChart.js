@@ -1,6 +1,6 @@
 
 nv.models.stackedAreaChart = function() {
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+  var margin = {top: 30, right: 25, bottom: 50, left: 60},
       width = null,
       height = null,
       color = d3.scale.category20().range(),
@@ -16,7 +16,7 @@ nv.models.stackedAreaChart = function() {
   var stacked = nv.models.stackedArea(),
       x = stacked.xScale(),
       y = stacked.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),

@@ -306,6 +306,27 @@ nv.models.axis = function() {
               .attr('y', 0);
           axisLabel
               .attr('x', scale.range()[1] / 2);
+          if (showMaxMin) {
+            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+                           .data(scale.domain());
+            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.exit().remove();
+            axisMaxMin
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale(d) + ',0)'
+                })
+              .select('text')
+                .attr('dy', '0em')
+                .attr('y', -axis.tickPadding())
+                .attr('text-anchor', 'middle')
+                .text(function(d,i) {
+                  return axis.tickFormat()(d)
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale.range()[i] + ',0)'
+                });
+          }
           break;
         case 'bottom':
           axisLabel.enter().append('text').attr('class', 'axislabel')
@@ -313,6 +334,27 @@ nv.models.axis = function() {
               .attr('y', 25);
           axisLabel
               .attr('x', scale.range()[1] / 2);
+          if (showMaxMin) {
+            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+                           .data(scale.domain());
+            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.exit().remove();
+            axisMaxMin
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale(d) + ',0)'
+                })
+              .select('text')
+                .attr('dy', '.71em')
+                .attr('y', axis.tickPadding())
+                .attr('text-anchor', 'middle')
+                .text(function(d,i) {
+                  return axis.tickFormat()(d)
+                });
+            d3.transition(axisMaxMin)
+                .attr('transform', function(d,i) {
+                  return 'translate(' + scale.range()[i] + ',0)'
+                });
+          }
           break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'axislabel')
@@ -386,6 +428,22 @@ nv.models.axis = function() {
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
               return scale(d) < 8 || scale(d) > scale.range()[0] - 8; // 8 is assuming text height is 16
+            })
+            .remove();
+      }
+
+      if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
+        var maxMinRange = [];
+        wrap.selectAll('g.axisMaxMin')
+            .each(function(d,i) {
+              if (i) // i== 1, max position
+                maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+              else // i==0, min position
+                maxMinRange.push(scale(d) + this.getBBox().width + 4)
+            });
+        g.selectAll('g') // the g's wrapping each tick
+            .filter(function(d,i) {
+              return scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1];
             })
             .remove();
       }
@@ -1327,7 +1385,7 @@ nv.models.cumulativeLineChart = function() {
       y = lines.yScale(),
       dx = d3.scale.linear(),
       id = lines.id(),
-      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
@@ -1942,7 +2000,7 @@ nv.models.discreteBarChart = function() {
   var discretebar = nv.models.discreteBar(),
       x = discretebar.xScale(),
       y = discretebar.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false),
+      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false).showMaxMin(false),
       yAxis = nv.models.axis().scale(y).orient('left'),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
@@ -2907,7 +2965,7 @@ nv.models.lineChart = function() {
   var lines = nv.models.line(),
       x = lines.xScale(),
       y = lines.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -3133,7 +3191,7 @@ nv.models.linePlusBarChart = function() {
       x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
       y1 = bars.yScale(),
       y2 = lines.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis1 = nv.models.axis().scale(y1).orient('left'),
       yAxis2 = nv.models.axis().scale(y2).orient('right'),
       legend = nv.models.legend().height(30),
@@ -3440,9 +3498,9 @@ nv.models.lineWithFocusChart = function() {
       y = lines.yScale(),
       x2 = lines2.xScale(),
       y2 = lines2.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().scale(y).orient('left'),
-      x2Axis = nv.models.axis().scale(x2).orient('bottom'),
+      x2Axis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       y2Axis = nv.models.axis().scale(y2).orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
@@ -4098,7 +4156,7 @@ nv.models.multiBarChart = function() {
   var multibar = nv.models.multiBar().stacked(false),
       x = multibar.xScale(),
       y = multibar.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false),
+      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false), //TODO: see why showMaxMin(false) causes no ticks to be shown on x axis
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
@@ -6643,7 +6701,7 @@ nv.models.stackedArea = function() {
 }
 
 nv.models.stackedAreaChart = function() {
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+  var margin = {top: 30, right: 25, bottom: 50, left: 60},
       width = null,
       height = null,
       color = d3.scale.category20().range(),
@@ -6659,7 +6717,7 @@ nv.models.stackedAreaChart = function() {
   var stacked = nv.models.stackedArea(),
       x = stacked.xScale(),
       y = stacked.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
