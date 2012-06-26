@@ -164,7 +164,7 @@ nv.models.axis = function() {
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
-              return scale(d) < 8 || scale(d) > scale.range()[0] - 8; // 8 is assuming text height is 16
+              return d && (scale(d) < 8 || scale(d) > scale.range()[0] - 8); // 8 is assuming text height is 16... if d is 0, leave it!
             })
             .remove();
       }
@@ -180,7 +180,7 @@ nv.models.axis = function() {
             });
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
-              return scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1];
+              return d && (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]);
             })
             .remove();
       }

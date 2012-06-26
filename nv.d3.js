@@ -427,7 +427,7 @@ nv.models.axis = function() {
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
-              return scale(d) < 8 || scale(d) > scale.range()[0] - 8; // 8 is assuming text height is 16
+              return d && (scale(d) < 8 || scale(d) > scale.range()[0] - 8); // 8 is assuming text height is 16... if d is 0, leave it!
             })
             .remove();
       }
@@ -443,7 +443,7 @@ nv.models.axis = function() {
             });
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
-              return scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1];
+              return d && (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]);
             })
             .remove();
       }
@@ -4589,7 +4589,7 @@ nv.models.multiBarHorizontal = function() {
             .attr('dy', '-.5em')
             .text(function(d,i) { return valueFormat(getY(d,i)) })
         d3.transition(bars)
-            .delay(function(d,i) { return i * delay / data[0].values.length })
+            //.delay(function(d,i) { return i * delay / data[0].values.length })
           .selectAll('text')
             .attr('dx', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
       } else {
@@ -4603,7 +4603,7 @@ nv.models.multiBarHorizontal = function() {
           //})
       if (stacked)
         d3.transition(bars)
-            .delay(function(d,i) { return i * delay / data[0].values.length })
+            //.delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('transform', function(d,i) {
               //return 'translate(' + y(d.y0) + ',0)'
               return 'translate(' + y(d.y0) + ',' + (stacked ? 0 : (j * x.rangeBand() / data.length )) + ')'
@@ -4615,7 +4615,7 @@ nv.models.multiBarHorizontal = function() {
             .attr('height', x.rangeBand() );
       else
         d3.transition(bars)
-          .delay(function(d,i) { return i * delay / data[0].values.length })
+          //.delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('transform', function(d,i) {
               //TODO: stacked must be all positive or all negative, not both?
               return 'translate(' + 
