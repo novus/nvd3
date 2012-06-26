@@ -276,6 +276,7 @@ nv.models.lineWithFocusChart = function() {
 
     //TODO: decide if this is a good idea, and if it should be in all models
     chart.update = function() { chart(selection) };
+    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
 
 
     return chart;

@@ -157,9 +157,8 @@ nv.models.discreteBarChart = function() {
 
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() {
-        selection.transition().call(chart);
-      }
+      chart.update = function() { selection.transition().call(chart); };
+      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
 
     });
 

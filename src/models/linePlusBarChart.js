@@ -223,6 +223,7 @@ nv.models.linePlusBarChart = function() {
 
 
       chart.update = function() { selection.transition().call(chart) };
+      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
 
     });
 

@@ -45,9 +45,6 @@ nv.models.stackedAreaChart = function() {
       var container = d3.select(this),
           that = this;
 
-      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() { selection.transition().call(chart) };
-
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -201,6 +198,10 @@ nv.models.stackedAreaChart = function() {
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() { selection.transition().call(chart) };
+      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
 
     });
 
