@@ -323,7 +323,8 @@ nv.models.axis = function() {
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text')
+                .style('opacity', 0);
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
@@ -339,7 +340,9 @@ nv.models.axis = function() {
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
-                });
+                })
+              .select('text')
+                .style('opacity', 1);
           }
           break;
         case 'left':
@@ -351,7 +354,8 @@ nv.models.axis = function() {
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text')
+                .style('opacity', 0);
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
@@ -367,7 +371,9 @@ nv.models.axis = function() {
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
-                });
+                })
+              .select('text')
+                .style('opacity', 1);
           }
           break;
       }

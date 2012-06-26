@@ -207,8 +207,12 @@ nv.models.scatterChart = function() {
         scatterWrap.call(scatter);
         g.select('.x.axis').call(xAxis);
         g.select('.y.axis').call(yAxis);
-        g.select('.distributionX').call(distX);
-        g.select('.distributionY').call(distY);
+        g.select('.distributionX')
+          .datum(data.filter(function(d) { return !d.disabled }))
+            .call(distX);
+        g.select('.distributionY')
+          .datum(data.filter(function(d) { return !d.disabled }))
+            .call(distY);
       }
 
 
