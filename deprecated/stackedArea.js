@@ -1,4 +1,3 @@
-// THIS IS AN ATTEMPT TO CLEAN UP THIS MODEL
 
 nv.models.stackedArea = function() {
   //Default Settings
@@ -26,66 +25,47 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var stacked = d3.layout.stack()
-                 //.offset('zero')
-                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
-                 .x(getX)
-                 .y(function(d) { return d.stackedY })
-                 .out(function(d, y0, y) {
-                    d.display = {
-                      y: y,
-                     y0: y0
-                    };
-                  }),
-      scatter = nv.models.scatter()
-                  .size(2.2) // default size
-                  .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+  var scatter= nv.models.scatter()
+        .size(2.2) // default size
+        .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
       x = scatter.xScale(),
       y = scatter.yScale(),
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
-        var availableWidth = width - margin.left - margin.right,
+        // Need to leave data alone to switch between stacked, stream, and expanded
+        var dataCopy = JSON.parse(JSON.stringify(data)),
+            availableWidth = width - margin.left - margin.right,
             availableHeight = height - margin.top - margin.bottom;
 
+        //TODO: try to get rid of the need for copying the data, and use the data directly
 
-        // Injecting point index into each point because d3.layout.stack().out does not give index
-        // ***Also storing getY(d,i) as yStacked so that it can be set to 0 if series is disabled
-        // TODO: see if theres a way to deal with disabled series more consistent with the other models
-        data = data.map(function(aseries, i) {
-                 aseries.values = aseries.values.map(function(d, j) {
-                   d.index = j;
-                   d.stackedY = aseries.disabled ? 0 : getY(d,j);
-                   return d;
-                 })
-                 return aseries;
-               });
-
-/*
-        //TODO: Figure out why stream mode is broken with this
-        data = stacked
-                .order(order)
-                .offset(offset)
-                (data);
-*/
-
-        data = d3.layout.stack()
-                 .order(order)
-                 .offset(offset)
-                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
-                 .x(getX)
-                 .y(function(d) { return d.stackedY })
-                 .out(function(d, y0, y) {
-                    d.display = {
-                      y: y,
-                     y0: y0
-                    };
-                  })
-                (data);
+        //console.log(dataCopy);
+        dataCopy = dataCopy.map(function(series,i) {
+          if (series.disabled)
+            series.values = series.values.map(function(d,i) {
+              d._y = d.y || d._y; 
+              d.y = 0;  //TODO: need to use value from getY, not always d.y
+              return d 
+            });
+          return series;
+        });
 
 
-        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([data]);
+        //TODO: deal with negative stacked charts
+
+        //compute the data based on offset and order (calc's y0 for every point)
+        dataCopy = d3.layout.stack()
+                     .offset(offset)
+                     .order(order)
+                     .values(function(d){ return d.values })
+                     .y(getY)
+                     (dataCopy);
+
+
+
+        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([dataCopy]);
         var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedarea');
         var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
@@ -97,18 +77,16 @@ nv.models.stackedArea = function() {
         scatter
           .width(availableWidth)
           .height(availableHeight)
-          //.x(function(d) { return d.display.x })
-          .x(getX)
-          .y(function(d) { return d.display.y + d.display.y0 }) // TODO: allow for getY to be other than d.y
+          //.x(getX)
+          .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
           .forceY([0])
-          .color(data.map(function(d,i) {
+          .color(dataCopy.map(function(d,i) {
             return d.color || color[i % color.length];
-          }).filter(function(d,i) { return !data[i].disabled }));
-
+          }).filter(function(d,i) { return !dataCopy[i].disabled }));
 
         gEnter.append('g').attr('class', 'scatterWrap');
-        var scatterWrap = g.select('.scatterWrap')
-            .datum(data.filter(function(d) { return !d.disabled }))
+        var scatterWrap= g.select('.scatterWrap')
+            .datum(dataCopy.filter(function(d) { return !d.disabled }))
 
         d3.transition(scatterWrap).call(scatter);
 
@@ -132,16 +110,14 @@ nv.models.stackedArea = function() {
 
 
         var area = d3.svg.area()
-            .x(function(d,i)  { return x(getX(d,i)) })
-            //.x(function(d)  { return x(d.display.x) })
-            .y0(function(d) { return y(d.display.y0) })
-            .y1(function(d) { return y(d.display.y + d.display.y0) });
+            .x(function(d,i) { return x(scatter.x()(d,i)) })
+            .y0(function(d) { return y(d.y0) })
+            .y1(function(d) { return y(d.y + d.y0) });
 
         var zeroArea = d3.svg.area()
-            .x(function(d,i)  { return x(getX(d,i)) })
-            //.x(function(d)  { return x(d.display.x) })
-            .y0(function(d) { return y(d.display.y0) })
-            .y1(function(d) { return y(d.display.y0) });
+            .x(function(d,i) { return x(scatter.x()(d,i)) })
+            .y0(function(d) { return y(d.y0) })
+            .y1(function(d) { return y(d.y0) });
 
 
         var path = g.select('.areaWrap').selectAll('path.area')
@@ -153,8 +129,10 @@ nv.models.stackedArea = function() {
               dispatch.areaMouseover({
                 point: d,
                 series: d.key,
+                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 pos: [d3.event.pageX, d3.event.pageY],
                 seriesIndex: i
+                //pointIndex: d.point
               });
             })
             .on('mouseout', function(d,i) {
@@ -162,8 +140,10 @@ nv.models.stackedArea = function() {
               dispatch.areaMouseout({
                 point: d,
                 series: d.key,
+                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 pos: [d3.event.pageX, d3.event.pageY],
                 seriesIndex: i
+                //pointIndex: d.point
               });
             })
             .on('click', function(d,i) {
@@ -171,8 +151,10 @@ nv.models.stackedArea = function() {
               dispatch.areaClick({
                 point: d,
                 series: d.key,
+                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 pos: [d3.event.pageX, d3.event.pageY],
                 seriesIndex: i
+                //pointIndex: d.point
               });
             })
         d3.transition(path.exit())
@@ -205,17 +187,21 @@ nv.models.stackedArea = function() {
   chart.dispatch = dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'x', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
+  /*
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
+    scatter.x(_);
     return chart;
   };
+  */
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = d3.functor(_);
+    //scatter.y(_);
     return chart;
   }
 
@@ -252,14 +238,12 @@ nv.models.stackedArea = function() {
   chart.offset = function(_) {
     if (!arguments.length) return offset;
     offset = _;
-    //stacked.offset(offset);
     return chart;
   };
 
   chart.order = function(_) {
     if (!arguments.length) return order;
     order = _;
-    //stacked.order(order);
     return chart;
   };
 
@@ -270,16 +254,16 @@ nv.models.stackedArea = function() {
 
     switch (style) {
       case 'stack':
-        chart.offset('zero');
-        chart.order('default');
+        offset = 'zero';
+        order = 'default';
         break;
       case 'stream':
-        chart.offset('wiggle');
-        chart.order('inside-out');
+        offset = 'wiggle';
+        order = 'inside-out';
         break;
       case 'expand':
-        chart.offset('expand');
-        chart.order('default');
+        offset = 'expand';
+        order = 'default';
         break;
     }
 

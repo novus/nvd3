@@ -5693,6 +5693,9 @@ nv.models.scatterChart = function() {
       showDistX = false,
       showDistY = false,
       showLegend = true,
+      showControls = true,
+      fisheye = 0,
+      pauseFisheye = false,
       tooltips = true,
       tooltipX = function(key, x, y) { return '<strong>' + x + '</strong>' },
       tooltipY = function(key, x, y) { return '<strong>' + y + '</strong>' },
@@ -5702,12 +5705,16 @@ nv.models.scatterChart = function() {
       };
 
 
-  var scatter = nv.models.scatter(),
-      x = scatter.xScale(),
-      y = scatter.yScale(),
+  var x = d3.fisheye.scale(d3.scale.linear).distortion(0),
+      y = d3.fisheye.scale(d3.scale.linear).distortion(0);
+
+  var scatter = nv.models.scatter().xScale(x).yScale(y),
+      //x = scatter.xScale(),
+      //y = scatter.yScale(),
       xAxis = nv.models.axis().orient('bottom').scale(x).tickPadding(10),
       yAxis = nv.models.axis().orient('left').scale(y).tickPadding(10),
       legend = nv.models.legend().height(30),
+      controls = nv.models.legend().height(30),
       distX = nv.models.distribution().axis('x').scale(x),
       distY = nv.models.distribution().axis('y').scale(y),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
@@ -5732,6 +5739,10 @@ nv.models.scatterChart = function() {
     nv.tooltip.show([leftY, topY], contentY, 'e', 1);
     //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
+
+  var controlsData = [
+    { key: 'Magnify', disabled: true }
+  ];
 
 
   function chart(selection) {
@@ -5758,11 +5769,19 @@ nv.models.scatterChart = function() {
       var wrap = container.selectAll('g.wrap.scatterChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart chart-' + scatter.id()).append('g');
 
-      gEnter.append('g').attr('class', 'legendWrap');
+
+      gEnter.append('rect')
+          .attr('class', 'nvd3 background')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y axis');
       gEnter.append('g').attr('class', 'scatterWrap');
       gEnter.append('g').attr('class', 'distWrap');
+      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
 
       var g = wrap.select('g')
 
@@ -5781,6 +5800,14 @@ nv.models.scatterChart = function() {
 
         wrap.select('.legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+      }
+
+      if (showControls) {
+        controls.width(180).color(['#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
       }
 
 
@@ -5843,6 +5870,63 @@ nv.models.scatterChart = function() {
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(distY);
 
+
+      g.select('.background').on('mousemove', updateFisheye);
+      g.select('.background').on('click', function() { pauseFisheye = !pauseFisheye; });
+      //g.select('.point-paths').on('mousemove', updateFisheye);
+
+
+      function updateFisheye() {
+        if (pauseFisheye) {
+          //g.select('.background') .style('pointer-events', 'none');
+          g.select('.point-paths').style('pointer-events', 'all');
+          return false;
+        }
+
+        g.select('.background') .style('pointer-events', 'all');
+        g.select('.point-paths').style('pointer-events', 'none' );
+
+        var mouse = d3.mouse(this);
+        x.distortion(fisheye).focus(mouse[0]);
+        y.distortion(fisheye).focus(mouse[1]);
+
+        scatterWrap.call(scatter);
+        g.select('.x.axis').call(xAxis);
+        g.select('.y.axis').call(yAxis);
+        g.select('.distributionX')
+          .datum(data.filter(function(d) { return !d.disabled }))
+            .call(distX);
+        g.select('.distributionY')
+          .datum(data.filter(function(d) { return !d.disabled }))
+            .call(distY);
+      }
+
+
+
+
+      controls.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        fisheye = d.disabled ? 0 : 2.5;
+        g.select('.background') .style('pointer-events', d.disabled ? 'none' : 'all');
+        g.select('.point-paths').style('pointer-events', d.disabled ? 'all' : 'none' );
+
+        //scatter.interactive(d.disabled);
+        //tooltips = d.disabled;
+
+        if (d.disabled) {
+          x.distortion(fisheye).focus(0);
+          y.distortion(fisheye).focus(0);
+
+          scatterWrap.call(scatter);
+          g.select('.x.axis').call(xAxis);
+          g.select('.y.axis').call(yAxis);
+        } else {
+          pauseFisheye = false;
+        }
+
+        selection.transition().call(chart);
+      });
 
 
       legend.dispatch.on('legendClick', function(d,i, that) {
@@ -5960,6 +6044,12 @@ nv.models.scatterChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.fisheye = function(_) {
+    if (!arguments.length) return fisheye;
+    fisheye = _;
     return chart;
   };
 
@@ -6249,6 +6339,7 @@ nv.models.sparklinePlus = function() {
 
   return chart;
 }
+// THIS IS AN ATTEMPT TO CLEAN UP THIS MODEL
 
 nv.models.stackedArea = function() {
   //Default Settings
@@ -6276,46 +6367,66 @@ nv.models.stackedArea = function() {
  *   'default' (input order)
  ************************************/
 
-  var scatter= nv.models.scatter()
-        .size(2.2) // default size
-        .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+  var stacked = d3.layout.stack()
+                 //.offset('zero')
+                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+                 .x(getX)
+                 .y(function(d) { return d.stackedY })
+                 .out(function(d, y0, y) {
+                    d.display = {
+                      y: y,
+                     y0: y0
+                    };
+                  }),
+      scatter = nv.models.scatter()
+                  .size(2.2) // default size
+                  .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
       x = scatter.xScale(),
       y = scatter.yScale(),
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
-        // Need to leave data alone to switch between stacked, stream, and expanded
-        var dataCopy = JSON.parse(JSON.stringify(data)),
-            availableWidth = width - margin.left - margin.right,
+        var availableWidth = width - margin.left - margin.right,
             availableHeight = height - margin.top - margin.bottom;
 
 
-        //console.log(dataCopy);
-        dataCopy = dataCopy.map(function(series,i) {
-          if (series.disabled)
-            series.values = series.values.map(function(d,i) {
-              d._y = d.y || d._y; 
-              d.y = 0;  //TODO: need to use value from getY, not always d.y
-              return d 
-            });
-          return series;
-        });
+        // Injecting point index into each point because d3.layout.stack().out does not give index
+        // ***Also storing getY(d,i) as yStacked so that it can be set to 0 if series is disabled
+        // TODO: see if theres a way to deal with disabled series more consistent with the other models
+        data = data.map(function(aseries, i) {
+                 aseries.values = aseries.values.map(function(d, j) {
+                   d.index = j;
+                   d.stackedY = aseries.disabled ? 0 : getY(d,j);
+                   return d;
+                 })
+                 return aseries;
+               });
+
+/*
+        //TODO: Figure out why stream mode is broken with this
+        data = stacked
+                .order(order)
+                .offset(offset)
+                (data);
+*/
+
+        data = d3.layout.stack()
+                 .order(order)
+                 .offset(offset)
+                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+                 .x(getX)
+                 .y(function(d) { return d.stackedY })
+                 .out(function(d, y0, y) {
+                    d.display = {
+                      y: y,
+                     y0: y0
+                    };
+                  })
+                (data);
 
 
-        //TODO: deal with negative stacked charts
-
-        //compute the data based on offset and order (calc's y0 for every point)
-        dataCopy = d3.layout.stack()
-                     .offset(offset)
-                     .order(order)
-                     .values(function(d){ return d.values })
-                     .y(getY)
-                     (dataCopy);
-
-
-
-        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([dataCopy]);
+        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([data]);
         var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedarea');
         var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
@@ -6327,16 +6438,18 @@ nv.models.stackedArea = function() {
         scatter
           .width(availableWidth)
           .height(availableHeight)
-          //.x(getX)
-          .y(function(d) { return d.y + d.y0 }) // TODO: allow for getY to be other than d.y
+          //.x(function(d) { return d.display.x })
+          .x(getX)
+          .y(function(d) { return d.display.y + d.display.y0 }) // TODO: allow for getY to be other than d.y
           .forceY([0])
-          .color(dataCopy.map(function(d,i) {
+          .color(data.map(function(d,i) {
             return d.color || color[i % color.length];
-          }).filter(function(d,i) { return !dataCopy[i].disabled }));
+          }).filter(function(d,i) { return !data[i].disabled }));
+
 
         gEnter.append('g').attr('class', 'scatterWrap');
-        var scatterWrap= g.select('.scatterWrap')
-            .datum(dataCopy.filter(function(d) { return !d.disabled }))
+        var scatterWrap = g.select('.scatterWrap')
+            .datum(data.filter(function(d) { return !d.disabled }))
 
         d3.transition(scatterWrap).call(scatter);
 
@@ -6360,14 +6473,16 @@ nv.models.stackedArea = function() {
 
 
         var area = d3.svg.area()
-            .x(function(d,i) { return x(scatter.x()(d,i)) })
-            .y0(function(d) { return y(d.y0) })
-            .y1(function(d) { return y(d.y + d.y0) });
+            .x(function(d,i)  { return x(getX(d,i)) })
+            //.x(function(d)  { return x(d.display.x) })
+            .y0(function(d) { return y(d.display.y0) })
+            .y1(function(d) { return y(d.display.y + d.display.y0) });
 
         var zeroArea = d3.svg.area()
-            .x(function(d,i) { return x(scatter.x()(d,i)) })
-            .y0(function(d) { return y(d.y0) })
-            .y1(function(d) { return y(d.y0) });
+            .x(function(d,i)  { return x(getX(d,i)) })
+            //.x(function(d)  { return x(d.display.x) })
+            .y0(function(d) { return y(d.display.y0) })
+            .y1(function(d) { return y(d.display.y0) });
 
 
         var path = g.select('.areaWrap').selectAll('path.area')
@@ -6379,10 +6494,8 @@ nv.models.stackedArea = function() {
               dispatch.areaMouseover({
                 point: d,
                 series: d.key,
-                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 pos: [d3.event.pageX, d3.event.pageY],
                 seriesIndex: i
-                //pointIndex: d.point
               });
             })
             .on('mouseout', function(d,i) {
@@ -6390,10 +6503,8 @@ nv.models.stackedArea = function() {
               dispatch.areaMouseout({
                 point: d,
                 series: d.key,
-                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 pos: [d3.event.pageX, d3.event.pageY],
                 seriesIndex: i
-                //pointIndex: d.point
               });
             })
             .on('click', function(d,i) {
@@ -6401,10 +6512,8 @@ nv.models.stackedArea = function() {
               dispatch.areaClick({
                 point: d,
                 series: d.key,
-                //pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 pos: [d3.event.pageX, d3.event.pageY],
                 seriesIndex: i
-                //pointIndex: d.point
               });
             })
         d3.transition(path.exit())
@@ -6437,21 +6546,17 @@ nv.models.stackedArea = function() {
   chart.dispatch = dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'x', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
-  /*
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
-    scatter.x(_);
     return chart;
   };
-  */
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = d3.functor(_);
-    //scatter.y(_);
     return chart;
   }
 
@@ -6488,12 +6593,14 @@ nv.models.stackedArea = function() {
   chart.offset = function(_) {
     if (!arguments.length) return offset;
     offset = _;
+    //stacked.offset(offset);
     return chart;
   };
 
   chart.order = function(_) {
     if (!arguments.length) return order;
     order = _;
+    //stacked.order(order);
     return chart;
   };
 
@@ -6504,16 +6611,16 @@ nv.models.stackedArea = function() {
 
     switch (style) {
       case 'stack':
-        offset = 'zero';
-        order = 'default';
+        chart.offset('zero');
+        chart.order('default');
         break;
       case 'stream':
-        offset = 'wiggle';
-        order = 'inside-out';
+        chart.offset('wiggle');
+        chart.order('inside-out');
         break;
       case 'expand':
-        offset = 'expand';
-        order = 'default';
+        chart.offset('expand');
+        chart.order('default');
         break;
     }
 
