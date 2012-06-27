@@ -25,7 +25,7 @@ nv.models.line = function() {
           availableHeight = height - margin.top - margin.bottom;
 
       //scales need to be set here incase a custom scale was set
-      x = x || scatter.xScale(); 
+      x = x || scatter.xScale();
       y = y || scatter.yScale();
 
       x0 = x0 || x;
@@ -41,17 +41,7 @@ nv.models.line = function() {
       gEnter.append('g').attr('class', 'groups');
       gEnter.append('g').attr('class', 'scatterWrap');
 
-
-      defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
-        .append('rect');
-
-      wrap.select('#edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
-
-
-      var scatterWrap = wrap.select('.scatterWrap')//.datum(data);
+      var scatterWrap = wrap.select('.scatterWrap');//.datum(data);
 
 
       scatter
@@ -65,6 +55,13 @@ nv.models.line = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
+      defsEnter.append('clipPath')
+          .attr('id', 'edge-clip-' + id)
+        .append('rect');
+
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
       g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
       scatterWrap
@@ -104,8 +101,7 @@ nv.models.line = function() {
           .attr('d', d3.svg.line()
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
-          )
-          .remove(); // redundant? line is already being removed
+          );
       d3.transition(paths)
           .attr('d', d3.svg.line()
             .x(function(d,i) { return x(getX(d,i)) })

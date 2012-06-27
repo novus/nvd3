@@ -2515,10 +2515,7 @@ nv.models.line = function() {
                   .id(id)
                   .size(16) // default size
                   .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x = scatter.xScale(),
-      y = scatter.yScale(),
-      x0 = x, 
-      y0 = y,
+      x, y, x0, y0,
       timeoutID;
 
 
@@ -2527,6 +2524,13 @@ nv.models.line = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
+      //scales need to be set here incase a custom scale was set
+      x = x || scatter.xScale();
+      y = y || scatter.yScale();
+
+      x0 = x0 || x;
+      y0 = y0 || y;
+
 
       var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
@@ -2534,10 +2538,10 @@ nv.models.line = function() {
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      wrapEnter.append('g').attr('class', 'scatterWrap');
-      var scatterWrap = wrap.select('.scatterWrap').datum(data);
-
       gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'scatterWrap');
+
+      var scatterWrap = wrap.select('.scatterWrap');//.datum(data);
 
 
       scatter
@@ -2545,6 +2549,7 @@ nv.models.line = function() {
         .height(availableHeight)
 
       d3.transition(scatterWrap).call(scatter);
+
 
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -2596,8 +2601,7 @@ nv.models.line = function() {
           .attr('d', d3.svg.line()
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
-          )
-          .remove(); // redundant? line is already being removed
+          );
       d3.transition(paths)
           .attr('d', d3.svg.line()
             .x(function(d,i) { return x(getX(d,i)) })
