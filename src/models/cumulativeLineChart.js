@@ -6,12 +6,12 @@ nv.models.cumulativeLineChart = function() {
       height = null,
       showLegend = true,
       tooltips = true,
+      showRescaleToggle = false, //TODO: get rescale y functionality back (need to calculate exten of y for ALL possible re-zero points
+      rescaleY = true;
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      },
-      showRescaleToggle = false,
-      rescaleY = true;
+      };
 
   var lines = nv.models.line(),
       x = lines.xScale(),
@@ -58,7 +58,7 @@ nv.models.cumulativeLineChart = function() {
     d.i = Math.round(dx.invert(d.x));
 
     //d3.transition(d3.select('.chart-' + id)).call(chart);
-    d3.select(this).attr("transform", "translate(" + dx(d.i) + ",0)");
+    d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
   }
 
   function dragEnd(d,i) {
@@ -79,7 +79,7 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      var series = indexify(index.i, data);
+      var data = indexify(index.i, data);
 
 
       dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
@@ -88,7 +88,7 @@ nv.models.cumulativeLineChart = function() {
 
 
 
-      var wrap = container.selectAll('g.wrap.cumulativeLine').data([series]);
+      var wrap = container.selectAll('g.wrap.cumulativeLine').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 cumulativeLine').append('g');
 
       gEnter.append('g').attr('class', 'x axis');
@@ -132,9 +132,11 @@ nv.models.cumulativeLineChart = function() {
 
 
       lines
+        //.x(function(d) { return d.x })
+        .y(function(d) { return d.display.y })
         .width(availableWidth)
         .height(availableHeight)
-        .color(series.map(function(d,i) {
+        .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
 
@@ -144,7 +146,7 @@ nv.models.cumulativeLineChart = function() {
 
 
       var linesWrap = g.select('.linesWrap')
-          .datum(series.filter(function(d) { return !d.disabled }))
+          .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(linesWrap).call(lines);
 
@@ -159,13 +161,12 @@ nv.models.cumulativeLineChart = function() {
           .call(indexDrag)
 
       indexLine
-          .attr("transform", function(d) { return "translate(" + dx(d.i) + ",0)" })
+          .attr('transform', function(d) { return 'translate(' + dx(d.i) + ',0)' })
           .attr('height', availableHeight)
 
 
 
       xAxis
-        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -176,7 +177,6 @@ nv.models.cumulativeLineChart = function() {
 
 
       yAxis
-        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
@@ -304,23 +304,18 @@ nv.models.cumulativeLineChart = function() {
     return data.map(function(line, i) {
       var v = lines.y()(line.values[idx], idx);
 
-      return {
-        key: line.key,
-        values: line.values.map(function(point, pointIndex) {
-          return {'x': lines.x()(point, pointIndex), 'y': (lines.y()(point, pointIndex) - v) / (1 + v) };
-        }),
-        disabled: line.disabled,
-        hover: line.hover
-        /*
-        if (v < -.9) {
-          //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
-        }
-        */
-      };
-    });
-  };
-
-
+      line.values = line.values.map(function(point, pointIndex) {
+        point.display = {'y': (lines.y()(point, pointIndex) - v) / (1 + v) };
+        return point;
+      })
+      /*
+      if (v < -.9) {
+        //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
+      }
+      */
+      return line;
+    })
+  }
 
 
 
