@@ -6,7 +6,6 @@ JS_FILES = \
 	src/models/axis.js \
 	src/models/historicalBar.js \
 	src/models/bullet.js \
-	src/models/cumulativeLine.js \
 	src/models/cumulativeLineChart.js \
 	src/models/discreteBar.js \
 	src/models/discreteBarChart.js \
