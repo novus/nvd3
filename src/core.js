@@ -79,7 +79,7 @@ nv.strip = function(s) {
 }
 
 function daysInMonth(month,year) {
-  return (new Date(year, month+1, 0)).getMonth();
+  return (new Date(year, month+1, 0)).getDate();
 }
 
 function d3_time_range(floor, step, number) {
