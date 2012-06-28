@@ -8,7 +8,9 @@
 
   var nvtooltip = window.nv.tooltip = {};
 
-  nvtooltip.show = function(pos, content, gravity, dist) {
+  nvtooltip.show = function() {
+    var args = arguments;
+    var pos = args[0], content = args[1], gravity = args[2], dist = args[3], parentId = args[4];
 
     var container = document.createElement("div");
         container.className = "nvtooltip";
@@ -16,7 +18,7 @@
     gravity = gravity || 's';
     dist = dist || 20;
 
-    var body = document.getElementsByTagName("body")[0];
+    var body = parentId ? document.getElementById(parentId) : document.getElementsByTagName("body")[0];
 
     container.innerHTML = content;
     container.style.left = 1;
