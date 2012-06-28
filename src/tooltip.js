@@ -19,9 +19,10 @@
     var body = document.getElementsByTagName("body")[0];
 
     container.innerHTML = content;
-    container.style.left = 1;
-    container.style.top = 1;
+    container.style.left = 0;
+    container.style.top = 0;
     container.style.opacity = 0;
+
     body.appendChild(container);
 
     var height = parseInt(container.offsetHeight),
@@ -68,6 +69,8 @@
     container.style.left = left+"px";
     container.style.top = top+"px";
     container.style.opacity = 1;
+    container.style.position = "absolute"; //fix scroll bar issue
+    container.style.pointerEvents = "none"; //fix scroll bar issue
 
     return container;
   };

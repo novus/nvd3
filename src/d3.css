@@ -38,14 +38,21 @@
   -moz-transition-delay: 500ms;
   -webkit-transition-delay: 500ms;
 
-  -moz-box-shadow: 4px 4px 12px rgba(0,0,0,.5);
-  -webkit-box-shadow: 4px 4px 12px rgba(0,0,0,.5);
-  box-shadow: 4px 4px 12px rgba(0,0,0,.5);
+  -moz-box-shadow: 4px 4px 8px rgba(0,0,0,.5);
+  -webkit-box-shadow: 4px 4px 8px rgba(0,0,0,.5);
+  box-shadow: 4px 4px 8px rgba(0,0,0,.5);
 
-  -moz-border-radius: 15px;
-  border-radius: 15px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
 
   pointer-events: none;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .nvtooltip h3 {
