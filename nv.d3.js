@@ -61,7 +61,6 @@ nv.render = function render(step) {
 };
 nv.render.queue = [];
 
-
 nv.addGraph = function(obj) {
   if (typeof arguments[0] === 'function')
     obj = {generate: arguments[0], callback: arguments[1]};
@@ -71,27 +70,13 @@ nv.addGraph = function(obj) {
   if (!nv.render.active) nv.render();
 };
 
-
 nv.identity = function(d) { return d };
 
-
-nv.strip = function(s) {
-  return s.replace(/(\s|&)/g,'');
-}
-
-
-/* An ugly implementation to get month end axis dates
- * Will hopefully refactor sooner than later
- */
+nv.strip = function(s) { return s.replace(/(\s|&)/g,''); };
 
 function daysInMonth(month,year) {
-  var m = [31,28,31,30,31,30,31,31,30,31,30,31];
-  if (month != 2) return m[month - 1];
-  if (year%4 != 0) return m[1];
-  if (year%100 == 0 && year%400 != 0) return m[1];
-  return m[1] + 1;
-}
-
+  return (new Date(year, month+1, 0)).getDate();
+};
 
 function d3_time_range(floor, step, number) {
   return function(t0, t1, dt) {
@@ -108,13 +93,11 @@ function d3_time_range(floor, step, number) {
     }
     return times;
   };
-}
-
+};
 
 d3.time.monthEnd = function(date) {
   return new Date(date.getFullYear(), date.getMonth(), 0);
 };
-
 
 d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     date.setUTCDate(date.getUTCDate() + 1);
@@ -123,8 +106,6 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     return date.getMonth();
   }
 );
-
-
 /*****
  * A no frills tooltip implementation.
  *****/
@@ -134,7 +115,9 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 
   var nvtooltip = window.nv.tooltip = {};
 
-  nvtooltip.show = function(pos, content, gravity, dist) {
+  nvtooltip.show = function() {
+    var args = Array.prototype.slice.call(arguments),
+        pos = args[0], content = args[1], gravity = args[2], dist = args[3], parentId = args[4];
 
     var container = document.createElement("div");
         container.className = "nvtooltip";
@@ -142,7 +125,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     gravity = gravity || 's';
     dist = dist || 20;
 
-    var body = document.getElementsByTagName("body")[0];
+    var body = parentId ? parentId : document.getElementsByTagName("body")[0];
 
     container.innerHTML = content;
     container.style.left = 1;
@@ -2515,10 +2498,7 @@ nv.models.line = function() {
                   .id(id)
                   .size(16) // default size
                   .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x = scatter.xScale(),
-      y = scatter.yScale(),
-      x0 = x, 
-      y0 = y,
+      x, y, x0, y0,
       timeoutID;
 
 
@@ -2527,6 +2507,13 @@ nv.models.line = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
+      //scales need to be set here incase a custom scale was set
+      x = x || scatter.xScale(); 
+      y = y || scatter.yScale();
+
+      x0 = x0 || x;
+      y0 = y0 || y;
+
 
       var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
@@ -2534,20 +2521,8 @@ nv.models.line = function() {
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      wrapEnter.append('g').attr('class', 'scatterWrap');
-      var scatterWrap = wrap.select('.scatterWrap').datum(data);
-
       gEnter.append('g').attr('class', 'groups');
-
-
-      scatter
-        .width(availableWidth)
-        .height(availableHeight)
-
-      d3.transition(scatterWrap).call(scatter);
-
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      gEnter.append('g').attr('class', 'scatterWrap');
 
 
       defsEnter.append('clipPath')
@@ -2557,6 +2532,22 @@ nv.models.line = function() {
       wrap.select('#edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
+
+
+      var scatterWrap = wrap.select('.scatterWrap')//.datum(data);
+
+
+      scatter
+        .width(availableWidth)
+        .height(availableHeight)
+
+      d3.transition(scatterWrap).call(scatter);
+
+
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
 
       g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
       scatterWrap
@@ -4175,7 +4166,7 @@ nv.models.multiBarChart = function() {
         y = yAxis.tickFormat()(multibar.y()(e.point)),
         content = tooltip(e.series.key, x, y, e, chart);
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
   //TODO: let user select default
