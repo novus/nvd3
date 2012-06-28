@@ -145,9 +145,10 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     var body = document.getElementsByTagName("body")[0];
 
     container.innerHTML = content;
-    container.style.left = 1;
-    container.style.top = 1;
+    container.style.left = 0;
+    container.style.top = 0;
     container.style.opacity = 0;
+
     body.appendChild(container);
 
     var height = parseInt(container.offsetHeight),
@@ -194,6 +195,8 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     container.style.left = left+"px";
     container.style.top = top+"px";
     container.style.opacity = 1;
+    container.style.position = "absolute"; //fix scroll bar issue
+    container.style.pointerEvents = "none"; //fix scroll bar issue
 
     return container;
   };
@@ -4736,27 +4739,23 @@ nv.models.pie = function() {
   var margin = {top: 20, right: 20, bottom: 20, left: 20},
       width = 500,
       height = 500,
-      animate = 2000,
-      radius = Math.min(width-(margin.right+margin.left), height-(margin.top+margin.bottom)) / 2,
-      label ='label',
-      field ='y',
+      getLabel = function(d) { return d.label },
+      getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       color = d3.scale.category20(),
       showLabels = true,
-      donut = false,
-      title = '';
-
-      var lastWidth = 0,
-      lastHeight = 0;
-
+      donut = false;
 
   var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'tooltipShow', 'tooltipHide');
 
   function chart(selection) {
     selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom,
+          radius = Math.min(availableWidth, availableHeight) / 2;
 
-      var svg = d3.select(this)
-          .on("click", function(d,i) {
+      var container = d3.select(this)
+          .on('click', function(d,i) {
               dispatch.chartClick({
                   data: d,
                   index: i,
@@ -4767,156 +4766,130 @@ nv.models.pie = function() {
 
 
 
-        var background = svg.selectAll('svg.margin').data([data]);
-        var parent = background.enter();
-        parent.append("text")
-            .attr("class", "title")
-            .attr("dy", ".91em")
-            .attr("text-anchor", "start")
-            .text(title);
-        parent.append('svg')
-            .attr('class','margin')
-            .attr('x', margin.left)
-            .attr('y', margin.top)
-            .style('overflow','visible');
+      var wrap = container.selectAll('.wrap.pie').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class','wrap nvd3 pie chart-' + id);
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
 
-        var wrap = background.selectAll('g.wrap').data([data]);
-        wrap.exit().remove();
-        var wEnter = wrap.enter();
+      gEnter.append('g').attr('class', 'pie');
 
-        wEnter
-          .append('g')
-            .attr('class', 'wrap')
-            .attr('id','wrap-'+id)
-          .append('g')
-            .attr('class', 'pie');
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      g.select('.pie').attr('transform', 'translate(' + radius + ',' + radius + ')');
 
 
 
-        wrap
-            .attr('width', width) //-(margin.left+margin.right))
-            .attr('height', height) //-(margin.top+margin.bottom))
-            .attr("transform", "translate(" + radius + "," + radius + ")");
+      var arc = d3.svg.arc()
+                  .outerRadius((radius-(radius / 5)));
 
-
-
-
-        var arc = d3.svg.arc()
-          .outerRadius((radius-(radius / 5)));
-
-        if (donut) arc.innerRadius(radius / 2);
+      if (donut) arc.innerRadius(radius / 2);
 
 
       // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
-         .value(function (d) { return d[field]; });
+          .value(getY);
 
-      var slices = background.select('.pie').selectAll(".slice")
-            .data(pie);
+      var slices = wrap.select('.pie').selectAll('.slice')
+          .data(pie);
 
-          slices.exit().remove();
+      slices.exit().remove();
 
-        var ae = slices.enter().append("svg:g")
-              .attr("class", "slice")
+      var ae = slices.enter().append('svg:g')
+              .attr('class', 'slice')
               .on('mouseover', function(d,i){
-                        d3.select(this).classed('hover', true);
-                        dispatch.tooltipShow({
-                            label: d.data[label],
-                            value: d.data[field],
-                            data: d.data,
-                            index: i,
-                            pos: [d3.event.pageX, d3.event.pageY],
-                            id: id
-                        });
-
+                d3.select(this).classed('hover', true);
+                dispatch.tooltipShow({
+                    label: getLabel(d.data),
+                    value: getY(d.data),
+                    data: d.data,
+                    index: i,
+                    pos: [d3.event.pageX, d3.event.pageY],
+                    id: id
+                });
               })
               .on('mouseout', function(d,i){
-                        d3.select(this).classed('hover', false);
-                        dispatch.tooltipHide({
-                            label: d.data[label],
-                            value: d.data[field],
-                            data: d.data,
-                            index: i,
-                            id: id
-                        });
+                d3.select(this).classed('hover', false);
+                dispatch.tooltipHide({
+                    label: getLabel(d.data),
+                    value: getY(d.data),
+                    data: d.data,
+                    index: i,
+                    id: id
+                });
               })
               .on('click', function(d,i) {
-                    dispatch.elementClick({
-                        label: d.data[label],
-                        value: d.data[field],
-                        data: d.data,
-                        index: i,
-                        pos: d3.event,
-                        id: id
-                    });
-                    d3.event.stopPropagation();
-              })
-              .on('dblclick', function(d,i) {
-                dispatch.elementDblClick({
-                    label: d.data[label],
-                    value: d.data[field],
+                console.log(d);
+                dispatch.elementClick({
+                    label: getLabel(d.data),
+                    value: getY(d.data),
                     data: d.data,
                     index: i,
                     pos: d3.event,
                     id: id
                 });
-                 d3.event.stopPropagation();
+                d3.event.stopPropagation();
+              })
+              .on('dblclick', function(d,i) {
+                dispatch.elementDblClick({
+                    label: getLabel(d.data),
+                    value: getY(d.data),
+                    data: d.data,
+                    index: i,
+                    pos: d3.event,
+                    id: id
+                });
+                d3.event.stopPropagation();
               });
 
-        var paths = ae.append("svg:path")
+        var paths = ae.append('svg:path')
             .attr('class','path')
-            .attr("fill", function(d, i) { return color(i); });
+            .attr('fill', function(d, i) { return color(i); });
             //.attr('d', arc);
 
-        slices.select('.path')
+        d3.transition(slices.select('.path'))
             .attr('d', arc)
-            .transition()
-            .ease("bounce")
-            .duration(animate)
-            .attrTween("d", tweenPie);
+            //.ease('bounce')
+            .attrTween('d', tweenPie);
 
         if (showLabels) {
-            // This does the normal label
-            ae.append("text");
+          // This does the normal label
+          ae.append('text');
 
-            slices.select("text")
-              .transition()
-              .duration(animate)
-              .ease('bounce')
-              .attr("transform", function(d) {
+          d3.transition(slices.select('text'))
+              //.ease('bounce')
+              .attr('transform', function(d) {
                  d.outerRadius = radius + 10; // Set Outer Coordinate
                  d.innerRadius = radius + 15; // Set Inner Coordinate
-                 return "translate(" + arc.centroid(d) + ")";
+                 return 'translate(' + arc.centroid(d) + ')';
               })
-              .attr("text-anchor", "middle") //center the text on it's origin
-              .style("font", "bold 12px Arial")
-              .text(function(d, i) {  return d.data[label]; });
+              .attr('text-anchor', 'middle') //center the text on it's origin
+              //.style('font', 'bold 12px Arial') // font style's should be set in css!
+              .text(function(d, i) {  return getLabel(d.data); });
         }
 
 
         // Computes the angle of an arc, converting from radians to degrees.
         function angle(d) {
-            var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
-            return a > 90 ? a - 180 : a;
+          var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
+          return a > 90 ? a - 180 : a;
         }
-
-
-
 
 
         function tweenPie(b) {
-            b.innerRadius = 0;
-            var i = d3.interpolate({startAngle: 0, endAngle: 0}, b);
-            return function(t) {
-                return arc(i(t));
-            };
+          b.innerRadius = 0;
+          var i = d3.interpolate({startAngle: 0, endAngle: 0}, b);
+          return function(t) {
+              return arc(i(t));
+          };
         }
-
 
     });
 
     return chart;
   }
+
+
+  chart.dispatch = dispatch;
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -4926,73 +4899,48 @@ nv.models.pie = function() {
 
   chart.width = function(_) {
     if (!arguments.length) return width;
-    if (margin.left + margin.right + 20 > _) {
-      width = margin.left + margin.right + 20; // Min width
-    } else {
-      width = _;
-    }
-    radius = Math.min(width-(margin.left+margin.right), height-(margin.top+margin.bottom)) / 2;
+    width = _;
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
-    if (margin.top + margin.bottom + 20 > _) {
-      height = margin.top + margin.bottom + 20; // Min height
-    } else {
-      height = _;
-    }
-    radius = Math.min(width-(margin.left+margin.right), height-(margin.top+margin.bottom)) / 2;
+    height = _;
     return chart;
   };
 
-  chart.animate = function(_) {
-    if (!arguments.length) return animate;
-    animate = _;
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = d3.functor(_);
     return chart;
   };
 
-  chart.labelField = function(_) {
-    if (!arguments.length) return (label);
-      label = _;
-      return chart;
-  };
-
-  chart.dataField = function(_) {
-    if (!arguments.length) return (field);
-    field = _;
+  chart.label = function(_) {
+    if (!arguments.length) return getLabel;
+    getLabel = _;
     return chart;
   };
 
   chart.showLabels = function(_) {
-      if (!arguments.length) return (showLabels);
-      showLabels = _;
-      return chart;
+    if (!arguments.length) return showLabels;
+    showLabels = _;
+    return chart;
   };
 
   chart.donut = function(_) {
-        if (!arguments.length) return (donut);
-        donut = _;
-        return chart;
-  };
-
-  chart.title = function(_) {
-        if (!arguments.length) return (title);
-        title = _;
-        return chart;
+    if (!arguments.length) return donut;
+    donut = _;
+    return chart;
   };
 
   chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
   };
 
-  chart.dispatch = dispatch;
 
-
-
-    return chart;
+  return chart;
 }
 
 nv.models.scatter = function() {
