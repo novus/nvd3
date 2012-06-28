@@ -18,7 +18,7 @@ text {
 
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/models/pie.js"></script>
+<script src="../src/models/pie_new.js"></script>
 <script> 
 
   var testdata = [
@@ -87,21 +87,22 @@ nv.addGraph({
     var chart = nv.models.pie()
         .width(width)
         .height(height)
-        .title('Hi this is the chart title')
             ;
 
     if (td === 0) {
-    d3.select("#test1")
-      .attr('width', width)
-      .attr('height', height)
-      .datum(testdata)
-      .call(chart);
+      d3.select("#test1")
+          .datum(testdata)
+        .transition().duration(1200)
+          .attr('width', width)
+          .attr('height', height)
+          .call(chart);
     } else {
-        d3.select("#test1")
-                .attr('width', width)
-                .attr('height', height)
-                .datum(testdata2)
-                .call(chart);
+      d3.select("#test1")
+          .datum(testdata2)
+        .transition().duration(1200)
+          .attr('width', width)
+          .attr('height', height)
+          .call(chart);
     }
 
 
