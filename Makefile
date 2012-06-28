@@ -21,6 +21,7 @@ JS_FILES = \
 	src/models/multiBarHorizontal.js \
 	src/models/multiBarHorizontalChart.js \
 	src/models/pie.js \
+	src/models/pieChart.js \
 	src/models/scatter.js \
 	src/models/scatterChart.js \
 	src/models/sparkline.js \

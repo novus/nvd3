@@ -1737,31 +1737,6 @@ nv.models.discreteBarChart = function() {
           .attr('height', 16)
           .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
 
-      /*
-      var evenLabelClips = defsEnter.append('clipPath')
-          .attr('id', 'x-label-clip-even-' + discretebar.id())
-        .selectAll('rect')
-          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 0 }) });
-
-      evenLabelClips.enter().append('rect')
-            .attr('width', x.rangeBand())
-            .attr('height', 32)
-            .attr('y', y.range()[0])
-            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
-
-      var oddLabelClips = defsEnter.append('clipPath')
-          .attr('id', 'x-label-clip-odd-' + discretebar.id())
-        .selectAll('rect')
-          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 1 }) });
-
-      oddLabelClips.enter().append('rect')
-            .attr('width', x.rangeBand())
-            .attr('height', 16)
-            .attr('y', y.range()[0] + 16 + (staggerLabels ? 12: 0))
-            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
-            */
-
-
 
       xAxis
         .ticks( availableWidth / 100 )
@@ -4736,17 +4711,18 @@ nv.models.multiBarHorizontalChart = function() {
 }
 
 nv.models.pie = function() {
-  var margin = {top: 20, right: 20, bottom: 20, left: 20},
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 500,
       height = 500,
-      getLabel = function(d) { return d.label },
+      getLabel = function(d) { return d.key },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      color = d3.scale.category20(),
+      color = d3.scale.category20().range(),
+      valueFormat = d3.format(',.2f'),
       showLabels = true,
       donut = false;
 
-  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'tooltipShow', 'tooltipHide');
+  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
@@ -4798,31 +4774,30 @@ nv.models.pie = function() {
               .attr('class', 'slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
-                dispatch.tooltipShow({
+                dispatch.elementMouseover({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
-                    index: i,
+                    point: d.data,
+                    pointIndex: i,
                     pos: [d3.event.pageX, d3.event.pageY],
                     id: id
                 });
               })
               .on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
-                dispatch.tooltipHide({
+                dispatch.elementMouseout({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
+                    point: d.data,
                     index: i,
                     id: id
                 });
               })
               .on('click', function(d,i) {
-                console.log(d);
                 dispatch.elementClick({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
+                    point: d.data,
                     index: i,
                     pos: d3.event,
                     id: id
@@ -4833,7 +4808,7 @@ nv.models.pie = function() {
                 dispatch.elementDblClick({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
+                    point: d.data,
                     index: i,
                     pos: d3.event,
                     id: id
@@ -4841,19 +4816,21 @@ nv.models.pie = function() {
                 d3.event.stopPropagation();
               });
 
-        var paths = ae.append('svg:path')
-            .attr('class','path')
-            .attr('fill', function(d, i) { return color(i); });
+        slices
+            .attr('fill', function(d,i) { return color[i]; });
+
+        var paths = slices.append('svg:path')
             //.attr('d', arc);
 
-        d3.transition(slices.select('.path'))
+        d3.transition(slices.select('path'))
             .attr('d', arc)
             //.ease('bounce')
             .attrTween('d', tweenPie);
 
         if (showLabels) {
           // This does the normal label
-          ae.append('text');
+          ae.append('text')
+            .attr('fill', '#000');
 
           d3.transition(slices.select('text'))
               //.ease('bounce')
@@ -4936,6 +4913,187 @@ nv.models.pie = function() {
   chart.id = function(_) {
     if (!arguments.length) return id;
     id = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
+  chart.valueFormat = function(_) {
+    if (!arguments.length) return valueFormat;
+    valueFormat = _;
+    return chart;
+  };
+
+
+  return chart;
+}
+
+nv.models.pieChart = function() {
+  var margin = {top: 30, right: 20, bottom: 20, left: 20},
+      width = null,
+      height = null,
+      showLegend = true,
+      color = d3.scale.category20().range(),
+      tooltips = true,
+      tooltip = function(key, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + '</p>'
+      };
+
+
+  var pie = nv.models.pie(),
+      legend = nv.models.legend().height(30),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+
+
+  var showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        y = pie.valueFormat()(pie.y()(e.point)),
+        content = tooltip(pie.label()(e.point), y, e, chart);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+  };
+
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+
+
+
+      var wrap = container.selectAll('g.wrap.pieChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 pieChart').append('g');
+
+      gEnter.append('g').attr('class', 'pieWrap');
+      gEnter.append('g').attr('class', 'legendWrap');
+
+      var g = wrap.select('g');
+
+
+      if (showLegend) {
+        legend.width( availableWidth );
+
+        wrap.select('.legendWrap')
+            .datum(data)
+            .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        wrap.select('.legendWrap')
+            .attr('transform', 'translate(0,' + (-margin.top) +')');
+      }
+
+
+      pie
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled }))
+
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      var pieWrap = g.select('.pieWrap')
+          .datum(data.filter(function(d) { return !d.disabled }))
+
+
+      d3.transition(pieWrap).call(pie);
+
+
+      legend.dispatch.on('legendClick', function(d,i, that) {
+        d.disabled = !d.disabled;
+
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
+            d.disabled = false;
+            wrap.selectAll('.series').classed('disabled', false);
+            return d;
+          });
+        }
+
+        selection.transition().call(chart)
+      });
+
+      pie.dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+      });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
+
+      pie.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+      });
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() { selection.transition().call(chart); };
+      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+
+    });
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+  chart.pie = pie; // really just makign the accessible for discretebar.dispatch, may rethink slightly
+
+  d3.rebind(chart, pie, 'y', 'label', 'id', 'showLabels', 'donut');
+
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    discretebar.color(_);
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 
