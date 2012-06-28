@@ -18,8 +18,8 @@ nv.models.pieChart = function() {
 
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
+        top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
         y = pie.valueFormat()(pie.y()(e.point)),
         content = tooltip(pie.label()(e.point), y, e, chart);
 
@@ -103,7 +103,7 @@ nv.models.pieChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e) } ); // TODO: maybe merge with above?
 
       pie.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
