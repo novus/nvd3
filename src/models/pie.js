@@ -1,16 +1,17 @@
 
 nv.models.pie = function() {
-  var margin = {top: 20, right: 20, bottom: 20, left: 20},
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 500,
       height = 500,
-      getLabel = function(d) { return d.label },
+      getLabel = function(d) { return d.key },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      color = d3.scale.category20(),
+      color = d3.scale.category20().range(),
+      valueFormat = d3.format(',.2f'),
       showLabels = true,
       donut = false;
 
-  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'tooltipShow', 'tooltipHide');
+  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
@@ -62,31 +63,30 @@ nv.models.pie = function() {
               .attr('class', 'slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
-                dispatch.tooltipShow({
+                dispatch.elementMouseover({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
-                    index: i,
+                    point: d.data,
+                    pointIndex: i,
                     pos: [d3.event.pageX, d3.event.pageY],
                     id: id
                 });
               })
               .on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
-                dispatch.tooltipHide({
+                dispatch.elementMouseout({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
+                    point: d.data,
                     index: i,
                     id: id
                 });
               })
               .on('click', function(d,i) {
-                console.log(d);
                 dispatch.elementClick({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
+                    point: d.data,
                     index: i,
                     pos: d3.event,
                     id: id
@@ -97,7 +97,7 @@ nv.models.pie = function() {
                 dispatch.elementDblClick({
                     label: getLabel(d.data),
                     value: getY(d.data),
-                    data: d.data,
+                    point: d.data,
                     index: i,
                     pos: d3.event,
                     id: id
@@ -105,19 +105,21 @@ nv.models.pie = function() {
                 d3.event.stopPropagation();
               });
 
-        var paths = ae.append('svg:path')
-            .attr('class','path')
-            .attr('fill', function(d, i) { return color(i); });
+        slices
+            .attr('fill', function(d,i) { return color[i]; });
+
+        var paths = slices.append('svg:path')
             //.attr('d', arc);
 
-        d3.transition(slices.select('.path'))
+        d3.transition(slices.select('path'))
             .attr('d', arc)
             //.ease('bounce')
             .attrTween('d', tweenPie);
 
         if (showLabels) {
           // This does the normal label
-          ae.append('text');
+          ae.append('text')
+            .attr('fill', '#000');
 
           d3.transition(slices.select('text'))
               //.ease('bounce')
@@ -200,6 +202,18 @@ nv.models.pie = function() {
   chart.id = function(_) {
     if (!arguments.length) return id;
     id = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
+  chart.valueFormat = function(_) {
+    if (!arguments.length) return valueFormat;
+    valueFormat = _;
     return chart;
   };
 

@@ -87,31 +87,6 @@ nv.models.discreteBarChart = function() {
           .attr('height', 16)
           .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
 
-      /*
-      var evenLabelClips = defsEnter.append('clipPath')
-          .attr('id', 'x-label-clip-even-' + discretebar.id())
-        .selectAll('rect')
-          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 0 }) });
-
-      evenLabelClips.enter().append('rect')
-            .attr('width', x.rangeBand())
-            .attr('height', 32)
-            .attr('y', y.range()[0])
-            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
-
-      var oddLabelClips = defsEnter.append('clipPath')
-          .attr('id', 'x-label-clip-odd-' + discretebar.id())
-        .selectAll('rect')
-          .data(function(d) { return d[0].values.filter(function(d,i) { return i % 2 === 1 }) });
-
-      oddLabelClips.enter().append('rect')
-            .attr('width', x.rangeBand())
-            .attr('height', 16)
-            .attr('y', y.range()[0] + 16 + (staggerLabels ? 12: 0))
-            .attr('x', function(d,i) { return x(discretebar.x()(d,i)) });
-            */
-
-
 
       xAxis
         .ticks( availableWidth / 100 )
