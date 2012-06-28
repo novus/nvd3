@@ -25,7 +25,7 @@ nv.models.pie = function() {
           radius = Math.min(availableWidth, availableHeight) / 2;
 
       var container = d3.select(this)
-          .on("click", function(d,i) {
+          .on('click', function(d,i) {
               dispatch.chartClick({
                   data: d,
                   index: i,
@@ -45,7 +45,7 @@ nv.models.pie = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      g.select('.pie').attr("transform", "translate(" + radius + "," + radius + ")");
+      g.select('.pie').attr('transform', 'translate(' + radius + ',' + radius + ')');
 
 
 
@@ -57,47 +57,46 @@ nv.models.pie = function() {
 
       // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
-         .value(getY);
+          .value(getY);
 
-      var slices = wrap.select('.pie').selectAll(".slice")
-            .data(pie);
+      var slices = wrap.select('.pie').selectAll('.slice')
+          .data(pie);
 
       slices.exit().remove();
 
-      var ae = slices.enter().append("svg:g")
-              .attr("class", "slice")
+      var ae = slices.enter().append('svg:g')
+              .attr('class', 'slice')
               .on('mouseover', function(d,i){
-                        d3.select(this).classed('hover', true);
-                        dispatch.tooltipShow({
-                            label: d.data[label],
-                            value: d.data[field],
-                            data: d.data,
-                            index: i,
-                            pos: [d3.event.pageX, d3.event.pageY],
-                            id: id
-                        });
-
+                d3.select(this).classed('hover', true);
+                dispatch.tooltipShow({
+                    label: d.data[label],
+                    value: d.data[field],
+                    data: d.data,
+                    index: i,
+                    pos: [d3.event.pageX, d3.event.pageY],
+                    id: id
+                });
               })
               .on('mouseout', function(d,i){
-                        d3.select(this).classed('hover', false);
-                        dispatch.tooltipHide({
-                            label: d.data[label],
-                            value: d.data[field],
-                            data: d.data,
-                            index: i,
-                            id: id
-                        });
+                d3.select(this).classed('hover', false);
+                dispatch.tooltipHide({
+                    label: d.data[label],
+                    value: d.data[field],
+                    data: d.data,
+                    index: i,
+                    id: id
+                });
               })
               .on('click', function(d,i) {
-                    dispatch.elementClick({
-                        label: d.data[label],
-                        value: d.data[field],
-                        data: d.data,
-                        index: i,
-                        pos: d3.event,
-                        id: id
-                    });
-                    d3.event.stopPropagation();
+                dispatch.elementClick({
+                    label: d.data[label],
+                    value: d.data[field],
+                    data: d.data,
+                    index: i,
+                    pos: d3.event,
+                    id: id
+                });
+                d3.event.stopPropagation();
               })
               .on('dblclick', function(d,i) {
                 dispatch.elementDblClick({
@@ -108,55 +107,58 @@ nv.models.pie = function() {
                     pos: d3.event,
                     id: id
                 });
-                 d3.event.stopPropagation();
+                d3.event.stopPropagation();
               });
 
-        var paths = ae.append("svg:path")
+        var paths = ae.append('svg:path')
             .attr('class','path')
-            .attr("fill", function(d, i) { return color(i); });
+            .attr('fill', function(d, i) { return color(i); });
             //.attr('d', arc);
 
         d3.transition(slices.select('.path'))
             .attr('d', arc)
-            //.ease("bounce")
-            .attrTween("d", tweenPie);
+            //.ease('bounce')
+            .attrTween('d', tweenPie);
 
         if (showLabels) {
-            // This does the normal label
-            ae.append("text");
+          // This does the normal label
+          ae.append('text');
 
-            d3.transition(slices.select("text"))
+          d3.transition(slices.select('text'))
               //.ease('bounce')
-              .attr("transform", function(d) {
+              .attr('transform', function(d) {
                  d.outerRadius = radius + 10; // Set Outer Coordinate
                  d.innerRadius = radius + 15; // Set Inner Coordinate
-                 return "translate(" + arc.centroid(d) + ")";
+                 return 'translate(' + arc.centroid(d) + ')';
               })
-              .attr("text-anchor", "middle") //center the text on it's origin
-              //.style("font", "bold 12px Arial") // font style's should be set in css!
+              .attr('text-anchor', 'middle') //center the text on it's origin
+              //.style('font', 'bold 12px Arial') // font style's should be set in css!
               .text(function(d, i) {  return d.data[label]; });
         }
 
 
         // Computes the angle of an arc, converting from radians to degrees.
         function angle(d) {
-            var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
-            return a > 90 ? a - 180 : a;
+          var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
+          return a > 90 ? a - 180 : a;
         }
 
 
         function tweenPie(b) {
-            b.innerRadius = 0;
-            var i = d3.interpolate({startAngle: 0, endAngle: 0}, b);
-            return function(t) {
-                return arc(i(t));
-            };
+          b.innerRadius = 0;
+          var i = d3.interpolate({startAngle: 0, endAngle: 0}, b);
+          return function(t) {
+              return arc(i(t));
+          };
         }
 
     });
 
     return chart;
   }
+
+
+  chart.dispatch = dispatch;
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -183,38 +185,29 @@ nv.models.pie = function() {
   };
 
   chart.labelField = function(_) {
-    if (!arguments.length) return (label);
-      label = _;
-      return chart;
-  };
-
-  chart.dataField = function(_) {
-    if (!arguments.length) return (field);
-    field = _;
+    if (!arguments.length) return label;
+    label = _;
     return chart;
   };
 
   chart.showLabels = function(_) {
-      if (!arguments.length) return (showLabels);
-      showLabels = _;
-      return chart;
+    if (!arguments.length) return showLabels;
+    showLabels = _;
+    return chart;
   };
 
   chart.donut = function(_) {
-        if (!arguments.length) return (donut);
-        donut = _;
-        return chart;
+    if (!arguments.length) return donut;
+    donut = _;
+    return chart;
   };
 
   chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
   };
 
-  chart.dispatch = dispatch;
 
-
-
-    return chart;
+  return chart;
 }
