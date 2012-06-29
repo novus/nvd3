@@ -16,6 +16,8 @@ text {
 
 <svg id="test1"></svg>
 
+<svg id="test2"></svg>
+
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/models/pie.js"></script>
@@ -48,66 +50,42 @@ text {
     }
   ];
 
-  var testdata2 = [
-      {
-          key: "One",
-          y: 10
-      },
-      {
-          key: "Two",
-          y: 5
-      },
-      {
-          key: "Three",
-          y: 3
-      },
-      {
-          key: "Four",
-          y: 7
-      },
-      {
-          key: "Five",
-          y: 2
-      }
-
-  ];
-
-  var td = 0;
-  var a = Math.random();
-  if (a > .5) td = 1;
-
 
 nv.addGraph(function() {
     var width = nv.utils.windowSize().width - 40,
-        height = nv.utils.windowSize().height - 40;
-
-
+        height = nv.utils.windowSize().height / 2 - 40;
 
     var chart = nv.models.pie()
         .width(width)
-        .height(height)
-            ;
+        .height(height);
 
-    if (td === 0) {
-      d3.select("#test1")
-          .datum(testdata)
-        .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
-    } else {
-      d3.select("#test1")
-          .datum(testdata2)
-        .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
-    }
-
-
+    d3.select("#test1")
+        .datum(testdata)
+      .transition().duration(1200)
+        .attr('width', width)
+        .attr('height', height)
+        .call(chart);
 
     return chart;
 });
 
+nv.addGraph(function() {
+    var width = nv.utils.windowSize().width - 40,
+        height = nv.utils.windowSize().height / 2 - 40;
+
+    var chart = nv.models.pie()
+        .width(width)
+        .height(height)
+        .donut(true);
+
+    d3.select("#test2")
+        .datum(testdata)
+      .transition().duration(1200)
+        .attr('width', width)
+        .attr('height', height)
+        .call(chart);
+
+    return chart;
+});
 
 </script>
