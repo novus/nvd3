@@ -13,7 +13,7 @@ text {
   font: 12px sans-serif;
 }
 
-#chart1 {
+#chart1 svg {
   height: 500px;
   margin: 10px;
   min-width: 100px;
@@ -65,6 +65,7 @@ var testdata = [
 
 nv.addGraph(function() {
     var chart = nv.models.linePlusBarChart()
+        .margin({top: 30, right: 60, bottom: 50, left: 70})
         .x(function(d,i) { return i })
         .color(d3.scale.category10().range());
 
