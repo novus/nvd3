@@ -111,7 +111,8 @@ nv.models.axis = function() {
                 })
               .select('text')
                 .attr('dy', '.32em')
-                .attr('dx', axis.tickPadding())
+                .attr('y', 0)
+                .attr('x', axis.tickPadding())
                 .attr('text-anchor', 'start')
                 .text(function(d,i) {
                   return axis.tickFormat()(d)
@@ -142,7 +143,8 @@ nv.models.axis = function() {
                 })
               .select('text')
                 .attr('dy', '.32em')
-                .attr('dx', -axis.tickPadding())
+                .attr('y', 0)
+                .attr('x', -axis.tickPadding())
                 .attr('text-anchor', 'end')
                 .text(function(d,i) {
                   return axis.tickFormat()(d)
@@ -164,7 +166,7 @@ nv.models.axis = function() {
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
-              return d && (scale(d) < 8 || scale(d) > scale.range()[0] - 8); // 8 is assuming text height is 16... if d is 0, leave it!
+              return d && (scale(d) < 10 || scale(d) > scale.range()[0] - 10); // 10 is assuming text height is 16... if d is 0, leave it!
             })
             .remove();
       }
