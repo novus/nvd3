@@ -125,7 +125,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie; // really just makign the accessible for discretebar.dispatch, may rethink slightly
 
-  d3.rebind(chart, pie, 'y', 'label', 'id', 'showLabels', 'donut');
+  d3.rebind(chart, pie, 'y', 'label', 'id', 'showLabels', 'donut', 'labelThreshold');
 
 
   chart.margin = function(_) {

@@ -9,6 +9,7 @@ nv.models.pie = function() {
       color = d3.scale.category20().range(),
       valueFormat = d3.format(',.2f'),
       showLabels = true,
+      labelThreshold = .02, //if slice percentage is under this, don't show label
       donut = false;
 
   var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
@@ -137,7 +138,10 @@ nv.models.pie = function() {
                  return 'translate(' + arc.centroid(d) + ')';
               })
               //.style('font', 'bold 12px Arial') // font style's should be set in css!
-              .text(function(d, i) { return d.value ? getLabel(d.data) : ''; });
+              .text(function(d, i) { 
+                var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
+                return (d.value && percent > labelThreshold) ? getLabel(d.data) : ''; 
+              });
         }
 
 
@@ -229,6 +233,12 @@ nv.models.pie = function() {
   chart.valueFormat = function(_) {
     if (!arguments.length) return valueFormat;
     valueFormat = _;
+    return chart;
+  };
+
+  chart.labelThreshold = function(_) {
+    if (!arguments.length) return labelThreshold;
+    labelThreshold = _;
     return chart;
   };
 
