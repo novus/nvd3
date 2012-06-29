@@ -57,6 +57,7 @@ nv.addGraph(function() {
 
     var chart = nv.models.pieChart()
         //.showLabels(false)
+        .color(d3.scale.category10().range())
         .width(width)
         .height(height);
 

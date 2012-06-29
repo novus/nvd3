@@ -239,7 +239,7 @@ svg .title {
 */
 
 .nvd3 .pie .hover path {
-    fill: lightblue;
+    fill-opacity: .6;
 }
 
 /**********

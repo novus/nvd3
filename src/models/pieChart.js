@@ -70,16 +70,17 @@ nv.models.pieChart = function() {
       pie
         .width(availableWidth)
         .height(availableHeight)
-        .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled }))
+        //.color(data.map(function(d,i) {
+          //return d.color || color[i % color.length];
+        //}).filter(function(d,i) { return !data[i].disabled }))
 
 
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       var pieWrap = g.select('.pieWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(data)
+          //.datum(data.filter(function(d) { return !d.disabled }))
 
 
       d3.transition(pieWrap).call(pie);
@@ -148,7 +149,8 @@ nv.models.pieChart = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
-    discretebar.color(_);
+    legend.color(_);
+    pie.color(_);
     return chart;
   };
 
