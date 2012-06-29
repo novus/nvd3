@@ -4741,7 +4741,6 @@ nv.models.pie = function() {
           });
 
 
-
       var wrap = container.selectAll('.wrap.pie').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class','wrap nvd3 pie chart-' + id);
       var gEnter = wrapEnter.append('g');
@@ -4751,7 +4750,7 @@ nv.models.pie = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      g.select('.pie').attr('transform', 'translate(' + radius + ',' + radius + ')');
+      g.select('.pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
 
 
@@ -4763,7 +4762,8 @@ nv.models.pie = function() {
 
       // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
-          .value(getY);
+          .sort(null)
+          .value(function(d) { return d.disabled ? 0 : getY(d) });
 
       var slices = wrap.select('.pie').selectAll('.slice')
           .data(pie);
@@ -4819,18 +4819,26 @@ nv.models.pie = function() {
         slices
             .attr('fill', function(d,i) { return color[i]; });
 
-        var paths = slices.append('svg:path')
+        var paths = ae.append('svg:path')
+            .each(function(d) { this._current = d; });
             //.attr('d', arc);
 
         d3.transition(slices.select('path'))
             .attr('d', arc)
             //.ease('bounce')
-            .attrTween('d', tweenPie);
+            .attrTween('d', arcTween);
+            //.attrTween('d', tweenPie);
 
         if (showLabels) {
           // This does the normal label
           ae.append('text')
-            .attr('fill', '#000');
+            .attr('transform', function(d) {
+               d.outerRadius = radius + 10; // Set Outer Coordinate
+               d.innerRadius = radius + 15; // Set Inner Coordinate
+               return 'translate(' + arc.centroid(d) + ')';
+            })
+            .style('text-anchor', 'middle') //center the text on it's origin
+            .style('fill', '#000');
 
           d3.transition(slices.select('text'))
               //.ease('bounce')
@@ -4839,9 +4847,8 @@ nv.models.pie = function() {
                  d.innerRadius = radius + 15; // Set Inner Coordinate
                  return 'translate(' + arc.centroid(d) + ')';
               })
-              .attr('text-anchor', 'middle') //center the text on it's origin
               //.style('font', 'bold 12px Arial') // font style's should be set in css!
-              .text(function(d, i) {  return getLabel(d.data); });
+              .text(function(d, i) { return d.value ? getLabel(d.data) : ''; });
         }
 
 
@@ -4851,6 +4858,14 @@ nv.models.pie = function() {
           return a > 90 ? a - 180 : a;
         }
 
+        function arcTween(a) {
+          if (!donut) a.innerRadius = 0;
+          var i = d3.interpolate(this._current, a);
+          this._current = i(0);
+          return function(t) {
+            return arc(i(t));
+          };
+        }
 
         function tweenPie(b) {
           b.innerRadius = 0;
@@ -5003,16 +5018,17 @@ nv.models.pieChart = function() {
       pie
         .width(availableWidth)
         .height(availableHeight)
-        .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled }))
+        //.color(data.map(function(d,i) {
+          //return d.color || color[i % color.length];
+        //}).filter(function(d,i) { return !data[i].disabled }))
 
 
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       var pieWrap = g.select('.pieWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(data)
+          //.datum(data.filter(function(d) { return !d.disabled }))
 
 
       d3.transition(pieWrap).call(pie);
@@ -5081,7 +5097,8 @@ nv.models.pieChart = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
-    discretebar.color(_);
+    legend.color(_);
+    pie.color(_);
     return chart;
   };
 
