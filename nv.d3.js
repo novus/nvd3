@@ -768,7 +768,7 @@ nv.models.bullet = function() {
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.bullet').data([data]);
+      var wrap = d3.select(this).selectAll('g.wrap.bullet').data([d]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bullet');
       var gEnter = wrapEnter.append('g');
 
