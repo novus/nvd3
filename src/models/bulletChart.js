@@ -9,8 +9,8 @@ nv.models.bulletChart = function() {
       ranges = function(d) { return d.ranges },
       markers = function(d) { return d.markers },
       measures = function(d) { return d.measures },
-      width = 380,
-      height = 55,
+      width = null,
+      height = 80,
       tickFormat = null,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
@@ -38,7 +38,8 @@ nv.models.bulletChart = function() {
   // For each small multipleâ€¦
   function chart(g) {
     g.each(function(d, i) {
-      var availableWidth = width - margin.left - margin.right,
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           that = this;
 
