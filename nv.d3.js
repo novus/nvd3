@@ -323,7 +323,7 @@ nv.models.axis = function() {
                 .attr('y', -axis.tickPadding())
                 .attr('text-anchor', 'middle')
                 .text(function(d,i) {
-                  return axis.tickFormat()(d)
+                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -351,7 +351,7 @@ nv.models.axis = function() {
                 .attr('y', axis.tickPadding())
                 .attr('text-anchor', 'middle')
                 .text(function(d,i) {
-                  return axis.tickFormat()(d)
+                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -381,7 +381,7 @@ nv.models.axis = function() {
                 .attr('x', axis.tickPadding())
                 .attr('text-anchor', 'start')
                 .text(function(d,i) {
-                  return axis.tickFormat()(d)
+                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -413,7 +413,7 @@ nv.models.axis = function() {
                 .attr('x', -axis.tickPadding())
                 .attr('text-anchor', 'end')
                 .text(function(d,i) {
-                  return axis.tickFormat()(d)
+                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
