@@ -38,6 +38,8 @@ nv.models.bulletChart = function() {
   // For each small multipleâ€¦
   function chart(g) {
     g.each(function(d, i) {
+      var container = d3.select(this);
+
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -47,7 +49,7 @@ nv.models.bulletChart = function() {
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
-      var wrap = d3.select(this).selectAll('g.wrap.bulletChart').data([d]);
+      var wrap = container.selectAll('g.wrap.bulletChart').data([d]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bulletChart');
       var gEnter = wrapEnter.append('g');
 
