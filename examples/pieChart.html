@@ -127,9 +127,10 @@ nv.addGraph(function() {
         height = 500;
 
     var chart = nv.models.pieChart()
-        .x(function(d) { return d.label })
-        .y(function(d) { return d.value })
-        .labelThreshold(.08)
+        .x(function(d) { return d.key })
+        //.y(function(d) { return d.value })
+        .values(function(d) { return d })
+        //.labelThreshold(.08)
         //.showLabels(false)
         .color(d3.scale.category10().range())
         .width(width)
@@ -137,8 +138,8 @@ nv.addGraph(function() {
         .donut(true);
 
       d3.select("#test2")
-          .datum(historicalBarChart)
-          //.datum(testdata)
+          //.datum(historicalBarChart)
+          .datum([testdata])
         .transition().duration(1200)
           .attr('width', width)
           .attr('height', height)
