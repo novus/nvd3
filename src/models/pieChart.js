@@ -91,8 +91,8 @@ nv.models.pieChart = function() {
       legend.dispatch.on('legendClick', function(d,i, that) {
         d.disabled = !d.disabled;
 
-        if (!data.filter(function(d) { return !d.disabled }).length) {
-          data.map(function(d) {
+        if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
+          pie.values()(data[0]).map(function(d) {
             d.disabled = false;
             wrap.selectAll('.series').classed('disabled', false);
             return d;
