@@ -5380,19 +5380,19 @@ nv.models.scatter = function() {
       width = 960,
       height = 500,
       color = d3.scale.category20().range(), // array of colors to be used in order
-      shape = 'circle',
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       x = d3.scale.linear(),
       y = d3.scale.linear(),
       z = d3.scale.linear(), //linear because d3.svg.shape.size is treated as area
-      //z = d3.scale.sqrt(), //sqrt because point size is done by area, not radius
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
       getSize = function(d) { return d.size }, // accessor to get the point radius from a data point //TODO: consider renamig size to z
+      getShape = function(d) { return d.shape || 'circle' },
       forceX = [], // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
       forceY = [], // List of numbers to Force into the Y scale 
       forceSize = [], // List of numbers to Force into the Size scale 
       interactive = true, // If true, plots a voronoi overlay for advanced point interection
+      //removeZeroes = false, // If true, filters out points with y == 0 from being interactive //TODO: implement
       clipEdge = false, // if true, masks lines within x and y scale
       clipVoronoi = true, // if true, masks each point with a circle... can turn off to slightly increase performance
       clipRadius = function() { return 25 }, // function to get the radius for point clips
@@ -5405,7 +5405,7 @@ nv.models.scatter = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      //var seriesData = data.map(function(d) {
+
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -5479,10 +5479,11 @@ nv.models.scatter = function() {
 
         gEnter.append('g').attr('class', 'point-paths');
 
+        // TODO: add a removeZeros option, useful for the stacked chart and maybe others
         var vertices = d3.merge(data.map(function(group, groupIndex) {
             return group.values.map(function(point, pointIndex) {
               // Adding noise to make duplicates very unlikely
-              // Inject series and point index for reference
+              // Injecting series and point index for reference
               return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
             })
           })
@@ -5507,7 +5508,6 @@ nv.models.scatter = function() {
 
 
         //inject series and point index for reference into voronoi
-        // considering adding a removeZeros option, may be useful for the stacked chart and maybe others
         var voronoi = d3.geom.voronoi(vertices).map(function(d, i) { return { 'data': d, 'series': vertices[i][2], 'point': vertices[i][3] } });
 
 
@@ -5524,7 +5524,7 @@ nv.models.scatter = function() {
 
               dispatch.elementClick({
                 point: point,
-                series:series,
+                series: series,
                 pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 seriesIndex: d.series,
                 pointIndex: d.point
@@ -5536,7 +5536,7 @@ nv.models.scatter = function() {
 
               dispatch.elementMouseover({
                 point: point,
-                series:series,
+                series: series,
                 pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                 seriesIndex: d.series,
                 pointIndex: d.point
@@ -5552,13 +5552,11 @@ nv.models.scatter = function() {
             });
 
         dispatch.on('elementMouseover.point', function(d) {
-            //wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
             d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', true);
         });
 
         dispatch.on('elementMouseout.point', function(d) {
-            //wrap.select('.series-' + d.seriesIndex + ' .point-' + d.pointIndex)
             d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
                 .classed('hover', false);
         });
@@ -5587,61 +5585,37 @@ nv.models.scatter = function() {
           .style('fill-opacity', .5);
 
 
-          /*
-      var points = groups.selectAll('circle.point')
-          .data(function(d) { return d.values });
-      points.enter().append('circle')
-          .attr('cx', function(d,i) { return x0(getX(d,i)) })
-          .attr('cy', function(d,i) { return y0(getY(d,i)) })
-          .attr('r', function(d,i) { return z0(getSize(d,i)) });
-      //d3.transition(points.exit())
-      d3.transition(groups.exit().selectAll('circle.point'))
-          .attr('cx', function(d,i) { return x(getX(d,i)) })
-          .attr('cy', function(d,i) { return y(getY(d,i)) })
-          .attr('r', function(d,i) { return z(getSize(d,i)) })
-          .remove();
-      points.attr('class', function(d,i) { return 'point point-' + i });
-      d3.transition(points)
-          .attr('cx', function(d,i) { return x(getX(d,i)) })
-          .attr('cy', function(d,i) { return y(getY(d,i)) })
-          .attr('r', function(d,i) { return z(getSize(d,i)) });
-         */
-
       var points = groups.selectAll('path.point')
           .data(function(d) { return d.values });
       points.enter().append('path')
           .attr('transform', function(d,i) {
             return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
           })
-          .attr('d', 
+          .attr('d',
                 d3.svg.symbol()
-                  .type(function(d,i) { return d.shape || shape })
+                  .type(getShape)
                   .size(function(d,i) { return z(getSize(d,i)) })
                );
-          //.attr('r', function(d,i) { return z0(getSize(d,i)) });
-      //d3.transition(points.exit())
       d3.transition(groups.exit().selectAll('path.point'))
           .attr('transform', function(d,i) {
             return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
           })
-          //.attr('r', function(d,i) { return z(getSize(d,i)) })
           .remove();
       points.attr('class', function(d,i) { return 'point point-' + i });
       d3.transition(points)
           .attr('transform', function(d,i) {
             return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
           })
-          .attr('d', 
+          .attr('d',
                 d3.svg.symbol()
-                  .type(function(d,i) { return d.shape || shape })
+                  .type(getShape)
                   .size(function(d,i) { return z(getSize(d,i)) })
                );
-          //.attr('r', function(d,i) { return z(getSize(d,i)) });
 
 
-
-      clearTimeout(timeoutID);
-      timeoutID = setTimeout(updateInteractiveLayer, 750);
+      // Delay the update of the invisible interactive layer so animations are smoother in the meantime
+      clearTimeout(timeoutID); //make sure unncesary repeat calls to updateInteractiveLayer don't occur
+      timeoutID = setTimeout(updateInteractiveLayer, 1000);
 
       //store old scales for use in transitions on update, to animate from old to new positions, and sizes
       x0 = x.copy();
@@ -5777,8 +5751,8 @@ nv.models.scatter = function() {
   };
 
   chart.shape= function(_) {
-    if (!arguments.length) return shape;
-    shape = _;
+    if (!arguments.length) return getShape;
+    getShape = _;
     return chart;
   };
 
