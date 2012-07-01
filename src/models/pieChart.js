@@ -21,7 +21,7 @@ nv.models.pieChart = function() {
     var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
         top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
         y = pie.valueFormat()(pie.y()(e.point)),
-        content = tooltip(pie.label()(e.point), y, e, chart);
+        content = tooltip(pie.x()(e.point), y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
@@ -50,10 +50,12 @@ nv.models.pieChart = function() {
 
 
       if (showLegend) {
-        legend.width( availableWidth );
+        legend
+          .width( availableWidth )
+          .key(pie.x());
 
         wrap.select('.legendWrap')
-            .datum(data)
+            .datum(pie.values()(data[0]))
             .call(legend);
 
         if ( margin.top != legend.height()) {
@@ -125,7 +127,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie; // really just makign the accessible for discretebar.dispatch, may rethink slightly
 
-  d3.rebind(chart, pie, 'y', 'label', 'id', 'showLabels', 'donut', 'labelThreshold');
+  d3.rebind(chart, pie, 'values', 'x', 'y', 'id', 'showLabels', 'donut', 'labelThreshold');
 
 
   chart.margin = function(_) {

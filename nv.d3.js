@@ -2195,6 +2195,7 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 0},
       width = 400,
       height = 20,
+      getKey = function(d) { return d.key },
       color = d3.scale.category20().range(),
       align = true;
 
@@ -2233,7 +2234,7 @@ nv.models.legend = function() {
           .style('stroke-width', 2)
           .attr('r', 5);
       seriesEnter.append('text')
-          .text(function(d) { return d.key })
+          .text(getKey)
           .attr('text-anchor', 'start')
           .attr('dy', '.32em')
           .attr('dx', '8');
@@ -2347,6 +2348,12 @@ nv.models.legend = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.key = function(_) {
+    if (!arguments.length) return getKey;
+    getKey = _;
     return chart;
   };
 
@@ -4941,7 +4948,8 @@ nv.models.pie = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 500,
       height = 500,
-      getLabel = function(d) { return d.key },
+      getValues = function(d) { return d.values },
+      getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       color = d3.scale.category20().range(),
@@ -4969,7 +4977,7 @@ nv.models.pie = function() {
           });
 
 
-      var wrap = container.selectAll('.wrap.pie').data([data]);
+      var wrap = container.selectAll('.wrap.pie').data([getValues(data[0])]);
       var wrapEnter = wrap.enter().append('g').attr('class','wrap nvd3 pie chart-' + id);
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
@@ -5003,7 +5011,7 @@ nv.models.pie = function() {
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
                 dispatch.elementMouseover({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     pointIndex: i,
@@ -5014,7 +5022,7 @@ nv.models.pie = function() {
               .on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
                 dispatch.elementMouseout({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     index: i,
@@ -5023,7 +5031,7 @@ nv.models.pie = function() {
               })
               .on('click', function(d,i) {
                 dispatch.elementClick({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     index: i,
@@ -5034,7 +5042,7 @@ nv.models.pie = function() {
               })
               .on('dblclick', function(d,i) {
                 dispatch.elementDblClick({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     index: i,
@@ -5078,7 +5086,7 @@ nv.models.pie = function() {
               //.style('font', 'bold 12px Arial') // font style's should be set in css!
               .text(function(d, i) { 
                 var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
-                return (d.value && percent > labelThreshold) ? getLabel(d.data) : ''; 
+                return (d.value && percent > labelThreshold) ? getX(d.data) : ''; 
               });
         }
 
@@ -5132,15 +5140,21 @@ nv.models.pie = function() {
     return chart;
   };
 
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = d3.functor(_);
+  chart.values = function(_) {
+    if (!arguments.length) return getValues;
+    getValues = _;
     return chart;
   };
 
-  chart.label = function(_) {
-    if (!arguments.length) return getLabel;
-    getLabel = _;
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = d3.functor(_);
     return chart;
   };
 
@@ -5206,7 +5220,7 @@ nv.models.pieChart = function() {
     var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
         top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
         y = pie.valueFormat()(pie.y()(e.point)),
-        content = tooltip(pie.label()(e.point), y, e, chart);
+        content = tooltip(pie.x()(e.point), y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
@@ -5235,10 +5249,12 @@ nv.models.pieChart = function() {
 
 
       if (showLegend) {
-        legend.width( availableWidth );
+        legend
+          .width( availableWidth )
+          .key(pie.x());
 
         wrap.select('.legendWrap')
-            .datum(data)
+            .datum(pie.values()(data[0]))
             .call(legend);
 
         if ( margin.top != legend.height()) {
@@ -5310,7 +5326,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie; // really just makign the accessible for discretebar.dispatch, may rethink slightly
 
-  d3.rebind(chart, pie, 'y', 'label', 'id', 'showLabels', 'donut', 'labelThreshold');
+  d3.rebind(chart, pie, 'values', 'x', 'y', 'id', 'showLabels', 'donut', 'labelThreshold');
 
 
   chart.margin = function(_) {

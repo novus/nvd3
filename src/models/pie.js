@@ -3,7 +3,8 @@ nv.models.pie = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 500,
       height = 500,
-      getLabel = function(d) { return d.key },
+      getValues = function(d) { return d.values },
+      getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       color = d3.scale.category20().range(),
@@ -31,7 +32,7 @@ nv.models.pie = function() {
           });
 
 
-      var wrap = container.selectAll('.wrap.pie').data([data]);
+      var wrap = container.selectAll('.wrap.pie').data([getValues(data[0])]);
       var wrapEnter = wrap.enter().append('g').attr('class','wrap nvd3 pie chart-' + id);
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
@@ -65,7 +66,7 @@ nv.models.pie = function() {
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
                 dispatch.elementMouseover({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     pointIndex: i,
@@ -76,7 +77,7 @@ nv.models.pie = function() {
               .on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
                 dispatch.elementMouseout({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     index: i,
@@ -85,7 +86,7 @@ nv.models.pie = function() {
               })
               .on('click', function(d,i) {
                 dispatch.elementClick({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     index: i,
@@ -96,7 +97,7 @@ nv.models.pie = function() {
               })
               .on('dblclick', function(d,i) {
                 dispatch.elementDblClick({
-                    label: getLabel(d.data),
+                    label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     index: i,
@@ -140,7 +141,7 @@ nv.models.pie = function() {
               //.style('font', 'bold 12px Arial') // font style's should be set in css!
               .text(function(d, i) { 
                 var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
-                return (d.value && percent > labelThreshold) ? getLabel(d.data) : ''; 
+                return (d.value && percent > labelThreshold) ? getX(d.data) : ''; 
               });
         }
 
@@ -194,15 +195,21 @@ nv.models.pie = function() {
     return chart;
   };
 
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = d3.functor(_);
+  chart.values = function(_) {
+    if (!arguments.length) return getValues;
+    getValues = _;
     return chart;
   };
 
-  chart.label = function(_) {
-    if (!arguments.length) return getLabel;
-    getLabel = _;
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = d3.functor(_);
     return chart;
   };
 

@@ -3,6 +3,7 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 0},
       width = 400,
       height = 20,
+      getKey = function(d) { return d.key },
       color = d3.scale.category20().range(),
       align = true;
 
@@ -41,7 +42,7 @@ nv.models.legend = function() {
           .style('stroke-width', 2)
           .attr('r', 5);
       seriesEnter.append('text')
-          .text(function(d) { return d.key })
+          .text(getKey)
           .attr('text-anchor', 'start')
           .attr('dy', '.32em')
           .attr('dx', '8');
@@ -155,6 +156,12 @@ nv.models.legend = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.key = function(_) {
+    if (!arguments.length) return getKey;
+    getKey = _;
     return chart;
   };
 
