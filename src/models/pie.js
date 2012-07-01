@@ -108,7 +108,8 @@ nv.models.pie = function() {
               });
 
         slices
-            .attr('fill', function(d,i) { return color[i]; });
+            .attr('fill', function(d,i) { return color[i]; })
+            .attr('stroke', function(d,i) { return color[i]; });
 
         var paths = ae.append('svg:path')
             .each(function(d) { this._current = d; });

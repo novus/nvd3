@@ -238,8 +238,24 @@ svg .title {
 *  Pie Chart
 */
 
+.nvd3 .pie path {
+  stroke-opacity: 0;
+
+  transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
+  -moz-transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
+  -webkit-transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
+
+}
+
+.nvd3 .pie .slice text {
+  stroke: #000;
+  stroke-width: 0;
+}
+
 .nvd3 .pie .hover path {
-    fill-opacity: .6;
+  fill-opacity: .7;
+  stroke-width: 6px;
+  stroke-opacity: 1;
 }
 
 /**********
