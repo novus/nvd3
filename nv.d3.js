@@ -4036,7 +4036,7 @@ nv.models.multiBarChart = function() {
   var multibar = nv.models.multiBar().stacked(false),
       x = multibar.xScale(),
       y = multibar.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false), //TODO: see why showMaxMin(false) causes no ticks to be shown on x axis
+      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false); //.showMaxMin(false), //TODO: see why showMaxMin(false) causes no ticks to be shown on x axis
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
@@ -4177,11 +4177,13 @@ nv.models.multiBarChart = function() {
           .selectAll('line, text')
           .style('opacity', 1)
 
-      xTicks.filter(function(d,i) {
+      //TODO: after fixing below problem, make this optional
+      xTicks
+        .filter(function(d,i) {
+            //console.log(d,i,i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0);
             return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
           })
-          .selectAll('line, text')
-          .style('opacity', 0)
+        .style('opacity', 0) //TODO: figure out why even tho the filter does work, all ticks are disappearing
 
       yAxis
         .ticks( availableHeight / 36 )
