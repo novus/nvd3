@@ -170,7 +170,7 @@ nv.models.lineChart = function() {
       controls.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
 
-        fisheye = d.disabled ? 0 : 3;
+        fisheye = d.disabled ? 0 : 5;
         g.select('.background') .style('pointer-events', d.disabled ? 'none' : 'all');
         g.select('.point-paths').style('pointer-events', d.disabled ? 'all' : 'none' );
 
