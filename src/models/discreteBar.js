@@ -156,8 +156,8 @@ nv.models.discreteBar = function() {
         barsEnter.append('text')
           .attr('text-anchor', 'middle')
         bars.selectAll('text')
-          .attr('dx', x.rangeBand() / 2)
-          .attr('dy', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
+          .attr('x', x.rangeBand() / 2)
+          .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
           .text(function(d,i) { return valueFormat(getY(d,i)) })
       } else {
         bars.selectAll('text').remove();
