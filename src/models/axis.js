@@ -166,7 +166,7 @@ nv.models.axis = function() {
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
         g.selectAll('g') // the g's wrapping each tick
             .filter(function(d,i) {
-              return d && (scale(d) < 10 || scale(d) > scale.range()[0] - 10); // 10 is assuming text height is 16... if d is 0, leave it!
+              return d && (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10); // 10 is assuming text height is 16... if d is 0, leave it!
             })
             .remove();
       }
