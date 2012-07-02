@@ -1853,7 +1853,7 @@ nv.models.discreteBar = function() {
     return chart;
   };
 
-  chart.valuesFormat= function(_) {
+  chart.valueFormat= function(_) {
     if (!arguments.length) return valueFormat;
     valueFormat = _;
     return chart;
