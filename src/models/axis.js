@@ -165,10 +165,14 @@ nv.models.axis = function() {
       //check if max and min overlap other values, if so, hide the values that overlap
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
         g.selectAll('g') // the g's wrapping each tick
-            .filter(function(d,i) {
-              return d && (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10); // 10 is assuming text height is 16... if d is 0, leave it!
-            })
-            .remove();
+            .each(function(d,i) {
+              if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
+                if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
+                  d3.select(this).remove();
+                else
+                  d3.select(this).select('text').remove(); // Don't remove the ZERO line!!
+              }
+            });
       }
 
       if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
@@ -181,10 +185,14 @@ nv.models.axis = function() {
                 maxMinRange.push(scale(d) + this.getBBox().width + 4)
             });
         g.selectAll('g') // the g's wrapping each tick
-            .filter(function(d,i) {
-              return d && (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]);
-            })
-            .remove();
+            .each(function(d,i) {
+              if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
+                if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
+                  d3.select(this).remove();
+                else
+                  d3.select(this).select('text').remove(); // Don't remove the ZERO line!!
+              }
+            });
       }
 
 

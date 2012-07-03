@@ -50,7 +50,7 @@ nv.models.discreteBar = function() {
           //.range([availableHeight, 0]);
 
 
-      if (showValues) y.range([availableHeight - (y.domain()[0] < 0 ? 12 : 0), y.domain()[1] < 0 ? 0 : 12]);
+      if (showValues) y.range([availableHeight - (y.domain()[0] < 0 ? 12 : 0), y.domain()[1] > 0 ? 12 : 0]);
       else y.range([availableHeight, 0]);
 
       //store old scales if they exist

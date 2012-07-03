@@ -96,12 +96,11 @@ nv.addGraph(function() {
   var chart = nv.models.discreteBarChart()
       .x(function(d) { return d.label })
       .y(function(d) { return d.value })
-      .rotateLabels(-45)
-      //.staggerLabels(true)
+      //.rotateLabels(-45)  //TODO: get this to work!! for some reason text-anchor end automatically switches to middle and makes this fail
+      .staggerLabels(true)
       //.staggerLabels(historicalBarChart[0].values.length > 8)
       .tooltips(false)
       .showValues(true)
-
 
   d3.select('#chart1 svg')
       .datum(historicalBarChart)

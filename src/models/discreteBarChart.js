@@ -1,6 +1,6 @@
 
 nv.models.discreteBarChart = function() {
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+  var margin = {top: 10, right: 10, bottom: 50, left: 60},
       width = null,
       height = null,
       color = d3.scale.category20().range(),
@@ -94,7 +94,7 @@ nv.models.discreteBarChart = function() {
         .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
-          .attr('transform', 'translate(0,' + (y.range()[0] + (discretebar.showValues() ? 16 : 0)) + ')')
+          .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')')
       //d3.transition(g.select('.x.axis'))
       g.select('.x.axis').transition().duration(0)
           .call(xAxis);
