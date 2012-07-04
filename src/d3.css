@@ -252,10 +252,18 @@ svg .title {
   stroke-width: 0;
 }
 
+.nvd3 .pie path {
+  stroke: #fff;
+  stroke-width: 1px;
+  stroke-opacity: 1;
+}
+
 .nvd3 .pie .hover path {
   fill-opacity: .7;
+/*
   stroke-width: 6px;
   stroke-opacity: 1;
+*/
 }
 
 /**********
