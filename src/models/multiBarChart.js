@@ -1,4 +1,3 @@
-
 nv.models.multiBarChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = null,
@@ -235,7 +234,7 @@ nv.models.multiBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'delay');
 
 
   chart.margin = function(_) {
