@@ -7,7 +7,7 @@ nv.models.multiBarChart = function() {
       showControls = true,
       showLegend = true,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
       };
@@ -36,8 +36,8 @@ nv.models.multiBarChart = function() {
 
   //TODO: let user select default
   var controlsData = [
-    { key: 'Grouped' },
-    { key: 'Stacked', disabled: true }
+    { key: 'Grouped', disabled: multibar.stacked },
+    { key: 'Stacked', disabled: !multibar.stacked }
   ];
 
   function chart(selection) {
@@ -63,7 +63,7 @@ nv.models.multiBarChart = function() {
             }, []);
       } else {
         seriesData = data.filter(function(d) { return !d.disabled })
-          .map(function(d) { 
+          .map(function(d) {
             return d.values.map(function(d,i) {
               return { x: multibar.x()(d,i), y: multibar.y()(d,i) }
             })
@@ -188,7 +188,7 @@ nv.models.multiBarChart = function() {
         selection.transition().call(chart);
       });
 
-      controls.dispatch.on('legendClick', function(d,i) { 
+      controls.dispatch.on('legendClick', function(d,i) {
         if (!d.disabled) return;
         controlsData = controlsData.map(function(s) {
           s.disabled = true;
