@@ -1,4 +1,9 @@
 
+# Jekyll Files #
+################
+_site
+
+
 # Random Files #
 ################
 *.swp
