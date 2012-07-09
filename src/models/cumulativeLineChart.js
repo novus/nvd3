@@ -1,5 +1,10 @@
 
 nv.models.cumulativeLineChart = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       color = d3.scale.category20().range(),
       width = null, 
@@ -7,19 +12,23 @@ nv.models.cumulativeLineChart = function() {
       showLegend = true,
       tooltips = true,
       showRescaleToggle = false, //TODO: get rescale y functionality back (need to calculate exten of y for ALL possible re-zero points
-      rescaleY = true;
-      tooltip = function(key, x, y, e, graph) { 
+      rescaleY = true,
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      };
+      },
+      x, y; //can be accessed via chart.lines.[x/y]Scale()
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var lines = nv.models.line(),
-      x = lines.xScale(),
-      y = lines.yScale(),
       dx = d3.scale.linear(),
       id = lines.id(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      yAxis = nv.models.axis().scale(y).orient('left'),
+      xAxis = nv.models.axis().orient('bottom').tickPadding(5),
+      yAxis = nv.models.axis().orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
@@ -31,11 +40,6 @@ nv.models.cumulativeLineChart = function() {
   ];
 
   var showTooltip = function(e, offsetElement) {
-    //console.log('left: ' + offsetElement.offsetLeft);
-    //console.log('top: ' + offsetElement.offsetLeft);
-
-    //TODO: FIX offsetLeft and offSet top do not work if container is shifted anywhere
-    //var offsetElement = document.getElementById(selector.substr(1)),
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point)),
@@ -79,13 +83,15 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      var data = indexify(index.i, data);
-
+      x = lines.xScale();
+      y = lines.yScale();
 
       dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
           .range([0, availableWidth])
           .clamp(true);
 
+
+      var data = indexify(index.i, data);
 
 
       var wrap = container.selectAll('g.wrap.cumulativeLine').data([data]);
@@ -99,8 +105,6 @@ nv.models.cumulativeLineChart = function() {
 
 
       var g = wrap.select('g');
-
-
 
 
       if (showLegend) {
@@ -167,6 +171,7 @@ nv.models.cumulativeLineChart = function() {
 
 
       xAxis
+        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -177,12 +182,18 @@ nv.models.cumulativeLineChart = function() {
 
 
       yAxis
+        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.y.axis'))
           .call(yAxis);
 
+
+
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
 
       controls.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
@@ -221,16 +232,10 @@ nv.models.cumulativeLineChart = function() {
       });
 */
 
-      lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
-      lines.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
 
@@ -243,6 +248,28 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  lines.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
+
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
   chart.legend = legend;
@@ -297,7 +324,10 @@ nv.models.cumulativeLineChart = function() {
 
 
 
-  // ********** FUNCTIONS **********
+
+  //============================================================
+  // Functions
+  //------------------------------------------------------------
 
   /* Normalize the data according to an index point. */
   function indexify(idx, data) {
@@ -316,7 +346,6 @@ nv.models.cumulativeLineChart = function() {
       return line;
     })
   }
-
 
 
   return chart;

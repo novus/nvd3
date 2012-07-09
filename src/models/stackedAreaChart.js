@@ -1,5 +1,10 @@
 
 nv.models.stackedAreaChart = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 30, right: 25, bottom: 50, left: 60},
       width = null,
       height = null,
@@ -10,14 +15,17 @@ nv.models.stackedAreaChart = function() {
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
-      };
+      },
+      x, y; //can be accessed via chart.stacked.[x/y]Scale()
 
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var stacked = nv.models.stackedArea(),
-      x = stacked.xScale(),
-      y = stacked.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      yAxis = nv.models.axis().scale(y).orient('left'),
+      xAxis = nv.models.axis().orient('bottom').tickPadding(5),
+      yAxis = nv.models.axis().orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -45,13 +53,13 @@ nv.models.stackedAreaChart = function() {
       var container = d3.select(this),
           that = this;
 
-
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-
+      x = stacked.xScale();
+      y = stacked.yScale();
 
       var wrap = container.selectAll('g.wrap.stackedAreaChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedAreaChart').append('g');
@@ -109,6 +117,7 @@ nv.models.stackedAreaChart = function() {
 
 
       xAxis
+        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize( -availableHeight, 0);
 
@@ -118,6 +127,7 @@ nv.models.stackedAreaChart = function() {
           .call(xAxis);
 
       yAxis
+        .scale(y)
         .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
         .tickSize(-availableWidth, 0)
         .tickFormat(stacked.offset() == 'expand' ? d3.format('%') : d3.format(',.2f')); //TODO: stacked format should be set by caller
@@ -126,6 +136,9 @@ nv.models.stackedAreaChart = function() {
           .call(yAxis);
 
 
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
 
       stacked.dispatch.on('areaClick.toggle', function(e) {
         if (data.filter(function(d) { return !d.disabled }).length === 1)
@@ -179,36 +192,51 @@ nv.models.stackedAreaChart = function() {
         selection.transition().call(chart);
       });
 
-
-      stacked.dispatch.on('tooltipShow', function(e) {
-        //disable tooltips when value ~= 0
-        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-        if (!Math.round(stacked.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
-          setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
-          return false;
-        }
-
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-        dispatch.tooltipShow(e);
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
-
-      stacked.dispatch.on('tooltipHide', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
-
-
-      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() { selection.transition().call(chart) };
-      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
 
     });
 
 
+    //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+    chart.update = function() { selection.transition().call(chart) };
+    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+
     return chart;
   }
 
+
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  stacked.dispatch.on('tooltipShow', function(e) {
+    //disable tooltips when value ~= 0
+    //// TODO: consider removing points from voronoi that have 0 value instead of this hack
+    if (!Math.round(stacked.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
+      setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
+      return false;
+    }
+
+    e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+    dispatch.tooltipShow(e);
+  });
+
+  stacked.dispatch.on('tooltipHide', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
+
+
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
   chart.stacked = stacked;
@@ -216,22 +244,6 @@ nv.models.stackedAreaChart = function() {
   chart.yAxis = yAxis;
 
   d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'sizeDomain', 'interactive', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize');
-
-  /*
-  chart.x = function(_) {
-    if (!arguments.length) return getX;
-    getX = d3.functor(_); //not used locally, so could jsut be a rebind
-    stacked.x(getX);
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = d3.functor(_);
-    stacked.y(getY);
-    return chart;
-  };
-  */
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;

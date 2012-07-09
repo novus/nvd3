@@ -1,6 +1,10 @@
 
 nv.models.line = function() {
-  //Default Settings
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
@@ -8,31 +12,36 @@ nv.models.line = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
-      clipEdge = false; // if true, masks lines within x and y scale
+      clipEdge = false, // if true, masks lines within x and y scale
+      x, y; //can be accessed via chart.scatter.[x/y]Scale()
 
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var scatter = nv.models.scatter()
                   .id(id)
                   .size(16) // default size
                   .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x, y, x0, y0,
+      x0, y0,
       timeoutID;
 
 
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
-      //scales need to be set here incase a custom scale was set
-      x = x || scatter.xScale();
-      y = y || scatter.yScale();
+      x = scatter.xScale();
+      y = scatter.yScale();
 
       x0 = x0 || x;
       y0 = y0 || y;
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
+      var wrap = container.selectAll('g.wrap.line').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
@@ -83,10 +92,10 @@ nv.models.line = function() {
           .attr('class', function(d,i) { return 'group series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
-          .style('stroke', function(d,i){ return color[i % color.length] })
+          .style('stroke', function(d,i){ return color[i % color.length] });
       d3.transition(groups)
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .5)
+          .style('fill-opacity', .5);
 
 
       var paths = groups.selectAll('path')
@@ -109,7 +118,7 @@ nv.models.line = function() {
           );
 
 
-      //store old scales for use in transitions on update, to animate from old to new positions
+      //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
 
@@ -118,6 +127,10 @@ nv.models.line = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = scatter.dispatch;
 

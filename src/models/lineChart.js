@@ -1,5 +1,10 @@
 
 nv.models.lineChart = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       color = d3.scale.category20().range(),
       width = null, 
@@ -9,16 +14,19 @@ nv.models.lineChart = function() {
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      };
+      },
+      x, y; //can be accessed via chart.lines.[x/y]Scale()
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var lines = nv.models.line(),
-      x = lines.xScale(),
-      y = lines.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      yAxis = nv.models.axis().scale(y).orient('left'),
+      xAxis = nv.models.axis().orient('bottom').tickPadding(5),
+      yAxis = nv.models.axis().orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
-
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -41,6 +49,8 @@ nv.models.lineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
+      x = lines.xScale();
+      y = lines.yScale();
 
 
       var wrap = container.selectAll('g.wrap.lineChart').data([data]);
@@ -95,7 +105,7 @@ nv.models.lineChart = function() {
 
 
       xAxis
-        //.scale(x)
+        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -106,7 +116,7 @@ nv.models.lineChart = function() {
 
 
       yAxis
-        //.scale(y)
+        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
@@ -115,6 +125,9 @@ nv.models.lineChart = function() {
 
 
 
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
 
       legend.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
@@ -131,7 +144,6 @@ nv.models.lineChart = function() {
       });
 
 /*
-      //
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
         selection.transition().call(chart)
@@ -143,16 +155,9 @@ nv.models.lineChart = function() {
       });
 */
 
-      lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
-
-      lines.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
 
@@ -161,10 +166,31 @@ nv.models.lineChart = function() {
     chart.update = function() { chart(selection) };
     chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
 
-
     return chart;
   }
 
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  lines.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
+
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
   chart.legend = legend;

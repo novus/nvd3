@@ -1,7 +1,10 @@
-// THIS IS AN ATTEMPT TO CLEAN UP THIS MODEL
 
 nv.models.stackedArea = function() {
-  //Default Settings
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
@@ -12,7 +15,8 @@ nv.models.stackedArea = function() {
       style = 'stack',
       offset = 'zero',
       order = 'default',
-      clipEdge = false; // if true, masks lines within x and y scale
+      clipEdge = false, // if true, masks lines within x and y scale
+      x, y; //can be accessed via chart.scatter.[x/y]Scale()
 
 /************************************
  * offset:
@@ -25,6 +29,11 @@ nv.models.stackedArea = function() {
  *   'inside-out' (stream)
  *   'default' (input order)
  ************************************/
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var stacked = d3.layout.stack()
                  //.offset('zero')
@@ -39,9 +48,7 @@ nv.models.stackedArea = function() {
                   }),
       scatter = nv.models.scatter()
                   .size(2.2) // default size
-                  .sizeDomain([2.5]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x = scatter.xScale(),
-      y = scatter.yScale(),
+                  .sizeDomain([2.5]), 
       dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
@@ -49,6 +56,8 @@ nv.models.stackedArea = function() {
         var availableWidth = width - margin.left - margin.right,
             availableHeight = height - margin.top - margin.bottom;
 
+        x = scatter.xScale();
+        y = scatter.yScale();
 
         // Injecting point index into each point because d3.layout.stack().out does not give index
         // ***Also storing getY(d,i) as yStacked so that it can be set to 0 if series is disabled
@@ -97,9 +106,8 @@ nv.models.stackedArea = function() {
         scatter
           .width(availableWidth)
           .height(availableHeight)
-          //.x(function(d) { return d.display.x })
           .x(getX)
-          .y(function(d) { return d.display.y + d.display.y0 }) // TODO: allow for getY to be other than d.y
+          .y(function(d) { return d.display.y + d.display.y0 })
           .forceY([0])
           .color(data.map(function(d,i) {
             return d.color || color[i % color.length];
@@ -111,7 +119,6 @@ nv.models.stackedArea = function() {
             .datum(data.filter(function(d) { return !d.disabled }))
 
         d3.transition(scatterWrap).call(scatter);
-
 
 
 
@@ -133,13 +140,11 @@ nv.models.stackedArea = function() {
 
         var area = d3.svg.area()
             .x(function(d,i)  { return x(getX(d,i)) })
-            //.x(function(d)  { return x(d.display.x) })
             .y0(function(d) { return y(d.display.y0) })
             .y1(function(d) { return y(d.display.y + d.display.y0) });
 
         var zeroArea = d3.svg.area()
             .x(function(d,i)  { return x(getX(d,i)) })
-            //.x(function(d)  { return x(d.display.x) })
             .y0(function(d) { return y(d.display.y0) })
             .y1(function(d) { return y(d.display.y0) });
 
@@ -176,7 +181,7 @@ nv.models.stackedArea = function() {
               });
             })
         d3.transition(path.exit())
-            .attr('d', function(d,i) { return zeroArea(d.values,i) }) // TODO: fix this so transition is still fluid
+            .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
             .style('fill', function(d,i){ return d.color || color[i % color.length] })
@@ -185,9 +190,10 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return area(d.values,i) })
 
 
-        scatter.dispatch.on('elementClick.area', function(e) {
-          dispatch.areaClick(e);
-        })
+        //============================================================
+        // Event Handling/Dispatching (in chart's scope)
+        //------------------------------------------------------------
+
         scatter.dispatch.on('elementMouseover.area', function(e) {
           g.select('.area-' + e.seriesIndex).classed('hover', true);
         });
@@ -201,6 +207,27 @@ nv.models.stackedArea = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  scatter.dispatch.on('elementClick.area', function(e) {
+    dispatch.areaClick(e);
+  })
+  scatter.dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+        dispatch.tooltipShow(e);
+  });
+  scatter.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+  });
+
+
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
   chart.scatter = scatter;
@@ -252,14 +279,12 @@ nv.models.stackedArea = function() {
   chart.offset = function(_) {
     if (!arguments.length) return offset;
     offset = _;
-    //stacked.offset(offset);
     return chart;
   };
 
   chart.order = function(_) {
     if (!arguments.length) return order;
     order = _;
-    //stacked.order(order);
     return chart;
   };
 
@@ -285,17 +310,6 @@ nv.models.stackedArea = function() {
 
     return chart;
   };
-
-
-
-  scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-        dispatch.tooltipShow(e);
-  });
-
-  scatter.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-  });
 
 
   return chart;

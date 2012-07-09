@@ -1,6 +1,10 @@
 
 nv.models.scatter = function() {
-  //Default Settings
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
@@ -23,6 +27,11 @@ nv.models.scatter = function() {
       clipRadius = function() { return 25 }, // function to get the radius for point clips
       xDomain, yDomain, sizeDomain; // Used to manually set the x and y domain, good to save time if calculation has already been made
 
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
+
   var dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout'),
       x0, y0, z0,
       timeoutID;
@@ -30,7 +39,6 @@ nv.models.scatter = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -242,7 +250,7 @@ nv.models.scatter = function() {
       clearTimeout(timeoutID); //make sure unncesary repeat calls to updateInteractiveLayer don't occur
       timeoutID = setTimeout(updateInteractiveLayer, 1000);
 
-      //store old scales for use in transitions on update, to animate from old to new positions, and sizes
+      //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
       z0 = z.copy();
@@ -252,6 +260,10 @@ nv.models.scatter = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
 
@@ -375,7 +387,7 @@ nv.models.scatter = function() {
     return chart;
   };
 
-  chart.shape= function(_) {
+  chart.shape = function(_) {
     if (!arguments.length) return getShape;
     getShape = _;
     return chart;
