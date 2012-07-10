@@ -303,6 +303,11 @@ nv.models.linePlusBarChart = function() {
     return chart;
   };
 
-
+  chart.interpolate = function(_) {
+    if (!arguments.length) return lines.interpolate();
+    lines.interpolate(_);
+    return chart;
+  };
+  
   return chart;
 }

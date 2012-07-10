@@ -226,45 +226,6 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 
 })();
 
-nv.utils.windowSize = function() {
-    // Sane defaults
-    var size = {width: 640, height: 480};
-
-    // Earlier IE uses Doc.body
-    if (document.body && document.body.offsetWidth) {
-        size.width = document.body.offsetWidth;
-        size.height = document.body.offsetHeight;
-    }
-
-    // IE can use depending on mode it is in
-    if (document.compatMode=='CSS1Compat' &&
-        document.documentElement &&
-        document.documentElement.offsetWidth ) {
-        size.width = document.documentElement.offsetWidth;
-        size.height = document.documentElement.offsetHeight;
-    }
-
-    // Most recent browsers use
-    if (window.innerWidth && window.innerHeight) {
-        size.width = window.innerWidth;
-        size.height = window.innerHeight;
-    }
-    return (size);
-};
-
-
-
-// Easy way to bind multiple functions to window.onresize
-// TODO: give a way to remove a function after its bound, other than removing alkl of them
-nv.utils.windowResize = function(fun){
-  var oldresize = window.onresize;
-
-  window.onresize = function(e) {
-    if (typeof oldresize == 'function') oldresize(e);
-    fun(e);
-  }
-}
-
 nv.models.axis = function() {
   //Default Settings
   var scale = d3.scale.linear(),
@@ -505,245 +466,6 @@ nv.models.axis = function() {
     d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
     return chart;
   }
-
-
-  return chart;
-}
-
-nv.models.historicalBar = function() {
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 960,
-      height = 500,
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      forceX = [],
-      forceY = [],
-      clipEdge = true,
-      color = d3.scale.category20().range(),
-      xDomain, yDomain;
-
-  var x = d3.scale.linear(),
-      y = d3.scale.linear(),
-      xAxis = d3.svg.axis().scale(x).orient('bottom'),
-      yAxis = d3.svg.axis().scale(y).orient('left'),
-      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
-
-
-  function chart(selection) {
-    selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
-
-
-      x   .domain(xDomain || d3.extent(data[0].values, getX ))
-          .range([0, availableWidth]);
-
-      y   .domain(yDomain || d3.extent(data[0].values, getY )) //Should 0 always be forced in bar charts?
-          .range([availableHeight, 0]);
-          //.nice(); // remove for consistency?
-
-
-      var parent = d3.select(this)
-          .on('click', function(d,i) {
-            dispatch.chartClick({
-                data: d,
-                index: i,
-                pos: d3.event,
-                id: id
-            });
-          });
-
-
-      var wrap = d3.select(this).selectAll('g.wrap.bar').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bar');
-      var gEnter = wrapEnter.append('g');
-
-      gEnter.append('g').attr('class', 'bars');
-
-
-      wrap.attr('width', width)
-          .attr('height', height);
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-
-      wrapEnter.append('defs').append('clipPath')
-          .attr('id', 'chart-clip-path-' + id)
-        .append('rect');
-      wrap.select('#chart-clip-path-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
-
-      gEnter
-          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
-
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
-
-
-
-      var bars = wrap.select('.bars').selectAll('.bar')
-          .data(function(d) { return d });
-
-      bars.exit().remove();
-
-
-      var barsEnter = bars.enter().append('svg:rect')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          .attr('fill', function(d,i) { return color[0]; })
-          .attr('x', 0 )
-          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
-          .on('mouseover', function(d,i) {
-            d3.select(this).classed('hover', true);
-            dispatch.elementMouseover({
-                point: d,
-                series: data[0],
-                pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
-                pointIndex: i,
-                seriesIndex: 0,
-                e: d3.event
-            });
-
-          })
-          .on('mouseout', function(d,i) {
-                d3.select(this).classed('hover', false);
-                dispatch.elementMouseout({
-                    point: d,
-                    series: data[0],
-                    pointIndex: i,
-                    seriesIndex: 0,
-                    e: d3.event
-                });
-          })
-          .on('click', function(d,i) {
-                dispatch.elementClick({
-                    //label: d[label],
-                    value: getY(d,i),
-                    data: d,
-                    index: i,
-                    pos: [x(getX(d,i)), y(getY(d,i))],
-                    e: d3.event,
-                    id: id
-                });
-              d3.event.stopPropagation();
-          })
-          .on('dblclick', function(d,i) {
-              dispatch.elementDblClick({
-                  //label: d[label],
-                  value: getY(d,i),
-                  data: d,
-                  index: i,
-                  pos: [x(getX(d,i)), y(getY(d,i))],
-                  e: d3.event,
-                  id: id
-              });
-              d3.event.stopPropagation();
-          });
-
-      bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) //TODO: this assumes that each bar is an integer apart, it shouldn't
-          .attr('width', x(.9) ) //TODO: this assumes that each bar is an integar apart
-
-      d3.transition(bars)
-          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
-          //.order();  // not sure if this makes any sense for this model
-
-    });
-
-    return chart;
-  }
-
-
-  chart.dispatch = dispatch;
-
-  chart.x = function(_) {
-    if (!arguments.length) return getX;
-    getX = _;
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = _;
-    return chart;
-  };
-
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin = _;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
-  chart.xScale = function(_) {
-    if (!arguments.length) return x;
-    x = _;
-    return chart;
-  };
-
-  chart.yScale = function(_) {
-    if (!arguments.length) return y;
-    y = _;
-    return chart;
-  };
-
-  chart.xDomain = function(_) {
-    if (!arguments.length) return xDomain;
-    xDomain = _;
-    return chart;
-  };
-
-  chart.yDomain = function(_) {
-    if (!arguments.length) return yDomain;
-    yDomain = _;
-    return chart;
-  };
-
-  chart.forceX = function(_) {
-    if (!arguments.length) return forceX;
-    forceX = _;
-    return chart;
-  };
-
-  chart.forceY = function(_) {
-    if (!arguments.length) return forceY;
-    forceY = _;
-    return chart;
-  };
-
-  chart.clipEdge = function(_) {
-    if (!arguments.length) return clipEdge;
-    clipEdge = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = _;
-    return chart;
-  };
-
-  chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
-  };
-
 
 
   return chart;
@@ -2231,139 +1953,147 @@ nv.models.distribution = function() {
   return chart;
 }
 
-nv.models.legend = function() {
-  var margin = {top: 5, right: 0, bottom: 5, left: 0},
-      width = 400,
-      height = 20,
-      getKey = function(d) { return d.key },
+nv.models.historicalBar = function() {
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
+      width = 960,
+      height = 500,
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      forceX = [],
+      forceY = [],
+      clipEdge = true,
       color = d3.scale.category20().range(),
-      align = true;
+      xDomain, yDomain;
 
-  var dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout'); //TODO: theres are really element or series events, there are currently no 'LEGEND' events (as in entire legend)... decide if they are needed
+  var x = d3.scale.linear(),
+      y = d3.scale.linear(),
+      xAxis = d3.svg.axis().scale(x).orient('bottom'),
+      yAxis = d3.svg.axis().scale(y).orient('left'),
+      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right;
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
 
-      var wrap = d3.select(this).selectAll('g.legend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 legend').append('g');
 
+      x   .domain(xDomain || d3.extent(data[0].values, getX ))
+          .range([0, availableWidth]);
+
+      y   .domain(yDomain || d3.extent(data[0].values, getY )) //Should 0 always be forced in bar charts?
+          .range([availableHeight, 0]);
+          //.nice(); // remove for consistency?
+
+
+      var parent = d3.select(this)
+          .on('click', function(d,i) {
+            dispatch.chartClick({
+                data: d,
+                index: i,
+                pos: d3.event,
+                id: id
+            });
+          });
+
+
+      var wrap = d3.select(this).selectAll('g.wrap.bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bar');
+      var gEnter = wrapEnter.append('g');
+
+      gEnter.append('g').attr('class', 'bars');
+
+
+      wrap.attr('width', width)
+          .attr('height', height);
 
       var g = wrap.select('g')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var series = g.selectAll('.series')
+      wrapEnter.append('defs').append('clipPath')
+          .attr('id', 'chart-clip-path-' + id)
+        .append('rect');
+      wrap.select('#chart-clip-path-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      gEnter
+          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+
+      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+
+
+
+      var bars = wrap.select('.bars').selectAll('.bar')
           .data(function(d) { return d });
-      var seriesEnter = series.enter().append('g').attr('class', 'series')
+
+      bars.exit().remove();
+
+
+      var barsEnter = bars.enter().append('svg:rect')
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('fill', function(d,i) { return color[0]; })
+          .attr('x', 0 )
+          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .on('mouseover', function(d,i) {
-            dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
+            d3.select(this).classed('hover', true);
+            dispatch.elementMouseover({
+                point: d,
+                series: data[0],
+                pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
+                pointIndex: i,
+                seriesIndex: 0,
+                e: d3.event
+            });
+
           })
           .on('mouseout', function(d,i) {
-            dispatch.legendMouseout(d,i);
+                d3.select(this).classed('hover', false);
+                dispatch.elementMouseout({
+                    point: d,
+                    series: data[0],
+                    pointIndex: i,
+                    seriesIndex: 0,
+                    e: d3.event
+                });
           })
           .on('click', function(d,i) {
-            dispatch.legendClick(d,i);
+                dispatch.elementClick({
+                    //label: d[label],
+                    value: getY(d,i),
+                    data: d,
+                    index: i,
+                    pos: [x(getX(d,i)), y(getY(d,i))],
+                    e: d3.event,
+                    id: id
+                });
+              d3.event.stopPropagation();
           })
           .on('dblclick', function(d,i) {
-            dispatch.legendDblclick(d,i);
+              dispatch.elementDblClick({
+                  //label: d[label],
+                  value: getY(d,i),
+                  data: d,
+                  index: i,
+                  pos: [x(getX(d,i)), y(getY(d,i))],
+                  e: d3.event,
+                  id: id
+              });
+              d3.event.stopPropagation();
           });
-      seriesEnter.append('circle')
-          .style('fill', function(d,i) { return d.color || color[i % color.length] })
-          .style('stroke', function(d,i) { return d.color || color[i % color.length] })
-          .style('stroke-width', 2)
-          .attr('r', 5);
-      seriesEnter.append('text')
-          .text(getKey)
-          .attr('text-anchor', 'start')
-          .attr('dy', '.32em')
-          .attr('dx', '8');
-      series.classed('disabled', function(d) { return d.disabled });
-      series.exit().remove();
 
+      bars
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) //TODO: this assumes that each bar is an integer apart, it shouldn't
+          .attr('width', x(.9) ) //TODO: this assumes that each bar is an integar apart
 
-      //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
-
-
-      // NEW ALIGNING CODE, TODO: drastically clean up ... this is just the ugly initial code to make sure the math is right
-      if (align) {
-        var seriesWidths = [];
-        series.each(function(d,i) {
-              seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
-            });
-
-        //console.log('Series Widths: ', JSON.stringify(seriesWidths));
-
-        var seriesPerRow = 0;
-        var legendWidth = 0;
-        var columnWidths = [];
-
-        while ( legendWidth < availableWidth && seriesPerRow < seriesWidths.length) {
-          columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
-          legendWidth += seriesWidths[seriesPerRow++];
-        }
-
-
-        while ( legendWidth > availableWidth && seriesPerRow > 1 ) {
-          columnWidths = [];
-          seriesPerRow--;
-
-          for (k = 0; k < seriesWidths.length; k++) {
-            if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
-              columnWidths[k % seriesPerRow] = seriesWidths[k];
-          }
-
-          legendWidth = columnWidths.reduce(function(prev, cur, index, array) {
-                          return prev + cur;
-                        });
-        }
-        //console.log(columnWidths, legendWidth, seriesPerRow);
-
-        var xPositions = [];
-        for (var i = 0, curX = 0; i < seriesPerRow; i++) {
-            xPositions[i] = curX;
-            curX += columnWidths[i];
-        }
-
-        series
-            .attr('transform', function(d, i) {
-              return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * 20) + ')';
-            });
-
-        //position legend as far right as possible within the total width
-        g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
-
-        height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 20);
-      } else {
-
-        var ypos = 5,
-            newxpos = 5,
-            maxwidth = 0,
-            xpos;
-        series
-            .attr('transform', function(d, i) {
-              var length = d3.select(this).select('text').node().getComputedTextLength() + 28;
-              xpos = newxpos;
-
-              if (width < margin.left + margin.right + xpos + length) {
-                newxpos = xpos = 5;
-                ypos += 20;
-              }
-
-              newxpos += length;
-              if (newxpos > maxwidth) maxwidth = newxpos;
-
-              return 'translate(' + xpos + ',' + ypos + ')';
-            });
-
-        //position legend as far right as possible within the total width
-        g.attr('transform', 'translate(' + (width - margin.right - maxwidth) + ',' + margin.top + ')');
-
-        height = margin.top + margin.bottom + ypos + 15;
-      }
-
-
-
+      d3.transition(bars)
+          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
+          //.order();  // not sure if this makes any sense for this model
 
     });
 
@@ -2373,211 +2103,69 @@ nv.models.legend = function() {
 
   chart.dispatch = dispatch;
 
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin = _;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
-  chart.key = function(_) {
-    if (!arguments.length) return getKey;
-    getKey = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = _;
-    return chart;
-  };
-
-  chart.align = function(_) {
-    if (!arguments.length) return align;
-    align = _;
-    return chart;
-  };
-
-  return chart;
-}
-
-nv.models.line = function() {
-
-  //============================================================
-  // Public Variables with Default Settings
-  //------------------------------------------------------------
-
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 960,
-      height = 500,
-      color = d3.scale.category20().range(), // array of colors to be used in order
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
-      getX = function(d) { return d.x }, // accessor to get the x value from a data point
-      getY = function(d) { return d.y }, // accessor to get the y value from a data point
-      clipEdge = false, // if true, masks lines within x and y scale
-      x, y; //can be accessed via chart.scatter.[x/y]Scale()
-
-
-  //============================================================
-  // Private Variables
-  //------------------------------------------------------------
-
-  var scatter = nv.models.scatter()
-                  .id(id)
-                  .size(16) // default size
-                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
-      x0, y0,
-      timeoutID;
-
-
-  function chart(selection) {
-    selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
-          container = d3.select(this);
-
-      x = scatter.xScale();
-      y = scatter.yScale();
-
-      x0 = x0 || x;
-      y0 = y0 || y;
-
-
-      var wrap = container.selectAll('g.wrap.line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
-      var defsEnter = wrapEnter.append('defs');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
-
-      gEnter.append('g').attr('class', 'groups');
-      gEnter.append('g').attr('class', 'scatterWrap');
-
-      var scatterWrap = wrap.select('.scatterWrap');//.datum(data);
-
-
-      scatter
-        .width(availableWidth)
-        .height(availableHeight)
-
-      d3.transition(scatterWrap).call(scatter);
-
-
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-
-      defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
-        .append('rect');
-
-      wrap.select('#edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
-
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
-      scatterWrap
-          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
-
-
-
-
-      var groups = wrap.select('.groups').selectAll('.group')
-          .data(function(d) { return d }, function(d) { return d.key });
-      groups.enter().append('g')
-          .style('stroke-opacity', 1e-6)
-          .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
-          .style('stroke-opacity', 1e-6)
-          .style('fill-opacity', 1e-6)
-          .remove();
-      groups
-          .attr('class', function(d,i) { return 'group series-' + i })
-          .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % color.length] })
-          .style('stroke', function(d,i){ return color[i % color.length] });
-      d3.transition(groups)
-          .style('stroke-opacity', 1)
-          .style('fill-opacity', .5);
-
-
-      var paths = groups.selectAll('path')
-          .data(function(d, i) { return [d.values] });
-      paths.enter().append('path')
-          .attr('class', 'line')
-          .attr('d', d3.svg.line()
-            .x(function(d,i) { return x0(getX(d,i)) })
-            .y(function(d,i) { return y0(getY(d,i)) })
-          );
-      d3.transition(groups.exit().selectAll('path'))
-          .attr('d', d3.svg.line()
-            .x(function(d,i) { return x(getX(d,i)) })
-            .y(function(d,i) { return y(getY(d,i)) })
-          );
-      d3.transition(paths)
-          .attr('d', d3.svg.line()
-            .x(function(d,i) { return x(getX(d,i)) })
-            .y(function(d,i) { return y(getY(d,i)) })
-          );
-
-
-      //store old scales for use in transitions on update
-      x0 = x.copy();
-      y0 = y.copy();
-
-    });
-
-    return chart;
-  }
-
-
-  //============================================================
-  // Global getters and setters
-  //------------------------------------------------------------
-
-  chart.dispatch = scatter.dispatch;
-
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
-
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin = _;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
-    scatter.x(_);
     return chart;
   };
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
-    scatter.y(_);
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.xScale = function(_) {
+    if (!arguments.length) return x;
+    x = _;
+    return chart;
+  };
+
+  chart.yScale = function(_) {
+    if (!arguments.length) return y;
+    y = _;
+    return chart;
+  };
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.yDomain = function(_) {
+    if (!arguments.length) return yDomain;
+    yDomain = _;
+    return chart;
+  };
+
+  chart.forceX = function(_) {
+    if (!arguments.length) return forceX;
+    forceX = _;
+    return chart;
+  };
+
+  chart.forceY = function(_) {
+    if (!arguments.length) return forceY;
+    forceY = _;
     return chart;
   };
 
@@ -2590,15 +2178,15 @@ nv.models.line = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = _;
-    scatter.color(_);
     return chart;
   };
 
   chart.id = function(_) {
-    if (!arguments.length) return id;
-    id = _;
-    return chart;
+        if (!arguments.length) return id;
+        id = _;
+        return chart;
   };
+
 
 
   return chart;
@@ -2891,6 +2479,388 @@ nv.models.indentedTree = function() {
   return chart;
 }
 
+nv.models.legend = function() {
+  var margin = {top: 5, right: 0, bottom: 5, left: 0},
+      width = 400,
+      height = 20,
+      getKey = function(d) { return d.key },
+      color = d3.scale.category20().range(),
+      align = true;
+
+  var dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout'); //TODO: theres are really element or series events, there are currently no 'LEGEND' events (as in entire legend)... decide if they are needed
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right;
+
+      var wrap = d3.select(this).selectAll('g.legend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 legend').append('g');
+
+
+      var g = wrap.select('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      var series = g.selectAll('.series')
+          .data(function(d) { return d });
+      var seriesEnter = series.enter().append('g').attr('class', 'series')
+          .on('mouseover', function(d,i) {
+            dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
+          })
+          .on('mouseout', function(d,i) {
+            dispatch.legendMouseout(d,i);
+          })
+          .on('click', function(d,i) {
+            dispatch.legendClick(d,i);
+          })
+          .on('dblclick', function(d,i) {
+            dispatch.legendDblclick(d,i);
+          });
+      seriesEnter.append('circle')
+          .style('fill', function(d,i) { return d.color || color[i % color.length] })
+          .style('stroke', function(d,i) { return d.color || color[i % color.length] })
+          .style('stroke-width', 2)
+          .attr('r', 5);
+      seriesEnter.append('text')
+          .text(getKey)
+          .attr('text-anchor', 'start')
+          .attr('dy', '.32em')
+          .attr('dx', '8');
+      series.classed('disabled', function(d) { return d.disabled });
+      series.exit().remove();
+
+
+      //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
+
+
+      // NEW ALIGNING CODE, TODO: drastically clean up ... this is just the ugly initial code to make sure the math is right
+      if (align) {
+        var seriesWidths = [];
+        series.each(function(d,i) {
+              seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
+            });
+
+        //console.log('Series Widths: ', JSON.stringify(seriesWidths));
+
+        var seriesPerRow = 0;
+        var legendWidth = 0;
+        var columnWidths = [];
+
+        while ( legendWidth < availableWidth && seriesPerRow < seriesWidths.length) {
+          columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
+          legendWidth += seriesWidths[seriesPerRow++];
+        }
+
+
+        while ( legendWidth > availableWidth && seriesPerRow > 1 ) {
+          columnWidths = [];
+          seriesPerRow--;
+
+          for (k = 0; k < seriesWidths.length; k++) {
+            if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
+              columnWidths[k % seriesPerRow] = seriesWidths[k];
+          }
+
+          legendWidth = columnWidths.reduce(function(prev, cur, index, array) {
+                          return prev + cur;
+                        });
+        }
+        //console.log(columnWidths, legendWidth, seriesPerRow);
+
+        var xPositions = [];
+        for (var i = 0, curX = 0; i < seriesPerRow; i++) {
+            xPositions[i] = curX;
+            curX += columnWidths[i];
+        }
+
+        series
+            .attr('transform', function(d, i) {
+              return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * 20) + ')';
+            });
+
+        //position legend as far right as possible within the total width
+        g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
+
+        height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 20);
+      } else {
+
+        var ypos = 5,
+            newxpos = 5,
+            maxwidth = 0,
+            xpos;
+        series
+            .attr('transform', function(d, i) {
+              var length = d3.select(this).select('text').node().getComputedTextLength() + 28;
+              xpos = newxpos;
+
+              if (width < margin.left + margin.right + xpos + length) {
+                newxpos = xpos = 5;
+                ypos += 20;
+              }
+
+              newxpos += length;
+              if (newxpos > maxwidth) maxwidth = newxpos;
+
+              return 'translate(' + xpos + ',' + ypos + ')';
+            });
+
+        //position legend as far right as possible within the total width
+        g.attr('transform', 'translate(' + (width - margin.right - maxwidth) + ',' + margin.top + ')');
+
+        height = margin.top + margin.bottom + ypos + 15;
+      }
+
+
+
+
+    });
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.key = function(_) {
+    if (!arguments.length) return getKey;
+    getKey = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
+  chart.align = function(_) {
+    if (!arguments.length) return align;
+    align = _;
+    return chart;
+  };
+
+  return chart;
+}
+
+nv.models.line = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
+      width = 960,
+      height = 500,
+      color = d3.scale.category20().range(), // array of colors to be used in order
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
+      getX = function(d) { return d.x }, // accessor to get the x value from a data point
+      getY = function(d) { return d.y }, // accessor to get the y value from a data point
+      clipEdge = false, // if true, masks lines within x and y scale
+      x, y, //can be accessed via chart.scatter.[x/y]Scale()
+      interpolate = "linear"; // controls the line interpolation
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
+
+  var scatter = nv.models.scatter()
+                  .id(id)
+                  .size(16) // default size
+                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+      x0, y0,
+      timeoutID;
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
+
+      x = scatter.xScale();
+      y = scatter.yScale();
+
+      x0 = x0 || x;
+      y0 = y0 || y;
+
+
+      var wrap = container.selectAll('g.wrap.line').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
+      var defsEnter = wrapEnter.append('defs');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
+
+      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'scatterWrap');
+
+      var scatterWrap = wrap.select('.scatterWrap');//.datum(data);
+
+
+      scatter
+        .width(availableWidth)
+        .height(availableHeight)
+
+      d3.transition(scatterWrap).call(scatter);
+
+
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      defsEnter.append('clipPath')
+          .attr('id', 'edge-clip-' + id)
+        .append('rect');
+
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      scatterWrap
+          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+
+
+
+
+      var groups = wrap.select('.groups').selectAll('.group')
+          .data(function(d) { return d }, function(d) { return d.key });
+      groups.enter().append('g')
+          .style('stroke-opacity', 1e-6)
+          .style('fill-opacity', 1e-6);
+      d3.transition(groups.exit())
+          .style('stroke-opacity', 1e-6)
+          .style('fill-opacity', 1e-6)
+          .remove();
+      groups
+          .attr('class', function(d,i) { return 'group series-' + i })
+          .classed('hover', function(d) { return d.hover })
+          .style('fill', function(d,i){ return color[i % color.length] })
+          .style('stroke', function(d,i){ return color[i % color.length] });
+      d3.transition(groups)
+          .style('stroke-opacity', 1)
+          .style('fill-opacity', .5);
+
+
+      var paths = groups.selectAll('path')
+          .data(function(d, i) { return [d.values] });
+      paths.enter().append('path')
+          .attr('class', 'line')
+          .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
+            .x(function(d,i) { return x0(getX(d,i)) })
+            .y(function(d,i) { return y0(getY(d,i)) })
+          );
+      d3.transition(groups.exit().selectAll('path'))
+          .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
+          );
+      d3.transition(paths)
+          .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
+          );
+
+
+      //store old scales for use in transitions on update
+      x0 = x.copy();
+      y0 = y.copy();
+
+    });
+
+    return chart;
+  }
+
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
+
+  chart.dispatch = scatter.dispatch;
+
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    scatter.x(_);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = _;
+    scatter.y(_);
+    return chart;
+  };
+
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    scatter.color(_);
+    return chart;
+  };
+
+  chart.id = function(_) {
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
+  };
+
+  chart.interpolate = function(_) {
+	  if (!arguments.length) return interpolate;
+	  interpolate = _;
+	  return chart;
+  };
+  
+  return chart;
+}
+
 nv.models.lineChart = function() {
 
   //============================================================
@@ -3134,7 +3104,12 @@ nv.models.lineChart = function() {
     tooltip = _;
     return chart;
   };
-
+  
+  chart.interpolate = function(_) {
+    if (!arguments.length) return lines.interpolate();
+    lines.interpolate(_);
+    return chart;
+  };
 
   return chart;
 }
@@ -3443,7 +3418,505 @@ nv.models.linePlusBarChart = function() {
     return chart;
   };
 
+  chart.interpolate = function(_) {
+    if (!arguments.length) return lines.interpolate();
+    lines.interpolate(_);
+    return chart;
+  };
+  
+  return chart;
+}
 
+nv.models.line = function() {
+  //Default Settings
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
+      width = 960,
+      height = 500,
+      color = d3.scale.category20().range(), // array of colors to be used in order
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
+      getX = function(d) { return d.x }, // accessor to get the x value from a data point
+      getY = function(d) { return d.y }, // accessor to get the y value from a data point
+      clipEdge = false, // if true, masks lines within x and y scale
+      interpolate = "linear"; // controls the line interpolation
+
+
+  var scatter = nv.models.scatter()
+                  .id(id)
+                  .size(16) // default size
+                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+      //x = scatter.xScale(),
+      //y = scatter.yScale(),
+      x, y,
+      x0, y0, timeoutID;
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
+      //get the scales inscase scatter scale was set manually
+      x = x || scatter.xScale();
+      y = y || scatter.yScale();
+
+      //store old scales if they exist
+      x0 = x0 || x;
+      y0 = y0 || y;
+
+
+      var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
+      var defsEnter = wrapEnter.append('defs');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
+
+      wrapEnter.append('g').attr('class', 'scatterWrap');
+      var scatterWrap = wrap.select('.scatterWrap').datum(data);
+
+      gEnter.append('g').attr('class', 'groups');
+
+
+      scatter
+        .width(availableWidth)
+        .height(availableHeight)
+
+      d3.transition(scatterWrap).call(scatter);
+
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      defsEnter.append('clipPath')
+          .attr('id', 'edge-clip-' + id)
+        .append('rect');
+
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      scatterWrap
+          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+
+
+
+
+      var groups = wrap.select('.groups').selectAll('.group')
+          .data(function(d) { return d }, function(d) { return d.key });
+      groups.enter().append('g')
+          .style('stroke-opacity', 1e-6)
+          .style('fill-opacity', 1e-6);
+      d3.transition(groups.exit())
+          .style('stroke-opacity', 1e-6)
+          .style('fill-opacity', 1e-6)
+          .remove();
+      groups
+          .attr('class', function(d,i) { return 'group series-' + i })
+          .classed('hover', function(d) { return d.hover })
+          .style('fill', function(d,i){ return color[i % color.length] })
+          .style('stroke', function(d,i){ return color[i % color.length] })
+      d3.transition(groups)
+          .style('stroke-opacity', 1)
+          .style('fill-opacity', .5)
+
+
+      var paths = groups.selectAll('path')
+          .data(function(d, i) { return [d.values] });
+      paths.enter().append('path')
+          .attr('class', 'line')
+          .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
+            .x(function(d,i) { return x0(getX(d,i)) })
+            .y(function(d,i) { return y0(getY(d,i)) })
+          );
+      d3.transition(groups.exit().selectAll('path'))
+          .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
+          )
+          .remove(); // redundant? line is already being removed
+      d3.transition(paths)
+          .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
+            .x(function(d,i) { return x(getX(d,i)) })
+            .y(function(d,i) { return y(getY(d,i)) })
+          );
+
+
+      //store old scales for use in transitions on update, to animate from old to new positions
+      x0 = x.copy();
+      y0 = y.copy();
+
+    });
+
+    return chart;
+  }
+
+
+  chart.dispatch = scatter.dispatch;
+
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    scatter.x(_);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = _;
+    scatter.y(_);
+    return chart;
+  };
+
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    scatter.color(_);
+    return chart;
+  };
+
+  chart.id = function(_) {
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
+  };
+  
+  chart.interpolate = function(_) {
+	  if (!arguments.length) return interpolate;
+	  interpolate = _;
+	  return chart;
+  };
+
+  return chart;
+}
+
+nv.models.lineChart = function() {
+  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+      color = d3.scale.category20().range(),
+      width = null, 
+      height = null,
+      showLegend = true,
+      showControls = true,
+      fisheye = 0,
+      pauseFisheye = false,
+      tooltips = true,
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
+      };
+
+
+  var x = d3.fisheye.scale(d3.scale.linear).distortion(0);
+
+  var lines = nv.models.line().xScale(x),
+      //x = lines.xScale(),
+      y = lines.yScale(),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
+      yAxis = nv.models.axis().scale(y).orient('left'),
+      legend = nv.models.legend().height(30),
+      controls = nv.models.legend().height(30),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+
+
+  var showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = xAxis.tickFormat()(lines.x()(e.point)),
+        y = yAxis.tickFormat()(lines.y()(e.point)),
+        content = tooltip(e.series.key, x, y, e, chart);
+
+    nv.tooltip.show([left, top], content);
+  };
+
+
+  var controlsData = [
+    { key: 'Magnify', disabled: true }
+  ];
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+
+
+
+      var wrap = container.selectAll('g.wrap.lineChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineChart').append('g');
+
+
+      gEnter.append('rect')
+          .attr('class', 'nvd3 background')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+
+      gEnter.append('g').attr('class', 'x axis');
+      gEnter.append('g').attr('class', 'y axis');
+      gEnter.append('g').attr('class', 'linesWrap');
+      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
+
+
+      var g = wrap.select('g');
+
+
+
+
+      if (showLegend) {
+        legend.width(availableWidth);
+
+        g.select('.legendWrap')
+            .datum(data)
+            .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        g.select('.legendWrap')
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+      }
+
+      if (showControls) {
+        controls.width(180).color(['#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
+
+
+
+      lines
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled }));
+
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      var linesWrap = g.select('.linesWrap')
+          .datum(data.filter(function(d) { return !d.disabled }))
+
+      d3.transition(linesWrap).call(lines);
+
+
+
+      xAxis
+        //.scale(x)
+        .ticks( availableWidth / 100 )
+        .tickSize(-availableHeight, 0);
+
+      g.select('.x.axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+      d3.transition(g.select('.x.axis'))
+          .call(xAxis);
+
+
+      yAxis
+        //.scale(y)
+        .ticks( availableHeight / 36 )
+        .tickSize( -availableWidth, 0);
+
+      d3.transition(g.select('.y.axis'))
+          .call(yAxis);
+
+
+
+      g.select('.background').on('mousemove', updateFisheye);
+      g.select('.background').on('click', function() { pauseFisheye = !pauseFisheye; });
+      //g.select('.point-paths').on('mousemove', updateFisheye);
+
+
+      function updateFisheye() {
+        if (pauseFisheye) {
+          //g.select('.background') .style('pointer-events', 'none');
+          g.select('.point-paths').style('pointer-events', 'all');
+          return false;
+        }
+
+        g.select('.background') .style('pointer-events', 'all');
+        g.select('.point-paths').style('pointer-events', 'none' );
+
+        var mouse = d3.mouse(this);
+        linesWrap.call(lines);
+        g.select('.x.axis').call(xAxis);
+        x.distortion(fisheye).focus(mouse[0]);
+      }
+
+
+      controls.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        fisheye = d.disabled ? 0 : 5;
+        g.select('.background') .style('pointer-events', d.disabled ? 'none' : 'all');
+        g.select('.point-paths').style('pointer-events', d.disabled ? 'all' : 'none' );
+
+        //scatter.interactive(d.disabled);
+        //tooltips = d.disabled;
+
+        if (d.disabled) {
+          x.distortion(fisheye).focus(0);
+
+          linesWrap.call(lines);
+          g.select('.x.axis').call(xAxis);
+        } else {
+          pauseFisheye = false;
+        }
+
+        selection.transition().call(chart);
+      });
+
+
+
+      legend.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
+            d.disabled = false;
+            wrap.selectAll('.series').classed('disabled', false);
+            return d;
+          });
+        }
+
+        selection.transition().call(chart);
+      });
+
+/*
+      //
+      legend.dispatch.on('legendMouseover', function(d, i) {
+        d.hover = true;
+        selection.transition().call(chart)
+      });
+
+      legend.dispatch.on('legendMouseout', function(d, i) {
+        d.hover = false;
+        selection.transition().call(chart)
+      });
+*/
+
+      lines.dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+      });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
+
+      lines.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+      });
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+    });
+
+
+    //TODO: decide if this is a good idea, and if it should be in all models
+    chart.update = function() { chart(selection) };
+    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+  chart.legend = legend;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+
+  d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
+  chart.interpolate = function(_) {
+    if (!arguments.length) return lines.interpolate();
+    lines.interpolate(_);
+    return chart;
+  };
+  
   return chart;
 }
 
@@ -3781,7 +4254,13 @@ nv.models.lineWithFocusChart = function() {
     tooltip = _;
     return chart;
   };
-
+  
+  chart.interpolate = function(_) {
+    if (!arguments.length) return lines.interpolate();
+    lines.interpolate(_);
+    lines2.interpolate(_);
+    return chart;
+  };
 
   return chart;
 }
@@ -6351,6 +6830,396 @@ nv.models.scatterChart = function() {
   };
 
   //============================================================
+
+
+  return chart;
+}
+
+nv.models.scatterFisheyeChart = function() {
+  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+      width = null,
+      height = null,
+      color = d3.scale.category20().range(),
+      showDistX = false,
+      showDistY = false,
+      showLegend = true,
+      showControls = true,
+      fisheye = 0,
+      tooltips = true,
+      tooltipX = function(key, x, y) { return '<strong>' + x + '</strong>' },
+      tooltipY = function(key, x, y) { return '<strong>' + y + '</strong>' },
+      tooltip = function(key, x, y, e, graph) { 
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
+      };
+
+  var x = d3.fisheye.scale(d3.scale.linear).distortion(0),
+      y = d3.fisheye.scale(d3.scale.linear).distortion(0);
+
+  var scatter = nv.models.scatter().xScale(x).yScale(y),
+      //x = scatter.xScale(),
+      //y = scatter.yScale(),
+      xAxis = nv.models.axis().orient('bottom').scale(x).tickPadding(10),
+      yAxis = nv.models.axis().orient('left').scale(y).tickPadding(10),
+      legend = nv.models.legend().height(30),
+      controls = nv.models.legend().height(30),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
+      x0, y0; //TODO: abstract distribution component and have old scales stored there
+
+  var showTooltip = function(e, offsetElement) {
+    //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
+
+    //var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        //top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        topX = y.range()[0] + margin.top + ( offsetElement.offsetTop || 0),
+        leftY = x.range()[0] + margin.left + ( offsetElement.offsetLeft || 0 ),
+        topY = e.pos[1] + ( offsetElement.offsetTop || 0),
+        xVal = xAxis.tickFormat()(scatter.x()(e.point)),
+        yVal = yAxis.tickFormat()(scatter.y()(e.point)),
+        contentX = tooltipX(e.series.key, xVal, yVal, e, chart),
+        contentY = tooltipY(e.series.key, xVal, yVal, e, chart);
+        //content = tooltip(e.series.key, xVal, yVal, e, chart);
+
+    nv.tooltip.show([leftX, topX], contentX, 'n', 1);
+    nv.tooltip.show([leftY, topY], contentY, 'e', 1);
+    //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+  };
+
+  var controlsData = [
+    { key: 'Magnify', disabled: true }
+  ];
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
+
+      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
+      chart.update = function() { selection.transition().call(chart) };
+
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+
+
+
+      x0 = x0 || scatter.xScale();
+      y0 = y0 || scatter.yScale();
+
+
+      var wrap = container.selectAll('g.wrap.scatterChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart chart-' + scatter.id()).append('g');
+
+
+      gEnter.append('rect')
+          .attr('class', 'nvd3 background')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+
+      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'x axis');
+      gEnter.append('g').attr('class', 'y axis');
+      gEnter.append('g').attr('class', 'scatterWrap');
+      gEnter.append('g').attr('class', 'controlsWrap');
+      //gEnter.append('g').attr('class', 'distWrap');
+
+      var g = wrap.select('g')
+
+      if (showLegend) {
+        legend.width( availableWidth / 2 );
+
+        wrap.select('.legendWrap')
+            .datum(data)
+            .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        wrap.select('.legendWrap')
+            .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+      }
+
+
+      scatter
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled }))
+
+
+      if (showControls) {
+        controls.width(180).color(['#444']);
+        g.select('.controlsWrap')
+            .datum(controlsData)
+            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .call(controls);
+      }
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      var scatterWrap = wrap.select('.scatterWrap')
+          .datum(data.filter(function(d) { return !d.disabled }));
+      d3.transition(scatterWrap).call(scatter);
+
+
+      xAxis
+        .ticks( availableWidth / 100 )
+        .tickSize( -availableHeight , 0);
+
+      g.select('.x.axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+      d3.transition(g.select('.x.axis'))
+          .call(xAxis);
+
+
+      yAxis
+        .ticks( availableHeight / 36 )
+        .tickSize( -availableWidth, 0);
+
+      d3.transition(g.select('.y.axis'))
+          .call(yAxis);
+
+
+
+
+      //TODO abstract Distribution into its own component
+      if ( showDistX || showDistY) {
+        var distWrap = scatterWrap.selectAll('g.distribution')
+            .data(function(d) { return d }, function(d) { return d.key });
+
+        distWrap.enter().append('g').attr('class', function(d,i) { return 'distribution series-' + i })
+
+        distWrap.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] })
+      }
+
+      if (showDistX) {
+        var distX = distWrap.selectAll('line.distX')
+              .data(function(d) { return d.values })
+        distX.enter().append('line')
+            .attr('x1', function(d,i) { return x0(scatter.x()(d,i)) })
+            .attr('x2', function(d,i) { return x0(scatter.x()(d,i)) })
+        //d3.transition(distX.exit())
+        d3.transition(distWrap.exit().selectAll('line.distX'))
+            .attr('x1', function(d,i) { return x(scatter.x()(d,i)) })
+            .attr('x2', function(d,i) { return x(scatter.x()(d,i)) })
+            .remove();
+        distX
+            .attr('class', function(d,i) { return 'distX distX-' + i })
+            .attr('y1', y.range()[0])
+            .attr('y2', y.range()[0] + 8);
+        d3.transition(distX)
+            .attr('x1', function(d,i) { return x(scatter.x()(d,i)) })
+            .attr('x2', function(d,i) { return x(scatter.x()(d,i)) })
+      }
+
+
+      if (showDistY) {
+        var distY = distWrap.selectAll('line.distY')
+            .data(function(d) { return d.values })
+        distY.enter().append('line')
+            .attr('y1', function(d,i) { return y0(scatter.y()(d,i)) })
+            .attr('y2', function(d,i) { return y0(scatter.y()(d,i)) });
+        //d3.transition(distY.exit())
+        d3.transition(distWrap.exit().selectAll('line.distY'))
+            .attr('y1', function(d,i) { return y(scatter.y()(d,i)) })
+            .attr('y2', function(d,i) { return y(scatter.y()(d,i)) })
+            .remove();
+        distY
+            .attr('class', function(d,i) { return 'distY distY-' + i })
+            .attr('x1', x.range()[0])
+            .attr('x2', x.range()[0] - 8)
+        d3.transition(distY)
+            .attr('y1', function(d,i) { return y(scatter.y()(d,i)) }) .attr('y2', function(d,i) { return y(scatter.y()(d,i)) });
+      }
+
+
+
+
+      legend.dispatch.on('legendClick', function(d,i, that) {
+        d.disabled = !d.disabled;
+
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
+            d.disabled = false;
+            wrap.selectAll('.series').classed('disabled', false);
+            return d;
+          });
+        }
+
+        selection.transition().call(chart)
+      });
+
+      controls.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        fisheye = d.disabled ? 0 : 2.5;
+        g.select('.background').style('pointer-events', d.disabled ? 'none' : 'all');
+        scatter.interactive(d.disabled);
+        tooltips = d.disabled;
+
+        if (d.disabled) {
+          x.distortion(fisheye).focus(0);
+          y.distortion(fisheye).focus(0);
+
+          scatterWrap.call(scatter);
+          g.select(".x.axis").call(xAxis);
+          g.select(".y.axis").call(yAxis);
+        }
+
+        selection.transition().call(chart);
+      });
+
+      /*
+      legend.dispatch.on('legendMouseover', function(d, i) {
+        d.hover = true;
+        selection.transition().call(chart)
+      });
+
+      legend.dispatch.on('legendMouseout', function(d, i) {
+        d.hover = false;
+        selection.transition().call(chart)
+      });
+      */
+
+
+      scatter.dispatch.on('elementMouseover.tooltip', function(e) {
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+            .attr('y1', e.pos[1]);
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+            .attr('x1', e.pos[0]);
+
+        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+      });
+      //if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, container[0][0].parentNode) } ); // TODO: maybe merge with above?
+      dispatch.on('tooltipShow', function(e) { 
+        if (tooltips) showTooltip(e, that.parentNode); 
+      });
+
+      scatter.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distX-' + e.pointIndex)
+            .attr('y1', y.range()[0]);
+        //scatterWrap.select('.series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distY-' + e.pointIndex)
+            .attr('x1', x.range()[0]);
+      });
+      dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+
+
+      //TODO: get distributions to work with fisheye
+      g.select('.background').on("mousemove", updateFisheye);
+      g.select('.point-paths').on("mousemove", updateFisheye);
+
+      function updateFisheye() {
+        var mouse = d3.mouse(this);
+        x.distortion(fisheye).focus(mouse[0]);
+        y.distortion(fisheye).focus(mouse[1]);
+
+        scatterWrap.call(scatter);
+        g.select(".x.axis").call(xAxis);
+        g.select(".y.axis").call(yAxis);
+      }
+
+      //store old scales for use in transitions on update, to animate from old to new positions, and sizes
+      x0 = x.copy();
+      y0 = y.copy();
+
+    });
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+  chart.legend = legend;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+
+  d3.rebind(chart, scatter, 'interactive', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'fisheye', 'fisheyeRadius');
+
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
+  chart.showDistX = function(_) {
+    if (!arguments.length) return showDistX;
+    showDistX = _;
+    return chart;
+  };
+
+  chart.showDistY = function(_) {
+    if (!arguments.length) return showDistY;
+    showDistY = _;
+    return chart;
+  };
+
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
+
+  chart.fisheye = function(_) {
+    if (!arguments.length) return fisheye;
+    fisheye = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
 
 
   return chart;

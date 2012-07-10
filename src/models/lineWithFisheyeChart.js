@@ -292,6 +292,11 @@ nv.models.lineChart = function() {
     return chart;
   };
 
-
+  chart.interpolate = function(_) {
+    if (!arguments.length) return lines.interpolate();
+    lines.interpolate(_);
+    return chart;
+  };
+  
   return chart;
 }
