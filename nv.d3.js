@@ -6076,10 +6076,9 @@ nv.models.scatterChart = function() {
             return d.color || color[i % color.length];
           }).filter(function(d,i) { return !data[i].disabled }))
 
-
-      var scatterWrap = wrap.select('.scatterWrap')
-          .datum(data.filter(function(d) { return !d.disabled }));
-      d3.transition(scatterWrap).call(scatter);
+      wrap.select('.scatterWrap')
+          .datum(data.filter(function(d) { return !d.disabled }))
+          .call(scatter);
 
 
       xAxis
@@ -6145,7 +6144,9 @@ nv.models.scatterChart = function() {
         x.distortion(fisheye).focus(mouse[0]);
         y.distortion(fisheye).focus(mouse[1]);
 
-        scatterWrap.call(scatter);
+        g.select('.scatterWrap')
+            .datum(data.filter(function(d) { return !d.disabled }))
+            .call(scatter);
         g.select('.x.axis').call(xAxis);
         g.select('.y.axis').call(yAxis);
         g.select('.distributionX')
@@ -6173,7 +6174,7 @@ nv.models.scatterChart = function() {
           x.distortion(fisheye).focus(0);
           y.distortion(fisheye).focus(0);
 
-          scatterWrap.call(scatter);
+          g.select('.scatterWrap').call(scatter);
           g.select('.x.axis').call(xAxis);
           g.select('.y.axis').call(yAxis);
         } else {
@@ -6224,13 +6225,13 @@ nv.models.scatterChart = function() {
       });
 
 
-      //store old scales for use in transitions on update, to animate from old to new positions, and sizes
+      //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
 
 
       chart.update = function() { chart(selection) };
-      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+      chart.container = this;
 
     });
 
@@ -6265,7 +6266,7 @@ nv.models.scatterChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, scatter, 'interactive', 'pointActive', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
