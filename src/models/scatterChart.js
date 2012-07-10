@@ -5,33 +5,35 @@ nv.models.scatterChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 30, right: 20, bottom: 50, left: 60}
-    , width = null
-    , height = null
-    , color = d3.scale.category20().range()
-    //x = scatter.xScale(),
-    , x = d3.fisheye.scale(d3.scale.linear).distortion(0)
-    //y = scatter.yScale(),
-    , y = d3.fisheye.scale(d3.scale.linear).distortion(0)
-    , showDistX = false
-    , showDistY = false
-    , showLegend = true
+  var margin       = {top: 30, right: 20, bottom: 50, left: 60}
+    , width        = null
+    , height       = null
+    , color        = d3.scale.category20().range()
+    //x            = scatter.xScale(),
+    , x            = d3.fisheye.scale(d3.scale.linear).distortion(0)
+    //y            = scatter.yScale(),
+    , y            = d3.fisheye.scale(d3.scale.linear).distortion(0)
+    , showDistX    = false
+    , showDistY    = false
+    , showLegend   = true
     , showControls = true
-    , fisheye = 0
+    , fisheye      = 0
     , pauseFisheye = false
-    , tooltips = true
-    , tooltipX = function(key, x, y) { return '<strong>' + x + '</strong>' }
-    , tooltipY = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    , tooltip = function(key, x, y, e, graph) {
+    , tooltips     = true
+    , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
+    , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
+    , tooltip      = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       }
-    , scatter = nv.models.scatter().xScale(x).yScale(y)
-    , xAxis = nv.models.axis().orient('bottom').tickPadding(10)
-    , yAxis = nv.models.axis().orient('left').tickPadding(10)
-    , legend = nv.models.legend().height(30)
-    , controls = nv.models.legend().height(30)
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    , scatter      = nv.models.scatter().xScale(x).yScale(y)
+    , xAxis        = nv.models.axis().orient('bottom').tickPadding(10)
+    , yAxis        = nv.models.axis().orient('left').tickPadding(10)
+    , legend       = nv.models.legend().height(30)
+    , controls     = nv.models.legend().height(30)
+    , distX        = nv.models.distribution().axis('x')
+    , distY        = nv.models.distribution().axis('y')
+    , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 
   //============================================================
@@ -41,9 +43,7 @@ nv.models.scatterChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var distX = nv.models.distribution().axis('x').scale(x)
-    , distY = nv.models.distribution().axis('y').scale(y)
-    , x0, y0; //TODO: abstract distribution component and have old scales stored there
+  var x0, y0;
 
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
@@ -182,6 +182,7 @@ nv.models.scatterChart = function() {
 
 
       distX
+          .scale(x)
           .width(availableWidth)
           .color(data.map(function(d,i) {
             return d.color || color[i % color.length];
@@ -195,6 +196,7 @@ nv.models.scatterChart = function() {
 
 
       distY
+          .scale(y)
           .width(availableHeight)
           .color(data.map(function(d,i) {
             return d.color || color[i % color.length];
@@ -345,6 +347,8 @@ nv.models.scatterChart = function() {
   chart.controls = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+  chart.distX = distX;
+  chart.distY = distY;
 
   d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
