@@ -1,5 +1,10 @@
 
 nv.models.multiBarChart = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = null,
       height = null,
@@ -10,13 +15,17 @@ nv.models.multiBarChart = function() {
       tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
-      };
+      },
+      x, y; //can be accessed via chart.multibar.[x/y]Scale()
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var multibar = nv.models.multiBar().stacked(false),
-      x = multibar.xScale(),
-      y = multibar.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').highlightZero(false), //.showMaxMin(false), //TODO: see why showMaxMin(false) causes no ticks to be shown on x axis
-      yAxis = nv.models.axis().scale(y).orient('left'),
+      xAxis = nv.models.axis().orient('bottom').highlightZero(false), //.showMaxMin(false), //TODO: see why showMaxMin(false) causes no ticks to be shown on x axis
+      yAxis = nv.models.axis().orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -49,36 +58,10 @@ nv.models.multiBarChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
-/*
-      var seriesData;
-
-      if (multibar.stacked()) {
-        seriesData = data.filter(function(d) { return !d.disabled })
-          .reduce(function(prev, curr, index) {  //sum up all the y's
-              curr.values.forEach(function(d,i) {
-                if (!index) prev[i] = {x: multibar.x()(d,i), y:0};
-                prev[i].y += multibar.y()(d,i);
-              });
-              return prev;
-            }, []);
-      } else {
-        seriesData = data.filter(function(d) { return !d.disabled })
-          .map(function(d) {
-            return d.values.map(function(d,i) {
-              return { x: multibar.x()(d,i), y: multibar.y()(d,i) }
-            })
-          });
-      }
 
 
-      //x   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(multibar.forceX) ))
-          //.range([0, availableWidth]);
-      x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-          .rangeBands([0, availableWidth], .1);
-
-      y   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(multibar.forceY) ))
-          .range([availableHeight, 0]);
-          */
+      x = multibar.xScale();
+      y = multibar.yScale();
 
 
       var wrap = container.selectAll('g.wrap.multiBarWithLegend').data([data]);
@@ -142,6 +125,7 @@ nv.models.multiBarChart = function() {
 
 
       xAxis
+        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -165,6 +149,7 @@ nv.models.multiBarChart = function() {
         .style('opacity', 0) //TODO: figure out why even tho the filter does work, all ticks are disappearing
 
       yAxis
+        .scale(y)
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
@@ -173,6 +158,9 @@ nv.models.multiBarChart = function() {
 
 
 
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
 
       legend.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
@@ -208,17 +196,9 @@ nv.models.multiBarChart = function() {
         selection.transition().call(chart);
       });
 
-
-      multibar.dispatch.on('elementMouseover.tooltip2', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+      dispatch.on('tooltipShow', function(e) { 
+        if (tooltips) showTooltip(e, that.parentNode) 
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
-
-      multibar.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
 
       chart.update = function() { selection.transition().call(chart) };
@@ -229,6 +209,27 @@ nv.models.multiBarChart = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  multibar.dispatch.on('elementMouseover.tooltip2', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  multibar.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
+
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
   chart.legend = legend;

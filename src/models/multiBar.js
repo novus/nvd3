@@ -1,8 +1,15 @@
 
 nv.models.multiBar = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
+      x = d3.scale.ordinal(),
+      y = d3.scale.linear(),
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
@@ -11,13 +18,16 @@ nv.models.multiBar = function() {
       stacked = false,
       color = d3.scale.category20().range(),
       delay = 1200,
-      xDomain, yDomain,
-      x0, y0;
+      xDomain, yDomain;
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   //var x = d3.scale.linear(),
-  var x = d3.scale.ordinal(),
-      y = d3.scale.linear(),
-      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+  var dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout'),
+      x0, y0;
 
 
   function chart(selection) {
@@ -213,11 +223,9 @@ nv.models.multiBar = function() {
 
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() {
-        selection.transition().call(chart);
-      }
+      chart.update = function() { chart(selection) };
 
-      //store old scales for use in transitions on update, to animate from old to new positions, and sizes
+      //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
 
@@ -226,6 +234,10 @@ nv.models.multiBar = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Global getters and setters
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
 
@@ -308,9 +320,9 @@ nv.models.multiBar = function() {
   };
 
   chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
   };
 
   chart.delay = function(_) {
