@@ -12,7 +12,9 @@
 
 .nvd3.background {
   fill: none;
+  /*
   pointer-events: none;
+  */
 }
 
 
@@ -345,6 +347,10 @@ svg .title {
 /**********
 *  Scatter 
 */
+
+.nvd3 .groups .point {
+  pointer-events: none;
+}
 
 .nvd3 .groups .point.hover {
   stroke-width: 20px;

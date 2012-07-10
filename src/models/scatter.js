@@ -84,7 +84,6 @@ nv.models.scatter = function() {
       z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
           .range([16, 256]);
 
-      //store old scales if they exist
       x0 = x0 || x;
       y0 = y0 || y;
       z0 = z0 || z;
@@ -99,7 +98,7 @@ nv.models.scatter = function() {
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' +id);
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'groups');
       gEnter.append('g').attr('class', 'point-paths');
