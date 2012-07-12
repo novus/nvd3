@@ -54,8 +54,12 @@ nv.addGraph(function() {
 
   chart.xAxis
       .tickFormat(d3.format(',f'));
+  chart.x2Axis
+      .tickFormat(d3.format(',f'));
 
   chart.yAxis
+      .tickFormat(d3.format(',.2f'));
+  chart.yA2xis
       .tickFormat(d3.format(',.2f'));
 
   d3.select('#chart svg')
