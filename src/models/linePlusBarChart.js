@@ -118,7 +118,7 @@ nv.models.linePlusBarChart = function() {
 
 
       if (showLegend) {
-        legend.width(availableWidth);
+        legend.width( availableWidth / 2 );
 
         g.select('.legendWrap')
             .datum(data.map(function(series) { 
@@ -134,7 +134,7 @@ nv.models.linePlusBarChart = function() {
         }
 
         g.select('.legendWrap')
-          .attr('transform', 'translate(0,' + (-margin.top) +')');
+            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
 
