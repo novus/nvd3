@@ -104,6 +104,8 @@ nv.models.lineWithFocusChart = function() {
       lines2
         .width(availableWidth)
         .height(availableHeight2)
+        .x(lines.x())
+        .y(lines.y())
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled }));
