@@ -241,7 +241,8 @@ nv.models.linePlusBarChart = function() {
   chart.yAxis1 = yAxis1;
   chart.yAxis2 = yAxis2;
 
-  d3.rebind(chart, lines, 'size', 'clipVoronoi', 'interpolate');
+  d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
+  //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
   //d3.rebind(chart, lines, 'interactive');

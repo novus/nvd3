@@ -102,6 +102,7 @@ nv.models.lineWithFocusChart = function() {
         }).filter(function(d,i) { return !data[i].disabled }));
 
       lines2
+        .defined(lines.defined())
         .width(availableWidth)
         .height(availableHeight2)
         .x(lines.x())
@@ -292,7 +293,7 @@ nv.models.lineWithFocusChart = function() {
   chart.x2Axis = x2Axis;
   chart.y2Axis = y2Axis;
 
-  d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'defined', 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
 
   chart.margin = function(_) {

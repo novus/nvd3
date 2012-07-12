@@ -78,7 +78,7 @@ function sinAndCos() {
       cos = [];
 
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
+    sin.push({x: i, y: i % 10 == 0 ? null : Math.sin(i/10) }); //the nulls are to show how defined works
     cos.push({x: i, y: .5 * Math.cos(i/10)});
   }
 
