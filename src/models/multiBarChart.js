@@ -276,6 +276,18 @@ nv.models.multiBarChart = function() {
     return chart;
   };
 
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
 
   return chart;
 }
