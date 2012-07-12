@@ -210,8 +210,10 @@ nv.models.scatterChart = function() {
 
 
       g.select('.background').on('mousemove', updateFisheye);
-      g.select('.background').on('click', function() { pauseFisheye = !pauseFisheye; });
-      g.select('.point-paths').on('click', function() { pauseFisheye = !pauseFisheye; });
+      g.select('.background').on('click', function() { pauseFisheye = !pauseFisheye;});
+      scatter.dispatch.on('elementClick.freezeFisheye', function() {
+        pauseFisheye = !pauseFisheye;
+      });
 
 
       function updateFisheye() {
