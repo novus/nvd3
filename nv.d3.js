@@ -3235,20 +3235,6 @@ nv.models.linePlusBarChart = function() {
          */
 
 
-      lines
-        .width(availableWidth)
-        .height(availableHeight)
-        .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
-
-      bars
-        .width(availableWidth)
-        .height(availableHeight)
-        .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
-
 
       var wrap = d3.select(this).selectAll('g.wrap.linePlusBar').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 linePlusBar').append('g');
@@ -3284,6 +3270,23 @@ nv.models.linePlusBarChart = function() {
         g.select('.legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
+
+
+
+
+      lines
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
+
+      bars
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
 
 
 
@@ -7052,7 +7055,7 @@ nv.models.stackedAreaChart = function() {
         }
 
         g.select('.legendWrap')
-            .attr('transform', 'translate(' + (availableWidth/2 - margin.left) + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
 

@@ -89,7 +89,7 @@ nv.models.stackedAreaChart = function() {
         }
 
         g.select('.legendWrap')
-            .attr('transform', 'translate(' + (availableWidth/2 - margin.left) + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
 
