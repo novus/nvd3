@@ -5493,6 +5493,12 @@ nv.models.pieChart = function() {
     return chart;
   };
 
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
+
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
