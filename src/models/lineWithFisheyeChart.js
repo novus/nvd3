@@ -246,7 +246,7 @@ nv.models.lineChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
 
 
   chart.margin = function(_) {
@@ -291,7 +291,6 @@ nv.models.lineChart = function() {
     tooltip = _;
     return chart;
   };
-
-
+  
   return chart;
 }

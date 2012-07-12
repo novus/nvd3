@@ -8,7 +8,8 @@ nv.models.line = function() {
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
-      clipEdge = false; // if true, masks lines within x and y scale
+      clipEdge = false, // if true, masks lines within x and y scale
+      interpolate = "linear"; // controls the line interpolation
 
 
   var scatter = nv.models.scatter()
@@ -96,17 +97,20 @@ nv.models.line = function() {
       paths.enter().append('path')
           .attr('class', 'line')
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x0(getX(d,i)) })
             .y(function(d,i) { return y0(getY(d,i)) })
           );
       d3.transition(groups.exit().selectAll('path'))
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
           )
           .remove(); // redundant? line is already being removed
       d3.transition(paths)
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
           );
@@ -176,7 +180,12 @@ nv.models.line = function() {
     id = _;
     return chart;
   };
-
+  
+  chart.interpolate = function(_) {
+	  if (!arguments.length) return interpolate;
+	  interpolate = _;
+	  return chart;
+  };
 
   return chart;
 }

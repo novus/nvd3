@@ -2426,7 +2426,8 @@ nv.models.line = function() {
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
       clipEdge = false, // if true, masks lines within x and y scale
-      x, y; //can be accessed via chart.scatter.[x/y]Scale()
+      x, y, //can be accessed via chart.scatter.[x/y]Scale()
+      interpolate = "linear"; // controls the line interpolation
 
 
   //============================================================
@@ -2516,16 +2517,19 @@ nv.models.line = function() {
       paths.enter().append('path')
           .attr('class', 'line')
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x0(getX(d,i)) })
             .y(function(d,i) { return y0(getY(d,i)) })
           );
       d3.transition(groups.exit().selectAll('path'))
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
           );
       d3.transition(paths)
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
           );
@@ -2600,7 +2604,12 @@ nv.models.line = function() {
     return chart;
   };
 
-
+  chart.interpolate = function(_) {
+	  if (!arguments.length) return interpolate;
+	  interpolate = _;
+	  return chart;
+  };
+  
   return chart;
 }
 
@@ -3089,7 +3098,7 @@ nv.models.lineChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
 
 
   chart.margin = function(_) {
@@ -3134,7 +3143,6 @@ nv.models.lineChart = function() {
     tooltip = _;
     return chart;
   };
-
 
   return chart;
 }
@@ -3378,7 +3386,7 @@ nv.models.linePlusBarChart = function() {
   chart.yAxis1 = yAxis1;
   chart.yAxis2 = yAxis2;
 
-  d3.rebind(chart, lines, 'size', 'clipVoronoi');
+  d3.rebind(chart, lines, 'size', 'clipVoronoi', 'interpolate');
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
   //d3.rebind(chart, lines, 'interactive');
@@ -3442,8 +3450,7 @@ nv.models.linePlusBarChart = function() {
     tooltip = _;
     return chart;
   };
-
-
+  
   return chart;
 }
 
@@ -3781,7 +3788,13 @@ nv.models.lineWithFocusChart = function() {
     tooltip = _;
     return chart;
   };
-
+  
+  chart.interpolate = function(_) {
+    if (!arguments.length) return lines.interpolate();
+    lines.interpolate(_);
+    lines2.interpolate(_);
+    return chart;
+  };
 
   return chart;
 }

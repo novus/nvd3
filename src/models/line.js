@@ -13,7 +13,8 @@ nv.models.line = function() {
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
       clipEdge = false, // if true, masks lines within x and y scale
-      x, y; //can be accessed via chart.scatter.[x/y]Scale()
+      x, y, //can be accessed via chart.scatter.[x/y]Scale()
+      interpolate = "linear"; // controls the line interpolation
 
 
   //============================================================
@@ -103,16 +104,19 @@ nv.models.line = function() {
       paths.enter().append('path')
           .attr('class', 'line')
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x0(getX(d,i)) })
             .y(function(d,i) { return y0(getY(d,i)) })
           );
       d3.transition(groups.exit().selectAll('path'))
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
           );
       d3.transition(paths)
           .attr('d', d3.svg.line()
+        	.interpolate(interpolate)
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
           );
@@ -187,6 +191,11 @@ nv.models.line = function() {
     return chart;
   };
 
-
+  chart.interpolate = function(_) {
+	  if (!arguments.length) return interpolate;
+	  interpolate = _;
+	  return chart;
+  };
+  
   return chart;
 }
