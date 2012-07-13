@@ -162,13 +162,13 @@ nv.models.multiBarHorizontal = function() {
       if (showValues && !stacked) {
         barsEnter.append('text')
             .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'end' : 'start' })
-        bars.selectAll('text')
+        bars.select('text')
             .attr('y', x.rangeBand() / 2)
             .attr('dy', '-.32em')
             .text(function(d,i) { return valueFormat(getY(d,i)) })
         d3.transition(bars)
             //.delay(function(d,i) { return i * delay / data[0].values.length })
-          .selectAll('text')
+          .select('text')
             .attr('x', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
       } else {
         bars.selectAll('text').remove();
@@ -186,7 +186,7 @@ nv.models.multiBarHorizontal = function() {
               //return 'translate(' + y(d.y0) + ',0)'
               return 'translate(' + y(d.y0) + ',' + (stacked ? 0 : (j * x.rangeBand() / data.length )) + ')'
             })
-          .selectAll('rect')
+          .select('rect')
             .attr('width', function(d,i) {
               return Math.abs(y(getY(d,i) + d.y0) - y(d.y0))
             })
@@ -204,7 +204,7 @@ nv.models.multiBarHorizontal = function() {
               x(getX(d,i)) )
               + ')'
             })
-          .selectAll('rect')
+          .select('rect')
             .attr('height', x.rangeBand() / data.length )
             .attr('width', function(d,i) {
               return Math.abs(y(getY(d,i)) - y(0))
