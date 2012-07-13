@@ -95,7 +95,8 @@ nv.models.axis = function() {
           break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-               .attr('transform', 'rotate(90)')
+              .attr('text-anchor', 'middle')
+              .attr('transform', 'rotate(90)')
               .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', -scale.range()[0] / 2);
@@ -127,7 +128,8 @@ nv.models.axis = function() {
           break;
         case 'left':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-               .attr('transform', 'rotate(-90)')
+              .attr('text-anchor', 'middle')
+              .attr('transform', 'rotate(-90)')
               .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', -scale.range()[0] / 2);
