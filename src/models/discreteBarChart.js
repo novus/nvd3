@@ -111,7 +111,7 @@ nv.models.discreteBarChart = function() {
         xTicks
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
-            .attr('text-anchor', 'end') //TODO: figure out why this gets changed to middle, and fix this
+            .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end') 
 
       xTicks
           .selectAll('text')
