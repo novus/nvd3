@@ -2017,7 +2017,7 @@ nv.models.discreteBarChart = function() {
         xTicks
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
-            .attr('text-anchor', 'end') //TODO: figure out why this gets changed to middle, and fix this
+            .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end') 
 
       xTicks
           .selectAll('text')
@@ -3188,7 +3188,7 @@ nv.models.linePlusBarChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point)),
+        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
         y = yAxis1.tickFormat()(lines.y()(e.point)),
         content = tooltip(e.series.key, x, y, e, chart);
 
@@ -3268,7 +3268,8 @@ nv.models.linePlusBarChart = function() {
 
         g.select('.legendWrap')
             .datum(data.map(function(series) { 
-              series.key = series.key + (series.bar ? ' (left axis)' : ' (right axis)');
+              series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
+              series.key = series.originalKey + (series.bar ? ' (left axis)' : ' (right axis)');
               return series;
             }))
           .call(legend);
@@ -3955,7 +3956,8 @@ nv.models.multiBar = function() {
           })
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+      bars
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
@@ -4556,7 +4558,13 @@ nv.models.multiBarHorizontal = function() {
       var barsEnter = bars.enter().append('g')
           .attr('transform', function(d,i,j) {
               return 'translate(' + y0(stacked ? d.y0 : 0) + ',' + (stacked ? 0 : (j * x.rangeBand() / data.length ) + x(getX(d,i))) + ')'
-          })
+          });
+
+      barsEnter.append('rect')
+          .attr('width', 0)
+          .attr('height', x.rangeBand() / (stacked ? 1 : data.length) )
+          
+      bars
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
@@ -4604,10 +4612,6 @@ nv.models.multiBarHorizontal = function() {
             });
             d3.event.stopPropagation();
           });
-
-      barsEnter.append('rect')
-          .attr('width', 0)
-          .attr('height', x.rangeBand() / (stacked ? 1 : data.length) )
 
       if (showValues && !stacked) {
         barsEnter.append('text')
@@ -4831,7 +4835,7 @@ nv.models.multiBarHorizontalChart = function() {
       showLegend = true,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
-        return '<h3>' + x + '</h3>' +
+        return '<h3>' + key + " - " + x + '</h3>' +
                '<p>' +  y + '</p>'
       };
 
