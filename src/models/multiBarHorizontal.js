@@ -106,7 +106,13 @@ nv.models.multiBarHorizontal = function() {
       var barsEnter = bars.enter().append('g')
           .attr('transform', function(d,i,j) {
               return 'translate(' + y0(stacked ? d.y0 : 0) + ',' + (stacked ? 0 : (j * x.rangeBand() / data.length ) + x(getX(d,i))) + ')'
-          })
+          });
+
+      barsEnter.append('rect')
+          .attr('width', 0)
+          .attr('height', x.rangeBand() / (stacked ? 1 : data.length) )
+          
+      bars
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
@@ -154,10 +160,6 @@ nv.models.multiBarHorizontal = function() {
             });
             d3.event.stopPropagation();
           });
-
-      barsEnter.append('rect')
-          .attr('width', 0)
-          .attr('height', x.rangeBand() / (stacked ? 1 : data.length) )
 
       if (showValues && !stacked) {
         barsEnter.append('text')
