@@ -1302,8 +1302,8 @@ nv.models.cumulativeLineChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point)),
-        y = yAxis.tickFormat()(lines.y()(e.point)),
+        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content);
@@ -1933,8 +1933,8 @@ nv.models.discreteBarChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(discretebar.x()(e.point)),
-        y = yAxis.tickFormat()(discretebar.y()(e.point)),
+        x = xAxis.tickFormat()(discretebar.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(discretebar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
@@ -2944,8 +2944,8 @@ nv.models.lineChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point)),
-        y = yAxis.tickFormat()(lines.y()(e.point)),
+        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content);
@@ -3503,8 +3503,8 @@ nv.models.lineWithFocusChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point)),
-        y = yAxis.tickFormat()(lines.y()(e.point)),
+        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content);
@@ -4195,8 +4195,8 @@ nv.models.multiBarChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(multibar.x()(e.point)),
-        y = yAxis.tickFormat()(multibar.y()(e.point)),
+        x = xAxis.tickFormat()(multibar.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
@@ -4854,8 +4854,8 @@ nv.models.multiBarHorizontalChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(multibar.x()(e.point)),
-        y = yAxis.tickFormat()(multibar.y()(e.point)),
+        x = xAxis.tickFormat()(multibar.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w');
@@ -6030,8 +6030,8 @@ nv.models.scatterChart = function() {
         topX = y.range()[0] + margin.top + ( offsetElement.offsetTop || 0),
         leftY = x.range()[0] + margin.left + ( offsetElement.offsetLeft || 0 ),
         topY = e.pos[1] + ( offsetElement.offsetTop || 0),
-        xVal = xAxis.tickFormat()(scatter.x()(e.point)),
-        yVal = yAxis.tickFormat()(scatter.y()(e.point)),
+        xVal = xAxis.tickFormat()(scatter.x()(e.point, e.pointIndex)),
+        yVal = yAxis.tickFormat()(scatter.y()(e.point, e.pointIndex)),
         contentX = tooltipX(e.series.key, xVal, yVal, e, chart),
         contentY = tooltipY(e.series.key, xVal, yVal, e, chart);
         //content = tooltip(e.series.key, xVal, yVal, e, chart);
@@ -7045,8 +7045,8 @@ nv.models.stackedAreaChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(stacked.x()(e.point)),
-        y = yAxis.tickFormat()(stacked.y()(e.point)),
+        x = xAxis.tickFormat()(stacked.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(stacked.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
