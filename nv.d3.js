@@ -4170,6 +4170,7 @@ nv.models.multiBarChart = function() {
       color = d3.scale.category20().range(),
       showControls = true,
       showLegend = true,
+      reduceXTicks = true, // if false a tick will show for every data point
       tooltips = true,
       tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -4183,7 +4184,7 @@ nv.models.multiBarChart = function() {
   //------------------------------------------------------------
 
   var multibar = nv.models.multiBar().stacked(false),
-      xAxis = nv.models.axis().orient('bottom').highlightZero(false), //.showMaxMin(false), //TODO: see why showMaxMin(false) causes no ticks to be shown on x axis
+      xAxis = nv.models.axis().orient('bottom').highlightZero(false).showMaxMin(false), //TODO: see why showMaxMin(false) causes no ticks to be shown on x axis
       yAxis = nv.models.axis().orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
@@ -4292,19 +4293,19 @@ nv.models.multiBarChart = function() {
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
-      var xTicks = g.select('.x.axis').selectAll('g');
+      var xTicks = g.select('.x.axis > g').selectAll('g');
 
       xTicks
           .selectAll('line, text')
           .style('opacity', 1)
 
-      //TODO: after fixing below problem, make this optional
-      xTicks
-        .filter(function(d,i) {
-            //console.log(d,i,i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0);
-            return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
-          })
-        .style('opacity', 0) //TODO: figure out why even tho the filter does work, all ticks are disappearing
+      if (reduceXTicks)
+        xTicks
+          .filter(function(d,i) {
+              return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
+            })
+          .selectAll('text, line')
+          .style('opacity', 0);
 
       yAxis
         .scale(y)
@@ -4431,6 +4432,12 @@ nv.models.multiBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.reduceXTicks= function(_) {
+    if (!arguments.length) return reduceXTicks;
+    reduceXTicks = _;
     return chart;
   };
 
