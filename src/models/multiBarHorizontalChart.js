@@ -8,7 +8,7 @@ nv.models.multiBarHorizontalChart = function() {
       showLegend = true,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
-        return '<h3>' + x + '</h3>' +
+        return '<h3>' + key + " - " + x + '</h3>' +
                '<p>' +  y + '</p>'
       };
 

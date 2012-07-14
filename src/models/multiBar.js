@@ -134,7 +134,8 @@ nv.models.multiBar = function() {
           })
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+      bars
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
