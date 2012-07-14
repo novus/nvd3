@@ -4204,8 +4204,8 @@ nv.models.multiBarChart = function() {
 
   //TODO: let user select default
   var controlsData = [
-    { key: 'Grouped', disabled: multibar.stacked },
-    { key: 'Stacked', disabled: !multibar.stacked }
+    { key: 'Grouped', disabled: multibar.stacked() },
+    { key: 'Stacked', disabled: !multibar.stacked() }
   ];
 
   function chart(selection) {
