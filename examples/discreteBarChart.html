@@ -97,7 +97,7 @@ nv.addGraph(function() {
       .x(function(d) { return d.label })
       .y(function(d) { return d.value })
       .rotateLabels(-45)
-      //.staggerLabels(true)
+      .staggerLabels(true)
       //.staggerLabels(historicalBarChart[0].values.length > 8)
       .tooltips(false)
       .showValues(true)
@@ -107,7 +107,7 @@ nv.addGraph(function() {
     .transition().duration(500)
       .call(chart);
 
-  //nv.utils.windowResize(chart.update);
+  nv.utils.windowResize(chart.update);
 
   return chart;
 });
