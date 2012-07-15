@@ -29,6 +29,19 @@ nv.models.lineChart = function() {
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var showTooltip = function(e, offsetElement) {
+
+    // New addition to calculate position if SVG is scaled with viewBox, may move
+    if (offsetElement) {
+      var svg = d3.select(offsetElement).select('svg');
+      var viewBox = svg.attr('viewBox');
+      if (viewBox) {
+        viewBox = viewBox.split(' ');
+        var ratio = parseInt(svg.style('width')) / viewBox[2];
+        e.pos[0] = e.pos[0] * ratio;
+        e.pos[1] = e.pos[1] * ratio;
+      }
+    }
+
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
