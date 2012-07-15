@@ -518,7 +518,7 @@ nv.models.axis = function() {
 
   return chart;
 }
-
+//TODO: eitehr drastically clean up or deprecate this model
 nv.models.historicalBar = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
@@ -545,12 +545,11 @@ nv.models.historicalBar = function() {
           availableHeight = height - margin.top - margin.bottom;
 
 
-      x   .domain(xDomain || d3.extent(data[0].values, getX ))
+      x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
           .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(data[0].values, getY )) //Should 0 always be forced in bar charts?
+      y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) )) 
           .range([availableHeight, 0]);
-          //.nice(); // remove for consistency?
 
 
       var parent = d3.select(this)
@@ -653,8 +652,10 @@ nv.models.historicalBar = function() {
 
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
-          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - x(.5)) + ',0)'; }) //TODO: this assumes that each bar is an integer apart, it shouldn't
-          .attr('width', x(.9) ) //TODO: this assumes that each bar is an integar apart
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - ((availableWidth / data[0].values.length) * .5)) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
+
+          .attr('width', (availableWidth / data[0].values.length) * .9 )
+
 
       d3.transition(bars)
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
@@ -748,9 +749,9 @@ nv.models.historicalBar = function() {
   };
 
   chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
   };
 
 
@@ -3209,7 +3210,7 @@ nv.models.linePlusBarChart = function() {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-        y = yAxis1.tickFormat()(lines.y()(e.point, e.pointIndex)),
+        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
