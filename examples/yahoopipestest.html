@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+text {
+  font: 12px sans-serif;
+}
+
+svg {
+  display: block;
+  height: 500px;
+  margin: 10px;
+}
+
+</style>
+<body>
+
+  <div id="controls">
+    <label for="ticker">Stock Ticker: </label>
+    <input type="text" id="ticker" name="ticker" value="GOOG"></input>
+
+    <label for="endDate">Start Date: </label>
+    <input type="text" id="startDate" name="startDate" value="-1 year"></input>
+
+    <label for="endDate">End Date: </label>
+    <input type="text" id="endDate" name="endDate" value="now"></input>
+
+    <label for="frequency">Frequency: </label>
+    <select id="frequency" name="frequency">
+      <option value="d">Daily</option>
+      <option value="w">Weekly</option>
+      <option value="m">Monthly</option>
+      <!--<option value="v">Dividends Only</option>-->
+    </select>
+    <button id="getData" name="getData">Get Data</button>
+  </div>
+
+  <h1><span id="stockName"></span> (<span id="stockSymbol"></span>)</h1>
+  <h2><span id="stockValue"></span> <span id="stockChange"></span> (<span id="stockChangePercent"></span>) </h2>
+
+  <div id="chart1">
+    <svg></svg>
+  </div>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/scatter.js"></script>
+<script src="../src/models/line.js"></script>
+<script src="../src/models/historicalBar.js"></script>
+<script src="../src/models/linePlusBarChart.js"></script>
+<script>
+
+
+d3.select('#getData').on('click', chooseTicker);
+
+chooseTicker();
+
+
+function chooseTicker() {
+  var ticker = d3.select('#ticker').property('value');
+  var startDate = d3.select('#startDate').property('value');
+  var endDate = d3.select('#endDate').property('value');
+  var frequency = d3.select('#frequency').property('value');
+
+  getHistoricalStockData(ticker, startDate, endDate, frequency);
+  getStockInfo(ticker);
+}
+
+
+function getStockInfo(symbol) {
+  d3.json('http://pipes.yahoo.com/pipes/pipe.run?_id=ctBz1YeB3BGxfaUVqWIyXQ&_render=json&StockNames=' + symbol, function(data) {
+    var info = data.value.items[0];
+
+    //nv.log(info);
+
+    d3.select('#stockName').text(info.StockName);
+    d3.select('#stockSymbol').text(info.Symbol);
+    d3.select('#stockValue').text(info.StockValue);
+    d3.select('#stockChange')
+        .text(info.Change)
+        .style('color', parseFloat(info.Change) > 0 ? 'green' : 'red' );
+    d3.select('#stockChangePercent').text(d3.format('.2%')(parseInt(info.Change) / info.StockValue));
+
+  });
+}
+
+
+function getHistoricalStockData(symbol, startDate, endDate, frequency) {
+  startDate = startDate || '-1 year';
+  endDate = endDate || 'now';
+  frequency = frequency || 'd';
+
+  d3.csv('http://pipes.yahoo.com/pipes/pipe.run?_id=e9668915a9ae04cb96c6f8c63279ad7f&_render=csv&enddate=' + endDate + '&startdate=' + startDate + '&frequency=' + frequency + '&ticker=' + symbol, function(data) {
+    //nv.log(data);
+
+    data = data.reverse(); //order data oldest to newest, left to right
+
+    var lineData = [
+        {
+          "key": "Volume",
+          "bar": true,
+          "values": data.map(function(d) {
+            return {
+              'x': Date.parse(d.Date),
+              'y': d.Volume / 1000  //TODO: figure out why y domain was maxing out at 9933800
+            }
+          })
+        },
+        {
+          "key": "Price",
+          "bar": false,
+          "values": data.map(function(d) {
+            return {
+              'x': Date.parse(d.Date),
+              'y': d.Close
+            }
+          })
+        }
+      ];
+
+    //nv.log(lineData);
+
+    //Having issue with tooltips when updating data
+    d3.selectAll('#chart1 svg *').remove();
+
+    nv.addGraph(function() {
+      var chart = nv.models.linePlusBarChart()
+          .margin({top: 30, right: 70, bottom: 50, left: 55})
+          .x(function(d,i) { return i })
+          .color(d3.scale.category10().range());
+
+      // Use if we are removing weekends/holidays
+      chart.xAxis
+          .tickPadding(7)
+          .tickFormat(function(d) {
+            var dx = lineData[0].values[d] && lineData[0].values[d].x || 0;
+            return d3.time.format('%x')(new Date(dx))
+          });
+
+      // Use to treat dates linear
+      //chart.xAxis.tickFormat(function(d) {
+        //return d3.time.format('%x')(new Date(d))
+      //});
+
+      chart.yAxis1
+          .tickFormat(function(d) { return d3.format(',f')(d) + 'K' });
+
+      chart.yAxis2
+          .tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
+
+      chart.bars.forceY([0]);
+
+      d3.select('#chart1 svg')
+          .datum(lineData)
+        .transition().duration(500).call(chart);
+
+      return chart;
+    });
+
+  });
+}
+
+
+</script>
+
