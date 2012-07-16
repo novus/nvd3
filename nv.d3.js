@@ -123,15 +123,15 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 
   var nvtooltip = window.nv.tooltip = {};
 
-  nvtooltip.show = function(pos, content, gravity, dist, parentContainer) {
+  nvtooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
 
-    var container = document.createElement("div");
-        container.className = "nvtooltip";
+    var container = document.createElement('div');
+        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
 
     gravity = gravity || 's';
     dist = dist || 20;
 
-    var body = parentContainer ? parentContainer : document.getElementsByTagName("body")[0];
+    var body = parentContainer ? parentContainer : document.getElementsByTagName('body')[0];
 
     container.innerHTML = content;
     container.style.left = 0;
@@ -181,11 +181,11 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     }
 
 
-    container.style.left = left+"px";
-    container.style.top = top+"px";
+    container.style.left = left+'px';
+    container.style.top = top+'px';
     container.style.opacity = 1;
-    container.style.position = "absolute"; //fix scroll bar issue
-    container.style.pointerEvents = "none"; //fix scroll bar issue
+    container.style.position = 'absolute'; //fix scroll bar issue
+    container.style.pointerEvents = 'none'; //fix scroll bar issue
 
     return container;
   };
@@ -197,9 +197,9 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
       var purging = [];
       while(tooltips.length) {
         purging.push(tooltips[0]);
-        tooltips[0].style.transitionDelay = "0 !important";
+        tooltips[0].style.transitionDelay = '0 !important';
         tooltips[0].style.opacity = 0;
-        tooltips[0].className = "nvtooltip-pending-removal";
+        tooltips[0].className = 'nvtooltip-pending-removal';
       }
 
 
@@ -5571,6 +5571,7 @@ nv.models.scatter = function() {
    ,  xDomain     = null // Override x domain (skips the calculation from data)
    ,  yDomain     = null // Override y domain
    ,  sizeDomain  = null // Override point size domain
+   ;  singlePoint = false
    ,  dispatch    = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
    ;
 
@@ -5627,6 +5628,19 @@ nv.models.scatter = function() {
       z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
           .range([16, 256]);
 
+      // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
+      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
+      if (x.domain()[0] === x.domain()[1])
+        x.domain()[0] ?
+            x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
+          : x.domain([-1,1]);
+
+      if (y.domain()[0] === y.domain()[1])
+        y.domain()[0] ?
+            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+          : y.domain([-1,1]);
+
+
       x0 = x0 || x;
       y0 = y0 || y;
       z0 = z0 || z;
@@ -5638,7 +5652,7 @@ nv.models.scatter = function() {
       // Setup containers and skeleton of chart
 
       var wrap = container.selectAll('g.wrap.scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' +id);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' + id + (singlePoint ? ' single-point' : ''));
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
@@ -5979,6 +5993,12 @@ nv.models.scatter = function() {
     return chart;
   };
 
+  chart.singlePoint = function(_) {
+    if (!arguments.length) return singlePoint;
+    singlePoint = _;
+    return chart;
+  };
+
   //============================================================
 
 
@@ -6046,8 +6066,8 @@ nv.models.scatterChart = function() {
         contentY = tooltipY(e.series.key, xVal, yVal, e, chart);
         //content = tooltip(e.series.key, xVal, yVal, e, chart);
 
-    nv.tooltip.show([leftX, topX], contentX, 'n', 1);
-    nv.tooltip.show([leftY, topY], contentY, 'e', 1);
+    nv.tooltip.show([leftX, topX], contentX, 'n', 1, null, 'x-nvtooltip');
+    nv.tooltip.show([leftY, topY], contentY, 'e', 1, null, 'y-nvtooltip');
     //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
 

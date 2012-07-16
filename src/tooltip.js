@@ -8,15 +8,15 @@
 
   var nvtooltip = window.nv.tooltip = {};
 
-  nvtooltip.show = function(pos, content, gravity, dist, parentContainer) {
+  nvtooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
 
-    var container = document.createElement("div");
-        container.className = "nvtooltip";
+    var container = document.createElement('div');
+        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
 
     gravity = gravity || 's';
     dist = dist || 20;
 
-    var body = parentContainer ? parentContainer : document.getElementsByTagName("body")[0];
+    var body = parentContainer ? parentContainer : document.getElementsByTagName('body')[0];
 
     container.innerHTML = content;
     container.style.left = 0;
@@ -66,11 +66,11 @@
     }
 
 
-    container.style.left = left+"px";
-    container.style.top = top+"px";
+    container.style.left = left+'px';
+    container.style.top = top+'px';
     container.style.opacity = 1;
-    container.style.position = "absolute"; //fix scroll bar issue
-    container.style.pointerEvents = "none"; //fix scroll bar issue
+    container.style.position = 'absolute'; //fix scroll bar issue
+    container.style.pointerEvents = 'none'; //fix scroll bar issue
 
     return container;
   };
@@ -82,9 +82,9 @@
       var purging = [];
       while(tooltips.length) {
         purging.push(tooltips[0]);
-        tooltips[0].style.transitionDelay = "0 !important";
+        tooltips[0].style.transitionDelay = '0 !important';
         tooltips[0].style.opacity = 0;
-        tooltips[0].className = "nvtooltip-pending-removal";
+        tooltips[0].className = 'nvtooltip-pending-removal';
       }
 
 

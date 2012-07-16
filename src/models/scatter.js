@@ -28,6 +28,7 @@ nv.models.scatter = function() {
    ,  xDomain     = null // Override x domain (skips the calculation from data)
    ,  yDomain     = null // Override y domain
    ,  sizeDomain  = null // Override point size domain
+   ;  singlePoint = false
    ,  dispatch    = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
    ;
 
@@ -84,6 +85,19 @@ nv.models.scatter = function() {
       z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
           .range([16, 256]);
 
+      // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
+      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
+      if (x.domain()[0] === x.domain()[1])
+        x.domain()[0] ?
+            x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
+          : x.domain([-1,1]);
+
+      if (y.domain()[0] === y.domain()[1])
+        y.domain()[0] ?
+            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+          : y.domain([-1,1]);
+
+
       x0 = x0 || x;
       y0 = y0 || y;
       z0 = z0 || z;
@@ -95,7 +109,7 @@ nv.models.scatter = function() {
       // Setup containers and skeleton of chart
 
       var wrap = container.selectAll('g.wrap.scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' +id);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' + id + (singlePoint ? ' single-point' : ''));
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
@@ -433,6 +447,12 @@ nv.models.scatter = function() {
   chart.id = function(_) {
     if (!arguments.length) return id;
     id = _;
+    return chart;
+  };
+
+  chart.singlePoint = function(_) {
+    if (!arguments.length) return singlePoint;
+    singlePoint = _;
     return chart;
   };
 

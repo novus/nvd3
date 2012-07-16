@@ -306,6 +306,11 @@ svg .title {
   stroke-opacity: 0;
 }
 
+.nvd3.scatter.single-point .groups .point {
+  fill-opacity: .5 !important;
+  stroke-opacity: 1 !important;
+}
+
 
 .nvd3 .groups .point {
   transition: stroke-width 250ms linear, stroke-opacity 250ms linear;

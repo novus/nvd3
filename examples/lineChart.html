@@ -53,7 +53,7 @@ nv.addGraph(function() {
   var chart = nv.models.lineChart();
 
   chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the partent chart, so need to chain separately
-      .tickFormat(d3.format(',r'));
+      .tickFormat(d3.format(',.1f'));
 
   chart.yAxis
       .axisLabel('Voltage (v)')
@@ -78,7 +78,7 @@ function sinAndCos() {
       cos = [];
 
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: i % 10 == 0 ? null : Math.sin(i/10) }); //the nulls are to show how defined works
+    sin.push({x: i, y: i % 10 == 5 ? null : Math.sin(i/10) }); //the nulls are to show how defined works
     cos.push({x: i, y: .5 * Math.cos(i/10)});
   }
 
