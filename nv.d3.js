@@ -68,7 +68,6 @@ nv.render = function render(step) {
 };
 nv.render.queue = [];
 
-
 nv.addGraph = function(obj) {
   if (typeof arguments[0] === 'function')
     obj = {generate: arguments[0], callback: arguments[1]};
@@ -78,27 +77,13 @@ nv.addGraph = function(obj) {
   if (!nv.render.active) nv.render();
 };
 
-
 nv.identity = function(d) { return d };
 
-
-nv.strip = function(s) {
-  return s.replace(/(\s|&)/g,'');
-}
-
-
-/* An ugly implementation to get month end axis dates
- * Will hopefully refactor sooner than later
- */
+nv.strip = function(s) { return s.replace(/(\s|&)/g,''); };
 
 function daysInMonth(month,year) {
-  var m = [31,28,31,30,31,30,31,31,30,31,30,31];
-  if (month != 2) return m[month - 1];
-  if (year%4 != 0) return m[1];
-  if (year%100 == 0 && year%400 != 0) return m[1];
-  return m[1] + 1;
-}
-
+  return (new Date(year, month+1, 0)).getDate();
+};
 
 function d3_time_range(floor, step, number) {
   return function(t0, t1, dt) {
@@ -115,13 +100,11 @@ function d3_time_range(floor, step, number) {
     }
     return times;
   };
-}
-
+};
 
 d3.time.monthEnd = function(date) {
   return new Date(date.getFullYear(), date.getMonth(), 0);
 };
-
 
 d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     date.setUTCDate(date.getUTCDate() + 1);
@@ -130,7 +113,6 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     return date.getMonth();
   }
 );
-
 
 /*****
  * A no frills tooltip implementation.
@@ -141,7 +123,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 
   var nvtooltip = window.nv.tooltip = {};
 
-  nvtooltip.show = function(pos, content, gravity, dist) {
+  nvtooltip.show = function(pos, content, gravity, dist, parentContainer) {
 
     var container = document.createElement("div");
         container.className = "nvtooltip";
@@ -149,7 +131,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     gravity = gravity || 's';
     dist = dist || 20;
 
-    var body = document.getElementsByTagName("body")[0];
+    var body = parentContainer ? parentContainer : document.getElementsByTagName("body")[0];
 
     container.innerHTML = content;
     container.style.left = 0;
