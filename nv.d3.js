@@ -6946,10 +6946,10 @@ nv.models.stackedArea = function() {
         //------------------------------------------------------------
 
         scatter.dispatch.on('elementMouseover.area', function(e) {
-          g.select('.area-' + e.seriesIndex).classed('hover', true);
+          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', true);
         });
         scatter.dispatch.on('elementMouseout.area', function(e) {
-          g.select('.area-' + e.seriesIndex).classed('hover', false);
+          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', false);
         });
 
     });

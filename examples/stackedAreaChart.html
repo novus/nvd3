@@ -83,6 +83,51 @@ var histcatexplong = [
   } 
 ];
 
+/*
+// for testing single data point
+var histcatexplong = [
+  {
+    "key" : "Consumer Discretionary" ,
+    "values" : [ [ 1138683600000 , 27.38478809681]]
+  } ,
+  {
+    "key" : "Consumer Staples" ,
+    "values" : [ [ 1138683600000 , 7.2800122043237]]
+  } ,
+  {
+    "key" : "Energy" ,
+    "values" : [ [ 1138683600000 , 1.544303464167]]
+  } , 
+  { 
+    "key" : "Financials" , 
+    "values" : [ [ 1138683600000 , 13.356778764352]]
+  } , 
+  { 
+    "key" : "Health Care" , 
+    "values" : [ [ 1138683600000 , 14.212410956029]]
+  } , 
+  { 
+    "key" : "Industrials" , 
+    "values" : [ [ 1138683600000 , 7.1590087090398]]
+  } , 
+  { 
+    "key" : "Information Technology" , 
+    "values" : [ [ 1138683600000 , 13.242301508051]]
+  } , 
+  { 
+    "key" : "Materials" , 
+    "values" : [ [ 1138683600000 , 5.5806167415681]]
+  } , 
+  { 
+    "key" : "Telecommunication Services" , 
+    "values" : [ [ 1138683600000 , 3.7056975170243]]
+  } , 
+  { 
+    "key" : "Utilities" , 
+    "values" : [ [ 1138683600000 , 0]]
+  } 
+];
+*/
 
 
 
@@ -143,7 +188,7 @@ nv.addGraph(function() {
   var chart = nv.models.stackedAreaChart()
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
-                .clipEdge(true);
+                //.clipEdge(true);
 
   chart.xAxis
       .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
@@ -164,7 +209,7 @@ nv.addGraph(function() {
   var chart = nv.models.stackedAreaChart()
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
-                .clipEdge(true);
+                //.clipEdge(true);
 
   chart.xAxis
       .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
