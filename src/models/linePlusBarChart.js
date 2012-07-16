@@ -172,6 +172,7 @@ nv.models.linePlusBarChart = function() {
         .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.y1.axis'))
+          .style('opacity', dataBars.length ? 1 : 0)
           .call(yAxis1);
 
 
@@ -180,6 +181,7 @@ nv.models.linePlusBarChart = function() {
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
       g.select('.y2.axis')
+          .style('opacity', dataLines.length ? 1 : 0)
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
       d3.transition(g.select('.y2.axis'))
