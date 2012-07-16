@@ -35,6 +35,16 @@ nv.models.multiBar = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
 
+      if (stacked) {
+      //var stackedData = d3.layout.stack()
+        data = d3.layout.stack()
+                     .offset('zero')
+                     .values(function(d){ return d.values })
+                     .y(getY)
+                     (data);
+      }
+
+
 
       //add series index to each data point for reference
       data = data.map(function(series, i) {
@@ -67,6 +77,7 @@ nv.models.multiBar = function() {
             x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
           : x.domain([-1,1]);
 
+          nv.log(y.domain());
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
@@ -77,16 +88,6 @@ nv.models.multiBar = function() {
       x0 = x0 || x;
       y0 = y0 || y;
 
-
-
-      if (stacked) {
-      //var stackedData = d3.layout.stack()
-        data = d3.layout.stack()
-                     .offset('zero')
-                     .values(function(d){ return d.values })
-                     .y(getY)
-                     (data);
-      }
 
 
 
