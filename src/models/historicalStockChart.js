@@ -1,39 +1,45 @@
 
 nv.models.historicalStockChart = function() {
   var margin = {top: 10, right: 30, bottom: 25, left: 80},
-      margin2 = {top: 0, right: 30, bottom: 20, left: 80},
+      margin2 = {top: 0, right: 30, bottom: 10, left: 80},
+      margin3 = {top: 0, right: 30, bottom: 20, left: 80},
       width = null,
       height = null,
-      height2 = 120,
+      height2 = 100,
+      height3 = 80,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       color = d3.scale.category20().range(),
       showLegend = false,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>Closed at ' +  y + ' on ' + x + '</p>'
       };
 
 
-  //var lines = nv.models.line(),
-  var lines = nv.models.historicalStock(),
+  var stocks = nv.models.historicalStock(),
       bars = nv.models.historicalBar(),
+      lines = nv.models.line().interactive(false),
       x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
+      x3 = lines.xScale(),
       y1 = bars.yScale(),
-      y2 = lines.yScale(),
+      y2 = stocks.yScale(),
+      y3 = lines.yScale(),
       xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       xAxis2 = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
+      xAxis3 = nv.models.axis().scale(x3).orient('bottom').tickPadding(5),
       yAxis1 = nv.models.axis().scale(y1).orient('left'),
       yAxis2 = nv.models.axis().scale(y2).orient('left'),
+      yAxis3 = nv.models.axis().scale(y3).orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis2.tickFormat()(lines.x()(e.point, e.pointIndex)),
-        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(lines.y()(e.point, e.pointIndex)),
+        x = xAxis2.tickFormat()(stocks.x()(e.point, e.pointIndex)),
+        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(stocks.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
@@ -49,13 +55,14 @@ nv.models.historicalStockChart = function() {
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom - height2,
-          availableHeight2 = height2 - margin2.top - margin2.bottom;
+                             - margin.top - margin.bottom - height2 - height3,
+          availableHeight2 = height2 - margin2.top - margin2.bottom,
+          availableHeight3 = height3 - margin3.top - margin3.bottom;
 
 
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
 
-      var dataLines = data.filter(function(d) { return !d.disabled && !d.bar });
+      var dataStocks = data.filter(function(d) { return !d.disabled && !d.bar });
 
 
 
@@ -98,9 +105,12 @@ nv.models.historicalStockChart = function() {
 
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'x2 axis');
+      gEnter.append('g').attr('class', 'x3 axis');
       gEnter.append('g').attr('class', 'y1 axis');
       gEnter.append('g').attr('class', 'y2 axis');
+      gEnter.append('g').attr('class', 'y3 axis');
       gEnter.append('g').attr('class', 'barsWrap');
+      gEnter.append('g').attr('class', 'stocksWrap');
       gEnter.append('g').attr('class', 'linesWrap');
       gEnter.append('g').attr('class', 'legendWrap');
 
@@ -133,9 +143,16 @@ nv.models.historicalStockChart = function() {
 
 
 
-      lines
+      stocks
         .width(availableWidth)
         .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
+
+      lines
+        .width(availableWidth)
+        .height(availableHeight3)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
@@ -153,11 +170,15 @@ nv.models.historicalStockChart = function() {
           .attr('transform', 'translate(0,' + (availableHeight + margin.bottom) + ')')
           .datum(dataBars.length ? dataBars : [{values:[]}])
 
-      var linesWrap = g.select('.linesWrap')
-          .datum(dataLines.length ? dataLines : [{values:[]}])
+      var stocksWrap = g.select('.stocksWrap')
+          .datum(dataStocks.length ? dataStocks : [{values:[]}])
 
+      var linesWrap = g.select('.linesWrap')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
+          .datum(dataStocks.length ? dataStocks : [{values:[]}])
 
       d3.transition(barsWrap).call(bars);
+      d3.transition(stocksWrap).call(stocks);
       d3.transition(linesWrap).call(lines);
 
 
@@ -182,6 +203,15 @@ nv.models.historicalStockChart = function() {
       d3.transition(g.select('.x2.axis'))
           .call(xAxis2);
 
+      xAxis3
+        .ticks( availableWidth / 100 )
+        .tickSize(-availableHeight3, 0);
+
+      g.select('.x3.axis')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2 + availableHeight3 + margin3.top) + ')');
+      d3.transition(g.select('.x3.axis'))
+          .call(xAxis3);
+
 
       yAxis1
         .ticks( availableHeight2 / 36 )
@@ -203,36 +233,34 @@ nv.models.historicalStockChart = function() {
         .axisLabel('Price ($)');
 
       g.select('.y2.axis')
-          .style('opacity', dataLines.length ? 1 : 0)
+          .style('opacity', dataStocks.length ? 1 : 0)
           //.attr('transform', 'translate(' + x.range()[1] + ',0)');
 
       d3.transition(g.select('.y2.axis'))
           .call(yAxis2);
 
+      yAxis3
+        .ticks( availableHeight3 / 36 )
+        .tickSize(-availableWidth, 0) // Show the y2 rules only if y1 has none
+        .width(margin3.left)
+        //.axisLabel('Price ($)');
+
+      g.select('.y3.axis')
+          .style('opacity', dataStocks.length ? 1 : 0)
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
+
+      d3.transition(g.select('.y3.axis'))
+          .call(yAxis3);
 
 
-      legend.dispatch.on('legendClick', function(d,i) { 
-        d.disabled = !d.disabled;
 
-        if (!data.filter(function(d) { return !d.disabled }).length) {
-          data.map(function(d) {
-            d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
-            return d;
-          });
-        }
-
-        selection.transition().call(chart);
-      });
-
-
-      lines.dispatch.on('elementMouseover.tooltip', function(e) {
+      stocks.dispatch.on('elementMouseover.tooltip', function(e) {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
       if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
-      lines.dispatch.on('elementMouseout.tooltip', function(e) {
+      stocks.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
@@ -261,15 +289,18 @@ nv.models.historicalStockChart = function() {
 
   chart.dispatch = dispatch;
   chart.legend = legend;
+  chart.stocks = stocks;
   chart.lines = lines;
   chart.bars = bars;
   chart.xAxis = xAxis;
   chart.xAxis2 = xAxis2;
+  chart.xAxis3 = xAxis3;
   chart.yAxis1 = yAxis1;
   chart.yAxis2 = yAxis2;
+  chart.yAxis3 = yAxis3;
 
   //d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
-  d3.rebind(chart, lines, 'getOpen', 'getClose', 'getHigh', 'getLow');
+  d3.rebind(chart, stocks, 'getOpen', 'getClose', 'getHigh', 'getLow');
 
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
@@ -280,6 +311,7 @@ nv.models.historicalStockChart = function() {
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
+    stocks.x(_);
     lines.x(_);
     bars.x(_);
     return chart;
@@ -288,6 +320,7 @@ nv.models.historicalStockChart = function() {
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
+    stocks.y(_);
     lines.y(_);
     bars.y(_);
     return chart;

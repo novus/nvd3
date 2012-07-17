@@ -164,6 +164,13 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
             return d3.time.format('%x')(new Date(dx))
           });
 
+      chart.xAxis3
+          .tickPadding(7)
+          .tickFormat(function(d) {
+            var dx = lineData[0].values[d] && lineData[0].values[d].x || 0;
+            return d3.time.format('%x')(new Date(dx))
+          });
+
       // Use to treat dates linear
       //chart.xAxis.tickFormat(function(d) {
         //return d3.time.format('%x')(new Date(d))
@@ -174,6 +181,10 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
           //.tickFormat(function(d) { return d3.format(',f')(d) + 'K' });
 
       chart.yAxis2
+          .tickFormat(d3.format(',.2f'));
+          //.tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
+
+      chart.yAxis3
           .tickFormat(d3.format(',.2f'));
           //.tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
 
