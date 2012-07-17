@@ -69,7 +69,7 @@ nv.models.axis = function() {
         case 'bottom':
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
-              .attr('y', 25);
+              .attr('y', 30);
           var width = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('x', width/2);
