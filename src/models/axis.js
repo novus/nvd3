@@ -41,8 +41,9 @@ nv.models.axis = function() {
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 0);
+          var width = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
-              .attr('x', scale.range()[1] / 2);
+              .attr('x', width/2);
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -69,8 +70,9 @@ nv.models.axis = function() {
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 25);
+          var width = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
-              .attr('x', scale.range()[1] / 2);
+              .attr('x', width/2);
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
