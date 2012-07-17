@@ -256,7 +256,9 @@ nv.utils.windowResize = function(fun){
 
 nv.models.axis = function() {
   //Default Settings
-  var scale = d3.scale.linear(),
+  var width = 60, //only used for tickLabel currently
+      height = 60, //only used for tickLabel currently
+      scale = d3.scale.linear(),
       axisLabelText = null,
       showMaxMin = true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
       highlightZero = true;
@@ -296,9 +298,9 @@ nv.models.axis = function() {
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 0);
-          var width = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
-              .attr('x', width/2);
+              .attr('x', w/2);
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -325,9 +327,9 @@ nv.models.axis = function() {
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 30);
-          var width = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
-              .attr('x', width/2);
+              .attr('x', w/2);
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -354,7 +356,7 @@ nv.models.axis = function() {
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
               .attr('transform', 'rotate(90)')
-              .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', -width + 12); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', -scale.range()[0] / 2);
           if (showMaxMin) {
@@ -387,7 +389,7 @@ nv.models.axis = function() {
           axisLabel.enter().append('text').attr('class', 'axislabel')
               .attr('text-anchor', 'middle')
               .attr('transform', 'rotate(-90)')
-              .attr('y', -40); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', -width + 12); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', -scale.range()[0] / 2);
           if (showMaxMin) {
@@ -472,6 +474,18 @@ nv.models.axis = function() {
 
   d3.rebind(chart, axis, 'orient', 'ticks', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
   d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
 
   chart.axisLabel = function(_) {
     if (!arguments.length) return axisLabelText;

@@ -490,6 +490,30 @@ svg .title {
 }
 
 
+/**********
+* historical stock
+*/
+
+.nvd3.historicalStock .ticks .tick {
+  stroke-width: 2px;
+}
+
+.nvd3.historicalStock .ticks .tick.hover {
+  stroke-width: 4px;
+}
+
+.nvd3.historicalStock .ticks .tick.positive {
+ stroke: #2ca02c;
+}
+
+.nvd3.historicalStock .ticks .tick.negative {
+ stroke: #d62728;
+}
+
+.nvd3.historicalStockChart .axis .axislabel {
+  font-weight: bold;
+}
+
 
 /**********
 * Indented Tree
