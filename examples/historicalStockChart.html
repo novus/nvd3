@@ -114,9 +114,10 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
         {
           "key": "Volume",
           "bar": true,
-          "values": data.map(function(d) {
+          "values": data.map(function(d,i) {
             return {
               'x': Date.parse(d.Date),
+              'dx': i,
               'y': d.Volume / 1000  //TODO: figure out why y domain was maxing out at 9933800
             }
           })
@@ -124,9 +125,10 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
         {
           "key": "Price",
           "bar": false,
-          "values": data.map(function(d) {
+          "values": data.map(function(d,i) {
             return {
               'x': Date.parse(d.Date),
+              'dx': i,
               'y': d.Close,
               'open': d.Open,
               'close': d.Close,
@@ -145,7 +147,7 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
     nv.addGraph(function() {
       var chart = nv.models.historicalStockChart()
           //.margin({top: 30, right: 70, bottom: 50, left: 55})
-          .x(function(d,i) { return i })
+          .x(function(d,i) { return d.dx })
           .color(d3.scale.category10().range());
 
       // Use if we are removing weekends/holidays
@@ -153,6 +155,7 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
           //.tickPadding(7)
           .tickFormat(function(d) {
             return '';
+            d = parseInt(d);
             var dx = lineData[0].values[d] && lineData[0].values[d].x || 0;
             return d3.time.format('%x')(new Date(dx))
           });
@@ -160,6 +163,7 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
       chart.xAxis2
           .tickPadding(7)
           .tickFormat(function(d) {
+            d = parseInt(d);
             var dx = lineData[0].values[d] && lineData[0].values[d].x || 0;
             return d3.time.format('%x')(new Date(dx))
           });
@@ -167,7 +171,7 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
       chart.xAxis3
           .tickPadding(7)
           .tickFormat(function(d) {
-            var dx = lineData[0].values[d] && lineData[0].values[d].x || 0;
+            var dx = lineData[0].values[d] && lineData[0].values[parseInt(d)].x || 0;
             return d3.time.format('%x')(new Date(dx))
           });
 

@@ -21,7 +21,8 @@ nv.models.historicalStockChart = function() {
   var stocks = nv.models.ohlcBar(),
       bars = nv.models.historicalBar(),
       lines = nv.models.line().interactive(false),
-      x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
+      //x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
+      x = stocks.xScale(),
       x3 = lines.xScale(),
       y1 = bars.yScale(),
       y2 = stocks.yScale(),
@@ -33,7 +34,8 @@ nv.models.historicalStockChart = function() {
       yAxis2 = nv.models.axis().scale(y2).orient('left'),
       yAxis3 = nv.models.axis().scale(y3).orient('left'),
       legend = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
+      brush = d3.svg.brush().x(x3);
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -60,6 +62,9 @@ nv.models.historicalStockChart = function() {
           availableHeight3 = height3 - margin3.top - margin3.bottom;
 
 
+      brush.on('brush', onBrush);
+
+
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
 
       var dataStocks = data.filter(function(d) { return !d.disabled && !d.bar });
@@ -68,6 +73,9 @@ nv.models.historicalStockChart = function() {
 
       //TODO: try to remove x scale computation from this layer
 
+
+
+          /*
       var series1 = data.filter(function(d) { return !d.disabled && d.bar })
             .map(function(d) {
               return d.values.map(function(d,i) {
@@ -87,7 +95,6 @@ nv.models.historicalStockChart = function() {
 
 
 
-          /*
       x   .domain(d3.extent(d3.merge(data.map(function(d) { return d.values })), getX ))
           .range([0, availableWidth]);
 
@@ -113,6 +120,7 @@ nv.models.historicalStockChart = function() {
       gEnter.append('g').attr('class', 'stocksWrap');
       gEnter.append('g').attr('class', 'linesWrap');
       gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'x brush');
 
 
 
@@ -180,6 +188,16 @@ nv.models.historicalStockChart = function() {
       d3.transition(barsWrap).call(bars);
       d3.transition(stocksWrap).call(stocks);
       d3.transition(linesWrap).call(lines);
+
+
+      gBrush = g.select('.x.brush')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
+          .call(brush);
+      gBrush.selectAll('rect')
+          //.attr('y', -5)
+          .attr('height', availableHeight3);
+      gBrush.selectAll(".resize").append("path").attr("d", resizePath);
+
 
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -281,6 +299,94 @@ nv.models.historicalStockChart = function() {
 
       chart.update = function() { selection.transition().call(chart) };
       chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+
+
+
+      // Taken from crossfilter (http://square.github.com/crossfilter/)
+      function resizePath(d) {
+        var e = +(d == "e"),
+            x = e ? 1 : -1,
+            y = availableHeight3 / 3;
+        return "M" + (.5 * x) + "," + y
+            + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6)
+            + "V" + (2 * y - 6)
+            + "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y)
+            + "Z"
+            + "M" + (2.5 * x) + "," + (y + 8)
+            + "V" + (2 * y - 8)
+            + "M" + (4.5 * x) + "," + (y + 8)
+            + "V" + (2 * y - 8);
+      }
+
+
+
+      function onBrush() {
+        updateFocus();
+
+        //linesWrap.call(lines)
+        //var focusLinesWrap = g.select('.focus .linesWrap')
+        //g.select('.x.axis').call(xAxis);
+        //g.select('.y.axis').call(yAxis1);
+      }
+
+      function updateFocus() {
+        //nv.log(brush.empty(), brush.extent(), x3(brush.extent()[0]), x3(brush.extent()[1]));
+
+        var extent = brush.empty() ? x3.domain() : brush.extent();
+
+        var stocksWrap = g.select('.stocksWrap')
+            .datum(
+              [{
+                key: dataStocks[0].key,
+                values: dataStocks[0].values.filter(function(d,i) {
+                  return getX(d,i) > extent[0] && getX(d,i) < extent[1];
+                })
+              }]
+            );
+
+
+        var barsWrap = g.select('.barsWrap')
+            .attr('transform', 'translate(0,' + (availableHeight + margin.bottom) + ')')
+            .datum(
+              [{
+                key: dataBars[0].key,
+                values: dataBars[0].values.filter(function(d,i) {
+                  return getX(d,i) > extent[0] && getX(d,i) < extent[1];
+                })
+              }]
+            );
+
+        d3.transition(barsWrap).call(bars);
+        d3.transition(stocksWrap).call(stocks);
+
+        d3.transition(g.select('.x.axis'))
+            .call(xAxis);
+        d3.transition(g.select('.x2.axis'))
+            .call(xAxis2);
+
+        d3.transition(g.select('.y1.axis'))
+            .call(yAxis1);
+        d3.transition(g.select('.y2.axis'))
+            .call(yAxis2);
+
+        /*
+        var yDomain = brush.empty() ? y3.domain() : d3.extent(d3.merge(dataStocks.map(function(d) { return d.values })).filter(function(d) {
+          return lines.x()(d) >= brush.extent()[0] && lines.x()(d) <= brush.extent()[1];
+        }), lines.y());  //This doesn't account for the 1 point before and the 1 point after the domain.  Would fix, but likely need to change entire methodology here
+
+        if (typeof yDomain[0] == 'undefined') yDomain = y3.domain(); //incase the brush doesn't cover a single point
+
+
+        x.domain(brush.empty() ? x3.domain() : brush.extent());
+        y1.domain(yDomain);
+       */
+
+        //lines.xDomain(x.domain());
+        //lines.yDomain(y1.domain());
+      }
+
+
+
 
     });
 
