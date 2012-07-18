@@ -11,9 +11,10 @@ JS_FILES = \
 	src/models/discreteBar.js \
 	src/models/discreteBarChart.js \
 	src/models/distribution.js \
+	src/models/historicalStockChart.js \
+	src/models/indentedTree.js \
 	src/models/legend.js \
 	src/models/line.js \
-	src/models/indentedTree.js \
 	src/models/lineChart.js \
 	src/models/linePlusBarChart.js \
 	src/models/lineWithFocusChart.js \
@@ -21,6 +22,7 @@ JS_FILES = \
 	src/models/multiBarChart.js \
 	src/models/multiBarHorizontal.js \
 	src/models/multiBarHorizontalChart.js \
+	src/models/ohlcBar.js \
 	src/models/pie.js \
 	src/models/pieChart.js \
 	src/models/scatter.js \

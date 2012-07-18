@@ -2251,6 +2251,772 @@ nv.models.distribution = function() {
   return chart;
 }
 
+nv.models.historicalStockChart = function() {
+  var margin = {top: 10, right: 30, bottom: 25, left: 80},
+      margin2 = {top: 0, right: 30, bottom: 10, left: 80},
+      margin3 = {top: 0, right: 30, bottom: 20, left: 80},
+      width = null,
+      height = null,
+      height2 = 100,
+      height3 = 80,
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      color = d3.scale.category20().range(),
+      showLegend = false,
+      tooltips = true,
+      tooltip = function(key, x, y, e, graph) {
+        return '<h3>' + key + '</h3>' +
+               '<p>Closed at ' +  y + ' on ' + x + '</p>'
+      };
+
+
+  var stocks = nv.models.ohlcBar(),
+      bars = nv.models.historicalBar(),
+      lines = nv.models.line().interactive(false),
+      //x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
+      x = stocks.xScale(),
+      x3 = lines.xScale(),
+      y1 = bars.yScale(),
+      y2 = stocks.yScale(),
+      y3 = lines.yScale(),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
+      xAxis2 = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
+      xAxis3 = nv.models.axis().scale(x3).orient('bottom').tickPadding(5),
+      yAxis1 = nv.models.axis().scale(y1).orient('left'),
+      yAxis2 = nv.models.axis().scale(y2).orient('left'),
+      yAxis3 = nv.models.axis().scale(y3).orient('left'),
+      legend = nv.models.legend().height(30),
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
+      brush = d3.svg.brush().x(x3);
+
+  var showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = xAxis2.tickFormat()(stocks.x()(e.point, e.pointIndex)),
+        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(stocks.y()(e.point, e.pointIndex)),
+        content = tooltip(e.series.key, x, y, e, chart);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+  };
+
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var container = d3.select(this),
+          that = this;
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom - height2 - height3,
+          availableHeight2 = height2 - margin2.top - margin2.bottom,
+          availableHeight3 = height3 - margin3.top - margin3.bottom;
+
+
+      brush.on('brush', onBrush);
+
+
+      var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
+
+      var dataStocks = data.filter(function(d) { return !d.disabled && !d.bar });
+
+
+
+      //TODO: try to remove x scale computation from this layer
+
+
+
+          /*
+      var series1 = data.filter(function(d) { return !d.disabled && d.bar })
+            .map(function(d) {
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i) }
+              })
+            });
+
+      var series2 = data.filter(function(d) { return !d.disabled && !d.bar })
+            .map(function(d) {
+              return d.values.map(function(d,i) {
+                return { x: getX(d,i), y: getY(d,i) }
+              })
+            });
+
+      x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
+          .range([0, availableWidth]);
+
+
+
+      x   .domain(d3.extent(d3.merge(data.map(function(d) { return d.values })), getX ))
+          .range([0, availableWidth]);
+
+      y1  .domain(d3.extent(d3.merge(dataBars), function(d) { return d.y } ))
+          .range([availableHeight, 0]);
+
+      y2  .domain(d3.extent(d3.merge(dataLines), function(d) { return d.y } ))
+          .range([availableHeight, 0]);
+         */
+
+
+
+      var wrap = d3.select(this).selectAll('g.wrap.historicalStockChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStockChart').append('g');
+
+      gEnter.append('g').attr('class', 'x axis');
+      gEnter.append('g').attr('class', 'x2 axis');
+      gEnter.append('g').attr('class', 'x3 axis');
+      gEnter.append('g').attr('class', 'y1 axis');
+      gEnter.append('g').attr('class', 'y2 axis');
+      gEnter.append('g').attr('class', 'y3 axis');
+      gEnter.append('g').attr('class', 'barsWrap');
+      gEnter.append('g').attr('class', 'stocksWrap');
+      gEnter.append('g').attr('class', 'linesWrap');
+      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'x brush');
+
+
+
+      var g = wrap.select('g');
+
+
+      if (showLegend) {
+        legend.width( availableWidth / 2 );
+
+        g.select('.legendWrap')
+            .datum(data.map(function(series) { 
+              series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
+              series.key = series.originalKey;
+              return series;
+            }))
+          .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        g.select('.legendWrap')
+            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+      }
+
+
+
+
+      stocks
+        .width(availableWidth)
+        .height(availableHeight)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
+
+      lines
+        .width(availableWidth)
+        .height(availableHeight3)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
+
+      bars
+        .width(availableWidth)
+        .height(availableHeight2)
+        .color(data.map(function(d,i) {
+          return d.color || color[i % color.length];
+        }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
+
+
+
+      var barsWrap = g.select('.barsWrap')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom) + ')')
+          .datum(dataBars.length ? dataBars : [{values:[]}])
+
+      var stocksWrap = g.select('.stocksWrap')
+          .datum(dataStocks.length ? dataStocks : [{values:[]}])
+
+      var linesWrap = g.select('.linesWrap')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
+          .datum(dataStocks.length ? dataStocks : [{values:[]}])
+
+      d3.transition(barsWrap).call(bars);
+      d3.transition(stocksWrap).call(stocks);
+      d3.transition(linesWrap).call(lines);
+
+
+      gBrush = g.select('.x.brush')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
+          .call(brush);
+      gBrush.selectAll('rect')
+          //.attr('y', -5)
+          .attr('height', availableHeight3);
+      gBrush.selectAll(".resize").append("path").attr("d", resizePath);
+
+
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      xAxis
+        .ticks( availableWidth / 100 )
+        .tickSize(-availableHeight2, 0);
+
+      g.select('.x.axis')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + availableHeight2 + margin2.top) + ')');
+      d3.transition(g.select('.x.axis'))
+          .call(xAxis);
+
+      xAxis2
+        .ticks( availableWidth / 100 )
+        .tickSize(-availableHeight, 0);
+
+      g.select('.x2.axis')
+          .attr('transform', 'translate(0,' + availableHeight + ')');
+      d3.transition(g.select('.x2.axis'))
+          .call(xAxis2);
+
+      xAxis3
+        .ticks( availableWidth / 100 )
+        .tickSize(-availableHeight3, 0);
+
+      g.select('.x3.axis')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2 + availableHeight3 + margin3.top) + ')');
+      d3.transition(g.select('.x3.axis'))
+          .call(xAxis3);
+
+
+      yAxis1
+        .ticks( availableHeight2 / 36 )
+        .tickSize(-availableWidth, 0)
+        .width(margin2.left)
+        .axisLabel('Volume (K)');
+
+      g.select('.y1.axis')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom) + ')');
+      d3.transition(g.select('.y1.axis'))
+          .style('opacity', dataBars.length ? 1 : 0)
+          .call(yAxis1);
+
+
+      yAxis2
+        .ticks( availableHeight / 36 )
+        .tickSize(-availableWidth, 0) // Show the y2 rules only if y1 has none
+        .width(margin.left)
+        .axisLabel('Price ($)');
+
+      g.select('.y2.axis')
+          .style('opacity', dataStocks.length ? 1 : 0)
+          //.attr('transform', 'translate(' + x.range()[1] + ',0)');
+
+      d3.transition(g.select('.y2.axis'))
+          .call(yAxis2);
+
+      yAxis3
+        .ticks( availableHeight3 / 36 )
+        .tickSize(-availableWidth, 0) // Show the y2 rules only if y1 has none
+        .width(margin3.left)
+        //.axisLabel('Price ($)');
+
+      g.select('.y3.axis')
+          .style('opacity', dataStocks.length ? 1 : 0)
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
+
+      d3.transition(g.select('.y3.axis'))
+          .call(yAxis3);
+
+
+
+      stocks.dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+      });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
+
+      stocks.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+      });
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+
+      bars.dispatch.on('elementMouseover.tooltip', function(e) {
+        //e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        e.pos = [e.pos[0] + margin2.left, e.pos[1] + availableHeight + margin.top + margin.bottom + margin2.top];
+        dispatch.tooltipShow(e);
+      });
+      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
+
+      bars.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+      });
+      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+
+      chart.update = function() { selection.transition().call(chart) };
+      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+
+
+
+      // Taken from crossfilter (http://square.github.com/crossfilter/)
+      function resizePath(d) {
+        var e = +(d == "e"),
+            x = e ? 1 : -1,
+            y = availableHeight3 / 3;
+        return "M" + (.5 * x) + "," + y
+            + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6)
+            + "V" + (2 * y - 6)
+            + "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y)
+            + "Z"
+            + "M" + (2.5 * x) + "," + (y + 8)
+            + "V" + (2 * y - 8)
+            + "M" + (4.5 * x) + "," + (y + 8)
+            + "V" + (2 * y - 8);
+      }
+
+
+
+      function onBrush() {
+        updateFocus();
+
+        //linesWrap.call(lines)
+        //var focusLinesWrap = g.select('.focus .linesWrap')
+        //g.select('.x.axis').call(xAxis);
+        //g.select('.y.axis').call(yAxis1);
+      }
+
+      function updateFocus() {
+        //nv.log(brush.empty(), brush.extent(), x3(brush.extent()[0]), x3(brush.extent()[1]));
+
+        var extent = brush.empty() ? x3.domain() : brush.extent();
+
+        var stocksWrap = g.select('.stocksWrap')
+            .datum(
+              [{
+                key: dataStocks[0].key,
+                values: dataStocks[0].values.filter(function(d,i) {
+                  return getX(d,i) > extent[0] && getX(d,i) < extent[1];
+                })
+              }]
+            );
+
+
+        var barsWrap = g.select('.barsWrap')
+            .attr('transform', 'translate(0,' + (availableHeight + margin.bottom) + ')')
+            .datum(
+              [{
+                key: dataBars[0].key,
+                values: dataBars[0].values.filter(function(d,i) {
+                  return getX(d,i) > extent[0] && getX(d,i) < extent[1];
+                })
+              }]
+            );
+
+        d3.transition(barsWrap).call(bars);
+        d3.transition(stocksWrap).call(stocks);
+
+        d3.transition(g.select('.x.axis'))
+            .call(xAxis);
+        d3.transition(g.select('.x2.axis'))
+            .call(xAxis2);
+
+        d3.transition(g.select('.y1.axis'))
+            .call(yAxis1);
+        d3.transition(g.select('.y2.axis'))
+            .call(yAxis2);
+
+        /*
+        var yDomain = brush.empty() ? y3.domain() : d3.extent(d3.merge(dataStocks.map(function(d) { return d.values })).filter(function(d) {
+          return lines.x()(d) >= brush.extent()[0] && lines.x()(d) <= brush.extent()[1];
+        }), lines.y());  //This doesn't account for the 1 point before and the 1 point after the domain.  Would fix, but likely need to change entire methodology here
+
+        if (typeof yDomain[0] == 'undefined') yDomain = y3.domain(); //incase the brush doesn't cover a single point
+
+
+        x.domain(brush.empty() ? x3.domain() : brush.extent());
+        y1.domain(yDomain);
+       */
+
+        //lines.xDomain(x.domain());
+        //lines.yDomain(y1.domain());
+      }
+
+
+
+
+    });
+
+    return chart;
+  }
+
+  chart.dispatch = dispatch;
+  chart.legend = legend;
+  chart.stocks = stocks;
+  chart.lines = lines;
+  chart.bars = bars;
+  chart.xAxis = xAxis;
+  chart.xAxis2 = xAxis2;
+  chart.xAxis3 = xAxis3;
+  chart.yAxis1 = yAxis1;
+  chart.yAxis2 = yAxis2;
+  chart.yAxis3 = yAxis3;
+
+  //d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
+  d3.rebind(chart, stocks, 'getOpen', 'getClose', 'getHigh', 'getLow');
+
+  //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
+  //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+
+  //d3.rebind(chart, lines, 'interactive');
+  //consider rebinding x and y as well
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    stocks.x(_);
+    lines.x(_);
+    bars.x(_);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = _;
+    stocks.y(_);
+    lines.y(_);
+    bars.y(_);
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    legend.color(_);
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+  
+  return chart;
+}
+
+//TODO: Finish merging this chart into the NVD3 style!
+nv.models.indentedTree = function() {
+  //Default Settings
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}, //TODO: implement, maybe as margin on the containing div
+      width = 960,
+      height = 500,
+      color = d3.scale.category20().range(),
+      id = Math.floor(Math.random() * 10000), 
+      header = true,
+      noResultsText = 'No Results found.'
+      childIndent = 20,
+      columns = [{key:'key', label: 'Name', type:'text'}], //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
+      tableClass = null,
+      iconOpen = 'images/grey-plus.png', //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
+      iconClose = 'images/grey-minus.png';
+
+
+  var dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout');
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,  //TODO: decide if there is any use for these
+          availableHeight = height - margin.top - margin.bottom;
+
+
+      chart.update = function() { selection.transition().call(chart) };
+
+      var i = 0,
+          depth = 1;
+
+      var tree = d3.layout.tree()
+          .children(function(d) { return d.values })
+          .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
+
+
+      if (!data[0].key) data[0].key = noResultsText;
+
+      var nodes = tree.nodes(data[0]);
+
+
+      var wrap = d3.select(this).selectAll('div').data([[nodes]]);
+      var wrapEnter = wrap.enter().append('div').attr('class', 'wrap nvd3 indentedtree');
+      var tableEnter = wrapEnter.append('table');
+      var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
+
+
+
+      if (header) {
+        var thead = tableEnter.append('thead');
+
+        var theadRow1 = thead.append('tr');
+
+        columns.forEach(function(column) {
+          theadRow1
+            .append('th')
+              .attr('width', column.width ? column.width : '10%')
+              .style('text-align', column.type == 'numeric' ? 'right' : 'left')
+            .append('span')
+              .text(column.label);
+        });
+      }
+
+
+      var tbody = table.selectAll('tbody')
+                    .data(function(d) {return d });
+      tbody.enter().append('tbody');
+
+
+
+      //compute max generations
+      depth = d3.max(nodes, function(node) { return node.depth });
+      tree.size([height, depth * childIndent]); //TODO: see if this is necessary at all
+
+
+      // Update the nodes…
+      var node = tbody.selectAll('tr')
+          .data(function(d) { return d }, function(d) { return d.id || (d.id == ++i)});
+          //.style('display', 'table-row'); //TODO: see if this does anything
+
+      node.exit().remove();
+
+
+      node.select('img.treeicon')
+          .attr('src', icon)
+          .classed('folded', folded);
+
+      var nodeEnter = node.enter().append('tr');
+
+
+      columns.forEach(function(column, index) {
+
+        var nodeName = nodeEnter.append('td')
+            .style('padding-left', function(d) { return (index ? 0 : d.depth * childIndent + 12 + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
+            .style('text-align', column.type == 'numeric' ? 'right' : 'left');
+
+
+        if (index == 0) {
+          nodeName.append('img')
+              .classed('treeicon', true)
+              .classed('folded', folded)
+              .attr('src', icon)
+              .style('width', '14px')
+              .style('height', '14px')
+              .style('padding', '0 1px')
+              .style('display', function(d) { return icon(d) ? 'inline-block' : 'none'; })
+              .on('click', click);
+        }
+
+
+        nodeName.append('span')
+            .attr('class', d3.functor(column.classes) )
+            .text(function(d) { return column.format ? column.format(d) :
+                                        (d[column.key] || '-') });
+
+        if  (column.showCount)
+          nodeName.append('span')
+              .attr('class', 'childrenCount')
+              .text(function(d) {
+                return ((d.values && d.values.length) || (d._values && d._values.length)) ?
+                    '(' + ((d.values && d.values.length) || (d._values && d._values.length)) + ')'
+                  : ''
+              });
+
+
+        if (column.click)
+          nodeName.select('span').on('click', column.click);
+
+      });
+
+
+      node
+        .order()
+        .on('click', function(d) { 
+          dispatch.elementClick({
+            row: this, //TODO: decide whether or not this should be consistent with scatter/line events
+            data: d,
+            pos: [d.x, d.y]
+          });
+        })
+        .on('dblclick', function(d) { 
+          dispatch.elementDblclick({
+            row: this,
+            data: d,
+            pos: [d.x, d.y]
+          });
+        })
+        .on('mouseover', function(d) { 
+          dispatch.elementMouseover({
+            row: this,
+            data: d,
+            pos: [d.x, d.y]
+          });
+        })
+        .on('mouseout', function(d) { 
+          dispatch.elementMouseout({
+            row: this,
+            data: d,
+            pos: [d.x, d.y]
+          });
+        });
+
+
+
+
+      // Toggle children on click.
+      function click(d, _, unshift) {
+        d3.event.stopPropagation();
+
+        if(d3.event.shiftKey && !unshift) {
+          //If you shift-click, it'll toggle fold all the children, instead of itself
+          d3.event.shiftKey = false;
+          d.values && d.values.forEach(function(node){
+            if (node.values || node._values) {
+              click(node, 0, true);
+            }
+          });
+          return true;
+        }
+        if(!hasChildren(d)) {
+          //download file
+          //window.location.href = d.url;
+          return true;
+        }
+        if (d.values) {
+          d._values = d.values;
+          d.values = null;
+        } else {
+          d.values = d._values;
+          d._values = null;
+        }
+        chart.update();
+      }
+
+
+      function icon(d) {
+        return (d._values && d._values.length) ? iconOpen : (d.values && d.values.length) ? iconClose : '';
+      }
+
+      function folded(d) {
+        return (d._values && d._values.length);
+      }
+
+      function hasChildren(d) {
+        var values = d.values || d._values;
+
+        return (values && values.length);
+      }
+
+    });
+
+    return chart;
+  }
+
+
+
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    scatter.color(_);
+    return chart;
+  };
+
+  chart.id = function(_) {
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
+  };
+
+  chart.header = function(_) {
+    if (!arguments.length) return header;
+    header = _;
+    return chart;
+  };
+
+  chart.noResultsText = function(_) {
+    if (!arguments.length) return noResultsText;
+    noResultsText = _;
+    return chart;
+  };
+
+  chart.columns = function(_) {
+    if (!arguments.length) return columns;
+    columns = _;
+    return chart;
+  };
+
+  chart.tableClass = function(_) {
+    if (!arguments.length) return tableClass;
+    tableClass = _;
+    return chart;
+  };
+
+  chart.iconOpen = function(_){
+     if (!arguments.length) return iconOpen;
+    iconOpen = _;
+    return chart;
+  }
+
+  chart.iconClose = function(_){
+     if (!arguments.length) return iconClose;
+    iconClose = _;
+    return chart;
+  }
+
+  return chart;
+}
+
 nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 0},
       width = 400,
@@ -2639,293 +3405,6 @@ nv.models.line = function() {
     defined = _;
     return chart;
   };
-
-  return chart;
-}
-
-//TODO: Finish merging this chart into the NVD3 style!
-nv.models.indentedTree = function() {
-  //Default Settings
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}, //TODO: implement, maybe as margin on the containing div
-      width = 960,
-      height = 500,
-      color = d3.scale.category20().range(),
-      id = Math.floor(Math.random() * 10000), 
-      header = true,
-      noResultsText = 'No Results found.'
-      childIndent = 20,
-      columns = [{key:'key', label: 'Name', type:'text'}], //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
-      tableClass = null,
-      iconOpen = 'images/grey-plus.png', //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
-      iconClose = 'images/grey-minus.png';
-
-
-  var dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout');
-
-
-  function chart(selection) {
-    selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,  //TODO: decide if there is any use for these
-          availableHeight = height - margin.top - margin.bottom;
-
-
-      chart.update = function() { selection.transition().call(chart) };
-
-      var i = 0,
-          depth = 1;
-
-      var tree = d3.layout.tree()
-          .children(function(d) { return d.values })
-          .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
-
-
-      if (!data[0].key) data[0].key = noResultsText;
-
-      var nodes = tree.nodes(data[0]);
-
-
-      var wrap = d3.select(this).selectAll('div').data([[nodes]]);
-      var wrapEnter = wrap.enter().append('div').attr('class', 'wrap nvd3 indentedtree');
-      var tableEnter = wrapEnter.append('table');
-      var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
-
-
-
-      if (header) {
-        var thead = tableEnter.append('thead');
-
-        var theadRow1 = thead.append('tr');
-
-        columns.forEach(function(column) {
-          theadRow1
-            .append('th')
-              .attr('width', column.width ? column.width : '10%')
-              .style('text-align', column.type == 'numeric' ? 'right' : 'left')
-            .append('span')
-              .text(column.label);
-        });
-      }
-
-
-      var tbody = table.selectAll('tbody')
-                    .data(function(d) {return d });
-      tbody.enter().append('tbody');
-
-
-
-      //compute max generations
-      depth = d3.max(nodes, function(node) { return node.depth });
-      tree.size([height, depth * childIndent]); //TODO: see if this is necessary at all
-
-
-      // Update the nodes…
-      var node = tbody.selectAll('tr')
-          .data(function(d) { return d }, function(d) { return d.id || (d.id == ++i)});
-          //.style('display', 'table-row'); //TODO: see if this does anything
-
-      node.exit().remove();
-
-
-      node.select('img.treeicon')
-          .attr('src', icon)
-          .classed('folded', folded);
-
-      var nodeEnter = node.enter().append('tr');
-
-
-      columns.forEach(function(column, index) {
-
-        var nodeName = nodeEnter.append('td')
-            .style('padding-left', function(d) { return (index ? 0 : d.depth * childIndent + 12 + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
-            .style('text-align', column.type == 'numeric' ? 'right' : 'left');
-
-
-        if (index == 0) {
-          nodeName.append('img')
-              .classed('treeicon', true)
-              .classed('folded', folded)
-              .attr('src', icon)
-              .style('width', '14px')
-              .style('height', '14px')
-              .style('padding', '0 1px')
-              .style('display', function(d) { return icon(d) ? 'inline-block' : 'none'; })
-              .on('click', click);
-        }
-
-
-        nodeName.append('span')
-            .attr('class', d3.functor(column.classes) )
-            .text(function(d) { return column.format ? column.format(d) :
-                                        (d[column.key] || '-') });
-
-        if  (column.showCount)
-          nodeName.append('span')
-              .attr('class', 'childrenCount')
-              .text(function(d) {
-                return ((d.values && d.values.length) || (d._values && d._values.length)) ?
-                    '(' + ((d.values && d.values.length) || (d._values && d._values.length)) + ')'
-                  : ''
-              });
-
-
-        if (column.click)
-          nodeName.select('span').on('click', column.click);
-
-      });
-
-
-      node
-        .order()
-        .on('click', function(d) { 
-          dispatch.elementClick({
-            row: this, //TODO: decide whether or not this should be consistent with scatter/line events
-            data: d,
-            pos: [d.x, d.y]
-          });
-        })
-        .on('dblclick', function(d) { 
-          dispatch.elementDblclick({
-            row: this,
-            data: d,
-            pos: [d.x, d.y]
-          });
-        })
-        .on('mouseover', function(d) { 
-          dispatch.elementMouseover({
-            row: this,
-            data: d,
-            pos: [d.x, d.y]
-          });
-        })
-        .on('mouseout', function(d) { 
-          dispatch.elementMouseout({
-            row: this,
-            data: d,
-            pos: [d.x, d.y]
-          });
-        });
-
-
-
-
-      // Toggle children on click.
-      function click(d, _, unshift) {
-        d3.event.stopPropagation();
-
-        if(d3.event.shiftKey && !unshift) {
-          //If you shift-click, it'll toggle fold all the children, instead of itself
-          d3.event.shiftKey = false;
-          d.values && d.values.forEach(function(node){
-            if (node.values || node._values) {
-              click(node, 0, true);
-            }
-          });
-          return true;
-        }
-        if(!hasChildren(d)) {
-          //download file
-          //window.location.href = d.url;
-          return true;
-        }
-        if (d.values) {
-          d._values = d.values;
-          d.values = null;
-        } else {
-          d.values = d._values;
-          d._values = null;
-        }
-        chart.update();
-      }
-
-
-      function icon(d) {
-        return (d._values && d._values.length) ? iconOpen : (d.values && d.values.length) ? iconClose : '';
-      }
-
-      function folded(d) {
-        return (d._values && d._values.length);
-      }
-
-      function hasChildren(d) {
-        var values = d.values || d._values;
-
-        return (values && values.length);
-      }
-
-    });
-
-    return chart;
-  }
-
-
-
-
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin = _;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = _;
-    scatter.color(_);
-    return chart;
-  };
-
-  chart.id = function(_) {
-    if (!arguments.length) return id;
-    id = _;
-    return chart;
-  };
-
-  chart.header = function(_) {
-    if (!arguments.length) return header;
-    header = _;
-    return chart;
-  };
-
-  chart.noResultsText = function(_) {
-    if (!arguments.length) return noResultsText;
-    noResultsText = _;
-    return chart;
-  };
-
-  chart.columns = function(_) {
-    if (!arguments.length) return columns;
-    columns = _;
-    return chart;
-  };
-
-  chart.tableClass = function(_) {
-    if (!arguments.length) return tableClass;
-    tableClass = _;
-    return chart;
-  };
-
-  chart.iconOpen = function(_){
-     if (!arguments.length) return iconOpen;
-    iconOpen = _;
-    return chart;
-  }
-
-  chart.iconClose = function(_){
-     if (!arguments.length) return iconClose;
-    iconClose = _;
-    return chart;
-  }
 
   return chart;
 }
@@ -5151,6 +5630,291 @@ nv.models.multiBarHorizontalChart = function() {
     tooltip = _;
     return chart;
   };
+
+
+  return chart;
+}
+//TODO: eitehr drastically clean up or deprecate this model
+nv.models.ohlcBar = function() {
+  var margin = {top: 0, right: 0, bottom: 0, left: 0},
+      width = 960,
+      height = 500,
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
+      getOpen = function(d) { return d.open },
+      getClose = function(d) { return d.close },
+      getHigh = function(d) { return d.high },
+      getLow = function(d) { return d.low },
+      forceX = [],
+      forceY = [],
+      clipEdge = true,
+      color = d3.scale.category20().range(),
+      xDomain, yDomain;
+
+  var x = d3.scale.linear(),
+      y = d3.scale.linear(),
+      xAxis = d3.svg.axis().scale(x).orient('bottom'),
+      yAxis = d3.svg.axis().scale(y).orient('left'),
+      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
+
+      x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
+          .range([0, availableWidth]);
+
+      y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) )) 
+          .range([availableHeight, 0]);
+
+      // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
+      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
+      if (x.domain()[0] === x.domain()[1])
+        x.domain()[0] ?
+            x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
+          : x.domain([-1,1]);
+
+      if (y.domain()[0] === y.domain()[1])
+        y.domain()[0] ?
+            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+          : y.domain([-1,1]);
+
+
+      var parent = d3.select(this)
+          .on('click', function(d,i) {
+            dispatch.chartClick({
+                data: d,
+                index: i,
+                pos: d3.event,
+                id: id
+            });
+          });
+
+
+      var wrap = d3.select(this).selectAll('g.wrap.historicalStock').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStock');
+      var gEnter = wrapEnter.append('g');
+
+      gEnter.append('g').attr('class', 'ticks');
+
+
+      wrap.attr('width', width)
+          .attr('height', height);
+
+      var g = wrap.select('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      wrapEnter.append('defs').append('clipPath')
+          .attr('id', 'chart-clip-path-' + id)
+        .append('rect');
+      wrap.select('#chart-clip-path-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      gEnter
+          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+
+      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+
+
+
+      var ticks = wrap.select('.ticks').selectAll('.tick')
+          .data(function(d) { return d });
+
+      ticks.exit().remove();
+
+
+      var ticksEnter = ticks.enter().append('path')
+          .attr('class', function(d,i) { return getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive'})
+          //.attr('fill', function(d,i) { return color[0]; })
+          //.attr('stroke', function(d,i) { return color[0]; })
+          //.attr('x', 0 )
+          //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
+          .on('mouseover', function(d,i) {
+            d3.select(this).classed('hover', true);
+            dispatch.elementMouseover({
+                point: d,
+                series: data[0],
+                pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
+                pointIndex: i,
+                seriesIndex: 0,
+                e: d3.event
+            });
+
+          })
+          .on('mouseout', function(d,i) {
+                d3.select(this).classed('hover', false);
+                dispatch.elementMouseout({
+                    point: d,
+                    series: data[0],
+                    pointIndex: i,
+                    seriesIndex: 0,
+                    e: d3.event
+                });
+          })
+          .on('click', function(d,i) {
+                dispatch.elementClick({
+                    //label: d[label],
+                    value: getY(d,i),
+                    data: d,
+                    index: i,
+                    pos: [x(getX(d,i)), y(getY(d,i))],
+                    e: d3.event,
+                    id: id
+                });
+              d3.event.stopPropagation();
+          })
+          .on('dblclick', function(d,i) {
+              dispatch.elementDblClick({
+                  //label: d[label],
+                  value: getY(d,i),
+                  data: d,
+                  index: i,
+                  pos: [x(getX(d,i)), y(getY(d,i))],
+                  e: d3.event,
+                  id: id
+              });
+              d3.event.stopPropagation();
+          });
+
+      ticks
+          .attr('class', function(d,i) { return getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive'})
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })  
+          .attr('d', function(d,i) {
+            var w = (availableWidth / data[0].values.length) * .9;
+            //nv.log(this, getOpen(d,i), getClose(d,i), y(getOpen(d,i)), y(getClose(d,i)));
+            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +',l' + (w/2) + ',0l' + (-w/2) + ',0z';
+          })
+          //.attr('width', (availableWidth / data[0].values.length) * .9 )
+
+
+      //d3.transition(ticks)
+          //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
+          //.order();  // not sure if this makes any sense for this model
+
+    });
+
+    return chart;
+  }
+
+
+  chart.dispatch = dispatch;
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = _;
+    return chart;
+  };
+
+  chart.open = function(_) {
+    if (!arguments.length) return getOpen;
+    getOpen = _;
+    return chart;
+  };
+
+  chart.close = function(_) {
+    if (!arguments.length) return getClose;
+    getClose = _;
+    return chart;
+  };
+
+  chart.high = function(_) {
+    if (!arguments.length) return getHigh;
+    getHigh = _;
+    return chart;
+  };
+
+  chart.low = function(_) {
+    if (!arguments.length) return getLow;
+    getLow = _;
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.xScale = function(_) {
+    if (!arguments.length) return x;
+    x = _;
+    return chart;
+  };
+
+  chart.yScale = function(_) {
+    if (!arguments.length) return y;
+    y = _;
+    return chart;
+  };
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.yDomain = function(_) {
+    if (!arguments.length) return yDomain;
+    yDomain = _;
+    return chart;
+  };
+
+  chart.forceX = function(_) {
+    if (!arguments.length) return forceX;
+    forceX = _;
+    return chart;
+  };
+
+  chart.forceY = function(_) {
+    if (!arguments.length) return forceY;
+    forceY = _;
+    return chart;
+  };
+
+  chart.clipEdge = function(_) {
+    if (!arguments.length) return clipEdge;
+    clipEdge = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = _;
+    return chart;
+  };
+
+  chart.id = function(_) {
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
+  };
+
 
 
   return chart;
