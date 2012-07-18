@@ -18,7 +18,7 @@ nv.models.historicalStockChart = function() {
       };
 
 
-  var stocks = nv.models.historicalStock(),
+  var stocks = nv.models.ohlcBar(),
       bars = nv.models.historicalBar(),
       lines = nv.models.line().interactive(false),
       x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
