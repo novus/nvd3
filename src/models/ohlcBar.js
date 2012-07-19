@@ -32,7 +32,11 @@ nv.models.ohlcBar = function() {
       x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
           .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) )) 
+      //y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) ))
+      y   .domain(yDomain || [
+            d3.min(data[0].values.map(getLow).concat(forceY)),
+            d3.max(data[0].values.map(getHigh).concat(forceY))
+          ])
           .range([availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
