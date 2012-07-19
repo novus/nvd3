@@ -5841,7 +5841,7 @@ nv.models.ohlcBar = function() {
           .attr('d', function(d,i) {
             var w = (availableWidth / data[0].values.length) * .9;
             //nv.log(this, getOpen(d,i), getClose(d,i), y(getOpen(d,i)), y(getClose(d,i)));
-            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +',l' + (w/2) + ',0l' + (-w/2) + ',0z';
+            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
           })
           //.attr('width', (availableWidth / data[0].values.length) * .9 )
 
