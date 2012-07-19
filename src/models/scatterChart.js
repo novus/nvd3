@@ -22,10 +22,8 @@ nv.models.scatterChart = function() {
     , tooltips     = true
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    , tooltip      = function(key, x, y, e, graph) {
-        return '<h3>' + key + '</h3>' +
-               '<p>' +  y + ' at ' + x + '</p>'
-      }
+    //, tooltip      = function(key, x, y) { return '<h3>' + key + '</h3>' }
+    , tooltip      = null
     , scatter      = nv.models.scatter().xScale(x).yScale(y)
     , xAxis        = nv.models.axis().orient('bottom').tickPadding(10)
     , yAxis        = nv.models.axis().orient('left').tickPadding(10)
@@ -48,21 +46,21 @@ nv.models.scatterChart = function() {
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
 
-    //var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        //top = e.pos[1] + ( offsetElement.offsetTop || 0),
-    var leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         topX = y.range()[0] + margin.top + ( offsetElement.offsetTop || 0),
         leftY = x.range()[0] + margin.left + ( offsetElement.offsetLeft || 0 ),
         topY = e.pos[1] + ( offsetElement.offsetTop || 0),
         xVal = xAxis.tickFormat()(scatter.x()(e.point, e.pointIndex)),
-        yVal = yAxis.tickFormat()(scatter.y()(e.point, e.pointIndex)),
-        contentX = tooltipX(e.series.key, xVal, yVal, e, chart),
-        contentY = tooltipY(e.series.key, xVal, yVal, e, chart);
-        //content = tooltip(e.series.key, xVal, yVal, e, chart);
+        yVal = yAxis.tickFormat()(scatter.y()(e.point, e.pointIndex));
 
-    nv.tooltip.show([leftX, topX], contentX, 'n', 1, null, 'x-nvtooltip');
-    nv.tooltip.show([leftY, topY], contentY, 'e', 1, null, 'y-nvtooltip');
-    //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+      if( tooltipX != null )
+          nv.tooltip.show([leftX, topX], tooltipX(e.series.key, xVal, yVal, e, chart), 'n', 1, null, 'x-nvtooltip');
+      if( tooltipY != null )
+          nv.tooltip.show([leftY, topY], tooltipY(e.series.key, xVal, yVal, e, chart), 'e', 1, null, 'y-nvtooltip');
+      if( tooltip != null )
+          nv.tooltip.show([left, top], tooltip(e.series.key, xVal, yVal, e, chart), e.value < 0 ? 'n' : 's');
   };
 
   var controlsData = [
