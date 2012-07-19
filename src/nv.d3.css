@@ -112,6 +112,14 @@ svg .title {
   shape-rendering: crispEdges;
 }
 
+.nvd3.historicalStockChart .brush .extent {
+  fill-opacity: 0 !important;
+}
+
+.nvd3.historicalStockChart .brushBackground {
+  fill: #999;
+  fill-opacity: .5;
+}
 
 
 /**********

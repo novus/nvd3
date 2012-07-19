@@ -2261,6 +2261,7 @@ nv.models.historicalStockChart = function() {
       height3 = 80,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
+      id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       color = d3.scale.category20().range(),
       showLegend = false,
       tooltips = true,
@@ -2358,10 +2359,18 @@ nv.models.historicalStockChart = function() {
          */
 
 
-
+/*
       var wrap = d3.select(this).selectAll('g.wrap.historicalStockChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStockChart').append('g');
+      var defsEnter = gEnter.append('defs');
+     */
 
+      var wrap = container.selectAll('g.wrap.historicalStockChart').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStockChart');
+      var defsEnter = wrapEnter.append('defs');
+      var gEnter = wrapEnter.append('g');
+
+      gEnter.append('g').attr('class', 'brushBackground');
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'x2 axis');
       gEnter.append('g').attr('class', 'x3 axis');
@@ -2377,6 +2386,7 @@ nv.models.historicalStockChart = function() {
 
 
       var g = wrap.select('g');
+      var defs = g.select('defs');
 
 
       if (showLegend) {
@@ -2399,7 +2409,6 @@ nv.models.historicalStockChart = function() {
         g.select('.legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
-
 
 
 
@@ -2440,6 +2449,45 @@ nv.models.historicalStockChart = function() {
       d3.transition(barsWrap).call(bars);
       d3.transition(stocksWrap).call(stocks);
       d3.transition(linesWrap).call(lines);
+
+
+      var brushClip = defsEnter.append('clipPath')
+      //var brushClip = defsEnter.append('clipPath')
+           .attr('id', 'brushBackground-clip-' + id)
+         //.append('g')
+/*
+      brushClip.append('rect')
+          .attr('class', 'center')
+          .attr('x', 0)
+          .attr('y', 0)
+          .style('fill-opacity', 0)
+          .style('opacity', 0)
+          .attr('height', availableHeight3);
+*/
+
+      brushClip.append('rect')
+          .attr('class', 'left')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('height', availableHeight3);
+
+      brushClip.append('rect')
+          .attr('class', 'right')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('height', availableHeight3);
+
+      wrap.select('#edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+
+      g.select('.brushBackground')
+          .attr('clip-path', 'url(#brushBackground-clip-' + id + ')')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
+        .append('rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight3)
 
 
       gBrush = g.select('.x.brush')
@@ -2573,6 +2621,9 @@ nv.models.historicalStockChart = function() {
 
 
       function onBrush() {
+        //nv.log(this, arguments);
+
+
         updateFocus();
 
         //linesWrap.call(lines)
@@ -2585,6 +2636,19 @@ nv.models.historicalStockChart = function() {
         //nv.log(brush.empty(), brush.extent(), x3(brush.extent()[0]), x3(brush.extent()[1]));
 
         var extent = brush.empty() ? x3.domain() : brush.extent();
+
+            /*
+        wrap.select('#brushBackground-clip-' + id + ' rect.center')
+            .attr('x', x3(extent[0]))
+            .attr('width', x3(extent[1]) - x3(extent[0]));
+           */
+
+        wrap.select('#brushBackground-clip-' + id + ' rect.left')
+            .attr('width',  x3(extent[0]) - x3.range()[0])
+
+        wrap.select('#brushBackground-clip-' + id + ' rect.right')
+            .attr('x', x3(extent[1]))
+            .attr('width', x3.range()[1] - x3(extent[1]));
 
         var stocksWrap = g.select('.stocksWrap')
             .datum(
@@ -2706,6 +2770,12 @@ nv.models.historicalStockChart = function() {
     if (!arguments.length) return color;
     color = _;
     legend.color(_);
+    return chart;
+  };
+
+  chart.id = function(_) {
+    if (!arguments.length) return id;
+    id = _;
     return chart;
   };
 
