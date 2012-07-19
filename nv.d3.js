@@ -2257,8 +2257,8 @@ nv.models.historicalStockChart = function() {
       margin3 = {top: 0, right: 30, bottom: 20, left: 80},
       width = null,
       height = null,
-      height2 = 100,
-      height3 = 80,
+      height2 = 80,
+      height3 = 65,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
@@ -2782,6 +2782,18 @@ nv.models.historicalStockChart = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.height2 = function(_) {
+    if (!arguments.length) return height2;
+    height2 = _;
+    return chart;
+  };
+
+  chart.height3 = function(_) {
+    if (!arguments.length) return height3;
+    height3 = _;
     return chart;
   };
 
