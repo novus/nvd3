@@ -2259,15 +2259,22 @@ nv.models.historicalStockChart = function() {
       height = null,
       height2 = 80,
       height3 = 65,
-      getX = function(d) { return d.x },
+      getX = function(d, i) { return i },
+      getDX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       color = d3.scale.category20().range(),
       showLegend = false,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) {
-        return '<h3>' + key + '</h3>' +
-               '<p>Closed at ' +  y + ' on ' + x + '</p>'
+        var high  = stocks.high()(e.point, e.pointIndex),
+            low   = stocks.low()(e.point, e.pointIndex),
+            open  = stocks.open()(e.point, e.pointIndex),
+            close = stocks.close()(e.point, e.pointIndex);
+
+        return '<h3>' + key + ' on ' + x + '</h3>' +
+               '<p>Open ' + open + ', Close ' + close + '</p>' +
+               '<p>High ' + high + ', Low ' + low + '</p>';
       };
 
 
@@ -2276,7 +2283,8 @@ nv.models.historicalStockChart = function() {
       lines = nv.models.line().interactive(false).isArea(true),
       //x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
       x = stocks.xScale(),
-      dx = d3.scale.linear().clamp(true),
+      dx = d3.scale.ordinal(), // this is a lookup to get the right index (what we use for x positioning) from a date
+      xi = d3.scale.linear().clamp(true),
       //x3 = lines.xScale(),
       x3 = d3.time.scale(),
       y1 = bars.yScale(),
@@ -2291,7 +2299,7 @@ nv.models.historicalStockChart = function() {
       yAxis3 = nv.models.axis().scale(y3).orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
-      brush = d3.svg.brush().x(dx),
+      brush = d3.svg.brush().x(xi),
       drag = d3.behavior.drag();
 
   var showTooltip = function(e, offsetElement) {
@@ -2329,53 +2337,18 @@ nv.models.historicalStockChart = function() {
 
 
 
-      //TODO: try to remove x scale computation from this layer
 
-      dx  .domain(d3.extent(dataStocks[0].values.map(function(d,i) {
+      xi  .domain(d3.extent(dataStocks[0].values.map(function(d,i) {
                 return getX(d,i)
             })))
           .range([0, availableWidth]);
 
+      dx  .domain(dataStocks[0].values.map(getDX))
+          .range(dataStocks[0].values.map(getX));
+
       x3  .domain(d3.extent(dataStocks[0].values, function(d) { return d.x })) //TODO make this take different accessor
           .range([0, availableWidth]);
 
-
-          /*
-      var series1 = data.filter(function(d) { return !d.disabled && d.bar })
-            .map(function(d) {
-              return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i) }
-              })
-            });
-
-      var series2 = data.filter(function(d) { return !d.disabled && !d.bar })
-            .map(function(d) {
-              return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i) }
-              })
-            });
-
-      x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
-          .range([0, availableWidth]);
-
-
-
-      x   .domain(d3.extent(d3.merge(data.map(function(d) { return d.values })), getX ))
-          .range([0, availableWidth]);
-
-      y1  .domain(d3.extent(d3.merge(dataBars), function(d) { return d.y } ))
-          .range([availableHeight, 0]);
-
-      y2  .domain(d3.extent(d3.merge(dataLines), function(d) { return d.y } ))
-          .range([availableHeight, 0]);
-         */
-
-
-/*
-      var wrap = d3.select(this).selectAll('g.wrap.historicalStockChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStockChart').append('g');
-      var defsEnter = gEnter.append('defs');
-     */
 
       var wrap = container.selectAll('g.wrap.historicalStockChart').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStockChart');
@@ -2549,8 +2522,8 @@ nv.models.historicalStockChart = function() {
           .attr('y', 0)
           .attr('height', availableHeight3);
 
-      //temporary setting brush to view half the data
-      brush.extent([dx.domain()[1]/2, dx.domain()[1]]);
+      //temporary setting brush to view half the data  TODO: remove this for something more intelligent (maybe always select 1 year range on start.. or let user decide)
+      brush.extent([xi.domain()[1]/2, xi.domain()[1]]);
 
       gBrush = g.select('.x.brush')
           .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
@@ -2685,27 +2658,25 @@ nv.models.historicalStockChart = function() {
 
       function onDrag(d,i) {
         //nv.log(this, d3.event, d, i);
-        //nv.log('dx', d3.event.dx);
+        //nv.log('xi', d3.event.dx);
         //nv.log('x', d.x);
 
         var extent = brush.extent();
 
-        if (d3.event.dx < 0 && extent[1] >= dx.domain()[1]
-         || d3.event.dx > 0 && extent[0] <= dx.domain()[0])
+        if (d3.event.dx < 0 && extent[1] >= xi.domain()[1]
+         || d3.event.dx > 0 && extent[0] <= xi.domain()[0])
           return false;
 
-        if (d3.event.dx < 0 && dx(extent[1]) - d3.event.dx > dx.range()[1])
-          d3.event.dx = dx.range()[1] - dx(extent[1]);
 
-        var ratio = (extent[1] - extent[0]) / (dx.domain()[1] - dx.domain()[0]);
+        var ratio = (extent[1] - extent[0]) / (xi.domain()[1] - xi.domain()[0]);
         ///TODO: Drag distance should be based on the main data's resolution, not the brush window
-        //       need to calculate dx correctly
+        //       need to calculate xi correctly
         var newExtent = [
-          dx.invert(dx(extent[0]) - d3.event.dx * ratio),
-          dx.invert(dx(extent[1]) - d3.event.dx * ratio)
+          xi.invert(xi(extent[0]) - d3.event.dx * ratio),
+          xi.invert(xi(extent[1]) - d3.event.dx * ratio)
         ];
 
-        //nv.log(dx.domain(), extent[0], dx(extent[0]), dx.invert(dx(extent[0])));
+        //nv.log(xi.domain(), extent[0], xi(extent[0]), xi.invert(xi(extent[0])));
 
         brush.extent(newExtent);
         g.select('.x.brush').call(brush);
@@ -2715,9 +2686,9 @@ nv.models.historicalStockChart = function() {
 
 
       function onBrush() {
-        //nv.log(brush.empty(), brush.extent(), dx(brush.extent()[0]), dx(brush.extent()[1]));
+        //nv.log(brush.empty(), brush.extent(), xi(brush.extent()[0]), xi(brush.extent()[1]));
 
-        var extent = brush.empty() ? dx.domain() : brush.extent();
+        var extent = brush.empty() ? xi.domain() : brush.extent();
 
             /*
 
@@ -2726,11 +2697,11 @@ nv.models.historicalStockChart = function() {
             .attr('width', x3(extent[1]) - x3(extent[0]));
 
         wrap.select('#brushBackground-clip-' + id + ' rect.left')
-            .attr('width',  dx(extent[0]) - x.range()[0])
+            .attr('width',  xi(extent[0]) - x.range()[0])
 
         wrap.select('#brushBackground-clip-' + id + ' rect.right')
-            .attr('x', dx(extent[1]))
-            .attr('width', x.range()[1] - dx(extent[1]));
+            .attr('x', xi(extent[1]))
+            .attr('width', x.range()[1] - xi(extent[1]));
            */
 
         g.select('.brushBackground rect.center')
@@ -2738,11 +2709,11 @@ nv.models.historicalStockChart = function() {
             .attr('width', x3(extent[1]) - x3(extent[0]));
 
         g.select('.brushBackground rect.left')
-            .attr('width',  dx(extent[0]) - x.range()[0])
+            .attr('width',  xi(extent[0]) - x.range()[0])
 
         g.select('.brushBackground rect.right')
-            .attr('x', dx(extent[1]))
-            .attr('width', x.range()[1] - dx(extent[1]));
+            .attr('x', xi(extent[1]))
+            .attr('width', x.range()[1] - xi(extent[1]));
 
         var stocksWrap = g.select('.stocksWrap')
             .datum(
@@ -2816,6 +2787,12 @@ nv.models.historicalStockChart = function() {
     stocks.x(_);
     lines.x(_);
     bars.x(_);
+    return chart;
+  };
+
+  chart.dx = function(_) {
+    if (!arguments.length) return getDX;
+    getDX = _;
     return chart;
   };
 
