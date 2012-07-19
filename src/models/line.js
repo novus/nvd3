@@ -255,7 +255,7 @@ nv.models.line = function() {
 
   chart.isArea = function(_) {
     if (!arguments.length) return isArea;
-    isArea = _;
+    isArea = d3.functor(_);
     return chart;
   };
 

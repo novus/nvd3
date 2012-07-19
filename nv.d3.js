@@ -2272,7 +2272,7 @@ nv.models.historicalStockChart = function() {
 
   var stocks = nv.models.ohlcBar(),
       bars = nv.models.historicalBar(),
-      lines = nv.models.line().interactive(false),
+      lines = nv.models.line().interactive(false).isArea(true),
       //x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
       x = stocks.xScale(),
       x3 = lines.xScale(),
@@ -3454,7 +3454,7 @@ nv.models.line = function() {
 
   chart.isArea = function(_) {
     if (!arguments.length) return isArea;
-    isArea = _;
+    isArea = d3.functor(_);
     return chart;
   };
 
