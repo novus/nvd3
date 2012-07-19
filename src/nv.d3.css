@@ -111,7 +111,21 @@ svg .title {
   shape-rendering: crispEdges;
 }
 
+
+/**********
+*  Historical Stock
+*/
+
+.nvd3.historicalStockChart .dragTarget {
+  fill-opacity: 0;
+  stroke: none;
+  cursor: move;
+}
+
 .nvd3.historicalStockChart .brush .extent {
+  /*
+  cursor: ew-resize !important;
+  */
   fill-opacity: 0 !important;
 }
 

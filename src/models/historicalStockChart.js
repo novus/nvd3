@@ -24,7 +24,7 @@ nv.models.historicalStockChart = function() {
       lines = nv.models.line().interactive(false).isArea(true),
       //x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
       x = stocks.xScale(),
-      dx = d3.scale.linear(),
+      dx = d3.scale.linear().clamp(true),
       //x3 = lines.xScale(),
       x3 = d3.time.scale(),
       y1 = bars.yScale(),
@@ -39,7 +39,8 @@ nv.models.historicalStockChart = function() {
       yAxis3 = nv.models.axis().scale(y3).orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
-      brush = d3.svg.brush().x(dx);
+      brush = d3.svg.brush().x(dx),
+      drag = d3.behavior.drag();
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -67,6 +68,7 @@ nv.models.historicalStockChart = function() {
 
 
       brush.on('brush', onBrush);
+      drag.on('drag', onDrag);
 
 
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
@@ -203,6 +205,16 @@ nv.models.historicalStockChart = function() {
       var linesWrap = g.select('.linesWrap')
           .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
           .datum(dataStocks.length ? dataStocks : [{values:[]}])
+
+
+      stocksWrap.selectAll('rect.dragTarget')
+          .data([{x:0}])
+        .enter().append('rect').attr('class', 'dragTarget')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight + margin.bottom + height2)
+          .call(drag)
+
+
 
       d3.transition(barsWrap).call(bars);
       d3.transition(stocksWrap).call(stocks);
@@ -399,6 +411,35 @@ nv.models.historicalStockChart = function() {
             + "V" + (2 * y - 8);
       }
 
+
+      function onDrag(d,i) {
+        //nv.log(this, d3.event, d, i);
+        //nv.log('dx', d3.event.dx);
+        //nv.log('x', d.x);
+
+        var extent = brush.extent();
+
+        if (d3.event.dx < 0 && extent[1] >= dx.domain()[1]
+         || d3.event.dx > 0 && extent[0] <= dx.domain()[0])
+          return false;
+
+        if (d3.event.dx < 0 && dx(extent[1]) - d3.event.dx > dx.range()[1])
+          d3.event.dx = dx.range()[1] - dx(extent[1]);
+
+        ///TODO: Drag distance should be based on the main data's resolution, not the brush window
+        //       need to calculate dx correctly
+        var newExtent = [
+          dx.invert(dx(extent[0]) - d3.event.dx),
+          dx.invert(dx(extent[1]) - d3.event.dx)
+        ];
+
+        //nv.log(dx.domain(), extent[0], dx(extent[0]), dx.invert(dx(extent[0])));
+
+        brush.extent(newExtent);
+        g.select('.x.brush').call(brush);
+        onBrush();
+
+      };
 
 
       function onBrush() {
