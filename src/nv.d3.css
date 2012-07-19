@@ -290,6 +290,23 @@ svg .title {
   */
 }
 
+.nvd3 .groups path.area {
+  stroke: none;
+  stroke-linecap: round;
+  shape-rendering: geometricPrecision;
+
+  /*
+  stroke-width: 2.5px;
+  transition: stroke-width 250ms linear;
+  -moz-transition: stroke-width 250ms linear;
+  -webkit-transition: stroke-width 250ms linear;
+
+  transition-delay: 250ms
+  -moz-transition-delay: 250ms;
+  -webkit-transition-delay: 250ms;
+  */
+}
+
 .nvd3 .line.hover path {
   stroke-width: 6px;
 }

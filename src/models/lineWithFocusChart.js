@@ -293,7 +293,7 @@ nv.models.lineWithFocusChart = function() {
   chart.x2Axis = x2Axis;
   chart.y2Axis = y2Axis;
 
-  d3.rebind(chart, lines, 'defined', 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
 
   chart.margin = function(_) {
