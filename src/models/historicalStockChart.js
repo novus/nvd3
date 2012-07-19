@@ -130,17 +130,17 @@ nv.models.historicalStockChart = function() {
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'brushBackground');
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'x2 axis');
       gEnter.append('g').attr('class', 'y1 axis');
       gEnter.append('g').attr('class', 'y2 axis');
       gEnter.append('g').attr('class', 'y3 axis');
-      gEnter.append('g').attr('class', 'barsWrap');
       gEnter.append('g').attr('class', 'stocksWrap');
+      gEnter.append('g').attr('class', 'barsWrap');
       gEnter.append('g').attr('class', 'linesWrap');
+      gEnter.append('g').attr('class', 'brushBackground');
       gEnter.append('g').attr('class', 'x3 axis');
-      gEnter.append('g').attr('class', 'legendWrap');
+      //gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x brush');
 
 
@@ -149,6 +149,7 @@ nv.models.historicalStockChart = function() {
       var defs = g.select('defs');
 
 
+      /*
       if (showLegend) {
         legend.width( availableWidth / 2 );
 
@@ -169,6 +170,7 @@ nv.models.historicalStockChart = function() {
         g.select('.legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
+      */
 
 
 
@@ -203,6 +205,7 @@ nv.models.historicalStockChart = function() {
           .datum(dataStocks.length ? dataStocks : [{values:[]}])
 
       var linesWrap = g.select('.linesWrap')
+          //.attr('mask', 'url(#brushBackground-clip-' + id + ')')
           .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
           .datum(dataStocks.length ? dataStocks : [{values:[]}])
 
@@ -220,43 +223,59 @@ nv.models.historicalStockChart = function() {
       d3.transition(stocksWrap).call(stocks);
       d3.transition(linesWrap).call(lines);
 
-
 /*
-      var brushClip = defsEnter.append('clipPath')
+      var brushClip = defsEnter.append('mask')
       //var brushClip = defsEnter.append('clipPath')
            .attr('id', 'brushBackground-clip-' + id)
          //.append('g')
+
       brushClip.append('rect')
           .attr('class', 'center')
           .attr('x', 0)
           .attr('y', 0)
-          .style('fill-opacity', 0)
-          .style('opacity', 0)
+          .style('fill', '#FFF')
+          .style('fill-opacity', 1)
+          .style('opacity', 1)
           .attr('height', availableHeight3);
 
       brushClip.append('rect')
           .attr('class', 'left')
           .attr('x', 0)
           .attr('y', 0)
+          .style('fill', '#FFF')
+          .style('fill-opacity', .5)
+          .style('opacity', .5)
           .attr('height', availableHeight3);
 
       brushClip.append('rect')
           .attr('class', 'right')
           .attr('x', 0)
           .attr('y', 0)
+          .style('fill', '#FFF')
+          .style('fill-opacity', .5)
+          .style('opacity', .5)
           .attr('height', availableHeight3);
-*/
+          */
+
 
       wrap.select('#edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-
       var brushBG = g.select('.brushBackground')
+          //.attr('mask', 'url(#brushBackground-clip-' + id + ')')
           //.attr('clip-path', 'url(#brushBackground-clip-' + id + ')')
           .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')');
 
 /*
+      brushBG.append('rect')
+          .attr('x', 0)
+          .attr('y', 0)
+          //.style('fill-opacity', 0)
+          //.style('opacity', 0)
+          .attr('width', availableWidth)
+          .attr('height', availableHeight3);
+
       brushBG.append('rect')
           .attr('class', 'center')
           .attr('x', 0)
@@ -449,10 +468,22 @@ nv.models.historicalStockChart = function() {
         var extent = brush.empty() ? dx.domain() : brush.extent();
 
             /*
-        wrap.select('.brushBackground rect.center')
+
+        wrap.select('#brushBackground-clip-' + id +' rect.center')
             .attr('x', x3(extent[0]))
             .attr('width', x3(extent[1]) - x3(extent[0]));
+
+        wrap.select('#brushBackground-clip-' + id + ' rect.left')
+            .attr('width',  dx(extent[0]) - x.range()[0])
+
+        wrap.select('#brushBackground-clip-' + id + ' rect.right')
+            .attr('x', dx(extent[1]))
+            .attr('width', x.range()[1] - dx(extent[1]));
            */
+
+        g.select('.brushBackground rect.center')
+            .attr('x', x3(extent[0]))
+            .attr('width', x3(extent[1]) - x3(extent[0]));
 
         g.select('.brushBackground rect.left')
             .attr('width',  dx(extent[0]) - x.range()[0])

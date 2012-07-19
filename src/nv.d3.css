@@ -131,9 +131,9 @@ svg .title {
 
 .nvd3.historicalStockChart .brushBackground rect {
   stroke: #000;
-  stroke-width: .75;
-  fill: #999;
-  fill-opacity: .5;
+  stroke-width: .4;
+  fill: #fff;
+  fill-opacity: .6;
 }
 
 
