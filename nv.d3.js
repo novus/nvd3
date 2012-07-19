@@ -2253,7 +2253,7 @@ nv.models.distribution = function() {
 
 nv.models.historicalStockChart = function() {
   var margin = {top: 10, right: 30, bottom: 25, left: 80},
-      margin2 = {top: 0, right: 30, bottom: 10, left: 80},
+      margin2 = {top: 0, right: 30, bottom: 5, left: 80},
       margin3 = {top: 0, right: 30, bottom: 20, left: 80},
       width = null,
       height = null,
@@ -2276,19 +2276,22 @@ nv.models.historicalStockChart = function() {
       lines = nv.models.line().interactive(false).isArea(true),
       //x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
       x = stocks.xScale(),
-      x3 = lines.xScale(),
+      dx = d3.scale.linear(),
+      //x3 = lines.xScale(),
+      x3 = d3.time.scale(),
       y1 = bars.yScale(),
       y2 = stocks.yScale(),
       y3 = lines.yScale(),
       xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       xAxis2 = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      xAxis3 = nv.models.axis().scale(x3).orient('bottom').tickPadding(5),
+      //xAxis3 = nv.models.axis().scale(x3).orient('bottom').tickPadding(5),
+      xAxis3 = d3.svg.axis().scale(x3).orient('bottom'),
       yAxis1 = nv.models.axis().scale(y1).orient('left'),
       yAxis2 = nv.models.axis().scale(y2).orient('left'),
       yAxis3 = nv.models.axis().scale(y3).orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
-      brush = d3.svg.brush().x(x3);
+      brush = d3.svg.brush().x(dx);
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -2326,6 +2329,13 @@ nv.models.historicalStockChart = function() {
 
       //TODO: try to remove x scale computation from this layer
 
+      dx  .domain(d3.extent(dataStocks[0].values.map(function(d,i) {
+                return getX(d,i)
+            })))
+          .range([0, availableWidth]);
+
+      x3  .domain(d3.extent(dataStocks[0].values, function(d) { return d.x })) //TODO make this take different accessor
+          .range([0, availableWidth]);
 
 
           /*
@@ -2373,13 +2383,13 @@ nv.models.historicalStockChart = function() {
       gEnter.append('g').attr('class', 'brushBackground');
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'x2 axis');
-      gEnter.append('g').attr('class', 'x3 axis');
       gEnter.append('g').attr('class', 'y1 axis');
       gEnter.append('g').attr('class', 'y2 axis');
       gEnter.append('g').attr('class', 'y3 axis');
       gEnter.append('g').attr('class', 'barsWrap');
       gEnter.append('g').attr('class', 'stocksWrap');
       gEnter.append('g').attr('class', 'linesWrap');
+      gEnter.append('g').attr('class', 'x3 axis');
       gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x brush');
 
@@ -2451,11 +2461,11 @@ nv.models.historicalStockChart = function() {
       d3.transition(linesWrap).call(lines);
 
 
+/*
       var brushClip = defsEnter.append('clipPath')
       //var brushClip = defsEnter.append('clipPath')
            .attr('id', 'brushBackground-clip-' + id)
          //.append('g')
-/*
       brushClip.append('rect')
           .attr('class', 'center')
           .attr('x', 0)
@@ -2463,7 +2473,6 @@ nv.models.historicalStockChart = function() {
           .style('fill-opacity', 0)
           .style('opacity', 0)
           .attr('height', availableHeight3);
-*/
 
       brushClip.append('rect')
           .attr('class', 'left')
@@ -2476,19 +2485,41 @@ nv.models.historicalStockChart = function() {
           .attr('x', 0)
           .attr('y', 0)
           .attr('height', availableHeight3);
+*/
 
       wrap.select('#edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
 
-      g.select('.brushBackground')
-          .attr('clip-path', 'url(#brushBackground-clip-' + id + ')')
-          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
-        .append('rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight3)
+      var brushBG = g.select('.brushBackground')
+          //.attr('clip-path', 'url(#brushBackground-clip-' + id + ')')
+          .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')');
 
+/*
+      brushBG.append('rect')
+          .attr('class', 'center')
+          .attr('x', 0)
+          .attr('y', 0)
+          .style('fill-opacity', 0)
+          .style('opacity', 0)
+          .attr('height', availableHeight3);
+*/
+
+      brushBG.append('rect')
+          .attr('class', 'left')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('height', availableHeight3);
+
+      brushBG.append('rect')
+          .attr('class', 'right')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('height', availableHeight3);
+
+      //temporary setting brush to view half the data
+      brush.extent([dx.domain()[1]/2, dx.domain()[1]]);
 
       gBrush = g.select('.x.brush')
           .attr('transform', 'translate(0,' + (availableHeight + margin.bottom + height2) + ')')
@@ -2498,6 +2529,8 @@ nv.models.historicalStockChart = function() {
           .attr('height', availableHeight3);
       gBrush.selectAll(".resize").append("path").attr("d", resizePath);
 
+      //temporary setting brush to view half the data, need to call to update background
+      onBrush();
 
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -2621,34 +2654,22 @@ nv.models.historicalStockChart = function() {
 
 
       function onBrush() {
-        //nv.log(this, arguments);
+        //nv.log(brush.empty(), brush.extent(), dx(brush.extent()[0]), dx(brush.extent()[1]));
 
-
-        updateFocus();
-
-        //linesWrap.call(lines)
-        //var focusLinesWrap = g.select('.focus .linesWrap')
-        //g.select('.x.axis').call(xAxis);
-        //g.select('.y.axis').call(yAxis1);
-      }
-
-      function updateFocus() {
-        //nv.log(brush.empty(), brush.extent(), x3(brush.extent()[0]), x3(brush.extent()[1]));
-
-        var extent = brush.empty() ? x3.domain() : brush.extent();
+        var extent = brush.empty() ? dx.domain() : brush.extent();
 
             /*
-        wrap.select('#brushBackground-clip-' + id + ' rect.center')
+        wrap.select('.brushBackground rect.center')
             .attr('x', x3(extent[0]))
             .attr('width', x3(extent[1]) - x3(extent[0]));
            */
 
-        wrap.select('#brushBackground-clip-' + id + ' rect.left')
-            .attr('width',  x3(extent[0]) - x3.range()[0])
+        g.select('.brushBackground rect.left')
+            .attr('width',  dx(extent[0]) - x.range()[0])
 
-        wrap.select('#brushBackground-clip-' + id + ' rect.right')
-            .attr('x', x3(extent[1]))
-            .attr('width', x3.range()[1] - x3(extent[1]));
+        g.select('.brushBackground rect.right')
+            .attr('x', dx(extent[1]))
+            .attr('width', x.range()[1] - dx(extent[1]));
 
         var stocksWrap = g.select('.stocksWrap')
             .datum(
@@ -2685,20 +2706,6 @@ nv.models.historicalStockChart = function() {
         d3.transition(g.select('.y2.axis'))
             .call(yAxis2);
 
-        /*
-        var yDomain = brush.empty() ? y3.domain() : d3.extent(d3.merge(dataStocks.map(function(d) { return d.values })).filter(function(d) {
-          return lines.x()(d) >= brush.extent()[0] && lines.x()(d) <= brush.extent()[1];
-        }), lines.y());  //This doesn't account for the 1 point before and the 1 point after the domain.  Would fix, but likely need to change entire methodology here
-
-        if (typeof yDomain[0] == 'undefined') yDomain = y3.domain(); //incase the brush doesn't cover a single point
-
-
-        x.domain(brush.empty() ? x3.domain() : brush.extent());
-        y1.domain(yDomain);
-       */
-
-        //lines.xDomain(x.domain());
-        //lines.yDomain(y1.domain());
       }
 
 
@@ -2751,6 +2758,18 @@ nv.models.historicalStockChart = function() {
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin = _;
+    return chart;
+  };
+
+  chart.margin2 = function(_) {
+    if (!arguments.length) return margin2;
+    margin2 = _;
+    return chart;
+  };
+
+  chart.margin3 = function(_) {
+    if (!arguments.length) return margin3;
+    margin3 = _;
     return chart;
   };
 

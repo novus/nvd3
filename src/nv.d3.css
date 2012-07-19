@@ -107,7 +107,6 @@ svg .title {
 */
 
 .brush .extent {
-  stroke: #666;
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
@@ -116,7 +115,9 @@ svg .title {
   fill-opacity: 0 !important;
 }
 
-.nvd3.historicalStockChart .brushBackground {
+.nvd3.historicalStockChart .brushBackground rect {
+  stroke: #000;
+  stroke-width: .75;
   fill: #999;
   fill-opacity: .5;
 }

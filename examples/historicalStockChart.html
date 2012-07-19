@@ -26,7 +26,7 @@ svg {
     <input type="text" id="ticker" name="ticker" value="GOOG"></input>
 
     <label for="endDate">Start Date: </label>
-    <input type="text" id="startDate" name="startDate" value="-1 year"></input>
+    <input type="text" id="startDate" name="startDate" value="-2 year"></input>
 
     <label for="endDate">End Date: </label>
     <input type="text" id="endDate" name="endDate" value="now"></input>
@@ -147,6 +147,7 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
     nv.addGraph(function() {
       var chart = nv.models.historicalStockChart()
           //.margin({top: 30, right: 70, bottom: 50, left: 55})
+          .margin3({top: 0, right: 30, bottom: 5, left: 80})
           .x(function(d,i) { return d.dx })
           .color(d3.scale.category10().range());
 
@@ -168,12 +169,15 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
             return d3.time.format('%x')(new Date(dx))
           });
 
+
       chart.xAxis3
-          .tickPadding(7)
+          .tickPadding(-12)
+          /*
           .tickFormat(function(d) {
             var dx = lineData[0].values[d] && lineData[0].values[parseInt(d)].x || 0;
             return d3.time.format('%x')(new Date(dx))
           });
+          */
 
       // Use to treat dates linear
       //chart.xAxis.tickFormat(function(d) {
@@ -189,7 +193,8 @@ function getHistoricalStockData(symbol, startDate, endDate, frequency) {
           //.tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
 
       chart.yAxis3
-          .tickFormat(d3.format(',.2f'));
+          .tickFormat(function() { return null })
+          //.tickFormat(d3.format(',.2f'));
           //.tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
 
       chart.bars.forceY([0]);
