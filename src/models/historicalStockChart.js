@@ -426,11 +426,12 @@ nv.models.historicalStockChart = function() {
         if (d3.event.dx < 0 && dx(extent[1]) - d3.event.dx > dx.range()[1])
           d3.event.dx = dx.range()[1] - dx(extent[1]);
 
+        var ratio = (extent[1] - extent[0]) / (dx.domain()[1] - dx.domain()[0]);
         ///TODO: Drag distance should be based on the main data's resolution, not the brush window
         //       need to calculate dx correctly
         var newExtent = [
-          dx.invert(dx(extent[0]) - d3.event.dx),
-          dx.invert(dx(extent[1]) - d3.event.dx)
+          dx.invert(dx(extent[0]) - d3.event.dx * ratio),
+          dx.invert(dx(extent[1]) - d3.event.dx * ratio)
         ];
 
         //nv.log(dx.domain(), extent[0], dx(extent[0]), dx.invert(dx(extent[0])));
