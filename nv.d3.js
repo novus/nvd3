@@ -2390,8 +2390,8 @@ nv.models.historicalStockChart = function() {
       gEnter.append('g').attr('class', 'stocksWrap');
       gEnter.append('g').attr('class', 'barsWrap');
       gEnter.append('g').attr('class', 'linesWrap');
-      gEnter.append('g').attr('class', 'brushBackground');
       gEnter.append('g').attr('class', 'x3 axis');
+      gEnter.append('g').attr('class', 'brushBackground');
       //gEnter.append('g').attr('class', 'legendWrap');
       gEnter.append('g').attr('class', 'x brush');
 
