@@ -1,4 +1,3 @@
-
 nv.models.axis = function() {
   //Default Settings
   var width = 60, //only used for tickLabel currently
@@ -6,8 +5,9 @@ nv.models.axis = function() {
       scale = d3.scale.linear(),
       axisLabelText = null,
       showMaxMin = true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
-      highlightZero = true;
-      //TODO: considering adding margin
+      highlightZero = true,
+      rotateYLabel = true;
+      margin = {top: 0, right: 0, bottom: 0, left: 0}
 
   var axis = d3.svg.axis()
                .scale(scale)
@@ -99,11 +99,11 @@ nv.models.axis = function() {
           break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-              .attr('text-anchor', 'middle')
-              .attr('transform', 'rotate(90)')
-              .attr('y', -width + 12); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('text-anchor',   	rotateYLabel ? 'middle'					: 'begin')
+              .attr('transform', 		rotateYLabel ? 'rotate(90)' 			: '')
+              .attr('y', 				rotateYLabel ? (-Math.max(margin.right,width) - 12)		: -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', -scale.range()[0] / 2);
+              .attr('x', 				rotateYLabel ? (scale.range()[0] / 2)	: axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -132,11 +132,11 @@ nv.models.axis = function() {
           break;
         case 'left':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-              .attr('text-anchor', 'middle')
-              .attr('transform', 'rotate(-90)')
-              .attr('y', -width + 12); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('text-anchor', 		rotateYLabel ? 'middle' 				: 'end')
+              .attr('transform', 		rotateYLabel ? 'rotate(-90)' 			: '')
+              .attr('y', 				rotateYLabel ? (-Math.max(margin.left,width) + 12) 		: -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', -scale.range()[0] / 2);
+              .attr('x', 				rotateYLabel ? (-scale.range()[0] / 2) 	: -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -257,7 +257,16 @@ nv.models.axis = function() {
     d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
     return chart;
   }
-
+  chart.rotateYLabel = function(_) {
+  	if(!arguments.length) return rotateYLabel;
+  	rotateYLabel = _;
+  	return chart;
+  }
+  chart.margin = function(_) {
+  	if(!arguments.length) return margin;
+  	margin = _;
+  	return chart;
+  }
 
   return chart;
 }
