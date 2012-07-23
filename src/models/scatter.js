@@ -28,7 +28,7 @@ nv.models.scatter = function() {
    ,  xDomain     = null // Override x domain (skips the calculation from data)
    ,  yDomain     = null // Override y domain
    ,  sizeDomain  = null // Override point size domain
-   ;  singlePoint = false
+   ,  singlePoint = false
    ,  dispatch    = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
    ;
 
