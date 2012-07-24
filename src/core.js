@@ -19,13 +19,13 @@ nv.dispatch = d3.dispatch('render_start', 'render_end');
 
 if (nv.dev) {
   nv.dispatch.on('render_start', function(e) {
-    nv.log.startTime = +new Date();
+    nv.logs.startTime = +new Date();
   });
 
   nv.dispatch.on('render_end', function(e) {
-    nv.log.endTime = +new Date();
-    nv.log.totalTime = nv.log.endTime - nv.log.startTime;
-    if (console.log) console.log('total', nv.log.totalTime); // used for development, to keep track of graph generation times
+    nv.logs.endTime = +new Date();
+    nv.logs.totalTime = nv.logs.endTime - nv.logs.startTime;
+    nv.log('total', nv.logs.totalTime); // used for development, to keep track of graph generation times
   });
 }
 
@@ -109,4 +109,3 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
   }
 );
 
-console.log(d3.time.monthEnds);
