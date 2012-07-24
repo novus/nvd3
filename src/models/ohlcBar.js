@@ -98,7 +98,12 @@ nv.models.ohlcBar = function() {
 
 
       var ticksEnter = ticks.enter().append('path')
-          .attr('class', function(d,i) { return getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive'})
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+          .attr('d', function(d,i) {
+            var w = (availableWidth / data[0].values.length) * .9;
+            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
+          })
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           //.attr('fill', function(d,i) { return color[0]; })
           //.attr('stroke', function(d,i) { return color[0]; })
           //.attr('x', 0 )
@@ -152,11 +157,11 @@ nv.models.ohlcBar = function() {
           });
 
       ticks
-          .attr('class', function(d,i) { return getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive'})
-          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })  
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+      d3.transition(ticks)
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           .attr('d', function(d,i) {
             var w = (availableWidth / data[0].values.length) * .9;
-            //nv.log(this, getOpen(d,i), getClose(d,i), y(getOpen(d,i)), y(getClose(d,i)));
             return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
           })
           //.attr('width', (availableWidth / data[0].values.length) * .9 )

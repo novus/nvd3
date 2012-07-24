@@ -99,11 +99,11 @@ nv.models.axis = function() {
           break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-              .attr('text-anchor',   	rotateYLabel ? 'middle'					: 'begin')
-              .attr('transform', 		rotateYLabel ? 'rotate(90)' 			: '')
-              .attr('y', 				rotateYLabel ? (-Math.max(margin.right,width) - 12)		: -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('text-anchor', rotateYLabel ? 'middle' : 'begin')
+              .attr('transform', rotateYLabel ? 'rotate(90)' : '')
+              .attr('y', rotateYLabel ? (-Math.max(margin.right,width) - 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', 				rotateYLabel ? (scale.range()[0] / 2)	: axis.tickPadding());
+              .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -132,11 +132,11 @@ nv.models.axis = function() {
           break;
         case 'left':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-              .attr('text-anchor', 		rotateYLabel ? 'middle' 				: 'end')
-              .attr('transform', 		rotateYLabel ? 'rotate(-90)' 			: '')
-              .attr('y', 				rotateYLabel ? (-Math.max(margin.left,width) + 12) 		: -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('text-anchor', rotateYLabel ? 'middle' : 'end')
+              .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
+              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', 				rotateYLabel ? (-scale.range()[0] / 2) 	: -axis.tickPadding());
+              .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
