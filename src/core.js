@@ -3,7 +3,6 @@ var nv = {
   dev: true //set false when in production
 };
 
-
 window.nv = nv;
 
 nv.tooltip = {}; // For the tooltip system
@@ -15,21 +14,20 @@ nv.logs = {}; //stores some statistics and potential error messages
 
 nv.dispatch = d3.dispatch('render_start', 'render_end');
 
+// *************************************************************************
+//  Development render timers - disabled if dev = false
 
+if (nv.dev) {
+  nv.dispatch.on('render_start', function(e) {
+    nv.log.startTime = +new Date();
+  });
 
-// ********************************************
-//  Public Core NV functions
-
-nv.dispatch.on('render_start', function(e) {
-  nv.logs.startTime = +new Date;
-});
-
-nv.dispatch.on('render_end', function(e) {
-  nv.logs.endTime = +new Date;
-  nv.logs.totalTime = nv.logs.endTime - nv.logs.startTime;
-  if (nv.dev && console.log) console.log('total', nv.logs.totalTime); //used for development, to keep track of graph generation times
-});
-
+  nv.dispatch.on('render_end', function(e) {
+    nv.log.endTime = +new Date();
+    nv.log.totalTime = nv.log.endTime - nv.log.startTime;
+    if (console.log) console.log('total', nv.log.totalTime); // used for development, to keep track of graph generation times
+  });
+}
 
 // ********************************************
 //  Public Core NV functions
@@ -38,7 +36,7 @@ nv.dispatch.on('render_end', function(e) {
 nv.log = function() {
   if (nv.dev && console.log) console.log.apply(console, arguments);
   return arguments[arguments.length - 1];
-}
+};
 
 
 nv.render = function render(step) {
@@ -47,28 +45,26 @@ nv.render = function render(step) {
   render.active = true;
   nv.dispatch.render_start();
 
-  setTimeout(function(){
+  setTimeout(function() {
     var chart;
 
     for (var i = 0; i < step && (graph = render.queue[i]); i++) {
       chart = graph.generate();
-      if (typeof graph.callback === 'function') graph.callback(chart);
+      if (typeof graph.callback == typeof(Function)) graph.callback(chart);
       nv.graphs.push(chart);
     }
 
     render.queue.splice(0, i);
 
     if (render.queue.length) setTimeout(arguments.callee, 0);
-    else { 
-      nv.render.active = false;
-      nv.dispatch.render_end();
-    }
+    else { nv.render.active = false; nv.dispatch.render_end(); }
   }, 0);
 };
+
 nv.render.queue = [];
 
 nv.addGraph = function(obj) {
-  if (typeof arguments[0] === 'function')
+  if (typeof arguments[0] === typeof(Function))
     obj = {generate: arguments[0], callback: arguments[1]};
 
   nv.render.queue.push(obj);
@@ -76,13 +72,13 @@ nv.addGraph = function(obj) {
   if (!nv.render.active) nv.render();
 };
 
-nv.identity = function(d) { return d };
+nv.identity = function(d) { return d; };
 
 nv.strip = function(s) { return s.replace(/(\s|&)/g,''); };
 
 function daysInMonth(month,year) {
   return (new Date(year, month+1, 0)).getDate();
-};
+}
 
 function d3_time_range(floor, step, number) {
   return function(t0, t1, dt) {
@@ -91,15 +87,15 @@ function d3_time_range(floor, step, number) {
     if (dt > 1) {
       while (time < t1) {
         var date = new Date(+time);
-        if (!(number(date) % dt)) times.push(date);
+        if ((number(date) % dt === 0)) times.push(date);
         step(time);
       }
     } else {
-      while (time < t1) times.push(new Date(+time)), step(time);
+      while (time < t1) { times.push(new Date(+time)); step(time); }
     }
     return times;
   };
-};
+}
 
 d3.time.monthEnd = function(date) {
   return new Date(date.getFullYear(), date.getMonth(), 0);
@@ -112,3 +108,5 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     return date.getMonth();
   }
 );
+
+console.log(d3.time.monthEnds);
