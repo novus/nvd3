@@ -186,7 +186,7 @@ nv.models.multiBarHorizontal = function() {
             //.delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('transform', function(d,i) {
               //return 'translate(' + y(d.y0) + ',0)'
-              return 'translate(' + y(d.y0) + ',' + (stacked ? 0 : (j * x.rangeBand() / data.length )) + ')'
+              return 'translate(' + y(d.y0) + ',' + x(getX(d,i)) + ')'
             })
           .select('rect')
             .attr('width', function(d,i) {
