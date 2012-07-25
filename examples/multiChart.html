@@ -45,38 +45,27 @@ text {
 <script>
 
 
-var testdata = stream_layers(3,10+Math.random()*100,.1).map(function(data, i) {
+var testdata = stream_layers(7,10+Math.random()*100,.1).map(function(data, i) {
   return {
     key: 'Stream' + i,
-    values: data
+    values: data.map(function(a){a.y = a.y - i/2; return a})
   };
 });
 
-testdata[0].type = "area"
+testdata[0].type = "line"
 testdata[0].yAxis = 1
 testdata[1].type = "line"
-testdata[1].yAxis = 2
+testdata[1].yAxis = 1
 testdata[2].type = "line"
 testdata[2].yAxis = 2
-
-/*
-//For testing single data point
-var testdata = [
-  {
-    "key" : "Quantity" ,
-    "bar": true,
-    "values" : [ [ 1136005200000 , 1271000.0] ]
-  } ,
-  {
-    "key" : "Price" ,
-    "values" : [ [ 1136005200000 , 71.89] ]
-  }
-].map(function(series) {
-  series.values = series.values.map(function(d) { return {x: d[0], y: d[1] } });
-  return series;
-});
-*/
-
+testdata[3].type = "bar"
+testdata[3].yAxis = 2
+testdata[4].type = "bar"
+testdata[4].yAxis = 2
+testdata[5].type = "bar"
+testdata[5].yAxis = 2
+testdata[6].type = "bar"
+testdata[6].yAxis = 2
 
 
 nv.addGraph(function() {
@@ -87,10 +76,10 @@ nv.addGraph(function() {
     chart.xAxis
         .tickFormat(d3.format(',f'));
 
-    chart.yLinesAxis1
+    chart.yAxis1
         .tickFormat(d3.format(',.1f'));
 
-    chart.yLinesAxis2
+    chart.yAxis2
         .tickFormat(d3.format(',.1f'));
 
 

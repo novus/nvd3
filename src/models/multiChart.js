@@ -21,25 +21,22 @@ nv.models.multiChart = function() {
   //------------------------------------------------------------
 
   var x = d3.scale.linear(),
-      lines1 = nv.models.line(),
-      yLines1 = lines1.yScale(),
-      lines2 = nv.models.line(),
-      yLines2 = lines2.yScale(),
-      bars1 = nv.models.multiBar().stacked(false),
-      yBars1 = bars1.yScale(),
-      bars2 = nv.models.multiBar().stacked(false),
-      yBars2 = bars2.yScale(),
-      stack1 = nv.models.stackedArea(),
-      yStack1 = stack1.yScale(),
-      stack2 = nv.models.stackedArea(),
-      yStack2 = stack2.yScale(),
+      yScale1 = d3.scale.linear(),
+      yScale2 = d3.scale.linear(),
+
+      lines1 = nv.models.line().yScale(yScale1),
+      lines2 = nv.models.line().yScale(yScale2),
+
+      bars1 = nv.models.multiBar().stacked(false).yScale(yScale1),
+      bars2 = nv.models.multiBar().stacked(false).yScale(yScale2),
+
+      stack1 = nv.models.stackedArea().yScale(yScale1),
+      stack2 = nv.models.stackedArea().yScale(yScale2),
+
       xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      yLinesAxis1 = nv.models.axis().scale(yLines1).orient('left'),
-      yBarsAxis1 = nv.models.axis().scale(yBars1).orient('left'),
-      yStackAxis1 = nv.models.axis().scale(yStack1).orient('left'),
-      yLinesAxis2 = nv.models.axis().scale(yLines2).orient('right'),
-      yBarsAxis2 = nv.models.axis().scale(yBars2).orient('right'),
-      yStackAxis2 = nv.models.axis().scale(yStack2).orient('right'),
+      yAxis1 = nv.models.axis().scale(yScale1).orient('left'),
+      yAxis2 = nv.models.axis().scale(yScale2).orient('right'),
+
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
@@ -120,21 +117,21 @@ nv.models.multiChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2}));
+        }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'bar'}));
 
       stack1
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1}));
+        }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'area'}));
 
       stack2
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2}));
+        }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'area'}));
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -153,30 +150,31 @@ nv.models.multiChart = function() {
       var stack2Wrap = g.select('.stack2Wrap')
           .datum(dataStack2)
 
-      var extraValue1 = []
-      var extraValue2 = []
+      var extraValue1 = dataStack1.length ? [{x:0, y:0}] : []
+      var extraValue2 = dataStack2.length ? [{x:0, y:0}] : []
+
+      yScale1 .domain(d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
+              .range([0, availableHeight])
+
+      yScale2 .domain(d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
+              .range([0, availableHeight])
+
+      lines1.yDomain(yScale1.domain())
+      bars1.yDomain(yScale1.domain())
+      stack1.yDomain(yScale1.domain())
+
+      lines2.yDomain(yScale2.domain())
+      bars2.yDomain(yScale2.domain())
+      stack2.yDomain(yScale2.domain())
 
       if(dataLines1.length){d3.transition(lines1Wrap).call(lines1);}
       if(dataBars1.length){d3.transition(bars1Wrap).call(bars1);}
-      if(dataStack1.length){
-        d3.transition(stack1Wrap).call(stack1);
-        extraValue1.push({x:0, y:0})
-      }
+      if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
 
       if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
       if(dataBars2.length){d3.transition(bars2Wrap).call(bars2);}
-      if(dataStack2.length){
-        d3.transition(stack2Wrap).call(stack2);
-        extraValue2.push({x:0, y:0})
-      }
+      if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
 
-      yLinesAxis1.domain(d3.extent(d3.merge(series1), function(d) { return d.y } ))
-      yBarsAxis1.domain(d3.extent(d3.merge(series1), function(d) { return d.y } ))
-      yStackAxis1.domain(d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
-
-      yLinesAxis2.domain(d3.extent(d3.merge(series2), function(d) { return d.y } ))
-      yBarsAxis2.domain(d3.extent(d3.merge(series2), function(d) { return d.y } ))
-      yStackAxis2.domain(d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
 
       xAxis
         .ticks( availableWidth / 100 )
@@ -187,22 +185,20 @@ nv.models.multiChart = function() {
       d3.transition(g.select('.x.axis'))
           .call(xAxis);
 
-      yLinesAxis1
+      yAxis1
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      // d3.transition(g.select('.y1.axis'))
-      //     .call(yLinesAxis1);
 
       d3.transition(g.select('.y1.axis'))
-          .call(yStackAxis1);
+          .call(yAxis1);
 
-      yLinesAxis2
+      yAxis2
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.y2.axis'))
-          .call(yLinesAxis2);
+          .call(yAxis2);
 
       g.select('.y2.axis')
           .style('opacity', series2.length ? 1 : 0)
@@ -229,8 +225,8 @@ nv.models.multiChart = function() {
   chart.stack1 = stack1;
   chart.stack2 = stack2;
   chart.xAxis = xAxis;
-  chart.yLinesAxis1 = yStackAxis1;
-  chart.yLinesAxis2 = yLinesAxis2;
+  chart.yAxis1 = yAxis1;
+  chart.yAxis2 = yAxis2;
 
   d3.rebind(chart, lines1, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
 
