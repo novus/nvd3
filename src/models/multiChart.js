@@ -40,6 +40,16 @@ nv.models.multiChart = function() {
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
+  var showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = xAxis.tickFormat()(lines1.x()(e.point, e.pointIndex)),
+        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(lines1.y()(e.point, e.pointIndex)),
+        content = tooltip(e.series.key, x, y, e, chart);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+  };
+
   function chart(selection) {
     selection.each(function(data) {
       var container = d3.select(this),
@@ -86,8 +96,31 @@ nv.models.multiChart = function() {
       gEnter.append('g').attr('class', 'bars2Wrap');
       gEnter.append('g').attr('class', 'stack1Wrap');
       gEnter.append('g').attr('class', 'stack2Wrap');
+      gEnter.append('g').attr('class', 'legendWrap');
 
       var g = wrap.select('g');
+
+      if (showLegend) {
+        legend.width( availableWidth / 2 );
+
+        g.select('.legendWrap')
+            .datum(data.map(function(series) { 
+              series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
+              series.key = series.originalKey + (series.yAxis == 1 ? ' (left axis)' : ' (right axis)');
+              return series;
+            }))
+          .call(legend);
+
+        if ( margin.top != legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+        g.select('.legendWrap')
+            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+      }
+
 
       lines1
         .width(availableWidth)
@@ -150,8 +183,12 @@ nv.models.multiChart = function() {
       var stack2Wrap = g.select('.stack2Wrap')
           .datum(dataStack2)
 
-      var extraValue1 = dataStack1.length ? [{x:0, y:0}] : []
-      var extraValue2 = dataStack2.length ? [{x:0, y:0}] : []
+      var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
+        return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
+      }).concat([{x:0, y:0}]) : []
+      var extraValue2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
+        return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
+      }).concat([{x:0, y:0}]) : []
 
       yScale1 .domain(d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
               .range([0, availableHeight])
@@ -203,6 +240,24 @@ nv.models.multiChart = function() {
       g.select('.y2.axis')
           .style('opacity', series2.length ? 1 : 0)
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
+
+      legend.dispatch.on('legendClick', function(d,i) { 
+        d.disabled = !d.disabled;
+
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
+            d.disabled = false;
+            wrap.selectAll('.series').classed('disabled', false);
+            return d;
+          });
+        }
+        selection.transition().call(chart);
+      });
+
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode);
+      });
+
     });
 
     chart.update = function() { chart(selection) };
@@ -210,6 +265,84 @@ nv.models.multiChart = function() {
 
     return chart;
   }
+
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  lines1.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines1.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  lines2.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines2.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  bars1.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  bars1.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  bars2.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  bars2.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  stack1.dispatch.on('tooltipShow', function(e) {
+    //disable tooltips when value ~= 0
+    //// TODO: consider removing points from voronoi that have 0 value instead of this hack
+    if (!Math.round(stack1.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
+      setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
+      return false;
+    }
+
+    e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+    dispatch.tooltipShow(e);
+  });
+
+  stack1.dispatch.on('tooltipHide', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  stack2.dispatch.on('tooltipShow', function(e) {
+    //disable tooltips when value ~= 0
+    //// TODO: consider removing points from voronoi that have 0 value instead of this hack
+    if (!Math.round(stack2.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
+      setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
+      return false;
+    }
+
+    e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+    dispatch.tooltipShow(e);
+  });
+
+  stack2.dispatch.on('tooltipHide', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
 
 
 
@@ -227,9 +360,6 @@ nv.models.multiChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis1 = yAxis1;
   chart.yAxis2 = yAxis2;
-
-  d3.rebind(chart, lines1, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
-
 
   chart.x = function(_) {
     if (!arguments.length) return getX;

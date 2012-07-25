@@ -48,17 +48,17 @@ text {
 var testdata = stream_layers(7,10+Math.random()*100,.1).map(function(data, i) {
   return {
     key: 'Stream' + i,
-    values: data.map(function(a){a.y = a.y - i/2; return a})
+    values: data.map(function(a){a.y = a.y + i/2; return a})
   };
 });
 
-testdata[0].type = "line"
+testdata[0].type = "area"
 testdata[0].yAxis = 1
-testdata[1].type = "line"
+testdata[1].type = "area"
 testdata[1].yAxis = 1
 testdata[2].type = "line"
 testdata[2].yAxis = 2
-testdata[3].type = "bar"
+testdata[3].type = "line"
 testdata[3].yAxis = 2
 testdata[4].type = "bar"
 testdata[4].yAxis = 2
