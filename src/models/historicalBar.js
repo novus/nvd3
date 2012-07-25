@@ -90,7 +90,7 @@ nv.models.historicalBar = function() {
 
 
       var barsEnter = bars.enter().append('svg:rect')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
           .attr('fill', function(d,i) { return color[0]; })
           .attr('x', 0 )
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
@@ -143,9 +143,8 @@ nv.models.historicalBar = function() {
           });
 
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
           .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - ((availableWidth / data[0].values.length) * .5)) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
-
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
