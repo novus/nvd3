@@ -3,7 +3,7 @@ nv.models.discreteBarChart = function() {
   var margin = {top: 10, right: 10, bottom: 50, left: 60},
       width = null,
       height = null,
-      color = d3.scale.category20().range(),
+      color = nv.utils.getColor(), //a function that gets color for a datum
       staggerLabels = false,
       rotateLabels = 0,
       tooltips = true,
@@ -176,8 +176,8 @@ nv.models.discreteBarChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    discretebar.color(_);
+    color = nv.utils.getColor(_);
+    discretebar.color(color;
     return chart;
   };
 

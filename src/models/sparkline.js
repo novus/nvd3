@@ -6,7 +6,7 @@ nv.models.sparkline = function() {
       animate = true,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -32,7 +32,7 @@ nv.models.sparkline = function() {
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d,i) { return d.color || color[i * color.length] });
+          .style('stroke', function(d,i) { return d.color || color(d, i) });
 
 /*
       d3.select(this)

@@ -4,7 +4,7 @@ nv.models.pieChart = function() {
       width = null,
       height = null,
       showLegend = true,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       tooltips = true,
       tooltip = function(key, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
@@ -150,9 +150,9 @@ nv.models.pieChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
-    pie.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
+    pie.color(color);
     return chart;
   };
 

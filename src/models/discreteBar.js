@@ -14,7 +14,7 @@ nv.models.discreteBar = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showValues = false,
       valueFormat = d3.format(',.2f'),
       xDomain, yDomain;
@@ -156,8 +156,8 @@ nv.models.discreteBar = function() {
       barsEnter.append('rect')
           .attr('height', 0)
           .attr('width', x.rangeBand() / data.length )
-          .style('fill', function(d,i){  return d.color || color[i % color.length] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
-          .style('stroke', function(d,i){ return d.color || color[i % color.length] });
+          .style('fill', function(d,i){  return d.color || color(d, i) }) 
+          .style('stroke', function(d,i){ return d.color || color(d, i)});
 
       if (showValues) {
         barsEnter.append('text')
@@ -267,7 +267,7 @@ nv.models.discreteBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

@@ -5,7 +5,7 @@ nv.models.linePlusBarChart = function() {
       height = null,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showLegend = true,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
@@ -131,14 +131,14 @@ nv.models.linePlusBarChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
 
       bars
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
 
 
@@ -287,8 +287,8 @@ nv.models.linePlusBarChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 
