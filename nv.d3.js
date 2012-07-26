@@ -351,11 +351,11 @@ nv.models.axis = function() {
           break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-              .attr('text-anchor',   	rotateYLabel ? 'middle'					: 'begin')
-              .attr('transform', 		rotateYLabel ? 'rotate(90)' 			: '')
-              .attr('y', 				rotateYLabel ? (-Math.max(margin.right,width) - 12)		: -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('text-anchor', rotateYLabel ? 'middle' : 'begin')
+              .attr('transform', rotateYLabel ? 'rotate(90)' : '')
+              .attr('y', rotateYLabel ? (-Math.max(margin.right,width) - 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', 				rotateYLabel ? (scale.range()[0] / 2)	: axis.tickPadding());
+              .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -384,11 +384,11 @@ nv.models.axis = function() {
           break;
         case 'left':
           axisLabel.enter().append('text').attr('class', 'axislabel')
-              .attr('text-anchor', 		rotateYLabel ? 'middle' 				: 'end')
-              .attr('transform', 		rotateYLabel ? 'rotate(-90)' 			: '')
-              .attr('y', 				rotateYLabel ? (-Math.max(margin.left,width) + 12) 		: -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('text-anchor', rotateYLabel ? 'middle' : 'end')
+              .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
+              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
-              .attr('x', 				rotateYLabel ? (-scale.range()[0] / 2) 	: -axis.tickPadding());
+              .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.axisMaxMin')
                            .data(scale.domain());
@@ -521,7 +521,8 @@ nv.models.axis = function() {
   }
 
   return chart;
-}//TODO: eitehr drastically clean up or deprecate this model
+}
+//TODO: eitehr drastically clean up or deprecate this model
 nv.models.historicalBar = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
@@ -613,7 +614,7 @@ nv.models.historicalBar = function() {
 
 
       var barsEnter = bars.enter().append('svg:rect')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
           .attr('fill', function(d,i) { return color[0]; })
           .attr('x', 0 )
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
@@ -666,9 +667,8 @@ nv.models.historicalBar = function() {
           });
 
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
           .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - ((availableWidth / data[0].values.length) * .5)) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
-
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
@@ -4752,7 +4752,7 @@ nv.models.multiBarHorizontal = function() {
             //.delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('transform', function(d,i) {
               //return 'translate(' + y(d.y0) + ',0)'
-              return 'translate(' + y(d.y0) + ',' + (stacked ? 0 : (j * x.rangeBand() / data.length )) + ')'
+              return 'translate(' + y(d.y0) + ',' + x(getX(d,i)) + ')'
             })
           .select('rect')
             .attr('width', function(d,i) {
@@ -5312,7 +5312,12 @@ nv.models.ohlcBar = function() {
 
 
       var ticksEnter = ticks.enter().append('path')
-          .attr('class', function(d,i) { return getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive'})
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+          .attr('d', function(d,i) {
+            var w = (availableWidth / data[0].values.length) * .9;
+            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
+          })
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           //.attr('fill', function(d,i) { return color[0]; })
           //.attr('stroke', function(d,i) { return color[0]; })
           //.attr('x', 0 )
@@ -5366,11 +5371,11 @@ nv.models.ohlcBar = function() {
           });
 
       ticks
-          .attr('class', function(d,i) { return getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive'})
-          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })  
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+      d3.transition(ticks)
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           .attr('d', function(d,i) {
             var w = (availableWidth / data[0].values.length) * .9;
-            //nv.log(this, getOpen(d,i), getClose(d,i), y(getOpen(d,i)), y(getClose(d,i)));
             return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
           })
           //.attr('width', (availableWidth / data[0].values.length) * .9 )
