@@ -63,11 +63,11 @@ nv.models.ohlcBar = function() {
           });
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.historicalStock').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStock');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-ohlcBar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-ohlcBar');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'ticks');
+      gEnter.append('g').attr('class', 'nv-ticks');
 
 
       wrap.attr('width', width)
@@ -78,30 +78,46 @@ nv.models.ohlcBar = function() {
 
 
       wrapEnter.append('defs').append('clipPath')
-          .attr('id', 'chart-clip-path-' + id)
+          .attr('id', 'nv-chart-clip-path-' + id)
         .append('rect');
-      wrap.select('#chart-clip-path-' + id + ' rect')
+      wrap.select('#nv-chart-clip-path-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
       gEnter
-          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+      var shiftWrap = gEnter.append('g').attr('class', 'nv-shiftWrap');
 
 
 
-      var ticks = wrap.select('.ticks').selectAll('.tick')
+      var ticks = wrap.select('.nv-ticks').selectAll('.nv-tick')
           .data(function(d) { return d });
 
       ticks.exit().remove();
 
 
       var ticksEnter = ticks.enter().append('path')
-          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
           .attr('d', function(d,i) {
             var w = (availableWidth / data[0].values.length) * .9;
-            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
+            return 'm0,0l0,' 
+                 + (y(getOpen(d,i))
+                 - y(getHigh(d,i)))
+                 + 'l'
+                 + (-w/2)
+                 + ',0l'
+                 + (w/2)
+                 + ',0l0,'
+                 + (y(getLow(d,i)) - y(getOpen(d,i)))
+                 + 'l0,'
+                 + (y(getClose(d,i))
+                 - y(getLow(d,i)))
+                 + 'l'
+                 + (w/2)
+                 + ',0l'
+                 + (-w/2)
+                 + ',0z';
           })
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           //.attr('fill', function(d,i) { return color[0]; })
@@ -157,12 +173,29 @@ nv.models.ohlcBar = function() {
           });
 
       ticks
-          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
       d3.transition(ticks)
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           .attr('d', function(d,i) {
             var w = (availableWidth / data[0].values.length) * .9;
-            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
+            return 'm0,0l0,'
+                 + (y(getOpen(d,i))
+                 - y(getHigh(d,i)))
+                 + 'l'
+                 + (-w/2)
+                 + ',0l'
+                 + (w/2)
+                 + ',0l0,'
+                 + (y(getLow(d,i))
+                 - y(getOpen(d,i)))
+                 + 'l0,'
+                 + (y(getClose(d,i))
+                 - y(getLow(d,i)))
+                 + 'l'
+                 + (w/2)
+                 + ',0l'
+                 + (-w/2)
+                 + ',0z';
           })
           //.attr('width', (availableWidth / data[0].values.length) * .9 )
 

@@ -5,9 +5,9 @@ nv.models.cumulativeLineChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+  var margin = {top: 30, right: 30, bottom: 50, left: 60},
       color = d3.scale.category20().range(),
-      width = null, 
+      width = null,
       height = null,
       showLegend = true,
       tooltips = true,
@@ -74,7 +74,7 @@ nv.models.cumulativeLineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this).classed('chart-' + id, true),
+      var container = d3.select(this).classed('nv-chart-' + id, true),
           that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
@@ -94,14 +94,14 @@ nv.models.cumulativeLineChart = function() {
       var data = indexify(index.i, data);
 
 
-      var wrap = container.selectAll('g.wrap.cumulativeLine').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 cumulativeLine').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-cumulativeLine').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'linesWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
-      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-controlsWrap');
 
 
       var g = wrap.select('g');
@@ -110,7 +110,7 @@ nv.models.cumulativeLineChart = function() {
       if (showLegend) {
         legend.width(availableWidth);
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -120,14 +120,14 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
 
 
       if (showRescaleToggle) {
         controls.width(140).color(['#444', '#444', '#444']);
-        g.select('.controlsWrap')
+        g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
@@ -149,15 +149,15 @@ nv.models.cumulativeLineChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var linesWrap = g.select('.linesWrap')
+      var linesWrap = g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(linesWrap).call(lines);
 
 
-      var indexLine = linesWrap.selectAll('.indexLine')
+      var indexLine = linesWrap.selectAll('.nv-indexLine')
           .data([index]);
-      indexLine.enter().append('rect').attr('class', 'indexLine')
+      indexLine.enter().append('rect').attr('class', 'nv-indexLine')
           .attr('width', 3)
           .attr('x', -2)
           .attr('fill', 'red')
@@ -175,9 +175,9 @@ nv.models.cumulativeLineChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
 
@@ -186,7 +186,7 @@ nv.models.cumulativeLineChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
 
@@ -211,7 +211,7 @@ nv.models.cumulativeLineChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }

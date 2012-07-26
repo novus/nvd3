@@ -108,14 +108,14 @@ nv.models.scatter = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.wrap.scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' + id + (singlePoint ? ' single-point' : ''));
+      var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id + (singlePoint ? ' nv-single-point' : ''));
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
 
-      gEnter.append('g').attr('class', 'groups');
-      gEnter.append('g').attr('class', 'point-paths');
+      gEnter.append('g').attr('class', 'nv-groups');
+      gEnter.append('g').attr('class', 'nv-point-paths');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -123,14 +123,14 @@ nv.models.scatter = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
-      wrap.select('#edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
@@ -152,9 +152,9 @@ nv.models.scatter = function() {
 
 
         if (clipVoronoi) {
-          defsEnter.append('clipPath').attr('id', 'points-clip-' + id);
+          defsEnter.append('clipPath').attr('id', 'nv-points-clip-' + id);
 
-          var pointClips = wrap.select('#points-clip-' + id).selectAll('circle')
+          var pointClips = wrap.select('#nv-points-clip-' + id).selectAll('circle')
               .data(vertices);
           pointClips.enter().append('circle')
               .attr('r', clipRadius);
@@ -163,8 +163,8 @@ nv.models.scatter = function() {
               .attr('cx', function(d) { return d[0] })
               .attr('cy', function(d) { return d[1] });
 
-          wrap.select('.point-paths')
-              .attr('clip-path', 'url(#points-clip-' + id + ')');
+          wrap.select('.nv-point-paths')
+              .attr('clip-path', 'url(#nv-points-clip-' + id + ')');
         }
 
 
@@ -178,10 +178,10 @@ nv.models.scatter = function() {
           });
 
 
-        var pointPaths = wrap.select('.point-paths').selectAll('path')
+        var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
             .data(voronoi);
         pointPaths.enter().append('path')
-            .attr('class', function(d,i) { return 'path-'+i; });
+            .attr('class', function(d,i) { return 'nv-path-'+i; });
         pointPaths.exit().remove();
         pointPaths
             .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
@@ -225,7 +225,7 @@ nv.models.scatter = function() {
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -235,7 +235,7 @@ nv.models.scatter = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       d3.transition(groups)
           .style('fill', function(d,i) { return color[i % color.length] })
@@ -244,7 +244,7 @@ nv.models.scatter = function() {
           .style('fill-opacity', .5);
 
 
-      var points = groups.selectAll('path.point')
+      var points = groups.selectAll('path.nv-point')
           .data(function(d) { return d.values });
       points.enter().append('path')
           .attr('transform', function(d,i) {
@@ -255,12 +255,12 @@ nv.models.scatter = function() {
               .type(getShape)
               .size(function(d,i) { return z(getSize(d,i)) })
           );
-      d3.transition(groups.exit().selectAll('path.point'))
+      d3.transition(groups.exit().selectAll('path.nv-point'))
           .attr('transform', function(d,i) {
             return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
           })
           .remove();
-      points.attr('class', function(d,i) { return 'point point-' + i });
+      points.attr('class', function(d,i) { return 'nv-point nv-point-' + i });
       d3.transition(points)
           .attr('transform', function(d,i) {
             return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
@@ -293,13 +293,13 @@ nv.models.scatter = function() {
 
   dispatch.on('elementMouseover.point', function(d) {
     if (interactive)
-      d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+      d3.select('.nv-chart-' + id + ' .nv-series-' + d.seriesIndex + ' .nv-point-' + d.pointIndex)
           .classed('hover', true);
   });
 
   dispatch.on('elementMouseout.point', function(d) {
     if (interactive)
-      d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+      d3.select('.nv-chart-' + id + ' .nv-series-' + d.seriesIndex + ' .nv-point-' + d.pointIndex)
           .classed('hover', false);
   });
 

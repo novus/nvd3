@@ -3,12 +3,12 @@ nv.models.lineWithFocusChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       margin2 = {top: 0, right: 20, bottom: 20, left: 60},
       color = d3.scale.category20().range(),
-      width = null, 
+      width = null,
       height = null,
       height2 = 100,
       showLegend = true,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       };
@@ -54,21 +54,21 @@ nv.models.lineWithFocusChart = function() {
       brush.on('brush', onBrush);
 
 
-      var wrap = container.selectAll('g.wrap.lineWithFocusChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithFocusChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-lineWithFocusChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineWithFocusChart').append('g');
 
-      var focusEnter = gEnter.append('g').attr('class', 'focus');
-      focusEnter.append('g').attr('class', 'x axis');
-      focusEnter.append('g').attr('class', 'y axis');
-      focusEnter.append('g').attr('class', 'linesWrap');
+      var focusEnter = gEnter.append('g').attr('class', 'nv-focus');
+      focusEnter.append('g').attr('class', 'nv-x nv-axis');
+      focusEnter.append('g').attr('class', 'nv-y nv-axis');
+      focusEnter.append('g').attr('class', 'nv-linesWrap');
 
-      var contextEnter = gEnter.append('g').attr('class', 'context');
-      contextEnter.append('g').attr('class', 'x axis');
-      contextEnter.append('g').attr('class', 'y axis');
-      contextEnter.append('g').attr('class', 'linesWrap');
-      contextEnter.append('g').attr('class', 'x brush');
+      var contextEnter = gEnter.append('g').attr('class', 'nv-context');
+      contextEnter.append('g').attr('class', 'nv-x nv-axis');
+      contextEnter.append('g').attr('class', 'nv-y nv-axis');
+      contextEnter.append('g').attr('class', 'nv-linesWrap');
+      contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
 
       var g = wrap.select('g');
@@ -79,7 +79,7 @@ nv.models.lineWithFocusChart = function() {
       if (showLegend) {
         legend.width(availableWidth);
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -89,7 +89,7 @@ nv.models.lineWithFocusChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
 
@@ -115,7 +115,7 @@ nv.models.lineWithFocusChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var focusLinesWrap = g.select('.focus .linesWrap')
+      var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(focusLinesWrap).call(lines);
@@ -125,9 +125,9 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.focus .x.axis')
+      g.select('.nv-focus .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.focus .x.axis'))
+      d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
           .call(xAxis);
 
 
@@ -135,26 +135,26 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.focus .y.axis'))
+      d3.transition(g.select('.nv-focus .nv-y.nv-axis'))
           .call(yAxis);
 
 
 
-      g.select('.context')
+      g.select('.nv-context')
           .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + margin2.top) + ')')
 
-      var contextLinesWrap = g.select('.context .linesWrap')
+      var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(contextLinesWrap).call(lines2);
 
 
-      gBrush = g.select('.x.brush')
+      gBrush = g.select('.nv-x.nv-brush')
           .call(brush);
       gBrush.selectAll('rect')
           //.attr('y', -5)
           .attr('height', availableHeight2);
-      gBrush.selectAll(".resize").append("path").attr("d", resizePath);
+      gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
 
 
@@ -163,9 +163,9 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
-      g.select('.context .x.axis')
+      g.select('.nv-context .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y2.range()[0] + ')');
-      d3.transition(g.select('.context .x.axis'))
+      d3.transition(g.select('.nv-context .nv-x.nv-axis'))
           .call(x2Axis);
 
 
@@ -174,7 +174,7 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableHeight2 / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.context .y.axis'))
+      d3.transition(g.select('.nv-context .nv-y.nv-axis'))
           .call(y2Axis);
 
 
@@ -188,7 +188,7 @@ nv.models.lineWithFocusChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -225,18 +225,18 @@ nv.models.lineWithFocusChart = function() {
 
       // Taken from crossfilter (http://square.github.com/crossfilter/)
       function resizePath(d) {
-        var e = +(d == "e"),
+        var e = +(d == 'e'),
             x = e ? 1 : -1,
             y = availableHeight2 / 3;
-        return "M" + (.5 * x) + "," + y
-            + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6)
-            + "V" + (2 * y - 6)
-            + "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y)
-            + "Z"
-            + "M" + (2.5 * x) + "," + (y + 8)
-            + "V" + (2 * y - 8)
-            + "M" + (4.5 * x) + "," + (y + 8)
-            + "V" + (2 * y - 8);
+        return 'M' + (.5 * x) + ',' + y
+            + 'A6,6 0 0 ' + e + ' ' + (6.5 * x) + ',' + (y + 6)
+            + 'V' + (2 * y - 6)
+            + 'A6,6 0 0 ' + e + ' ' + (.5 * x) + ',' + (2 * y)
+            + 'Z'
+            + 'M' + (2.5 * x) + ',' + (y + 8)
+            + 'V' + (2 * y - 8)
+            + 'M' + (4.5 * x) + ',' + (y + 8)
+            + 'V' + (2 * y - 8);
       }
 
 
@@ -245,8 +245,8 @@ nv.models.lineWithFocusChart = function() {
 
         focusLinesWrap.call(lines)
         //var focusLinesWrap = g.select('.focus .linesWrap')
-        g.select('.focus .x.axis').call(xAxis);
-        g.select('.focus .y.axis').call(yAxis);
+        g.select('.nv-focus .nv-x.nv-axis').call(xAxis);
+        g.select('.nv-focus .nv-y.nv-axis').call(yAxis);
       }
 
       function updateFocus() {

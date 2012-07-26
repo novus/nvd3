@@ -57,14 +57,14 @@ nv.models.linePlusBarChart = function() {
       //TODO: try to remove x scale computation from this layer
 
       var series1 = data.filter(function(d) { return !d.disabled && d.bar })
-            .map(function(d) { 
+            .map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
             });
 
       var series2 = data.filter(function(d) { return !d.disabled && !d.bar })
-            .map(function(d) { 
+            .map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
@@ -88,15 +88,15 @@ nv.models.linePlusBarChart = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.linePlusBar').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 linePlusBar').append('g');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-linePlusBar').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y1 axis');
-      gEnter.append('g').attr('class', 'y2 axis');
-      gEnter.append('g').attr('class', 'barsWrap');
-      gEnter.append('g').attr('class', 'linesWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+      gEnter.append('g').attr('class', 'nv-y2 nv-axis');
+      gEnter.append('g').attr('class', 'nv-barsWrap');
+      gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
 
 
@@ -106,8 +106,8 @@ nv.models.linePlusBarChart = function() {
       if (showLegend) {
         legend.width( availableWidth / 2 );
 
-        g.select('.legendWrap')
-            .datum(data.map(function(series) { 
+        g.select('.nv-legendWrap')
+            .datum(data.map(function(series) {
               series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
               series.key = series.originalKey + (series.bar ? ' (left axis)' : ' (right axis)');
               return series;
@@ -120,7 +120,7 @@ nv.models.linePlusBarChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
@@ -143,10 +143,10 @@ nv.models.linePlusBarChart = function() {
 
 
 
-      var barsWrap = g.select('.barsWrap')
+      var barsWrap = g.select('.nv-barsWrap')
           .datum(dataBars.length ? dataBars : [{values:[]}])
 
-      var linesWrap = g.select('.linesWrap')
+      var linesWrap = g.select('.nv-linesWrap')
           .datum(dataLines.length ? dataLines : [{values:[]}])
 
 
@@ -161,9 +161,9 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y1.range()[0] + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
 
@@ -171,7 +171,7 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
-      d3.transition(g.select('.y1.axis'))
+      d3.transition(g.select('.nv-y1.nv-axis'))
           .style('opacity', dataBars.length ? 1 : 0)
           .call(yAxis1);
 
@@ -180,11 +180,11 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
-      g.select('.y2.axis')
+      g.select('.nv-y2.nv-axis')
           .style('opacity', dataLines.length ? 1 : 0)
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
-      d3.transition(g.select('.y2.axis'))
+      d3.transition(g.select('.nv-y2.nv-axis'))
           .call(yAxis2);
 
 
@@ -195,7 +195,7 @@ nv.models.linePlusBarChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }

@@ -94,13 +94,13 @@ nv.models.stackedArea = function() {
                 (data);
 
 
-        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([data]);
-        var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedarea');
+        var wrap = d3.select(this).selectAll('g.nv-wrap.nv-stackedarea').data([data]);
+        var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
         var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
         var g = wrap.select('g');
 
-        gEnter.append('g').attr('class', 'areaWrap');
+        gEnter.append('g').attr('class', 'nv-areaWrap');
 
 
         scatter
@@ -114,8 +114,8 @@ nv.models.stackedArea = function() {
           }).filter(function(d,i) { return !data[i].disabled }));
 
 
-        gEnter.append('g').attr('class', 'scatterWrap');
-        var scatterWrap = g.select('.scatterWrap')
+        gEnter.append('g').attr('class', 'nv-scatterWrap');
+        var scatterWrap = g.select('.nv-scatterWrap')
             .datum(data.filter(function(d) { return !d.disabled }))
 
         d3.transition(scatterWrap).call(scatter);
@@ -126,14 +126,14 @@ nv.models.stackedArea = function() {
 
 
         defsEnter.append('clipPath')
-            .attr('id', 'edge-clip-' + id)
+            .attr('id', 'nv-edge-clip-' + id)
           .append('rect');
 
-        wrap.select('#edge-clip-' + id + ' rect')
+        wrap.select('#nv-edge-clip-' + id + ' rect')
             .attr('width', availableWidth)
             .attr('height', availableHeight);
 
-        g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+        g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
@@ -149,10 +149,10 @@ nv.models.stackedArea = function() {
             .y1(function(d) { return y(d.display.y0) });
 
 
-        var path = g.select('.areaWrap').selectAll('path.area')
+        var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
             .data(function(d) { return d });
             //.data(function(d) { return d }, function(d) { return d.key });
-        path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
+        path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
             .on('mouseover', function(d,i) {
               d3.select(this).classed('hover', true);
               dispatch.areaMouseover({
@@ -195,10 +195,10 @@ nv.models.stackedArea = function() {
         //------------------------------------------------------------
 
         scatter.dispatch.on('elementMouseover.area', function(e) {
-          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', true);
+          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', true);
         });
         scatter.dispatch.on('elementMouseout.area', function(e) {
-          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', false);
+          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', false);
         });
 
     });

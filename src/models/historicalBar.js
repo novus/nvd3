@@ -55,11 +55,11 @@ nv.models.historicalBar = function() {
           });
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.bar').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bar');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bar');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'bars');
+      gEnter.append('g').attr('class', 'nv-bars');
 
 
       wrap.attr('width', width)
@@ -70,27 +70,27 @@ nv.models.historicalBar = function() {
 
 
       wrapEnter.append('defs').append('clipPath')
-          .attr('id', 'chart-clip-path-' + id)
+          .attr('id', 'nv-chart-clip-path-' + id)
         .append('rect');
-      wrap.select('#chart-clip-path-' + id + ' rect')
+      wrap.select('#nv-chart-clip-path-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
       gEnter
-          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+      var shiftWrap = gEnter.append('g').attr('class', 'nv-shiftWrap');
 
 
 
-      var bars = wrap.select('.bars').selectAll('.bar')
+      var bars = wrap.select('.nv-bars').selectAll('.nv-bar')
           .data(function(d) { return d });
 
       bars.exit().remove();
 
 
-      var barsEnter = bars.enter().append('svg:rect')
-          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
+      var barsEnter = bars.enter().append('rect')
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
           .attr('fill', function(d,i) { return color[0]; })
           .attr('x', 0 )
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
@@ -143,7 +143,7 @@ nv.models.historicalBar = function() {
           });
 
       bars
-          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
           .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - ((availableWidth / data[0].values.length) * .5)) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 

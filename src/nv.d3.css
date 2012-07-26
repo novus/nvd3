@@ -94,7 +94,7 @@ svg .title {
  font: bold 14px Arial;
 }
 
-.nvd3 .background {
+.nvd3 .nv-background {
   fill: none;
   /*
   pointer-events: none;
@@ -106,46 +106,22 @@ svg .title {
 *  Brush
 */
 
-.brush .extent {
+.nv-brush .extent {
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
 
-
-/**********
-*  Historical Stock
-*/
-
-.nvd3.historicalStockChart .dragTarget {
-  fill-opacity: 0;
-  stroke: none;
-  cursor: move;
-}
-
-.nvd3.historicalStockChart .brush .extent {
-  /*
-  cursor: ew-resize !important;
-  */
-  fill-opacity: 0 !important;
-}
-
-.nvd3.historicalStockChart .brushBackground rect {
-  stroke: #000;
-  stroke-width: .4;
-  fill: #fff;
-  fill-opacity: .5;
-}
 
 
 /**********
 *  Legend
 */
 
-.nvd3 .legend .series {
+.nvd3 .nv-legend .nv-series {
   cursor: pointer;
 }
 
-.nvd3 .legend .disabled circle {
+.nvd3 .nv-legend .disabled circle {
   fill-opacity: 0;
 }
 
@@ -155,29 +131,29 @@ svg .title {
 *  Axes
 */
 
-.nvd3 .axis path {
+.nvd3 .nv-axis path {
   fill: none;
   stroke: #000;
   stroke-opacity: .75;
   shape-rendering: crispEdges;
 }
 
-.nvd3 .axis path.domain {
+.nvd3 .nv-axis path.domain {
   stroke-opacity: .75;
 }
 
-.nvd3 .axis line {
+.nvd3 .nv-axis line {
   fill: none;
   stroke: #000;
   stroke-opacity: .25;
   shape-rendering: crispEdges;
 }
 
-.nvd3 .axis line.zero {
+.nvd3 .nv-axis line.zero {
   stroke-opacity: .75;
 }
 
-.nvd3 .axis .axisMaxMin text {
+.nvd3 .nv-axis .nv-axisMaxMin text {
   font-weight: bold;
 }
 
@@ -186,7 +162,7 @@ svg .title {
 *  Brush
 */
 
-.brush .resize path {
+.nv-brush .resize path {
   fill: #eee;
   stroke: #666;
 }
@@ -197,12 +173,12 @@ svg .title {
 *  Bars
 */
 
-.nvd3 .bars .negative rect {
+.nvd3 .nv-bars .negative rect {
     zfill: brown;
     cursor: pointer;
 }
 
-.nvd3 .bars rect {
+.nvd3 .nv-bars rect {
   zfill: steelblue;
   cursor: pointer;
   fill-opacity: .75;
@@ -212,23 +188,23 @@ svg .title {
   -webkit-transition: fill-opacity 250ms linear;
 }
 
-.nvd3 .bars rect:hover {
+.nvd3 .nv-bars rect:hover {
   fill-opacity: 1;
 }
 
-.nvd3 .bars .hover rect {
+.nvd3 .nv-bars .hover rect {
   fill: lightblue;
 }
 
-.nvd3 .bars text {
+.nvd3 .nv-bars text {
   fill: rgba(0,0,0,0);
 }
 
-.nvd3 .bars .hover text {
+.nvd3 .nv-bars .hover text {
   fill: rgba(0,0,0,1);
 }
 
-.nvd3 .x.axis text {
+.nvd3 .nv-x.nv-axis text {
   transform: rotate(90);
 }
 
@@ -237,9 +213,9 @@ svg .title {
 *  Bars
 */
 
-.nvd3 .multibar .groups rect,
-.nvd3 .multibarHorizontal .groups rect,
-.nvd3 .discretebar .groups rect {
+.nvd3 .nv-multibar .nv-groups rect,
+.nvd3 .nv-multibarHorizontal .nv-groups rect,
+.nvd3 .nv-discretebar .nv-groups rect {
   stroke-opacity: 0;
 
   transition: fill-opacity 250ms linear;
@@ -247,14 +223,14 @@ svg .title {
   -webkit-transition: fill-opacity 250ms linear;
 }
 
-.nvd3 .multibar .groups rect:hover,
-.nvd3 .multibarHorizontal .groups rect:hover,
-.nvd3 .discretebar .groups rect:hover {
+.nvd3 .nv-multibar .nv-groups rect:hover,
+.nvd3 .nv-multibarHorizontal .nv-groups rect:hover,
+.nvd3 .nv-discretebar .nv-groups rect:hover {
   fill-opacity: 1;
 }
 
-.nvd3 .discretebar .groups text,
-.nvd3 .multibarHorizontal .groups text {
+.nvd3 .nv-discretebar .nv-groups text,
+.nvd3 .nv-multibarHorizontal .nv-groups text {
   font-weight: bold;
   fill: rgba(0,0,0,1);
   stroke: rgba(0,0,0,0);
@@ -264,7 +240,7 @@ svg .title {
 *  Pie Chart
 */
 
-.nvd3 .pie path {
+.nvd3.nv-pie path {
   stroke-opacity: 0;
 
   transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
@@ -273,18 +249,18 @@ svg .title {
 
 }
 
-.nvd3 .pie .slice text {
+.nvd3.nv-pie .nv-slice text {
   stroke: #000;
   stroke-width: 0;
 }
 
-.nvd3 .pie path {
+.nvd3.nv-pie path {
   stroke: #fff;
   stroke-width: 1px;
   stroke-opacity: 1;
 }
 
-.nvd3 .pie .hover path {
+.nvd3.nv-pie .hover path {
   fill-opacity: .7;
 /*
   stroke-width: 6px;
@@ -296,7 +272,7 @@ svg .title {
 * Lines 
 */
 
-.nvd3 .groups path.line {
+.nvd3 .nv-groups path.nv-line {
   fill: none;
   stroke-width: 2.5px;
   stroke-linecap: round;
@@ -313,7 +289,7 @@ svg .title {
   */
 }
 
-.nvd3 .groups path.area {
+.nvd3 .nv-groups path.nv-area {
   stroke: none;
   stroke-linecap: round;
   shape-rendering: geometricPrecision;
@@ -330,7 +306,7 @@ svg .title {
   */
 }
 
-.nvd3 .line.hover path {
+.nvd3 .nv-line.hover path {
   stroke-width: 6px;
 }
 
@@ -341,32 +317,32 @@ svg .title {
 }
   */
 
-.nvd3.line .nvd3.scatter .groups .point {
+.nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
   fill-opacity: 0;
   stroke-opacity: 0;
 }
 
-.nvd3.scatter.single-point .groups .point {
+.nvd3.nv-scatter.nv-single-point .nv-groups .nv-point {
   fill-opacity: .5;
   stroke-opacity: .5;
 }
 
 
-.nvd3 .groups .point {
+.nvd3 .nv-groups .nv-point {
   transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
   -moz-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
   -webkit-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
 }
 
-.nvd3.scatter .groups .point.hover,
-.nvd3 .groups .point.hover {
+.nvd3.nv-scatter .nv-groups .nv-point.hover,
+.nvd3 .nv-groups .nv-point.hover {
   stroke-width: 20px;
   fill-opacity: .5 !important;
   stroke-opacity: .5 !important;
 }
 
 
-.nvd3 .point-paths path {
+.nvd3 .nv-point-paths path {
   stroke: #aaa;
   stroke-opacity: 0;
   fill: #eee;
@@ -375,7 +351,7 @@ svg .title {
 
 
 
-.nvd3 .indexLine {
+.nvd3 .nv-indexLine {
   cursor: ew-resize;
 }
 
@@ -384,7 +360,7 @@ svg .title {
 * Distribution 
 */
 
-.nvd3 .distribution {
+.nvd3 .nv-distribution {
   pointer-events: none;
 }
 
@@ -394,21 +370,21 @@ svg .title {
 *  Scatter 
 */
 
-.nvd3 .groups .point {
+.nvd3 .nv-groups .nv-point {
   pointer-events: none;
 }
 
-.nvd3 .groups .point.hover {
+.nvd3 .nv-groups .nv-point.hover {
   stroke-width: 20px;
   stroke-opacity: .5;
 }
 
-.nvd3 .scatter .point.hover {
+.nvd3 .nv-scatter .nv-point.hover {
   fill-opacity: 1;
 }
 
 /*
-.group.hover .point {
+.nv-group.hover .nv-point {
   fill-opacity: 1;
 }
 */
@@ -418,7 +394,7 @@ svg .title {
 *  Stacked Area
 */
 
-.nvd3 .stackedarea path.area {
+.nvd3.nv-stackedarea path.nv-area {
   fill-opacity: .7;
   /*
   stroke-opacity: .65;
@@ -438,7 +414,7 @@ svg .title {
 
 }
 
-.nvd3 .stackedarea path.area.hover {
+.nvd3.nv-stackedarea path.nv-area.hover {
   fill-opacity: .9;
   /*
   stroke-opacity: .85;
@@ -452,12 +428,12 @@ svg .title {
 
 
 
-.nvd3.stackedarea .groups .point {
+.nvd3.nv-stackedarea .nv-groups .nv-point {
   stroke-opacity: 0;
   fill-opacity: 0;
 }
 
-.nvd3.stackedarea .groups .point.hover {
+.nvd3.nv-stackedarea .nv-groups .nv-point.hover {
   stroke-width: 20px;
   stroke-opacity: .75;
   fill-opacity: 1;
@@ -469,11 +445,11 @@ svg .title {
 *  Line Plus Bar
 */
 
-.nvd3 .linePlusBar .bar rect {
+.nvd3.nv-linePlusBar .nv-bar rect {
   fill-opacity: .75;
 }
 
-.nvd3 .linePlusBar .bar rect:hover {
+.nvd3.nv-linePlusBar .nv-bar rect:hover {
   fill-opacity: 1;
 }
 
@@ -482,19 +458,19 @@ svg .title {
 *  Bullet
 */
 
-.nvd3.bullet { font: 10px sans-serif; cursor: pointer; }
-.nvd3.bullet rect { fill-opacity: .6; }
-.nvd3.bullet rect:hover { fill-opacity: 1; }
-.nvd3.bullet .marker { stroke: #000; stroke-width: 2px; }
-.nvd3.bullet .markerTriangle { stroke: #000; fill: #fff; stroke-width: 1.5px; }
-.nvd3.bullet .tick line { stroke: #666; stroke-width: .5px; }
-.nvd3.bullet .range.s0 { fill: #eee; }
-.nvd3.bullet .range.s1 { fill: #ddd; }
-.nvd3.bullet .range.s2 { fill: #ccc; }
-.nvd3.bullet .measure.s0 { fill: steelblue; }
-.nvd3.bullet .measure.s1 { fill: darkblue; }
-.nvd3.bullet .title { font-size: 14px; font-weight: bold; }
-.nvd3.bullet .subtitle { fill: #999; }
+.nvd3.nv-bullet { font: 10px sans-serif; cursor: pointer; }
+.nvd3.nv-bullet rect { fill-opacity: .6; }
+.nvd3.nv-bullet rect:hover { fill-opacity: 1; }
+.nvd3.nv-bullet .nv-marker { stroke: #000; stroke-width: 2px; }
+.nvd3.nv-bullet .nv-markerTriangle { stroke: #000; fill: #fff; stroke-width: 1.5px; }
+.nvd3.nv-bullet .nv-tick line { stroke: #666; stroke-width: .5px; }
+.nvd3.nv-bullet .nv-range.nv-s0 { fill: #eee; }
+.nvd3.nv-bullet .nv-range.nv-s1 { fill: #ddd; }
+.nvd3.nv-bullet .nv-range.nv-s2 { fill: #ccc; }
+.nvd3.nv-bullet .nv-measure.nv-s0 { fill: steelblue; }
+.nvd3.nv-bullet .nv-measure.nv-s1 { fill: darkblue; }
+.nvd3.nv-bullet .nv-title { font-size: 14px; font-weight: bold; }
+.nvd3.nv-bullet .nv-subtitle { fill: #999; }
 
 
 
@@ -503,29 +479,29 @@ svg .title {
 * Sparkline plus 
 */
 
-.nvd3 .sparklineplus .hoverValue line {
+.nvd3.nv-sparklineplus .nv-hoverValue line {
   stroke: #f44;
   stroke-width: 1.5px;
  }
 
-.nvd3 .sparklineplus,
-.nvd3 .sparklineplus g {
+.nvd3.nv-sparklineplus,
+.nvd3.nv-sparklineplus g {
   pointer-events: all;
 }
 
-.nvd3 .hoverArea {
+.nvd3 .nv-hoverArea {
   fill-opacity: 0;
   stroke-opacity: 0;
 }
 
-.nvd3 .sparklineplus .xValue,
-.nvd3 .sparklineplus .yValue {
+.nvd3.nv-sparklineplus .nv-xValue,
+.nvd3.nv-sparklineplus .nv-yValue {
   stroke: #666;
   font-size: .5em;
   font-weight: normal;
 }
 
-.nvd3 .sparklineplus .yValue {
+.nvd3.nv-sparklineplus .nv-yValue {
   stroke: #f66;
 }
 
@@ -534,25 +510,46 @@ svg .title {
 * historical stock
 */
 
-.nvd3.historicalStock .ticks .tick {
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick {
   stroke-width: 2px;
 }
 
-.nvd3.historicalStock .ticks .tick.hover {
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick.hover {
   stroke-width: 4px;
 }
 
-.nvd3.historicalStock .ticks .tick.positive {
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick.positive {
  stroke: #2ca02c;
 }
 
-.nvd3.historicalStock .ticks .tick.negative {
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick.negative {
  stroke: #d62728;
 }
 
-.nvd3.historicalStockChart .axis .axislabel {
+.nvd3.nv-historicalStockChart .nv-axis .nv-axislabel {
   font-weight: bold;
 }
+
+.nvd3.nv-historicalStockChart .nv-dragTarget {
+  fill-opacity: 0;
+  stroke: none;
+  cursor: move;
+}
+
+.nvd3.nv-historicalStockChart .nv-brush .extent {
+  /*
+  cursor: ew-resize !important;
+  */
+  fill-opacity: 0 !important;
+}
+
+.nvd3.nv-historicalStockChart .nv-brushBackground rect {
+  stroke: #000;
+  stroke-width: .4;
+  fill: #fff;
+  fill-opacity: .5;
+}
+
 
 
 /**********
@@ -560,36 +557,41 @@ svg .title {
 */
 
 
-.indentedtree .name {
+/**
+ * TODO: the following 3 selectors are based on classes used in the example.  I should either make them standard and leave them here, or move to a CSS file not included in the library
+ */
+.nvd3.nv-indentedtree .name {
   margin-left: 5px;
 }
 
-.indentedtree .childrenCount {
+.nvd3.nv-indentedtree .clickable {
+  color: #08C;
+  cursor: pointer;
+}
+
+.nvd3.nv-indentedtree span.clickable:hover {
+  color: #005580;
+  text-decoration: underline;
+}
+
+
+.nvd3.nv-indentedtree .nv-childrenCount {
   display: inline-block;
   margin-left: 5px;
 }
 
-.indentedtree .treeicon {
+.nvd3.nv-indentedtree .nv-treeicon {
   cursor: pointer;
   /*
   cursor: n-resize;
   */
 }
 
-.indentedtree .treeicon.folded {
+.nvd3.nv-indentedtree .nv-treeicon.nv-folded {
   cursor: pointer;
   /*
   cursor: s-resize;
   */
 }
 
-.nvd3.indentedtree .clickable {
-  color: #08C;
-  cursor: pointer;
-}
-
-.nvd3.indentedtree span.clickable:hover {
-  color: #005580;
-  text-decoration: underline;
-}
 

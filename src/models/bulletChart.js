@@ -49,12 +49,12 @@ nv.models.bulletChart = function() {
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
-      var wrap = container.selectAll('g.wrap.bulletChart').data([d]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bulletChart');
+      var wrap = container.selectAll('g.nv-wrap.nv-bulletChart').data([d]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bulletChart');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'bulletWrap');
-      gEnter.append('g').attr('class', 'titles');
+      gEnter.append('g').attr('class', 'nv-bulletWrap');
+      gEnter.append('g').attr('class', 'nv-titles');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -96,15 +96,15 @@ nv.models.bulletChart = function() {
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
 
-      var title = g.select('.titles').append("g")
+      var title = g.select('.nv-titles').append("g")
           .attr("text-anchor", "end")
           .attr("transform", "translate(-6," + (height - margin.top - margin.bottom) / 2 + ")");
       title.append("text")
-          .attr("class", "title")
+          .attr("class", "nv-title")
           .text(function(d) { return d.title; });
 
       title.append("text")
-          .attr("class", "subtitle")
+          .attr("class", "nv-subtitle")
           .attr("dy", "1em")
           .text(function(d) { return d.subtitle; });
 
@@ -114,7 +114,7 @@ nv.models.bulletChart = function() {
         .width(availableWidth)
         .height(availableHeight)
 
-      var bulletWrap = g.select('.bulletWrap')
+      var bulletWrap = g.select('.nv-bulletWrap')
           //.datum(data);
 
       d3.transition(bulletWrap).call(bullet);
@@ -125,14 +125,14 @@ nv.models.bulletChart = function() {
       var format = tickFormat || x1.tickFormat(8);
 
       // Update the tick groups.
-      var tick = g.selectAll('g.tick')
+      var tick = g.selectAll('g.nv-tick')
           .data(x1.ticks(8), function(d) {
             return this.textContent || format(d);
           });
 
       // Initialize the ticks with the old scale, x0.
       var tickEnter = tick.enter().append('g')
-          .attr('class', 'tick')
+          .attr('class', 'nv-tick')
           .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
           .style('opacity', 1e-6);
 

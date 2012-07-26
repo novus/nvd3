@@ -32,16 +32,16 @@ nv.models.pie = function() {
           });
 
 
-      var wrap = container.selectAll('.wrap.pie').data([getValues(data[0])]);
-      var wrapEnter = wrap.enter().append('g').attr('class','wrap nvd3 pie chart-' + id);
+      var wrap = container.selectAll('.nv-wrap.nv-pie').data([getValues(data[0])]);
+      var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      gEnter.append('g').attr('class', 'pie');
+      gEnter.append('g').attr('class', 'nv-pie');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      g.select('.pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+      g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
 
 
@@ -56,13 +56,13 @@ nv.models.pie = function() {
           .sort(null)
           .value(function(d) { return d.disabled ? 0 : getY(d) });
 
-      var slices = wrap.select('.pie').selectAll('.slice')
+      var slices = wrap.select('.nv-pie').selectAll('.nv-slice')
           .data(pie);
 
       slices.exit().remove();
 
-      var ae = slices.enter().append('svg:g')
-              .attr('class', 'slice')
+      var ae = slices.enter().append('g')
+              .attr('class', 'nv-slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
                 dispatch.elementMouseover({
@@ -111,7 +111,7 @@ nv.models.pie = function() {
             .attr('fill', function(d,i) { return color[i]; })
             .attr('stroke', function(d,i) { return color[i]; });
 
-        var paths = ae.append('svg:path')
+        var paths = ae.append('path')
             .each(function(d) { this._current = d; });
             //.attr('d', arc);
 

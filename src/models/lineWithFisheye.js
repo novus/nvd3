@@ -36,16 +36,16 @@ nv.models.line = function() {
       y0 = y0 || y;
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-line').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      wrapEnter.append('g').attr('class', 'scatterWrap');
-      var scatterWrap = wrap.select('.scatterWrap').datum(data);
+      wrapEnter.append('g').attr('class', 'nv-scatterWrap');
+      var scatterWrap = wrap.select('.nv-scatterWrap').datum(data);
 
-      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'nv-groups');
 
 
       scatter
@@ -59,21 +59,21 @@ nv.models.line = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
-      wrap.select('#edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
       scatterWrap
-          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -83,7 +83,7 @@ nv.models.line = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
           .style('stroke', function(d,i){ return color[i % color.length] })
@@ -95,7 +95,7 @@ nv.models.line = function() {
       var paths = groups.selectAll('path')
           .data(function(d, i) { return [d.values] });
       paths.enter().append('path')
-          .attr('class', 'line')
+          .attr('class', 'nv-line')
           .attr('d', d3.svg.line()
             .interpolate(interpolate)
             .x(function(d,i) { return x0(getX(d,i)) })

@@ -44,16 +44,16 @@ nv.models.line = function() {
       y0 = y0 || y;
 
 
-      var wrap = container.selectAll('g.wrap.line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
+      var wrap = container.selectAll('g.nv-wrap.nv-line').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      gEnter.append('g').attr('class', 'groups');
-      gEnter.append('g').attr('class', 'scatterWrap');
+      gEnter.append('g').attr('class', 'nv-groups');
+      gEnter.append('g').attr('class', 'nv-scatterWrap');
 
-      var scatterWrap = wrap.select('.scatterWrap');//.datum(data);
+      var scatterWrap = wrap.select('.nv-scatterWrap');//.datum(data);
 
 
       scatter
@@ -68,21 +68,21 @@ nv.models.line = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
-      wrap.select('#edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
       scatterWrap
-          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -92,7 +92,7 @@ nv.models.line = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
           .style('stroke', function(d,i){ return color[i % color.length] });
@@ -102,11 +102,11 @@ nv.models.line = function() {
 
 
 
-      var areaPaths = groups.selectAll('path.area')
+      var areaPaths = groups.selectAll('path.nv-area')
           .data(function(d) { return [d] }); // this is done differently than lines because I need to check if series is an area
       areaPaths.enter().append('path')
           .filter(isArea)
-          .attr('class', 'area')
+          .attr('class', 'nv-area')
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -117,7 +117,7 @@ nv.models.line = function() {
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
-      d3.transition(groups.exit().selectAll('path.area'))
+      d3.transition(groups.exit().selectAll('path.nv-area'))
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -142,10 +142,10 @@ nv.models.line = function() {
 
 
 
-      var linePaths = groups.selectAll('path.line')
+      var linePaths = groups.selectAll('path.nv-line')
           .data(function(d) { return [d.values] });
       linePaths.enter().append('path')
-          .attr('class', function(d) { return 'line' })
+          .attr('class', function(d) { return 'nv-line' })
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -153,7 +153,7 @@ nv.models.line = function() {
               .x(function(d,i) { return x0(getX(d,i)) })
               .y(function(d,i) { return y0(getY(d,i)) })
           );
-      d3.transition(groups.exit().selectAll('path.line'))
+      d3.transition(groups.exit().selectAll('path.nv-line'))
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)

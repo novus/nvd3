@@ -25,9 +25,9 @@ nv.models.sparkline = function() {
           .range([availableHeight, 0]);
 
 
-      var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparkline').data([data]);
 
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 sparkline');
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparkline');
       //var gEnter = svg.enter().append('svg').append('g');
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter
@@ -54,9 +54,9 @@ nv.models.sparkline = function() {
 
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = gEnter.selectAll('circle.point')
+      var points = gEnter.selectAll('circle.nv-point')
           .data(function(d) { return d.filter(function(p,i) { return y.domain().indexOf(getY(p,i)) != -1 || getX(p,i) == x.domain()[1]  }) });
-      points.enter().append('circle').attr('class', 'point');
+      points.enter().append('circle').attr('class', 'nv-point');
       points.exit().remove();
       points
           .attr('cx', function(d,i) { return x(getX(d,i)) })

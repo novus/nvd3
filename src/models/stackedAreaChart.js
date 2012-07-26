@@ -61,14 +61,14 @@ nv.models.stackedAreaChart = function() {
       x = stacked.xScale();
       y = stacked.yScale();
 
-      var wrap = container.selectAll('g.wrap.stackedAreaChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedAreaChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-stackedAreaChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedAreaChart').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'stackedWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
-      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-stackedWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-controlsWrap');
 
 
       var g = wrap.select('g');
@@ -78,7 +78,7 @@ nv.models.stackedAreaChart = function() {
         legend
           .width( availableWidth / 2 );
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -88,7 +88,7 @@ nv.models.stackedAreaChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
@@ -101,7 +101,7 @@ nv.models.stackedAreaChart = function() {
 
       if (showControls) {
         controls.width(280).color(['#444', '#444', '#444']);
-        g.select('.controlsWrap')
+        g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
@@ -111,7 +111,7 @@ nv.models.stackedAreaChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var stackedWrap = g.select('.stackedWrap')
+      var stackedWrap = g.select('.nv-stackedWrap')
           .datum(data);
       d3.transition(stackedWrap).call(stacked);
 
@@ -121,9 +121,9 @@ nv.models.stackedAreaChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize( -availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + availableHeight + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
       yAxis
@@ -132,7 +132,7 @@ nv.models.stackedAreaChart = function() {
         .tickSize(-availableWidth, 0)
         .tickFormat(stacked.offset() == 'expand' ? d3.format('%') : d3.format(',.2f')); //TODO: stacked format should be set by caller
 
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
 

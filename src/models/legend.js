@@ -13,17 +13,17 @@ nv.models.legend = function() {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right;
 
-      var wrap = d3.select(this).selectAll('g.legend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 legend').append('g');
+      var wrap = d3.select(this).selectAll('g.nv-legend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
 
 
       var g = wrap.select('g')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var series = g.selectAll('.series')
+      var series = g.selectAll('.nv-series')
           .data(function(d) { return d });
-      var seriesEnter = series.enter().append('g').attr('class', 'series')
+      var seriesEnter = series.enter().append('g').attr('class', 'nv-series')
           .on('mouseover', function(d,i) {
             dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
           })

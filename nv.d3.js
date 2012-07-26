@@ -271,8 +271,8 @@ nv.models.axis = function() {
     selection.each(function(data) {
       var container = d3.select(this);
 
-      var wrap = container.selectAll('g.wrap.axis').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap axis');
+      var wrap = container.selectAll('g.nv-wrap.nv-axis').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-axis');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
@@ -287,21 +287,21 @@ nv.models.axis = function() {
 
       scale0 = scale0 || axis.scale();
 
-      var axisLabel = g.selectAll('text.axislabel')
+      var axisLabel = g.selectAll('text.nv-axislabel')
           .data([axisLabelText || null]);
       axisLabel.exit().remove();
       switch (axis.orient()) {
         case 'top':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 0);
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('x', w/2);
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
@@ -321,16 +321,16 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 30);
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('x', w/2);
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
@@ -350,16 +350,16 @@ nv.models.axis = function() {
           }
           break;
         case 'right':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', rotateYLabel ? 'middle' : 'begin')
               .attr('transform', rotateYLabel ? 'rotate(90)' : '')
               .attr('y', rotateYLabel ? (-Math.max(margin.right,width) - 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text')
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                 .style('opacity', 0);
             axisMaxMin.exit().remove();
             axisMaxMin
@@ -383,16 +383,16 @@ nv.models.axis = function() {
           }
           break;
         case 'left':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
               .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text')
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                 .style('opacity', 0);
             axisMaxMin.exit().remove();
             axisMaxMin
@@ -435,7 +435,7 @@ nv.models.axis = function() {
 
       if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
         var maxMinRange = [];
-        wrap.selectAll('g.axisMaxMin')
+        wrap.selectAll('g.nv-axisMaxMin')
             .each(function(d,i) {
               if (i) // i== 1, max position
                 maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
@@ -579,11 +579,11 @@ nv.models.historicalBar = function() {
           });
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.bar').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bar');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bar');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'bars');
+      gEnter.append('g').attr('class', 'nv-bars');
 
 
       wrap.attr('width', width)
@@ -594,27 +594,27 @@ nv.models.historicalBar = function() {
 
 
       wrapEnter.append('defs').append('clipPath')
-          .attr('id', 'chart-clip-path-' + id)
+          .attr('id', 'nv-chart-clip-path-' + id)
         .append('rect');
-      wrap.select('#chart-clip-path-' + id + ' rect')
+      wrap.select('#nv-chart-clip-path-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
       gEnter
-          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+      var shiftWrap = gEnter.append('g').attr('class', 'nv-shiftWrap');
 
 
 
-      var bars = wrap.select('.bars').selectAll('.bar')
+      var bars = wrap.select('.nv-bars').selectAll('.nv-bar')
           .data(function(d) { return d });
 
       bars.exit().remove();
 
 
-      var barsEnter = bars.enter().append('svg:rect')
-          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
+      var barsEnter = bars.enter().append('rect')
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
           .attr('fill', function(d,i) { return color[0]; })
           .attr('x', 0 )
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
@@ -667,7 +667,7 @@ nv.models.historicalBar = function() {
           });
 
       bars
-          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'bar negative' : 'bar positive') + ' bar-' + j + '-' + i })
+          .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
           .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - ((availableWidth / data[0].values.length) * .5)) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
@@ -801,8 +801,8 @@ nv.models.bullet = function() {
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.bullet').data([d]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bullet');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-bullet').data([d]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
       var gEnter = wrapEnter.append('g');
 
       var g = wrap.select('g')
@@ -846,11 +846,11 @@ nv.models.bullet = function() {
 
 
       // Update the range rects.
-      var range = g.selectAll('rect.range')
+      var range = g.selectAll('rect.nv-range')
           .data(rangez);
 
       range.enter().append('rect')
-          .attr('class', function(d, i) { return 'range s' + i; })
+          .attr('class', function(d, i) { return 'nv-range nv-s' + i; })
           .attr('width', w0)
           .attr('height', availableHeight)
           .attr('x', reverse ? x0 : 0)
@@ -875,11 +875,11 @@ nv.models.bullet = function() {
 
 
       // Update the measure rects.
-      var measure = g.selectAll('rect.measure')
+      var measure = g.selectAll('rect.nv-measure')
           .data(measurez);
 
       measure.enter().append('rect')
-          .attr('class', function(d, i) { return 'measure s' + i; })
+          .attr('class', function(d, i) { return 'nv-measure nv-s' + i; })
           .attr('width', w0)
           .attr('height', availableHeight / 3)
           .attr('x', reverse ? x0 : 0)
@@ -907,22 +907,22 @@ nv.models.bullet = function() {
 
 
       // Update the marker lines.
-      var marker = g.selectAll('path.markerTriangle')
+      var marker = g.selectAll('path.nv-markerTriangle')
           .data(markerz);
 
       var h3 =  availableHeight / 6;
       marker.enter().append('path')
-          .attr('class', 'markerTriangle')
+          .attr('class', 'nv-markerTriangle')
           .attr('transform', function(d) { return 'translate(' + x0(d) + ',' + (availableHeight / 2) + ')' })
           .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
-          .on('mouseover', function(d,i) { 
+          .on('mouseover', function(d,i) {
               dispatch.elementMouseover({
                 value: d,
                 label: 'Previous',
                 pos: [x1(d), availableHeight/2]
               })
           })
-          .on('mouseout', function(d,i) { 
+          .on('mouseout', function(d,i) {
               dispatch.elementMouseout({
                 value: d,
                 label: 'Previous'
@@ -1050,12 +1050,12 @@ nv.models.bulletChart = function() {
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
-      var wrap = container.selectAll('g.wrap.bulletChart').data([d]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bulletChart');
+      var wrap = container.selectAll('g.nv-wrap.nv-bulletChart').data([d]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bulletChart');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'bulletWrap');
-      gEnter.append('g').attr('class', 'titles');
+      gEnter.append('g').attr('class', 'nv-bulletWrap');
+      gEnter.append('g').attr('class', 'nv-titles');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -1097,15 +1097,15 @@ nv.models.bulletChart = function() {
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
 
-      var title = g.select('.titles').append("g")
+      var title = g.select('.nv-titles').append("g")
           .attr("text-anchor", "end")
           .attr("transform", "translate(-6," + (height - margin.top - margin.bottom) / 2 + ")");
       title.append("text")
-          .attr("class", "title")
+          .attr("class", "nv-title")
           .text(function(d) { return d.title; });
 
       title.append("text")
-          .attr("class", "subtitle")
+          .attr("class", "nv-subtitle")
           .attr("dy", "1em")
           .text(function(d) { return d.subtitle; });
 
@@ -1115,7 +1115,7 @@ nv.models.bulletChart = function() {
         .width(availableWidth)
         .height(availableHeight)
 
-      var bulletWrap = g.select('.bulletWrap')
+      var bulletWrap = g.select('.nv-bulletWrap')
           //.datum(data);
 
       d3.transition(bulletWrap).call(bullet);
@@ -1126,14 +1126,14 @@ nv.models.bulletChart = function() {
       var format = tickFormat || x1.tickFormat(8);
 
       // Update the tick groups.
-      var tick = g.selectAll('g.tick')
+      var tick = g.selectAll('g.nv-tick')
           .data(x1.ticks(8), function(d) {
             return this.textContent || format(d);
           });
 
       // Initialize the ticks with the old scale, x0.
       var tickEnter = tick.enter().append('g')
-          .attr('class', 'tick')
+          .attr('class', 'nv-tick')
           .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
           .style('opacity', 1e-6);
 
@@ -1288,9 +1288,9 @@ nv.models.cumulativeLineChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+  var margin = {top: 30, right: 30, bottom: 50, left: 60},
       color = d3.scale.category20().range(),
-      width = null, 
+      width = null,
       height = null,
       showLegend = true,
       tooltips = true,
@@ -1357,7 +1357,7 @@ nv.models.cumulativeLineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this).classed('chart-' + id, true),
+      var container = d3.select(this).classed('nv-chart-' + id, true),
           that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
@@ -1377,14 +1377,14 @@ nv.models.cumulativeLineChart = function() {
       var data = indexify(index.i, data);
 
 
-      var wrap = container.selectAll('g.wrap.cumulativeLine').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 cumulativeLine').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-cumulativeLine').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'linesWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
-      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-controlsWrap');
 
 
       var g = wrap.select('g');
@@ -1393,7 +1393,7 @@ nv.models.cumulativeLineChart = function() {
       if (showLegend) {
         legend.width(availableWidth);
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -1403,14 +1403,14 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
 
 
       if (showRescaleToggle) {
         controls.width(140).color(['#444', '#444', '#444']);
-        g.select('.controlsWrap')
+        g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
@@ -1432,15 +1432,15 @@ nv.models.cumulativeLineChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var linesWrap = g.select('.linesWrap')
+      var linesWrap = g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(linesWrap).call(lines);
 
 
-      var indexLine = linesWrap.selectAll('.indexLine')
+      var indexLine = linesWrap.selectAll('.nv-indexLine')
           .data([index]);
-      indexLine.enter().append('rect').attr('class', 'indexLine')
+      indexLine.enter().append('rect').attr('class', 'nv-indexLine')
           .attr('width', 3)
           .attr('x', -2)
           .attr('fill', 'red')
@@ -1458,9 +1458,9 @@ nv.models.cumulativeLineChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
 
@@ -1469,7 +1469,7 @@ nv.models.cumulativeLineChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
 
@@ -1494,7 +1494,7 @@ nv.models.cumulativeLineChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -1701,11 +1701,11 @@ nv.models.discreteBar = function() {
       y0 = y0 || y.copy().range([y(0),y(0)]);
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discretebar');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-discretebar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discretebar');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'nv-groups');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -1713,7 +1713,7 @@ nv.models.discreteBar = function() {
 
 
       //TODO: by definition, the discrete bar should not have multiple groups, will modify/remove later
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -1723,14 +1723,14 @@ nv.models.discreteBar = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
 
-      var bars = groups.selectAll('g.bar')
+      var bars = groups.selectAll('g.nv-bar')
           .data(function(d) { return d.values });
 
       bars.exit().remove();
@@ -1806,7 +1806,7 @@ nv.models.discreteBar = function() {
       }
 
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           //.attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
           .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y0(0) : y0(getY(d,i))) + ')' 
@@ -1986,13 +1986,13 @@ nv.models.discreteBarChart = function() {
         .height(availableHeight);
 
 
-      var wrap = container.selectAll('g.wrap.discreteBarWithAxes').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discreteBarWithAxes').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-discreteBarWithAxes').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discreteBarWithAxes').append('g');
       var defsEnter = gEnter.append('defs');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'barsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-barsWrap');
 
 
 
@@ -2001,7 +2001,7 @@ nv.models.discreteBarChart = function() {
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      var barsWrap = g.select('.barsWrap')
+      var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
 
@@ -2009,10 +2009,10 @@ nv.models.discreteBarChart = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'x-label-clip-' + discretebar.id())
+          .attr('id', 'nv-x-label-clip-' + discretebar.id())
         .append('rect')
 
-      g.select('#x-label-clip-' + discretebar.id() + ' rect')
+      g.select('#nv-x-label-clip-' + discretebar.id() + ' rect')
           .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
           .attr('height', 16)
           .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
@@ -2022,14 +2022,14 @@ nv.models.discreteBarChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')')
       //d3.transition(g.select('.x.axis'))
-      g.select('.x.axis').transition().duration(0)
+      g.select('.nv-x.nv-axis').transition().duration(0)
           .call(xAxis);
 
 
-      var xTicks = g.select('.x.axis').selectAll('g');
+      var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
       if (staggerLabels)
         xTicks
@@ -2044,14 +2044,14 @@ nv.models.discreteBarChart = function() {
 
       xTicks
           .selectAll('text')
-          .attr('clip-path', function(d,i,j) { return rotateLabels ? '' : 'url(#x-label-clip-' + discretebar.id() + ')' });
+          .attr('clip-path', function(d,i,j) { return rotateLabels ? '' : 'url(#nv-x-label-clip-' + discretebar.id() + ')' });
 
 
       yAxis
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
 
@@ -2166,35 +2166,35 @@ nv.models.distribution = function() {
 */
 
 
-      var wrap = d3.select(this).selectAll('g.distribution').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 distribution');
+      var wrap = d3.select(this).selectAll('g.nv-distribution').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-distribution');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
-      var distWrap = g.selectAll('g.dist')
+      var distWrap = g.selectAll('g.nv-dist')
           .data(function(d) { return d }, function(d) { return d.key });
 
       distWrap.enter().append('g')
       distWrap
-          .attr('class', function(d,i) { return 'dist series-' + i })
+          .attr('class', function(d,i) { return 'nv-dist nv-series-' + i })
           .style('stroke', function(d,i) { return color[i % color.length] });
           //.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
 
-      var dist = distWrap.selectAll('line.dist' + axis)
+      var dist = distWrap.selectAll('line.nv-dist' + axis)
           .data(function(d) { return d.values })
       dist.enter().append('line')
           .attr(axis + '1', function(d,i) { return scale0(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale0(getData(d,i)) })
-      d3.transition(distWrap.exit().selectAll('line.dist' + axis))
+      d3.transition(distWrap.exit().selectAll('line.nv-dist' + axis))
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
           .style('stroke-opacity', 0)
           .remove();
       dist
       //distWrap.selectAll('line.dist' + axis)
-          .attr('class', function(d,i) { return 'dist' + axis + ' dist' + axis + '-' + i })
+          .attr('class', function(d,i) { return 'nv-dist' + axis + ' nv-dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
       d3.transition(dist)
@@ -2298,7 +2298,7 @@ nv.models.indentedTree = function() {
 
 
       var wrap = d3.select(this).selectAll('div').data([[nodes]]);
-      var wrapEnter = wrap.enter().append('div').attr('class', 'wrap nvd3 indentedtree');
+      var wrapEnter = wrap.enter().append('div').attr('class', 'nvd3 nv-wrap nv-indentedtree');
       var tableEnter = wrapEnter.append('table');
       var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
 
@@ -2339,7 +2339,7 @@ nv.models.indentedTree = function() {
       node.exit().remove();
 
 
-      node.select('img.treeicon')
+      node.select('img.nv-treeicon')
           .attr('src', icon)
           .classed('folded', folded);
 
@@ -2355,8 +2355,8 @@ nv.models.indentedTree = function() {
 
         if (index == 0) {
           nodeName.append('img')
-              .classed('treeicon', true)
-              .classed('folded', folded)
+              .classed('nv-treeicon', true)
+              .classed('nv-folded', folded)
               .attr('src', icon)
               .style('width', '14px')
               .style('height', '14px')
@@ -2373,7 +2373,7 @@ nv.models.indentedTree = function() {
 
         if  (column.showCount)
           nodeName.append('span')
-              .attr('class', 'childrenCount')
+              .attr('class', 'nv-childrenCount')
               .text(function(d) {
                 return ((d.values && d.values.length) || (d._values && d._values.length)) ?
                     '(' + ((d.values && d.values.length) || (d._values && d._values.length)) + ')'
@@ -2557,17 +2557,17 @@ nv.models.legend = function() {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right;
 
-      var wrap = d3.select(this).selectAll('g.legend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 legend').append('g');
+      var wrap = d3.select(this).selectAll('g.nv-legend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
 
 
       var g = wrap.select('g')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var series = g.selectAll('.series')
+      var series = g.selectAll('.nv-series')
           .data(function(d) { return d });
-      var seriesEnter = series.enter().append('g').attr('class', 'series')
+      var seriesEnter = series.enter().append('g').attr('class', 'nv-series')
           .on('mouseover', function(d,i) {
             dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
           })
@@ -2769,16 +2769,16 @@ nv.models.line = function() {
       y0 = y0 || y;
 
 
-      var wrap = container.selectAll('g.wrap.line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 line');
+      var wrap = container.selectAll('g.nv-wrap.nv-line').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      gEnter.append('g').attr('class', 'groups');
-      gEnter.append('g').attr('class', 'scatterWrap');
+      gEnter.append('g').attr('class', 'nv-groups');
+      gEnter.append('g').attr('class', 'nv-scatterWrap');
 
-      var scatterWrap = wrap.select('.scatterWrap');//.datum(data);
+      var scatterWrap = wrap.select('.nv-scatterWrap');//.datum(data);
 
 
       scatter
@@ -2793,21 +2793,21 @@ nv.models.line = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
-      wrap.select('#edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
       scatterWrap
-          .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -2817,7 +2817,7 @@ nv.models.line = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
           .style('stroke', function(d,i){ return color[i % color.length] });
@@ -2827,11 +2827,11 @@ nv.models.line = function() {
 
 
 
-      var areaPaths = groups.selectAll('path.area')
+      var areaPaths = groups.selectAll('path.nv-area')
           .data(function(d) { return [d] }); // this is done differently than lines because I need to check if series is an area
       areaPaths.enter().append('path')
           .filter(isArea)
-          .attr('class', 'area')
+          .attr('class', 'nv-area')
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -2842,7 +2842,7 @@ nv.models.line = function() {
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
-      d3.transition(groups.exit().selectAll('path.area'))
+      d3.transition(groups.exit().selectAll('path.nv-area'))
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -2867,10 +2867,10 @@ nv.models.line = function() {
 
 
 
-      var linePaths = groups.selectAll('path.line')
+      var linePaths = groups.selectAll('path.nv-line')
           .data(function(d) { return [d.values] });
       linePaths.enter().append('path')
-          .attr('class', function(d) { return 'line' })
+          .attr('class', function(d) { return 'nv-line' })
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -2878,7 +2878,7 @@ nv.models.line = function() {
               .x(function(d,i) { return x0(getX(d,i)) })
               .y(function(d,i) { return y0(getY(d,i)) })
           );
-      d3.transition(groups.exit().selectAll('path.line'))
+      d3.transition(groups.exit().selectAll('path.nv-line'))
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -3054,13 +3054,13 @@ nv.models.lineChart = function() {
       y = lines.yScale();
 
 
-      var wrap = container.selectAll('g.wrap.lineChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-lineChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineChart').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'linesWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
 
       var g = wrap.select('g');
@@ -3071,7 +3071,7 @@ nv.models.lineChart = function() {
       if (showLegend) {
         legend.width(availableWidth);
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -3081,7 +3081,7 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
 
@@ -3098,7 +3098,7 @@ nv.models.lineChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var linesWrap = g.select('.linesWrap')
+      var linesWrap = g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(linesWrap).call(lines);
@@ -3110,9 +3110,9 @@ nv.models.lineChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
 
@@ -3121,7 +3121,7 @@ nv.models.lineChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
 
@@ -3136,7 +3136,7 @@ nv.models.lineChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -3305,14 +3305,14 @@ nv.models.linePlusBarChart = function() {
       //TODO: try to remove x scale computation from this layer
 
       var series1 = data.filter(function(d) { return !d.disabled && d.bar })
-            .map(function(d) { 
+            .map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
             });
 
       var series2 = data.filter(function(d) { return !d.disabled && !d.bar })
-            .map(function(d) { 
+            .map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i) }
               })
@@ -3336,15 +3336,15 @@ nv.models.linePlusBarChart = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.linePlusBar').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 linePlusBar').append('g');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-linePlusBar').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y1 axis');
-      gEnter.append('g').attr('class', 'y2 axis');
-      gEnter.append('g').attr('class', 'barsWrap');
-      gEnter.append('g').attr('class', 'linesWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+      gEnter.append('g').attr('class', 'nv-y2 nv-axis');
+      gEnter.append('g').attr('class', 'nv-barsWrap');
+      gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
 
 
@@ -3354,8 +3354,8 @@ nv.models.linePlusBarChart = function() {
       if (showLegend) {
         legend.width( availableWidth / 2 );
 
-        g.select('.legendWrap')
-            .datum(data.map(function(series) { 
+        g.select('.nv-legendWrap')
+            .datum(data.map(function(series) {
               series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
               series.key = series.originalKey + (series.bar ? ' (left axis)' : ' (right axis)');
               return series;
@@ -3368,7 +3368,7 @@ nv.models.linePlusBarChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
@@ -3391,10 +3391,10 @@ nv.models.linePlusBarChart = function() {
 
 
 
-      var barsWrap = g.select('.barsWrap')
+      var barsWrap = g.select('.nv-barsWrap')
           .datum(dataBars.length ? dataBars : [{values:[]}])
 
-      var linesWrap = g.select('.linesWrap')
+      var linesWrap = g.select('.nv-linesWrap')
           .datum(dataLines.length ? dataLines : [{values:[]}])
 
 
@@ -3409,9 +3409,9 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y1.range()[0] + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
 
@@ -3419,7 +3419,7 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
-      d3.transition(g.select('.y1.axis'))
+      d3.transition(g.select('.nv-y1.nv-axis'))
           .style('opacity', dataBars.length ? 1 : 0)
           .call(yAxis1);
 
@@ -3428,11 +3428,11 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
-      g.select('.y2.axis')
+      g.select('.nv-y2.nv-axis')
           .style('opacity', dataLines.length ? 1 : 0)
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
-      d3.transition(g.select('.y2.axis'))
+      d3.transition(g.select('.nv-y2.nv-axis'))
           .call(yAxis2);
 
 
@@ -3443,7 +3443,7 @@ nv.models.linePlusBarChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -3565,12 +3565,12 @@ nv.models.lineWithFocusChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       margin2 = {top: 0, right: 20, bottom: 20, left: 60},
       color = d3.scale.category20().range(),
-      width = null, 
+      width = null,
       height = null,
       height2 = 100,
       showLegend = true,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       };
@@ -3616,21 +3616,21 @@ nv.models.lineWithFocusChart = function() {
       brush.on('brush', onBrush);
 
 
-      var wrap = container.selectAll('g.wrap.lineWithFocusChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 lineWithFocusChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-lineWithFocusChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineWithFocusChart').append('g');
 
-      var focusEnter = gEnter.append('g').attr('class', 'focus');
-      focusEnter.append('g').attr('class', 'x axis');
-      focusEnter.append('g').attr('class', 'y axis');
-      focusEnter.append('g').attr('class', 'linesWrap');
+      var focusEnter = gEnter.append('g').attr('class', 'nv-focus');
+      focusEnter.append('g').attr('class', 'nv-x nv-axis');
+      focusEnter.append('g').attr('class', 'nv-y nv-axis');
+      focusEnter.append('g').attr('class', 'nv-linesWrap');
 
-      var contextEnter = gEnter.append('g').attr('class', 'context');
-      contextEnter.append('g').attr('class', 'x axis');
-      contextEnter.append('g').attr('class', 'y axis');
-      contextEnter.append('g').attr('class', 'linesWrap');
-      contextEnter.append('g').attr('class', 'x brush');
+      var contextEnter = gEnter.append('g').attr('class', 'nv-context');
+      contextEnter.append('g').attr('class', 'nv-x nv-axis');
+      contextEnter.append('g').attr('class', 'nv-y nv-axis');
+      contextEnter.append('g').attr('class', 'nv-linesWrap');
+      contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
 
       var g = wrap.select('g');
@@ -3641,7 +3641,7 @@ nv.models.lineWithFocusChart = function() {
       if (showLegend) {
         legend.width(availableWidth);
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -3651,7 +3651,7 @@ nv.models.lineWithFocusChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
 
@@ -3677,7 +3677,7 @@ nv.models.lineWithFocusChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var focusLinesWrap = g.select('.focus .linesWrap')
+      var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(focusLinesWrap).call(lines);
@@ -3687,9 +3687,9 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.focus .x.axis')
+      g.select('.nv-focus .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.focus .x.axis'))
+      d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
           .call(xAxis);
 
 
@@ -3697,26 +3697,26 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.focus .y.axis'))
+      d3.transition(g.select('.nv-focus .nv-y.nv-axis'))
           .call(yAxis);
 
 
 
-      g.select('.context')
+      g.select('.nv-context')
           .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + margin2.top) + ')')
 
-      var contextLinesWrap = g.select('.context .linesWrap')
+      var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(contextLinesWrap).call(lines2);
 
 
-      gBrush = g.select('.x.brush')
+      gBrush = g.select('.nv-x.nv-brush')
           .call(brush);
       gBrush.selectAll('rect')
           //.attr('y', -5)
           .attr('height', availableHeight2);
-      gBrush.selectAll(".resize").append("path").attr("d", resizePath);
+      gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
 
 
@@ -3725,9 +3725,9 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
-      g.select('.context .x.axis')
+      g.select('.nv-context .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y2.range()[0] + ')');
-      d3.transition(g.select('.context .x.axis'))
+      d3.transition(g.select('.nv-context .nv-x.nv-axis'))
           .call(x2Axis);
 
 
@@ -3736,7 +3736,7 @@ nv.models.lineWithFocusChart = function() {
         .ticks( availableHeight2 / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.context .y.axis'))
+      d3.transition(g.select('.nv-context .nv-y.nv-axis'))
           .call(y2Axis);
 
 
@@ -3750,7 +3750,7 @@ nv.models.lineWithFocusChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -3787,18 +3787,18 @@ nv.models.lineWithFocusChart = function() {
 
       // Taken from crossfilter (http://square.github.com/crossfilter/)
       function resizePath(d) {
-        var e = +(d == "e"),
+        var e = +(d == 'e'),
             x = e ? 1 : -1,
             y = availableHeight2 / 3;
-        return "M" + (.5 * x) + "," + y
-            + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6)
-            + "V" + (2 * y - 6)
-            + "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y)
-            + "Z"
-            + "M" + (2.5 * x) + "," + (y + 8)
-            + "V" + (2 * y - 8)
-            + "M" + (4.5 * x) + "," + (y + 8)
-            + "V" + (2 * y - 8);
+        return 'M' + (.5 * x) + ',' + y
+            + 'A6,6 0 0 ' + e + ' ' + (6.5 * x) + ',' + (y + 6)
+            + 'V' + (2 * y - 6)
+            + 'A6,6 0 0 ' + e + ' ' + (.5 * x) + ',' + (2 * y)
+            + 'Z'
+            + 'M' + (2.5 * x) + ',' + (y + 8)
+            + 'V' + (2 * y - 8)
+            + 'M' + (4.5 * x) + ',' + (y + 8)
+            + 'V' + (2 * y - 8);
       }
 
 
@@ -3807,8 +3807,8 @@ nv.models.lineWithFocusChart = function() {
 
         focusLinesWrap.call(lines)
         //var focusLinesWrap = g.select('.focus .linesWrap')
-        g.select('.focus .x.axis').call(xAxis);
-        g.select('.focus .y.axis').call(yAxis);
+        g.select('.nv-focus .nv-x.nv-axis').call(xAxis);
+        g.select('.nv-focus .nv-y.nv-axis').call(yAxis);
       }
 
       function updateFocus() {
@@ -3969,7 +3969,7 @@ nv.models.multiBar = function() {
 
 
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            data.map(function(d) { 
+            data.map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
               })
@@ -3989,7 +3989,6 @@ nv.models.multiBar = function() {
             x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
           : x.domain([-1,1]);
 
-          nv.log(y.domain());
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
@@ -4005,12 +4004,12 @@ nv.models.multiBar = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.multibar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multibar');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'nv-groups');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -4018,17 +4017,17 @@ nv.models.multiBar = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
-      wrap.select('#edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -4036,13 +4035,13 @@ nv.models.multiBar = function() {
       d3.transition(groups.exit())
           //.style('stroke-opacity', 1e-6)
           //.style('fill-opacity', 1e-6)
-        .selectAll('rect.bar')
+        .selectAll('rect.nv-bar')
         .delay(function(d,i) { return i * delay/ data[0].values.length })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
           .style('stroke', function(d,i){ return color[i % color.length] });
@@ -4051,14 +4050,14 @@ nv.models.multiBar = function() {
           .style('fill-opacity', .75);
 
 
-      var bars = groups.selectAll('rect.bar')
+      var bars = groups.selectAll('rect.nv-bar')
           .data(function(d) { return d.values });
 
       bars.exit().remove();
 
 
       var barsEnter = bars.enter().append('rect')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           .attr('x', function(d,i,j) {
               return stacked ? 0 : (j * x.rangeBand() / data.length )
           })
@@ -4114,7 +4113,7 @@ nv.models.multiBar = function() {
             d3.event.stopPropagation();
           });
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
       if (stacked)
         d3.transition(bars)
@@ -4144,7 +4143,7 @@ nv.models.multiBar = function() {
                 .attr('y', function(d,i) {
                   return getY(d,i) < 0 ?
                     y(0) :
-                    y(getY(d,i)) 
+                    y(getY(d,i))
                 })
                 .attr('height', function(d,i) {
                   return Math.abs(y(getY(d,i)) - y(0))
@@ -4326,14 +4325,14 @@ nv.models.multiBarChart = function() {
       y = multibar.yScale();
 
 
-      var wrap = container.selectAll('g.wrap.multiBarWithLegend').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarWithLegend').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-multiBarWithLegend').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multiBarWithLegend').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'barsWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
-      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-barsWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-controlsWrap');
 
 
 
@@ -4343,7 +4342,7 @@ nv.models.multiBarChart = function() {
       if (showLegend) {
         legend.width(availableWidth / 2);
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -4353,7 +4352,7 @@ nv.models.multiBarChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
       }
 
@@ -4374,7 +4373,7 @@ nv.models.multiBarChart = function() {
         ];
 
         controls.width(180).color(['#444', '#444', '#444']);
-        g.select('.controlsWrap')
+        g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
@@ -4384,7 +4383,7 @@ nv.models.multiBarChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var barsWrap = g.select('.barsWrap')
+      var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
 
@@ -4396,12 +4395,12 @@ nv.models.multiBarChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
-      var xTicks = g.select('.x.axis > g').selectAll('g');
+      var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
 
       xTicks
           .selectAll('line, text')
@@ -4420,7 +4419,7 @@ nv.models.multiBarChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
 
@@ -4435,7 +4434,7 @@ nv.models.multiBarChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -4612,7 +4611,7 @@ nv.models.multiBarHorizontal = function() {
 
 
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            data.map(function(d) { 
+            data.map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
               })
@@ -4629,22 +4628,21 @@ nv.models.multiBarHorizontal = function() {
 
       //store old scales if they exist
       x0 = x0 || x;
-      //y0 = y0 || y;
       y0 = y0 || d3.scale.linear().domain(y.domain()).range([y(0),y(0)]);
 
-      var wrap = d3.select(this).selectAll('g.wrap.multibarHorizontal').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multibarHorizontal');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibarHorizontal').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibarHorizontal');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'nv-groups');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -4654,7 +4652,7 @@ nv.models.multiBarHorizontal = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
           .style('stroke', function(d,i){ return color[i % color.length] });
@@ -4663,7 +4661,7 @@ nv.models.multiBarHorizontal = function() {
           .style('fill-opacity', .75);
 
 
-      var bars = groups.selectAll('g.bar')
+      var bars = groups.selectAll('g.nv-bar')
           .data(function(d) { return d.values });
 
       bars.exit().remove();
@@ -4677,7 +4675,7 @@ nv.models.multiBarHorizontal = function() {
       barsEnter.append('rect')
           .attr('width', 0)
           .attr('height', x.rangeBand() / (stacked ? 1 : data.length) )
-          
+
       bars
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
@@ -4743,7 +4741,7 @@ nv.models.multiBarHorizontal = function() {
       }
 
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           //.attr('transform', function(d,i,j) {
               //return 'translate(' + y0(stacked ? d.y0 : 0) + ',' + x(getX(d,i)) + ')'
           //})
@@ -4995,14 +4993,14 @@ nv.models.multiBarHorizontalChart = function() {
 
 
 
-      var wrap = container.selectAll('g.wrap.multiBarHorizontalChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiBarHorizontalChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-multiBarHorizontalChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multiBarHorizontalChart').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'barsWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
-      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-barsWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-controlsWrap');
 
 
 
@@ -5015,7 +5013,7 @@ nv.models.multiBarHorizontalChart = function() {
       if (showLegend) {
         legend.width(availableWidth / 2);
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -5025,7 +5023,7 @@ nv.models.multiBarHorizontalChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')')
       }
 
@@ -5041,7 +5039,7 @@ nv.models.multiBarHorizontalChart = function() {
 
       if (showControls) {
         controls.width(180).color(['#444', '#444', '#444']);
-        g.select('.controlsWrap')
+        g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
@@ -5051,7 +5049,7 @@ nv.models.multiBarHorizontalChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var barsWrap = g.select('.barsWrap')
+      var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
 
@@ -5063,10 +5061,10 @@ nv.models.multiBarHorizontalChart = function() {
         .tickSize(-availableWidth, 0);
 
       //d3.transition(g.select('.x.axis'))
-      g.select('.x.axis').transition().duration(0)
+      g.select('.nv-x.nv-axis').transition().duration(0)
           .call(xAxis);
 
-      var xTicks = g.select('.x.axis').selectAll('g');
+      var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
       xTicks
           .selectAll('line, text')
@@ -5085,9 +5083,9 @@ nv.models.multiBarHorizontalChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize( -availableHeight, 0);
 
-      g.select('.y.axis')
+      g.select('.nv-y.nv-axis')
           .attr('transform', 'translate(0,' + availableHeight + ')');
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
       //g.select('.y.axis').transition().duration(0)
           .call(yAxis);
 
@@ -5100,7 +5098,7 @@ nv.models.multiBarHorizontalChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -5277,11 +5275,11 @@ nv.models.ohlcBar = function() {
           });
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.historicalStock').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 historicalStock');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-ohlcBar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-ohlcBar');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'ticks');
+      gEnter.append('g').attr('class', 'nv-ticks');
 
 
       wrap.attr('width', width)
@@ -5292,30 +5290,46 @@ nv.models.ohlcBar = function() {
 
 
       wrapEnter.append('defs').append('clipPath')
-          .attr('id', 'chart-clip-path-' + id)
+          .attr('id', 'nv-chart-clip-path-' + id)
         .append('rect');
-      wrap.select('#chart-clip-path-' + id + ' rect')
+      wrap.select('#nv-chart-clip-path-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
       gEnter
-          .attr('clip-path', clipEdge ? 'url(#chart-clip-path-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
-      var shiftWrap = gEnter.append('g').attr('class', 'shiftWrap');
+      var shiftWrap = gEnter.append('g').attr('class', 'nv-shiftWrap');
 
 
 
-      var ticks = wrap.select('.ticks').selectAll('.tick')
+      var ticks = wrap.select('.nv-ticks').selectAll('.nv-tick')
           .data(function(d) { return d });
 
       ticks.exit().remove();
 
 
       var ticksEnter = ticks.enter().append('path')
-          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
           .attr('d', function(d,i) {
             var w = (availableWidth / data[0].values.length) * .9;
-            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
+            return 'm0,0l0,' 
+                 + (y(getOpen(d,i))
+                 - y(getHigh(d,i)))
+                 + 'l'
+                 + (-w/2)
+                 + ',0l'
+                 + (w/2)
+                 + ',0l0,'
+                 + (y(getLow(d,i)) - y(getOpen(d,i)))
+                 + 'l0,'
+                 + (y(getClose(d,i))
+                 - y(getLow(d,i)))
+                 + 'l'
+                 + (w/2)
+                 + ',0l'
+                 + (-w/2)
+                 + ',0z';
           })
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           //.attr('fill', function(d,i) { return color[0]; })
@@ -5371,12 +5385,29 @@ nv.models.ohlcBar = function() {
           });
 
       ticks
-          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'tick negative' : 'tick positive') + ' tick-' + j + '-' + i })
+          .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
       d3.transition(ticks)
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
           .attr('d', function(d,i) {
             var w = (availableWidth / data[0].values.length) * .9;
-            return 'm0,0l0,' + (y(getOpen(d,i)) - y(getHigh(d,i))) + 'l' + (-w/2) + ',0l' + (w/2) + ',0l0,' + (y(getLow(d,i)) - y(getOpen(d,i))) +'l0,'+ (y(getClose(d,i)) - y(getLow(d,i))) +'l' + (w/2) + ',0l' + (-w/2) + ',0z';
+            return 'm0,0l0,'
+                 + (y(getOpen(d,i))
+                 - y(getHigh(d,i)))
+                 + 'l'
+                 + (-w/2)
+                 + ',0l'
+                 + (w/2)
+                 + ',0l0,'
+                 + (y(getLow(d,i))
+                 - y(getOpen(d,i)))
+                 + 'l0,'
+                 + (y(getClose(d,i))
+                 - y(getLow(d,i)))
+                 + 'l'
+                 + (w/2)
+                 + ',0l'
+                 + (-w/2)
+                 + ',0z';
           })
           //.attr('width', (availableWidth / data[0].values.length) * .9 )
 
@@ -5540,16 +5571,16 @@ nv.models.pie = function() {
           });
 
 
-      var wrap = container.selectAll('.wrap.pie').data([getValues(data[0])]);
-      var wrapEnter = wrap.enter().append('g').attr('class','wrap nvd3 pie chart-' + id);
+      var wrap = container.selectAll('.nv-wrap.nv-pie').data([getValues(data[0])]);
+      var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      gEnter.append('g').attr('class', 'pie');
+      gEnter.append('g').attr('class', 'nv-pie');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      g.select('.pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+      g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
 
 
@@ -5564,13 +5595,13 @@ nv.models.pie = function() {
           .sort(null)
           .value(function(d) { return d.disabled ? 0 : getY(d) });
 
-      var slices = wrap.select('.pie').selectAll('.slice')
+      var slices = wrap.select('.nv-pie').selectAll('.nv-slice')
           .data(pie);
 
       slices.exit().remove();
 
-      var ae = slices.enter().append('svg:g')
-              .attr('class', 'slice')
+      var ae = slices.enter().append('g')
+              .attr('class', 'nv-slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
                 dispatch.elementMouseover({
@@ -5619,7 +5650,7 @@ nv.models.pie = function() {
             .attr('fill', function(d,i) { return color[i]; })
             .attr('stroke', function(d,i) { return color[i]; });
 
-        var paths = ae.append('svg:path')
+        var paths = ae.append('path')
             .each(function(d) { this._current = d; });
             //.attr('d', arc);
 
@@ -5803,11 +5834,11 @@ nv.models.pieChart = function() {
 
 
 
-      var wrap = container.selectAll('g.wrap.pieChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 pieChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-pieChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-pieChart').append('g');
 
-      gEnter.append('g').attr('class', 'pieWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-pieWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
       var g = wrap.select('g');
 
@@ -5817,7 +5848,7 @@ nv.models.pieChart = function() {
           .width( availableWidth )
           .key(pie.x());
 
-        wrap.select('.legendWrap')
+        wrap.select('.nv-legendWrap')
             .datum(pie.values()(data[0]))
             .call(legend);
 
@@ -5827,7 +5858,7 @@ nv.models.pieChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        wrap.select('.legendWrap')
+        wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')');
       }
 
@@ -5843,7 +5874,7 @@ nv.models.pieChart = function() {
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      var pieWrap = g.select('.pieWrap')
+      var pieWrap = g.select('.nv-pieWrap')
           .datum(data)
           //.datum(data.filter(function(d) { return !d.disabled }))
 
@@ -5857,7 +5888,7 @@ nv.models.pieChart = function() {
         if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
           pie.values()(data[0]).map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -6050,14 +6081,14 @@ nv.models.scatter = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.wrap.scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatter chart-' + id + (singlePoint ? ' single-point' : ''));
+      var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id + (singlePoint ? ' nv-single-point' : ''));
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
 
-      gEnter.append('g').attr('class', 'groups');
-      gEnter.append('g').attr('class', 'point-paths');
+      gEnter.append('g').attr('class', 'nv-groups');
+      gEnter.append('g').attr('class', 'nv-point-paths');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -6065,14 +6096,14 @@ nv.models.scatter = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
-      wrap.select('#edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
@@ -6094,9 +6125,9 @@ nv.models.scatter = function() {
 
 
         if (clipVoronoi) {
-          defsEnter.append('clipPath').attr('id', 'points-clip-' + id);
+          defsEnter.append('clipPath').attr('id', 'nv-points-clip-' + id);
 
-          var pointClips = wrap.select('#points-clip-' + id).selectAll('circle')
+          var pointClips = wrap.select('#nv-points-clip-' + id).selectAll('circle')
               .data(vertices);
           pointClips.enter().append('circle')
               .attr('r', clipRadius);
@@ -6105,8 +6136,8 @@ nv.models.scatter = function() {
               .attr('cx', function(d) { return d[0] })
               .attr('cy', function(d) { return d[1] });
 
-          wrap.select('.point-paths')
-              .attr('clip-path', 'url(#points-clip-' + id + ')');
+          wrap.select('.nv-point-paths')
+              .attr('clip-path', 'url(#nv-points-clip-' + id + ')');
         }
 
 
@@ -6120,10 +6151,10 @@ nv.models.scatter = function() {
           });
 
 
-        var pointPaths = wrap.select('.point-paths').selectAll('path')
+        var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
             .data(voronoi);
         pointPaths.enter().append('path')
-            .attr('class', function(d,i) { return 'path-'+i; });
+            .attr('class', function(d,i) { return 'nv-path-'+i; });
         pointPaths.exit().remove();
         pointPaths
             .attr('d', function(d) { return 'M' + d.data.join(',') + 'Z'; })
@@ -6167,7 +6198,7 @@ nv.models.scatter = function() {
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -6177,7 +6208,7 @@ nv.models.scatter = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       d3.transition(groups)
           .style('fill', function(d,i) { return color[i % color.length] })
@@ -6186,7 +6217,7 @@ nv.models.scatter = function() {
           .style('fill-opacity', .5);
 
 
-      var points = groups.selectAll('path.point')
+      var points = groups.selectAll('path.nv-point')
           .data(function(d) { return d.values });
       points.enter().append('path')
           .attr('transform', function(d,i) {
@@ -6197,12 +6228,12 @@ nv.models.scatter = function() {
               .type(getShape)
               .size(function(d,i) { return z(getSize(d,i)) })
           );
-      d3.transition(groups.exit().selectAll('path.point'))
+      d3.transition(groups.exit().selectAll('path.nv-point'))
           .attr('transform', function(d,i) {
             return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
           })
           .remove();
-      points.attr('class', function(d,i) { return 'point point-' + i });
+      points.attr('class', function(d,i) { return 'nv-point nv-point-' + i });
       d3.transition(points)
           .attr('transform', function(d,i) {
             return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
@@ -6235,13 +6266,13 @@ nv.models.scatter = function() {
 
   dispatch.on('elementMouseover.point', function(d) {
     if (interactive)
-      d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+      d3.select('.nv-chart-' + id + ' .nv-series-' + d.seriesIndex + ' .nv-point-' + d.pointIndex)
           .classed('hover', true);
   });
 
   dispatch.on('elementMouseout.point', function(d) {
     if (interactive)
-      d3.select('.chart-' + id + ' .series-' + d.seriesIndex + ' .point-' + d.pointIndex)
+      d3.select('.nv-chart-' + id + ' .nv-series-' + d.seriesIndex + ' .nv-point-' + d.pointIndex)
           .classed('hover', false);
   });
 
@@ -6501,20 +6532,20 @@ nv.models.scatterChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.wrap.scatterChart').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 scatterChart chart-' + scatter.id());
+      var wrap = container.selectAll('g.nv-wrap.nv-scatterChart').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatterChart nv-chart-' + scatter.id());
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
       // background for pointer events
-      gEnter.append('rect').attr('class', 'nvd3 background')
+      gEnter.append('rect').attr('class', 'nvd3 nv-background')
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'scatterWrap');
-      gEnter.append('g').attr('class', 'distWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
-      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-scatterWrap');
+      gEnter.append('g').attr('class', 'nv-distWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-controlsWrap');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -6524,7 +6555,7 @@ nv.models.scatterChart = function() {
       if (showLegend) {
         legend.width( availableWidth / 2 );
 
-        wrap.select('.legendWrap')
+        wrap.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -6534,21 +6565,21 @@ nv.models.scatterChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        wrap.select('.legendWrap')
+        wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
       }
 
 
       if (showControls) {
         controls.width(180).color(['#444']);
-        g.select('.controlsWrap')
+        g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
       }
 
 
-      g.select('.background')
+      g.select('.nv-background')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
@@ -6560,7 +6591,7 @@ nv.models.scatterChart = function() {
             return d.color || color[i % color.length];
           }).filter(function(d,i) { return !data[i].disabled }))
 
-      wrap.select('.scatterWrap')
+      wrap.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
 
@@ -6570,7 +6601,7 @@ nv.models.scatterChart = function() {
           .ticks( availableWidth / 100 )
           .tickSize( -availableHeight , 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')')
           .call(xAxis);
 
@@ -6580,7 +6611,7 @@ nv.models.scatterChart = function() {
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
-      g.select('.y.axis')
+      g.select('.nv-y.nv-axis')
           .call(yAxis);
 
 
@@ -6590,10 +6621,10 @@ nv.models.scatterChart = function() {
           .color(data.map(function(d,i) {
             return d.color || color[i % color.length];
           }).filter(function(d,i) { return !data[i].disabled }));
-      gEnter.select('.distWrap').append('g')
-          .attr('class', 'distributionX')
+      gEnter.select('.nv-distWrap').append('g')
+          .attr('class', 'nv-distributionX')
           .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      g.select('.distributionX')
+      g.select('.nv-distributionX')
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(distX);
 
@@ -6604,16 +6635,16 @@ nv.models.scatterChart = function() {
           .color(data.map(function(d,i) {
             return d.color || color[i % color.length];
           }).filter(function(d,i) { return !data[i].disabled }));
-      gEnter.select('.distWrap').append('g')
-          .attr('class', 'distributionY')
+      gEnter.select('.nv-distWrap').append('g')
+          .attr('class', 'nv-distributionY')
           .attr('transform', 'translate(-' + distY.size() + ',0)');
-      g.select('.distributionY')
+      g.select('.nv-distributionY')
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(distY);
 
 
-      g.select('.background').on('mousemove', updateFisheye);
-      g.select('.background').on('click', function() { pauseFisheye = !pauseFisheye;});
+      g.select('.nv-background').on('mousemove', updateFisheye);
+      g.select('.nv-background').on('click', function() { pauseFisheye = !pauseFisheye;});
       scatter.dispatch.on('elementClick.freezeFisheye', function() {
         pauseFisheye = !pauseFisheye;
       });
@@ -6621,25 +6652,25 @@ nv.models.scatterChart = function() {
 
       function updateFisheye() {
         if (pauseFisheye) {
-          g.select('.point-paths').style('pointer-events', 'all');
+          g.select('.nv-point-paths').style('pointer-events', 'all');
           return false;
         }
 
-        g.select('.point-paths').style('pointer-events', 'none' );
+        g.select('.nv-point-paths').style('pointer-events', 'none' );
 
         var mouse = d3.mouse(this);
         x.distortion(fisheye).focus(mouse[0]);
         y.distortion(fisheye).focus(mouse[1]);
 
-        g.select('.scatterWrap')
+        g.select('.nv-scatterWrap')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(scatter);
-        g.select('.x.axis').call(xAxis);
-        g.select('.y.axis').call(yAxis);
-        g.select('.distributionX')
+        g.select('.nv-x.nv-axis').call(xAxis);
+        g.select('.nv-y.nv-axis').call(yAxis);
+        g.select('.nv-distributionX')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
-        g.select('.distributionY')
+        g.select('.nv-distributionY')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
       }
@@ -6654,16 +6685,16 @@ nv.models.scatterChart = function() {
         d.disabled = !d.disabled;
 
         fisheye = d.disabled ? 0 : 2.5;
-        g.select('.background') .style('pointer-events', d.disabled ? 'none' : 'all');
-        g.select('.point-paths').style('pointer-events', d.disabled ? 'all' : 'none' );
+        g.select('.nv-background') .style('pointer-events', d.disabled ? 'none' : 'all');
+        g.select('.nv-point-paths').style('pointer-events', d.disabled ? 'all' : 'none' );
 
         if (d.disabled) {
           x.distortion(fisheye).focus(0);
           y.distortion(fisheye).focus(0);
 
-          g.select('.scatterWrap').call(scatter);
-          g.select('.x.axis').call(xAxis);
-          g.select('.y.axis').call(yAxis);
+          g.select('.nv-scatterWrap').call(scatter);
+          g.select('.nv-x.nv-axis').call(xAxis);
+          g.select('.nv-y.nv-axis').call(yAxis);
         } else {
           pauseFisheye = false;
         }
@@ -6677,7 +6708,7 @@ nv.models.scatterChart = function() {
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -6698,9 +6729,9 @@ nv.models.scatterChart = function() {
       */
 
       scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distx-' + e.pointIndex)
+        d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-distx-' + e.pointIndex)
             .attr('y1', e.pos[1] - availableHeight);
-        d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .disty-' + e.pointIndex)
+        d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
             .attr('x2', e.pos[0] + distX.size());
 
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
@@ -6733,9 +6764,9 @@ nv.models.scatterChart = function() {
   scatter.dispatch.on('elementMouseout.tooltip', function(e) {
     dispatch.tooltipHide(e);
 
-    d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .distx-' + e.pointIndex)
+    d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-distx-' + e.pointIndex)
         .attr('y1', 0);
-    d3.select('.chart-' + scatter.id() + ' .series-' + e.seriesIndex + ' .disty-' + e.pointIndex)
+    d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
         .attr('x2', distY.size());
   });
   dispatch.on('tooltipHide', function() {
@@ -6870,9 +6901,9 @@ nv.models.sparkline = function() {
           .range([availableHeight, 0]);
 
 
-      var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparkline').data([data]);
 
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 sparkline');
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparkline');
       //var gEnter = svg.enter().append('svg').append('g');
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter
@@ -6899,9 +6930,9 @@ nv.models.sparkline = function() {
 
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = gEnter.selectAll('circle.point')
+      var points = gEnter.selectAll('circle.nv-point')
           .data(function(d) { return d.filter(function(p,i) { return y.domain().indexOf(getY(p,i)) != -1 || getX(p,i) == x.domain()[1]  }) });
-      points.enter().append('circle').attr('class', 'point');
+      points.enter().append('circle').attr('class', 'nv-point');
       points.exit().remove();
       points
           .attr('cx', function(d,i) { return x(getX(d,i)) })
@@ -6994,12 +7025,12 @@ nv.models.sparklinePlus = function() {
           .range([availableHeight, 0]);
 
 
-      var wrap = d3.select(this).selectAll('g.sparklineplus').data([data]);
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparklineplus').data([data]);
 
 
       var gEnter = wrap.enter().append('g')
       //var gEnter = svg.enter().append('svg').append('g');
-      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 sparklineplus')
+      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
           .style('stroke', function(d, i){ return d.color || color[i % color.length] });
 
@@ -7013,8 +7044,8 @@ nv.models.sparklinePlus = function() {
           //.attr('height', height)
           .call(sparkline);
 
-      var hoverValue = sparklineWrap.append('g').attr('class', 'hoverValue');
-      var hoverArea = sparklineWrap.append('g').attr('class', 'hoverArea');
+      var hoverValue = sparklineWrap.append('g').attr('class', 'nv-hoverValue');
+      var hoverArea = sparklineWrap.append('g').attr('class', 'nv-hoverArea');
 
 
       hoverValue.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' });
@@ -7025,11 +7056,11 @@ nv.models.sparklinePlus = function() {
           .attr('x2', x.range()[1])
           .attr('y2', height)
 
-     var hoverX = hoverValue.append('text').attr('class', 'xValue')
+     var hoverX = hoverValue.append('text').attr('class', 'nv-xValue')
           .attr('text-anchor', 'end')
           .attr('dy', '.9em')
 
-     var hoverY = hoverValue.append('text').attr('class', 'yValue')
+     var hoverY = hoverValue.append('text').attr('class', 'nv-yValue')
           //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'start')
           .attr('dy', '.9em')
@@ -7042,7 +7073,7 @@ nv.models.sparklinePlus = function() {
 
 
 
-      function sparklineHover() { 
+      function sparklineHover() {
         var pos = d3.event.offsetX - margin.left;
 
         hoverLine
@@ -7063,7 +7094,7 @@ nv.models.sparklinePlus = function() {
                 }
             }
             return closestIndex;
-        }   
+        }
 
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
@@ -7221,13 +7252,13 @@ nv.models.stackedArea = function() {
                 (data);
 
 
-        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([data]);
-        var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedarea');
+        var wrap = d3.select(this).selectAll('g.nv-wrap.nv-stackedarea').data([data]);
+        var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
         var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
         var g = wrap.select('g');
 
-        gEnter.append('g').attr('class', 'areaWrap');
+        gEnter.append('g').attr('class', 'nv-areaWrap');
 
 
         scatter
@@ -7241,8 +7272,8 @@ nv.models.stackedArea = function() {
           }).filter(function(d,i) { return !data[i].disabled }));
 
 
-        gEnter.append('g').attr('class', 'scatterWrap');
-        var scatterWrap = g.select('.scatterWrap')
+        gEnter.append('g').attr('class', 'nv-scatterWrap');
+        var scatterWrap = g.select('.nv-scatterWrap')
             .datum(data.filter(function(d) { return !d.disabled }))
 
         d3.transition(scatterWrap).call(scatter);
@@ -7253,14 +7284,14 @@ nv.models.stackedArea = function() {
 
 
         defsEnter.append('clipPath')
-            .attr('id', 'edge-clip-' + id)
+            .attr('id', 'nv-edge-clip-' + id)
           .append('rect');
 
-        wrap.select('#edge-clip-' + id + ' rect')
+        wrap.select('#nv-edge-clip-' + id + ' rect')
             .attr('width', availableWidth)
             .attr('height', availableHeight);
 
-        g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+        g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
@@ -7276,10 +7307,10 @@ nv.models.stackedArea = function() {
             .y1(function(d) { return y(d.display.y0) });
 
 
-        var path = g.select('.areaWrap').selectAll('path.area')
+        var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
             .data(function(d) { return d });
             //.data(function(d) { return d }, function(d) { return d.key });
-        path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
+        path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
             .on('mouseover', function(d,i) {
               d3.select(this).classed('hover', true);
               dispatch.areaMouseover({
@@ -7322,10 +7353,10 @@ nv.models.stackedArea = function() {
         //------------------------------------------------------------
 
         scatter.dispatch.on('elementMouseover.area', function(e) {
-          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', true);
+          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', true);
         });
         scatter.dispatch.on('elementMouseout.area', function(e) {
-          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', false);
+          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', false);
         });
 
     });
@@ -7504,14 +7535,14 @@ nv.models.stackedAreaChart = function() {
       x = stacked.xScale();
       y = stacked.yScale();
 
-      var wrap = container.selectAll('g.wrap.stackedAreaChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedAreaChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-stackedAreaChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedAreaChart').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y axis');
-      gEnter.append('g').attr('class', 'stackedWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
-      gEnter.append('g').attr('class', 'controlsWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-stackedWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-controlsWrap');
 
 
       var g = wrap.select('g');
@@ -7521,7 +7552,7 @@ nv.models.stackedAreaChart = function() {
         legend
           .width( availableWidth / 2 );
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -7531,7 +7562,7 @@ nv.models.stackedAreaChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
@@ -7544,7 +7575,7 @@ nv.models.stackedAreaChart = function() {
 
       if (showControls) {
         controls.width(280).color(['#444', '#444', '#444']);
-        g.select('.controlsWrap')
+        g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
@@ -7554,7 +7585,7 @@ nv.models.stackedAreaChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var stackedWrap = g.select('.stackedWrap')
+      var stackedWrap = g.select('.nv-stackedWrap')
           .datum(data);
       d3.transition(stackedWrap).call(stacked);
 
@@ -7564,9 +7595,9 @@ nv.models.stackedAreaChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize( -availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + availableHeight + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
       yAxis
@@ -7575,7 +7606,7 @@ nv.models.stackedAreaChart = function() {
         .tickSize(-availableWidth, 0)
         .tickFormat(stacked.offset() == 'expand' ? d3.format('%') : d3.format(',.2f')); //TODO: stacked format should be set by caller
 
-      d3.transition(g.select('.y.axis'))
+      d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
 

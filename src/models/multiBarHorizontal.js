@@ -46,7 +46,7 @@ nv.models.multiBarHorizontal = function() {
 
 
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            data.map(function(d) { 
+            data.map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
               })
@@ -63,22 +63,21 @@ nv.models.multiBarHorizontal = function() {
 
       //store old scales if they exist
       x0 = x0 || x;
-      //y0 = y0 || y;
       y0 = y0 || d3.scale.linear().domain(y.domain()).range([y(0),y(0)]);
 
-      var wrap = d3.select(this).selectAll('g.wrap.multibarHorizontal').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multibarHorizontal');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibarHorizontal').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibarHorizontal');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'nv-groups');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -88,7 +87,7 @@ nv.models.multiBarHorizontal = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
           .style('stroke', function(d,i){ return color[i % color.length] });
@@ -97,7 +96,7 @@ nv.models.multiBarHorizontal = function() {
           .style('fill-opacity', .75);
 
 
-      var bars = groups.selectAll('g.bar')
+      var bars = groups.selectAll('g.nv-bar')
           .data(function(d) { return d.values });
 
       bars.exit().remove();
@@ -111,7 +110,7 @@ nv.models.multiBarHorizontal = function() {
       barsEnter.append('rect')
           .attr('width', 0)
           .attr('height', x.rangeBand() / (stacked ? 1 : data.length) )
-          
+
       bars
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
@@ -177,7 +176,7 @@ nv.models.multiBarHorizontal = function() {
       }
 
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           //.attr('transform', function(d,i,j) {
               //return 'translate(' + y0(stacked ? d.y0 : 0) + ',' + x(getX(d,i)) + ')'
           //})

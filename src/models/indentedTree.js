@@ -41,7 +41,7 @@ nv.models.indentedTree = function() {
 
 
       var wrap = d3.select(this).selectAll('div').data([[nodes]]);
-      var wrapEnter = wrap.enter().append('div').attr('class', 'wrap nvd3 indentedtree');
+      var wrapEnter = wrap.enter().append('div').attr('class', 'nvd3 nv-wrap nv-indentedtree');
       var tableEnter = wrapEnter.append('table');
       var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
 
@@ -82,7 +82,7 @@ nv.models.indentedTree = function() {
       node.exit().remove();
 
 
-      node.select('img.treeicon')
+      node.select('img.nv-treeicon')
           .attr('src', icon)
           .classed('folded', folded);
 
@@ -98,8 +98,8 @@ nv.models.indentedTree = function() {
 
         if (index == 0) {
           nodeName.append('img')
-              .classed('treeicon', true)
-              .classed('folded', folded)
+              .classed('nv-treeicon', true)
+              .classed('nv-folded', folded)
               .attr('src', icon)
               .style('width', '14px')
               .style('height', '14px')
@@ -116,7 +116,7 @@ nv.models.indentedTree = function() {
 
         if  (column.showCount)
           nodeName.append('span')
-              .attr('class', 'childrenCount')
+              .attr('class', 'nv-childrenCount')
               .text(function(d) {
                 return ((d.values && d.values.length) || (d._values && d._values.length)) ?
                     '(' + ((d.values && d.values.length) || (d._values && d._values.length)) + ')'

@@ -26,8 +26,8 @@ nv.models.bullet = function() {
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.bullet').data([d]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 bullet');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-bullet').data([d]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
       var gEnter = wrapEnter.append('g');
 
       var g = wrap.select('g')
@@ -71,11 +71,11 @@ nv.models.bullet = function() {
 
 
       // Update the range rects.
-      var range = g.selectAll('rect.range')
+      var range = g.selectAll('rect.nv-range')
           .data(rangez);
 
       range.enter().append('rect')
-          .attr('class', function(d, i) { return 'range s' + i; })
+          .attr('class', function(d, i) { return 'nv-range nv-s' + i; })
           .attr('width', w0)
           .attr('height', availableHeight)
           .attr('x', reverse ? x0 : 0)
@@ -100,11 +100,11 @@ nv.models.bullet = function() {
 
 
       // Update the measure rects.
-      var measure = g.selectAll('rect.measure')
+      var measure = g.selectAll('rect.nv-measure')
           .data(measurez);
 
       measure.enter().append('rect')
-          .attr('class', function(d, i) { return 'measure s' + i; })
+          .attr('class', function(d, i) { return 'nv-measure nv-s' + i; })
           .attr('width', w0)
           .attr('height', availableHeight / 3)
           .attr('x', reverse ? x0 : 0)
@@ -132,22 +132,22 @@ nv.models.bullet = function() {
 
 
       // Update the marker lines.
-      var marker = g.selectAll('path.markerTriangle')
+      var marker = g.selectAll('path.nv-markerTriangle')
           .data(markerz);
 
       var h3 =  availableHeight / 6;
       marker.enter().append('path')
-          .attr('class', 'markerTriangle')
+          .attr('class', 'nv-markerTriangle')
           .attr('transform', function(d) { return 'translate(' + x0(d) + ',' + (availableHeight / 2) + ')' })
           .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
-          .on('mouseover', function(d,i) { 
+          .on('mouseover', function(d,i) {
               dispatch.elementMouseover({
                 value: d,
                 label: 'Previous',
                 pos: [x1(d), availableHeight/2]
               })
           })
-          .on('mouseout', function(d,i) { 
+          .on('mouseout', function(d,i) {
               dispatch.elementMouseout({
                 value: d,
                 label: 'Previous'

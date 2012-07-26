@@ -27,12 +27,12 @@ nv.models.sparklinePlus = function() {
           .range([availableHeight, 0]);
 
 
-      var wrap = d3.select(this).selectAll('g.sparklineplus').data([data]);
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparklineplus').data([data]);
 
 
       var gEnter = wrap.enter().append('g')
       //var gEnter = svg.enter().append('svg').append('g');
-      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 sparklineplus')
+      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
           .style('stroke', function(d, i){ return d.color || color[i % color.length] });
 
@@ -46,8 +46,8 @@ nv.models.sparklinePlus = function() {
           //.attr('height', height)
           .call(sparkline);
 
-      var hoverValue = sparklineWrap.append('g').attr('class', 'hoverValue');
-      var hoverArea = sparklineWrap.append('g').attr('class', 'hoverArea');
+      var hoverValue = sparklineWrap.append('g').attr('class', 'nv-hoverValue');
+      var hoverArea = sparklineWrap.append('g').attr('class', 'nv-hoverArea');
 
 
       hoverValue.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' });
@@ -58,11 +58,11 @@ nv.models.sparklinePlus = function() {
           .attr('x2', x.range()[1])
           .attr('y2', height)
 
-     var hoverX = hoverValue.append('text').attr('class', 'xValue')
+     var hoverX = hoverValue.append('text').attr('class', 'nv-xValue')
           .attr('text-anchor', 'end')
           .attr('dy', '.9em')
 
-     var hoverY = hoverValue.append('text').attr('class', 'yValue')
+     var hoverY = hoverValue.append('text').attr('class', 'nv-yValue')
           //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'start')
           .attr('dy', '.9em')
@@ -75,7 +75,7 @@ nv.models.sparklinePlus = function() {
 
 
 
-      function sparklineHover() { 
+      function sparklineHover() {
         var pos = d3.event.offsetX - margin.left;
 
         hoverLine
@@ -96,7 +96,7 @@ nv.models.sparklinePlus = function() {
                 }
             }
             return closestIndex;
-        }   
+        }
 
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })

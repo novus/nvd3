@@ -40,11 +40,11 @@ nv.models.pieChart = function() {
 
 
 
-      var wrap = container.selectAll('g.wrap.pieChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 pieChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-pieChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-pieChart').append('g');
 
-      gEnter.append('g').attr('class', 'pieWrap');
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-pieWrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
       var g = wrap.select('g');
 
@@ -54,7 +54,7 @@ nv.models.pieChart = function() {
           .width( availableWidth )
           .key(pie.x());
 
-        wrap.select('.legendWrap')
+        wrap.select('.nv-legendWrap')
             .datum(pie.values()(data[0]))
             .call(legend);
 
@@ -64,7 +64,7 @@ nv.models.pieChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        wrap.select('.legendWrap')
+        wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')');
       }
 
@@ -80,7 +80,7 @@ nv.models.pieChart = function() {
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      var pieWrap = g.select('.pieWrap')
+      var pieWrap = g.select('.nv-pieWrap')
           .datum(data)
           //.datum(data.filter(function(d) { return !d.disabled }))
 
@@ -94,7 +94,7 @@ nv.models.pieChart = function() {
         if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
           pie.values()(data[0]).map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.series').classed('disabled', false);
+            wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }

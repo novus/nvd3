@@ -57,7 +57,7 @@ nv.models.multiBar = function() {
 
 
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            data.map(function(d) { 
+            data.map(function(d) {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
               })
@@ -77,7 +77,6 @@ nv.models.multiBar = function() {
             x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
           : x.domain([-1,1]);
 
-          nv.log(y.domain());
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
@@ -93,12 +92,12 @@ nv.models.multiBar = function() {
 
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.multibar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multibar');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'nv-groups');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -106,17 +105,17 @@ nv.models.multiBar = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
-      wrap.select('#edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -124,13 +123,13 @@ nv.models.multiBar = function() {
       d3.transition(groups.exit())
           //.style('stroke-opacity', 1e-6)
           //.style('fill-opacity', 1e-6)
-        .selectAll('rect.bar')
+        .selectAll('rect.nv-bar')
         .delay(function(d,i) { return i * delay/ data[0].values.length })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color[i % color.length] })
           .style('stroke', function(d,i){ return color[i % color.length] });
@@ -139,14 +138,14 @@ nv.models.multiBar = function() {
           .style('fill-opacity', .75);
 
 
-      var bars = groups.selectAll('rect.bar')
+      var bars = groups.selectAll('rect.nv-bar')
           .data(function(d) { return d.values });
 
       bars.exit().remove();
 
 
       var barsEnter = bars.enter().append('rect')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           .attr('x', function(d,i,j) {
               return stacked ? 0 : (j * x.rangeBand() / data.length )
           })
@@ -202,7 +201,7 @@ nv.models.multiBar = function() {
             d3.event.stopPropagation();
           });
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
       if (stacked)
         d3.transition(bars)
@@ -232,7 +231,7 @@ nv.models.multiBar = function() {
                 .attr('y', function(d,i) {
                   return getY(d,i) < 0 ?
                     y(0) :
-                    y(getY(d,i)) 
+                    y(getY(d,i))
                 })
                 .attr('height', function(d,i) {
                   return Math.abs(y(getY(d,i)) - y(0))
