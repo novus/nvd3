@@ -48,6 +48,7 @@ nv.models.multiChart = function() {
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
+    
   };
 
   function chart(selection) {
@@ -402,23 +403,23 @@ nv.models.multiChart = function() {
     return chart;
   };
 
-  // chart.showLegend = function(_) {
-  //   if (!arguments.length) return showLegend;
-  //   showLegend = _;
-  //   return chart;
-  // };
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
+    return chart;
+  };
 
-  // chart.tooltips = function(_) {
-  //   if (!arguments.length) return tooltips;
-  //   tooltips = _;
-  //   return chart;
-  // };
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
 
-  // chart.tooltipContent = function(_) {
-  //   if (!arguments.length) return tooltip;
-  //   tooltip = _;
-  //   return chart;
-  // };
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
 
   return chart;
 }
