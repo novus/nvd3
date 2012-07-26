@@ -86,11 +86,22 @@ nv.models.sparklinePlus = function() {
             .attr('transform', function(d) { return 'translate(' + (pos - 6) + ',' + (-margin.top) + ')' })
             //.text(xTickFormat(pos));
             .text(xTickFormat(Math.round(x.invert(pos)))); //TODO: refactor this line
+        var f = function(data, x){
+            var distance = Math.abs(getX(data[0]) - x) ;
+            var closestIndex = 0;
+            for (var i = 0; i < data.length; i++){
+                if (Math.abs(getX(data[i]) - x) < distance) {
+                    distance = Math.abs(getX(data[i]) -x);
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
+        }   
 
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
             //.text(data[pos] && yTickFormat(data[pos].y));
-            .text(yTickFormat(getY(data[Math.round(x.invert(pos))]))); //TODO: refactor this line
+            .text(yTickFormat(getY(data[f(data, Math.round(x.invert(pos)))]))); //TODO: refactor this line
       }
 
     });
