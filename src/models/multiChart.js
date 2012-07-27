@@ -47,8 +47,7 @@ nv.models.multiChart = function() {
         y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(lines1.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
-
+    nv.tooltip.show([left, top], content, undefined, undefined, offsetElement.offsetParent);
   };
 
   function chart(selection) {
@@ -205,13 +204,15 @@ nv.models.multiChart = function() {
       bars2.yDomain(yScale2.domain())
       stack2.yDomain(yScale2.domain())
 
-      if(dataLines1.length){d3.transition(lines1Wrap).call(lines1);}
-      if(dataBars1.length){d3.transition(bars1Wrap).call(bars1);}
       if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
-
-      if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
-      if(dataBars2.length){d3.transition(bars2Wrap).call(bars2);}
       if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
+
+      if(dataBars1.length){d3.transition(bars1Wrap).call(bars1);}
+      if(dataBars2.length){d3.transition(bars2Wrap).call(bars2);}
+
+      if(dataLines1.length){d3.transition(lines1Wrap).call(lines1);}
+      if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
+      
 
 
       xAxis
@@ -340,6 +341,23 @@ nv.models.multiChart = function() {
     dispatch.tooltipHide(e);
   });
 
+    lines1.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines1.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  lines2.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines2.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
 
   dispatch.on('tooltipHide', function() {
     if (tooltips) nv.tooltip.cleanup();
