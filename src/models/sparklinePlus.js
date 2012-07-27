@@ -9,7 +9,9 @@ nv.models.sparklinePlus = function() {
       color = nv.utils.defaultColor(),
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       xTickFormat = d3.format(',r'),
-      yTickFormat = d3.format(',.2f');
+      yTickFormat = d3.format(',.2f'),
+      noData = "No Data Available."
+      ;
 
   var x = d3.scale.linear(),
       y = d3.scale.linear(),
@@ -19,6 +21,27 @@ nv.models.sparklinePlus = function() {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
+
 
       x   .domain(d3.extent(data, getX ))
           .range([0, availableWidth]);
@@ -155,6 +178,13 @@ nv.models.sparklinePlus = function() {
     animate = _;
     return chart;
   };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
+    return chart;
+  };
+
 
   return chart;
 }
