@@ -5,7 +5,7 @@ nv.models.distribution = function() {
       size = 8,
       axis = 'x', // 'x' or 'y'... horizontal or vertical
       getData = function(d) { return d[axis] },  // defaults d.x or d.y
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       domain;
 
   var scale = d3.scale.linear(),
@@ -27,35 +27,35 @@ nv.models.distribution = function() {
 */
 
 
-      var wrap = d3.select(this).selectAll('g.distribution').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 distribution');
+      var wrap = d3.select(this).selectAll('g.nv-distribution').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-distribution');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
-      var distWrap = g.selectAll('g.dist')
+      var distWrap = g.selectAll('g.nv-dist')
           .data(function(d) { return d }, function(d) { return d.key });
 
       distWrap.enter().append('g')
       distWrap
-          .attr('class', function(d,i) { return 'dist series-' + i })
-          .style('stroke', function(d,i) { return color[i % color.length] });
+          .attr('class', function(d,i) { return 'nv-dist nv-series-' + i })
+          .style('stroke', function(d,i) { return color(d, i) });
           //.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
 
-      var dist = distWrap.selectAll('line.dist' + axis)
+      var dist = distWrap.selectAll('line.nv-dist' + axis)
           .data(function(d) { return d.values })
       dist.enter().append('line')
           .attr(axis + '1', function(d,i) { return scale0(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale0(getData(d,i)) })
-      d3.transition(distWrap.exit().selectAll('line.dist' + axis))
+      d3.transition(distWrap.exit().selectAll('line.nv-dist' + axis))
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
           .style('stroke-opacity', 0)
           .remove();
       dist
       //distWrap.selectAll('line.dist' + axis)
-          .attr('class', function(d,i) { return 'dist' + axis + ' dist' + axis + '-' + i })
+          .attr('class', function(d,i) { return 'nv-dist' + axis + ' nv-dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
       d3.transition(dist)
@@ -110,7 +110,7 @@ nv.models.distribution = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

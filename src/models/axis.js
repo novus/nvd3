@@ -19,8 +19,8 @@ nv.models.axis = function() {
     selection.each(function(data) {
       var container = d3.select(this);
 
-      var wrap = container.selectAll('g.wrap.axis').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap axis');
+      var wrap = container.selectAll('g.nv-wrap.nv-axis').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-axis');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
@@ -35,21 +35,21 @@ nv.models.axis = function() {
 
       scale0 = scale0 || axis.scale();
 
-      var axisLabel = g.selectAll('text.axislabel')
+      var axisLabel = g.selectAll('text.nv-axislabel')
           .data([axisLabelText || null]);
       axisLabel.exit().remove();
       switch (axis.orient()) {
         case 'top':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 0);
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('x', w/2);
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
@@ -69,16 +69,16 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 30);
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('x', w/2);
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text');
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
@@ -98,16 +98,16 @@ nv.models.axis = function() {
           }
           break;
         case 'right':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', rotateYLabel ? 'middle' : 'begin')
               .attr('transform', rotateYLabel ? 'rotate(90)' : '')
               .attr('y', rotateYLabel ? (-Math.max(margin.right,width) - 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text')
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                 .style('opacity', 0);
             axisMaxMin.exit().remove();
             axisMaxMin
@@ -131,16 +131,16 @@ nv.models.axis = function() {
           }
           break;
         case 'left':
-          axisLabel.enter().append('text').attr('class', 'axislabel')
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
               .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 12) : -10); //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
           axisLabel
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
-            var axisMaxMin = wrap.selectAll('g.axisMaxMin')
+            var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
-            axisMaxMin.enter().append('g').attr('class', 'axisMaxMin').append('text')
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                 .style('opacity', 0);
             axisMaxMin.exit().remove();
             axisMaxMin
@@ -183,7 +183,7 @@ nv.models.axis = function() {
 
       if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
         var maxMinRange = [];
-        wrap.selectAll('g.axisMaxMin')
+        wrap.selectAll('g.nv-axisMaxMin')
             .each(function(d,i) {
               if (i) // i== 1, max position
                 maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)

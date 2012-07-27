@@ -6,7 +6,7 @@ nv.models.sparkline = function() {
       animate = true,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -25,14 +25,14 @@ nv.models.sparkline = function() {
           .range([availableHeight, 0]);
 
 
-      var wrap = d3.select(this).selectAll('g.sparkline').data([data]);
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparkline').data([data]);
 
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 sparkline');
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparkline');
       //var gEnter = svg.enter().append('svg').append('g');
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d,i) { return d.color || color[i * color.length] });
+          .style('stroke', function(d,i) { return d.color || color(d, i) });
 
 /*
       d3.select(this)
@@ -54,9 +54,9 @@ nv.models.sparkline = function() {
 
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = gEnter.selectAll('circle.point')
+      var points = gEnter.selectAll('circle.nv-point')
           .data(function(d) { return d.filter(function(p,i) { return y.domain().indexOf(getY(p,i)) != -1 || getX(p,i) == x.domain()[1]  }) });
-      points.enter().append('circle').attr('class', 'point');
+      points.enter().append('circle').attr('class', 'nv-point');
       points.exit().remove();
       points
           .attr('cx', function(d,i) { return x(getX(d,i)) })

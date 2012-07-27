@@ -6,7 +6,7 @@ nv.models.sparklinePlus = function() {
       animate = true,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       xTickFormat = d3.format(',r'),
       yTickFormat = d3.format(',.2f');
@@ -27,14 +27,14 @@ nv.models.sparklinePlus = function() {
           .range([availableHeight, 0]);
 
 
-      var wrap = d3.select(this).selectAll('g.sparklineplus').data([data]);
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparklineplus').data([data]);
 
 
       var gEnter = wrap.enter().append('g')
       //var gEnter = svg.enter().append('svg').append('g');
-      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 sparklineplus')
+      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d, i){ return d.color || color[i % color.length] });
+          .style('stroke', function(d, i){ return d.color || color(d, i) });
 
       sparkline
         .xDomain(x.domain())
@@ -46,8 +46,8 @@ nv.models.sparklinePlus = function() {
           //.attr('height', height)
           .call(sparkline);
 
-      var hoverValue = sparklineWrap.append('g').attr('class', 'hoverValue');
-      var hoverArea = sparklineWrap.append('g').attr('class', 'hoverArea');
+      var hoverValue = sparklineWrap.append('g').attr('class', 'nv-hoverValue');
+      var hoverArea = sparklineWrap.append('g').attr('class', 'nv-hoverArea');
 
 
       hoverValue.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' });
@@ -58,11 +58,11 @@ nv.models.sparklinePlus = function() {
           .attr('x2', x.range()[1])
           .attr('y2', height)
 
-     var hoverX = hoverValue.append('text').attr('class', 'xValue')
+     var hoverX = hoverValue.append('text').attr('class', 'nv-xValue')
           .attr('text-anchor', 'end')
           .attr('dy', '.9em')
 
-     var hoverY = hoverValue.append('text').attr('class', 'yValue')
+     var hoverY = hoverValue.append('text').attr('class', 'nv-yValue')
           //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'start')
           .attr('dy', '.9em')
@@ -75,7 +75,7 @@ nv.models.sparklinePlus = function() {
 
 
 
-      function sparklineHover() { 
+      function sparklineHover() {
         var pos = d3.event.offsetX - margin.left;
 
         hoverLine
@@ -86,11 +86,22 @@ nv.models.sparklinePlus = function() {
             .attr('transform', function(d) { return 'translate(' + (pos - 6) + ',' + (-margin.top) + ')' })
             //.text(xTickFormat(pos));
             .text(xTickFormat(Math.round(x.invert(pos)))); //TODO: refactor this line
+        var f = function(data, x){
+            var distance = Math.abs(getX(data[0]) - x) ;
+            var closestIndex = 0;
+            for (var i = 0; i < data.length; i++){
+                if (Math.abs(getX(data[i]) - x) < distance) {
+                    distance = Math.abs(getX(data[i]) -x);
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
+        }
 
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
             //.text(data[pos] && yTickFormat(data[pos].y));
-            .text(yTickFormat(getY(data[Math.round(x.invert(pos))]))); //TODO: refactor this line
+            .text(yTickFormat(getY(data[f(data, Math.round(x.invert(pos)))]))); //TODO: refactor this line
       }
 
     });

@@ -8,7 +8,7 @@ nv.models.stackedArea = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(), // array of colors to be used in order
+      color = nv.utils.defaultColor(), // a function that computes the color 
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
@@ -94,13 +94,13 @@ nv.models.stackedArea = function() {
                 (data);
 
 
-        var wrap = d3.select(this).selectAll('g.wrap.stackedarea').data([data]);
-        var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 stackedarea');
+        var wrap = d3.select(this).selectAll('g.nv-wrap.nv-stackedarea').data([data]);
+        var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
         var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
         var g = wrap.select('g');
 
-        gEnter.append('g').attr('class', 'areaWrap');
+        gEnter.append('g').attr('class', 'nv-areaWrap');
 
 
         scatter
@@ -110,12 +110,12 @@ nv.models.stackedArea = function() {
           .y(function(d) { return d.display.y + d.display.y0 })
           .forceY([0])
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }));
 
 
-        gEnter.append('g').attr('class', 'scatterWrap');
-        var scatterWrap = g.select('.scatterWrap')
+        gEnter.append('g').attr('class', 'nv-scatterWrap');
+        var scatterWrap = g.select('.nv-scatterWrap')
             .datum(data.filter(function(d) { return !d.disabled }))
 
         d3.transition(scatterWrap).call(scatter);
@@ -126,14 +126,14 @@ nv.models.stackedArea = function() {
 
 
         defsEnter.append('clipPath')
-            .attr('id', 'edge-clip-' + id)
+            .attr('id', 'nv-edge-clip-' + id)
           .append('rect');
 
-        wrap.select('#edge-clip-' + id + ' rect')
+        wrap.select('#nv-edge-clip-' + id + ' rect')
             .attr('width', availableWidth)
             .attr('height', availableHeight);
 
-        g   .attr('clip-path', clipEdge ? 'url(#edge-clip-' + id + ')' : '');
+        g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
 
@@ -149,10 +149,10 @@ nv.models.stackedArea = function() {
             .y1(function(d) { return y(d.display.y0) });
 
 
-        var path = g.select('.areaWrap').selectAll('path.area')
+        var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
             .data(function(d) { return d });
             //.data(function(d) { return d }, function(d) { return d.key });
-        path.enter().append('path').attr('class', function(d,i) { return 'area area-' + i })
+        path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
             .on('mouseover', function(d,i) {
               d3.select(this).classed('hover', true);
               dispatch.areaMouseover({
@@ -184,8 +184,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
-            .style('fill', function(d,i){ return d.color || color[i % color.length] })
-            .style('stroke', function(d,i){ return d.color || color[i % color.length] });
+            .style('fill', function(d,i){ return d.color || color(d, i) })
+            .style('stroke', function(d,i){ return d.color || color(d, i) });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 
@@ -195,10 +195,10 @@ nv.models.stackedArea = function() {
         //------------------------------------------------------------
 
         scatter.dispatch.on('elementMouseover.area', function(e) {
-          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', true);
+          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', true);
         });
         scatter.dispatch.on('elementMouseout.area', function(e) {
-          g.select('.chart-' + id + ' .area-' + e.seriesIndex).classed('hover', false);
+          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', false);
         });
 
     });
@@ -272,7 +272,7 @@ nv.models.stackedArea = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

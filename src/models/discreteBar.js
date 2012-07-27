@@ -14,7 +14,7 @@ nv.models.discreteBar = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showValues = false,
       valueFormat = d3.format(',.2f'),
       xDomain, yDomain;
@@ -66,11 +66,11 @@ nv.models.discreteBar = function() {
       y0 = y0 || y.copy().range([y(0),y(0)]);
 
 
-      var wrap = d3.select(this).selectAll('g.wrap.discretebar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 discretebar');
+      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-discretebar').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discretebar');
       var gEnter = wrapEnter.append('g');
 
-      gEnter.append('g').attr('class', 'groups');
+      gEnter.append('g').attr('class', 'nv-groups');
 
       var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -78,7 +78,7 @@ nv.models.discreteBar = function() {
 
 
       //TODO: by definition, the discrete bar should not have multiple groups, will modify/remove later
-      var groups = wrap.select('.groups').selectAll('.group')
+      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -88,14 +88,14 @@ nv.models.discreteBar = function() {
           .style('fill-opacity', 1e-6)
           .remove();
       groups
-          .attr('class', function(d,i) { return 'group series-' + i })
+          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
 
-      var bars = groups.selectAll('g.bar')
+      var bars = groups.selectAll('g.nv-bar')
           .data(function(d) { return d.values });
 
       bars.exit().remove();
@@ -156,8 +156,8 @@ nv.models.discreteBar = function() {
       barsEnter.append('rect')
           .attr('height', 0)
           .attr('width', x.rangeBand() / data.length )
-          .style('fill', function(d,i){  return d.color || color[i % color.length] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
-          .style('stroke', function(d,i){ return d.color || color[i % color.length] });
+          .style('fill', function(d,i){  return d.color || color(d, i) }) 
+          .style('stroke', function(d,i){ return d.color || color(d, i)});
 
       if (showValues) {
         barsEnter.append('text')
@@ -171,7 +171,7 @@ nv.models.discreteBar = function() {
       }
 
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'bar negative' : 'bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           //.attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
           .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y0(0) : y0(getY(d,i))) + ')' 
@@ -267,7 +267,7 @@ nv.models.discreteBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
