@@ -8,7 +8,7 @@ nv.models.multiBarChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = null,
       height = null,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showControls = true,
       showLegend = true,
       reduceXTicks = true, // if false a tick will show for every data point
@@ -95,7 +95,7 @@ nv.models.multiBarChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -259,8 +259,8 @@ nv.models.multiBarChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 

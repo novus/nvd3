@@ -8,7 +8,8 @@ nv.models.stackedAreaChart = function() {
   var margin = {top: 30, right: 25, bottom: 50, left: 60},
       width = null,
       height = null,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(), // a function that takes in d, i and
+      //returns color
       showControls = true,
       showLegend = true,
       tooltips = true,
@@ -265,8 +266,8 @@ nv.models.stackedAreaChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 

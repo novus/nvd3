@@ -37,3 +37,24 @@ nv.utils.windowResize = function(fun){
     fun(e);
   }
 }
+
+// Backwards compatible way to implement more d3-like coloring of graphs.
+// If passed an array, wrap it in a function which implements the old default
+// behaviour
+nv.utils.getColor = function(color){
+    if( Object.prototype.toString.call( color ) === '[object Array]' )
+        return function(d, i) { return d.color || color[i % color.length]; };
+    else
+        return color;
+        //can't really help it if someone passes rubish as color
+}
+
+// Default color chooser uses the index of an object as before.
+//
+//
+nv.utils.defaultColor = function(){
+    var colors = d3.scale.category20().range();
+    return function(d, i) {return colors[i % colors.length]};
+}
+
+

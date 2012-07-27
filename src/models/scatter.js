@@ -8,7 +8,7 @@ nv.models.scatter = function() {
   var margin      = {top: 0, right: 0, bottom: 0, left: 0}
    ,  width       = 960
    ,  height      = 500
-   ,  color       = d3.scale.category20().range() // array of colors to be used in order
+   ,  color       = nv.utils.defaultColor() // chooses color 
    ,  id          = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
    ,  x           = d3.scale.linear()
    ,  y           = d3.scale.linear()
@@ -238,8 +238,8 @@ nv.models.scatter = function() {
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       d3.transition(groups)
-          .style('fill', function(d,i) { return color[i % color.length] })
-          .style('stroke', function(d,i) { return color[i % color.length] })
+          .style('fill', function(d,i) { return color(d, i) })
+          .style('stroke', function(d,i) { return color(d, i) })
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -434,7 +434,7 @@ nv.models.scatter = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

@@ -16,7 +16,7 @@ nv.models.multiBar = function() {
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
       clipEdge = true,
       stacked = false,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       delay = 1200,
       xDomain, yDomain;
 
@@ -131,8 +131,8 @@ nv.models.multiBar = function() {
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % color.length] })
-          .style('stroke', function(d,i){ return color[i % color.length] });
+          .style('fill', function(d,i){ return color(d, i) })
+          .style('stroke', function(d,i){ return color(d, i) });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
@@ -333,7 +333,7 @@ nv.models.multiBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

@@ -5,7 +5,7 @@ nv.models.distribution = function() {
       size = 8,
       axis = 'x', // 'x' or 'y'... horizontal or vertical
       getData = function(d) { return d[axis] },  // defaults d.x or d.y
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       domain;
 
   var scale = d3.scale.linear(),
@@ -40,7 +40,7 @@ nv.models.distribution = function() {
       distWrap.enter().append('g')
       distWrap
           .attr('class', function(d,i) { return 'nv-dist nv-series-' + i })
-          .style('stroke', function(d,i) { return color[i % color.length] });
+          .style('stroke', function(d,i) { return color(d, i) });
           //.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
 
       var dist = distWrap.selectAll('line.nv-dist' + axis)
@@ -110,7 +110,7 @@ nv.models.distribution = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

@@ -4,7 +4,7 @@ nv.models.line = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(), // array of colors to be used in order
+      color = nv.utils.defaultColor(), // function that returns colors
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
@@ -85,8 +85,8 @@ nv.models.line = function() {
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % color.length] })
-          .style('stroke', function(d,i){ return color[i % color.length] })
+          .style('fill', function(d,i){ return color(d, i) })
+          .style('stroke', function(d,i){ return color(d, i) })
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5)
@@ -170,8 +170,8 @@ nv.models.line = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    scatter.color(_);
+    color = nv.utils.getColor(_);
+    scatter.color(color);
     return chart;
   };
 

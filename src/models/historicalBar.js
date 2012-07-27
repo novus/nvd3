@@ -9,7 +9,7 @@ nv.models.historicalBar = function() {
       forceX = [],
       forceY = [],
       clipEdge = true,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -91,7 +91,7 @@ nv.models.historicalBar = function() {
 
       var barsEnter = bars.enter().append('rect')
           .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
-          .attr('fill', function(d,i) { return color[0]; })
+          .attr('fill', function(d,i) { return color(d, i); })
           .attr('x', 0 )
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
@@ -235,7 +235,7 @@ nv.models.historicalBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

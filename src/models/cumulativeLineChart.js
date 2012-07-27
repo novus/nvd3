@@ -6,7 +6,7 @@ nv.models.cumulativeLineChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 30, bottom: 50, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.getColor(),
       width = null,
       height = null,
       showLegend = true,
@@ -141,7 +141,7 @@ nv.models.cumulativeLineChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -299,8 +299,8 @@ nv.models.cumulativeLineChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 

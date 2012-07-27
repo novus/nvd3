@@ -8,7 +8,7 @@ nv.models.stackedArea = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(), // array of colors to be used in order
+      color = nv.utils.defaultColor(), // a function that computes the color 
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
@@ -110,7 +110,7 @@ nv.models.stackedArea = function() {
           .y(function(d) { return d.display.y + d.display.y0 })
           .forceY([0])
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -184,8 +184,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
-            .style('fill', function(d,i){ return d.color || color[i % color.length] })
-            .style('stroke', function(d,i){ return d.color || color[i % color.length] });
+            .style('fill', function(d,i){ return d.color || color(d, i) })
+            .style('stroke', function(d,i){ return d.color || color(d, i) });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 
@@ -272,7 +272,7 @@ nv.models.stackedArea = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

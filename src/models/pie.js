@@ -7,7 +7,7 @@ nv.models.pie = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       valueFormat = d3.format(',.2f'),
       showLabels = true,
       labelThreshold = .02, //if slice percentage is under this, don't show label
@@ -108,8 +108,8 @@ nv.models.pie = function() {
               });
 
         slices
-            .attr('fill', function(d,i) { return color[i]; })
-            .attr('stroke', function(d,i) { return color[i]; });
+            .attr('fill', function(d,i) { return color(d, i); })
+            .attr('stroke', function(d,i) { return color(d, i); });
 
         var paths = ae.append('path')
             .each(function(d) { this._current = d; });
@@ -234,7 +234,7 @@ nv.models.pie = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

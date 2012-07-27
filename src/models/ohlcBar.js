@@ -13,7 +13,7 @@ nv.models.ohlcBar = function() {
       forceX = [],
       forceY = [],
       clipEdge = true,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -311,7 +311,7 @@ nv.models.ohlcBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

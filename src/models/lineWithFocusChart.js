@@ -2,7 +2,7 @@
 nv.models.lineWithFocusChart = function() {
   var margin = {top: 30, right: 30, bottom: 50, left: 60},
       margin2 = {top: 0, right: 30, bottom: 20, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       width = null,
       height = null,
       height2 = 100,
@@ -101,7 +101,7 @@ nv.models.lineWithFocusChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
       lines2
@@ -111,7 +111,7 @@ nv.models.lineWithFocusChart = function() {
         .x(lines.x())
         .y(lines.y())
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -399,8 +399,8 @@ nv.models.lineWithFocusChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color =nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 

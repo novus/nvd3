@@ -4,7 +4,7 @@ nv.models.legend = function() {
       width = 400,
       height = 20,
       getKey = function(d) { return d.key },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       align = true;
 
   var dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout'); //TODO: theres are really element or series events, there are currently no 'LEGEND' events (as in entire legend)... decide if they are needed
@@ -37,8 +37,8 @@ nv.models.legend = function() {
             dispatch.legendDblclick(d,i);
           });
       seriesEnter.append('circle')
-          .style('fill', function(d,i) { return d.color || color[i % color.length] })
-          .style('stroke', function(d,i) { return d.color || color[i % color.length] })
+          .style('fill', function(d,i) { return d.color || color(d,i)})
+          .style('stroke', function(d,i) { return d.color || color(d, i) })
           .style('stroke-width', 2)
           .attr('r', 5);
       seriesEnter.append('text')
@@ -167,7 +167,7 @@ nv.models.legend = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 

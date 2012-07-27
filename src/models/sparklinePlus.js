@@ -6,7 +6,7 @@ nv.models.sparklinePlus = function() {
       animate = true,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       xTickFormat = d3.format(',r'),
       yTickFormat = d3.format(',.2f');
@@ -34,7 +34,7 @@ nv.models.sparklinePlus = function() {
       //var gEnter = svg.enter().append('svg').append('g');
       var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d, i){ return d.color || color[i % color.length] });
+          .style('stroke', function(d, i){ return d.color || color(d, i) });
 
       sparkline
         .xDomain(x.domain())

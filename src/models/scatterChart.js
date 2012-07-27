@@ -8,7 +8,7 @@ nv.models.scatterChart = function() {
   var margin       = {top: 30, right: 20, bottom: 50, left: 60}
     , width        = null
     , height       = null
-    , color        = d3.scale.category20().range()
+    , color        = nv.utils.defaultColor()
     //x            = scatter.xScale(),
     , x            = d3.fisheye.scale(d3.scale.linear).distortion(0)
     //y            = scatter.yScale(),
@@ -152,7 +152,7 @@ nv.models.scatterChart = function() {
           .width(availableWidth)
           .height(availableHeight)
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }))
 
       wrap.select('.nv-scatterWrap')
@@ -183,7 +183,7 @@ nv.models.scatterChart = function() {
           .scale(x)
           .width(availableWidth)
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.nv-distWrap').append('g')
           .attr('class', 'nv-distributionX')
@@ -197,7 +197,7 @@ nv.models.scatterChart = function() {
           .scale(y)
           .width(availableHeight)
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.nv-distWrap').append('g')
           .attr('class', 'nv-distributionY')
@@ -372,10 +372,10 @@ nv.models.scatterChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
-    distX.color(_);
-    distY.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
+    distX.color(color);
+    distY.color(color);
     return chart;
   };
 

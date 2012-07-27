@@ -5,7 +5,7 @@ nv.models.indentedTree = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0}, //TODO: implement, maybe as margin on the containing div
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       id = Math.floor(Math.random() * 10000), 
       header = true,
       noResultsText = 'No Results found.'
@@ -236,8 +236,8 @@ nv.models.indentedTree = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    scatter.color(_);
+    color = nv.utils.getColor(_);
+    scatter.color(color);
     return chart;
   };
 
