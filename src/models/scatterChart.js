@@ -32,6 +32,7 @@ nv.models.scatterChart = function() {
     , distX        = nv.models.distribution().axis('x')
     , distY        = nv.models.distribution().axis('y')
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide')
+    , noData       = "No Data Available."
     ;
 
   //============================================================
@@ -80,6 +81,19 @@ nv.models.scatterChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
 
       //------------------------------------------------------------
       // Setup Scales
@@ -430,6 +444,12 @@ nv.models.scatterChart = function() {
   chart.tooltipYContent = function(_) {
     if (!arguments.length) return tooltipY;
     tooltipY = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 

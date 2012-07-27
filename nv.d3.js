@@ -1035,10 +1035,12 @@ nv.models.bulletChart = function() {
       height = 55,
       tickFormat = null,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + e.label + '</h3>' +
                '<p>' +  e.value + '</p>'
-      };
+      },
+      noData = "No Data Available."
+      ;
 
 
   var dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
@@ -1066,6 +1068,27 @@ nv.models.bulletChart = function() {
                              - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           that = this;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
+
 
       var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
@@ -1297,6 +1320,12 @@ nv.models.bulletChart = function() {
     return chart;
   };
 
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
+    return chart;
+  };
+
 
   return chart;
 };
@@ -1321,7 +1350,9 @@ nv.models.cumulativeLineChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       },
-      x, y; //can be accessed via chart.lines.[x/y]Scale()
+      x, y, //can be accessed via chart.lines.[x/y]Scale()
+      noData = "No Data Available."
+      ;
 
 
   //============================================================
@@ -1385,6 +1416,26 @@ nv.models.cumulativeLineChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
 
 
       x = lines.xScale();
@@ -1626,6 +1677,11 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
+    return chart;
+  };
 
 
 
@@ -1960,7 +2016,9 @@ nv.models.discreteBarChart = function() {
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + x + '</h3>' +
                '<p>' +  y + '</p>'
-      };
+      },
+      noData = "No Data Available."
+      ;
 
 
   var discretebar = nv.models.discreteBar(),
@@ -2000,6 +2058,25 @@ nv.models.discreteBarChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
 
 
       discretebar
@@ -2152,6 +2229,12 @@ nv.models.discreteBarChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 
@@ -3024,7 +3107,10 @@ nv.models.lineChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       },
-      x, y; //can be accessed via chart.lines.[x/y]Scale()
+      x,//can be accessed via chart.lines.[x/y]Scale()
+      y,
+      noData = "No Data Available."
+      ;
 
 
   //============================================================
@@ -3070,6 +3156,26 @@ nv.models.lineChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
 
       x = lines.xScale();
       y = lines.yScale();
@@ -3265,6 +3371,13 @@ nv.models.lineChart = function() {
     return chart;
   };
 
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
+    return chart;
+  };
+
+
   return chart;
 }
 
@@ -3280,7 +3393,9 @@ nv.models.linePlusBarChart = function() {
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      };
+      },
+      noData = "No Data Available."
+      ;
 
 
   var lines = nv.models.line(),
@@ -3315,6 +3430,27 @@ nv.models.linePlusBarChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
+
 
 
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
@@ -3578,7 +3714,14 @@ nv.models.linePlusBarChart = function() {
     tooltip = _;
     return chart;
   };
-  
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
+    return chart;
+  };
+
+
   return chart;
 }
 
@@ -3595,7 +3738,9 @@ nv.models.lineWithFocusChart = function() {
       tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      };
+      },
+      noData = "No Data Available."
+      ;
 
   var lines = nv.models.line().clipEdge(true),
       lines2 = nv.models.line().interactive(false),
@@ -3633,6 +3778,26 @@ nv.models.lineWithFocusChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom - height2,
           availableHeight2 = height2 - margin2.top - margin2.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
 
 
       brush.on('brush', onBrush);
@@ -4012,6 +4177,13 @@ nv.models.lineWithFocusChart = function() {
     return chart;
   };
 
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
+    return chart;
+  };
+
+
   return chart;
 }
 
@@ -4388,7 +4560,9 @@ nv.models.multiBarChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
       },
-      x, y; //can be accessed via chart.multibar.[x/y]Scale()
+      x, y, //can be accessed via chart.multibar.[x/y]Scale()
+      noData = "No Data Available."
+      ;
 
 
   //============================================================
@@ -4425,6 +4599,27 @@ nv.models.multiBarChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
+
 
       x = multibar.xScale();
       y = multibar.yScale();
@@ -4674,6 +4869,12 @@ nv.models.multiBarChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 
@@ -5066,7 +5267,9 @@ nv.models.multiBarHorizontalChart = function() {
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + " - " + x + '</h3>' +
                '<p>' +  y + '</p>'
-      };
+      },
+      noData = "No Data Available."
+      ;
 
 
   var multibar = nv.models.multiBarHorizontal().stacked(false),
@@ -5107,6 +5310,24 @@ nv.models.multiBarHorizontalChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
 
 
 
@@ -5321,6 +5542,12 @@ nv.models.multiBarHorizontalChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 
@@ -6364,7 +6591,9 @@ nv.models.pieChart = function() {
       tooltip = function(key, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + '</p>'
-      };
+      },
+      noData = "No Data Available."
+      ;
 
 
   var pie = nv.models.pie(),
@@ -6392,6 +6621,25 @@ nv.models.pieChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
 
 
 
@@ -6526,6 +6774,12 @@ nv.models.pieChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 
@@ -7029,6 +7283,7 @@ nv.models.scatterChart = function() {
     , distX        = nv.models.distribution().axis('x')
     , distY        = nv.models.distribution().axis('y')
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide')
+    , noData       = "No Data Available."
     ;
 
   //============================================================
@@ -7077,6 +7332,19 @@ nv.models.scatterChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
 
       //------------------------------------------------------------
       // Setup Scales
@@ -7427,6 +7695,12 @@ nv.models.scatterChart = function() {
   chart.tooltipYContent = function(_) {
     if (!arguments.length) return tooltipY;
     tooltipY = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 
@@ -8052,7 +8326,9 @@ nv.models.stackedAreaChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
       },
-      x, y; //can be accessed via chart.stacked.[x/y]Scale()
+      x, y, //can be accessed via chart.stacked.[x/y]Scale()
+      noData = "No Data Available."
+      ;
 
 
   //============================================================
@@ -8093,6 +8369,27 @@ nv.models.stackedAreaChart = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('x', availableWidth / 2)
+          .attr('y', availableHeight / 2)
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle')
+          .text(noData);
+          return chart;
+      } else {
+        container.select('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
+
 
       x = stacked.xScale();
       y = stacked.yScale();
@@ -8327,6 +8624,12 @@ nv.models.stackedAreaChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 
