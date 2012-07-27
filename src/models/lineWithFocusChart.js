@@ -1,7 +1,7 @@
 
 nv.models.lineWithFocusChart = function() {
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      margin2 = {top: 0, right: 20, bottom: 20, left: 60},
+  var margin = {top: 30, right: 30, bottom: 50, left: 60},
+      margin2 = {top: 0, right: 30, bottom: 20, left: 60},
       color = d3.scale.category20().range(),
       width = null,
       height = null,
@@ -376,6 +376,12 @@ nv.models.lineWithFocusChart = function() {
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin = _;
+    return chart;
+  };
+
+  chart.margin2 = function(_) {
+    if (!arguments.length) return margin2;
+    margin2 = _;
     return chart;
   };
 
