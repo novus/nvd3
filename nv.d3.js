@@ -250,6 +250,27 @@ nv.utils.windowResize = function(fun){
     fun(e);
   }
 }
+
+// Backwards compatible way to implement more d3-like coloring of graphs.
+// If passed an array, wrap it in a function which implements the old default
+// behaviour
+nv.utils.getColor = function(color){
+    if( Object.prototype.toString.call( color ) === '[object Array]' )
+        return function(d, i) { return d.color || color[i % color.length]; };
+    else
+        return color;
+        //can't really help it if someone passes rubish as color
+}
+
+// Default color chooser uses the index of an object as before.
+//
+//
+nv.utils.defaultColor = function(){
+    var colors = d3.scale.category20().range();
+    return function(d, i) {return colors[i % colors.length]};
+}
+
+
 nv.models.axis = function() {
   //Default Settings
   var width = 60, //only used for tickLabel currently
@@ -533,7 +554,7 @@ nv.models.historicalBar = function() {
       forceX = [],
       forceY = [],
       clipEdge = true,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -615,7 +636,7 @@ nv.models.historicalBar = function() {
 
       var barsEnter = bars.enter().append('rect')
           .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
-          .attr('fill', function(d,i) { return color[0]; })
+          .attr('fill', function(d,i) { return color(d, i); })
           .attr('x', 0 )
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
@@ -759,7 +780,7 @@ nv.models.historicalBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -1289,7 +1310,7 @@ nv.models.cumulativeLineChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 30, bottom: 50, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.getColor(),
       width = null,
       height = null,
       showLegend = true,
@@ -1424,7 +1445,7 @@ nv.models.cumulativeLineChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -1582,8 +1603,8 @@ nv.models.cumulativeLineChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 
@@ -1649,7 +1670,7 @@ nv.models.discreteBar = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showValues = false,
       valueFormat = d3.format(',.2f'),
       xDomain, yDomain;
@@ -1791,8 +1812,8 @@ nv.models.discreteBar = function() {
       barsEnter.append('rect')
           .attr('height', 0)
           .attr('width', x.rangeBand() / data.length )
-          .style('fill', function(d,i){  return d.color || color[i % color.length] }) //this is a 'hack' to allow multiple colors in a single series... will need to rethink this methodology
-          .style('stroke', function(d,i){ return d.color || color[i % color.length] });
+          .style('fill', function(d,i){  return d.color || color(d, i) }) 
+          .style('stroke', function(d,i){ return d.color || color(d, i)});
 
       if (showValues) {
         barsEnter.append('text')
@@ -1902,7 +1923,7 @@ nv.models.discreteBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -1932,7 +1953,7 @@ nv.models.discreteBarChart = function() {
   var margin = {top: 10, right: 10, bottom: 50, left: 60},
       width = null,
       height = null,
-      color = d3.scale.category20().range(),
+      color = nv.utils.getColor(), //a function that gets color for a datum
       staggerLabels = false,
       rotateLabels = 0,
       tooltips = true,
@@ -2105,8 +2126,8 @@ nv.models.discreteBarChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    discretebar.color(_);
+    color = nv.utils.getColor(_);
+    discretebar.color(color);
     return chart;
   };
 
@@ -2144,7 +2165,7 @@ nv.models.distribution = function() {
       size = 8,
       axis = 'x', // 'x' or 'y'... horizontal or vertical
       getData = function(d) { return d[axis] },  // defaults d.x or d.y
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       domain;
 
   var scale = d3.scale.linear(),
@@ -2179,7 +2200,7 @@ nv.models.distribution = function() {
       distWrap.enter().append('g')
       distWrap
           .attr('class', function(d,i) { return 'nv-dist nv-series-' + i })
-          .style('stroke', function(d,i) { return color[i % color.length] });
+          .style('stroke', function(d,i) { return color(d, i) });
           //.style('stroke', function(d,i) { return color.filter(function(d,i) { return data[i] && !data[i].disabled })[i % color.length] });
 
       var dist = distWrap.selectAll('line.nv-dist' + axis)
@@ -2249,7 +2270,7 @@ nv.models.distribution = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -2262,7 +2283,7 @@ nv.models.indentedTree = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0}, //TODO: implement, maybe as margin on the containing div
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       id = Math.floor(Math.random() * 10000), 
       header = true,
       noResultsText = 'No Results found.'
@@ -2493,8 +2514,8 @@ nv.models.indentedTree = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    scatter.color(_);
+    color = nv.utils.getColor(_);
+    scatter.color(color);
     return chart;
   };
 
@@ -2548,7 +2569,7 @@ nv.models.legend = function() {
       width = 400,
       height = 20,
       getKey = function(d) { return d.key },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       align = true;
 
   var dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout'); //TODO: theres are really element or series events, there are currently no 'LEGEND' events (as in entire legend)... decide if they are needed
@@ -2581,8 +2602,8 @@ nv.models.legend = function() {
             dispatch.legendDblclick(d,i);
           });
       seriesEnter.append('circle')
-          .style('fill', function(d,i) { return d.color || color[i % color.length] })
-          .style('stroke', function(d,i) { return d.color || color[i % color.length] })
+          .style('fill', function(d,i) { return d.color || color(d,i)})
+          .style('stroke', function(d,i) { return d.color || color(d, i) })
           .style('stroke-width', 2)
           .attr('r', 5);
       seriesEnter.append('text')
@@ -2711,7 +2732,7 @@ nv.models.legend = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -2733,7 +2754,7 @@ nv.models.line = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(), // array of colors to be used in order
+      color = nv.utils.defaultColor(), // a function that returns a color
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID incase user doesn't select one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
@@ -2819,8 +2840,8 @@ nv.models.line = function() {
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % color.length] })
-          .style('stroke', function(d,i){ return color[i % color.length] });
+          .style('fill', function(d,i){ return color(d, i) })
+          .style('stroke', function(d,i){ return color(d, i)});
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
@@ -2955,8 +2976,8 @@ nv.models.line = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    scatter.color(_);
+    color = nv.utils.getColor(_);
+    scatter.color(color);
     return chart;
   };
 
@@ -2994,7 +3015,7 @@ nv.models.lineChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       width = null, 
       height = null,
       showLegend = true,
@@ -3090,7 +3111,7 @@ nv.models.lineChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -3221,8 +3242,8 @@ nv.models.lineChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 
@@ -3253,7 +3274,7 @@ nv.models.linePlusBarChart = function() {
       height = null,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showLegend = true,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
@@ -3379,14 +3400,14 @@ nv.models.linePlusBarChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
 
       bars
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
 
 
@@ -3535,8 +3556,8 @@ nv.models.linePlusBarChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 
@@ -3564,7 +3585,7 @@ nv.models.linePlusBarChart = function() {
 nv.models.lineWithFocusChart = function() {
   var margin = {top: 30, right: 30, bottom: 50, left: 60},
       margin2 = {top: 0, right: 30, bottom: 20, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       width = null,
       height = null,
       height2 = 100,
@@ -3663,7 +3684,7 @@ nv.models.lineWithFocusChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
       lines2
@@ -3673,7 +3694,7 @@ nv.models.lineWithFocusChart = function() {
         .x(lines.x())
         .y(lines.y())
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -3961,8 +3982,8 @@ nv.models.lineWithFocusChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color =nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 
@@ -4011,7 +4032,7 @@ nv.models.multiBar = function() {
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
       clipEdge = true,
       stacked = false,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       delay = 1200,
       xDomain, yDomain;
 
@@ -4126,8 +4147,8 @@ nv.models.multiBar = function() {
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % color.length] })
-          .style('stroke', function(d,i){ return color[i % color.length] });
+          .style('fill', function(d,i){ return color(d, i) })
+          .style('stroke', function(d,i){ return color(d, i) });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
@@ -4328,7 +4349,7 @@ nv.models.multiBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -4357,7 +4378,7 @@ nv.models.multiBarChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = null,
       height = null,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showControls = true,
       showLegend = true,
       reduceXTicks = true, // if false a tick will show for every data point
@@ -4444,7 +4465,7 @@ nv.models.multiBarChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -4608,8 +4629,8 @@ nv.models.multiBarChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 
@@ -4657,7 +4678,7 @@ nv.models.multiBarHorizontal = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       stacked = false,
       showValues = false,
       valuePadding = 60,
@@ -4737,8 +4758,8 @@ nv.models.multiBarHorizontal = function() {
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
-          .style('fill', function(d,i){ return color[i % color.length] })
-          .style('stroke', function(d,i){ return color[i % color.length] });
+          .style('fill', function(d,i){ return color(d, i) })
+          .style('stroke', function(d,i){ return color(d, i) });
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
@@ -4983,7 +5004,7 @@ nv.models.multiBarHorizontal = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -5025,7 +5046,7 @@ nv.models.multiBarHorizontalChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       width = null,
       height = null,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       showControls = true,
       showLegend = true,
       tooltips = true,
@@ -5115,7 +5136,7 @@ nv.models.multiBarHorizontalChart = function() {
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-          return d.color || color[i % color.length];
+          return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }))
 
 
@@ -5261,8 +5282,8 @@ nv.models.multiBarHorizontalChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 
@@ -5308,7 +5329,7 @@ nv.models.ohlcBar = function() {
       forceX = [],
       forceY = [],
       clipEdge = true,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -5606,7 +5627,7 @@ nv.models.ohlcBar = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -5629,7 +5650,7 @@ nv.models.pie = function() {
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
       id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       valueFormat = d3.format(',.2f'),
       showLabels = true,
       labelThreshold = .02, //if slice percentage is under this, don't show label
@@ -5730,8 +5751,8 @@ nv.models.pie = function() {
               });
 
         slices
-            .attr('fill', function(d,i) { return color[i]; })
-            .attr('stroke', function(d,i) { return color[i]; });
+            .attr('fill', function(d,i) { return color(d, i); })
+            .attr('stroke', function(d,i) { return color(d, i); });
 
         var paths = ae.append('path')
             .each(function(d) { this._current = d; });
@@ -5856,7 +5877,7 @@ nv.models.pie = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -5881,7 +5902,7 @@ nv.models.pieChart = function() {
       width = null,
       height = null,
       showLegend = true,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       tooltips = true,
       tooltip = function(key, y, e, graph) { 
         return '<h3>' + key + '</h3>' +
@@ -6027,9 +6048,9 @@ nv.models.pieChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
-    pie.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
+    pie.color(color);
     return chart;
   };
 
@@ -6064,7 +6085,7 @@ nv.models.scatter = function() {
   var margin      = {top: 0, right: 0, bottom: 0, left: 0}
    ,  width       = 960
    ,  height      = 500
-   ,  color       = d3.scale.category20().range() // array of colors to be used in order
+   ,  color       = nv.utils.defaultColor() // chooses color 
    ,  id          = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
    ,  x           = d3.scale.linear()
    ,  y           = d3.scale.linear()
@@ -6294,8 +6315,8 @@ nv.models.scatter = function() {
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       d3.transition(groups)
-          .style('fill', function(d,i) { return color[i % color.length] })
-          .style('stroke', function(d,i) { return color[i % color.length] })
+          .style('fill', function(d,i) { return color(d, i) })
+          .style('stroke', function(d,i) { return color(d, i) })
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -6490,7 +6511,7 @@ nv.models.scatter = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -6527,7 +6548,7 @@ nv.models.scatterChart = function() {
   var margin       = {top: 30, right: 20, bottom: 50, left: 60}
     , width        = null
     , height       = null
-    , color        = d3.scale.category20().range()
+    , color        = nv.utils.defaultColor()
     //x            = scatter.xScale(),
     , x            = d3.fisheye.scale(d3.scale.linear).distortion(0)
     //y            = scatter.yScale(),
@@ -6671,7 +6692,7 @@ nv.models.scatterChart = function() {
           .width(availableWidth)
           .height(availableHeight)
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }))
 
       wrap.select('.nv-scatterWrap')
@@ -6702,7 +6723,7 @@ nv.models.scatterChart = function() {
           .scale(x)
           .width(availableWidth)
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.nv-distWrap').append('g')
           .attr('class', 'nv-distributionX')
@@ -6716,7 +6737,7 @@ nv.models.scatterChart = function() {
           .scale(y)
           .width(availableHeight)
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }));
       gEnter.select('.nv-distWrap').append('g')
           .attr('class', 'nv-distributionY')
@@ -6891,10 +6912,10 @@ nv.models.scatterChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
-    distX.color(_);
-    distY.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
+    distX.color(color);
+    distY.color(color);
     return chart;
   };
 
@@ -6965,7 +6986,7 @@ nv.models.sparkline = function() {
       animate = true,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       xDomain, yDomain;
 
   var x = d3.scale.linear(),
@@ -6991,7 +7012,7 @@ nv.models.sparkline = function() {
       //gEnter.append('g').attr('class', 'sparkline')
       gEnter
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d,i) { return d.color || color[i * color.length] });
+          .style('stroke', function(d,i) { return d.color || color(d, i) });
 
 /*
       d3.select(this)
@@ -7087,7 +7108,7 @@ nv.models.sparklinePlus = function() {
       animate = true,
       getX = function(d) { return d.x },
       getY = function(d) { return d.y },
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       xTickFormat = d3.format(',r'),
       yTickFormat = d3.format(',.2f');
@@ -7115,7 +7136,7 @@ nv.models.sparklinePlus = function() {
       //var gEnter = svg.enter().append('svg').append('g');
       var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d, i){ return d.color || color[i % color.length] });
+          .style('stroke', function(d, i){ return d.color || color(d, i) });
 
       sparkline
         .xDomain(x.domain())
@@ -7249,7 +7270,7 @@ nv.models.stackedArea = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
       height = 500,
-      color = d3.scale.category20().range(), // array of colors to be used in order
+      color = nv.utils.defaultColor(), // a function that computes the color 
       id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
       getX = function(d) { return d.x }, // accessor to get the x value from a data point
       getY = function(d) { return d.y }, // accessor to get the y value from a data point
@@ -7351,7 +7372,7 @@ nv.models.stackedArea = function() {
           .y(function(d) { return d.display.y + d.display.y0 })
           .forceY([0])
           .color(data.map(function(d,i) {
-            return d.color || color[i % color.length];
+            return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }));
 
 
@@ -7425,8 +7446,8 @@ nv.models.stackedArea = function() {
             .attr('d', function(d,i) { return zeroArea(d.values,i) })
             .remove();
         path
-            .style('fill', function(d,i){ return d.color || color[i % color.length] })
-            .style('stroke', function(d,i){ return d.color || color[i % color.length] });
+            .style('fill', function(d,i){ return d.color || color(d, i) })
+            .style('stroke', function(d,i){ return d.color || color(d, i) });
         d3.transition(path)
             .attr('d', function(d,i) { return area(d.values,i) })
 
@@ -7513,7 +7534,7 @@ nv.models.stackedArea = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -7565,7 +7586,8 @@ nv.models.stackedAreaChart = function() {
   var margin = {top: 30, right: 25, bottom: 50, left: 60},
       width = null,
       height = null,
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(), // a function that takes in d, i and
+      //returns color
       showControls = true,
       showLegend = true,
       tooltips = true,
@@ -7822,8 +7844,8 @@ nv.models.stackedAreaChart = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = _;
-    legend.color(_);
+    color = nv.utils.getColor(_);
+    legend.color(color);
     return chart;
   };
 

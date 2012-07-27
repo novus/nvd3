@@ -177,7 +177,7 @@ nv.models.discreteBarChart = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-    discretebar.color(color;
+    discretebar.color(color);
     return chart;
   };
 
