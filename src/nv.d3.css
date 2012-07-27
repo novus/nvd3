@@ -536,18 +536,18 @@ svg .title {
   cursor: move;
 }
 
-.nvd3.nv-historicalStockChart .nv-brush .extent {
+.nvd3 .nv-brush .extent {
   /*
   cursor: ew-resize !important;
   */
   fill-opacity: 0 !important;
 }
 
-.nvd3.nv-historicalStockChart .nv-brushBackground rect {
+.nvd3 .nv-brushBackground rect {
   stroke: #000;
   stroke-width: .4;
   fill: #fff;
-  fill-opacity: .5;
+  fill-opacity: .7;
 }
 
 
