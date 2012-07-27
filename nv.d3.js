@@ -4382,6 +4382,7 @@ nv.models.multiBarChart = function() {
       showControls = true,
       showLegend = true,
       reduceXTicks = true, // if false a tick will show for every data point
+      rotateLabels = 0,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -4518,6 +4519,12 @@ nv.models.multiBarChart = function() {
           .selectAll('text, line')
           .style('opacity', 0);
 
+      if(rotateLabels)
+        xTicks
+            .selectAll('text')
+            .attr('transform', function(d,i,j) { return 'rotate('+rotateLabels+' 0,0)' })
+            .attr('text-transform', rotateLabels > 0 ? 'start' : 'end');
+
       yAxis
         .scale(y)
         .ticks( availableHeight / 36 )
@@ -4651,6 +4658,12 @@ nv.models.multiBarChart = function() {
     reduceXTicks = _;
     return chart;
   };
+
+  chart.rotateLabels = function(_) {
+    if (!arguments.length) return rotateLabels;
+    rotateLabels = _;
+    return chart;
+  }
 
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
