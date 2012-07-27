@@ -48,7 +48,7 @@ nv.models.multiChart = function() {
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
-    
+
   };
 
   function chart(selection) {
@@ -107,7 +107,7 @@ nv.models.multiChart = function() {
         g.select('.legendWrap')
             .datum(data.map(function(series) { 
               series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
-              series.key = series.originalKey + (series.yAxis == 1 ? ' (left axis)' : ' (right axis)');
+              series.key = series.originalKey + (series.yAxis == 1 ? '' : ' (right axis)');
               return series;
             }))
           .call(legend);
