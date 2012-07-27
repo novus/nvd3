@@ -3569,6 +3569,7 @@ nv.models.lineWithFocusChart = function() {
       height = null,
       height2 = 100,
       showLegend = true,
+      brushExtent = null,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -3583,7 +3584,7 @@ nv.models.lineWithFocusChart = function() {
       y2 = lines2.yScale(),
       xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().scale(y).orient('left'),
-      x2Axis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
+      x2Axis = nv.models.axis().scale(x2).orient('bottom').tickPadding(5),
       y2Axis = nv.models.axis().scale(y2).orient('left'),
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
@@ -3619,6 +3620,8 @@ nv.models.lineWithFocusChart = function() {
       var wrap = container.selectAll('g.nv-wrap.nv-lineWithFocusChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineWithFocusChart').append('g');
 
+      gEnter.append('g').attr('class', 'nv-legendWrap');
+
       var focusEnter = gEnter.append('g').attr('class', 'nv-focus');
       focusEnter.append('g').attr('class', 'nv-x nv-axis');
       focusEnter.append('g').attr('class', 'nv-y nv-axis');
@@ -3628,9 +3631,9 @@ nv.models.lineWithFocusChart = function() {
       contextEnter.append('g').attr('class', 'nv-x nv-axis');
       contextEnter.append('g').attr('class', 'nv-y nv-axis');
       contextEnter.append('g').attr('class', 'nv-linesWrap');
+      contextEnter.append('g').attr('class', 'nv-brushBackground');
       contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
-      gEnter.append('g').attr('class', 'nv-legendWrap');
 
 
       var g = wrap.select('g');
@@ -3648,7 +3651,7 @@ nv.models.lineWithFocusChart = function() {
         if ( margin.top != legend.height()) {
           margin.top = legend.height();
           availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+                             - margin.top - margin.bottom - height2;
         }
 
         g.select('.nv-legendWrap')
@@ -3677,28 +3680,34 @@ nv.models.lineWithFocusChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
+      /*
       var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       d3.transition(focusLinesWrap).call(lines);
+     */
 
 
       xAxis
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.nv-focus .nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
-          .call(xAxis);
-
-
       yAxis
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
+      g.select('.nv-focus .nv-x.nv-axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+
+
+/*
+      d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
+          .call(xAxis);
+
+
       d3.transition(g.select('.nv-focus .nv-y.nv-axis'))
           .call(yAxis);
+         */
 
 
 
@@ -3711,12 +3720,58 @@ nv.models.lineWithFocusChart = function() {
       d3.transition(contextLinesWrap).call(lines2);
 
 
+
+      if (brushExtent) brush.extent(brushExtent);
+
+      var brushBG = g.select('.nv-brushBackground').selectAll('g')
+          .data([brushExtent || brush.extent()])
+
+      var brushBGenter = brushBG.enter()
+          .append('g');
+
+      brushBGenter.append('rect')
+          .attr('class', 'left')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('height', availableHeight2);
+
+      brushBGenter.append('rect')
+          .attr('class', 'right')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('height', availableHeight2);
+
+
+      function updateBrushBG() {
+        //nv.log('test', brush.empty(), brush.extent());
+        if (!brush.empty()) brush.extent(brushExtent);
+        brushBG
+            .data([brush.empty() ? x2.domain() : brushExtent])
+            //.data([brush.empty() ? xi.domain() : brush.extent()])
+            .each(function(d,i) {
+              var leftWidth = x2(d[0]) - x.range()[0],
+                  rightWidth = x.range()[1] - x2(d[1]);
+              d3.select(this).select('.left')
+                .attr('width',  leftWidth < 0 ? 0 : leftWidth);
+
+              d3.select(this).select('.right')
+                .attr('x', x2(d[1]))
+                .attr('width', rightWidth < 0 ? 0 : rightWidth);
+            });
+      }
+
+
+
       gBrush = g.select('.nv-x.nv-brush')
           .call(brush);
       gBrush.selectAll('rect')
           //.attr('y', -5)
           .attr('height', availableHeight2);
       gBrush.selectAll('.resize').append('path').attr('d', resizePath);
+
+
+      //if (brushExtent) onBrush();
+      onBrush();
 
 
 
@@ -3740,8 +3795,11 @@ nv.models.lineWithFocusChart = function() {
           .call(y2Axis);
 
 
-      updateFocus();
 
+      g.select('.nv-focus .nv-x.nv-axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+      g.select('.nv-context .nv-x.nv-axis')
+          .attr('transform', 'translate(0,' + y2.range()[0] + ')');
 
 
       legend.dispatch.on('legendClick', function(d,i) { 
@@ -3802,35 +3860,54 @@ nv.models.lineWithFocusChart = function() {
       }
 
 
-      function onBrush() {
-        updateFocus();
 
+      function onBrush() {
+        //nv.log(brush.empty(), brush.extent(), x2(brush.extent()[0]), x2(brush.extent()[1]));
+
+  /*
         focusLinesWrap.call(lines)
         //var focusLinesWrap = g.select('.focus .linesWrap')
         g.select('.nv-focus .nv-x.nv-axis').call(xAxis);
         g.select('.nv-focus .nv-y.nv-axis').call(yAxis);
       }
+  */
+        brushExtent = brush.empty() ? null : brush.extent();
+        extent = brush.empty() ? x2.domain() : brush.extent();
 
-      function updateFocus() {
-        var yDomain = brush.empty() ? y2.domain() : d3.extent(d3.merge(data.filter(function(d) { return !d.disabled }).map(function(d) { return d.values })).filter(function(d) {
-          return lines.x()(d) >= brush.extent()[0] && lines.x()(d) <= brush.extent()[1];
-        }), lines.y());  //This doesn't account for the 1 point before and the 1 point after the domain.  Would fix, but likely need to change entire methodology here
-
-        if (typeof yDomain[0] == 'undefined') yDomain = y2.domain(); //incase the brush doesn't cover a single point
+        updateBrushBG();
 
 
-        x.domain(brush.empty() ? x2.domain() : brush.extent());
-        y.domain(yDomain);
 
-        //TODO: Rethink this... performance is horrible, likely need to cut off focus data to within the range
-        //      If I limit the data for focusLines would want to include 1 point before and after the extent,
-        //      Need to figure out an optimized way to accomplish this.
-        //      ***One concern is to try not to make the assumption that all lines are of the same length, and
-        //         points with the same index have the same x value (while this is true in our test cases, may 
-        //         not always be)
+        var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
+            .datum(
+              data
+                .filter(function(d) { return !d.disabled })
+                .map(function(d,i) {
+                  return {
+                    key: d.key,
+                    values: d.values.filter(function(d,i) {
+                      return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                    })
+                  }
+                })
+            )
 
-        lines.xDomain(x.domain());
-        lines.yDomain(y.domain());
+        d3.transition(focusLinesWrap).call(lines);
+
+
+        /*
+        var contextLinesWrap = g.select('.context .linesWrap')
+            .datum(data.filter(function(d) { return !d.disabled }))
+
+        d3.transition(contextLinesWrap).call(lines2);
+       */
+
+
+        d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
+            .call(xAxis);
+
+        d3.transition(g.select('.nv-focus .nv-y.nv-axis'))
+            .call(yAxis);
       }
 
 
@@ -3900,7 +3977,7 @@ nv.models.lineWithFocusChart = function() {
     tooltip = _;
     return chart;
   };
-  
+
   chart.interpolate = function(_) {
     if (!arguments.length) return lines.interpolate();
     lines.interpolate(_);
