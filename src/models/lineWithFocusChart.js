@@ -3,12 +3,12 @@ nv.models.lineWithFocusChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       margin2 = {top: 0, right: 20, bottom: 20, left: 60},
       color = d3.scale.category20().range(),
-      width = null, 
+      width = null,
       height = null,
       height2 = 100,
       showLegend = true,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       };
@@ -99,14 +99,18 @@ nv.models.lineWithFocusChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled }));
+        }).filter(function(d,i) {
+          return !data[i].disabled;
+        }));
 
       lines2
         .width(availableWidth)
         .height(availableHeight2)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
-        }).filter(function(d,i) { return !data[i].disabled }));
+        }).filter(function(d,i) {
+          return !data[i].disabled;
+        }));
 
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -177,7 +181,7 @@ nv.models.lineWithFocusChart = function() {
 
 
 
-      legend.dispatch.on('legendClick', function(d,i) { 
+      legend.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
 
         if (!data.filter(function(d) { return !d.disabled }).length) {
@@ -259,7 +263,7 @@ nv.models.lineWithFocusChart = function() {
         //      If I limit the data for focusLines would want to include 1 point before and after the extent,
         //      Need to figure out an optimized way to accomplish this.
         //      ***One concern is to try not to make the assumption that all lines are of the same length, and
-        //         points with the same index have the same x value (while this is true in our test cases, may 
+        //         points with the same index have the same x value (while this is true in our test cases, may
         //         not always be)
 
         lines.xDomain(x.domain());
@@ -285,7 +289,25 @@ nv.models.lineWithFocusChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+
+  chart.x = function(_) {
+    if (!arguments.length) return lines.x;
+    lines.x(_);
+    lines2.x(_);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return lines.y;
+    lines.y(_);
+    lines2.y(_);
+    return chart;
+  };
+
+  // TODO: do the other d3.rebind() items for lines->chart like .x() and .y() above:
+  //       if you don't, then the bottom section (lines2) won't see the user changes
+  //       going through these calls.
 
 
   chart.margin = function(_) {
@@ -348,6 +370,6 @@ nv.models.lineWithFocusChart = function() {
     return chart;
   };
 
-  
+
   return chart;
 }
