@@ -6,7 +6,7 @@ nv.models.pieChart = function() {
       showLegend = true,
       color = nv.utils.defaultColor(),
       tooltips = true,
-      tooltip = function(key, y, e, graph) { 
+      tooltip = function(key, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + '</p>'
       },
@@ -148,7 +148,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie; // really just makign the accessible for discretebar.dispatch, may rethink slightly
 
-  d3.rebind(chart, pie, 'values', 'x', 'y', 'id', 'showLabels', 'donut', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'id', 'showLabels', 'donut', 'labelThreshold');
 
 
   chart.margin = function(_) {
