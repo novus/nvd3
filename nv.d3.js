@@ -5580,6 +5580,12 @@ nv.models.multiBarHorizontalChart = function() {
     return chart;
   };
 
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
