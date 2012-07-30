@@ -67,6 +67,11 @@
   margin: 2px 0;
 }
 
+.nvtooltip-pending-removal {
+  position: absolute;
+  pointer-events: none;
+}
+
 
 /********************
  * SVG CSS 

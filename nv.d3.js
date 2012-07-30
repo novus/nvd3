@@ -1368,7 +1368,7 @@ nv.models.cumulativeLineChart = function() {
       height = null,
       showLegend = true,
       tooltips = true,
-      showRescaleToggle = false, //TODO: get rescale y functionality back (need to calculate exten of y for ALL possible re-zero points
+      showRescaleToggle = true, //TODO: get rescale y functionality back (need to calculate exten of y for ALL possible re-zero points
       rescaleY = true,
       tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -1464,6 +1464,29 @@ nv.models.cumulativeLineChart = function() {
 
       x = lines.xScale();
       y = lines.yScale();
+
+      if (!rescaleY) {
+        var seriesDomains = data
+          .filter(function(series) { return !series.disabled })
+          .map(function(series,i) {
+            var initialDomain = d3.extent(series.values, lines.y());
+
+            return [
+              (initialDomain[0] - initialDomain[1]) / (1 + initialDomain[1]),
+              (initialDomain[1] - initialDomain[0]) / (1 + initialDomain[0])
+            ];
+          });
+
+        var completeDomain = [
+          d3.min(seriesDomains, function(d) { return d[0] }),
+          d3.max(seriesDomains, function(d) { return d[1] })
+        ]
+
+        lines.yDomain(completeDomain);
+      } else {
+        lines.yDomain(null);
+      }
+
 
       dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
           .range([0, availableWidth])
@@ -3872,19 +3895,29 @@ nv.models.lineWithFocusChart = function() {
       lines
         .width(availableWidth)
         .height(availableHeight)
-        .color(data.map(function(d,i) {
-          return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled }));
+        .color(
+          data
+            .map(function(d,i) {
+              return d.color || color(d, i);
+            })
+            .filter(function(d,i) {
+              return !data[i].disabled;
+          })
+        );
 
       lines2
         .defined(lines.defined())
         .width(availableWidth)
         .height(availableHeight2)
-        .x(lines.x())
-        .y(lines.y())
-        .color(data.map(function(d,i) {
-          return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled }));
+        .color(
+          data
+            .map(function(d,i) {
+              return d.color || color(d, i);
+            })
+            .filter(function(d,i) {
+              return !data[i].disabled;
+          })
+        );
 
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -4012,7 +4045,7 @@ nv.models.lineWithFocusChart = function() {
           .attr('transform', 'translate(0,' + y2.range()[0] + ')');
 
 
-      legend.dispatch.on('legendClick', function(d,i) { 
+      legend.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
 
         if (!data.filter(function(d) { return !d.disabled }).length) {
@@ -4121,7 +4154,6 @@ nv.models.lineWithFocusChart = function() {
       }
 
 
-
     });
 
 
@@ -4142,8 +4174,21 @@ nv.models.lineWithFocusChart = function() {
   chart.x2Axis = x2Axis;
   chart.y2Axis = y2Axis;
 
-  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
+  chart.x = function(_) {
+    if (!arguments.length) return lines.x;
+    lines.x(_);
+    lines2.x(_);
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return lines.y;
+    lines.y(_);
+    lines2.y(_);
+    return chart;
+  };
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -4224,7 +4269,7 @@ nv.models.lineWithFocusChart = function() {
     return chart;
   };
 
-  
+
   return chart;
 }
 
@@ -4901,6 +4946,12 @@ nv.models.multiBarChart = function() {
     return chart;
   }
 
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
@@ -5571,6 +5622,12 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 
