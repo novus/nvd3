@@ -11,7 +11,7 @@ nv.models.cumulativeLineChart = function() {
       height = null,
       showLegend = true,
       tooltips = true,
-      showRescaleToggle = false, //TODO: get rescale y functionality back (need to calculate exten of y for ALL possible re-zero points
+      showRescaleToggle = true, //TODO: get rescale y functionality back (need to calculate exten of y for ALL possible re-zero points
       rescaleY = true,
       tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -107,6 +107,27 @@ nv.models.cumulativeLineChart = function() {
 
       x = lines.xScale();
       y = lines.yScale();
+
+      if (!rescaleY) {
+        var seriesDomains = data.map(function(series,i) {
+          var initialDomain = d3.extent(series.values, lines.y());
+
+          return [
+            (initialDomain[0] - initialDomain[1]) / (1 + initialDomain[1]),
+            (initialDomain[1] - initialDomain[0]) / (1 + initialDomain[0])
+          ];
+        });
+
+        var completeDomain = [
+          d3.min(seriesDomains, function(d) { return d[0] }),
+          d3.max(seriesDomains, function(d) { return d[1] })
+        ]
+
+        lines.yDomain(completeDomain);
+      } else {
+        lines.yDomain(null);
+      }
+
 
       dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
           .range([0, availableWidth])
