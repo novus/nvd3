@@ -8648,6 +8648,7 @@ nv.models.stackedAreaChart = function() {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     legend.color(color);
+    stacked.color(color);
     return chart;
   };
 
