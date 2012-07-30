@@ -6,6 +6,7 @@ nv.models.axis = function() {
       axisLabelText = null,
       showMaxMin = true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
       highlightZero = true,
+      rotateLabels = 0,
       rotateYLabel = true;
       margin = {top: 0, right: 0, bottom: 0, left: 0}
 
@@ -69,16 +70,25 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
+        var xLabelMargin = 30;
         var maxTextWidth = 30;
-         if(rotateLabels){
-          g.selectAll('g text').each(function(d,i){
+        if(rotateLabels%360){
+          var xTicks = g.selectAll('g').select("text");
+          //Calculate the longest xTick width
+          xTicks.each(function(d,i){
             var width = this.getBBox().width;
             if(width > maxTextWidth) maxTextWidth = width;
           });
-         }
+          //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
+          var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
+          var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
+          //Rotate all xTicks
+          xTicks.attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+          .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
+        }
         axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', 'middle')
-              .attr('y', maxTextWidth);
+              .attr('y', xLabelMargin);
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('x', w/2);
@@ -94,7 +104,8 @@ nv.models.axis = function() {
               .select('text')
                 .attr('dy', '.71em')
                 .attr('y', axis.tickPadding())
-                .attr('text-anchor', 'middle')
+                .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+                .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end')
                 .text(function(d,i) {
                   return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
                 });
@@ -268,6 +279,11 @@ nv.models.axis = function() {
   	if(!arguments.length) return rotateYLabel;
   	rotateYLabel = _;
   	return chart;
+  }
+  chart.rotateLabels = function(_) {
+    if(!arguments.length) return rotateLabels;
+    rotateLabels = _;
+    return chart;
   }
   chart.margin = function(_) {
   	if(!arguments.length) return margin;

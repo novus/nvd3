@@ -5,7 +5,6 @@ nv.models.discreteBarChart = function() {
       height = null,
       color = nv.utils.getColor(), //a function that gets color for a datum
       staggerLabels = false,
-      rotateLabels = 0,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + x + '</h3>' +
@@ -128,17 +127,6 @@ nv.models.discreteBarChart = function() {
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '0' : '12') + ')' })
 
-      if (rotateLabels)
-        xTicks
-            .selectAll('text')
-            .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
-            .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end') 
-
-      xTicks
-          .selectAll('text')
-          .attr('clip-path', function(d,i,j) { return rotateLabels ? '' : 'url(#nv-x-label-clip-' + discretebar.id() + ')' });
-
-
       yAxis
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
@@ -205,12 +193,6 @@ nv.models.discreteBarChart = function() {
   chart.staggerLabels = function(_) {
     if (!arguments.length) return staggerLabels;
     staggerLabels = _;
-    return chart;
-  };
-
-  chart.rotateLabels = function(_) {
-    if (!arguments.length) return rotateLabels;
-    rotateLabels = _;
     return chart;
   };
 
