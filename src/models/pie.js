@@ -10,6 +10,7 @@ nv.models.pie = function() {
       color = nv.utils.defaultColor(),
       valueFormat = d3.format(',.2f'),
       showLabels = true,
+      donutLabelsOutside = false,
       labelThreshold = .02, //if slice percentage is under this, don't show label
       donut = false;
 
@@ -123,27 +124,60 @@ nv.models.pie = function() {
 
         if (showLabels) {
           // This does the normal label
-          ae.append('text')
-            .attr('transform', function(d) {
-               d.outerRadius = radius + 10; // Set Outer Coordinate
-               d.innerRadius = radius + 15; // Set Inner Coordinate
-               return 'translate(' + arc.centroid(d) + ')';
-            })
-            .style('text-anchor', 'middle') //center the text on it's origin
-            .style('fill', '#000');
+          var labelsArc = arc;
+          if (donutLabelsOutside) {
+            labelsArc = d3.svg.arc().outerRadius(arc.outerRadius())
+          }
 
-          d3.transition(slices.select('text'))
-              //.ease('bounce')
-              .attr('transform', function(d) {
-                 d.outerRadius = radius + 10; // Set Outer Coordinate
-                 d.innerRadius = radius + 15; // Set Inner Coordinate
-                 return 'translate(' + arc.centroid(d) + ')';
-              })
-              //.style('font', 'bold 12px Arial') // font style's should be set in css!
-              .text(function(d, i) { 
-                var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
-                return (d.value && percent > labelThreshold) ? getX(d.data) : ''; 
+          ae.append("g").classed("nv-label", true)
+            .each(function(d, i) {
+              var group = d3.select(this);
+
+              group
+                .attr('transform', function(d) {
+                   d.outerRadius = radius + 10; // Set Outer Coordinate
+                   d.innerRadius = radius + 15; // Set Inner Coordinate
+                   return 'translate(' + labelsArc.centroid(d) + ')'
+                });
+
+              group.append('rect')
+                  .style('stroke', '#fff')
+                  .style('fill', '#fff')
+                  .attr("rx", 3)
+                  .attr("ry", 3);
+
+              group.append('text')
+                  .style('text-anchor', 'middle') //center the text on it's origin
+                  .style('fill', '#000')
+
+
+          });
+
+          slices.select(".nv-label").transition()
+            .attr('transform', function(d) {
+                d.outerRadius = radius + 10; // Set Outer Coordinate
+                d.innerRadius = radius + 15; // Set Inner Coordinate
+                return 'translate(' + labelsArc.centroid(d) + ')';
+            });
+
+          slices.each(function(d, i) {
+            var slice = d3.select(this)
+
+            slice
+              .select(".nv-label text")
+                .text(function(d, i) {
+                  var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
+                  return (d.value && percent > labelThreshold) ? getX(d.data) : '';
+                });
+
+            var textBox = $(this).find("text")[0].getBBox()
+            slice.select(".nv-label rect")
+              .attr("width", textBox.width + 10)
+              .attr("height", textBox.height + 10)
+              .attr("transform", function() {
+                return "translate(" + [textBox.x - 5, textBox.y - 5] + ")";
               });
+          });
         }
 
 
@@ -217,6 +251,12 @@ nv.models.pie = function() {
   chart.showLabels = function(_) {
     if (!arguments.length) return showLabels;
     showLabels = _;
+    return chart;
+  };
+
+  chart.donutLabelsOutside = function(_) {
+    if (!arguments.length) return donutLabelsOutside;
+    donutLabelsOutside = _;
     return chart;
   };
 
