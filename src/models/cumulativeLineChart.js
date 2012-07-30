@@ -109,14 +109,16 @@ nv.models.cumulativeLineChart = function() {
       y = lines.yScale();
 
       if (!rescaleY) {
-        var seriesDomains = data.map(function(series,i) {
-          var initialDomain = d3.extent(series.values, lines.y());
+        var seriesDomains = data
+          .filter(function(series) { return !series.disabled })
+          .map(function(series,i) {
+            var initialDomain = d3.extent(series.values, lines.y());
 
-          return [
-            (initialDomain[0] - initialDomain[1]) / (1 + initialDomain[1]),
-            (initialDomain[1] - initialDomain[0]) / (1 + initialDomain[0])
-          ];
-        });
+            return [
+              (initialDomain[0] - initialDomain[1]) / (1 + initialDomain[1]),
+              (initialDomain[1] - initialDomain[0]) / (1 + initialDomain[0])
+            ];
+          });
 
         var completeDomain = [
           d3.min(seriesDomains, function(d) { return d[0] }),
