@@ -13,7 +13,7 @@ nv.models.stackedAreaChart = function() {
       showControls = true,
       showLegend = true,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
       },
@@ -29,6 +29,7 @@ nv.models.stackedAreaChart = function() {
   var stacked = nv.models.stackedArea(),
       xAxis = nv.models.axis().orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().orient('left'),
+      yAxisTickFormat = d3.format(",.2f"),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -154,7 +155,7 @@ nv.models.stackedAreaChart = function() {
         .scale(y)
         .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
         .tickSize(-availableWidth, 0)
-        .tickFormat(stacked.offset() == 'expand' ? d3.format('%') : d3.format(',.2f')); //TODO: stacked format should be set by caller
+        .setTickFormat(stacked.offset() == 'expand' ? d3.format('%') : yAxisTickFormat);
 
       d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
@@ -167,7 +168,7 @@ nv.models.stackedAreaChart = function() {
       stacked.dispatch.on('areaClick.toggle', function(e) {
         if (data.filter(function(d) { return !d.disabled }).length === 1)
           data = data.map(function(d) {
-            d.disabled = false; 
+            d.disabled = false;
             return d
           });
         else
@@ -179,7 +180,7 @@ nv.models.stackedAreaChart = function() {
         selection.transition().call(chart);
       });
 
-      legend.dispatch.on('legendClick', function(d,i) { 
+      legend.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
 
         if (!data.filter(function(d) { return !d.disabled }).length) {
@@ -192,7 +193,7 @@ nv.models.stackedAreaChart = function() {
         selection.transition().call(chart);
       });
 
-      controls.dispatch.on('legendClick', function(d,i) { 
+      controls.dispatch.on('legendClick', function(d,i) {
         if (!d.disabled) return;
 
         controlsData = controlsData.map(function(s) {
@@ -324,6 +325,12 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  yAxis.setTickFormat = yAxis.tickFormat;
+  yAxis.tickFormat = function(_) {
+    if (!arguments.length) return yAxisTickFormat;
+    yAxisTickFormat = _;
+    return yAxis;
+  };
 
   return chart;
 }
