@@ -396,6 +396,8 @@ nv.models.lineWithFocusChart = function() {
 
   chart.dispatch = dispatch;
   chart.legend = legend;
+  chart.lines = lines;
+  chart.lines2 = lines2;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.x2Axis = x2Axis;
