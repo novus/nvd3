@@ -6591,7 +6591,7 @@ nv.models.pie = function() {
             });
 
           slices.each(function(d, i) {
-            var slice = d3.select(this)
+            var slice = d3.select(this);
 
             slice
               .select(".nv-label text")
@@ -6600,7 +6600,7 @@ nv.models.pie = function() {
                   return (d.value && percent > labelThreshold) ? getX(d.data) : '';
                 });
 
-            var textBox = $(this).find("text")[0].getBBox()
+            var textBox = slice.select('text').node().getBBox();
             slice.select(".nv-label rect")
               .attr("width", textBox.width + 10)
               .attr("height", textBox.height + 10)
@@ -6769,7 +6769,7 @@ nv.models.pieChart = function() {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+      if (!data || !data.length) {
         container.append('text')
           .attr('class', 'nvd3 nv-noData')
           .attr('x', availableWidth / 2)

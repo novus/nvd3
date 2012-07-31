@@ -161,7 +161,7 @@ nv.models.pie = function() {
             });
 
           slices.each(function(d, i) {
-            var slice = d3.select(this)
+            var slice = d3.select(this);
 
             slice
               .select(".nv-label text")
@@ -170,7 +170,7 @@ nv.models.pie = function() {
                   return (d.value && percent > labelThreshold) ? getX(d.data) : '';
                 });
 
-            var textBox = $(this).find("text")[0].getBBox()
+            var textBox = slice.select('text').node().getBBox();
             slice.select(".nv-label rect")
               .attr("width", textBox.width + 10)
               .attr("height", textBox.height + 10)
