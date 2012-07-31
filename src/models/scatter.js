@@ -8,7 +8,7 @@ nv.models.scatter = function() {
   var margin      = {top: 0, right: 0, bottom: 0, left: 0}
    ,  width       = 960
    ,  height      = 500
-   ,  color       = nv.utils.defaultColor() // chooses color 
+   ,  color       = nv.utils.defaultColor() // chooses color
    ,  id          = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
    ,  x           = d3.scale.linear()
    ,  y           = d3.scale.linear()
@@ -255,6 +255,7 @@ nv.models.scatter = function() {
               .type(getShape)
               .size(function(d,i) { return z(getSize(d,i)) })
           );
+      points.exit().remove();
       d3.transition(groups.exit().selectAll('path.nv-point'))
           .attr('transform', function(d,i) {
             return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'

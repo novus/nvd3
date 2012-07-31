@@ -1,6 +1,6 @@
 
 /********************
- * HTML CSS 
+ * HTML CSS
  */
 
 
@@ -12,7 +12,7 @@
 
 
 /********************
- * TOOLTIP CSS 
+ * TOOLTIP CSS
  */
 
 .nvtooltip {
@@ -74,7 +74,7 @@
 
 
 /********************
- * SVG CSS 
+ * SVG CSS
  */
 
 
@@ -279,8 +279,13 @@ svg .title {
 */
 }
 
+.nvd3.nv-pie .nv-label rect {
+  fill-opacity: 0;
+  stroke-opacity: 0;
+}
+
 /**********
-* Lines 
+* Lines
 */
 
 .nvd3 .nv-groups path.nv-line {
@@ -368,7 +373,7 @@ svg .title {
 
 
 /**********
-* Distribution 
+* Distribution
 */
 
 .nvd3 .nv-distribution {
@@ -378,7 +383,7 @@ svg .title {
 
 
 /**********
-*  Scatter 
+*  Scatter
 */
 
 .nvd3 .nv-groups .nv-point {
@@ -487,7 +492,7 @@ svg .title {
 
 
 /**********
-* Sparkline plus 
+* Sparkline plus
 */
 
 .nvd3.nv-sparklineplus .nv-hoverValue line {
