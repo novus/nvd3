@@ -7591,6 +7591,7 @@ nv.models.scatterChart = function() {
 
 
       distX
+          .getData(scatter.x())
           .scale(x)
           .width(availableWidth)
           .color(data.map(function(d,i) {
@@ -7605,6 +7606,7 @@ nv.models.scatterChart = function() {
 
 
       distY
+          .getData(scatter.y())
           .scale(y)
           .width(availableHeight)
           .color(data.map(function(d,i) {
