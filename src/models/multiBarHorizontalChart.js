@@ -6,6 +6,7 @@ nv.models.multiBarHorizontalChart = function() {
       color = nv.utils.defaultColor(),
       showControls = true,
       showLegend = true,
+      stacked = false,
       tooltips = true,
       tooltip = function(key, x, y, e, graph) { 
         return '<h3>' + key + " - " + x + '</h3>' +
@@ -15,7 +16,7 @@ nv.models.multiBarHorizontalChart = function() {
       ;
 
 
-  var multibar = nv.models.multiBarHorizontal().stacked(false),
+  var multibar = nv.models.multiBarHorizontal().stacked(stacked),
       x = multibar.xScale(),
       y = multibar.yScale(),
       xAxis = nv.models.axis().scale(x).orient('left').highlightZero(false).showMaxMin(false),
@@ -236,7 +237,7 @@ nv.models.multiBarHorizontalChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'delay', 'showValues', 'valueFormat');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'delay', 'showValues', 'valueFormat', 'stacked');
 
 
   chart.margin = function(_) {
