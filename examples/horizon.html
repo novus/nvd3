@@ -133,7 +133,7 @@ nv.addGraph(function() {
     //nv.log(scales);
 
     point
-      .attr('cx', x)
+      .attr('cx', scales.x(i))
       .attr('cy', y)
       .attr('transform',
         'translate(0,' + chart.bands + ')'
