@@ -6962,6 +6962,7 @@ nv.models.scatter = function() {
    ,  xDomain     = null // Override x domain (skips the calculation from data)
    ,  yDomain     = null // Override y domain
    ,  sizeDomain  = null // Override point size domain
+   ,  sizeRange   = null
    ,  singlePoint = false
    ,  dispatch    = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
    ;
@@ -7017,7 +7018,7 @@ nv.models.scatter = function() {
           .range([availableHeight, 0]);
 
       z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
-          .range([16, 256]);
+          .range(sizeRange || [16, 256]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
       if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
@@ -7318,6 +7319,12 @@ nv.models.scatter = function() {
     sizeDomain = _;
     return chart;
   };
+  
+  chart.sizeRange = function(_) {
+    if (!arguments.length) return sizeRange;
+    sizeRange = _;
+    return chart;
+  };
 
   chart.forceX = function(_) {
     if (!arguments.length) return forceX;
@@ -7590,36 +7597,37 @@ nv.models.scatterChart = function() {
       g.select('.nv-y.nv-axis')
           .call(yAxis);
 
-
-      distX
-          .getData(scatter.x())
-          .scale(x)
-          .width(availableWidth)
-          .color(data.map(function(d,i) {
-            return d.color || color(d, i);
-          }).filter(function(d,i) { return !data[i].disabled }));
-      gEnter.select('.nv-distWrap').append('g')
-          .attr('class', 'nv-distributionX')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      g.select('.nv-distributionX')
-          .datum(data.filter(function(d) { return !d.disabled }))
-          .call(distX);
-
-
-      distY
-          .getData(scatter.y())
-          .scale(y)
-          .width(availableHeight)
-          .color(data.map(function(d,i) {
-            return d.color || color(d, i);
-          }).filter(function(d,i) { return !data[i].disabled }));
-      gEnter.select('.nv-distWrap').append('g')
-          .attr('class', 'nv-distributionY')
-          .attr('transform', 'translate(-' + distY.size() + ',0)');
-      g.select('.nv-distributionY')
-          .datum(data.filter(function(d) { return !d.disabled }))
-          .call(distY);
-
+      if(showDistX){
+	      distX
+	          .getData(scatter.x())
+	          .scale(x)
+	          .width(availableWidth)
+	          .color(data.map(function(d,i) {
+	            return d.color || color(d, i);
+	          }).filter(function(d,i) { return !data[i].disabled }));
+	      gEnter.select('.nv-distWrap').append('g')
+	          .attr('class', 'nv-distributionX')
+	          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+	      g.select('.nv-distributionX')
+	          .datum(data.filter(function(d) { return !d.disabled }))
+	          .call(distX);
+	   }	
+	
+	   if(showDistY){
+	      distY
+	          .getData(scatter.y())
+	          .scale(y)
+	          .width(availableHeight)
+	          .color(data.map(function(d,i) {
+	            return d.color || color(d, i);
+	          }).filter(function(d,i) { return !data[i].disabled }));
+	      gEnter.select('.nv-distWrap').append('g')
+	          .attr('class', 'nv-distributionY')
+	          .attr('transform', 'translate(-' + distY.size() + ',0)');
+	      g.select('.nv-distributionY')
+	          .datum(data.filter(function(d) { return !d.disabled }))
+	          .call(distY);
+	  }
 
       g.select('.nv-background').on('mousemove', updateFisheye);
       g.select('.nv-background').on('click', function() { pauseFisheye = !pauseFisheye;});
@@ -7764,7 +7772,7 @@ nv.models.scatterChart = function() {
   chart.distX = distX;
   chart.distY = distY;
 
-  d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
