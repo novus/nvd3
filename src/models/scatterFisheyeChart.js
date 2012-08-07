@@ -47,8 +47,8 @@ nv.models.scatterFisheyeChart = function() {
         contentY = tooltipY(e.series.key, xVal, yVal, e, chart);
         //content = tooltip(e.series.key, xVal, yVal, e, chart);
 
-    nv.tooltip.show([leftX, topX], contentX, 'n', 1);
-    nv.tooltip.show([leftY, topY], contentY, 'e', 1);
+    nv.tooltip.show([leftX, topX], contentX, 'n', 1, offsetElement);
+    nv.tooltip.show([leftY, topY], contentY, 'e', 1, offsetElement);
     //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
 

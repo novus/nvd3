@@ -36,7 +36,7 @@ nv.models.lineChart = function() {
         y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
-    nv.tooltip.show([left, top], content);
+    nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
 
