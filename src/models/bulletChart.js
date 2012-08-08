@@ -51,6 +51,8 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
+      /*
+      // Disabled until I figure out a better way to check for no data with the bullet chart
       if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
         container.append('text')
           .attr('class', 'nvd3 nv-noData')
@@ -63,6 +65,7 @@ nv.models.bulletChart = function() {
       } else {
         container.select('.nv-noData').remove();
       }
+      */
 
       //------------------------------------------------------------
 
