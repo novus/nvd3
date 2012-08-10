@@ -54,7 +54,7 @@ nv.utils.getColor = function(color){
 //
 nv.utils.defaultColor = function(){
     var colors = d3.scale.category20().range();
-    return function(d, i) {return colors[i % colors.length]};
+    return function(d, i) { return d.color || colors[i % colors.length] };
 }
 
 
