@@ -7,8 +7,9 @@ nv.models.axis = function() {
       showMaxMin = true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
       highlightZero = true,
       rotateLabels = 0,
-      rotateYLabel = true;
-      margin = {top: 0, right: 0, bottom: 0, left: 0}
+      rotateYLabel = true,
+      margin = {top: 0, right: 0, bottom: 0, left: 0},
+      ticks = null;
 
   var axis = d3.svg.axis()
                .scale(scale)
@@ -25,8 +26,11 @@ nv.models.axis = function() {
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g')
 
-      if (axis.orient() == 'top' || axis.orient() == 'bottom')
+      if (ticks !== null) {
+        axis.ticks(ticks);
+      } else if (axis.orient() == 'top' || axis.orient() == 'bottom') {
         axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
+      }
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
 
@@ -41,17 +45,12 @@ nv.models.axis = function() {
       axisLabel.exit().remove();
       switch (axis.orient()) {
         case 'top':
-          var w = scale.range().length == 2 ?
-                    scale.range()[1] :
-                    (scale.range()[scale.range().length - 1] + (scale.range()[1] - scale.range()[0]));
-
           axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', 0);
-
+          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
-              .attr('x', w / 2);
-
+              .attr('x', w/2);
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
@@ -75,33 +74,28 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-          var xLabelMargin = 30;
-          var maxTextWidth = 30;
-          if (rotateLabels % 360) {
-            var xTicks = g.selectAll('g').select("text");
-            //Calculate the longest xTick width
-            xTicks.each(function(d,i){
-              var width = this.getBBox().width;
-              if (width > maxTextWidth) maxTextWidth = width;
-            });
-            //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
-            var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
-            var xLabelMargin = (sin ? sin * maxTextWidth : maxTextWidth) + 30;
-            //Rotate all xTicks
-            xTicks
-                .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
-                .attr('text-anchor', rotateLabels % 360 > 0 ? 'start' : 'end');
-          }
-          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
+        var xLabelMargin = 30;
+        var maxTextWidth = 30;
+        if(rotateLabels%360){
+          var xTicks = g.selectAll('g').select("text");
+          //Calculate the longest xTick width
+          xTicks.each(function(d,i){
+            var width = this.getBBox().width;
+            if(width > maxTextWidth) maxTextWidth = width;
+          });
+          //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
+          var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
+          var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
+          //Rotate all xTicks
+          xTicks.attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+          .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
+        }
+        axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', 'middle')
               .attr('y', xLabelMargin);
-
-          var w = (scale.range().length == 2) ?
-                    scale.range()[1] :
-                    scale.range()[scale.range().length-1] + (scale.range()[1] - scale.range()[0]);
+          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
-              .attr('x', w / 2);
-
+              .attr('x', w/2);
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());
@@ -245,12 +239,18 @@ nv.models.axis = function() {
   }
 
 
-  d3.rebind(chart, axis, 'orient', 'ticks', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
+  d3.rebind(chart, axis, 'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
   d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
 
   chart.width = function(_) {
     if (!arguments.length) return width;
     width = _;
+    return chart;
+  };
+
+  chart.ticks = function(_) {
+    if (!arguments.length) return ticks;
+    ticks = _;
     return chart;
   };
 
@@ -286,9 +286,9 @@ nv.models.axis = function() {
     return chart;
   }
   chart.rotateYLabel = function(_) {
-    if(!arguments.length) return rotateYLabel;
-    rotateYLabel = _;
-    return chart;
+  	if(!arguments.length) return rotateYLabel;
+  	rotateYLabel = _;
+  	return chart;
   }
   chart.rotateLabels = function(_) {
     if(!arguments.length) return rotateLabels;
@@ -296,9 +296,9 @@ nv.models.axis = function() {
     return chart;
   }
   chart.margin = function(_) {
-    if(!arguments.length) return margin;
-    margin = _;
-    return chart;
+  	if(!arguments.length) return margin;
+  	margin = _;
+  	return chart;
   }
 
   return chart;
