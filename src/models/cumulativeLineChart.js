@@ -6,7 +6,7 @@ nv.models.cumulativeLineChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 30, bottom: 50, left: 60},
-      color = nv.utils.getColor(),
+      color = nv.utils.defaultColor(),
       width = null,
       height = null,
       showLegend = true,

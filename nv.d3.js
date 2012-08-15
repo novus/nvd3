@@ -254,18 +254,16 @@ nv.utils.windowResize = function(fun){
 // Backwards compatible way to implement more d3-like coloring of graphs.
 // If passed an array, wrap it in a function which implements the old default
 // behaviour
-nv.utils.getColor = function(color){
+nv.utils.getColor = function(color) {
     if( Object.prototype.toString.call( color ) === '[object Array]' )
-        return function(d, i) { return d.color || color[i % color.length]; };
+        return function(d, i) { return d.color || color[i % color.length]; };
     else
         return color;
         //can't really help it if someone passes rubish as color
 }
 
 // Default color chooser uses the index of an object as before.
-//
-//
-nv.utils.defaultColor = function(){
+nv.utils.defaultColor = function() {
     var colors = d3.scale.category20().range();
     return function(d, i) { return d.color || colors[i % colors.length] };
 }
@@ -1399,7 +1397,7 @@ nv.models.cumulativeLineChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 30, bottom: 50, left: 60},
-      color = nv.utils.getColor(),
+      color = nv.utils.defaultColor(),
       width = null,
       height = null,
       showLegend = true,
