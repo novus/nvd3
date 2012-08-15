@@ -42,6 +42,8 @@ nv.utils.windowResize = function(fun){
 // If passed an array, wrap it in a function which implements the old default
 // behaviour
 nv.utils.getColor = function(color) {
+    if (!arguments.length) return nv.utils.defaultColor(); //if you pass in nothing, get default colors back
+
     if( Object.prototype.toString.call( color ) === '[object Array]' )
         return function(d, i) { return d.color || color[i % color.length]; };
     else
