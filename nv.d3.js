@@ -868,7 +868,7 @@ nv.models.bullet = function() {
 
   var dispatch = d3.dispatch('elementMouseover', 'elementMouseout');
 
-  // For each small multipleâ€¦
+  // For each small multiple
   function chart(g) {
     g.each(function(d, i) {
       var availableWidth = width - margin.left - margin.right,
