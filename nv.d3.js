@@ -942,7 +942,7 @@ nv.models.bullet = function() {
           .on('mouseout', function(d,i) { 
               dispatch.elementMouseout({
                 value: d,
-                label: (i <= 0) ? 'Minimum' : (i >=1) ? 'Maximum' : 'Mean', //TODO: make these labels a variable
+                label: (i <= 0) ? 'Minimum' : (i >=1) ? 'Maximum' : 'Mean' //TODO: make these labels a variable
               })
           })
 
