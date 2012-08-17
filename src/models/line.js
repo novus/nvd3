@@ -70,6 +70,8 @@ nv.models.line = function() {
       gEnter.append('g').attr('class', 'nv-groups');
       gEnter.append('g').attr('class', 'nv-scatterWrap');
 
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
       //------------------------------------------------------------
 
 
@@ -82,9 +84,6 @@ nv.models.line = function() {
 
       d3.transition(scatterWrap).call(scatter);
 
-
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       defsEnter.append('clipPath')

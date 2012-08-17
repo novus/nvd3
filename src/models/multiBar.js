@@ -5,29 +5,35 @@ nv.models.multiBar = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 960,
-      height = 500,
-      x = d3.scale.ordinal(),
-      y = d3.scale.linear(),
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      clipEdge = true,
-      stacked = false,
-      color = nv.utils.defaultColor(),
-      delay = 1200,
-      xDomain, yDomain;
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , width = 960
+    , height = 500
+    , x = d3.scale.ordinal()
+    , y = d3.scale.linear()
+    , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+    , getX = function(d) { return d.x }
+    , getY = function(d) { return d.y }
+    , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
+    , clipEdge = true
+    , stacked = false
+    , color = nv.utils.defaultColor()
+    , delay = 1200
+    , xDomain
+    , yDomain
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    ;
+
+  //============================================================
 
 
   //============================================================
   // Private Variables
   //------------------------------------------------------------
 
-  //var x = d3.scale.linear(),
-  var dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout'),
-      x0, y0;
+  var x0, y0 //used to store previous scales
+      ;
+
+  //============================================================
 
 
   function chart(selection) {
@@ -36,14 +42,12 @@ nv.models.multiBar = function() {
           availableHeight = height - margin.top - margin.bottom;
 
       if (stacked) {
-      //var stackedData = d3.layout.stack()
         data = d3.layout.stack()
                      .offset('zero')
                      .values(function(d){ return d.values })
                      .y(getY)
                      (data);
       }
-
 
 
       //add series index to each data point for reference
@@ -56,6 +60,10 @@ nv.models.multiBar = function() {
       });
 
 
+      //------------------------------------------------------------
+      // Setup Scales
+
+      // remap and flatten the data for use in calculating the scales' domains
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
@@ -83,24 +91,26 @@ nv.models.multiBar = function() {
           : y.domain([-1,1]);
 
 
-      //store old scales if they exist
       x0 = x0 || x;
       y0 = y0 || y;
 
+      //------------------------------------------------------------
 
 
-
-
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
 
       var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
 
       gEnter.append('g').attr('class', 'nv-groups');
 
-      var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      //------------------------------------------------------------
 
 
 
@@ -239,10 +249,6 @@ nv.models.multiBar = function() {
             })
 
 
-
-      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() { chart(selection) };
-
       //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
@@ -254,7 +260,7 @@ nv.models.multiBar = function() {
 
 
   //============================================================
-  // Global getters and setters
+  // Expose Public Variables
   //------------------------------------------------------------
 
   chart.dispatch = dispatch;
@@ -348,6 +354,8 @@ nv.models.multiBar = function() {
     delay = _;
     return chart;
   };
+
+  //============================================================
 
 
   return chart;
