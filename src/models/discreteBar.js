@@ -1,37 +1,44 @@
-
+//TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
 
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 960,
-      height = 500,
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      x = d3.scale.ordinal(),
-      y = d3.scale.linear(),
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      forceY = [0], // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-      color = nv.utils.defaultColor(),
-      showValues = false,
-      valueFormat = d3.format(',.2f'),
-      xDomain, yDomain;
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , width = 960
+    , height = 500
+    , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+    , x = d3.scale.ordinal()
+    , y = d3.scale.linear()
+    , getX = function(d) { return d.x }
+    , getY = function(d) { return d.y }
+    , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
+    , color = nv.utils.defaultColor()
+    , showValues = false
+    , valueFormat = d3.format(',.2f')
+    , xDomain
+    , yDomain
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    ;
+
+  //============================================================
 
 
   //============================================================
   // Private Variables
   //------------------------------------------------------------
 
-  var dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout'),
-      x0, y0;
+  var x0, y0;
+
+  //============================================================
 
 
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
 
       //add series index to each data point for reference
@@ -44,6 +51,10 @@ nv.models.discreteBar = function() {
       });
 
 
+      //------------------------------------------------------------
+      // Setup Scales
+
+      // remap and flatten the data for use in calculating the scales' domains
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
@@ -65,15 +76,22 @@ nv.models.discreteBar = function() {
       x0 = x0 || x;
       y0 = y0 || y.copy().range([y(0),y(0)]);
 
+      //------------------------------------------------------------
 
-      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-discretebar').data([data]);
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-discretebar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discretebar');
       var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-groups');
 
-      var g = wrap.select('g')
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      //------------------------------------------------------------
 
 
 
@@ -189,11 +207,7 @@ nv.models.discreteBar = function() {
            });
 
 
-
-      //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() { chart(selection) };
-
-      //store old scales for use in transitions on update, to animate from old to new positions, and sizes
+      //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
 
@@ -202,6 +216,10 @@ nv.models.discreteBar = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
 
@@ -288,6 +306,8 @@ nv.models.discreteBar = function() {
     valueFormat = _;
     return chart;
   };
+
+  //============================================================
 
 
   return chart;

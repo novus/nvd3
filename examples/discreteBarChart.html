@@ -97,7 +97,6 @@ nv.addGraph(function() {
   var chart = nv.models.discreteBarChart()
       .x(function(d) { return d.label })
       .y(function(d) { return d.value })
-      .rotateLabels(-45)
       .staggerLabels(true)
       //.staggerLabels(historicalBarChart[0].values.length > 8)
       .tooltips(false)
