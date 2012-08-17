@@ -76,11 +76,13 @@ nv.models.line = function() {
 
 
 
-      var scatterWrap = wrap.select('.nv-scatterWrap');//.datum(data);
 
       scatter
         .width(availableWidth)
         .height(availableHeight)
+
+      var scatterWrap = wrap.select('.nv-scatterWrap');
+          //.datum(data); // Data automatically trickles down from the wrap
 
       d3.transition(scatterWrap).call(scatter);
 
@@ -206,6 +208,7 @@ nv.models.line = function() {
   //------------------------------------------------------------
 
   chart.dispatch = scatter.dispatch;
+  chart.scatter = scatter;
 
   d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 

@@ -5,201 +5,199 @@ nv.models.stackedArea = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 960,
-      height = 500,
-      color = nv.utils.defaultColor(), // a function that computes the color 
-      id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
-      getX = function(d) { return d.x }, // accessor to get the x value from a data point
-      getY = function(d) { return d.y }, // accessor to get the y value from a data point
-      style = 'stack',
-      offset = 'zero',
-      order = 'default',
-      clipEdge = false, // if true, masks lines within x and y scale
-      x, y; //can be accessed via chart.scatter.[x/y]Scale()
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , width = 960
+    , height = 500
+    , color = nv.utils.defaultColor() // a function that computes the color
+    , id = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
+    , getX = function(d) { return d.x } // accessor to get the x value from a data point
+    , getY = function(d) { return d.y } // accessor to get the y value from a data point
+    , style = 'stack'
+    , offset = 'zero'
+    , order = 'default'
+    , clipEdge = false // if true, masks lines within x and y scale
+    , x //can be accessed via chart.xScale()
+    , y //can be accessed via chart.yScale()
+    , scatter = nv.models.scatter()
+    , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout')
+    ;
 
-/************************************
- * offset:
- *   'wiggle' (stream)
- *   'zero' (stacked)
- *   'expand' (normalize to 100%)
- *   'silhouette' (simple centered)
- *
- * order:
- *   'inside-out' (stream)
- *   'default' (input order)
- ************************************/
+  scatter
+    .size(2.2) // default size
+    .sizeDomain([2.2]) // all the same size by default
+    ;
 
+  /************************************
+   * offset:
+   *   'wiggle' (stream)
+   *   'zero' (stacked)
+   *   'expand' (normalize to 100%)
+   *   'silhouette' (simple centered)
+   *
+   * order:
+   *   'inside-out' (stream)
+   *   'default' (input order)
+   ************************************/
 
   //============================================================
-  // Private Variables
-  //------------------------------------------------------------
 
-  var stacked = d3.layout.stack()
-                 //.offset('zero')
-                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
-                 .x(getX)
-                 .y(function(d) { return d.stackedY })
-                 .out(function(d, y0, y) {
-                    d.display = {
-                      y: y,
-                     y0: y0
-                    };
-                  }),
-      scatter = nv.models.scatter()
-                  .size(2.2) // default size
-                  .sizeDomain([2.5]), 
-      dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout');
 
   function chart(selection) {
     selection.each(function(data) {
-        var availableWidth = width - margin.left - margin.right,
-            availableHeight = height - margin.top - margin.bottom;
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
-        x = scatter.xScale();
-        y = scatter.yScale();
+      //------------------------------------------------------------
+      // Setup Scales
 
-        // Injecting point index into each point because d3.layout.stack().out does not give index
-        // ***Also storing getY(d,i) as yStacked so that it can be set to 0 if series is disabled
-        // TODO: see if theres a way to deal with disabled series more consistent with the other models
-        data = data.map(function(aseries, i) {
-                 aseries.values = aseries.values.map(function(d, j) {
-                   d.index = j;
-                   d.stackedY = aseries.disabled ? 0 : getY(d,j);
-                   return d;
-                 })
-                 return aseries;
-               });
+      x = scatter.xScale();
+      y = scatter.yScale();
 
-/*
-        //TODO: Figure out why stream mode is broken with this
-        data = stacked
-                .order(order)
-                .offset(offset)
-                (data);
-*/
-
-        data = d3.layout.stack()
-                 .order(order)
-                 .offset(offset)
-                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
-                 .x(getX)
-                 .y(function(d) { return d.stackedY })
-                 .out(function(d, y0, y) {
-                    d.display = {
-                      y: y,
-                     y0: y0
-                    };
-                  })
-                (data);
+      //------------------------------------------------------------
 
 
-        var wrap = d3.select(this).selectAll('g.nv-wrap.nv-stackedarea').data([data]);
-        var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
-        var defsEnter = wrapEnter.append('defs');
-        var gEnter = wrapEnter.append('g');
-        var g = wrap.select('g');
-
-        gEnter.append('g').attr('class', 'nv-areaWrap');
-
-
-        scatter
-          .width(availableWidth)
-          .height(availableHeight)
-          .x(getX)
-          .y(function(d) { return d.display.y + d.display.y0 })
-          .forceY([0])
-          .color(data.map(function(d,i) {
-            return d.color || color(d, i);
-          }).filter(function(d,i) { return !data[i].disabled }));
+      // Injecting point index into each point because d3.layout.stack().out does not give index
+      // ***Also storing getY(d,i) as stackedY so that it can be set to 0 if series is disabled
+      data = data.map(function(aseries, i) {
+               aseries.values = aseries.values.map(function(d, j) {
+                 d.index = j;
+                 d.stackedY = aseries.disabled ? 0 : getY(d,j);
+                 return d;
+               })
+               return aseries;
+             });
 
 
-        gEnter.append('g').attr('class', 'nv-scatterWrap');
-        var scatterWrap = g.select('.nv-scatterWrap')
-            .datum(data.filter(function(d) { return !d.disabled }))
+      data = d3.layout.stack()
+               .order(order)
+               .offset(offset)
+               .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+               .x(getX)
+               .y(function(d) { return d.stackedY })
+               .out(function(d, y0, y) {
+                  d.display = {
+                    y: y,
+                   y0: y0
+                  };
+                })
+              (data);
 
-        d3.transition(scatterWrap).call(scatter);
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-stackedarea').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
+      var defsEnter = wrapEnter.append('defs');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
+
+      gEnter.append('g').attr('class', 'nv-areaWrap');
+      gEnter.append('g').attr('class', 'nv-scatterWrap');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      //------------------------------------------------------------
 
 
+      scatter
+        .width(availableWidth)
+        .height(availableHeight)
+        .x(getX)
+        .y(function(d) { return d.display.y + d.display.y0 })
+        .forceY([0])
+        .color(data.map(function(d,i) {
+          return d.color || color(d, i);
+        }).filter(function(d,i) { return !data[i].disabled }));
 
-        wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      var scatterWrap = g.select('.nv-scatterWrap')
+          .datum(data.filter(function(d) { return !d.disabled }))
 
-        defsEnter.append('clipPath')
-            .attr('id', 'nv-edge-clip-' + id)
-          .append('rect');
-
-        wrap.select('#nv-edge-clip-' + id + ' rect')
-            .attr('width', availableWidth)
-            .attr('height', availableHeight);
-
-        g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+      d3.transition(scatterWrap).call(scatter);
 
 
 
 
-        var area = d3.svg.area()
-            .x(function(d,i)  { return x(getX(d,i)) })
-            .y0(function(d) { return y(d.display.y0) })
-            .y1(function(d) { return y(d.display.y + d.display.y0) });
 
-        var zeroArea = d3.svg.area()
-            .x(function(d,i)  { return x(getX(d,i)) })
-            .y0(function(d) { return y(d.display.y0) })
-            .y1(function(d) { return y(d.display.y0) });
+      defsEnter.append('clipPath')
+          .attr('id', 'nv-edge-clip-' + id)
+        .append('rect');
 
+      wrap.select('#nv-edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
-        var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
-            .data(function(d) { return d });
-            //.data(function(d) { return d }, function(d) { return d.key });
-        path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
-            .on('mouseover', function(d,i) {
-              d3.select(this).classed('hover', true);
-              dispatch.areaMouseover({
-                point: d,
-                series: d.key,
-                pos: [d3.event.pageX, d3.event.pageY],
-                seriesIndex: i
-              });
-            })
-            .on('mouseout', function(d,i) {
-              d3.select(this).classed('hover', false);
-              dispatch.areaMouseout({
-                point: d,
-                series: d.key,
-                pos: [d3.event.pageX, d3.event.pageY],
-                seriesIndex: i
-              });
-            })
-            .on('click', function(d,i) {
-              d3.select(this).classed('hover', false);
-              dispatch.areaClick({
-                point: d,
-                series: d.key,
-                pos: [d3.event.pageX, d3.event.pageY],
-                seriesIndex: i
-              });
-            })
-        d3.transition(path.exit())
-            .attr('d', function(d,i) { return zeroArea(d.values,i) })
-            .remove();
-        path
-            .style('fill', function(d,i){ return d.color || color(d, i) })
-            .style('stroke', function(d,i){ return d.color || color(d, i) });
-        d3.transition(path)
-            .attr('d', function(d,i) { return area(d.values,i) })
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
 
-        //============================================================
-        // Event Handling/Dispatching (in chart's scope)
-        //------------------------------------------------------------
 
-        scatter.dispatch.on('elementMouseover.area', function(e) {
-          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', true);
-        });
-        scatter.dispatch.on('elementMouseout.area', function(e) {
-          g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', false);
-        });
+
+      var area = d3.svg.area()
+          .x(function(d,i)  { return x(getX(d,i)) })
+          .y0(function(d) { return y(d.display.y0) })
+          .y1(function(d) { return y(d.display.y + d.display.y0) });
+
+      var zeroArea = d3.svg.area()
+          .x(function(d,i)  { return x(getX(d,i)) })
+          .y0(function(d) { return y(d.display.y0) })
+          .y1(function(d) { return y(d.display.y0) });
+
+
+      var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
+          .data(function(d) { return d });
+          //.data(function(d) { return d }, function(d) { return d.key });
+      path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
+          .on('mouseover', function(d,i) {
+            d3.select(this).classed('hover', true);
+            dispatch.areaMouseover({
+              point: d,
+              series: d.key,
+              pos: [d3.event.pageX, d3.event.pageY],
+              seriesIndex: i
+            });
+          })
+          .on('mouseout', function(d,i) {
+            d3.select(this).classed('hover', false);
+            dispatch.areaMouseout({
+              point: d,
+              series: d.key,
+              pos: [d3.event.pageX, d3.event.pageY],
+              seriesIndex: i
+            });
+          })
+          .on('click', function(d,i) {
+            d3.select(this).classed('hover', false);
+            dispatch.areaClick({
+              point: d,
+              series: d.key,
+              pos: [d3.event.pageX, d3.event.pageY],
+              seriesIndex: i
+            });
+          })
+      d3.transition(path.exit())
+          .attr('d', function(d,i) { return zeroArea(d.values,i) })
+          .remove();
+      path
+          .style('fill', function(d,i){ return d.color || color(d, i) })
+          .style('stroke', function(d,i){ return d.color || color(d, i) });
+      d3.transition(path)
+          .attr('d', function(d,i) { return area(d.values,i) })
+
+
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
+
+      scatter.dispatch.on('elementMouseover.area', function(e) {
+        g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', true);
+      });
+      scatter.dispatch.on('elementMouseout.area', function(e) {
+        g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', false);
+      });
+
+      //============================================================
 
     });
 
@@ -223,6 +221,7 @@ nv.models.stackedArea = function() {
         dispatch.tooltipHide(e);
   });
 
+  //============================================================
 
 
   //============================================================
@@ -310,6 +309,8 @@ nv.models.stackedArea = function() {
 
     return chart;
   };
+
+  //============================================================
 
 
   return chart;
