@@ -2,37 +2,41 @@
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
+
 nv.models.bullet = function() {
-  var orient = 'left', // TODO top & bottom
-      reverse = false,
-      margin = {top: 0, right: 0, bottom: 0, left: 0},
-      ranges = function(d) { return d.ranges },
-      markers = function(d) { return d.markers },
-      measures = function(d) { return d.measures },
-      width = 380,
-      height = 30,
-      tickFormat = null;
 
-  var dispatch = d3.dispatch('elementMouseover', 'elementMouseout');
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
 
-  // For each small multiple
-  function chart(g) {
-    g.each(function(d, i) {
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , orient = 'left' // TODO top & bottom
+    , reverse = false
+    , ranges = function(d) { return d.ranges }
+    , markers = function(d) { return d.markers }
+    , measures = function(d) { return d.measures }
+    , width = 380
+    , height = 30
+    , tickFormat = null
+    , dispatch = d3.dispatch('elementMouseover', 'elementMouseout')
+    ;
+
+  //============================================================
+
+
+  function chart(selection) {
+    selection.each(function(d, i) {
       var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
       var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
 
-      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-bullet').data([d]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
-      var gEnter = wrapEnter.append('g');
-
-      var g = wrap.select('g')
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
+      //------------------------------------------------------------
+      // Setup Scales
 
       // Compute the new x-scale.
       var x1 = d3.scale.linear()
@@ -47,24 +51,22 @@ nv.models.bullet = function() {
       // Stash the new scale.
       this.__chart__ = x1;
 
-      /*
-      // Derive width-scales from the x-scales.
-      var w0 = bulletWidth(x0),
-          w1 = bulletWidth(x1);
+      //------------------------------------------------------------
 
-      function bulletWidth(x) {
-        var x0 = x(0);
-        return function(d) {
-          return Math.abs(x(d) - x(0));
-        };
-      }
 
-      function bulletTranslate(x) {
-        return function(d) {
-          return 'translate(' + x(d) + ',0)';
-        };
-      }
-      */
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-bullet').data([d]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      //------------------------------------------------------------
+
+
 
       var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
@@ -159,11 +161,17 @@ nv.models.bullet = function() {
 
       marker.exit().remove();
 
-
     });
+
     d3.timer.flush();
+
+    return chart;
   }
 
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
 
@@ -219,6 +227,9 @@ nv.models.bullet = function() {
     tickFormat = _;
     return chart;
   };
+
+  //============================================================
+
 
   return chart;
 };
