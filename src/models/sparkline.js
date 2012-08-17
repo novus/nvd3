@@ -1,22 +1,35 @@
 
 nv.models.sparkline = function() {
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 400,
-      height = 32,
-      animate = true,
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      color = nv.utils.defaultColor(),
-      xDomain, yDomain;
 
-  var x = d3.scale.linear(),
-      y = d3.scale.linear();
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 2, right: 0, bottom: 2, left: 0}
+    , width = 400
+    , height = 32
+    , animate = true
+    , x = d3.scale.linear()
+    , y = d3.scale.linear()
+    , getX = function(d) { return d.x }
+    , getY = function(d) { return d.y }
+    , color = nv.utils.getColor(['#000'])
+    , xDomain
+    , yDomain
+    ;
+
+  //============================================================
+
 
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
+
+      //------------------------------------------------------------
+      // Setup Scales
 
       x   .domain(xDomain || d3.extent(data, getX ))
           .range([0, availableWidth]);
@@ -24,29 +37,28 @@ nv.models.sparkline = function() {
       y   .domain(yDomain || d3.extent(data,getY ))
           .range([availableHeight, 0]);
 
-
-      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparkline').data([data]);
-
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparkline');
-      //var gEnter = svg.enter().append('svg').append('g');
-      //gEnter.append('g').attr('class', 'sparkline')
-      gEnter
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d,i) { return d.color || color(d, i) });
-
-/*
-      d3.select(this)
-          .attr('width', width)
-          .attr('height', height);
-         */
+      //------------------------------------------------------------
 
 
-      //var paths = gEnter.select('.sparkline').selectAll('path')
-      var paths = gEnter.selectAll('path')
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-sparkline').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparkline');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g')
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+      //------------------------------------------------------------
+
+
+      var paths = wrap.selectAll('path')
           .data(function(d) { return [d] });
       paths.enter().append('path');
       paths.exit().remove();
       paths
+          .style('stroke', function(d,i) { return d.color || color(d, i) })
           .attr('d', d3.svg.line()
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
@@ -54,7 +66,7 @@ nv.models.sparkline = function() {
 
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = gEnter.selectAll('circle.nv-point')
+      var points = wrap.selectAll('circle.nv-point')
           .data(function(d) { return d.filter(function(p,i) { return y.domain().indexOf(getY(p,i)) != -1 || getX(p,i) == x.domain()[1]  }) });
       points.enter().append('circle').attr('class', 'nv-point');
       points.exit().remove();
@@ -69,6 +81,10 @@ nv.models.sparkline = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -117,6 +133,15 @@ nv.models.sparkline = function() {
     animate = _;
     return chart;
   };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = nv.utils.getColor(_);
+    return chart;
+  };
+
+  //============================================================
+
 
   return chart;
 }
