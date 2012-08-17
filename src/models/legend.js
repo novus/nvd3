@@ -1,24 +1,38 @@
 
 nv.models.legend = function() {
-  var margin = {top: 5, right: 0, bottom: 5, left: 0},
-      width = 400,
-      height = 20,
-      getKey = function(d) { return d.key },
-      color = nv.utils.defaultColor(),
-      align = true;
 
-  var dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout'); //TODO: theres are really element or series events, there are currently no 'LEGEND' events (as in entire legend)... decide if they are needed
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 5, right: 0, bottom: 5, left: 0}
+    , width = 400
+    , height = 20
+    , getKey = function(d) { return d.key }
+    , color = nv.utils.defaultColor()
+    , align = true
+    , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout')
+    ;
+
+  //============================================================
+
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right;
+      var availableWidth = width - margin.left - margin.right,
+          container = d3.select(this);
 
-      var wrap = d3.select(this).selectAll('g.nv-legend').data([data]);
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-legend').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
+      var g = wrap.select('g');
 
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      //------------------------------------------------------------
 
 
       var series = g.selectAll('.nv-series')
@@ -52,15 +66,14 @@ nv.models.legend = function() {
 
       //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
 
-
-      // NEW ALIGNING CODE, TODO: drastically clean up ... this is just the ugly initial code to make sure the math is right
+      // NEW ALIGNING CODE, TODO: clean up
       if (align) {
         var seriesWidths = [];
         series.each(function(d,i) {
               seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
             });
 
-        //console.log('Series Widths: ', JSON.stringify(seriesWidths));
+        //nv.log('Series Widths: ', JSON.stringify(seriesWidths));
 
         var seriesPerRow = 0;
         var legendWidth = 0;
@@ -102,6 +115,7 @@ nv.models.legend = function() {
         g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
 
         height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 20);
+
       } else {
 
         var ypos = 5,
@@ -128,16 +142,18 @@ nv.models.legend = function() {
         g.attr('transform', 'translate(' + (width - margin.right - maxwidth) + ',' + margin.top + ')');
 
         height = margin.top + margin.bottom + ypos + 15;
+
       }
-
-
-
 
     });
 
     return chart;
   }
 
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
 
@@ -176,6 +192,9 @@ nv.models.legend = function() {
     align = _;
     return chart;
   };
+
+  //============================================================
+
 
   return chart;
 }
