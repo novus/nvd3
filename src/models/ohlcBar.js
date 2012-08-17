@@ -71,17 +71,6 @@ nv.models.ohlcBar = function() {
       //------------------------------------------------------------
 
 
-
-      container
-          .on('click', function(d,i) {
-            dispatch.chartClick({
-                data: d,
-                index: i,
-                pos: d3.event,
-                id: id
-            });
-          });
-
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
@@ -98,6 +87,16 @@ nv.models.ohlcBar = function() {
       //------------------------------------------------------------
 
 
+      container
+          .on('click', function(d,i) {
+            dispatch.chartClick({
+                data: d,
+                index: i,
+                pos: d3.event,
+                id: id
+            });
+          });
+
 
       defsEnter.append('clipPath')
           .attr('id', 'nv-chart-clip-path-' + id)
@@ -109,8 +108,6 @@ nv.models.ohlcBar = function() {
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
-
-      var shiftWrap = gEnter.append('g').attr('class', 'nv-shiftWrap');
 
 
       var ticks = wrap.select('.nv-ticks').selectAll('.nv-tick')

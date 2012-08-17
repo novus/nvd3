@@ -1,29 +1,39 @@
-//TODO: eitehr drastically clean up or deprecate this model
+//TODO: consider deprecating and using multibar with single series for this
 nv.models.historicalBar = function() {
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 960,
-      height = 500,
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      forceX = [],
-      forceY = [],
-      clipEdge = true,
-      color = nv.utils.defaultColor(),
-      xDomain, yDomain;
 
-  var x = d3.scale.linear(),
-      y = d3.scale.linear(),
-      xAxis = d3.svg.axis().scale(x).orient('bottom'),
-      yAxis = d3.svg.axis().scale(y).orient('left'),
-      dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , width = 960
+    , height = 500
+    , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+    , x = d3.scale.linear()
+    , y = d3.scale.linear()
+    , getX = function(d) { return d.x }
+    , getY = function(d) { return d.y }
+    , forceX = []
+    , forceY = []
+    , clipEdge = true
+    , color = nv.utils.defaultColor()
+    , xDomain
+    , yDomain
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    ;
+
+  //============================================================
 
 
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
+
+      //------------------------------------------------------------
+      // Setup Scales
 
       x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
           .range([0, availableWidth]);
@@ -43,8 +53,26 @@ nv.models.historicalBar = function() {
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
+      //------------------------------------------------------------
 
-      var parent = d3.select(this)
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-bar').data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bar');
+      var defsEnter = wrapEnter.append('defs');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
+
+      gEnter.append('g').attr('class', 'nv-bars');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      //------------------------------------------------------------
+
+
+      container
           .on('click', function(d,i) {
             dispatch.chartClick({
                 data: d,
@@ -55,31 +83,15 @@ nv.models.historicalBar = function() {
           });
 
 
-      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-bar').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bar');
-      var gEnter = wrapEnter.append('g');
-
-      gEnter.append('g').attr('class', 'nv-bars');
-
-
-      wrap.attr('width', width)
-          .attr('height', height);
-
-      var g = wrap.select('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-
-      wrapEnter.append('defs').append('clipPath')
+      defsEnter.append('clipPath')
           .attr('id', 'nv-chart-clip-path-' + id)
         .append('rect');
+
       wrap.select('#nv-chart-clip-path-' + id + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      gEnter
-          .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
-
-      var shiftWrap = gEnter.append('g').attr('class', 'nv-shiftWrap');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
 
 
@@ -158,6 +170,10 @@ nv.models.historicalBar = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
 
   chart.dispatch = dispatch;
 
@@ -245,6 +261,7 @@ nv.models.historicalBar = function() {
     return chart;
   };
 
+  //============================================================
 
 
   return chart;
