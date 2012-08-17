@@ -5,18 +5,23 @@ nv.models.scatterChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin       = {top: 30, right: 20, bottom: 50, left: 60}
+  var scatter      = nv.models.scatter()
+    , xAxis        = nv.models.axis()
+    , yAxis        = nv.models.axis()
+    , legend       = nv.models.legend()
+    , controls     = nv.models.legend()
+    , distX        = nv.models.distribution()
+    , distY        = nv.models.distribution()
+    , margin       = {top: 30, right: 20, bottom: 50, left: 60}
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
-    //x            = scatter.xScale(),
-    , x            = d3.fisheye.scale(d3.scale.linear).distortion(0)
-    //y            = scatter.yScale(),
-    , y            = d3.fisheye.scale(d3.scale.linear).distortion(0)
+    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
+    , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
     , showDistX    = false
     , showDistY    = false
     , showLegend   = true
-    , showControls = true
+    , showControls = !!d3.fisheye
     , fisheye      = 0
     , pauseFisheye = false
     , tooltips     = true
@@ -24,15 +29,28 @@ nv.models.scatterChart = function() {
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
     //, tooltip      = function(key, x, y) { return '<h3>' + key + '</h3>' }
     , tooltip      = null
-    , scatter      = nv.models.scatter().xScale(x).yScale(y)
-    , xAxis        = nv.models.axis().orient('bottom').tickPadding(10)
-    , yAxis        = nv.models.axis().orient('left').tickPadding(10)
-    , legend       = nv.models.legend().height(30)
-    , controls     = nv.models.legend().height(30)
-    , distX        = nv.models.distribution().axis('x')
-    , distY        = nv.models.distribution().axis('y')
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide')
     , noData       = "No Data Available."
+    ;
+
+  // Setup sub-components
+  scatter
+    .xScale(x)
+    .yScale(y)
+    ;
+  xAxis
+    .orient('bottom')
+    .tickPadding(10)
+    ;
+  yAxis
+    .orient('left')
+    .tickPadding(10)
+    ;
+  distX
+    .axis('x')
+    ;
+  distY
+    .axis('y')
     ;
 
   //============================================================
@@ -82,6 +100,9 @@ nv.models.scatterChart = function() {
                              - margin.top - margin.bottom;
 
 
+      //------------------------------------------------------------
+      // Show noData message if there is no data
+
       if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
         container.append('text')
           .attr('class', 'nvd3 nv-noData')
@@ -94,6 +115,9 @@ nv.models.scatterChart = function() {
       } else {
         container.select('.nv-noData').remove();
       }
+
+      //------------------------------------------------------------
+
 
       //------------------------------------------------------------
       // Setup Scales
@@ -130,6 +154,9 @@ nv.models.scatterChart = function() {
       //------------------------------------------------------------
 
 
+      //------------------------------------------------------------
+      // Legend
+
       if (showLegend) {
         legend.width( availableWidth / 2 );
 
@@ -147,6 +174,11 @@ nv.models.scatterChart = function() {
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
       }
 
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Controls
 
       if (showControls) {
         controls.width(180).color(['#444']);
@@ -156,10 +188,11 @@ nv.models.scatterChart = function() {
             .call(controls);
       }
 
+      //------------------------------------------------------------
 
-      g.select('.nv-background')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
+
+      //------------------------------------------------------------
+      // Main Chart Component(s)
 
 
       scatter
@@ -173,6 +206,11 @@ nv.models.scatterChart = function() {
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
 
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Setup Axes
 
       xAxis
           .scale(x)
@@ -192,43 +230,55 @@ nv.models.scatterChart = function() {
       g.select('.nv-y.nv-axis')
           .call(yAxis);
 
-      if(showDistX){
-	      distX
-	          .getData(scatter.x())
-	          .scale(x)
-	          .width(availableWidth)
-	          .color(data.map(function(d,i) {
-	            return d.color || color(d, i);
-	          }).filter(function(d,i) { return !data[i].disabled }));
-	      gEnter.select('.nv-distWrap').append('g')
-	          .attr('class', 'nv-distributionX')
-	          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-	      g.select('.nv-distributionX')
-	          .datum(data.filter(function(d) { return !d.disabled }))
-	          .call(distX);
-	   }
 
-	   if(showDistY){
-	      distY
-	          .getData(scatter.y())
-	          .scale(y)
-	          .width(availableHeight)
-	          .color(data.map(function(d,i) {
-	            return d.color || color(d, i);
-	          }).filter(function(d,i) { return !data[i].disabled }));
-	      gEnter.select('.nv-distWrap').append('g')
-	          .attr('class', 'nv-distributionY')
-	          .attr('transform', 'translate(-' + distY.size() + ',0)');
-	      g.select('.nv-distributionY')
-	          .datum(data.filter(function(d) { return !d.disabled }))
-	          .call(distY);
-	  }
+      if (showDistX) {
+        distX
+            .getData(scatter.x())
+            .scale(x)
+            .width(availableWidth)
+            .color(data.map(function(d,i) {
+              return d.color || color(d, i);
+            }).filter(function(d,i) { return !data[i].disabled }));
+        gEnter.select('.nv-distWrap').append('g')
+            .attr('class', 'nv-distributionX')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+        g.select('.nv-distributionX')
+            .datum(data.filter(function(d) { return !d.disabled }))
+            .call(distX);
+      }
 
-      g.select('.nv-background').on('mousemove', updateFisheye);
-      g.select('.nv-background').on('click', function() { pauseFisheye = !pauseFisheye;});
-      scatter.dispatch.on('elementClick.freezeFisheye', function() {
-        pauseFisheye = !pauseFisheye;
-      });
+      if (showDistY) {
+        distY
+            .getData(scatter.y())
+            .scale(y)
+            .width(availableHeight)
+            .color(data.map(function(d,i) {
+              return d.color || color(d, i);
+            }).filter(function(d,i) { return !data[i].disabled }));
+        gEnter.select('.nv-distWrap').append('g')
+            .attr('class', 'nv-distributionY')
+            .attr('transform', 'translate(-' + distY.size() + ',0)');
+        g.select('.nv-distributionY')
+            .datum(data.filter(function(d) { return !d.disabled }))
+            .call(distY);
+      }
+
+      //------------------------------------------------------------
+
+
+
+
+      if (d3.fisheye) {
+        g.select('.nv-background')
+            .attr('width', availableWidth)
+            .attr('height', availableHeight);
+
+        g.select('.nv-background').on('mousemove', updateFisheye);
+        g.select('.nv-background').on('click', function() { pauseFisheye = !pauseFisheye;});
+        scatter.dispatch.on('elementClick.freezeFisheye', function() {
+          pauseFisheye = !pauseFisheye;
+        });
+      }
 
 
       function updateFisheye() {
@@ -323,6 +373,8 @@ nv.models.scatterChart = function() {
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
+      //============================================================
+
 
       //store old scales for use in transitions on update
       x0 = x.copy();
@@ -354,14 +406,17 @@ nv.models.scatterChart = function() {
     if (tooltips) nv.tooltip.cleanup();
   });
 
+  //============================================================
+
 
   //============================================================
   // Expose Public Variables
   //------------------------------------------------------------
 
+  // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.legend = legend;
-  chart.controls = legend;
+  chart.controls = controls;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.distX = distX;
