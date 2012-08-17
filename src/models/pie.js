@@ -1,28 +1,54 @@
 
 nv.models.pie = function() {
-  var margin = {top: 0, right: 0, bottom: 0, left: 0},
-      width = 500,
-      height = 500,
-      getValues = function(d) { return d.values },
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-      color = nv.utils.defaultColor(),
-      valueFormat = d3.format(',.2f'),
-      showLabels = true,
-      donutLabelsOutside = false,
-      labelThreshold = .02, //if slice percentage is under this, don't show label
-      donut = false;
 
-  var  dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout');
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , width = 500
+    , height = 500
+    , getValues = function(d) { return d.values }
+    , getX = function(d) { return d.x }
+    , getY = function(d) { return d.y }
+    , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+    , color = nv.utils.defaultColor()
+    , valueFormat = d3.format(',.2f')
+    , showLabels = true
+    , donutLabelsOutside = false
+    , labelThreshold = .02 //if slice percentage is under this, don't show label
+    , donut = false
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    ;
+
+  //============================================================
+
 
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
-          radius = Math.min(availableWidth, availableHeight) / 2;
+          radius = Math.min(availableWidth, availableHeight) / 2,
+          container = d3.select(this);
 
-      var container = d3.select(this)
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('.nv-wrap.nv-pie').data([getValues(data[0])]);
+      var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
+
+      gEnter.append('g').attr('class', 'nv-pie');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+
+      //------------------------------------------------------------
+
+
+      container
           .on('click', function(d,i) {
               dispatch.chartClick({
                   data: d,
@@ -31,19 +57,6 @@ nv.models.pie = function() {
                   id: id
               });
           });
-
-
-      var wrap = container.selectAll('.nv-wrap.nv-pie').data([getValues(data[0])]);
-      var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
-
-      gEnter.append('g').attr('class', 'nv-pie');
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-      g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
-
 
 
       var arc = d3.svg.arc()
@@ -118,9 +131,7 @@ nv.models.pie = function() {
 
         d3.transition(slices.select('path'))
             .attr('d', arc)
-            //.ease('bounce')
             .attrTween('d', arcTween);
-            //.attrTween('d', tweenPie);
 
         if (showLabels) {
           // This does the normal label
@@ -210,6 +221,10 @@ nv.models.pie = function() {
   }
 
 
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
   chart.dispatch = dispatch;
 
   chart.margin = function(_) {
@@ -289,6 +304,8 @@ nv.models.pie = function() {
     labelThreshold = _;
     return chart;
   };
+
+  //============================================================
 
 
   return chart;
