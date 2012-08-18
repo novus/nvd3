@@ -39,15 +39,15 @@ nv.models.multiBar = function() {
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
 
-      if (stacked) {
+      if (stacked)
         data = d3.layout.stack()
-                     .offset('zero')
-                     .values(function(d){ return d.values })
-                     .y(getY)
-                     (data);
-      }
+                 .offset('zero')
+                 .values(function(d){ return d.values })
+                 .y(getY)
+                 (data);
 
 
       //add series index to each data point for reference
@@ -100,7 +100,7 @@ nv.models.multiBar = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibar').data([data]);
+      var wrap = container.selectAll('g.nv-wrap.nv-multibar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
