@@ -1,32 +1,40 @@
 
 nv.models.sparklinePlus = function() {
-  var margin = {top: 15, right: 40, bottom: 3, left: 40},
-      width = 400,
-      height = 50,
-      animate = true,
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      color = nv.utils.defaultColor(),
-      id = Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't selet one
-      xTickFormat = d3.format(',r'),
-      yTickFormat = d3.format(',.2f'),
-      noData = "No Data Available."
-      ;
 
-  var x = d3.scale.linear(),
-      y = d3.scale.linear(),
-      sparkline = nv.models.sparkline();
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var sparkline = nv.models.sparkline();
+
+  var margin = {top: 15, right: 40, bottom: 3, left: 40}
+    , width = null
+    , height = null
+    , x
+    , y
+    , color = nv.utils.defaultColor()
+    , xTickFormat = d3.format(',r')
+    , yTickFormat = d3.format(',.2f')
+    , noData = "No Data Available."
+    ;
+
+  //============================================================
+
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom;
+      var container = d3.select(this);
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
 
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+      if (!data || !data.length) {
         container.append('text')
           .attr('class', 'nvd3 nv-noData')
           .attr('x', availableWidth / 2)
@@ -43,31 +51,40 @@ nv.models.sparklinePlus = function() {
 
 
 
-      x   .domain(d3.extent(data, getX ))
-          .range([0, availableWidth]);
+      //------------------------------------------------------------
+      // Setup Scales
 
-      y   .domain(d3.extent(data, getY ))
-          .range([availableHeight, 0]);
+      x = sparkline.xScale();
+      y = sparkline.yScale();
+
+      //------------------------------------------------------------
 
 
-      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-sparklineplus').data([data]);
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
 
-
+      var wrap = container.selectAll('g.nv-wrap.nv-sparklineplus').data([data]);
       var gEnter = wrap.enter().append('g')
       //var gEnter = svg.enter().append('svg').append('g');
       var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus')
           .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
           .style('stroke', function(d, i){ return d.color || color(d, i) });
 
-      sparkline
-        .xDomain(x.domain())
-        .yDomain(y.domain());
+      //------------------------------------------------------------
 
+
+      //------------------------------------------------------------
+      // Main Chart Component(s)
+
+      sparkline
+        .width(availableWidth)
+        .height(availableHeight)
 
       sparklineWrap
-          //.attr('width', width)
-          //.attr('height', height)
           .call(sparkline);
+
+      //------------------------------------------------------------
+
 
       var hoverValue = sparklineWrap.append('g').attr('class', 'nv-hoverValue');
       var hoverArea = sparklineWrap.append('g').attr('class', 'nv-hoverArea');
@@ -79,13 +96,13 @@ nv.models.sparklinePlus = function() {
           .attr('x1', x.range()[1])
           .attr('y1', -margin.top)
           .attr('x2', x.range()[1])
-          .attr('y2', height)
+          .attr('y2', availableHeight)
 
-     var hoverX = hoverValue.append('text').attr('class', 'nv-xValue')
+      var hoverX = hoverValue.append('text').attr('class', 'nv-xValue')
           .attr('text-anchor', 'end')
           .attr('dy', '.9em')
 
-     var hoverY = hoverValue.append('text').attr('class', 'nv-yValue')
+      var hoverY = hoverValue.append('text').attr('class', 'nv-yValue')
           //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'start')
           .attr('dy', '.9em')
@@ -110,11 +127,11 @@ nv.models.sparklinePlus = function() {
             //.text(xTickFormat(pos));
             .text(xTickFormat(Math.round(x.invert(pos)))); //TODO: refactor this line
         var f = function(data, x){
-            var distance = Math.abs(getX(data[0]) - x) ;
+            var distance = Math.abs(sparkline.x()(data[0]) - x) ;
             var closestIndex = 0;
             for (var i = 0; i < data.length; i++){
-                if (Math.abs(getX(data[i]) - x) < distance) {
-                    distance = Math.abs(getX(data[i]) -x);
+                if (Math.abs(sparkline.x()(data[i]) - x) < distance) {
+                    distance = Math.abs(sparkline.x()(data[i]) -x);
                     closestIndex = i;
                 }
             }
@@ -124,7 +141,7 @@ nv.models.sparklinePlus = function() {
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
             //.text(data[pos] && yTickFormat(data[pos].y));
-            .text(yTickFormat(getY(data[f(data, Math.round(x.invert(pos)))]))); //TODO: refactor this line
+            .text(yTickFormat(sparkline.y()(data[f(data, Math.round(x.invert(pos)))]))); //TODO: refactor this line
       }
 
     });
@@ -132,6 +149,15 @@ nv.models.sparklinePlus = function() {
     return chart;
   }
 
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+  // expose chart's sub-components
+  chart.sparkline = sparkline;
+
+  d3.rebind(chart, sparkline, 'x', 'y', 'xScale', 'yScale');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -142,40 +168,24 @@ nv.models.sparklinePlus = function() {
   chart.width = function(_) {
     if (!arguments.length) return width;
     width = _;
-    sparkline.width(_ - margin.left - margin.right);
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
-    sparkline.height(_ - margin.top - margin.bottom);
     return chart;
   };
 
-  chart.x = function(_) {
-    if (!arguments.length) return getX;
-    getX = d3.functor(_);
-    sparkline.x(_);
+  chart.xTickFormat = function(_) {
+    if (!arguments.length) return xTickFormat;
+    xTickFormat = _;
     return chart;
   };
 
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = d3.functor(_);
-    sparkline.y(_);
-    return chart;
-  };
-
-  chart.id = function(_) {
-    if (!arguments.length) return id;
-    id = _;
-    return chart;
-  };
-
-  chart.animate = function(_) {
-    if (!arguments.length) return animate;
-    animate = _;
+  chart.yTickFormat = function(_) {
+    if (!arguments.length) return yTickFormat;
+    yTickFormat = _;
     return chart;
   };
 
@@ -184,6 +194,8 @@ nv.models.sparklinePlus = function() {
     noData = _;
     return chart;
   };
+
+  //============================================================
 
 
   return chart;

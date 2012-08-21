@@ -116,6 +116,18 @@ nv.models.sparkline = function() {
     return chart;
   };
 
+  chart.xScale = function(_) {
+    if (!arguments.length) return x;
+    x = _;
+    return chart;
+  };
+
+  chart.yScale = function(_) {
+    if (!arguments.length) return y;
+    y = _;
+    return chart;
+  };
+
   chart.xDomain = function(_) {
     if (!arguments.length) return xDomain;
     xDomain = _;

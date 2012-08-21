@@ -13,7 +13,7 @@ text {
 }
 
 #chart1 {
-  width: 400px;
+  width: 500px;
   height: 50px;
 }
 
@@ -29,12 +29,11 @@ text {
 <script src="../src/models/sparklinePlus.js"></script>
 <script>
 
-//Format A
 nv.addGraph({
   generate: function() {
     var chart = nv.models.sparklinePlus()
-                  .width(400)
-                  .height(50)
+                  //.width(400)
+                  //.height(50)
 
     d3.select("#chart1")
       .datum(sine())
