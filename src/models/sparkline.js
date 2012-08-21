@@ -34,7 +34,7 @@ nv.models.sparkline = function() {
       x   .domain(xDomain || d3.extent(data, getX ))
           .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(data,getY ))
+      y   .domain(yDomain || d3.extent(data, getY ))
           .range([availableHeight, 0]);
 
       //------------------------------------------------------------
@@ -46,7 +46,7 @@ nv.models.sparkline = function() {
       var wrap = container.selectAll('g.nv-wrap.nv-sparkline').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparkline');
       var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+      var g = wrap.select('g');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 

@@ -64,11 +64,13 @@ nv.models.sparklinePlus = function() {
       // Setup containers and skeleton of chart
 
       var wrap = container.selectAll('g.nv-wrap.nv-sparklineplus').data([data]);
-      var gEnter = wrap.enter().append('g')
-      //var gEnter = svg.enter().append('svg').append('g');
-      var sparklineWrap = gEnter.append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-          .style('stroke', function(d, i){ return d.color || color(d, i) });
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparklineplus');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
+
+      gEnter.append('g').attr('class', 'nv-sparklineWrap')
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
       //------------------------------------------------------------
 
@@ -76,18 +78,21 @@ nv.models.sparklinePlus = function() {
       //------------------------------------------------------------
       // Main Chart Component(s)
 
+      var sparklineWrap = g.select('.nv-sparklineWrap');
+
       sparkline
         .width(availableWidth)
-        .height(availableHeight)
+        .height(availableHeight);
 
       sparklineWrap
+          .style('stroke', function(d, i){ return d.color || color(d, i) })
           .call(sparkline);
 
       //------------------------------------------------------------
 
 
-      var hoverValue = sparklineWrap.append('g').attr('class', 'nv-hoverValue');
-      var hoverArea = sparklineWrap.append('g').attr('class', 'nv-hoverArea');
+      var hoverValue = gEnter.append('g').attr('class', 'nv-hoverValue');
+      var hoverArea = gEnter.append('g').attr('class', 'nv-hoverArea');
 
 
       hoverValue.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' });
@@ -96,16 +101,16 @@ nv.models.sparklinePlus = function() {
           .attr('x1', x.range()[1])
           .attr('y1', -margin.top)
           .attr('x2', x.range()[1])
-          .attr('y2', availableHeight)
+          .attr('y2', availableHeight);
 
       var hoverX = hoverValue.append('text').attr('class', 'nv-xValue')
           .attr('text-anchor', 'end')
-          .attr('dy', '.9em')
+          .attr('dy', '.9em');
 
       var hoverY = hoverValue.append('text').attr('class', 'nv-yValue')
           //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('text-anchor', 'start')
-          .attr('dy', '.9em')
+          .attr('dy', '.9em');
 
 
       hoverArea.append('rect')
@@ -124,24 +129,23 @@ nv.models.sparklinePlus = function() {
 
         hoverX
             .attr('transform', function(d) { return 'translate(' + (pos - 6) + ',' + (-margin.top) + ')' })
-            //.text(xTickFormat(pos));
-            .text(xTickFormat(Math.round(x.invert(pos)))); //TODO: refactor this line
+            .text(xTickFormat(Math.round(x.invert(pos))));
+
         var f = function(data, x){
-            var distance = Math.abs(sparkline.x()(data[0]) - x) ;
-            var closestIndex = 0;
-            for (var i = 0; i < data.length; i++){
-                if (Math.abs(sparkline.x()(data[i]) - x) < distance) {
-                    distance = Math.abs(sparkline.x()(data[i]) -x);
-                    closestIndex = i;
-                }
+          var distance = Math.abs(sparkline.x()(data[0]) - x) ;
+          var closestIndex = 0;
+          for (var i = 0; i < data.length; i++){
+            if (Math.abs(sparkline.x()(data[i]) - x) < distance) {
+              distance = Math.abs(sparkline.x()(data[i]) -x);
+              closestIndex = i;
             }
-            return closestIndex;
+          }
+          return closestIndex;
         }
 
         hoverY
             .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
-            //.text(data[pos] && yTickFormat(data[pos].y));
-            .text(yTickFormat(sparkline.y()(data[f(data, Math.round(x.invert(pos)))]))); //TODO: refactor this line
+            .text(yTickFormat(sparkline.y()(data[f(data, Math.round(x.invert(pos)))])));
       }
 
     });
