@@ -1662,7 +1662,7 @@ nv.models.cumulativeLineChart = function() {
       //------------------------------------------------------------
 
 
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       //------------------------------------------------------------
@@ -3678,32 +3678,55 @@ nv.models.lineChart = function() {
 }
 
 nv.models.linePlusBarChart = function() {
-  var margin = {top: 30, right: 60, bottom: 50, left: 60},
-      width = null,
-      height = null,
-      getX = function(d) { return d.x },
-      getY = function(d) { return d.y },
-      color = nv.utils.defaultColor(),
-      showLegend = true,
-      tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var lines = nv.models.line()
+    , bars = nv.models.historicalBar()
+    , xAxis = nv.models.axis()
+    , yAxis1 = nv.models.axis()
+    , yAxis2 = nv.models.axis()
+    , legend = nv.models.legend()
+    ;
+
+  var margin = {top: 30, right: 60, bottom: 50, left: 60}
+    , width = null
+    , height = null
+    , getX = function(d) { return d.x }
+    , getY = function(d) { return d.y }
+    , color = nv.utils.defaultColor()
+    , showLegend = true
+    , tooltips = true
+    , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
-               '<p>' +  y + ' at ' + x + '</p>'
-      },
-      noData = "No Data Available."
-      ;
+               '<p>' +  y + ' at ' + x + '</p>';
+      }
+    , x = d3.scale.linear() // needs to be both line and historicalBar x Axis
+    , y1
+    , y2
+    , noData = "No Data Available."
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    ;
+
+  xAxis
+    .orient('bottom')
+    .tickPadding(5)
+    ;
+  yAxis1
+    .orient('left')
+    ;
+  yAxis2
+    .orient('right')
+    ;
+
+  //============================================================
 
 
-  var lines = nv.models.line(),
-      bars = nv.models.historicalBar(),
-      x = d3.scale.linear(), // needs to be both line and historicalBar x Axis
-      y1 = bars.yScale(),
-      y2 = lines.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      yAxis1 = nv.models.axis().scale(y1).orient('left'),
-      yAxis2 = nv.models.axis().scale(y2).orient('right'),
-      legend = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -3714,6 +3737,8 @@ nv.models.linePlusBarChart = function() {
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
+
+  //------------------------------------------------------------
 
 
 
@@ -3747,7 +3772,12 @@ nv.models.linePlusBarChart = function() {
       //------------------------------------------------------------
 
 
+      //------------------------------------------------------------
+      // Setup Scales
 
+
+      y1 = bars.yScale();
+      y2 = lines.yScale();
 
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
 
@@ -3787,10 +3817,15 @@ nv.models.linePlusBarChart = function() {
           .range([availableHeight, 0]);
          */
 
+      //------------------------------------------------------------
 
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
 
       var wrap = d3.select(this).selectAll('g.nv-wrap.nv-linePlusBar').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y1 nv-axis');
@@ -3799,10 +3834,11 @@ nv.models.linePlusBarChart = function() {
       gEnter.append('g').attr('class', 'nv-linesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
 
+      //------------------------------------------------------------
 
 
-      var g = wrap.select('g');
-
+      //------------------------------------------------------------
+      // Legend
 
       if (showLegend) {
         legend.width( availableWidth / 2 );
@@ -3825,7 +3861,14 @@ nv.models.linePlusBarChart = function() {
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
+      //------------------------------------------------------------
 
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      //------------------------------------------------------------
+      // Main Chart Component(s)
 
 
       lines
@@ -3850,15 +3893,17 @@ nv.models.linePlusBarChart = function() {
       var linesWrap = g.select('.nv-linesWrap')
           .datum(dataLines.length ? dataLines : [{values:[]}])
 
-
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);
 
+      //------------------------------------------------------------
 
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      //------------------------------------------------------------
+      // Setup Axes
 
       xAxis
+        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
@@ -3869,6 +3914,7 @@ nv.models.linePlusBarChart = function() {
 
 
       yAxis1
+        .scale(y1)
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
@@ -3878,6 +3924,7 @@ nv.models.linePlusBarChart = function() {
 
 
       yAxis2
+        .scale(y2)
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
@@ -3888,7 +3935,12 @@ nv.models.linePlusBarChart = function() {
       d3.transition(g.select('.nv-y2.nv-axis'))
           .call(yAxis2);
 
+      //------------------------------------------------------------
 
+
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
 
       legend.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
@@ -3904,39 +3956,55 @@ nv.models.linePlusBarChart = function() {
         selection.transition().call(chart);
       });
 
-
-      lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
 
-      lines.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
-
-
-      bars.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-      });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
-
-      bars.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
-
+      //============================================================
 
       chart.update = function() { selection.transition().call(chart) };
-      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+      chart.container = this;
 
     });
 
     return chart;
   }
 
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  lines.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  bars.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  bars.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
+
+  //============================================================
+
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+  // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.legend = legend;
   chart.lines = lines;
@@ -3948,9 +4016,6 @@ nv.models.linePlusBarChart = function() {
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
-
-  //d3.rebind(chart, lines, 'interactive');
-  //consider rebinding x and y as well
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -4016,6 +4081,8 @@ nv.models.linePlusBarChart = function() {
     noData = _;
     return chart;
   };
+
+  //============================================================
 
 
   return chart;

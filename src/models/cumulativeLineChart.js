@@ -209,7 +209,7 @@ nv.models.cumulativeLineChart = function() {
       //------------------------------------------------------------
 
 
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       //------------------------------------------------------------
