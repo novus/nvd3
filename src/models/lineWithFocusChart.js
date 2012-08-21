@@ -12,6 +12,7 @@ nv.models.lineWithFocusChart = function() {
     , x2Axis = nv.models.axis()
     , y2Axis = nv.models.axis()
     , legend = nv.models.legend()
+    , brush = d3.svg.brush()
     ;
 
   var margin = {top: 30, right: 30, bottom: 30, left: 60}
@@ -20,6 +21,10 @@ nv.models.lineWithFocusChart = function() {
     , width = null
     , height = null
     , height2 = 100
+    , x
+    , y
+    , x2
+    , y2
     , showLegend = true
     , brushExtent = null
     , tooltips = true
@@ -30,12 +35,6 @@ nv.models.lineWithFocusChart = function() {
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
-
-  var x = lines.xScale(),
-      y = lines.yScale(),
-      x2 = lines2.xScale(),
-      y2 = lines2.yScale(),
-      brush = d3.svg.brush().x(x2);
 
   lines
     .clipEdge(true)
@@ -108,8 +107,15 @@ nv.models.lineWithFocusChart = function() {
       //------------------------------------------------------------
 
 
+      //------------------------------------------------------------
+      // Setup Scales
 
-      brush.on('brush', onBrush);
+      x = lines.xScale();
+      y = lines.yScale();
+      x2 = lines2.xScale();
+      y2 = lines2.yScale();
+
+      //------------------------------------------------------------
 
 
       //------------------------------------------------------------
@@ -232,6 +238,10 @@ nv.models.lineWithFocusChart = function() {
 
       //------------------------------------------------------------
       // Setup Brush
+
+      brush
+        .x(x2)
+        .on('brush', onBrush);
 
       if (brushExtent) brush.extent(brushExtent);
 
