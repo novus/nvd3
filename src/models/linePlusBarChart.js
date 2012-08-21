@@ -97,14 +97,12 @@ nv.models.linePlusBarChart = function() {
       //------------------------------------------------------------
       // Setup Scales
 
-
       y1 = bars.yScale();
       y2 = lines.yScale();
 
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
 
       var dataLines = data.filter(function(d) { return !d.disabled && !d.bar });
-
 
 
       //TODO: try to remove x scale computation from this layer

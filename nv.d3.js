@@ -3792,14 +3792,12 @@ nv.models.linePlusBarChart = function() {
       //------------------------------------------------------------
       // Setup Scales
 
-
       y1 = bars.yScale();
       y2 = lines.yScale();
 
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
 
       var dataLines = data.filter(function(d) { return !d.disabled && !d.bar });
-
 
 
       //TODO: try to remove x scale computation from this layer
@@ -9138,41 +9136,45 @@ nv.models.stackedAreaChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 30, right: 25, bottom: 50, left: 60},
-      width = null,
-      height = null,
-      color = nv.utils.defaultColor(), // a function that takes in d, i and
-      //returns color
-      showControls = true,
-      showLegend = true,
-      tooltips = true,
-      tooltip = function(key, x, y, e, graph) {
+  var stacked = nv.models.stackedArea()
+    , xAxis = nv.models.axis()
+    , yAxis = nv.models.axis()
+    , legend = nv.models.legend()
+    , controls = nv.models.legend()
+    ;
+
+  var margin = {top: 30, right: 25, bottom: 50, left: 60}
+    , width = null
+    , height = null
+    , color = nv.utils.defaultColor() // a function that takes in d, i and returns color
+    , showControls = true
+    , showLegend = true
+    , tooltips = true
+    , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
-      },
-      x, y, //can be accessed via chart.stacked.[x/y]Scale()
-      noData = "No Data Available."
-      ;
+      }
+    , x //can be accessed via chart.xScale()
+    , y //can be accessed via chart.yScale()
+    , yAxisTickFormat = d3.format(',.2f')
+    , noData = 'No Data Available.'
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    ;
+
+  xAxis
+    .orient('bottom')
+    .tickPadding(5)
+    ;
+  yAxis
+    .orient('left')
+    ;
+
+  //============================================================
 
 
   //============================================================
   // Private Variables
   //------------------------------------------------------------
-
-  var stacked = nv.models.stackedArea(),
-      xAxis = nv.models.axis().orient('bottom').tickPadding(5),
-      yAxis = nv.models.axis().orient('left'),
-      yAxisTickFormat = d3.format(",.2f"),
-      legend = nv.models.legend().height(30),
-      controls = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
-
-  //TODO: let user select default
-  var controlsData = [
-    { key: 'Stacked' },
-    { key: 'Stream', disabled: true },
-    { key: 'Expanded', disabled: true }
-  ];
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -9183,6 +9185,8 @@ nv.models.stackedAreaChart = function() {
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
+
+  //============================================================
 
 
   function chart(selection) {
@@ -9215,12 +9219,21 @@ nv.models.stackedAreaChart = function() {
       //------------------------------------------------------------
 
 
+      //------------------------------------------------------------
+      // Setup Scales
 
       x = stacked.xScale();
       y = stacked.yScale();
 
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
       var wrap = container.selectAll('g.nv-wrap.nv-stackedAreaChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedAreaChart').append('g');
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
@@ -9228,9 +9241,11 @@ nv.models.stackedAreaChart = function() {
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
+      //------------------------------------------------------------
 
-      var g = wrap.select('g');
 
+      //------------------------------------------------------------
+      // Legend
 
       if (showLegend) {
         legend
@@ -9250,14 +9265,19 @@ nv.models.stackedAreaChart = function() {
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
-
-      stacked
-        .width(availableWidth)
-        .height(availableHeight)
+      //------------------------------------------------------------
 
 
+      //------------------------------------------------------------
+      // Controls
 
       if (showControls) {
+        var controlsData = [
+          { key: 'Stacked', disabled: stacked.offset() != 'zero' },
+          { key: 'Stream', disabled: stacked.offset() != 'wiggle' },
+          { key: 'Expanded', disabled: stacked.offset() != 'expand' }
+        ];
+
         controls.width(280).color(['#444', '#444', '#444']);
         g.select('.nv-controlsWrap')
             .datum(controlsData)
@@ -9265,14 +9285,28 @@ nv.models.stackedAreaChart = function() {
             .call(controls);
       }
 
+      //------------------------------------------------------------
 
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      //------------------------------------------------------------
+      // Main Chart Component(s)
+
+      stacked
+        .width(availableWidth)
+        .height(availableHeight)
 
       var stackedWrap = g.select('.nv-stackedWrap')
           .datum(data);
       d3.transition(stackedWrap).call(stacked);
 
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Setup Axes
 
       xAxis
         .scale(x)
@@ -9292,6 +9326,8 @@ nv.models.stackedAreaChart = function() {
 
       d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
+
+      //------------------------------------------------------------
 
 
       //============================================================
@@ -9357,13 +9393,11 @@ nv.models.stackedAreaChart = function() {
     });
 
 
-    //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-    chart.update = function() { selection.transition().call(chart) };
-    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+    chart.update = function() { chart(selection) };
+    chart.container = this;
 
     return chart;
   }
-
 
 
   //============================================================
@@ -9390,14 +9424,18 @@ nv.models.stackedAreaChart = function() {
     if (tooltips) nv.tooltip.cleanup();
   });
 
+  //============================================================
 
 
   //============================================================
-  // Global getters and setters
+  // Expose Public Variables
   //------------------------------------------------------------
 
+  // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.stacked = stacked;
+  chart.legend = legend;
+  chart.controls = controls;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
@@ -9471,6 +9509,8 @@ nv.models.stackedAreaChart = function() {
     yAxisTickFormat = _;
     return yAxis;
   };
+
+  //============================================================
 
   return chart;
 }
