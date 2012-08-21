@@ -1,32 +1,30 @@
 
-//TODO: Finish merging this chart into the NVD3 style!
 nv.models.indentedTree = function() {
-  //Default Settings
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}, //TODO: implement, maybe as margin on the containing div
-      width = 960,
-      height = 500,
-      color = nv.utils.defaultColor(),
-      id = Math.floor(Math.random() * 10000), 
-      header = true,
-      noResultsText = 'No Results found.'
-      childIndent = 20,
-      columns = [{key:'key', label: 'Name', type:'text'}], //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
-      tableClass = null,
-      iconOpen = 'images/grey-plus.png', //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
-      iconClose = 'images/grey-minus.png';
 
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
 
-  var dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout');
+  var margin = {top: 0, right: 0, bottom: 0, left: 0} //TODO: implement, maybe as margin on the containing div
+    , width = 960
+    , height = 500
+    , color = nv.utils.defaultColor()
+    , id = Math.floor(Math.random() * 10000)
+    , header = true
+    , noData = "No Data Available."
+    , childIndent = 20
+    , columns = [{key:'key', label: 'Name', type:'text'}] //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
+    , tableClass = null
+    , iconOpen = 'images/grey-plus.png' //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
+    , iconClose = 'images/grey-minus.png'
+    , dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout')
+    ;
+
+  //============================================================
 
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,  //TODO: decide if there is any use for these
-          availableHeight = height - margin.top - margin.bottom;
-
-
-      chart.update = function() { selection.transition().call(chart) };
-
       var i = 0,
           depth = 1;
 
@@ -35,16 +33,26 @@ nv.models.indentedTree = function() {
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
 
-      if (!data[0].key) data[0].key = noResultsText;
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+
+      if (!data[0].key) data[0].key = noData;
+
+      //------------------------------------------------------------
+
 
       var nodes = tree.nodes(data[0]);
 
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
 
       var wrap = d3.select(this).selectAll('div').data([[nodes]]);
       var wrapEnter = wrap.enter().append('div').attr('class', 'nvd3 nv-wrap nv-indentedtree');
       var tableEnter = wrapEnter.append('table');
       var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
 
+      //------------------------------------------------------------
 
 
       if (header) {
@@ -134,7 +142,7 @@ nv.models.indentedTree = function() {
         .order()
         .on('click', function(d) { 
           dispatch.elementClick({
-            row: this, //TODO: decide whether or not this should be consistent with scatter/line events
+            row: this, //TODO: decide whether or not this should be consistent with scatter/line events or should be an html link (a href)
             data: d,
             pos: [d.x, d.y]
           });
@@ -208,13 +216,19 @@ nv.models.indentedTree = function() {
         return (values && values.length);
       }
 
+
+      chart.update = function() { selection.transition().call(chart) };
+      chart.container = this;
+
     });
 
     return chart;
   }
 
 
-
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -253,9 +267,9 @@ nv.models.indentedTree = function() {
     return chart;
   };
 
-  chart.noResultsText = function(_) {
-    if (!arguments.length) return noResultsText;
-    noResultsText = _;
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
     return chart;
   };
 
@@ -282,6 +296,9 @@ nv.models.indentedTree = function() {
     iconClose = _;
     return chart;
   }
+
+  //============================================================
+
 
   return chart;
 }
