@@ -8,8 +8,8 @@ nv.models.linePlusBarChart = function() {
   var lines = nv.models.line()
     , bars = nv.models.historicalBar()
     , xAxis = nv.models.axis()
-    , yAxis1 = nv.models.axis()
-    , yAxis2 = nv.models.axis()
+    , y1Axis = nv.models.axis()
+    , y2Axis = nv.models.axis()
     , legend = nv.models.legend()
     ;
 
@@ -36,10 +36,10 @@ nv.models.linePlusBarChart = function() {
     .orient('bottom')
     .tickPadding(5)
     ;
-  yAxis1
+  y1Axis
     .orient('left')
     ;
-  yAxis2
+  y2Axis
     .orient('right')
     ;
 
@@ -54,7 +54,7 @@ nv.models.linePlusBarChart = function() {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(lines.y()(e.point, e.pointIndex)),
+        y = (e.series.bar ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
@@ -235,17 +235,17 @@ nv.models.linePlusBarChart = function() {
           .call(xAxis);
 
 
-      yAxis1
+      y1Axis
         .scale(y1)
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.nv-y1.nv-axis'))
           .style('opacity', dataBars.length ? 1 : 0)
-          .call(yAxis1);
+          .call(y1Axis);
 
 
-      yAxis2
+      y2Axis
         .scale(y2)
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
@@ -255,7 +255,7 @@ nv.models.linePlusBarChart = function() {
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
       d3.transition(g.select('.nv-y2.nv-axis'))
-          .call(yAxis2);
+          .call(y2Axis);
 
       //------------------------------------------------------------
 
@@ -284,7 +284,7 @@ nv.models.linePlusBarChart = function() {
 
       //============================================================
 
-      chart.update = function() { selection.transition().call(chart) };
+      chart.update = function() { chart(selection) };
       chart.container = this;
 
     });
@@ -332,8 +332,8 @@ nv.models.linePlusBarChart = function() {
   chart.lines = lines;
   chart.bars = bars;
   chart.xAxis = xAxis;
-  chart.yAxis1 = yAxis1;
-  chart.yAxis2 = yAxis2;
+  chart.y1Axis = y1Axis;
+  chart.y2Axis = y2Axis;
 
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.

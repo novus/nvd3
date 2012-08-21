@@ -3703,8 +3703,8 @@ nv.models.linePlusBarChart = function() {
   var lines = nv.models.line()
     , bars = nv.models.historicalBar()
     , xAxis = nv.models.axis()
-    , yAxis1 = nv.models.axis()
-    , yAxis2 = nv.models.axis()
+    , y1Axis = nv.models.axis()
+    , y2Axis = nv.models.axis()
     , legend = nv.models.legend()
     ;
 
@@ -3731,10 +3731,10 @@ nv.models.linePlusBarChart = function() {
     .orient('bottom')
     .tickPadding(5)
     ;
-  yAxis1
+  y1Axis
     .orient('left')
     ;
-  yAxis2
+  y2Axis
     .orient('right')
     ;
 
@@ -3749,7 +3749,7 @@ nv.models.linePlusBarChart = function() {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(lines.y()(e.point, e.pointIndex)),
+        y = (e.series.bar ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
@@ -3930,17 +3930,17 @@ nv.models.linePlusBarChart = function() {
           .call(xAxis);
 
 
-      yAxis1
+      y1Axis
         .scale(y1)
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.nv-y1.nv-axis'))
           .style('opacity', dataBars.length ? 1 : 0)
-          .call(yAxis1);
+          .call(y1Axis);
 
 
-      yAxis2
+      y2Axis
         .scale(y2)
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
@@ -3950,7 +3950,7 @@ nv.models.linePlusBarChart = function() {
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
       d3.transition(g.select('.nv-y2.nv-axis'))
-          .call(yAxis2);
+          .call(y2Axis);
 
       //------------------------------------------------------------
 
@@ -3979,7 +3979,7 @@ nv.models.linePlusBarChart = function() {
 
       //============================================================
 
-      chart.update = function() { selection.transition().call(chart) };
+      chart.update = function() { chart(selection) };
       chart.container = this;
 
     });
@@ -4027,8 +4027,8 @@ nv.models.linePlusBarChart = function() {
   chart.lines = lines;
   chart.bars = bars;
   chart.xAxis = xAxis;
-  chart.yAxis1 = yAxis1;
-  chart.yAxis2 = yAxis2;
+  chart.y1Axis = y1Axis;
+  chart.y2Axis = y2Axis;
 
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
@@ -4106,36 +4106,69 @@ nv.models.linePlusBarChart = function() {
 }
 
 nv.models.lineWithFocusChart = function() {
-  var margin = {top: 30, right: 30, bottom: 30, left: 60},
-      margin2 = {top: 0, right: 30, bottom: 20, left: 60},
-      color = nv.utils.defaultColor(),
-      width = null,
-      height = null,
-      height2 = 100,
-      showLegend = true,
-      brushExtent = null,
-      tooltips = true,
-      tooltip = function(key, x, y, e, graph) {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var lines = nv.models.line()
+    , lines2 = nv.models.line()
+    , xAxis = nv.models.axis()
+    , yAxis = nv.models.axis()
+    , x2Axis = nv.models.axis()
+    , y2Axis = nv.models.axis()
+    , legend = nv.models.legend()
+    ;
+
+  var margin = {top: 30, right: 30, bottom: 30, left: 60}
+    , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
+    , color = nv.utils.defaultColor()
+    , width = null
+    , height = null
+    , height2 = 100
+    , showLegend = true
+    , brushExtent = null
+    , tooltips = true
+    , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      },
-      noData = "No Data Available."
-      ;
+      }
+    , noData = "No Data Available."
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    ;
 
-  var lines = nv.models.line().clipEdge(true),
-      lines2 = nv.models.line().interactive(false),
-      x = lines.xScale(),
+  var x = lines.xScale(),
       y = lines.yScale(),
       x2 = lines2.xScale(),
       y2 = lines2.yScale(),
-      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      yAxis = nv.models.axis().scale(y).orient('left'),
-      x2Axis = nv.models.axis().scale(x2).orient('bottom').tickPadding(5),
-      y2Axis = nv.models.axis().scale(y2).orient('left'),
-      legend = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
       brush = d3.svg.brush().x(x2);
 
+  lines
+    .clipEdge(true)
+    ;
+  lines2
+    .interactive(false)
+    ;
+  xAxis
+    .orient('bottom')
+    .tickPadding(5)
+    ;
+  yAxis
+    .orient('left')
+    ;
+  x2Axis
+    .orient('bottom')
+    .tickPadding(5)
+    ;
+  y2Axis
+    .orient('left')
+    ;
+  //============================================================
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -4147,6 +4180,8 @@ nv.models.lineWithFocusChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
+  //============================================================
+
 
   function chart(selection) {
     selection.each(function(data) {
@@ -4155,7 +4190,7 @@ nv.models.lineWithFocusChart = function() {
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
+          availableHeight1 = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom - height2,
           availableHeight2 = height2 - margin2.top - margin2.bottom;
 
@@ -4167,7 +4202,7 @@ nv.models.lineWithFocusChart = function() {
         container.append('text')
           .attr('class', 'nvd3 nv-noData')
           .attr('x', availableWidth / 2)
-          .attr('y', availableHeight / 2)
+          .attr('y', availableHeight1 / 2)
           .attr('dy', '-.7em')
           .style('text-anchor', 'middle')
           .text(noData);
@@ -4183,8 +4218,12 @@ nv.models.lineWithFocusChart = function() {
       brush.on('brush', onBrush);
 
 
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
       var wrap = container.selectAll('g.nv-wrap.nv-lineWithFocusChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineWithFocusChart').append('g');
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-legendWrap');
 
@@ -4200,12 +4239,11 @@ nv.models.lineWithFocusChart = function() {
       contextEnter.append('g').attr('class', 'nv-brushBackground');
       contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
+      //------------------------------------------------------------
 
 
-      var g = wrap.select('g');
-
-
-
+      //------------------------------------------------------------
+      // Legend
 
       if (showLegend) {
         legend.width(availableWidth);
@@ -4216,7 +4254,7 @@ nv.models.lineWithFocusChart = function() {
 
         if ( margin.top != legend.height()) {
           margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400)
+          availableHeight1 = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom - height2;
         }
 
@@ -4224,10 +4262,18 @@ nv.models.lineWithFocusChart = function() {
             .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
 
+      //------------------------------------------------------------
+
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      //------------------------------------------------------------
+      // Main Chart Component(s)
 
       lines
         .width(availableWidth)
-        .height(availableHeight)
+        .height(availableHeight1)
         .color(
           data
             .map(function(d,i) {
@@ -4252,8 +4298,15 @@ nv.models.lineWithFocusChart = function() {
           })
         );
 
+      g.select('.nv-context')
+          .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
 
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
+          .datum(data.filter(function(d) { return !d.disabled }))
+
+      d3.transition(contextLinesWrap).call(lines2);
+
+      //------------------------------------------------------------
 
 
       /*
@@ -4264,38 +4317,27 @@ nv.models.lineWithFocusChart = function() {
      */
 
 
+      //------------------------------------------------------------
+      // Setup Main (Focus) Axes
+
       xAxis
+        .scale(x)
         .ticks( availableWidth / 100 )
-        .tickSize(-availableHeight, 0);
+        .tickSize(-availableHeight1, 0);
 
       yAxis
-        .ticks( availableHeight / 36 )
+        .scale(y)
+        .ticks( availableHeight1 / 36 )
         .tickSize( -availableWidth, 0);
 
       g.select('.nv-focus .nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
+          .attr('transform', 'translate(0,' + availableHeight1 + ')');
+
+      //------------------------------------------------------------
 
 
-/*
-      d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
-          .call(xAxis);
-
-
-      d3.transition(g.select('.nv-focus .nv-y.nv-axis'))
-          .call(yAxis);
-         */
-
-
-
-      g.select('.nv-context')
-          .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + margin2.top) + ')')
-
-      var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
-
-      d3.transition(contextLinesWrap).call(lines2);
-
-
+      //------------------------------------------------------------
+      // Setup Brush
 
       if (brushExtent) brush.extent(brushExtent);
 
@@ -4317,27 +4359,6 @@ nv.models.lineWithFocusChart = function() {
           .attr('y', 0)
           .attr('height', availableHeight2);
 
-
-      function updateBrushBG() {
-        //nv.log('test', brush.empty(), brush.extent());
-        if (!brush.empty()) brush.extent(brushExtent);
-        brushBG
-            .data([brush.empty() ? x2.domain() : brushExtent])
-            //.data([brush.empty() ? xi.domain() : brush.extent()])
-            .each(function(d,i) {
-              var leftWidth = x2(d[0]) - x.range()[0],
-                  rightWidth = x.range()[1] - x2(d[1]);
-              d3.select(this).select('.left')
-                .attr('width',  leftWidth < 0 ? 0 : leftWidth);
-
-              d3.select(this).select('.right')
-                .attr('x', x2(d[1]))
-                .attr('width', rightWidth < 0 ? 0 : rightWidth);
-            });
-      }
-
-
-
       gBrush = g.select('.nv-x.nv-brush')
           .call(brush);
       gBrush.selectAll('rect')
@@ -4345,14 +4366,16 @@ nv.models.lineWithFocusChart = function() {
           .attr('height', availableHeight2);
       gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
-
-      //if (brushExtent) onBrush();
       onBrush();
 
+      //------------------------------------------------------------
 
+
+      //------------------------------------------------------------
+      // Setup Secondary (Context) Axes
 
       x2Axis
-        //.tickFormat(xAxis.tickFormat())  //exposing x2Axis so user can set differently
+        .scale(x2)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
@@ -4363,20 +4386,22 @@ nv.models.lineWithFocusChart = function() {
 
 
       y2Axis
-        //.tickFormat(yAxis.tickFormat())  //exposing y2Axis so user can set differently
+        .scale(y2)
         .ticks( availableHeight2 / 36 )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.nv-context .nv-y.nv-axis'))
           .call(y2Axis);
 
-
-
-      g.select('.nv-focus .nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
       g.select('.nv-context .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y2.range()[0] + ')');
 
+      //------------------------------------------------------------
+
+
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
 
       legend.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
@@ -4392,32 +4417,16 @@ nv.models.lineWithFocusChart = function() {
         selection.transition().call(chart);
       });
 
-
-/*
-      //
-      legend.dispatch.on('legendMouseover', function(d, i) {
-        d.hover = true;
-        selection.transition().call(chart)
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode);
       });
 
-      legend.dispatch.on('legendMouseout', function(d, i) {
-        d.hover = false;
-        selection.transition().call(chart)
-      });
-*/
-
-      lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-      });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
-
-      lines.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
+      //============================================================
 
 
+      //============================================================
+      // Functions
+      //------------------------------------------------------------
 
       // Taken from crossfilter (http://square.github.com/crossfilter/)
       function resizePath(d) {
@@ -4436,24 +4445,30 @@ nv.models.lineWithFocusChart = function() {
       }
 
 
+      function updateBrushBG() {
+        if (!brush.empty()) brush.extent(brushExtent);
+        brushBG
+            .data([brush.empty() ? x2.domain() : brushExtent])
+            .each(function(d,i) {
+              var leftWidth = x2(d[0]) - x.range()[0],
+                  rightWidth = x.range()[1] - x2(d[1]);
+              d3.select(this).select('.left')
+                .attr('width',  leftWidth < 0 ? 0 : leftWidth);
+
+              d3.select(this).select('.right')
+                .attr('x', x2(d[1]))
+                .attr('width', rightWidth < 0 ? 0 : rightWidth);
+            });
+      }
+
 
       function onBrush() {
-        //nv.log(brush.empty(), brush.extent(), x2(brush.extent()[0]), x2(brush.extent()[1]));
-
-  /*
-        focusLinesWrap.call(lines)
-        //var focusLinesWrap = g.select('.focus .linesWrap')
-        g.select('.nv-focus .nv-x.nv-axis').call(xAxis);
-        g.select('.nv-focus .nv-y.nv-axis').call(yAxis);
-      }
-  */
         brushExtent = brush.empty() ? null : brush.extent();
         extent = brush.empty() ? x2.domain() : brush.extent();
 
         updateBrushBG();
 
-
-
+        // Update Main (Focus)
         var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
             .datum(
               data
@@ -4466,40 +4481,54 @@ nv.models.lineWithFocusChart = function() {
                     })
                   }
                 })
-            )
-
+            );
         d3.transition(focusLinesWrap).call(lines);
 
 
-        /*
-        var contextLinesWrap = g.select('.context .linesWrap')
-            .datum(data.filter(function(d) { return !d.disabled }))
-
-        d3.transition(contextLinesWrap).call(lines2);
-       */
-
-
+        // Update Main (Focus) Axes
         d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
             .call(xAxis);
-
         d3.transition(g.select('.nv-focus .nv-y.nv-axis'))
             .call(yAxis);
       }
 
+      //============================================================
+
+
+      chart.update = function() { chart(selection) };
+      chart.container = this;
 
     });
-
-
-
-    //TODO: decide if this is a good idea, and if it should be in all models
-    chart.update = function() { chart(selection) };
-    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
-
 
     return chart;
   }
 
 
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  lines.dispatch.on('elementMouseover.tooltip', function(e) {
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    dispatch.tooltipShow(e);
+  });
+
+  lines.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
+
+  //============================================================
+
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+  // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.legend = legend;
   chart.lines = lines;
@@ -4587,8 +4616,6 @@ nv.models.lineWithFocusChart = function() {
     return chart;
   };
 
-
-
   // Chart has multiple similar Axes, to prevent code duplication, probably need to link all axis functions manually like below
   chart.xTickFormat = function(_) {
     if (!arguments.length) return xAxis.tickFormat();
@@ -4603,6 +4630,8 @@ nv.models.lineWithFocusChart = function() {
     y2Axis.tickFormat(_);
     return chart;
   };
+
+  //============================================================
 
 
   return chart;
