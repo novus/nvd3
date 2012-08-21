@@ -23,7 +23,7 @@ nv.models.lineChart = function() {
       }
     , x
     , y
-    , noData = "No Data Available."
+    , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 

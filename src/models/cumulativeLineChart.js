@@ -5,41 +5,50 @@ nv.models.cumulativeLineChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 30, right: 30, bottom: 50, left: 60},
-      color = nv.utils.defaultColor(),
-      width = null,
-      height = null,
-      showLegend = true,
-      tooltips = true,
-      showRescaleToggle = true, //TODO: get rescale y functionality back (need to calculate exten of y for ALL possible re-zero points
-      rescaleY = true,
-      tooltip = function(key, x, y, e, graph) {
+  var lines = nv.models.line()
+    , xAxis = nv.models.axis()
+    , yAxis = nv.models.axis()
+    , legend = nv.models.legend()
+    , controls = nv.models.legend()
+    ;
+
+  var margin = {top: 30, right: 30, bottom: 50, left: 60}
+    , color = nv.utils.defaultColor()
+    , width = null
+    , height = null
+    , showLegend = true
+    , tooltips = true
+    , showControls = true
+    , rescaleY = true
+    , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      },
-      x, y, //can be accessed via chart.lines.[x/y]Scale()
-      noData = "No Data Available."
-      ;
+      }
+    , x //can be accessed via chart.xScale()
+    , y //can be accessed via chart.yScale()
+    , id = lines.id()
+    , noData = 'No Data Available.'
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    ;
+
+  xAxis
+    .orient('bottom')
+    .tickPadding(5)
+    ;
+  yAxis
+    .orient('left')
+    ;
+
+  //============================================================
 
 
   //============================================================
   // Private Variables
   //------------------------------------------------------------
 
-  var lines = nv.models.line(),
-      dx = d3.scale.linear(),
-      id = lines.id(),
-      xAxis = nv.models.axis().orient('bottom').tickPadding(5),
-      yAxis = nv.models.axis().orient('left'),
-      legend = nv.models.legend().height(30),
-      controls = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide'),
-      index = {i: 0, x: 0};
-
-  //TODO: let user select default
-  var controlsData = [
-    { key: 'Re-scale y-axis' }
-  ];
+   var dx = d3.scale.linear()
+     , index = {i: 0, x: 0}
+     ;
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -63,15 +72,14 @@ nv.models.cumulativeLineChart = function() {
     d.x += d3.event.dx;
     d.i = Math.round(dx.invert(d.x));
 
-    //d3.transition(d3.select('.chart-' + id)).call(chart);
     d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
   }
 
   function dragEnd(d,i) {
-    //d3.transition(d3.select('.chart-' + id)).call(chart);
     chart.update();
   }
 
+  //============================================================
 
 
   function chart(selection) {
@@ -104,9 +112,12 @@ nv.models.cumulativeLineChart = function() {
       //------------------------------------------------------------
 
 
+      //------------------------------------------------------------
+      // Setup Scales
 
       x = lines.xScale();
       y = lines.yScale();
+
 
       if (!rescaleY) {
         var seriesDomains = data
@@ -135,12 +146,18 @@ nv.models.cumulativeLineChart = function() {
           .range([0, availableWidth])
           .clamp(true);
 
+      //------------------------------------------------------------
+
 
       var data = indexify(index.i, data);
 
 
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
       var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-cumulativeLine').append('g');
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
@@ -148,9 +165,11 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
+      //------------------------------------------------------------
 
-      var g = wrap.select('g');
 
+      //------------------------------------------------------------
+      // Legend
 
       if (showLegend) {
         legend.width(availableWidth);
@@ -169,8 +188,17 @@ nv.models.cumulativeLineChart = function() {
             .attr('transform', 'translate(0,' + (-margin.top) +')')
       }
 
+      //------------------------------------------------------------
 
-      if (showRescaleToggle) {
+
+      //------------------------------------------------------------
+      // Controls
+
+      if (showControls) {
+        var controlsData = [
+          { key: 'Re-scale y-axis', disabled: !rescaleY }
+        ];
+
         controls.width(140).color(['#444', '#444', '#444']);
         g.select('.nv-controlsWrap')
             .datum(controlsData)
@@ -178,7 +206,14 @@ nv.models.cumulativeLineChart = function() {
             .call(controls);
       }
 
+      //------------------------------------------------------------
 
+
+      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+      //------------------------------------------------------------
+      // Main Chart Component(s)
 
       lines
         //.x(function(d) { return d.x })
@@ -189,9 +224,6 @@ nv.models.cumulativeLineChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
-
-
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       var linesWrap = g.select('.nv-linesWrap')
@@ -213,7 +245,11 @@ nv.models.cumulativeLineChart = function() {
           .attr('transform', function(d) { return 'translate(' + dx(d.i) + ',0)' })
           .attr('height', availableHeight)
 
+      //------------------------------------------------------------
 
+
+      //------------------------------------------------------------
+      // Setup Axes
 
       xAxis
         .scale(x)
@@ -234,6 +270,7 @@ nv.models.cumulativeLineChart = function() {
       d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
 
+      //------------------------------------------------------------
 
 
       //============================================================
@@ -243,8 +280,6 @@ nv.models.cumulativeLineChart = function() {
       controls.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
         rescaleY = !d.disabled;
-
-        //console.log(d,i,arguments);
 
         selection.transition().call(chart);
       });
@@ -281,14 +316,12 @@ nv.models.cumulativeLineChart = function() {
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
+      //============================================================
+
+      chart.update = function() { chart(selection) };
+      chart.container = this;
 
     });
-
-
-    //TODO: decide if this is a good idea, and if it should be in all models
-    chart.update = function() { chart(selection) };
-    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
-
 
     return chart;
   }
@@ -311,18 +344,21 @@ nv.models.cumulativeLineChart = function() {
     if (tooltips) nv.tooltip.cleanup();
   });
 
+  //============================================================
+
 
   //============================================================
-  // Global getters and setters
+  // Expose Public Variables
   //------------------------------------------------------------
 
+  // expose chart's sub-components
   chart.dispatch = dispatch;
+  chart.lines = lines;
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
-
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -346,6 +382,12 @@ nv.models.cumulativeLineChart = function() {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     legend.color(color);
+    return chart;
+  };
+
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
     return chart;
   };
 
@@ -373,6 +415,7 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  //============================================================
 
 
   //============================================================
@@ -389,6 +432,7 @@ nv.models.cumulativeLineChart = function() {
         return point;
       })
       /*
+      TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
       if (v < -.9) {
         //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
       }
@@ -396,6 +440,8 @@ nv.models.cumulativeLineChart = function() {
       return line;
     })
   }
+
+  //============================================================
 
 
   return chart;

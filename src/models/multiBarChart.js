@@ -268,15 +268,15 @@ nv.models.multiBarChart = function() {
         selection.transition().call(chart);
       });
 
-      dispatch.on('tooltipShow', function(e) { 
-        if (tooltips) showTooltip(e, that.parentNode) 
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode)
       });
 
       //============================================================
 
 
       chart.update = function() { selection.transition().call(chart) };
-      chart.container = this; 
+      chart.container = this;
 
     });
 

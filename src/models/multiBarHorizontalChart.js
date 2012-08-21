@@ -21,12 +21,12 @@ nv.models.multiBarHorizontalChart = function() {
     , stacked = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
-        return '<h3>' + key + " - " + x + '</h3>' +
+        return '<h3>' + key + ' - ' + x + '</h3>' +
                '<p>' +  y + '</p>'
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
-    , noData = "No Data Available."
+    , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 
