@@ -115,11 +115,15 @@ nv.models.sparklinePlus = function() {
           .attr('y2', availableHeight);
 
       var hoverX = hoverG.append('text').attr('class', 'nv-xValue')
+          .attr('x', -6)
+          .attr('y', -margin.top)
           .attr('text-anchor', 'end')
           .attr('dy', '.9em');
 
       var hoverY = hoverG.append('text').attr('class', 'nv-yValue')
           //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
+          .attr('x', 6)
+          .attr('y', -margin.top)
           .attr('text-anchor', 'start')
           .attr('dy', '.9em');
 
@@ -128,17 +132,6 @@ nv.models.sparklinePlus = function() {
 
       function sparklineHover() {
         var pos = d3.event.offsetX - margin.left;
-
-        /*
-        hoverValue.select('line')
-            .attr('x1', pos)
-            .attr('x2', pos);
-           */
-
-        //hoverX
-        hoverValue.select('.nv-xValue')
-            .attr('transform', function(d) { return 'translate(' + (pos - 6) + ',' + (-margin.top) + ')' })
-            .text(xTickFormat(Math.round(x.invert(pos))));
 
         var f = function(data, x){
           var distance = Math.abs(sparkline.x()(data[0]) - x) ;
@@ -152,9 +145,23 @@ nv.models.sparklinePlus = function() {
           return closestIndex;
         }
 
+        index = f(data, Math.round(x.invert(pos)));
+
+        g.selectAll('.nv-hoverValue').data([index])
+            .attr('transform', function(d) { return 'translate(' + x(sparkline.x()(data[d],d)) + ',0)' });
+        /*
+        hoverValue.select('line')
+            .attr('x1', pos)
+            .attr('x2', pos);
+           */
+
+        //hoverX
+        hoverValue.select('.nv-xValue')
+            .text(xTickFormat(Math.round(x.invert(pos))));
+
+
         //hoverY
         hoverValue.select('.nv-yValue')
-            .attr('transform', function(d) { return 'translate(' + (pos + 6) + ',' + (-margin.top) + ')' })
             .text(yTickFormat(sparkline.y()(data[f(data, Math.round(x.invert(pos)))])));
       }
 
