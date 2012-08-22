@@ -31,9 +31,10 @@ nv.addGraph({
                   //.height(50)
 
     d3.select("#chart1")
-      //.datum([]) //for testing "noData"
-      .datum(sine())
-      .call(chart);
+        //.datum([]) //for testing "noData"
+        .datum(sine())
+      .transition().duration(250)
+        .call(chart);
 
     return chart;
   },

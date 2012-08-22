@@ -8655,6 +8655,7 @@ nv.models.sparklinePlus = function() {
     , y
     , color = nv.utils.defaultColor()
     , index
+    , paused = false
     , xTickFormat = d3.format(',r')
     , yTickFormat = d3.format(',.2f')
     , noData = "No Data Available."
@@ -8671,6 +8672,10 @@ nv.models.sparklinePlus = function() {
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
+
+
+      chart.update = function() { chart(selection) };
+      chart.container = this;
 
 
       //------------------------------------------------------------
@@ -8739,21 +8744,25 @@ nv.models.sparklinePlus = function() {
       //------------------------------------------------------------
 
 
-      var hoverArea = gEnter.select('.nv-hoverArea');
 
-      hoverArea.append('rect')
-          .attr('transform', function(d) { return 'translate(0,' + -margin.top + ')' })
-          .attr('width', availableWidth)
-          .attr('height', availableHeight + margin.top)
-          .on('mousemove', sparklineHover);
+      gEnter.select('.nv-hoverArea').append('rect')
+          .on('mousemove', sparklineHover)
+          .on('click', function() { paused = !paused })
+          .on('mouseout', function() { index = null; updateValueLine(); });
 
-      index = data.length - 1;
+      g.select('.nv-hoverArea rect')
+          .attr('transform', function(d) { return 'translate(' + -margin.left + ',' + -margin.top + ')' })
+          .attr('width', availableWidth + margin.left + margin.right)
+          .attr('height', availableHeight + margin.top);
+
+      // if index is not set, default to last point
+      //index = typeof index == 'undefined' ? data.length - 1 : index;
+      // if index is not set, default to null
+      index = typeof index == 'undefined' ? null : index;
 
       var hoverValue = g.selectAll('.nv-hoverValue').data([index]);
 
       var hoverG = hoverValue.enter().append('g').attr('class', 'nv-hoverValue');
-
-      hoverValue.attr('transform', function(d) { return 'translate(' + x(sparkline.x()(data[d],d)) + ',0)' });
 
       var hoverLine = hoverG.append('line')
           .attr('x1', 0)
@@ -8777,26 +8786,40 @@ nv.models.sparklinePlus = function() {
 
 
       function updateValueLine() { //index is currently global (within the chart), may or may not keep it that way
-        g.selectAll('.nv-hoverValue').data([index])
-            .attr('transform', function(d) { return 'translate(' + x(sparkline.x()(data[d],d)) + ',0)' });
+        if (paused) return;
+
+        hoverValue.data([index])
+
+        //d3.transition(hoverValue)
+        hoverValue
+          .transition().duration(250)
+            .style('stroke-opacity', function(d) { return d === null ? 0 : 1 })
+            .style('fill-opacity', function(d) { return d === null ? 0 : 1 });
+
+        if (index == null) return;
+
+        hoverValue
+            .attr('transform', function(d) { return 'translate(' + x(sparkline.x()(data[d],d)) + ',0)' })
 
         hoverValue.select('.nv-xValue')
-            .text(xTickFormat(sparkline.x()(data[index])));
+            .text(xTickFormat(sparkline.x()(data[index], index)));
 
         hoverValue.select('.nv-yValue')
-            .text(yTickFormat(sparkline.y()(data[index])));
+            .text(yTickFormat(sparkline.y()(data[index], index)));
       }
 
 
       function sparklineHover() {
+        if (paused) return;
+
         var pos = d3.event.offsetX - margin.left;
 
         function getClosestIndex(data, x) {
-          var distance = Math.abs(sparkline.x()(data[0]) - x);
+          var distance = Math.abs(sparkline.x()(data[0], 0) - x);
           var closestIndex = 0;
           for (var i = 0; i < data.length; i++){
-            if (Math.abs(sparkline.x()(data[i]) - x) < distance) {
-              distance = Math.abs(sparkline.x()(data[i]) -x);
+            if (Math.abs(sparkline.x()(data[i], i) - x) < distance) {
+              distance = Math.abs(sparkline.x()(data[i], i) - x);
               closestIndex = i;
             }
           }

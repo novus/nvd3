@@ -499,6 +499,10 @@ svg .title {
   fill: none;
 }
 
+.nvd3.nv-sparklineplus g.nv-hoverValue {
+  pointer-events: none;
+}
+
 .nvd3.nv-sparklineplus .nv-hoverValue line {
   stroke: #f44;
   stroke-width: 1.5px;
