@@ -32,6 +32,10 @@ nv.models.sparklinePlus = function() {
                              - margin.top - margin.bottom;
 
 
+      chart.update = function() { chart(selection) };
+      chart.container = this;
+
+
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 

@@ -60,8 +60,8 @@ nv.addGraph(function() {
       .tickFormat(d3.format(',.2f'));
 
   d3.select('#chart1 svg')
-      .datum([])
-      //.datum(sinAndCos())
+      //.datum([]) //for testing noData
+      .datum(sinAndCos())
     .transition().duration(500)
       .call(chart);
 
