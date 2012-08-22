@@ -36,16 +36,21 @@ nv.models.sparklinePlus = function() {
       // Display No Data message if there's nothing to show.
 
       if (!data || !data.length) {
-        container.append('text')
+        var noDataText = container.selectAll('.nv-noData').data([noData]);
+
+        noDataText.enter().append('text')
           .attr('class', 'nvd3 nv-noData')
-          .attr('x', availableWidth / 2)
-          .attr('y', availableHeight / 2)
           .attr('dy', '-.7em')
-          .style('text-anchor', 'middle')
-          .text(noData);
-          return chart;
+          .style('text-anchor', 'middle');
+
+        noDataText
+          .attr('x', margin.left + availableWidth / 2)
+          .attr('y', margin.top + availableHeight / 2)
+          .text(function(d) { return d });
+
+        return chart;
       } else {
-        container.select('.nv-noData').remove();
+        container.selectAll('.nv-noData').remove();
       }
 
       //------------------------------------------------------------
@@ -96,8 +101,9 @@ nv.models.sparklinePlus = function() {
       var hoverArea = gEnter.select('.nv-hoverArea');
 
       hoverArea.append('rect')
+          .attr('transform', function(d) { return 'translate(0,' + -margin.top + ')' })
           .attr('width', availableWidth)
-          .attr('height', availableHeight)
+          .attr('height', availableHeight + margin.top)
           .on('mousemove', sparklineHover);
 
       index = data.length - 1;
