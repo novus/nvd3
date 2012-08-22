@@ -8705,10 +8705,10 @@ nv.models.sparklinePlus = function() {
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
 
-      gEnter.append('g').attr('class', 'nv-sparklineWrap')
+      gEnter.append('g').attr('class', 'nv-sparklineWrap');
       gEnter.append('g').attr('class', 'nv-hoverArea');
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       //------------------------------------------------------------
 
@@ -8757,20 +8757,31 @@ nv.models.sparklinePlus = function() {
           .attr('dy', '.9em');
 
       var hoverY = hoverG.append('text').attr('class', 'nv-yValue')
-          //.attr('transform', function(d) { return 'translate(' + x(d) + ',0)' })
           .attr('x', 6)
           .attr('y', -margin.top)
           .attr('text-anchor', 'start')
           .attr('dy', '.9em');
 
+      updateValueLine();
 
+
+      function updateValueLine() { //index is currently global (within the chart), may or may not keep it that way
+        g.selectAll('.nv-hoverValue').data([index])
+            .attr('transform', function(d) { return 'translate(' + x(sparkline.x()(data[d],d)) + ',0)' });
+
+        hoverValue.select('.nv-xValue')
+            .text(xTickFormat(sparkline.x()(data[index])));
+
+        hoverValue.select('.nv-yValue')
+            .text(yTickFormat(sparkline.y()(data[index])));
+      }
 
 
       function sparklineHover() {
         var pos = d3.event.offsetX - margin.left;
 
-        var f = function(data, x){
-          var distance = Math.abs(sparkline.x()(data[0]) - x) ;
+        function getClosestIndex(data, x) {
+          var distance = Math.abs(sparkline.x()(data[0]) - x);
           var closestIndex = 0;
           for (var i = 0; i < data.length; i++){
             if (Math.abs(sparkline.x()(data[i]) - x) < distance) {
@@ -8781,24 +8792,9 @@ nv.models.sparklinePlus = function() {
           return closestIndex;
         }
 
-        index = f(data, Math.round(x.invert(pos)));
+        index = getClosestIndex(data, Math.round(x.invert(pos)));
 
-        g.selectAll('.nv-hoverValue').data([index])
-            .attr('transform', function(d) { return 'translate(' + x(sparkline.x()(data[d],d)) + ',0)' });
-        /*
-        hoverValue.select('line')
-            .attr('x1', pos)
-            .attr('x2', pos);
-           */
-
-        //hoverX
-        hoverValue.select('.nv-xValue')
-            .text(xTickFormat(Math.round(x.invert(pos))));
-
-
-        //hoverY
-        hoverValue.select('.nv-yValue')
-            .text(yTickFormat(sparkline.y()(data[f(data, Math.round(x.invert(pos)))])));
+        updateValueLine();
       }
 
     });

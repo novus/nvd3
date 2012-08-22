@@ -492,8 +492,12 @@ svg .title {
 
 
 /**********
-* Sparkline plus
+* Sparkline
 */
+
+.nvd3.nv-sparkline path {
+  fill: none;
+}
 
 .nvd3.nv-sparklineplus .nv-hoverValue line {
   stroke: #f44;
