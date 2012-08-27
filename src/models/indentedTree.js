@@ -32,6 +32,9 @@ nv.models.indentedTree = function() {
           .children(function(d) { return d.values })
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
+      chart.update = function() { selection.transition().call(chart) };
+      chart.container = this;
+
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -217,9 +220,6 @@ nv.models.indentedTree = function() {
       }
 
 
-      chart.update = function() { selection.transition().call(chart) };
-      chart.container = this;
-
     });
 
     return chart;
@@ -232,7 +232,10 @@ nv.models.indentedTree = function() {
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
-    margin = _;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     return chart;
   };
 
