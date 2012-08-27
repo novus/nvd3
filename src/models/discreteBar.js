@@ -174,8 +174,6 @@ nv.models.discreteBar = function() {
       barsEnter.append('rect')
           .attr('height', 0)
           .attr('width', x.rangeBand() / data.length )
-          .style('fill', function(d,i){  return d.color || color(d, i) }) 
-          .style('stroke', function(d,i){ return d.color || color(d, i)});
 
       if (showValues) {
         barsEnter.append('text')
@@ -189,17 +187,19 @@ nv.models.discreteBar = function() {
       }
 
       bars
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
+          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
+          .style('fill', function(d,i) { return d.color || color(d,i) })
+          .style('stroke', function(d,i) { return d.color || color(d,i) })
           //.attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
           .attr('transform', function(d,i) {
-              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y0(0) : y0(getY(d,i))) + ')' 
+              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y0(0) : y0(getY(d,i))) + ')'
           })
         .selectAll('rect')
           .attr('width', x.rangeBand() / data.length);
       d3.transition(bars)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
-              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y(0) : y(getY(d,i))) + ')' 
+              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y(0) : y(getY(d,i))) + ')'
           })
         .selectAll('rect')
           .attr('height', function(d,i) {
