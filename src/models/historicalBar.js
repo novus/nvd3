@@ -14,7 +14,7 @@ nv.models.historicalBar = function() {
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
     , forceX = []
-    , forceY = []
+    , forceY = [0]
     , clipEdge = true
     , color = nv.utils.defaultColor()
     , xDomain
