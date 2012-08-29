@@ -35,6 +35,8 @@ nv.models.lineWithFocusChart = function() {
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
+	
+  var onClick = null;
 
   lines
     .clipEdge(true)
@@ -378,6 +380,11 @@ nv.models.lineWithFocusChart = function() {
         brushExtent = brush.empty() ? null : brush.extent();
         extent = brush.empty() ? x2.domain() : brush.extent();
 
+		if (onClick !== undefined && onClick !== null) {
+			onClick(extent);
+		}
+          
+		
         updateBrushBG();
 
         // Update Main (Focus)
@@ -540,6 +547,12 @@ nv.models.lineWithFocusChart = function() {
     if (!arguments.length) return yAxis.tickFormat();
     yAxis.tickFormat(_);
     y2Axis.tickFormat(_);
+    return chart;
+  };
+  
+  chart.onClick = function(_) {
+    if (!arguments.length) return onClick;
+    onClick = _;
     return chart;
   };
 
