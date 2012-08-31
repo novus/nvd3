@@ -89,7 +89,7 @@ nv.addGraph(function() {
   chart.y2Axis
       .tickFormat(d3.format(',.2f'));
 	  
-  chart.onClick(click);
+  chart.dispatch.on('brush', click);
 		
   var data = normalizeData(rawData.datum, 
 			  [
@@ -117,7 +117,8 @@ nv.addGraph(function() {
   return chart;
 });
 
-function click(extent) {
+function click(e) {
+  extent = e.extent;
 		rawData.data.filter([extent[0], extent[1]]);
 		streams("stream1");
 		streams("stream2");

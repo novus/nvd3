@@ -4288,7 +4288,7 @@ nv.models.lineWithFocusChart = function() {
                '<p>' +  y + ' at ' + x + '</p>'
       }
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
     ;
 
   lines
@@ -4632,6 +4632,10 @@ nv.models.lineWithFocusChart = function() {
       function onBrush() {
         brushExtent = brush.empty() ? null : brush.extent();
         extent = brush.empty() ? x2.domain() : brush.extent();
+
+
+        dispatch.brush({extent: extent, brush: brush});
+
 
         updateBrushBG();
 
