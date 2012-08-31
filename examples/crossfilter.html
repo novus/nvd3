@@ -51,16 +51,16 @@ svg {
 
 extend = function(destination, source) {
     for (var property in source) {
-		if (property in destination) { 
-			if ( typeof source[property] === "object" && 
-				typeof destination[property] === "object") {
-					destination[property] = extend(destination[property], source[property]);
-			} else {
-				continue; 
-			} 
-		} else {
-			destination[property] = source[property];
-		};
+    if (property in destination) { 
+      if ( typeof source[property] === "object" && 
+        typeof destination[property] === "object") {
+          destination[property] = extend(destination[property], source[property]);
+      } else {
+        continue; 
+      } 
+    } else {
+      destination[property] = source[property];
+    };
     }
     return destination;
 };
@@ -78,24 +78,24 @@ nv.addGraph(function() {
   chart.y2Axis
       .tickFormat(d3.format(',.2f'));
 
-  var dimension = testCrossfilterData().data;	
+  var dimension = testCrossfilterData().data; 
 
    var data = normalizeData(dimension.top(Infinity), 
-			  [
-				{ 
-					name: 'Stream #1',
-					key: 'stream1'
-				},
-				{ 
-					name: 'Stream #2',
-					key: 'stream2'
-				},
-				{ 
-					name: 'Stream #3',
-					key: 'stream3'
-				}
-			  ], 'x');  
-	  
+        [
+        { 
+          name: 'Stream #1',
+          key: 'stream1'
+        },
+        { 
+          name: 'Stream #2',
+          key: 'stream2'
+        },
+        { 
+          name: 'Stream #3',
+          key: 'stream3'
+        }
+        ], 'x');  
+    
   d3.select('#chart svg')
       .datum(data)
     .transition().duration(500)
@@ -107,38 +107,38 @@ nv.addGraph(function() {
 });
 
 function normalizeData(data, series, xAxis)
-	{
-		var sort = crossfilter.quicksort.by(function(d) { return d[xAxis]; });
-		var sorted = sort(data, 0, data.length);
-		
-		var result = [];
+  {
+    var sort = crossfilter.quicksort.by(function(d) { return d[xAxis]; });
+    var sorted = sort(data, 0, data.length);
+    
+    var result = [];
 
-		series.forEach(function(serie, index)
-		{
-			result.push({key: serie.name, values: [], color: serie.color});
-		});
-		
-		data.forEach(function(data, dataIndex)
-		{
-			series.forEach(function(serie, serieIndex)
-			{
-				result[serieIndex].values.push({x: data[xAxis],  y: data[serie.key]});
-			});
-		});
-		
-		return result;
-	};
+    series.forEach(function(serie, index)
+    {
+      result.push({key: serie.name, values: [], color: serie.color});
+    });
+    
+    data.forEach(function(data, dataIndex)
+    {
+      series.forEach(function(serie, serieIndex)
+      {
+        result[serieIndex].values.push({x: data[xAxis],  y: data[serie.key]});
+      });
+    });
+    
+    return result;
+  };
 
 function testCrossfilterData() {
   var data = crossfilter(testData());
   
-	try 
-	{
-		data.data = data.dimension(function(d) { return d.y; });
-	} catch (e) 
-	{
-		console.log(e.stack);
-	}
+  try 
+  {
+    data.data = data.dimension(function(d) { return d.y; });
+  } catch (e) 
+  {
+    console.log(e.stack);
+  }
   
   return data;
 }
@@ -151,10 +151,10 @@ function testData() {
   
   stream_layers(3,128,.1).map(function(layer, index) {
     layer.forEach(function(item, i) {
-		var object = { x: item.x };
-		object['stream' + (index + 1)] = item.y;
-		eval('data' + (index + 1)).push(object);
-	});
+    var object = { x: item.x };
+    object['stream' + (index + 1)] = item.y;
+    eval('data' + (index + 1)).push(object);
+  });
   });
   
   var data = extend(data1, data2);
