@@ -34,7 +34,7 @@ if (nv.dev) {
 
 // Logs all arguments, and returns the last so you can test things in place
 nv.log = function() {
-  if (nv.dev && console.log) console.log.apply(console, arguments);
+  if (nv.dev && console.log && console.log.apply) console.log.apply(console, arguments);
   return arguments[arguments.length - 1];
 };
 
