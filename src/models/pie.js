@@ -35,6 +35,7 @@ nv.models.pie = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
+      //var wrap = container.selectAll('.nv-wrap.nv-pie').data([data]);
       var wrap = container.selectAll('.nv-wrap.nv-pie').data([getValues(data[0])]);
       var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
       var gEnter = wrapEnter.append('g');
