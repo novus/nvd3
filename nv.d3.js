@@ -9155,6 +9155,7 @@ nv.models.stackedArea = function() {
     , style = 'stack'
     , offset = 'zero'
     , order = 'default'
+    , interpolate = 'linear'  // controls the line interpolation
     , clipEdge = false // if true, masks lines within x and y scale
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
@@ -9277,7 +9278,8 @@ nv.models.stackedArea = function() {
       var area = d3.svg.area()
           .x(function(d,i)  { return x(getX(d,i)) })
           .y0(function(d) { return y(d.display.y0) })
-          .y1(function(d) { return y(d.display.y + d.display.y0) });
+          .y1(function(d) { return y(d.display.y + d.display.y0) })
+          .interpolate(interpolate);
 
       var zeroArea = d3.svg.area()
           .x(function(d,i)  { return x(getX(d,i)) })
@@ -9457,6 +9459,13 @@ nv.models.stackedArea = function() {
     return chart;
   };
 
+  chart.interpolate = function(_) {
+	    if (!arguments.length) return interpolate;
+	    interpolate = _;
+	    return interpolate;
+  
+  };
+  
   //============================================================
 
 
@@ -9776,7 +9785,7 @@ nv.models.stackedAreaChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'sizeDomain', 'interactive', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize');
+  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'sizeDomain', 'interactive', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
