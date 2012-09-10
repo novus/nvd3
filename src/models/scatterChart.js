@@ -248,9 +248,9 @@ nv.models.scatterChart = function() {
               return d.color || color(d, i);
             }).filter(function(d,i) { return !data[i].disabled }));
         gEnter.select('.nv-distWrap').append('g')
-            .attr('class', 'nv-distributionX')
-            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+            .attr('class', 'nv-distributionX');
         g.select('.nv-distributionX')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
       }
@@ -264,9 +264,9 @@ nv.models.scatterChart = function() {
               return d.color || color(d, i);
             }).filter(function(d,i) { return !data[i].disabled }));
         gEnter.select('.nv-distWrap').append('g')
-            .attr('class', 'nv-distributionY')
-            .attr('transform', 'translate(-' + distY.size() + ',0)');
+            .attr('class', 'nv-distributionY');
         g.select('.nv-distributionY')
+            .attr('transform', 'translate(-' + distY.size() + ',0)')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
       }
