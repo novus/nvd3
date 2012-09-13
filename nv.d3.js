@@ -3350,7 +3350,7 @@ nv.models.line = function() {
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
-      groups.selectAll('path:not(.nv-area)').remove(); // attempting to fix issue #198
+      groups.selectAll('path:not(.nv-area):not(.nv-line)').remove(); // attempting to fix issue #198
       d3.transition(groups.exit().selectAll('path.nv-area'))
           .attr('d', function(d) {
             return d3.svg.area()
@@ -3387,7 +3387,7 @@ nv.models.line = function() {
               .x(function(d,i) { return x0(getX(d,i)) })
               .y(function(d,i) { return y0(getY(d,i)) })
           );
-      groups.selectAll('path:not(.nv-line)').remove(); // attempting to fix issue #198
+      groups.selectAll('path:not(.nv-area):not(.nv-line)').remove(); // attempting to fix issue #198
       d3.transition(groups.exit().selectAll('path.nv-line'))
           .attr('d',
             d3.svg.line()
