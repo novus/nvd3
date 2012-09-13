@@ -1208,6 +1208,9 @@ nv.models.bulletChart = function() {
           that = this;
 
 
+      chart.update = function() { chart(selection) };
+      chart.container = this;
+
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
@@ -1293,7 +1296,7 @@ nv.models.bulletChart = function() {
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
 
-      var title = g.select('.nv-titles').append("g")
+      var title = gEnter.select('.nv-titles').append("g")
           .attr("text-anchor", "end")
           .attr("transform", "translate(-6," + (height - margin.top - margin.bottom) / 2 + ")");
       title.append("text")
