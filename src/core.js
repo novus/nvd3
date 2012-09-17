@@ -61,6 +61,7 @@ nv.render = function render(step) {
   }, 0);
 };
 
+nv.render.active = false;
 nv.render.queue = [];
 
 nv.addGraph = function(obj) {
