@@ -923,6 +923,7 @@ nv.models.bullet = function() {
     , ranges = function(d) { return d.ranges }
     , markers = function(d) { return d.markers }
     , measures = function(d) { return d.measures }
+    , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
     , width = 380
     , height = 30
     , tickFormat = null
@@ -942,6 +943,7 @@ nv.models.bullet = function() {
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
+          nv.log(rangez, markerz, measurez);
 
       //------------------------------------------------------------
       // Setup Scales
@@ -1109,6 +1111,12 @@ nv.models.bullet = function() {
   chart.measures = function(_) {
     if (!arguments.length) return measures;
     measures = _;
+    return chart;
+  };
+
+  chart.forceX = function(_) {
+    if (!arguments.length) return forceX;
+    forceX = _;
     return chart;
   };
 
