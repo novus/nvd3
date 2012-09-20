@@ -275,6 +275,11 @@ nv.models.axis = function() {
 
       scale0 = scale0 || axis.scale();
 
+      var fmt = axis.tickFormat();
+      if (fmt == null) {
+        fmt = scale0.tickFormat();    
+      }
+
       var axisLabel = g.selectAll('text.nv-axislabel')
           .data([axisLabelText || null]);
       axisLabel.exit().remove();
@@ -300,7 +305,8 @@ nv.models.axis = function() {
                 .attr('y', -axis.tickPadding())
                 .attr('text-anchor', 'middle')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+		  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -346,7 +352,8 @@ nv.models.axis = function() {
                 .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
                 .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+                  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -377,7 +384,8 @@ nv.models.axis = function() {
                 .attr('x', axis.tickPadding())
                 .attr('text-anchor', 'start')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+                  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -410,7 +418,8 @@ nv.models.axis = function() {
                 .attr('x', -axis.tickPadding())
                 .attr('text-anchor', 'end')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+                  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -3788,7 +3797,7 @@ nv.models.linePlusBarChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>';
       }
-    , x = d3.scale.linear() // needs to be both line and historicalBar x Axis
+    , x
     , y1
     , y2
     , noData = "No Data Available."
@@ -3868,6 +3877,7 @@ nv.models.linePlusBarChart = function() {
       //------------------------------------------------------------
       // Setup Scales
 
+      x = xAxis.scale();
       y1 = bars.yScale();
       y2 = lines.yScale();
 
@@ -3994,7 +4004,6 @@ nv.models.linePlusBarChart = function() {
       // Setup Axes
 
       xAxis
-        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
