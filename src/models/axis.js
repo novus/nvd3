@@ -25,8 +25,7 @@ nv.models.axis = function() {
 
   var axis = d3.svg.axis()
                .scale(scale)
-               .orient('bottom')
-               .tickFormat(function(d) { return d }) //TODO: decide if we want to keep this
+               .orient('bottom')               
     , scale0;
 
   //============================================================
