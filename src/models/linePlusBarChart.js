@@ -25,7 +25,7 @@ nv.models.linePlusBarChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>';
       }
-    , x = d3.scale.linear() // needs to be both line and historicalBar x Axis
+    , x
     , y1
     , y2
     , noData = "No Data Available."
@@ -105,6 +105,7 @@ nv.models.linePlusBarChart = function() {
       //------------------------------------------------------------
       // Setup Scales
 
+      x = xAxis.scale();
       y1 = bars.yScale();
       y2 = lines.yScale();
 
@@ -231,7 +232,6 @@ nv.models.linePlusBarChart = function() {
       // Setup Axes
 
       xAxis
-        .scale(x)
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 

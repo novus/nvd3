@@ -2,5 +2,5 @@
 COMPRESSOR=`which yui-compressor`
 cat src/intro.js src/core.js src/tooltip.js src/models/*.js src/outro.js > nv.d3.js
 if [ -e $COMPRESSOR ]; then
-  yui-compressor --type js -o nv.d3.min.js nv.d3.js
+  $COMPRESSOR --type js -o nv.d3.min.js nv.d3.js
 fi

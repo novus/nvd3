@@ -61,6 +61,11 @@ nv.models.axis = function() {
 
       scale0 = scale0 || axis.scale();
 
+      var fmt = axis.tickFormat();
+      if (fmt == null) {
+        fmt = scale0.tickFormat();    
+      }
+
       var axisLabel = g.selectAll('text.nv-axislabel')
           .data([axisLabelText || null]);
       axisLabel.exit().remove();
@@ -86,7 +91,8 @@ nv.models.axis = function() {
                 .attr('y', -axis.tickPadding())
                 .attr('text-anchor', 'middle')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+		  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -132,7 +138,8 @@ nv.models.axis = function() {
                 .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
                 .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+                  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -163,7 +170,8 @@ nv.models.axis = function() {
                 .attr('x', axis.tickPadding())
                 .attr('text-anchor', 'start')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+                  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
@@ -196,7 +204,8 @@ nv.models.axis = function() {
                 .attr('x', -axis.tickPadding())
                 .attr('text-anchor', 'end')
                 .text(function(d,i) {
-                  return ('' + axis.tickFormat()(d)).match('NaN') ? '' : axis.tickFormat()(d)
+                  var v = fmt(d);
+                  return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
