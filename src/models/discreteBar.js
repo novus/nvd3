@@ -178,7 +178,7 @@ nv.models.discreteBar = function() {
       if (showValues) {
         barsEnter.append('text')
           .attr('text-anchor', 'middle')
-        bars.selectAll('text')
+        bars.select('text')
           .attr('x', x.rangeBand() / 2)
           .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
           .text(function(d,i) { return valueFormat(getY(d,i)) });
@@ -190,21 +190,17 @@ nv.models.discreteBar = function() {
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
           .style('fill', function(d,i) { return d.color || color(d,i) })
           .style('stroke', function(d,i) { return d.color || color(d,i) })
-          //.attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
-          .attr('transform', function(d,i) {
-              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y0(0) : y0(getY(d,i))) + ')'
-          })
-        .selectAll('rect')
+        .select('rect')
           .attr('width', x.rangeBand() / data.length);
       d3.transition(bars)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
-          .attr('transform', function(d,i) {
+		  .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y(0) : y(getY(d,i))) + ')'
           })
-        .selectAll('rect')
-          .attr('height', function(d,i) {
-             return Math.abs(y(getY(d,i)) - y(0))
-           });
+		  .select('rect')
+		    .attr('height', function(d,i) {
+			   return Math.abs(y(getY(d,i)) - y(0))
+		     });
 
 
       //store old scales for use in transitions on update
