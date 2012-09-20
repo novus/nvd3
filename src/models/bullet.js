@@ -43,8 +43,9 @@ nv.models.bullet = function() {
       // Setup Scales
 
       // Compute the new x-scale.
+      var MaxX = Math.max(rangez[0] ? rangez[0]:0 , markerz[0] ? markerz[0] : 0 , measurez[0] ? measurez[0] : 0)
       var x1 = d3.scale.linear()
-          .domain([0, Math.max(rangez[0], markerz[0], measurez[0])]).nice()  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+          .domain([0, MaxX])]).nice()  // TODO: need to allow forceX and forceY, and xDomain, yDomain
           .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
       // Retrieve the old x-scale, if this is an update.
