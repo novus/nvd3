@@ -29,7 +29,9 @@ nv.models.bullet = function() {
     selection.each(function(d, i) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
-          container = d3.select(this);
+          container = d3.select(this),
+          mainGroup = this.parentNode.parentNode.getAttribute('transform')
+          heightFromTop = parseInt(mainGroup.replace(/.*,(\d+)\)/,"$1")) //TODO: There should be a smarter way to get this value
 
       var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
@@ -87,7 +89,7 @@ nv.models.bullet = function() {
               dispatch.elementMouseover({
                 value: d,
                 label: (i <= 0) ? 'Maximum' : (i > 1) ? 'Minimum' : 'Mean', //TODO: make these labels a variable
-                pos: [x1(d), availableHeight/2]
+                pos: [x1(d), heightFromTop]
               })
           })
           .on('mouseout', function(d,i) { 
@@ -117,7 +119,7 @@ nv.models.bullet = function() {
               dispatch.elementMouseover({
                 value: d,
                 label: 'Current', //TODO: make these labels a variable
-                pos: [x1(d), availableHeight/2]
+                pos: [x1(d), heightFromTop]
               })
           })
           .on('mouseout', function(d) { 
@@ -148,7 +150,7 @@ nv.models.bullet = function() {
               dispatch.elementMouseover({
                 value: d,
                 label: 'Previous',
-                pos: [x1(d), availableHeight/2]
+                pos: [x1(d), heightFromTop]
               })
           })
           .on('mouseout', function(d,i) {
