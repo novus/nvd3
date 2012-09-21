@@ -120,7 +120,7 @@ nv.models.bulletChart = function() {
 
       // Retrieve the old x-scale, if this is an update.
       var x0 = this.__chart__ || d3.scale.linear()
-          .domain([0, Infinity]).nice()
+          .domain([0, Infinity])
           .range(x1.range());
 
       // Stash the new scale.
