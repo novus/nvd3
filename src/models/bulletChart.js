@@ -36,15 +36,15 @@ nv.models.bulletChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var showTooltip = function(e, offsetElement) {
-    var offsetElement = document.getElementById("chart"),
+  var showTooltip = function(e, parentElement) {
+    var offsetElement = parentElement.parentNode.parentNode,
         left = e.pos[0] + offsetElement.offsetLeft + margin.left,
         top = e.pos[1] + offsetElement.offsetTop + margin.top;
 
     var content = '<h3>' + e.label + '</h3>' +
             '<p>' + e.value + '</p>';
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement.parentNode);
   };
 
   //============================================================
@@ -107,14 +107,15 @@ nv.models.bulletChart = function() {
       gEnter.append('g').attr('class', 'nv-bulletWrap');
       gEnter.append('g').attr('class', 'nv-titles');
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + margin.left + ',' + ( margin.top + i*height )+ ')');
 
       //------------------------------------------------------------
 
 
       // Compute the new x-scale.
+      var MaxX = Math.max(rangez[0] ? rangez[0]:0 , markerz[0] ? markerz[0] : 0 , measurez[0] ? measurez[0] : 0)
       var x1 = d3.scale.linear()
-          .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+          .domain([0, MaxX]).nice()  // TODO: need to allow forceX and forceY, and xDomain, yDomain
           .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
       // Retrieve the old x-scale, if this is an update.
