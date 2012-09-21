@@ -37,7 +37,6 @@ nv.models.bullet = function() {
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
-          nv.log(rangez, markerz, measurez);
 
       //------------------------------------------------------------
       // Setup Scales
