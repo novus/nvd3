@@ -2,8 +2,31 @@
 
 A reusable chart library for d3.JS by Bob Monteverde of Novus Partners.
 
-
 Currently in an early stage of development, but will be a very active project.  It may change quite a bit from its current state, but will always try to follow the style in which d3.js was done.
 
 You can also check out the [examples page](http://nvd3.com/ghpages/examples.html)
+
+---
+
+If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models) doesn't meet your needs, fork the project, implement the model and an example using it, send us a pull request, for consideration for inclusion in the project.
+
+---
+
+Minifying your fork:
+
+The Makefile requires [UgligyJS](https://github.com/mishoo/UglifyJS).
+
+The easist way to install is to install via npm. Run `npm install
+uglify-js` from your home directory, then add the output from `npm bin`
+into your path so that you have access to `uglifyjs` from the command
+line (remember to restart your terminal window when adding to the path.)
+
+Once you have `ugligfyjs` command available, running `make` from your
+fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
+
+Without UglifyJS, you won't get the minified version when running make.
+
+**We ask that you DO NOT minify pull requests... 
+If you need to minify please build pull request in separate branch, and
+merge and minify in yout master.
 
