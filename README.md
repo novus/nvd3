@@ -14,14 +14,14 @@ If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/mo
 
 Minifying your fork:
 
-The Makefile requires [UgligyJS](https://github.com/mishoo/UglifyJS).
+The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS).
 
 The easist way to install is to install via npm. Run `npm install
 uglify-js` from your home directory, then add the output from `npm bin`
 into your path so that you have access to `uglifyjs` from the command
 line (remember to restart your terminal window when adding to the path.)
 
-Once you have `ugligfyjs` command available, running `make` from your
+Once you have `uglifyjs` command available, running `make` from your
 fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
 
 Without UglifyJS, you won't get the minified version when running make.
