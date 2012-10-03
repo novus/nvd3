@@ -104,7 +104,7 @@ nv.models.lineWithFocusChart = function() {
 
         noDataText
           .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
+          .attr('y', margin.top + availableHeight1 / 2)
           .text(function(d) { return d });
 
         return chart;
