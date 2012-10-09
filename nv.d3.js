@@ -5203,7 +5203,7 @@ nv.models.multiBarChart = function() {
     , controls = nv.models.legend()
     ;
 
-  var margin = {top: 30, right: 20, bottom: 55, left: 60}
+  var margin = {top: 30, right: 20, bottom: 30, left: 60}
     , width = null
     , height = null
     , color = nv.utils.defaultColor()
