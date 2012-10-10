@@ -323,7 +323,7 @@ nv.models.axis = function() {
 
   var axis = d3.svg.axis()
                .scale(scale)
-               .orient('bottom')               
+               .orient('bottom')
     , scale0;
 
   //============================================================
@@ -361,7 +361,7 @@ nv.models.axis = function() {
 
       var fmt = axis.tickFormat();
       if (fmt == null) {
-        fmt = scale0.tickFormat();    
+        fmt = scale0.tickFormat();
       }
 
       var axisLabel = g.selectAll('text.nv-axislabel')
@@ -389,7 +389,7 @@ nv.models.axis = function() {
                 .attr('y', -axis.tickPadding())
                 .attr('text-anchor', 'middle')
                 .text(function(d,i) {
-		  var v = fmt(d);
+                  var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
             d3.transition(axisMaxMin)
@@ -399,25 +399,26 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-        var xLabelMargin = 30;
-        var maxTextWidth = 30;
-        if(rotateLabels%360){
-          var xTicks = g.selectAll('g').select("text");
-          //Calculate the longest xTick width
-          xTicks.each(function(d,i){
-            var width = this.getBBox().width;
-            if(width > maxTextWidth) maxTextWidth = width;
-          });
-          //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
-          var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
-          var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
-          //Rotate all xTicks
-          xTicks.attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
-          .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
-        }
-        axisLabel.enter().append('text').attr('class', 'nv-axislabel')
-              .attr('text-anchor', 'middle')
-              .attr('y', xLabelMargin);
+          var xLabelMargin = 30;
+          var maxTextWidth = 30;
+          if (rotateLabels%360) {
+            var xTicks = g.selectAll('g').select("text");
+            //Calculate the longest xTick width
+            xTicks.each(function(d,i){
+              var width = this.getBBox().width;
+              if(width > maxTextWidth) maxTextWidth = width;
+            });
+            //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
+            var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
+            var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
+            //Rotate all xTicks
+            xTicks
+              .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+              .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
+          }
+          axisLabel.enter().append('text').attr('class', 'nv-axislabel')
+            .attr('text-anchor', 'middle')
+            .attr('y', xLabelMargin);
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('x', w/2);
@@ -9616,7 +9617,7 @@ nv.models.stackedAreaChart = function() {
 
       if (showLegend) {
         legend
-          .width( availableWidth / 2 );
+          .width( availableWidth * 2 / 3 );
 
         g.select('.nv-legendWrap')
             .datum(data)
@@ -9629,7 +9630,7 @@ nv.models.stackedAreaChart = function() {
         }
 
         g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + ( availableWidth * 1 / 3 ) + ',' + (-margin.top) +')');
       }
 
       //------------------------------------------------------------
@@ -9645,11 +9646,24 @@ nv.models.stackedAreaChart = function() {
           { key: 'Expanded', disabled: stacked.offset() != 'expand' }
         ];
 
-        controls.width(280).color(['#444', '#444', '#444']);
+        controls
+          .width( Math.min(280, availableWidth * 1 / 3) )
+          .color(['#444', '#444', '#444']);
+
         g.select('.nv-controlsWrap')
             .datum(controlsData)
-            .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+
+
+        if ( margin.top != Math.max(controls.height(), legend.height()) ) {
+          margin.top = Math.max(controls.height(), legend.height());
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+        }
+
+
+        g.select('.nv-controlsWrap')
+            .attr('transform', 'translate(0,' + (-margin.top) +')');
       }
 
       //------------------------------------------------------------
