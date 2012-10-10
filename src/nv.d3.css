@@ -153,6 +153,10 @@ svg .title {
   stroke-opacity: .75;
 }
 
+.nvd3 .nv-axis.nv-x path.domain {
+  stroke-opacity: 0;
+}
+
 .nvd3 .nv-axis line {
   fill: none;
   stroke: #000;
