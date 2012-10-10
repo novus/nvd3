@@ -7856,11 +7856,13 @@ nv.models.scatter = function() {
 
         var vertices = d3.merge(data.map(function(group, groupIndex) {
             return group.values
-              .filter(pointActive) // remove non-interactive points
               .map(function(point, pointIndex) {
                 // *Adding noise to make duplicates very unlikely
                 // **Injecting series and point index for reference
-                return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
+                return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
+              })
+              .filter(function(pointArray, pointIndex) {
+                return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
               })
           })
         );
@@ -9529,6 +9531,12 @@ nv.models.stackedAreaChart = function() {
   yAxis
     .orient('left')
     ;
+  stacked.scatter
+    .pointActive(function(d) {
+      //console.log(stacked.y()(d), !!Math.round(stacked.y()(d) * 100));
+      return !!Math.round(stacked.y()(d) * 100);
+    })
+    ;
 
   //============================================================
 
@@ -9785,10 +9793,12 @@ nv.models.stackedAreaChart = function() {
   stacked.dispatch.on('tooltipShow', function(e) {
     //disable tooltips when value ~= 0
     //// TODO: consider removing points from voronoi that have 0 value instead of this hack
+    /*
     if (!Math.round(stacked.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
       setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
       return false;
     }
+   */
 
     e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
     dispatch.tooltipShow(e);

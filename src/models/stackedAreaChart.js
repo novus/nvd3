@@ -37,6 +37,12 @@ nv.models.stackedAreaChart = function() {
   yAxis
     .orient('left')
     ;
+  stacked.scatter
+    .pointActive(function(d) {
+      //console.log(stacked.y()(d), !!Math.round(stacked.y()(d) * 100));
+      return !!Math.round(stacked.y()(d) * 100);
+    })
+    ;
 
   //============================================================
 
@@ -293,10 +299,12 @@ nv.models.stackedAreaChart = function() {
   stacked.dispatch.on('tooltipShow', function(e) {
     //disable tooltips when value ~= 0
     //// TODO: consider removing points from voronoi that have 0 value instead of this hack
+    /*
     if (!Math.round(stacked.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
       setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
       return false;
     }
+   */
 
     e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
     dispatch.tooltipShow(e);

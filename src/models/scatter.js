@@ -141,11 +141,13 @@ nv.models.scatter = function() {
 
         var vertices = d3.merge(data.map(function(group, groupIndex) {
             return group.values
-              .filter(pointActive) // remove non-interactive points
               .map(function(point, pointIndex) {
                 // *Adding noise to make duplicates very unlikely
                 // **Injecting series and point index for reference
-                return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex]; //temp hack to add noise untill I think of a better way so there are no duplicates
+                return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
+              })
+              .filter(function(pointArray, pointIndex) {
+                return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
               })
           })
         );
