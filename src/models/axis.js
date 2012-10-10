@@ -13,6 +13,7 @@ nv.models.axis = function() {
     , highlightZero = true
     , rotateLabels = 0
     , rotateYLabel = true
+    , staggerLabels = false
     , ticks = null
     ;
 
@@ -103,8 +104,8 @@ nv.models.axis = function() {
         case 'bottom':
           var xLabelMargin = 30;
           var maxTextWidth = 30;
+          var xTicks = g.selectAll('g').select("text");
           if (rotateLabels%360) {
-            var xTicks = g.selectAll('g').select("text");
             //Calculate the longest xTick width
             xTicks.each(function(d,i){
               var width = this.getBBox().width;
@@ -147,6 +148,10 @@ nv.models.axis = function() {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
           }
+          if (staggerLabels)
+            xTicks
+                .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')' });
+
           break;
         case 'right':
           axisLabel.enter().append('text').attr('class', 'nv-axislabel')
@@ -341,6 +346,13 @@ nv.models.axis = function() {
     rotateLabels = _;
     return chart;
   }
+
+  chart.staggerLabels = function(_) {
+    if (!arguments.length) return staggerLabels;
+    staggerLabels = _;
+    return chart;
+  };
+
 
   //============================================================
 
