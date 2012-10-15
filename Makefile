@@ -27,6 +27,7 @@ JS_FILES = \
 	src/models/pieChart.js \
 	src/models/scatter.js \
 	src/models/scatterChart.js \
+	src/models/scatterPlusLineChart.js \
 	src/models/sparkline.js \
 	src/models/sparklinePlus.js \
 	src/models/stackedArea.js \
