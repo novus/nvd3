@@ -113,8 +113,7 @@ nv.models.linePlusBarChart = function() {
       y2 = lines.yScale();
 
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
-
-      var dataLines = data.filter(function(d) { return !d.disabled && !d.bar });
+      var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
 
 
       //TODO: try to remove x scale computation from this layer
