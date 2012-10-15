@@ -3917,6 +3917,9 @@ nv.models.linePlusBarChart = function() {
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 
+  lines
+    .clipEdge(false)
+    ;
   xAxis
     .orient('bottom')
     .tickPadding(5)
@@ -4088,7 +4091,6 @@ nv.models.linePlusBarChart = function() {
       lines
         .width(availableWidth)
         .height(availableHeight)
-        .clipEdge(true)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
