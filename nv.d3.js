@@ -8389,9 +8389,6 @@ nv.models.scatterChart = function() {
       //------------------------------------------------------------
       // Setup Scales
 
-      x = scatter.xScale();
-      y = scatter.yScale();
-
       x0 = x0 || x;
       y0 = y0 || y;
 
@@ -8479,7 +8476,7 @@ nv.models.scatterChart = function() {
         x.domain([x.domain()[0] - (xPadding * xRange), x.domain()[1] + (xPadding * xRange)]);
       }
 
-      if (xPadding || yPadding) {
+      if (yPadding) {
         var yRange = y.domain()[1] - y.domain()[0];
         y.domain([y.domain()[0] - (yPadding * yRange), y.domain()[1] + (yPadding * yRange)]);
       }
@@ -8572,8 +8569,8 @@ nv.models.scatterChart = function() {
         y.distortion(fisheye).focus(mouse[1]);
 
         g.select('.nv-scatterWrap')
-            .datum(data.filter(function(d) { return !d.disabled }))
             .call(scatter);
+
         g.select('.nv-x.nv-axis').call(xAxis);
         g.select('.nv-y.nv-axis').call(yAxis);
         g.select('.nv-distributionX')
