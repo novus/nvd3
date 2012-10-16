@@ -105,6 +105,8 @@ nv.addGraph(function() {
         .datum(testdata)
       .transition().duration(500).call(chart);
 
+    nv.utils.windowResize(chart.update);
+
     return chart;
 });
 

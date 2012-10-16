@@ -457,7 +457,7 @@ nv.models.axis = function() {
                 .attr('dy', '.71em')
                 .attr('y', axis.tickPadding())
                 .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
-                .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end')
+                .attr('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
                 .text(function(d,i) {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
