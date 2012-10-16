@@ -222,7 +222,8 @@ nv.models.linePlusBarChart = function() {
           .datum(dataBars.length ? dataBars : [{values:[]}])
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(dataLines.length ? dataLines : [{values:[]}])
+          .datum(!dataLines[0].disabled ? dataLines : [{values:[]}] );
+          //.datum(!dataLines[0].disabled ? dataLines : [{values:dataLines[0].values.map(function(d) { return [d[0], null] }) }] );
 
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);

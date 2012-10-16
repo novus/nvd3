@@ -4107,7 +4107,8 @@ nv.models.linePlusBarChart = function() {
           .datum(dataBars.length ? dataBars : [{values:[]}])
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(dataLines.length ? dataLines : [{values:[]}])
+          .datum(!dataLines[0].disabled ? dataLines : [{values:[]}] );
+          //.datum(!dataLines[0].disabled ? dataLines : [{values:dataLines[0].values.map(function(d) { return [d[0], null] }) }] );
 
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);
@@ -8275,6 +8276,8 @@ nv.models.scatterChart = function() {
     , color        = nv.utils.defaultColor()
     , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
     , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
+    , xPadding     = 0
+    , yPadding     = 0
     , showDistX    = false
     , showDistY    = false
     , showLegend   = true
@@ -8468,6 +8471,18 @@ nv.models.scatterChart = function() {
       wrap.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
+
+
+      //Adjust for x and y padding
+      if (xPadding) {
+        var xRange = x.domain()[1] - x.domain()[0];
+        x.domain([x.domain()[0] - (xPadding * xRange), x.domain()[1] + (xPadding * xRange)]);
+      }
+
+      if (xPadding || yPadding) {
+        var yRange = y.domain()[1] - y.domain()[0];
+        y.domain([y.domain()[0] - (yPadding * yRange), y.domain()[1] + (yPadding * yRange)]);
+      }
 
       //------------------------------------------------------------
 
@@ -8742,6 +8757,18 @@ nv.models.scatterChart = function() {
   chart.fisheye = function(_) {
     if (!arguments.length) return fisheye;
     fisheye = _;
+    return chart;
+  };
+
+  chart.xPadding = function(_) {
+    if (!arguments.length) return xPadding;
+    xPadding = _;
+    return chart;
+  };
+
+  chart.yPadding = function(_) {
+    if (!arguments.length) return yPadding;
+    yPadding = _;
     return chart;
   };
 
