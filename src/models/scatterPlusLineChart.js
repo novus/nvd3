@@ -216,6 +216,8 @@ nv.models.scatterPlusLineChart = function() {
           .call(scatter);
 
 
+      wrap.select('.nv-regressionLinesWrap')
+          .attr('clip-path', 'url(#nv-edge-clip-' + scatter.id() + ')');
 
       var regWrap = wrap.select('.nv-regressionLinesWrap').selectAll('.nv-regLines')
                       .data(function(d) { return d });
