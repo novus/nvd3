@@ -1233,7 +1233,7 @@ nv.models.bulletChart = function() {
         return '<h3>' + e.label + '</h3>' +
                '<p>' +  e.value + '</p>'
       }
-    , noData = "No Data Available."
+    , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 
@@ -1245,7 +1245,7 @@ nv.models.bulletChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var offsetElement = document.getElementById("chart"),
+    var offsetElement = document.getElementById('chart'),
         left = e.pos[0] + offsetElement.offsetLeft + margin.left,
         top = e.pos[1] + offsetElement.offsetTop + margin.top;
 
@@ -1356,16 +1356,16 @@ nv.models.bulletChart = function() {
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
 
-      var title = gEnter.select('.nv-titles').append("g")
-          .attr("text-anchor", "end")
-          .attr("transform", "translate(-6," + (height - margin.top - margin.bottom) / 2 + ")");
-      title.append("text")
-          .attr("class", "nv-title")
+      var title = gEnter.select('.nv-titles').append('g')
+          .attr('text-anchor', 'end')
+          .attr('transform', 'translate(-6,' + (height - margin.top - margin.bottom) / 2 + ')');
+      title.append('text')
+          .attr('class', 'nv-title')
           .text(function(d) { return d.title; });
 
-      title.append("text")
-          .attr("class", "nv-subtitle")
-          .attr("dy", "1em")
+      title.append('text')
+          .attr('class', 'nv-subtitle')
+          .attr('dy', '1em')
           .text(function(d) { return d.subtitle; });
 
 
@@ -1385,7 +1385,7 @@ nv.models.bulletChart = function() {
 
       // Update the tick groups.
       var tick = g.selectAll('g.nv-tick')
-          .data(x1.ticks(8), function(d) {
+          .data(x1.ticks( availableWidth / 100 ), function(d) {
             return this.textContent || format(d);
           });
 
@@ -1405,10 +1405,6 @@ nv.models.bulletChart = function() {
           .attr('y', availableHeight * 7 / 6)
           .text(format);
 
-      // Transition the entering ticks to the new scale, x1.
-      d3.transition(tickEnter)
-          .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
-          .style('opacity', 1);
 
       // Transition the updating ticks to the new scale, x1.
       var tickUpdate = d3.transition(tick)
