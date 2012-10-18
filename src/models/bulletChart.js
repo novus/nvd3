@@ -22,8 +22,8 @@ nv.models.bulletChart = function() {
     , tickFormat = null
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
-        return '<h3>' + e.label + '</h3>' +
-               '<p>' +  e.value + '</p>'
+        return '<h3>' + x + '</h3>' +
+               '<p>' + y + '</p>'
       }
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
@@ -37,12 +37,9 @@ nv.models.bulletChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var offsetElement = document.getElementById('chart'),
-        left = e.pos[0] + offsetElement.offsetLeft + margin.left,
-        top = e.pos[1] + offsetElement.offsetTop + margin.top;
-
-    var content = '<h3>' + e.label + '</h3>' +
-            '<p>' + e.value + '</p>';
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
+        top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
+        content = tooltip(e.key, e.label, e.value, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
   };
@@ -173,7 +170,7 @@ nv.models.bulletChart = function() {
 
 
       // Compute the tick format.
-      var format = tickFormat || x1.tickFormat(8);
+      var format = tickFormat || x1.tickFormat( availableWidth / 100 );
 
       // Update the tick groups.
       var tick = g.selectAll('g.nv-tick')
@@ -222,6 +219,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
+        e.key = data[0].title;
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
