@@ -101,7 +101,8 @@ svg .title {
 }
 
 .nvd3 .nv-background {
-  fill: none;
+  fill: white;
+  fill-opacity: 0;
   /*
   pointer-events: none;
   */

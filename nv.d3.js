@@ -1721,6 +1721,7 @@ nv.models.cumulativeLineChart = function() {
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-background');
       gEnter.append('g').attr('class', 'nv-linesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
@@ -1774,6 +1775,11 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
+
+      gEnter.select('.nv-background')
+        .append('rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
 
       lines
         //.x(function(d) { return d.x })
@@ -1837,6 +1843,21 @@ nv.models.cumulativeLineChart = function() {
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
+
+      g.select('.nv-background rect')
+          .on('click', function(e) {
+            index.x = d3.mouse(this)[0];
+            index.i = Math.round(dx.invert(index.x));
+
+            indexLine
+              .data([index]);
+
+            //d.x += d3.event.dx;
+            //d.i = Math.round(dx.invert(d.x));
+
+            //d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
+            chart.update();
+          });
 
       controls.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
