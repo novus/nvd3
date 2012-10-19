@@ -294,20 +294,26 @@ nv.models.cumulativeLineChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
+
+      function updateZero() {
+        indexLine
+          .data([index]);
+
+        chart.update();
+      }
+
       g.select('.nv-background rect')
-          .on('click', function(e) {
+          .on('click', function() {
             index.x = d3.mouse(this)[0];
             index.i = Math.round(dx.invert(index.x));
-
-            indexLine
-              .data([index]);
-
-            //d.x += d3.event.dx;
-            //d.i = Math.round(dx.invert(d.x));
-
-            //d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
-            chart.update();
+            updateZero();
           });
+
+      lines.dispatch.on('elementClick', function(e) {
+        index.i = e.pointIndex;
+        index.x = dx(index.i);
+        updateZero();
+      });
 
       controls.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
