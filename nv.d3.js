@@ -1623,6 +1623,7 @@ nv.models.cumulativeLineChart = function() {
     d.i = Math.round(dx.invert(d.x));
 
     d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
+    chart.update();
   }
 
   function dragEnd(d,i) {
@@ -1788,7 +1789,8 @@ nv.models.cumulativeLineChart = function() {
       var linesWrap = g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      d3.transition(linesWrap).call(lines);
+      //d3.transition(linesWrap).call(lines);
+      linesWrap.call(lines);
 
 
       var indexLine = linesWrap.selectAll('.nv-indexLine')
@@ -1840,7 +1842,8 @@ nv.models.cumulativeLineChart = function() {
         d.disabled = !d.disabled;
         rescaleY = !d.disabled;
 
-        selection.transition().call(chart);
+        //selection.transition().call(chart);
+        selection.call(chart);
       });
 
 
@@ -1855,7 +1858,8 @@ nv.models.cumulativeLineChart = function() {
           });
         }
 
-        selection.transition().call(chart);
+        //selection.transition().call(chart);
+        selection.call(chart);
       });
 
 /*
