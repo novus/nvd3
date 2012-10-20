@@ -80,8 +80,10 @@ nv.models.sparkline = function() {
           .attr('cx', function(d,i) { return x(getX(d,d.pointIndex)) })
           .attr('cy', function(d,i) { return y(getY(d,d.pointIndex)) })
           .attr('r', 2)
-          .style('stroke', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' })
-          .style('fill', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' });
+          .attr('class', function(d,i) {
+            return getX(d, d.pointIndex) == x.domain()[1] ? 'nv-currentValue' :
+                   getY(d, d.pointIndex) == y.domain()[0] ? 'nv-minValue' : 'nv-maxValue'
+          });
     });
 
     return chart;

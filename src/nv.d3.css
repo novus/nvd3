@@ -544,6 +544,20 @@ svg .title {
   stroke: #f66;
 }
 
+.nvd3.nv-sparklineplus .nv-maxValue {
+  stroke: #2ca02c;
+  fill: #2ca02c;
+}
+
+.nvd3.nv-sparklineplus .nv-minValue {
+  stroke: #d62728;
+  fill: #d62728;
+}
+
+.nvd3.nv-sparklineplus .nv-currentValue {
+  stroke: #444;
+  fill: #444;
+}
 
 /**********
 * historical stock

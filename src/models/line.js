@@ -5,11 +5,13 @@ nv.models.line = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
+  var  scatter = nv.models.scatter()
+    ;
+
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 960
     , height = 500
     , color = nv.utils.defaultColor() // a function that returns a color
-    , id = Math.floor(Math.random() * 10000) //Create semi-unique ID incase user doesn't select one
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
     , getY = function(d) { return d.y } // accessor to get the y value from a data point
     , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continous when it is not defined
@@ -18,11 +20,9 @@ nv.models.line = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , interpolate = "linear" // controls the line interpolation
-    , scatter = nv.models.scatter()
     ;
 
   scatter
-    .id(id)
     .size(16) // default size
     .sizeDomain([16,256]) //set to speed up calculation, needs to be unset if there is a custom size accessor
     ;
@@ -89,16 +89,16 @@ nv.models.line = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'nv-edge-clip-' + id)
+          .attr('id', 'nv-edge-clip-' + scattter.id())
         .append('rect');
 
-      wrap.select('#nv-edge-clip-' + id + ' rect')
+      wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
       scatterWrap
-          .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+          .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
 
 
 
@@ -209,7 +209,7 @@ nv.models.line = function() {
   chart.dispatch = scatter.dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -256,12 +256,6 @@ nv.models.line = function() {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     scatter.color(color);
-    return chart;
-  };
-
-  chart.id = function(_) {
-    if (!arguments.length) return id;
-    id = _;
     return chart;
   };
 
