@@ -25,32 +25,36 @@ text {
 <script src="../src/models/sparklinePlus.js"></script>
 <script>
 
-nv.addGraph({
-  generate: function() {
-    var chart = nv.models.sparklinePlus()
-                  //.width(400)
-                  //.height(50)
+nv.addGraph(function() {
+  var data = sine();
+  var chart = nv.models.sparklinePlus()
 
-    d3.select("#chart1")
-        //.datum([]) //for testing "noData"
-        .datum(sine())
-      .transition().duration(250)
-        .call(chart);
+  chart
+    .x(function(d,i) { return i })
+    .xTickFormat(function(d) {
+      return d3.time.format('%x')(new Date(data[d].x))
+    })
 
-    return chart;
-  },
-  callback: function(graph) {
-    //log("Sparkline rendered");
-  }
+  d3.select("#chart1")
+      .datum(data)
+    .transition().duration(250)
+      .call(chart);
+
+
+  return chart;
 });
 
 
+var now =+new Date();
 
 function sine() {
   var sin = [];
 
+
+  nv.log(now);
+
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i + 100, y: Math.sin(i/10)});
+    sin.push({x: now + i * 1000 * 60 * 60 * 24, y: Math.sin(i/10)});
   }
 
   return sin;

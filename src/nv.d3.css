@@ -532,7 +532,10 @@ svg .title {
 
 .nvd3.nv-sparklineplus .nv-xValue,
 .nvd3.nv-sparklineplus .nv-yValue {
+  /*
   stroke: #666;
+  */
+  stroke-width: 0;
   font-size: .8em;
   font-weight: normal;
 }

@@ -9460,12 +9460,18 @@ nv.models.sparkline = function() {
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
       var points = wrap.selectAll('circle.nv-point')
-          .data(function(d) { return d.filter(function(p,i) { return y.domain().indexOf(getY(p,i)) != -1 || getX(p,i) == x.domain()[1]  }) });
+          .data(function(data) {
+            return data.map(function(d,i) {
+              if (y.domain().indexOf(getY(d,i)) != -1 || getX(d,i) == x.domain()[1]) d.pointIndex = i;
+              return d;
+            })
+            .filter(function(d) { return typeof d.pointIndex != 'undefined' })
+          });
       points.enter().append('circle').attr('class', 'nv-point');
       points.exit().remove();
       points
-          .attr('cx', function(d,i) { return x(getX(d,i)) })
-          .attr('cy', function(d,i) { return y(getY(d,i)) })
+          .attr('cx', function(d,i) { return x(getX(d,d.pointIndex)) })
+          .attr('cy', function(d,i) { return y(getY(d,d.pointIndex)) })
           .attr('r', 2)
           .style('stroke', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' })
           .style('fill', function(d,i) { return d.x == x.domain()[1] ? '#444' : d.y == y.domain()[0] ? '#d62728' : '#2ca02c' });
