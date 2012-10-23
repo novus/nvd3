@@ -89,7 +89,7 @@ nv.models.line = function() {
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'nv-edge-clip-' + scattter.id())
+          .attr('id', 'nv-edge-clip-' + scatter.id())
         .append('rect');
 
       wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
