@@ -12,7 +12,6 @@ nv.models.sparklinePlus = function() {
     , height = null
     , x
     , y
-    , color = nv.utils.defaultColor()
     , index
     , paused = false
     , xTickFormat = d3.format(',r')
@@ -97,7 +96,6 @@ nv.models.sparklinePlus = function() {
         .height(availableHeight);
 
       sparklineWrap
-          .style('stroke', function(d, i){ return d.color || color(d, i) })
           .call(sparkline);
 
       //------------------------------------------------------------
@@ -203,7 +201,7 @@ nv.models.sparklinePlus = function() {
   // expose chart's sub-components
   chart.sparkline = sparkline;
 
-  d3.rebind(chart, sparkline, 'x', 'y', 'xScale', 'yScale');
+  d3.rebind(chart, sparkline, 'x', 'y', 'xScale', 'yScale', 'color');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
