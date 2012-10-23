@@ -351,8 +351,8 @@ svg .title {
 }
 
 .nvd3.nv-scatter.nv-single-point .nv-groups .nv-point {
-  fill-opacity: .5;
-  stroke-opacity: .5;
+  fill-opacity: .5 !important;
+  stroke-opacity: .5 !important;
 }
 
 
