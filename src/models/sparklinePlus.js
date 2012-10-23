@@ -169,7 +169,7 @@ nv.models.sparklinePlus = function() {
       function sparklineHover() {
         if (paused) return;
 
-        var pos = d3.event.offsetX - margin.left;
+        var pos = d3.mouse(this)[0] - margin.left;
 
         function getClosestIndex(data, x) {
           var distance = Math.abs(sparkline.x()(data[0], 0) - x);
