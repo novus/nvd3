@@ -259,6 +259,8 @@ nv.models.bulletChart = function() {
   chart.dispatch = dispatch;
   chart.bullet = bullet;
 
+  d3.rebind(chart, bullet, 'color');
+
   // left, right, top, bottom
   chart.orient = function(x) {
     if (!arguments.length) return orient;

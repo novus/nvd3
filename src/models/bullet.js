@@ -19,6 +19,7 @@ nv.models.bullet = function() {
     , width = 380
     , height = 30
     , tickFormat = null
+    , color = nv.utils.getColor(['#1f77b4'])
     , dispatch = d3.dispatch('elementMouseover', 'elementMouseout')
     ;
 
@@ -108,6 +109,7 @@ nv.models.bullet = function() {
 
       measure.enter().append('rect')
           .attr('class', function(d, i) { return 'nv-measure nv-s' + i; })
+          .style('fill', function(d,i) { return color(d,i ) })
           .attr('width', w0)
           .attr('height', availableHeight / 3)
           .attr('x', reverse ? x0 : 0)
@@ -235,6 +237,12 @@ nv.models.bullet = function() {
   chart.tickFormat = function(_) {
     if (!arguments.length) return tickFormat;
     tickFormat = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = nv.utils.getColor(_);
     return chart;
   };
 
