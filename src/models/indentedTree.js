@@ -38,7 +38,7 @@ nv.models.indentedTree = function() {
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
-      if (!data[0]) data[0].key = noData;
+      if (!data[0]) data[0] = {key: noData};
 
       //------------------------------------------------------------
 
