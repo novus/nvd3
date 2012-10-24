@@ -58,46 +58,6 @@ text {
 
 
 
-historicalBarChart = [ 
-  {
-    key: "Cumulative Return",
-    values: [
-      { 
-        "label" : "CDS / Options" ,
-        "value" : 29.765957771107
-      } , 
-      { 
-        "label" : "Cash" , 
-        "value" : 0
-      } , 
-      { 
-        "label" : "Corporate Bonds" , 
-        "value" : 32.807804682612
-      } , 
-      { 
-        "label" : "Equity" , 
-        "value" : 196.45946739256
-      } , 
-      { 
-        "label" : "Index Futures" ,
-        "value" : 0.19434030906893
-      } , 
-      { 
-        "label" : "Options" , 
-        "value" : 98.079782601442
-      } , 
-      { 
-        "label" : "Preferred" , 
-        "value" : 13.925743130903
-      } , 
-      { 
-        "label" : "Not Available" , 
-        "value" : 5.1387322875705
-      }
-    ]
-  }
-];
-
 
 
 nv.addGraph(function() {
@@ -105,16 +65,16 @@ nv.addGraph(function() {
         height = 500;
 
     var chart = nv.models.pieChart()
-        .x(function(d) { return d.label })
-        .y(function(d) { return d.value })
+        .x(function(d) { return d.key })
+        .y(function(d) { return d.y })
         //.showLabels(false)
+        .values(function(d) { return d })
         .color(d3.scale.category10().range())
         .width(width)
         .height(height);
 
       d3.select("#test1")
-          .datum(historicalBarChart)
-          //.datum(testdata)
+          .datum([testdata])
         .transition().duration(1200)
           .attr('width', width)
           .attr('height', height)
