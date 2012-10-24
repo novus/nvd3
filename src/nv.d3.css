@@ -130,7 +130,6 @@ svg .title {
 */
 
 .nvd3 .nv-legend .nv-series {
-  cursor: pointer;
 }
 
 .nvd3 .nv-legend .disabled circle {
@@ -198,12 +197,10 @@ svg .title {
 
 .nvd3 .nv-bars .negative rect {
     zfill: brown;
-    cursor: pointer;
 }
 
 .nvd3 .nv-bars rect {
   zfill: steelblue;
-  cursor: pointer;
   fill-opacity: .75;
 
   transition: fill-opacity 250ms linear;
@@ -486,7 +483,7 @@ svg .title {
 *  Bullet
 */
 
-.nvd3.nv-bullet { font: 10px sans-serif; cursor: pointer; }
+.nvd3.nv-bullet { font: 10px sans-serif; }
 .nvd3.nv-bullet rect { fill-opacity: .6; }
 .nvd3.nv-bullet rect:hover { fill-opacity: 1; }
 .nvd3.nv-bullet .nv-marker { stroke: #000; stroke-width: 2px; }
