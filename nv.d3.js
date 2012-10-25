@@ -552,8 +552,8 @@ nv.models.axis = function() {
           .text(function(d) { return d });
 
 
-      //check if max and min overlap other values, if so, hide the values that overlap
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
+        //check if max and min overlap other values, if so, hide the values that overlap
         g.selectAll('g') // the g's wrapping each tick
             .each(function(d,i) {
               if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
@@ -563,6 +563,12 @@ nv.models.axis = function() {
                   d3.select(this).select('text').remove(); // Don't remove the ZERO line!!
               }
             });
+
+        //if Max and Min = 0 only show min, Issue #281
+        if (scale.domain()[0] == scale.domain()[1] && scale.domain()[0] == 0)
+          wrap.selectAll('g.nv-axisMaxMin')
+            .style('opacity', function(d,i) { return !i ? 1 : 0 });
+        
       }
 
       if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
