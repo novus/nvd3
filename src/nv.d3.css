@@ -130,6 +130,7 @@ svg .title {
 */
 
 .nvd3 .nv-legend .nv-series {
+  cursor: pointer;
 }
 
 .nvd3 .nv-legend .disabled circle {
