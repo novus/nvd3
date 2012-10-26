@@ -7,7 +7,7 @@ nv.models.sparklinePlus = function() {
 
   var sparkline = nv.models.sparkline();
 
-  var margin = {top: 15, right: 100, bottom: 3, left: 50}
+  var margin = {top: 15, right: 100, bottom: 10, left: 50}
     , width = null
     , height = null
     , x
@@ -111,7 +111,7 @@ nv.models.sparklinePlus = function() {
 
       value.enter().append('text').attr('class', 'nv-currentValue')
           .attr('dx', 8)
-          .attr('dy', '.5em');
+          .attr('dy', '.65em');
 
       value
           .attr('x', availableWidth)
