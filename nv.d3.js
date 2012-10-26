@@ -9700,7 +9700,7 @@ nv.models.sparklinePlus = function() {
 
       value.enter().append('text').attr('class', 'nv-currentValue')
           .attr('dx', 8)
-          .attr('dy', '.32em');
+          .attr('dy', '.5em');
 
       value
           .attr('x', availableWidth)
