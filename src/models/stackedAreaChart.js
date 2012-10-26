@@ -32,7 +32,7 @@ nv.models.stackedAreaChart = function() {
 
   xAxis
     .orient('bottom')
-    .tickPadding(5)
+    .tickPadding(7)
     ;
   yAxis
     .orient('left')

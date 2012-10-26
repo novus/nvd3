@@ -37,7 +37,7 @@ nv.models.linePlusBarChart = function() {
     ;
   xAxis
     .orient('bottom')
-    .tickPadding(5)
+    .tickPadding(7)
     ;
   y1Axis
     .orient('left')

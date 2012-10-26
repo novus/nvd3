@@ -35,7 +35,7 @@ nv.models.multiBarTimeSeriesChart = function() {
     ;
   xAxis
     .orient('bottom')
-    .tickPadding(5)
+    .tickPadding(7)
     .highlightZero(false)
     .showMaxMin(false)
     ;

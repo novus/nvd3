@@ -33,7 +33,7 @@ nv.models.cumulativeLineChart = function() {
 
   xAxis
     .orient('bottom')
-    .tickPadding(5)
+    .tickPadding(7)
     ;
   yAxis
     .orient('left')
