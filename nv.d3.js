@@ -857,8 +857,15 @@ nv.models.historicalBar = function() {
 
 
       d3.transition(bars)
-          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
+          //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+          .attr('y', function(d,i) {
+            return getY(d,i) < 0 ?
+                    y(0) :
+                    y(0) - y(getY(d,i)) < 1 ?
+                      y(0) - 1 :
+                      y(getY(d,i))
+          })
+          .attr('height', function(d,i) { return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) });
           //.order();  // not sure if this makes any sense for this model
 
     });
@@ -9692,10 +9699,10 @@ nv.models.sparklinePlus = function() {
           .data([currentValue]);
 
       value.enter().append('text').attr('class', 'nv-currentValue')
-          .attr('transform', function(d,i) { return 'translate(' + (availableWidth + 8) + ',' + y(d) + ')' })
           .attr('dy', '.32em');
 
       value
+          .attr('transform', function(d,i) { return 'translate(' + (availableWidth + 8) + ',' + y(d) + ')' })
           .style('fill', sparkline.color()(data[data.length-1], data.length-1))
           .text(yTickFormat(currentValue));
 
