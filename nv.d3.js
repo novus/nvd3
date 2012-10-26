@@ -9699,10 +9699,12 @@ nv.models.sparklinePlus = function() {
           .data([currentValue]);
 
       value.enter().append('text').attr('class', 'nv-currentValue')
+          .attr('dx', 8)
           .attr('dy', '.32em');
 
       value
-          .attr('transform', function(d,i) { return 'translate(' + (availableWidth + 8) + ',' + y(d) + ')' })
+          .attr('x', availableWidth)
+          .attr('y', function(d) { return y(d) })
           .style('fill', sparkline.color()(data[data.length-1], data.length-1))
           .text(yTickFormat(currentValue));
 
