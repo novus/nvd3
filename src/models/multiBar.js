@@ -242,8 +242,10 @@ nv.models.multiBar = function() {
               d3.transition(d3.select(this))
                 .attr('y', function(d,i) {
                   return getY(d,i) < 0 ?
-                    y(0) :
-                    y(getY(d,i))
+                          y(0) :
+                          y(0) - y(getY(d,i)) < 1 ?
+                            y(0) - 1 :
+                            y(getY(d,i))
                 })
                 .attr('height', function(d,i) {
                   return Math.max(Math.abs(y(getY(d,i)) - y(0)),1);

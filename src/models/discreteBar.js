@@ -195,7 +195,14 @@ nv.models.discreteBar = function() {
       d3.transition(bars)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
-              return 'translate(' + x(getX(d,i)) + ', ' + (getY(d,i) < 0 ? y(0) : y(getY(d,i))) + ')'
+            var left = x(getX(d,i)),
+                top = getY(d,i) < 0 ?
+                        y(0) :
+                        y(0) - y(getY(d,i)) < 1 ?
+                          y(0) - 1 : //make 1 px positive bars show up above y=0
+                          y(getY(d,i));
+
+              return 'translate(' + left + ', ' + top + ')'
           })
         .select('rect')
           .attr('height', function(d,i) {
