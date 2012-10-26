@@ -9589,7 +9589,7 @@ nv.models.sparklinePlus = function() {
 
   var sparkline = nv.models.sparkline();
 
-  var margin = {top: 15, right: 60, bottom: 3, left: 50}
+  var margin = {top: 15, right: 100, bottom: 3, left: 50}
     , width = null
     , height = null
     , x
