@@ -551,8 +551,11 @@ svg .title {
 }
 
 .nvd3.nv-sparklineplus .nv-currentValue {
+  /*
   stroke: #444;
-  fill: #444;
+  fill: #000;
+  */
+  font-size: 1em;
 }
 
 /**********
