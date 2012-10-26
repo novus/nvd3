@@ -532,7 +532,7 @@ svg .title {
   stroke: #666;
   */
   stroke-width: 0;
-  font-size: 1em;
+  font-size: .9em;
   font-weight: normal;
 }
 
@@ -555,7 +555,8 @@ svg .title {
   stroke: #444;
   fill: #000;
   */
-  font-size: 1.25em;
+  font-weight: bold;
+  font-size: 1.1em;
 }
 
 /**********
