@@ -1292,9 +1292,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      /*
-      // Disabled until I figure out a better way to check for no data with the bullet chart
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+      if (!d || !ranges.call(this, d, i)) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
@@ -1304,14 +1302,13 @@ nv.models.bulletChart = function() {
 
         noDataText
           .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
+          .attr('y', 18 + margin.top + availableHeight / 2)
           .text(function(d) { return d });
 
         return chart;
       } else {
         container.selectAll('.nv-noData').remove();
       }
-      */
 
       //------------------------------------------------------------
 
