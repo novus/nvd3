@@ -172,6 +172,9 @@ nv.models.scatter = function() {
 
         //inject series and point index for reference into voronoi
         if (useVoronoi === true) {
+          // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
+          vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
+          vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
           var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
               return {
                 'data': d,
