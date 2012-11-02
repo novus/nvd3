@@ -512,7 +512,7 @@ svg .title {
 }
 
 .nvd3.nv-sparklineplus .nv-hoverValue line {
-  stroke: #f44;
+  stroke: #333;
   stroke-width: 1.5px;
  }
 
