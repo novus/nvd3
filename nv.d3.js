@@ -4855,6 +4855,12 @@ nv.models.lineWithFocusChart = function() {
     return chart;
   };
 
+  chart.height2 = function(_) {
+    if (!arguments.length) return height2;
+    height2 = _;
+    return chart;
+  };
+
   chart.color = function(_) {
     if (!arguments.length) return color;
     color =nv.utils.getColor(_);
