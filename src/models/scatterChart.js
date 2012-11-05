@@ -14,7 +14,7 @@ nv.models.scatterChart = function() {
     , distY        = nv.models.distribution()
     ;
 
-  var margin       = {top: 30, right: 20, bottom: 50, left: 60}
+  var margin       = {top: 30, right: 20, bottom: 50, left: 75}
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()

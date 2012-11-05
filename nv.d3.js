@@ -328,7 +328,7 @@ nv.models.axis = function() {
     ;
 
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
-    , width = 60 //only used for tickLabel currently
+    , width = 75 //only used for tickLabel currently
     , height = 60 //only used for tickLabel currently
     , scale = d3.scale.linear()
     , axisLabelText = null
@@ -514,6 +514,14 @@ nv.models.axis = function() {
           }
           break;
         case 'left':
+          /*
+          //For dynamically placing the label. Can be used with dynamically-sized chart axis margins
+          var yTicks = g.selectAll('g').select("text");
+          yTicks.each(function(d,i){
+            var labelPadding = this.getBBox().width + axis.tickPadding() + 16;
+            if(labelPadding > width) width = labelPadding;
+          });
+          */
           axisLabel.enter().append('text').attr('class', 'nv-axislabel')
               .attr('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
@@ -8341,7 +8349,7 @@ nv.models.scatterChart = function() {
     , distY        = nv.models.distribution()
     ;
 
-  var margin       = {top: 30, right: 20, bottom: 50, left: 60}
+  var margin       = {top: 30, right: 20, bottom: 50, left: 75}
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
@@ -8892,7 +8900,7 @@ nv.models.scatterPlusLineChart = function() {
     , distY        = nv.models.distribution()
     ;
 
-  var margin       = {top: 30, right: 20, bottom: 50, left: 60}
+  var margin       = {top: 30, right: 20, bottom: 50, left: 75}
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
