@@ -7856,6 +7856,7 @@ nv.models.scatter = function() {
 
   var x0, y0, z0 // used to store previous scales
     , timeoutID
+    , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
     ;
 
   //============================================================
@@ -8026,6 +8027,7 @@ nv.models.scatter = function() {
 
         eventElements
             .on('click', function(d) {
+              if (needsUpdate) return 0;
               var series = data[d.series],
                   point  = series.values[d.point];
 
@@ -8038,6 +8040,7 @@ nv.models.scatter = function() {
               });
             })
             .on('mouseover', function(d) {
+              if (needsUpdate) return 0;
               var series = data[d.series],
                   point  = series.values[d.point];
 
@@ -8050,6 +8053,7 @@ nv.models.scatter = function() {
               });
             })
             .on('mouseout', function(d, i) {
+              if (needsUpdate) return 0;
               var series = data[d.series],
                   point  = series.values[d.point];
 
@@ -8061,9 +8065,10 @@ nv.models.scatter = function() {
               });
             });
 
+        needsUpdate = false;
       }
 
-
+      needsUpdate = true;
 
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
