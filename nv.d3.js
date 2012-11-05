@@ -428,7 +428,7 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-          var xLabelMargin = 30;
+          var xLabelMargin = 36;
           var maxTextWidth = 30;
           var xTicks = g.selectAll('g').select("text");
           if (rotateLabels%360) {
