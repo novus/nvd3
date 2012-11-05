@@ -136,9 +136,11 @@ nv.models.sparklinePlus = function() {
       // if index is not set, default to null
       index = typeof index == 'undefined' ? null : index;
 
-      var hoverValue = g.selectAll('.nv-hoverValue').data([index]);
+      var hoverValue = g.selectAll('.nv-hoverValue').data([index])
 
-      var hoverG = hoverValue.enter().append('g').attr('class', 'nv-hoverValue');
+      var hoverG = hoverValue.enter().append('g').attr('class', 'nv-hoverValue')
+            .style('stroke-opacity', 0)
+            .style('fill-opacity', 0);
 
       var hoverLine = hoverG.append('line')
           .attr('x1', 0)
