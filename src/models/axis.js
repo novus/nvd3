@@ -263,10 +263,17 @@ nv.models.axis = function() {
         var maxMinRange = [];
         wrap.selectAll('g.nv-axisMaxMin')
             .each(function(d,i) {
-              if (i) // i== 1, max position
-                maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
-              else // i==0, min position
-                maxMinRange.push(scale(d) + this.getBBox().width + 4)
+              try {
+                  if (i) // i== 1, max position
+                      maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+                  else // i==0, min position
+                      maxMinRange.push(scale(d) + this.getBBox().width + 4)
+              }catch (err) {
+                  if (i) // i== 1, max position
+                      maxMinRange.push(scale(d) - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+                  else // i==0, min position
+                      maxMinRange.push(scale(d) + 4)
+              }
             });
         g.selectAll('g') // the g's wrapping each tick
             .each(function(d,i) {

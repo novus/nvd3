@@ -11,7 +11,8 @@ nv.models.lineChart = function() {
     , legend = nv.models.legend()
     ;
 
-  var margin = {top: 30, right: 20, bottom: 50, left: 60}
+//set margin.right to 23 to fit dates on the x-axis within the chart
+  var margin = {top: 30, right: 23, bottom: 50, left: 60}
     , color = nv.utils.defaultColor()
     , width = null
     , height = null
