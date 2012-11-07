@@ -66,7 +66,10 @@ nv.models.cumulativeLineChart = function() {
                     .on('drag', dragMove)
                     .on('dragend', dragEnd);
 
-  function dragStart(d,i) {}
+  function dragStart(d,i) {
+    d3.select(chart.container)
+        .style('cursor', 'ew-resize');
+  }
 
   function dragMove(d,i) {
     d.x += d3.event.dx;
@@ -77,6 +80,8 @@ nv.models.cumulativeLineChart = function() {
   }
 
   function dragEnd(d,i) {
+    d3.select(chart.container)
+        .style('cursor', 'auto');
     chart.update();
   }
 
