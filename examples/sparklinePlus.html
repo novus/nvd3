@@ -3,13 +3,15 @@
 <link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
 <style>
 
-text {
-  font: 10px sans-serif;
-}
-
 #chart1 {
   width: 500px;
   height: 50px;
+  font-size: 14px;
+  margin-top: -6px;
+}
+
+h2, p {
+  float: left;
 }
 
 </style>
@@ -30,6 +32,7 @@ nv.addGraph(function() {
   var chart = nv.models.sparklinePlus()
 
   chart
+    .margin({left:70})
     .x(function(d,i) { return i })
     .xTickFormat(function(d) {
       return d3.time.format('%x')(new Date(data[d].x))
