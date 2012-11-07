@@ -53,14 +53,15 @@
         left = pos[0] - (width / 2);
         top = pos[1] + dist;
         if (left < scrollLeft) left = scrollLeft + 5;
-        if (left + width > windowWidth) left = windowWidth - width - 5;
+        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5; //Fixed in Issue #309
         if (top + height > scrollTop + windowHeight) top = pos[1] - height - dist;
         break;
       case 's':
         left = pos[0] - (width / 2);
         top = pos[1] - height - dist;
         if (left < scrollLeft) left = scrollLeft + 5;
-        if (left + width > windowWidth) left = windowWidth - width - 5;
+        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5; //Fixed in Issue #309
+
         if (scrollTop > top) top = pos[1] + 20;
         break;
     }
