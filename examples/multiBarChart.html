@@ -57,6 +57,7 @@ nv.addGraph(function() {
     var chart = nv.models.multiBarChart();
 
     chart.xAxis
+        .showMaxMin(true)
         .tickFormat(d3.format(',f'));
 
     chart.yAxis

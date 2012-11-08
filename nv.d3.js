@@ -338,6 +338,7 @@ nv.models.axis = function() {
     , rotateLabels = 0
     , rotateYLabel = true
     , staggerLabels = false
+    , isOrdinal = false
     , ticks = null
     ;
 
@@ -453,13 +454,15 @@ nv.models.axis = function() {
           axisLabel
               .attr('x', w/2);
           if (showMaxMin) {
+          //if (showMaxMin && !isOrdinal) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
-                           .data(scale.domain());
+                           //.data(scale.domain())
+                           .data([scale.domain()[0], scale.domain()[scale.domain().length - 1]]);
             axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
-                  return 'translate(' + scale(d) + ',0)'
+                  return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
                 })
               .select('text')
                 .attr('dy', '.71em')
@@ -472,7 +475,9 @@ nv.models.axis = function() {
                 });
             d3.transition(axisMaxMin)
                 .attr('transform', function(d,i) {
-                  return 'translate(' + scale.range()[i] + ',0)'
+                  //return 'translate(' + scale.range()[i] + ',0)'
+                  //return 'translate(' + scale(d) + ',0)'
+                  return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
                 });
           }
           if (staggerLabels)
@@ -577,7 +582,7 @@ nv.models.axis = function() {
         if (scale.domain()[0] == scale.domain()[1] && scale.domain()[0] == 0)
           wrap.selectAll('g.nv-axisMaxMin')
             .style('opacity', function(d,i) { return !i ? 1 : 0 });
-        
+
       }
 
       if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
@@ -682,6 +687,7 @@ nv.models.axis = function() {
     if (!arguments.length) return scale;
     scale = _;
     axis.scale(scale);
+    isOrdinal = typeof scale.rangeBands === 'function';
     d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
     return chart;
   }
@@ -5544,6 +5550,9 @@ nv.models.multiBarChart = function() {
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'rotate('+rotateLabels+' 0,0)' })
             .attr('text-transform', rotateLabels > 0 ? 'start' : 'end');
+
+      g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
+          .style('opacity', 1);
 
       yAxis
         .scale(y)

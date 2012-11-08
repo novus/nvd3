@@ -225,10 +225,6 @@ svg .title {
   fill: rgba(0,0,0,1);
 }
 
-.nvd3 .nv-x.nv-axis text {
-  transform: rotate(90);
-}
-
 
 /**********
 *  Bars

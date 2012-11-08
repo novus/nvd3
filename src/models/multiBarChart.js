@@ -226,6 +226,9 @@ nv.models.multiBarChart = function() {
             .attr('transform', function(d,i,j) { return 'rotate('+rotateLabels+' 0,0)' })
             .attr('text-transform', rotateLabels > 0 ? 'start' : 'end');
 
+      g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
+          .style('opacity', 1);
+
       yAxis
         .scale(y)
         .ticks( availableHeight / 36 )
