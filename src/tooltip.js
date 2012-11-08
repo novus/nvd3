@@ -29,18 +29,41 @@
         width = parseInt(container.offsetWidth),
         windowWidth = nv.utils.windowSize().width,
         windowHeight = nv.utils.windowSize().height,
-        scrollTop = body.scrollTop,
-        scrollLeft = body.scrollLeft,
+        scrollTop = window.scrollY,
+        scrollLeft = window.scrollX,
         left, top;
 
+    windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
+
+    var tooltipTop = function ( Elem ) {
+        var offsetTop = top;
+        do {
+            if( !isNaN( Elem.offsetTop ) ) {
+                offsetTop += (Elem.offsetTop);
+            }
+        } while( Elem = Elem.offsetParent );
+        return offsetTop;
+    }
+
+    var tooltipLeft = function ( Elem ) {
+        var offsetLeft = left;
+        do {
+            if( !isNaN( Elem.offsetLeft ) ) {
+                offsetLeft += (Elem.offsetLeft);
+            }
+        } while( Elem = Elem.offsetParent );
+        return offsetLeft;
+    }
 
     switch (gravity) {
       case 'e':
         left = pos[0] - width - dist;
         top = pos[1] - (height / 2);
-        if (left < scrollLeft) left = pos[0] + dist;
-        if (top < scrollTop) top = scrollTop + 5;
-        if (top + height > scrollTop + windowHeight) top = scrollTop - height - 5;
+        var tLeft = tooltipLeft(container);
+        var tTop = tooltipTop(container);
+        if (tLeft < scrollLeft) left = pos[0] + dist > scrollLeft ? pos[0] + dist : scrollLeft - tLeft + left;
+        if (tTop < scrollTop) top = scrollTop - tTop + top;
+        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
         break;
       case 'w':
         left = pos[0] + dist;
@@ -50,18 +73,19 @@
         if (top + height > scrollTop + windowHeight) top = scrollTop - height - 5;
         break;
       case 'n':
-        left = pos[0] - (width / 2);
+        left = pos[0] - (width / 2) - 5;
         top = pos[1] + dist;
+        var tLeft = tooltipLeft(container);
+        var tTop = tooltipTop(container);
         if (left < scrollLeft) left = scrollLeft + 5;
-        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5; //Fixed in Issue #309
-        if (top + height > scrollTop + windowHeight) top = pos[1] - height - dist;
+        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
+        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
         break;
       case 's':
         left = pos[0] - (width / 2);
         top = pos[1] - height - dist;
         if (left < scrollLeft) left = scrollLeft + 5;
-        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5; //Fixed in Issue #309
-
+        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
         if (scrollTop > top) top = pos[1] + 20;
         break;
     }
