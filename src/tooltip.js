@@ -68,25 +68,25 @@
       case 'w':
         left = pos[0] + dist;
         top = pos[1] - (height / 2);
-        if (left + width > windowWidth) left = pos[0] - width - dist;
-        if (top < scrollTop) top = scrollTop + 5;
-        if (top + height > scrollTop + windowHeight) top = scrollTop - height - 5;
+        if (tLeft + width > windowWidth) left = pos[0] - width - dist;
+        if (tTop < scrollTop) top = scrollTop + 5;
+        if (tTop + height > scrollTop + windowHeight) top = scrollTop - height - 5;
         break;
       case 'n':
         left = pos[0] - (width / 2) - 5;
         top = pos[1] + dist;
         var tLeft = tooltipLeft(container);
         var tTop = tooltipTop(container);
-        if (left < scrollLeft) left = scrollLeft + 5;
-        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
+        if (tLeft < scrollLeft) left = scrollLeft + 5;
+        if (tLeft + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
         if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
         break;
       case 's':
         left = pos[0] - (width / 2);
         top = pos[1] - height - dist;
-        if (left < scrollLeft) left = scrollLeft + 5;
-        if (left + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
-        if (scrollTop > top) top = pos[1] + 20;
+        if (tLeft < scrollLeft) left = scrollLeft + 5;
+        if (tLeft + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
+        if (scrollTop > tTop) top = pos[1] + 20;
         break;
     }
 
