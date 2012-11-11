@@ -84,9 +84,11 @@
       case 's':
         left = pos[0] - (width / 2);
         top = pos[1] - height - dist;
+        var tLeft = tooltipLeft(container);
+        var tTop = tooltipTop(container);
         if (tLeft < scrollLeft) left = scrollLeft + 5;
         if (tLeft + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
-        if (scrollTop > tTop) top = pos[1] + 20;
+        if (scrollTop > tTop) top = scrollTop;
         break;
     }
 
