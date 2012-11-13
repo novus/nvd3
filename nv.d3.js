@@ -1678,7 +1678,8 @@ nv.models.cumulativeLineChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
-
+/*
+  //Moved to see if we can get better behavior to fix issue #315
   var indexDrag = d3.behavior.drag()
                     .on('dragstart', dragStart)
                     .on('drag', dragMove)
@@ -1702,6 +1703,7 @@ nv.models.cumulativeLineChart = function() {
         .style('cursor', 'auto');
     chart.update();
   }
+*/
 
   //============================================================
 
@@ -1719,6 +1721,32 @@ nv.models.cumulativeLineChart = function() {
 
       chart.update = function() { chart(selection) };
       chart.container = this;
+
+
+
+      var indexDrag = d3.behavior.drag()
+                        .on('dragstart', dragStart)
+                        .on('drag', dragMove)
+                        .on('dragend', dragEnd);
+
+
+      function dragStart(d,i) {
+        d3.select(chart.container)
+            .style('cursor', 'ew-resize');
+      }
+
+      function dragMove(d,i) {
+        index.x = d3.event.x;
+        index.i = Math.round(dx.invert(index.x));
+        updateZero();
+      }
+
+      function dragEnd(d,i) {
+        d3.select(chart.container)
+            .style('cursor', 'auto');
+      }
+
+
 
 
       //------------------------------------------------------------
