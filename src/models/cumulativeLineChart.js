@@ -304,9 +304,9 @@ nv.models.cumulativeLineChart = function() {
       xAxis
         .scale(x)
         //If the ticks cannot fit on the chart tastefully, put in subticks for the dates that don't show
-        .tickSubdivide( (data[0].values.length > (availableWidth/50)) ? true : false )
-        //Suggest how many ticks based on the chart width and D3 should listen (50 is the optimal number for MM/DD/YY dates)
-        .ticks( Math.min(data[0].values.length,availableWidth/50) )
+        .tickSubdivide( (data[0].values.length > availableWidth/53) ? true : false )
+        //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
+        .ticks( Math.min(data[0].values.length,availableWidth/70) )
         .tickSize(-availableHeight, 0);
 
       g.select('.nv-x.nv-axis')
