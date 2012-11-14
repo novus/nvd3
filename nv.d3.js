@@ -1878,7 +1878,9 @@ nv.models.cumulativeLineChart = function() {
       // Main Chart Component(s)
 
       gEnter.select('.nv-background')
-        .append('rect')
+        .append('rect');
+
+      g.select('.nv-background rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
@@ -9004,8 +9006,9 @@ nv.models.scatterPlusLineChart = function() {
     , tooltips     = true
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    //, tooltip      = function(key, x, y) { return '<h3>' + key + '</h3>' }
-    , tooltip      = null
+    , tooltip      = function(key, x, y, date) { return '<h3>' + key + '</h3>' 
+                                                      + '<p>' + date + '</p>' }
+    //, tooltip      = null
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide')
     , noData       = "No Data Available."
     ;
@@ -9055,7 +9058,7 @@ nv.models.scatterPlusLineChart = function() {
       if( tooltipY != null )
           nv.tooltip.show([leftY, topY], tooltipY(e.series.key, xVal, yVal, e, chart), 'e', 1, offsetElement, 'y-nvtooltip');
       if( tooltip != null )
-          nv.tooltip.show([left, top], tooltip(e.series.key, xVal, yVal, e, chart), e.value < 0 ? 'n' : 's', null, offsetElement);
+          nv.tooltip.show([left, top], tooltip(e.series.key, xVal, yVal, e.point.tooltip, e, chart), e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
   var controlsData = [

@@ -260,7 +260,9 @@ nv.models.cumulativeLineChart = function() {
       // Main Chart Component(s)
 
       gEnter.select('.nv-background')
-        .append('rect')
+        .append('rect');
+
+      g.select('.nv-background rect')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
