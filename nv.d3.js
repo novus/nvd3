@@ -1875,6 +1875,20 @@ nv.models.cumulativeLineChart = function() {
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
+      // Show error if series goes below 100%
+      var tempDisabled = data.filter(function(d) { return d.tempDisabled });
+
+      wrap.select('.tempDisabled').remove(); //clean-up and prevent duplicates
+      if (tempDisabled.length) {
+        wrap.append('text').attr('class', 'tempDisabled')
+            .attr('x', availableWidth / 2)
+            .attr('y', '-.71em')
+            .style('text-anchor', 'end')
+            .text(tempDisabled.map(function(d) { return d.key }).join(', ') + ' values cannot be calculated for this time period.');
+      }
+
+
+
       //------------------------------------------------------------
       // Main Chart Component(s)
 
@@ -1892,12 +1906,12 @@ nv.models.cumulativeLineChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled }));
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled }));
 
 
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(data.filter(function(d) { return !d.disabled && !d.tempDisabled }));
 
       //d3.transition(linesWrap).call(lines);
       linesWrap.call(lines);
@@ -2124,16 +2138,20 @@ nv.models.cumulativeLineChart = function() {
     return data.map(function(line, i) {
       var v = lines.y()(line.values[idx], idx);
 
+      //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
+      if (v < -.95) {
+        //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
+        line.tempDisabled = true;
+        return line;
+      }
+
+      line.tempDisabled = false;
+
       line.values = line.values.map(function(point, pointIndex) {
         point.display = {'y': (lines.y()(point, pointIndex) - v) / (1 + v) };
         return point;
       })
-      /*
-      TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
-      if (v < -.9) {
-        //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
-      }
-      */
+
       return line;
     })
   }
