@@ -1787,6 +1787,9 @@ nv.models.cumulativeLineChart = function() {
           .map(function(series,i) {
             var initialDomain = d3.extent(series.values, lines.y());
 
+            //account for series being disabled when losing 95% or more
+            if (initialDomain[0] < -.95) initialDomain[0] = -.95;
+
             return [
               (initialDomain[0] - initialDomain[1]) / (1 + initialDomain[1]),
               (initialDomain[1] - initialDomain[0]) / (1 + initialDomain[0])
