@@ -161,7 +161,11 @@ nv.models.axis = function() {
           }
           if (staggerLabels)
             xTicks
-                .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')' });
+                .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '8' : '23') + ')' });
+          else
+            xTicks
+                .selectAll('text')
+                .attr('transform', 'translate(0,8)');
 
           break;
         case 'right':

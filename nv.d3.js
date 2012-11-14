@@ -509,7 +509,11 @@ nv.models.axis = function() {
           }
           if (staggerLabels)
             xTicks
-                .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')' });
+                .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '8' : '23') + ')' });
+          else
+            xTicks
+                .selectAll('text')
+                .attr('transform', 'translate(0,8)');
 
           break;
         case 'right':
@@ -2638,14 +2642,11 @@ nv.models.discreteBarChart = function() {
 
       var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
-      if (staggerLabels)
+      if (staggerLabels) {
         xTicks
             .selectAll('text')
             .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
-      else
-        xTicks
-            .selectAll('text')
-            .attr('transform', 'translate(0,5)');
+      }
 
       yAxis
         .scale(y)
