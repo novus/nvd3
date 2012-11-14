@@ -227,7 +227,8 @@ nv.addGraph(function() {
 
   d3.select('#chart2')
     .datum(histcatexpshort)
-      .transition().duration(500).call(chart);
+      //.transition().duration(500)
+      .call(chart);
 
   nv.utils.windowResize(chart.update);
 

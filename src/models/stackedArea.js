@@ -116,7 +116,8 @@ nv.models.stackedArea = function() {
       var scatterWrap = g.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      d3.transition(scatterWrap).call(scatter);
+      //d3.transition(scatterWrap).call(scatter);
+      scatterWrap.call(scatter);
 
 
 
@@ -178,13 +179,15 @@ nv.models.stackedArea = function() {
               seriesIndex: i
             });
           })
-      d3.transition(path.exit())
+      //d3.transition(path.exit())
+      path.exit()
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
           .style('fill', function(d,i){ return d.color || color(d, i) })
           .style('stroke', function(d,i){ return d.color || color(d, i) });
-      d3.transition(path)
+      //d3.transition(path)
+      path
           .attr('d', function(d,i) { return area(d.values,i) })
 
 

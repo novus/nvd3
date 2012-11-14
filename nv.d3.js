@@ -10071,7 +10071,8 @@ nv.models.stackedArea = function() {
       var scatterWrap = g.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      d3.transition(scatterWrap).call(scatter);
+      //d3.transition(scatterWrap).call(scatter);
+      scatterWrap.call(scatter);
 
 
 
@@ -10133,13 +10134,15 @@ nv.models.stackedArea = function() {
               seriesIndex: i
             });
           })
-      d3.transition(path.exit())
+      //d3.transition(path.exit())
+      path.exit()
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
           .style('fill', function(d,i){ return d.color || color(d, i) })
           .style('stroke', function(d,i){ return d.color || color(d, i) });
-      d3.transition(path)
+      //d3.transition(path)
+      path
           .attr('d', function(d,i) { return area(d.values,i) })
 
 
@@ -10483,7 +10486,8 @@ nv.models.stackedAreaChart = function() {
 
       var stackedWrap = g.select('.nv-stackedWrap')
           .datum(data);
-      d3.transition(stackedWrap).call(stacked);
+      //d3.transition(stackedWrap).call(stacked);
+      stackedWrap.call(stacked);
 
       //------------------------------------------------------------
 
@@ -10498,7 +10502,9 @@ nv.models.stackedAreaChart = function() {
 
       g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + availableHeight + ')');
-      d3.transition(g.select('.nv-x.nv-axis'))
+      //d3.transition(g.select('.nv-x.nv-axis'))
+      g.select('.nv-x.nv-axis')
+        .transition().duration(0)
           .call(xAxis);
 
       yAxis
@@ -10507,7 +10513,9 @@ nv.models.stackedAreaChart = function() {
         .tickSize(-availableWidth, 0)
         .setTickFormat(stacked.offset() == 'expand' ? d3.format('%') : yAxisTickFormat);
 
-      d3.transition(g.select('.nv-y.nv-axis'))
+      //d3.transition(g.select('.nv-y.nv-axis'))
+      g.select('.nv-y.nv-axis')
+        .transition().duration(0)
           .call(yAxis);
 
       //------------------------------------------------------------
@@ -10529,7 +10537,8 @@ nv.models.stackedAreaChart = function() {
             return d
           });
 
-        selection.transition().call(chart);
+        //selection.transition().call(chart);
+        chart(selection);
       });
 
       legend.dispatch.on('legendClick', function(d,i) {
@@ -10542,7 +10551,8 @@ nv.models.stackedAreaChart = function() {
           });
         }
 
-        selection.transition().call(chart);
+        //selection.transition().call(chart);
+        chart(selection);
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -10566,7 +10576,8 @@ nv.models.stackedAreaChart = function() {
             break;
         }
 
-        selection.transition().call(chart);
+        //selection.transition().call(chart);
+        chart(selection);
       });
 
       dispatch.on('tooltipShow', function(e) {
