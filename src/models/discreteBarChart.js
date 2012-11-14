@@ -169,7 +169,11 @@ nv.models.discreteBarChart = function() {
       if (staggerLabels)
         xTicks
             .selectAll('text')
-            .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '0' : '12') + ')' })
+            .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
+      else
+        xTicks
+            .selectAll('text')
+            .attr('transform', 'translate(0,5)');
 
       yAxis
         .scale(y)
