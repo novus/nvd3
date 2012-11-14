@@ -148,6 +148,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
         left, top;
 
     windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
+    windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
 
     var tooltipTop = function ( Elem ) {
         var offsetTop = top;
@@ -192,7 +193,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
         var tLeft = tooltipLeft(container);
         var tTop = tooltipTop(container);
         if (tLeft < scrollLeft) left = scrollLeft + 5;
-        if (tLeft + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
+        if (tLeft + width > windowWidth) left = left - width/2 + 5;
         if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
         break;
       case 's':
@@ -201,7 +202,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
         var tLeft = tooltipLeft(container);
         var tTop = tooltipTop(container);
         if (tLeft < scrollLeft) left = scrollLeft + 5;
-        if (tLeft + width > windowWidth) left = parseInt(body.offsetWidth) - width - 5;
+        if (tLeft + width > windowWidth) left = left - width/2 + 5;
         if (scrollTop > tTop) top = scrollTop;
         break;
     }
