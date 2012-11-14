@@ -1942,11 +1942,13 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Setup Axes
+      var firstTick = d3.select('body').select('svg').select('.nv-x').selectAll('.tick')[0];
+      var firstTickLength = firstTick? firstTick.length : 0;
 
       xAxis
         .scale(x)
         //If the ticks cannot fit on the chart tastefully, put in subticks for the dates that don't show
-        .tickSubdivide( (data[0].values.length > d3.select('body').select('svg').select('.nv-x').selectAll('.tick')[0].length ) ? true : false )
+        .tickSubdivide(data[0].values.length > firstTickLength)
         //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
         .ticks( Math.min(data[0].values.length,availableWidth/70) )
         .tickSize(-availableHeight, 0);
