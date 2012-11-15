@@ -8058,8 +8058,8 @@ nv.models.scatter = function() {
 
         if (clipVoronoi) {
 
-          
-          var pointClipsEnter = nv.log('DEFS', wrap.select('defs')).selectAll('.nv-point-clips')
+
+          var pointClipsEnter = wrap.select('defs').selectAll('.nv-point-clips')
               .data([id])
             .enter();
 
