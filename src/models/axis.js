@@ -161,11 +161,7 @@ nv.models.axis = function() {
           }
           if (staggerLabels)
             xTicks
-                .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '8' : '23') + ')' });
-          else
-            xTicks
-                .selectAll('text')
-                .attr('transform', 'translate(0,8)');
+                .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')' });
 
           break;
         case 'right':
@@ -253,11 +249,12 @@ nv.models.axis = function() {
         //check if max and min overlap other values, if so, hide the values that overlap
         g.selectAll('g') // the g's wrapping each tick
             .each(function(d,i) {
+              d3.select(this).select('text').attr('opacity', 1);
               if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
                 if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
-                  d3.select(this).remove();
-                else
-                  d3.select(this).select('text').remove(); // Don't remove the ZERO line!!
+                  d3.select(this).attr('opacity', 0);
+                
+                d3.select(this).select('text').attr('opacity', 0); // Don't remove the ZERO line!!
               }
             });
 
