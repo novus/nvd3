@@ -155,7 +155,16 @@ nv.models.scatter = function() {
 
 
         if (clipVoronoi) {
-          defsEnter.append('clipPath').attr('id', 'nv-points-clip-' + id);
+
+          
+          var pointClipsEnter = nv.log('DEFS', wrap.select('defs')).selectAll('.nv-point-clips')
+              .data([id])
+            .enter();
+
+
+          pointClipsEnter.append('clipPath')
+                .attr('class', 'nv-point-clips')
+                .attr('id', 'nv-points-clip-' + id);
 
           var pointClips = wrap.select('#nv-points-clip-' + id).selectAll('circle')
               .data(vertices);
