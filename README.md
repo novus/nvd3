@@ -3,7 +3,7 @@ apology, and commitment to its permanent status as an open-source
 project. We know this was a shock and a major inconveniece, but we
 want to regain the community's trust and involvement. Please see the
 full statement at:
-[http://nvd3.com/statement.html](http://nvd3.com/statement.html)
+[http://nvd3.org/statement.html](http://nvd3.org/statement.html)
 
 # nvd3 - v0.0.1
 
