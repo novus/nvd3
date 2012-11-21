@@ -108,13 +108,13 @@ nv.models.linePlusBarChart = function() {
       //------------------------------------------------------------
       // Setup Scales
 
-      //x = xAxis.scale();
-      x = lines.xScale();
-      y1 = bars.yScale();
-      y2 = lines.yScale();
-
       var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
       var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
+
+      //x = xAxis.scale();
+      x = dataLines.filter(function(d) { return !d.disabled; }).length ? lines.xScale() : bars.xScale();
+      y1 = bars.yScale();
+      y2 = lines.yScale();
 
 
       //------------------------------------------------------------
