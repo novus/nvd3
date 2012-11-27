@@ -192,6 +192,7 @@ nv.models.pieChart = function() {
   //------------------------------------------------------------
 
   // expose chart's sub-components
+  chart.legend = legend;
   chart.dispatch = dispatch;
   chart.pie = pie;
 
