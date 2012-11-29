@@ -1066,7 +1066,7 @@ nv.models.bullet = function() {
 
       // Compute the new x-scale.
       var x1 = d3.scale.linear()
-          .domain([0, d3.max(d3.merge([forceX, rangez]))])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+          .domain( d3.extent(d3.merge([forceX, rangez])) )  // TODO: need to allow forceX and forceY, and xDomain, yDomain
           .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
       // Retrieve the old x-scale, if this is an update.
