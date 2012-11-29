@@ -160,7 +160,7 @@ nv.models.bullet = function() {
           });
 
       d3.transition(marker)
-          .attr('transform', function(d) { return 'translate(' + x1(d) + ',' + (availableHeight / 2) + ')' });
+          .attr('transform', function(d) { return 'translate(' + (x1(d) - x1(0)) + ',' + (availableHeight / 2) + ')' });
 
       marker.exit().remove();
 
