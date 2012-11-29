@@ -33,6 +33,9 @@ if (nv.dev) {
 // ********************************************
 //  Public Core NV functions
 
+// Make console.log a FUNCTION in IE9 (https://gist.github.com/1466437)
+(function(){var a=this.console,b=a&&a.log,c=!b||b.call?0:a.log=function(){c.apply.call(b,a,arguments)}})();
+
 // Logs all arguments, and returns the last so you can test things in place
 nv.log = function() {
   if (nv.dev && console.log && console.log.apply) console.log.apply(console, arguments);

@@ -297,10 +297,10 @@ svg .title {
 .nvd3 .nv-groups path.nv-line {
   fill: none;
   stroke-width: 2.5px;
+  /*
   stroke-linecap: round;
   shape-rendering: geometricPrecision;
 
-  /*
   transition: stroke-width 250ms linear;
   -moz-transition: stroke-width 250ms linear;
   -webkit-transition: stroke-width 250ms linear;
@@ -313,10 +313,10 @@ svg .title {
 
 .nvd3 .nv-groups path.nv-area {
   stroke: none;
+  /*
   stroke-linecap: round;
   shape-rendering: geometricPrecision;
 
-  /*
   stroke-width: 2.5px;
   transition: stroke-width 250ms linear;
   -moz-transition: stroke-width 250ms linear;
@@ -392,9 +392,11 @@ svg .title {
 *  Scatter
 */
 
+/* **Attempting to remove this for useVoronoi(false), need to see if it's required anywhere
 .nvd3 .nv-groups .nv-point {
   pointer-events: none;
 }
+*/
 
 .nvd3 .nv-groups .nv-point.hover {
   stroke-width: 20px;

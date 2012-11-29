@@ -31,6 +31,7 @@ nv.addGraph({
                 .height(height)
                 .margin({top: 20, right: 20, bottom: 20, left: 20})
                 .size(function(d) { return d.z })
+                .useVoronoi(false)
                 //.interactive(false)
 
 
@@ -38,6 +39,7 @@ nv.addGraph({
       .attr('width', width)
       .attr('height', height)
       .datum(randomData())
+    .transition().duration(500)
       .call(chart);
 
     return chart;
