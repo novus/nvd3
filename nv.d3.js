@@ -8297,7 +8297,7 @@ nv.models.scatter = function() {
                 dispatch.elementClick({
                   point: point,
                   series: series,
-                  pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                  pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                   seriesIndex: d.series,
                   pointIndex: i
                 });
@@ -8310,7 +8310,7 @@ nv.models.scatter = function() {
                 dispatch.elementMouseover({
                   point: point,
                   series: series,
-                  pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                  pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                   seriesIndex: d.series,
                   pointIndex: i
                 });
