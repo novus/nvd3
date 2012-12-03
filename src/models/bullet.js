@@ -42,7 +42,7 @@ nv.models.bullet = function() {
 
       // Compute the new x-scale.
       var x1 = d3.scale.linear()
-          .domain( d3.extent(d3.merge([forceX, rangez])) )  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+          .domain( d3.extent(d3.merge([forceX, rangez])) )
           .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
       // Retrieve the old x-scale, if this is an update.
@@ -52,6 +52,11 @@ nv.models.bullet = function() {
 
       // Stash the new scale.
       this.__chart__ = x1;
+
+
+      var rangeMin = d3.min(rangez), //rangez[2]
+          rangeMax = d3.max(rangez), //rangez[0]
+          rangeAvg = rangez[1];
 
       //------------------------------------------------------------
 
@@ -64,6 +69,12 @@ nv.models.bullet = function() {
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
 
+      gEnter.append('rect').attr('class', 'nv-range nv-rangeMax');
+      gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
+      gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
+      gEnter.append('rect').attr('class', 'nv-measure');
+      gEnter.append('path').attr('class', 'nv-markerTriangle');
+
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       //------------------------------------------------------------
@@ -72,8 +83,114 @@ nv.models.bullet = function() {
 
       var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
+      var xp0 = function(d) { return d < 0 ? x0(d) : x0(0) },
+          xp1 = function(d) { return d < 0 ? x1(d) : x1(0) };
 
 
+      g.select('rect.nv-rangeMax')
+          .attr('height', availableHeight)
+          .attr('width', w1(rangeMax > 0 ? rangeMax : rangeMin))
+          .attr('x', xp1(rangeMax > 0 ? rangeMax : rangeMin))
+          .datum(rangeMax > 0 ? rangeMax : rangeMin)
+          /*
+          .attr('x', rangeMin < 0 ?
+                         rangeMax > 0 ?
+                             x1(rangeMin)
+                           : x1(rangeMax)
+                       : x1(0))
+                      */
+
+      g.select('rect.nv-rangeAvg')
+          .attr('height', availableHeight)
+          .attr('width', w1(rangeAvg))
+          .attr('x', xp1(rangeAvg))
+          .datum(rangeAvg)
+          /*
+          .attr('width', rangeMax <= 0 ?
+                             x1(rangeMax) - x1(rangeAvg)
+                           : x1(rangeAvg) - x1(rangeMin))
+          .attr('x', rangeMax <= 0 ?
+                         x1(rangeAvg)
+                       : x1(rangeMin))
+                      */
+
+      g.select('rect.nv-rangeMin')
+          .attr('height', availableHeight)
+          .attr('width', w1(rangeMax))
+          .attr('x', xp1(rangeMax))
+          .attr('width', w1(rangeMax > 0 ? rangeMin : rangeMax))
+          .attr('x', xp1(rangeMax > 0 ? rangeMin : rangeMax))
+          .datum(rangeMax > 0 ? rangeMin : rangeMax)
+          /*
+          .attr('width', rangeMax <= 0 ?
+                             x1(rangeAvg) - x1(rangeMin)
+                           : x1(rangeMax) - x1(rangeAvg))
+          .attr('x', rangeMax <= 0 ?
+                         x1(rangeMin)
+                       : x1(rangeAvg))
+                      */
+
+      g.select('rect.nv-measure')
+          .style('fill', color)
+          .attr('height', availableHeight / 3)
+          .attr('y', availableHeight / 3)
+          .attr('width', measurez < 0 ?
+                             x1(0) - x1(measurez[0])
+                           : x1(measurez[0]) - x1(0))
+          .attr('x', xp1(measurez))
+          .on('mouseover', function() {
+              dispatch.elementMouseover({
+                value: measurez[0],
+                label: 'Current',
+                pos: [x1(measurez[0]), availableHeight/2]
+              })
+          })
+          .on('mouseout', function() {
+              dispatch.elementMouseout({
+                value: measurez[0],
+                label: 'Current'
+              })
+          })
+
+      var h3 =  availableHeight / 6;
+      g.selectAll('path.nv-markerTriangle')
+          .attr('transform', function(d) { return 'translate(' + x1(markerz[0]) + ',' + (availableHeight / 2) + ')' })
+          .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
+          .on('mouseover', function() {
+            dispatch.elementMouseover({
+              value: markerz[0],
+              label: 'Previous',
+              pos: [x1(markerz[0]), availableHeight/2]
+            })
+          })
+          .on('mouseout', function() {
+            dispatch.elementMouseout({
+              value: markerz[0],
+              label: 'Previous'
+            })
+          });
+
+
+      wrap.selectAll('.nv-range')
+          .on('mouseover', function(d,i) {
+            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+
+            dispatch.elementMouseover({
+              value: d,
+              label: label,
+              pos: [x1(d), availableHeight/2]
+            })
+          })
+          .on('mouseout', function(d,i) {
+            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+
+            dispatch.elementMouseout({
+              value: d,
+              label: label
+            })
+          })
+
+/* // THIS IS THE PREVIOUS BULLET IMPLEMENTATION, WILL REMOVE SHORTLY
       // Update the range rects.
       var range = g.selectAll('rect.nv-range')
           .data(rangez);
@@ -163,10 +280,11 @@ nv.models.bullet = function() {
           .attr('transform', function(d) { return 'translate(' + (x1(d) - x1(0)) + ',' + (availableHeight / 2) + ')' });
 
       marker.exit().remove();
+*/
 
     });
 
-    d3.timer.flush();
+    // d3.timer.flush();  // Not needed?
 
     return chart;
   }
