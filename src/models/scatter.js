@@ -382,9 +382,9 @@ nv.models.scatter = function() {
 
 
       // Delay updating the invisible interactive layer for smoother animation
-      //clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
-      //timeoutID = setTimeout(updateInteractiveLayer, 1000);
-      updateInteractiveLayer();
+      clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
+      timeoutID = setTimeout(updateInteractiveLayer, 300);
+      //updateInteractiveLayer();
 
       //store old scales for use in transitions on update
       x0 = x.copy();
