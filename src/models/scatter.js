@@ -191,7 +191,14 @@ nv.models.scatter = function() {
           }
           var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
               return {
-                'data': d,
+                'data': d.map(function(f) {
+                  //keep the voronoi paths within the svg bounding box (for IE9 support)
+                    f[0] = f[0] > width ? width : f[0];
+                    f[0] = f[0] < 0 ? 0 : f[0];
+                    f[1] = f[1] > height ? height : f[1];
+                    f[1] = f[1] < 0 ? 0 : f[1];
+                    return f;
+                }),
                 'series': vertices[i][2],
                 'point': vertices[i][3]
               }
@@ -382,9 +389,9 @@ nv.models.scatter = function() {
 
 
       // Delay updating the invisible interactive layer for smoother animation
-      //clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
-      //timeoutID = setTimeout(updateInteractiveLayer, 1000);
-      updateInteractiveLayer();
+      clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
+      timeoutID = setTimeout(updateInteractiveLayer, 300);
+      //updateInteractiveLayer();
 
       //store old scales for use in transitions on update
       x0 = x.copy();
