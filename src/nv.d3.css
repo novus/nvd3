@@ -499,7 +499,6 @@ svg .title {
 .nvd3.nv-bullet .nv-rangeAvg,
 .nvd3.nv-bullet .nv-rangeMax {
   fill: #999;
-  fill-opacity: .4;
 }
 
 
