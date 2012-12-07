@@ -3,6 +3,7 @@ JS_FILES = \
 	src/core.js \
 	src/tooltip.js \
 	src/utils.js \
+	src/models/heliumBubble.js \
 	src/models/axis.js \
 	src/models/historicalBar.js \
 	src/models/bullet.js \
@@ -47,6 +48,7 @@ nv.d3.js: Makefile
 
 %.min.js:: Makefile
 	rm -f $@
+	cat $(filter %.js,$^) >> $@
 	cat $(filter %.js,$^) | $(JS_COMPILER) >> $@
 
 clean:
