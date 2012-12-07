@@ -24,7 +24,7 @@ nv.models.sparklinePlus = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)

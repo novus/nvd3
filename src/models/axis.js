@@ -40,7 +40,7 @@ nv.models.axis = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this);
 
 
@@ -114,7 +114,7 @@ nv.models.axis = function() {
           var xTicks = g.selectAll('g').select("text");
           if (rotateLabels%360) {
             //Calculate the longest xTick width
-            xTicks.each(function(d,i){
+            xTicks.d3each(function(d,i){
               var width = this.getBBox().width;
               if(width > maxTextWidth) maxTextWidth = width;
             });
@@ -202,7 +202,7 @@ nv.models.axis = function() {
           /*
           //For dynamically placing the label. Can be used with dynamically-sized chart axis margins
           var yTicks = g.selectAll('g').select("text");
-          yTicks.each(function(d,i){
+          yTicks.d3each(function(d,i){
             var labelPadding = this.getBBox().width + axis.tickPadding() + 16;
             if(labelPadding > width) width = labelPadding;
           });
@@ -248,7 +248,7 @@ nv.models.axis = function() {
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
         //check if max and min overlap other values, if so, hide the values that overlap
         g.selectAll('g') // the g's wrapping each tick
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               d3.select(this).select('text').attr('opacity', 1);
               if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
                 if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
@@ -268,7 +268,7 @@ nv.models.axis = function() {
       if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
         var maxMinRange = [];
         wrap.selectAll('g.nv-axisMaxMin')
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               try {
                   if (i) // i== 1, max position
                       maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
@@ -282,7 +282,7 @@ nv.models.axis = function() {
               }
             });
         g.selectAll('g') // the g's wrapping each tick
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
                 if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                   d3.select(this).remove();

@@ -91,7 +91,7 @@ nv.models.cumulativeLineChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this).classed('nv-chart-' + id, true),
           that = this;
 

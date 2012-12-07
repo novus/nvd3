@@ -17,7 +17,7 @@ nv.models.legend = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           container = d3.select(this);
 
@@ -69,7 +69,7 @@ nv.models.legend = function() {
       // NEW ALIGNING CODE, TODO: clean up
       if (align) {
         var seriesWidths = [];
-        series.each(function(d,i) {
+        series.d3each(function(d,i) {
               seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
             });
 

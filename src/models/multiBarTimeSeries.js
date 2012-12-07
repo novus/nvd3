@@ -36,7 +36,7 @@ nv.models.multiBarTimeSeries = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -227,7 +227,7 @@ nv.models.multiBarTimeSeries = function() {
             .attr('height', function(d,i) {
               return Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0)))
             })
-            .each('end', function() {
+            .d3each('end', function() {
               d3.transition(d3.select(this))
                 .attr('x', function(d,i) {
                   return stacked ? 0 : (i * bandWidth) + ( j * barWidth )
@@ -241,7 +241,7 @@ nv.models.multiBarTimeSeries = function() {
               return d.series * barWidth
             })
             .attr('width', barWidth)
-            .each('end', function() {
+            .d3each('end', function() {
               d3.transition(d3.select(this))
                 .attr('y', function(d,i) {
                   return getY(d,i) < 0 ?

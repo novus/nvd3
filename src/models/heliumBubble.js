@@ -661,3 +661,4 @@ nv.models.heliumBubble = function() {
 
   return chart;
 }
+

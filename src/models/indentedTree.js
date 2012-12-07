@@ -24,7 +24,7 @@ nv.models.indentedTree = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var i = 0,
           depth = 1;
 

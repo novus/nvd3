@@ -26,7 +26,7 @@ nv.models.bullet = function() {
 
 
   function chart(selection) {
-    selection.each(function(d, i) {
+    selection.d3each(function(d, i) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this),

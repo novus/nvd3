@@ -25,7 +25,7 @@ nv.models.pie = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           radius = Math.min(availableWidth, availableHeight) / 2,
@@ -127,7 +127,7 @@ nv.models.pie = function() {
             .attr('stroke', function(d,i) { return color(d, i); });
 
         var paths = ae.append('path')
-            .each(function(d) { this._current = d; });
+            .d3each(function(d) { this._current = d; });
             //.attr('d', arc);
 
         d3.transition(slices.select('path'))
@@ -142,7 +142,7 @@ nv.models.pie = function() {
           }
 
           ae.append("g").classed("nv-label", true)
-            .each(function(d, i) {
+            .d3each(function(d, i) {
               var group = d3.select(this);
 
               group
@@ -172,7 +172,7 @@ nv.models.pie = function() {
                 return 'translate(' + labelsArc.centroid(d) + ')';
             });
 
-          slices.each(function(d, i) {
+          slices.d3each(function(d, i) {
             var slice = d3.select(this);
 
             slice

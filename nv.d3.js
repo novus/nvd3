@@ -1013,7 +1013,9 @@ nv.models.heliumBubble = function() {
 
 
   return chart;
-};nv.models.axis = function() {
+}
+
+nv.models.axis = function() {
 
   //============================================================
   // Public Variables with Default Settings
@@ -1055,7 +1057,7 @@ nv.models.heliumBubble = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this);
 
 
@@ -1129,7 +1131,7 @@ nv.models.heliumBubble = function() {
           var xTicks = g.selectAll('g').select("text");
           if (rotateLabels%360) {
             //Calculate the longest xTick width
-            xTicks.each(function(d,i){
+            xTicks.d3each(function(d,i){
               var width = this.getBBox().width;
               if(width > maxTextWidth) maxTextWidth = width;
             });
@@ -1217,7 +1219,7 @@ nv.models.heliumBubble = function() {
           /*
           //For dynamically placing the label. Can be used with dynamically-sized chart axis margins
           var yTicks = g.selectAll('g').select("text");
-          yTicks.each(function(d,i){
+          yTicks.d3each(function(d,i){
             var labelPadding = this.getBBox().width + axis.tickPadding() + 16;
             if(labelPadding > width) width = labelPadding;
           });
@@ -1263,7 +1265,7 @@ nv.models.heliumBubble = function() {
       if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
         //check if max and min overlap other values, if so, hide the values that overlap
         g.selectAll('g') // the g's wrapping each tick
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               d3.select(this).select('text').attr('opacity', 1);
               if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
                 if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
@@ -1283,7 +1285,7 @@ nv.models.heliumBubble = function() {
       if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
         var maxMinRange = [];
         wrap.selectAll('g.nv-axisMaxMin')
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               try {
                   if (i) // i== 1, max position
                       maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
@@ -1297,7 +1299,7 @@ nv.models.heliumBubble = function() {
               }
             });
         g.selectAll('g') // the g's wrapping each tick
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
                 if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                   d3.select(this).remove();
@@ -1439,7 +1441,7 @@ nv.models.historicalBar = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -1688,7 +1690,7 @@ nv.models.historicalBar = function() {
 
 
   return chart;
-};
+}
 
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
@@ -1718,7 +1720,7 @@ nv.models.bullet = function() {
 
 
   function chart(selection) {
-    selection.each(function(d, i) {
+    selection.d3each(function(d, i) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -2112,7 +2114,7 @@ nv.models.bulletChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(d, i) {
+    selection.d3each(function(d, i) {
       var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
@@ -2403,7 +2405,6 @@ nv.models.bulletChart = function() {
 };
 
 
-
 nv.models.cumulativeLineChart = function() {
 
   //============================================================
@@ -2496,7 +2497,7 @@ nv.models.cumulativeLineChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this).classed('nv-chart-' + id, true),
           that = this;
 
@@ -2947,7 +2948,7 @@ nv.models.cumulativeLineChart = function() {
 
 
   return chart;
-};
+}
 //TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
 
@@ -2986,7 +2987,7 @@ nv.models.discreteBar = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -3274,7 +3275,7 @@ nv.models.discreteBar = function() {
 
 
   return chart;
-};
+}
 
 nv.models.discreteBarChart = function() {
 
@@ -3335,7 +3336,7 @@ nv.models.discreteBarChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -3564,7 +3565,7 @@ nv.models.discreteBarChart = function() {
 
 
   return chart;
-};
+}
 
 nv.models.distribution = function() {
 
@@ -3595,7 +3596,7 @@ nv.models.distribution = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableLength = width - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
           naxis = axis == 'x' ? 'y' : 'x',
           container = d3.select(this);
@@ -3710,7 +3711,7 @@ nv.models.distribution = function() {
 
 
   return chart;
-};
+}
 
 nv.models.indentedTree = function() {
 
@@ -3737,7 +3738,7 @@ nv.models.indentedTree = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var i = 0,
           depth = 1;
 
@@ -4016,7 +4017,7 @@ nv.models.indentedTree = function() {
 
 
   return chart;
-};
+}
 nv.models.legend = function() {
 
   //============================================================
@@ -4036,7 +4037,7 @@ nv.models.legend = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           container = d3.select(this);
 
@@ -4088,7 +4089,7 @@ nv.models.legend = function() {
       // NEW ALIGNING CODE, TODO: clean up
       if (align) {
         var seriesWidths = [];
-        series.each(function(d,i) {
+        series.d3each(function(d,i) {
               seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
             });
 
@@ -4219,7 +4220,7 @@ nv.models.legend = function() {
 
 
   return chart;
-};
+}
 
 nv.models.line = function() {
 
@@ -4263,7 +4264,7 @@ nv.models.line = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -4503,7 +4504,7 @@ nv.models.line = function() {
 
 
   return chart;
-};
+}
 
 nv.models.lineChart = function() {
 
@@ -4576,7 +4577,7 @@ nv.models.lineChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -4838,7 +4839,7 @@ nv.models.lineChart = function() {
 
 
   return chart;
-};
+}
 
 nv.models.linePlusBarChart = function() {
 
@@ -4909,7 +4910,7 @@ nv.models.linePlusBarChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -5229,7 +5230,7 @@ nv.models.linePlusBarChart = function() {
 
 
   return chart;
-};
+}
 
 nv.models.lineWithFocusChart = function() {
 
@@ -5309,7 +5310,7 @@ nv.models.lineWithFocusChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -5593,7 +5594,7 @@ nv.models.lineWithFocusChart = function() {
         if (!brush.empty()) brush.extent(brushExtent);
         brushBG
             .data([brush.empty() ? x2.domain() : brushExtent])
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               var leftWidth = x2(d[0]) - x.range()[0],
                   rightWidth = x.range()[1] - x2(d[1]);
               d3.select(this).select('.left')
@@ -5789,7 +5790,7 @@ nv.models.lineWithFocusChart = function() {
 
 
   return chart;
-};
+}
 
 nv.models.multiBar = function() {
 
@@ -5829,7 +5830,7 @@ nv.models.multiBar = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -6016,7 +6017,7 @@ nv.models.multiBar = function() {
             .attr('height', function(d,i) {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
-            .each('end', function() {
+            .d3each('end', function() {
               d3.transition(d3.select(this))
                 .attr('x', function(d,i) {
                   return stacked ? 0 : (d.series * x.rangeBand() / data.length )
@@ -6030,7 +6031,7 @@ nv.models.multiBar = function() {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
-            .each('end', function() {
+            .d3each('end', function() {
               d3.transition(d3.select(this))
                 .attr('y', function(d,i) {
                   return getY(d,i) < 0 ?
@@ -6158,7 +6159,7 @@ nv.models.multiBar = function() {
 
 
   return chart;
-};
+}
 
 nv.models.multiBarChart = function() {
 
@@ -6228,7 +6229,7 @@ nv.models.multiBarChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -6565,7 +6566,7 @@ nv.models.multiBarChart = function() {
 
 
   return chart;
-};
+}
 
 nv.models.multiBarHorizontal = function() {
 
@@ -6607,7 +6608,7 @@ nv.models.multiBarHorizontal = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -6935,7 +6936,7 @@ nv.models.multiBarHorizontal = function() {
 
 
   return chart;
-};
+}
 
 nv.models.multiBarHorizontalChart = function() {
 
@@ -7004,7 +7005,7 @@ nv.models.multiBarHorizontalChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -7313,7 +7314,7 @@ nv.models.multiBarHorizontalChart = function() {
 
 
   return chart;
-};
+}
 nv.models.multiChart = function() {
 
   //============================================================
@@ -7367,7 +7368,7 @@ nv.models.multiChart = function() {
   };
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -7798,7 +7799,7 @@ nv.models.ohlcBar = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -8139,7 +8140,7 @@ nv.models.pie = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           radius = Math.min(availableWidth, availableHeight) / 2,
@@ -8241,7 +8242,7 @@ nv.models.pie = function() {
             .attr('stroke', function(d,i) { return color(d, i); });
 
         var paths = ae.append('path')
-            .each(function(d) { this._current = d; });
+            .d3each(function(d) { this._current = d; });
             //.attr('d', arc);
 
         d3.transition(slices.select('path'))
@@ -8256,7 +8257,7 @@ nv.models.pie = function() {
           }
 
           ae.append("g").classed("nv-label", true)
-            .each(function(d, i) {
+            .d3each(function(d, i) {
               var group = d3.select(this);
 
               group
@@ -8286,7 +8287,7 @@ nv.models.pie = function() {
                 return 'translate(' + labelsArc.centroid(d) + ')';
             });
 
-          slices.each(function(d, i) {
+          slices.d3each(function(d, i) {
             var slice = d3.select(this);
 
             slice
@@ -8473,7 +8474,7 @@ nv.models.pieChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -8739,7 +8740,7 @@ nv.models.scatter = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -9385,7 +9386,7 @@ nv.models.scatterChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -9935,7 +9936,7 @@ nv.models.scatterPlusLineChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -10418,7 +10419,7 @@ nv.models.sparkline = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -10599,7 +10600,7 @@ nv.models.sparklinePlus = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
@@ -10895,7 +10896,7 @@ nv.models.stackedArea = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -11252,7 +11253,7 @@ nv.models.stackedAreaChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 

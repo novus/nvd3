@@ -77,7 +77,7 @@ nv.models.lineWithFocusChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
 
@@ -361,7 +361,7 @@ nv.models.lineWithFocusChart = function() {
         if (!brush.empty()) brush.extent(brushExtent);
         brushBG
             .data([brush.empty() ? x2.domain() : brushExtent])
-            .each(function(d,i) {
+            .d3each(function(d,i) {
               var leftWidth = x2(d[0]) - x.range()[0],
                   rightWidth = x.range()[1] - x2(d[1]);
               d3.select(this).select('.left')
