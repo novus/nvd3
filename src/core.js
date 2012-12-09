@@ -52,7 +52,7 @@ nv.render = function render(step) {
   nv.dispatch.render_start();
 
   setTimeout(function() {
-    var chart;
+    var chart, graph;
 
     for (var i = 0; i < step && (graph = render.queue[i]); i++) {
       chart = graph.generate();
