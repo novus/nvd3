@@ -191,10 +191,10 @@ nv.models.scatter = function() {
           }
 
           var bounds = d3.geom.polygon([
-              [0,0],
-              [0,height],
-              [width,height],
-              [width,0]
+              [-10,-10],
+              [-10,height + 10],
+              [width + 10,height + 10],
+              [width + 10,-10]
           ]);
 
           var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
