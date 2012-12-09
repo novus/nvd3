@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+</style>
+<body>
+
+<br> <br> <br> <br> <br>
+
+  <div class="gallery">
+    <div class="chart" style="width:500px;height:500px;">
+      <svg/>
+    </div>
+  </div>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/models/heliumBubble.js"></script>
+<script>
+
+    function rawStream(){ 
+
+      return [{"uuid":"f709f42a-4179-11e2-bec4-951bc487561d","totalMachines":Math.random()*30+1,"totalUsers":Math.random()*30+1,"totalfiles":Math.random()*3000+5,"type":"Web"},
+        {"uuid":"f709f42a-4179-11e2-bec4-951bc487561d","totalMachines":Math.random()*30+1,"totalUsers":Math.random()*30+1,"totalfiles":Math.random()*3000+5,"type":"USB"},
+        {"uuid":"f709f42a-4179-11e2-bec4-951bc487561d","totalMachines":Math.random()*30+1,"totalUsers":Math.random()*30+1,"totalfiles":Math.random()*3000+5,"type":"Email"},
+        {"uuid":"f709f42a-4179-11e2-bec4-951bc487561d","totalMachines":Math.random()*30+1,"totalUsers":Math.random()*30+1,"totalfiles":Math.random()*3000+5,"type":"Other"},
+        {"uuid":"f709f42a-4179-11e2-bec4-951bc487561d","totalMachines":Math.random()*30+1,"totalUsers":Math.random()*30+1,"totalfiles":Math.random()*3000+5,"type":"Print"}];
+    }
+
+
+    function prepareData(events) { 
+      var data = [];
+
+      for (var i = 0; i < events.length; i++) {
+        data.push({
+          key: events[i],
+          values: [{x: i+1, y: events[i].totalfiles, size: events[i].totalfiles, label: events[i].type}]
+        });
+      }
+
+      return data;
+    }
+
+    function plot() { 
+      var params = {},
+         duration = 500,
+          format   = "M/D/YY",
+          hover    = "MMM Do YY",
+          nums     = ",0.0f",
+          data = {}
+          arg = {};
+
+          var count = 0;
+
+      arg = function () {
+
+        var chart = nv.models.heliumBubble()
+                .width(340)
+                .height(240)
+                .useVoronoi(true)
+                .sizeDomain([30,115])
+                .clipRadius(function(d){return 50;})
+                .margin({top: 60, right: 10, bottom: 10, left: 60})
+                .color(d3.scale.category10())
+                .tooltip(function(key, x, y) { return '<div>'
+                            +    '<div style="color: #B0ADAA;font-size: 10px;line-height: 11px;padding-top: 10px;">Last 7 Days</div>'
+                            +    '<div style="color: #4181C6;padding-bottom: 5px;"><a class="show-menu" rel="web-exit-points" href="#'+key.type+'">'+key.type+' Exit Points</a></div>'
+                            +    '<div>Total Files: '+key.totalfiles+'</div>'
+                            +    '<div>Total Users: '+key.totalUsers+'</div>'
+                            +    '<div>Total Machines: '+key.totalMachines+'</div>'
+                            +    '<div style="float:right;color:#B0ADAA;font-size: 10px;line-height: 11px;padding-top: 10px;"><a href="#">see all</a></div>'
+                            +'</div>'});
+
+        data = prepareData(rawStream());
+
+        d3.select("div.chart svg")
+          .datum(data)
+          .transition().duration(500)
+          .call(chart);
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+      };
+
+      nv.addGraph(arg);
+
+     
+    }
+
+    plot();
+
+
+</script>

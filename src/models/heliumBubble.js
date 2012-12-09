@@ -35,14 +35,8 @@ nv.models.heliumBubble = function() {
     , tooltips     = true
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    , tooltip      = function(key, x, y) { return '<div onBlur="console.log(\'out\')" onFocus="console.log(\'in\')">'
-                      +    '<div style="color: #B0ADAA;font-size: 10px;line-height: 11px;padding-top: 10px;">Last 7 Days</div>'
-                      +    '<div style="color: #4181C6;padding-bottom: 5px;"><a class="show-menu" rel="web-exit-points" href="#'+key.eventLabel+'">'+key.eventLabel+' Exit Points</a></div>'
-                      +    '<div>Total Files: '+key.eventCount+'</div>'
-                      +    '<div>Total Users: '+key.userCount+'</div>'
-                      +    '<div style="float:right;color:#B0ADAA;font-size: 10px;line-height: 11px;padding-top: 10px;"><a href="#">see all</a></div>'
-                      +'</div>'}
-    //, tooltip      = null
+    //, tooltip      = function(key, x, y) { return '<div></div>'}
+    , tooltip      = null
     ;
 
 
@@ -459,7 +453,6 @@ nv.models.heliumBubble = function() {
 
 
   dispatch.on('elementMouseover.tooltip', function(e) {
-    console.log("over");
     e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
   });
@@ -470,7 +463,6 @@ nv.models.heliumBubble = function() {
 
 
   dispatch.on('elementMouseout.tooltip', function(e) {
-    console.log("out");
     dispatch.tooltipHide(e);
 
   });
@@ -653,6 +645,12 @@ nv.models.heliumBubble = function() {
   chart.singlePoint = function(_) {
     if (!arguments.length) return singlePoint;
     singlePoint = _;
+    return chart;
+  };
+
+  chart.tooltip = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
     return chart;
   };
 
