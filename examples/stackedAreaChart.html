@@ -197,9 +197,7 @@ nv.addGraph(function() {
                 .color(keyColor)
                 //.clipEdge(true);
 
-  chart.stacked.scatter
-      .sizeRange([64,64])
-      .useVoronoi(false);
+// chart.stacked.scatter.clipVoronoi(false);
 
   chart.xAxis
       .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });

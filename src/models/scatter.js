@@ -189,20 +189,22 @@ nv.models.scatter = function() {
             vertices.push([x.range()[0] - 2000, y.range()[0] + 2000, null, null]);
             vertices.push([x.range()[1] + 2000, y.range()[1] - 2000, null, null]);
           }
+
+          var bounds = d3.geom.polygon([
+              [0,0],
+              [0,height],
+              [width,height],
+              [width,0]
+          ]);
+
           var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
               return {
-                'data': d.map(function(f) {
-                  //keep the voronoi paths within the svg bounding box (for IE9 support)
-                    f[0] = f[0] > width ? width : f[0];
-                    f[0] = f[0] < 0 ? 0 : f[0];
-                    f[1] = f[1] > height ? height : f[1];
-                    f[1] = f[1] < 0 ? 0 : f[1];
-                    return f;
-                }),
+                'data': bounds.clip(d),
                 'series': vertices[i][2],
                 'point': vertices[i][3]
               }
             });
+
 
 
           var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
