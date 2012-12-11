@@ -32,12 +32,17 @@ nv.models.linePlusBarChart = function() {
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 
+  bars
+    .padData(true)
+    ;
   lines
     .clipEdge(false)
+    .padData(true)
     ;
   xAxis
     .orient('bottom')
     .tickPadding(7)
+    .highlightZero(false)
     ;
   y1Axis
     .orient('left')
@@ -231,7 +236,8 @@ nv.models.linePlusBarChart = function() {
 
       g.select('.nv-y2.nv-axis')
           .style('opacity', dataLines.length ? 1 : 0)
-          .attr('transform', 'translate(' + x.range()[1] + ',0)');
+          .attr('transform', 'translate(' + availableWidth + ',0)');
+          //.attr('transform', 'translate(' + x.range()[1] + ',0)');
 
       d3.transition(g.select('.nv-y2.nv-axis'))
           .call(y2Axis);

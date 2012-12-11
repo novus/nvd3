@@ -15,6 +15,7 @@ nv.models.historicalBar = function() {
     , getY = function(d) { return d.y }
     , forceX = []
     , forceY = [0]
+    , padData = false
     , clipEdge = true
     , color = nv.utils.defaultColor()
     , xDomain
@@ -36,9 +37,13 @@ nv.models.historicalBar = function() {
       // Setup Scales
 
       x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
-          .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) )) 
+      if (padData)
+        x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+      else
+        x.range([0, availableWidth]);
+
+      y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) ))
           .range([availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -156,7 +161,7 @@ nv.models.historicalBar = function() {
       bars
           .attr('fill', function(d,i) { return color(d, i); })
           .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
-          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - ((availableWidth / data[0].values.length) * .45)) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
@@ -250,6 +255,12 @@ nv.models.historicalBar = function() {
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
+    return chart;
+  };
+
+  chart.padData = function(_) {
+    if (!arguments.length) return padData;
+    padData = _;
     return chart;
   };
 

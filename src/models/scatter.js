@@ -23,6 +23,7 @@ nv.models.scatter = function() {
     , forceSize   = [] // List of numbers to Force into the Size scale
     , interactive = true // If true, plots a voronoi overlay for advanced point interection
     , pointActive = function(d) { return !d.notActive } // any points that return false will be filtered out
+    , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
     , clipEdge    = false // if true, masks points within x and y scale
     , clipVoronoi = true // if true, masks each point with a circle... can turn off to slightly increase performance
     , clipRadius  = function() { return 25 } // function to get the radius for voronoi point clips
@@ -79,7 +80,11 @@ nv.models.scatter = function() {
             );
 
       x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x }).concat(forceX)))
-          .range([0, availableWidth]);
+
+      if (padData)
+        x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+      else
+        x.range([0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
           .range([availableHeight, 0]);
@@ -539,6 +544,12 @@ nv.models.scatter = function() {
   chart.pointActive = function(_) {
     if (!arguments.length) return pointActive;
     pointActive = _;
+    return chart;
+  };
+
+  chart.padData = function(_) {
+    if (!arguments.length) return padData;
+    padData = _;
     return chart;
   };
 

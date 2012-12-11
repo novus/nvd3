@@ -19,6 +19,7 @@ nv.models.ohlcBar = function() {
     , getLow = function(d) { return d.low }
     , forceX = []
     , forceY = []
+    , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
     , clipEdge = true
     , color = nv.utils.defaultColor()
     , xDomain
@@ -47,8 +48,12 @@ nv.models.ohlcBar = function() {
       //------------------------------------------------------------
       // Setup Scales
 
-      x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
-          .range([0, availableWidth]);
+      x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
+
+      if (padData)
+        x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+      else
+        x.range([0, availableWidth]);
 
       y   .domain(yDomain || [
             d3.min(data[0].values.map(getLow).concat(forceY)),
@@ -326,6 +331,12 @@ nv.models.ohlcBar = function() {
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
+    return chart;
+  };
+
+  chart.padData = function(_) {
+    if (!arguments.length) return padData;
+    padData = _;
     return chart;
   };
 

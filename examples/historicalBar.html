@@ -30,6 +30,7 @@ nv.addGraph({
         height = nv.utils.windowSize().height - 40;
 
     var chart = nv.models.historicalBar()
+        .padData(true)
         .width(width)
         .height(height);
 

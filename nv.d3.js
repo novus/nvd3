@@ -53,7 +53,7 @@ nv.render = function render(step) {
   nv.dispatch.render_start();
 
   setTimeout(function() {
-    var chart;
+    var chart, graph;
 
     for (var i = 0; i < step && (graph = render.queue[i]); i++) {
       chart = graph.generate();
@@ -766,6 +766,7 @@ nv.models.historicalBar = function() {
     , getY = function(d) { return d.y }
     , forceX = []
     , forceY = [0]
+    , padData = false
     , clipEdge = true
     , color = nv.utils.defaultColor()
     , xDomain
@@ -787,9 +788,13 @@ nv.models.historicalBar = function() {
       // Setup Scales
 
       x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
-          .range([0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) )) 
+      if (padData)
+        x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+      else
+        x.range([0, availableWidth]);
+
+      y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) ))
           .range([availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -907,7 +912,7 @@ nv.models.historicalBar = function() {
       bars
           .attr('fill', function(d,i) { return color(d, i); })
           .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
-          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - ((availableWidth / data[0].values.length) * .45)) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })  //TODO: better width calculations that don't assume always uniform data spacing;w
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
@@ -1001,6 +1006,12 @@ nv.models.historicalBar = function() {
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
+    return chart;
+  };
+
+  chart.padData = function(_) {
+    if (!arguments.length) return padData;
+    padData = _;
     return chart;
   };
 
@@ -3769,7 +3780,7 @@ nv.models.line = function() {
   chart.dispatch = scatter.dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'padData');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -4211,12 +4222,17 @@ nv.models.linePlusBarChart = function() {
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 
+  bars
+    .padData(true)
+    ;
   lines
     .clipEdge(false)
+    .padData(true)
     ;
   xAxis
     .orient('bottom')
     .tickPadding(7)
+    .highlightZero(false)
     ;
   y1Axis
     .orient('left')
@@ -4410,7 +4426,8 @@ nv.models.linePlusBarChart = function() {
 
       g.select('.nv-y2.nv-axis')
           .style('opacity', dataLines.length ? 1 : 0)
-          .attr('transform', 'translate(' + x.range()[1] + ',0)');
+          .attr('transform', 'translate(' + availableWidth + ',0)');
+          //.attr('transform', 'translate(' + x.range()[1] + ',0)');
 
       d3.transition(g.select('.nv-y2.nv-axis'))
           .call(y2Axis);
@@ -7117,6 +7134,7 @@ nv.models.ohlcBar = function() {
     , getLow = function(d) { return d.low }
     , forceX = []
     , forceY = []
+    , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
     , clipEdge = true
     , color = nv.utils.defaultColor()
     , xDomain
@@ -7145,8 +7163,12 @@ nv.models.ohlcBar = function() {
       //------------------------------------------------------------
       // Setup Scales
 
-      x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
-          .range([0, availableWidth]);
+      x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
+
+      if (padData)
+        x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+      else
+        x.range([0, availableWidth]);
 
       y   .domain(yDomain || [
             d3.min(data[0].values.map(getLow).concat(forceY)),
@@ -7424,6 +7446,12 @@ nv.models.ohlcBar = function() {
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
+    return chart;
+  };
+
+  chart.padData = function(_) {
+    if (!arguments.length) return padData;
+    padData = _;
     return chart;
   };
 
@@ -8049,6 +8077,7 @@ nv.models.scatter = function() {
     , forceSize   = [] // List of numbers to Force into the Size scale
     , interactive = true // If true, plots a voronoi overlay for advanced point interection
     , pointActive = function(d) { return !d.notActive } // any points that return false will be filtered out
+    , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
     , clipEdge    = false // if true, masks points within x and y scale
     , clipVoronoi = true // if true, masks each point with a circle... can turn off to slightly increase performance
     , clipRadius  = function() { return 25 } // function to get the radius for voronoi point clips
@@ -8105,7 +8134,11 @@ nv.models.scatter = function() {
             );
 
       x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x }).concat(forceX)))
-          .range([0, availableWidth]);
+
+      if (padData)
+        x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+      else
+        x.range([0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
           .range([availableHeight, 0]);
@@ -8565,6 +8598,12 @@ nv.models.scatter = function() {
   chart.pointActive = function(_) {
     if (!arguments.length) return pointActive;
     pointActive = _;
+    return chart;
+  };
+
+  chart.padData = function(_) {
+    if (!arguments.length) return padData;
+    padData = _;
     return chart;
   };
 
