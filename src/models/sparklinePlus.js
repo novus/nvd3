@@ -17,6 +17,7 @@ nv.models.sparklinePlus = function() {
     , xTickFormat = d3.format(',r')
     , yTickFormat = d3.format(',.2f')
     , showValue = true
+    , alignValue = true
     , noData = "No Data Available."
     ;
 
@@ -111,11 +112,11 @@ nv.models.sparklinePlus = function() {
 
       value.enter().append('text').attr('class', 'nv-currentValue')
           .attr('dx', 8)
-          .attr('dy', '.65em');
+          .attr('dy', '.9em');
 
       value
           .attr('x', availableWidth)
-          .attr('y', function(d) { return y(d) })
+          .attr('y', alignValue ? function(d) { return y(d) } : 0)
           .style('fill', sparkline.color()(data[data.length-1], data.length-1))
           .text(yTickFormat(currentValue));
 
@@ -260,6 +261,12 @@ nv.models.sparklinePlus = function() {
   chart.showValue = function(_) {
     if (!arguments.length) return showValue;
     showValue = _;
+    return chart;
+  };
+
+  chart.alignValue = function(_) {
+    if (!arguments.length) return alignValue;
+    alignValue = _;
     return chart;
   };
 
