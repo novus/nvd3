@@ -209,7 +209,9 @@ nv.models.line = function() {
   chart.dispatch = scatter.dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'padData');
+  d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale',
+      'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize',
+      'useVoronoi', 'clipVoronoi', 'clipRadius', 'padData');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
