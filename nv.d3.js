@@ -1787,7 +1787,7 @@ nv.models.cumulativeLineChart = function() {
     , id = lines.id()
     , state = { index: 0, rescaleY: rescaleY }
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
 
   xAxis
@@ -2186,6 +2186,39 @@ nv.models.cumulativeLineChart = function() {
 
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
+      });
+
+
+      // Update chart from a state object passed to event handler
+      dispatch.on('changeState', function(e) {
+
+        if (typeof e.disabled !== 'undefined') {
+          data.forEach(function(series,i) {
+            series.disabled = e.disabled[i];
+          });
+
+          state.disabled = e.disabled;
+        }
+
+
+        if (typeof e.index !== 'undefined') {
+          index.i = e.index;
+          index.x = dx(index.i);
+
+          // update state and send stateChange with new index
+          state.index = e.index;
+          dispatch.stateChange(state);
+
+          indexLine
+            .data([index]);
+        }
+
+
+        if (typeof e.rescaleY !== 'undefined') {
+          rescaleY = e.rescaleY;
+        }
+
+        selection.call(chart);
       });
 
       //============================================================
