@@ -447,9 +447,7 @@ nv.models.cumulativeLineChart = function() {
           index.i = e.index;
           index.x = dx(index.i);
 
-          // update state and send stateChange with new index
           state.index = e.index;
-          dispatch.stateChange(state);
 
           indexLine
             .data([index]);
