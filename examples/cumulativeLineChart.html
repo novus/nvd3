@@ -72,6 +72,9 @@ nv.addGraph(function() {
   nv.utils.windowResize(chart.update);
   //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
 
+
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
   return chart;
 });
 
