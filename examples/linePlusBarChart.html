@@ -60,7 +60,7 @@ var testdata = [
   return series;
 });
 
-
+/*
 //For testing single data point
 var testdata = [
   {
@@ -76,11 +76,12 @@ var testdata = [
   series.values = series.values.map(function(d) { return {x: d[0], y: d[1] } });
   return series;
 });
+*/
 
-
+var chart;
 
 nv.addGraph(function() {
-    var chart = nv.models.linePlusBarChart()
+    chart = nv.models.linePlusBarChart()
         .margin({top: 30, right: 60, bottom: 50, left: 70})
         .x(function(d,i) { return i })
         .color(d3.scale.category10().range());
@@ -104,6 +105,8 @@ nv.addGraph(function() {
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
     return chart;
 });

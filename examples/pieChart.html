@@ -59,12 +59,12 @@ text {
 
 
 
-
+var chart;
 nv.addGraph(function() {
     var width = 500,
         height = 500;
 
-    var chart = nv.models.pieChart()
+    chart = nv.models.pieChart()
         .x(function(d) { return d.key })
         .y(function(d) { return d.y })
         //.showLabels(false)
@@ -79,6 +79,8 @@ nv.addGraph(function() {
           .attr('width', width)
           .attr('height', height)
           .call(chart);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
     return chart;
 });

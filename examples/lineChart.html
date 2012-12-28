@@ -51,8 +51,10 @@ svg {
 
 
 // Wrapping in nv.addGraph allows for '0 timeout render', stors rendered charts in nv.graphs, and may do more in the future... it's NOT required
+var chart;
+
 nv.addGraph(function() {
-  var chart = nv.models.lineChart();
+  chart = nv.models.lineChart();
 
   chart
       .x(function(d,i) { return i })
@@ -74,6 +76,8 @@ nv.addGraph(function() {
   //TODO: Figure out a good way to do this automatically
   nv.utils.windowResize(chart.update);
   //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
+
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
   return chart;
 });

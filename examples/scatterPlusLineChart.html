@@ -61,8 +61,9 @@ div {
 
 
 //Format A
+var chart;
 nv.addGraph(function() {
-  var chart = nv.models.scatterPlusLineChart()
+  chart = nv.models.scatterPlusLineChart()
                 .showDistX(true)
                 .showDistY(true)
                 //.height(500)
@@ -77,6 +78,8 @@ nv.addGraph(function() {
       .call(chart);
 
   nv.utils.windowResize(chart.update);
+
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
   return chart;
 });
