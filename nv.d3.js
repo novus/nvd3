@@ -706,7 +706,7 @@ nv.models.heliumBubble = function() {
           .style('fill', function(d,i) { return color(d, i) })
           .style('stroke', function(d,i) { return color(d, i) })
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .5);
+          .style('fill-opacity', .8);
 
 
       if (onlyCircles) {
@@ -731,12 +731,7 @@ nv.models.heliumBubble = function() {
           .attr('x', function(d,i) { return x(getX(d,i)) })
           .attr('y', function(d,i) { return y(getY(d,i)) })
           .attr("dy", ".3em")
-          .style("text-anchor", "middle")
-          .style("stroke", "white")
-          .style("stroke-width", .85)
-          .style("letter-spacing", ".15em")
-          .style("font-size", ".7em")
-          .style("fill", "white")
+          .attr("class","nv-point-label")
           .text(function(d) { return d.label; });
       } else {
 

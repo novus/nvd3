@@ -22,6 +22,7 @@ body {
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/models/heliumBubble.js"></script>
+<script src="http://localhost:9001/modules/abaaso/lib/abaaso.js"></script>
 <script>
 
     function rawStream(){ 
@@ -44,6 +45,9 @@ body {
         });
       }
 
+
+console.log(data);
+
       return data;
     }
 
@@ -61,12 +65,19 @@ body {
       arg = function () {
 
         var chart = nv.models.heliumBubble()
-                .width(340)
-                .height(240)
+                // .width(340)
+                // .height(240)
+                // .useVoronoi(true)
+                // .sizeDomain([30,115])
+                 .width(325)
+                 .height(425)
+                 .yScale(d3.scale.pow())
+                .zScale(d3.scale.pow())
+                .sizeRange([300, 3000])
+                //.sizeDomain([.03, 2.2])
                 .useVoronoi(true)
-                .sizeDomain([30,115])
                 .clipRadius(function(d){return 50;})
-                .margin({top: 60, right: 10, bottom: 10, left: 60})
+                .margin({top: 60, left: 60})
                 .color(d3.scale.category10())
                 .tooltip(function(key, x, y) { return '<div>'
                             +    '<div style="color: #B0ADAA;font-size: 10px;line-height: 11px;padding-top: 10px;">Last 7 Days</div>'
