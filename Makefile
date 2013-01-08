@@ -5,6 +5,7 @@ JS_FILES = \
 	src/utils.js \
 	src/models/heliumBubble.js \
 	src/models/axis.js \
+	src/models/horizontalBar.js \
 	src/models/historicalBar.js \
 	src/models/bullet.js \
 	src/models/bulletChart.js \

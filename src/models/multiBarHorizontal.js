@@ -1,5 +1,5 @@
 
-nv.models.multiBarHorizontal = function() {
+nv.models.horizontalBar = function() {
 
   //============================================================
   // Public Variables with Default Settings
