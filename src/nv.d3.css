@@ -372,6 +372,14 @@ svg .title {
 }
 
 
+.nvd3 .nv-point-label {
+  text-anchor: middle;
+  stroke: #ffffff;
+  stroke-width: 0.75;
+  letter-spacing: .15em;
+  font-size: .5em;
+}
+
 
 .nvd3 .nv-indexLine {
   cursor: ew-resize;
