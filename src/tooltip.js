@@ -1,6 +1,6 @@
 
 /*****
- * A no frills tooltip implementation.
+ * A no-frills tooltip implementation.
  *****/
 
 
