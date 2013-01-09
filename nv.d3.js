@@ -119,7 +119,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 
 
 /*****
- * A no frills tooltip implementation.
+ * A no-frills tooltip implementation.
  *****/
 
 
@@ -288,7 +288,7 @@ nv.utils.windowResize = function(fun){
 
 // Backwards compatible way to implement more d3-like coloring of graphs.
 // If passed an array, wrap it in a function which implements the old default
-// behaviour
+// behavior
 nv.utils.getColor = function(color) {
     if (!arguments.length) return nv.utils.defaultColor(); //if you pass in nothing, get default colors back
 
@@ -296,7 +296,7 @@ nv.utils.getColor = function(color) {
         return function(d, i) { return d.color || color[i % color.length]; };
     else
         return color;
-        //can't really help it if someone passes rubish as color
+        //can't really help it if someone passes rubbish as color
 }
 
 // Default color chooser uses the index of an object as before.
@@ -4401,13 +4401,12 @@ nv.models.linePlusBarChart = function() {
       var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
 
       //x = xAxis.scale();
-      x = dataLines.filter(function(d) { return !d.disabled; }).length ? lines.xScale() : bars.xScale();
+       x = dataLines.filter(function(d) { return !d.disabled; }).length && dataLines.filter(function(d) { return !d.disabled; })[0].values.length ? lines.xScale() : bars.xScale();
+      //x = dataLines.filter(function(d) { return !d.disabled; }).length ? lines.xScale() : bars.xScale(); //old code before change above
       y1 = bars.yScale();
       y2 = lines.yScale();
 
-
       //------------------------------------------------------------
-
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
