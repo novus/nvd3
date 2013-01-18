@@ -514,8 +514,8 @@ nv.models.lineWithFocusChart = function() {
   
   chart.brushExtent = function(_) {
     if (!arguments.length) return brushExtent;
-	  brushExtent = _;
-	  return chart;
+    brushExtent = _;
+    return chart;
   };
 
   chart.tooltips = function(_) {
