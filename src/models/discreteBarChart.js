@@ -23,7 +23,7 @@ nv.models.discreteBarChart = function() {
     , x
     , y
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
     ;
 
   xAxis
@@ -68,7 +68,7 @@ nv.models.discreteBarChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { selection.transition().call(chart); };
+      chart.update = function() { dispatch.beforeUpdate(); selection.transition().call(chart); };
       chart.container = this;
 
 
