@@ -9674,7 +9674,7 @@ nv.models.scatterChart = function() {
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
-    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
+    , x            = d3.time.scale() //d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
     , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
     , xPadding     = 0
     , yPadding     = 0
@@ -9693,24 +9693,7 @@ nv.models.scatterChart = function() {
     , noData       = "No Data Available."
     ;
 
-  scatter
-    .xScale(x)
-    .yScale(y)
-    ;
-  xAxis
-    .orient('bottom')
-    .tickPadding(10)
-    ;
-  yAxis
-    .orient('left')
-    .tickPadding(10)
-    ;
-  distX
-    .axis('x')
-    ;
-  distY
-    .axis('y')
-    ;
+ 
 
   //============================================================
 
@@ -9749,6 +9732,25 @@ nv.models.scatterChart = function() {
 
 
   function chart(selection) {
+   scatter
+      .xScale(x)
+      .yScale(y)
+      ;
+    xAxis
+      .orient('bottom')
+      .tickPadding(10)
+      ;
+    yAxis
+      .orient('left')
+      .tickPadding(10)
+      ;
+    distX
+      .axis('x')
+      ;
+    distY
+      .axis('y')
+      ;
+
     selection.d3each(function(data) {
       var container = d3.select(this),
           that = this;
