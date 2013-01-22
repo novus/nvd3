@@ -51,10 +51,12 @@ svg {
 // Wrapping in nv.addGraph allows for '0 timeout render', stors rendered charts in nv.graphs, and may do more in the future... it's NOT required
 var chart;
 nv.addGraph(function() {  
+
    chart = nv.models.cumulativeLineChart()
              .x(function(d) { return d[0] })
              .y(function(d) { return d[1]/100 })
-             .color(d3.scale.category10().range());
+             .color(d3.scale.category10().range())
+             .clipVoronoi(false);
 
    chart.xAxis
       .tickFormat(function(d) {
@@ -65,6 +67,7 @@ nv.addGraph(function() {
       .tickFormat(d3.format(',.1%'));
 
   d3.select('#chart1 svg')
+      // .datum(cumulativeTestData())
       .datum(cumulativeTestData())
     //.transition().duration(500)
       .call(chart);
@@ -80,6 +83,18 @@ nv.addGraph(function() {
 });
 
 
+function flatTestData() {
+  return [
+    {
+      key: "Snakes",
+      values: [0,1,2,3,4,5,6,7,8,9].map(function(d) {
+        var currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() + d);
+        return [currentDate, 0]
+      })
+    }
+  ];
+}
 
 
 function cumulativeTestData() {

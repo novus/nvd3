@@ -187,13 +187,13 @@ nv.models.scatter = function() {
           }
 
 
-          if(vertices.length < 3) {
+          // if(vertices.length < 3) {
             // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
-            vertices.push([x.range()[0] - 2000, y.range()[0] - 2000, null, null]);
-            vertices.push([x.range()[1] + 2000, y.range()[1] + 2000, null, null]);
-            vertices.push([x.range()[0] - 2000, y.range()[0] + 2000, null, null]);
-            vertices.push([x.range()[1] + 2000, y.range()[1] - 2000, null, null]);
-          }
+            vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
+            vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
+            vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
+            vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
+          // }
 
           var bounds = d3.geom.polygon([
               [-10,-10],
