@@ -37,7 +37,6 @@ nv.models.linePlusBarChart = function() {
     ;
   lines
     .clipEdge(false)
-    .padData(true)
     ;
   xAxis
     .orient('bottom')
@@ -250,7 +249,7 @@ nv.models.linePlusBarChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('legendClick', function(d,i) { 
+      legend.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
 
         if (!data.filter(function(d) { return !d.disabled }).length) {
