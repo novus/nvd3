@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+</style>
+<body>
+
+<br> <br> <br> <br> <br>
+
+<div class="gallery" id="chart">
+  <svg style="height: 500px;width:960px"></svg>
+</div>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/models/gantt.js"></script>
+<script src="../src/models/ganttChart.js"></script>
+<script src="../src/models/multiBarTimeSeries.js"></script>
+<script src="../src/models/multiBarTimeSeriesChart.js"></script>
+<script src="../../moment/moment.js"></script>
+<script>
+
+
+  data = [  
+  {
+    "key":{"title":"John Doe","subtitle":"jdo@unkown.com"},
+    "values":[
+    {
+      activity:{type:"new"},
+      predecessor:"",
+      start:1358116735,
+      duration:0
+    },
+    {
+      activity:{type:"accessed"},
+      predecessor:"",
+      start:1358116735,
+      duration:5300
+    },
+    {
+      activity:{type:"exit"},
+      predecessor:"",
+      start:1358122000,
+      duration:0
+    }]
+  },
+  {
+    "key":{"title":"Jane Doe","subtitle":"jdo@unkown.com"},
+    "values":[{
+      activity:{type:"accessed"},
+      predecessor:"",
+      start:1358119735,
+      duration:5300
+    }]
+  },
+  {
+    "key":{"title":"Jim Doe","subtitle":"jdo@unkown.com"},
+    "values":[{
+      activity:{type:"accessed"},
+      predecessor:"",
+      start:1358119735,
+      duration:5300
+    }]
+  },
+  {
+    "key":{"title":"Jack Doe","subtitle":"jdo@unkown.com"},
+    "values":[{
+      activity:{type:"accessed"},
+      predecessor:"",
+      start:1358100735,
+      duration:3000
+    }]
+  },
+  {
+    "key":{"title":"Jill Doe","subtitle":"jdo@unkown.com"},
+    "values":[{
+      activity:{type:"accessed"},
+      predecessor:"",
+      start:1358107735,
+      duration:500
+    }]
+  }
+];
+
+
+
+  nv.addGraph(function() {
+
+    var chart = nv.models.ganttChart()
+       .xDomain([moment.unix(1358119735).startOf("day"), moment.unix(1358119735).endOf("day")])
+        .start(function(d,i) {return moment.unix(d.start).toDate()})
+        .end(function(d,i) {return moment.unix(d.start+d.duration).toDate()})
+        .color(function(d){
+            var c = "blue";
+            switch(d.activity.type) {
+              default :
+                console.log(d.activity.type)
+                c = "red";
+                break;
+            }
+            return c;
+          })
+        .shape(function(d){
+            var s = "circle";
+            switch(d.activity.type) {
+              default:
+                console.log(d.activity.type)
+                s = "circle";
+                break;
+            }
+            return s;
+          })
+        .tickFormat(function(d){return moment(d).format("ha")})
+        .margin({top: 5, right: 40, bottom: 20, left: 120});
+
+    // var chart = nv.models.multiBarTimeSeriesChart()
+    //     .xDomain([moment().startOf("day"), moment().endOf("day")])
+    //     .width(width - margin.right - margin.left)
+    //     .height(height - margin.top - margin.bottom);
+
+
+    d3.select('#chart svg')
+        .datum(data)
+        .transition()
+        .duration(1000)
+        .call(chart);
+  });
+
+
+</script>

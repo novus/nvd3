@@ -5,7 +5,7 @@ nv.models.multiBarHorizontalChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var multibar = nv.models.multiBarHorizontal()
+  var multibar = nv.models.horizontalBar()
     , xAxis = nv.models.axis()
     , yAxis = nv.models.axis()
     , legend = nv.models.legend().height(30)
