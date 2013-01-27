@@ -52,9 +52,9 @@ var test_data = stream_layers(3,10+Math.random()*100,.1).map(function(data, i) {
 });
 
 
-
+var chart;
 nv.addGraph(function() {
-    var chart = nv.models.multiBarChart();
+    chart = nv.models.multiBarChart();
 
     chart.xAxis
         .showMaxMin(true)
@@ -68,6 +68,8 @@ nv.addGraph(function() {
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
     return chart;
 });
