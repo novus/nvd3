@@ -53,7 +53,7 @@ svg {
 nv.addGraph(function() {  
   var chart = nv.models.lineChart();
 
-  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the partent chart, so need to chain separately
+  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
       .tickFormat(d3.format(',r'));
 
   chart.yAxis

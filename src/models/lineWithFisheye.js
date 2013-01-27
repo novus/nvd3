@@ -15,7 +15,7 @@ nv.models.line = function() {
   var scatter = nv.models.scatter()
                   .id(id)
                   .size(16) // default size
-                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a custom size accessor
       //x = scatter.xScale(),
       //y = scatter.yScale(),
       x, y,
