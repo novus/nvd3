@@ -21,7 +21,7 @@ Minifying your fork:
 
 The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS).
 
-The easist way to install is to install via npm. Run `npm install
+The easiest way to install is to install via npm. Run `npm install
 uglify-js` from your home directory, then add the output from `npm bin`
 into your path so that you have access to `uglifyjs` from the command
 line (remember to restart your terminal window when adding to the path.)

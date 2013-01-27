@@ -14,7 +14,7 @@ nv.models.line = function() {
     , color = nv.utils.defaultColor() // a function that returns a color
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
     , getY = function(d) { return d.y } // accessor to get the y value from a data point
-    , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continous when it is not defined
+    , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
     , isArea = function(d) { return d.area } // decides if a line is an area or just a line
     , clipEdge = false // if true, masks lines within x and y scale
     , x //can be accessed via chart.xScale()
