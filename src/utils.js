@@ -28,7 +28,7 @@ nv.utils.windowSize = function() {
 
 
 // Easy way to bind multiple functions to window.onresize
-// TODO: give a way to remove a function after its bound, other than removing alkl of them
+// TODO: give a way to remove a function after its bound, other than removing all of them
 nv.utils.windowResize = function(fun){
   var oldresize = window.onresize;
 

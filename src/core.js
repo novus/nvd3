@@ -46,7 +46,7 @@ nv.log = function() {
 
 
 nv.render = function render(step) {
-  step = step || 1; // number of graphs to generate in each timout loop
+  step = step || 1; // number of graphs to generate in each timeout loop
 
   render.active = true;
   nv.dispatch.render_start();

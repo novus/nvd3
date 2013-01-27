@@ -41,7 +41,7 @@ var chart = nv.models.bulletChart()
   */
 ];
 
-  //TODO: to be consistent with other models, shouild be appending a g to an already made svg, not creating the svg element
+  //TODO: to be consistent with other models, should be appending a g to an already made svg, not creating the svg element
   var vis = d3.select("#chart").selectAll("svg")
       .data(data)
     .enter().append("svg")
