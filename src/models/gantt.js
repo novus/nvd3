@@ -16,7 +16,7 @@ nv.models.gantt = function() {
     , getStart    = function(d,i) { return d.start }
     , getEnd      = function(d,i) { return d.start + d.duration }
     , getDuration = function(d,i) { return d.duration }
-    , getSize     = function(d) { return d.size || 30} // accessor to get the point size
+    , getSize     = function(d) { return d.size || 70} // accessor to get the point size
     , shape       = function(d) { return d.shape || 'circle' } // accessor to get point shape
     , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
     , width = 960
@@ -158,6 +158,7 @@ nv.models.gantt = function() {
               .type(shape)
               .size(function(d,i) { return getSize(d,i) })
           )
+          .style('fill', color)
           .on('mouseover', function(d,i) {
             var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
 

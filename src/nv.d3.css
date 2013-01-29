@@ -493,7 +493,7 @@ svg .title {
 .nvd3 .nv-gantt { font: 8px sans-serif; }
 .nvd3 .nv-gantt .nv-row { stroke: #fff; fill: #fff; }
 .nvd3 .nv-gantt.nv-alt .nv-row { fill-opacity: .5; fill: #eee; stroke: #666; stroke-width: .25px; }
-.nvd3 .nv-gantt .nv-milestone { stroke: #000; fill: #fff; stroke-width: 1.5px; }
+.nvd3 .nv-gantt .nv-milestone { fill: #fff; stroke-width: 1.5px; }
 .nvd3 .nv-gantt .nv-tick line { stroke: #666; stroke-width: .5px; }
 .nvd3 .nv-gantt .nv-title { font-size: 14px; font-weight: bold; }
 .nvd3 .nv-gantt .nv-subtitle { fill: #999; }

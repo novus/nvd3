@@ -33,17 +33,23 @@ body {
     {
       activity:{type:"new"},
       predecessor:"",
-      start:1358116735,
+      start:1358106735,
       duration:0
+    },
+    {
+      activity:{type:"accessed"},
+      predecessor:"",
+      start:1358106735,
+      duration:5300
     },
     {
       activity:{type:"accessed"},
       predecessor:"",
       start:1358116735,
       duration:5300
-    },
+    },    
     {
-      activity:{type:"exit"},
+      activity:{type:"exit point"},
       predecessor:"",
       start:1358122000,
       duration:0
@@ -54,8 +60,14 @@ body {
     "values":[{
       activity:{type:"accessed"},
       predecessor:"",
-      start:1358119735,
-      duration:5300
+      start:1358090035,
+      duration:8000
+    },
+    {
+      activity:{type:"modified"},
+      predecessor:"",
+      start:1358098035,
+      duration:0
     }]
   },
   {
@@ -63,8 +75,8 @@ body {
     "values":[{
       activity:{type:"accessed"},
       predecessor:"",
-      start:1358119735,
-      duration:5300
+      start:1358109735,
+      duration:5000
     }]
   },
   {
@@ -98,8 +110,16 @@ body {
         .color(function(d){
             var c = "blue";
             switch(d.activity.type) {
+              case "accessed":
+                c = "#c1c1c8";
+                break;
+              case "modified":
+                c = "#742FBE";
+                break;
+              case "new":
+                c = "#236BC0";
+                break;
               default :
-                console.log(d.activity.type)
                 c = "red";
                 break;
             }
@@ -108,8 +128,13 @@ body {
         .shape(function(d){
             var s = "circle";
             switch(d.activity.type) {
+              case "new":
+                s = "square";
+                break;
+              case "modified":
+                s = "triangle-up";
+                break;
               default:
-                console.log(d.activity.type)
                 s = "circle";
                 break;
             }
