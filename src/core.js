@@ -48,21 +48,21 @@ nv.log = function() {
 nv.render = function render(step) {
   step = step || 1; // number of graphs to generate in each timeout loop
 
-  render.active = true;
+  nv.render.active = true;
   nv.dispatch.render_start();
 
   setTimeout(function() {
     var chart, graph;
 
-    for (var i = 0; i < step && (graph = render.queue[i]); i++) {
+    for (var i = 0; i < step && (graph = nv.render.queue[i]); i++) {
       chart = graph.generate();
       if (typeof graph.callback == typeof(Function)) graph.callback(chart);
       nv.graphs.push(chart);
     }
 
-    render.queue.splice(0, i);
+    nv.render.queue.splice(0, i);
 
-    if (render.queue.length) setTimeout(arguments.callee, 0);
+    if (nv.render.queue.length) setTimeout(arguments.callee, 0);
     else { nv.render.active = false; nv.dispatch.render_end(); }
   }, 0);
 };
