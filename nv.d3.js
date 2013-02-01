@@ -1008,6 +1008,608 @@ nv.models.heliumBubble = function() {
   return chart;
 }
 
+
+nv.models.gantt = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , orient = 'left' // TODO top & bottom
+    , reverse = false
+    , rowHeight = 32
+    , labelWidth = 300
+    , x = d3.time.scale()
+    , y = d3.scale.linear()
+    , getTitle    = function(d,i) { return d.start }
+    , getStart    = function(d,i) { return d.start }
+    , getEnd      = function(d,i) { return d.start + d.duration }
+    , getDuration = function(d,i) { return d.duration }
+    , getSize     = function(d) { return d.size || 30} // accessor to get the point size
+    , shape       = function(d) { return d.shape || 'circle' } // accessor to get point shape
+    , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
+    , width = 960
+    , height = 500
+    , xDomain = null
+    , yDomain = null
+    , tickFormat = null
+    , color = nv.utils.getColor(['#1f77b4'])
+    , dispatch = d3.dispatch('elementMouseover', 'elementMouseout')
+    ;
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
+
+  var x0, y0, x1 //used to store previous scales
+      ;
+
+
+  //============================================================
+
+
+  function chart(selection) {
+    selection.d3each(function(data, i) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
+
+      //add series index to each data point for reference
+      data = data.map(function(series, i) {
+        series.values = series.values.map(function(point) {
+          point.row = i;
+          return point;
+        });
+        return series;
+      });
+
+
+      //------------------------------------------------------------
+      // Setup Scales
+      // remap and flatten the data for use in calculating the scales' domains
+      var seriesData =  // if we know xDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
+            d3.merge(
+              data.map(function(d) {
+                return d.values.map(function(d,i) {
+                  return d;
+                })
+              })
+            );
+
+      x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return getStart(d.start) }).concat(forceX)))
+          .range([0, availableWidth]);
+
+ 
+      // Compute the new x-scale.
+      x1 = x.domain(xDomain || d3.extent(seriesData.map(function(d) { return getStart(d.start) }).concat(forceX)))
+                .range([0, availableWidth]);
+
+      // Retrieve the old x-scale, if this is an update.
+      x0 = this.__chart__ || d3.time.scale()
+          .domain([0, Infinity])
+          .range(x1.range());
+
+      // Stash the new scale.
+      this.__chart__ = x1;
+
+      y0 = y0 || d3.scale.linear().domain(y.domain()).range([y(0),y(0)]);
+
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-gantt').data(data);
+      var wrapEnter = wrap.enter().append('g')
+        .attr('class', function(d, i) {
+            return i % 2 ? "nv-gantt nv-alt nv-row" + i : "nv-gantt nv-row" + i;
+          });
+      var gEnter = wrapEnter.append('g').attr('transform', function(d,i,j) {
+              return 'translate(' + y0(0) + ',' + (i * rowHeight )  + ')'
+          });
+      var g = wrap.select('g');
+
+      gEnter.append('rect').attr('class', 'nv-row')
+          .attr('height', rowHeight - 1)
+          .attr('width', availableWidth)
+          .attr('y', -15)
+          ;
+
+      // container for row titles
+      gEnter.append('g').attr('class', 'nv-titles');
+
+      //------------------------------------------------------------
+
+      // @todo calculating height offsets used for gantt rows and tooltips
+      // Should really use a y scale 
+      var y1  = function(d) { return rowHeight * d.row };
+
+      var xp0 = function(d) { return x0(getStart(d)) },
+          xp1 = function(d) { return x1(getStart(d)) };
+
+      var w0 = function(d) { return Math.abs(x0(getStart(d)) - x0(getEnd(d))) }, // TODO: could optimize by precalculating x0(0) and x1(0)
+          w1 = function(d) { return Math.abs(x1(getStart(d)) - x1(getEnd(d))) };
+
+      var title = g.select('.nv-titles').append('g')
+          .attr('text-anchor', 'end')
+      title.append('text')
+          .attr('class', 'nv-title')
+          .text(function(d) { return d.key.title; });
+
+      title.append('text')
+          .attr('class', 'nv-subtitle')
+          .attr('dy', '1em')
+          .text(function(d) { return d.key.subtitle; });
+
+      // Activities with non-zero duration
+      var bars = g.selectAll('rect.nv-measure')
+                .data(function(d) { return d.values });
+      bars.enter().append('rect').filter(function(d,i) { return d.duration > 0 })
+          .style('stroke', "#999999")
+          .style('fill', color)
+          .attr('class', "nv-measure")
+          .attr('height', rowHeight / 4)
+          .attr('width', function(d){ return w1(d) })
+          .attr('x', function(d){ return  xp1(d) })
+          .attr('y', 0 - rowHeight / 8)
+          .on('mouseover', function(d) {
+              dispatch.elementMouseover({
+                value: d,
+                label: d.activity.type,
+                pos: [xp1(d), y1(d)]
+              })
+          })
+          .on('mouseout', function(d) {
+              dispatch.elementMouseout({
+                value: d,
+                label: d.activity.type
+              })
+          });
+      bars.exit().remove();
+
+      // Zero duration activities
+      var points = g.selectAll('path.nv-milestone')
+          .data(function(d) { return d.values });
+      points.enter().append('path').filter(function(d) { return d.duration == 0 })
+          .attr("class", "nv-milestone")
+          .attr('transform', function(d) { 
+            return 'translate(' + xp1(d) + ',0)'
+          })
+          .style('fill', color)
+          .style('stroke', color)
+          .attr('d',
+            d3.svg.symbol()
+              .type(shape)
+              .size(function(d,i) { return getSize(d,i) })
+          )
+          .on('mouseover', function(d) {
+            var label = d.activity.type;
+
+            dispatch.elementMouseover({
+              value: d,
+              label: label,
+              pos: [xp1(d), y1(d)]
+            })
+          })
+          .on('mouseout', function(d) {
+            var label = d.activity.type;
+
+            dispatch.elementMouseout({
+              value: d,
+              label: label
+            })
+          });
+      points.exit().remove();
+
+
+
+
+
+
+    });
+    
+    // d3.timer.flush();  // Not needed?
+
+    return chart;
+  }
+
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+  chart.dispatch = dispatch;
+
+  // left, right, top, bottom
+  chart.orient = function(_) {
+    if (!arguments.length) return orient;
+    orient = _;
+    reverse = orient == 'right' || orient == 'bottom';
+    return chart;
+  };
+
+
+  chart.start = function(_) {
+    if (!arguments.length) return getStart;
+    getStart = d3.functor(_);
+    return chart;
+  };
+
+  chart.end = function(_) {
+    if (!arguments.length) return getEnd;
+    getEnd = d3.functor(_);
+    return chart;
+  };
+
+  chart.forceX = function(_) {
+    if (!arguments.length) return forceX;
+    forceX = _;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+
+  chart.xScale = function(_) {
+    if (!arguments.length) return xScale;
+    xScale = _;
+    return chart;
+  };
+
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  };
+
+  chart.tickFormat = function(_) {
+    if (!arguments.length) return tickFormat;
+    tickFormat = _;
+    return chart;
+  };
+
+  chart.color = function(_) {
+    if (!arguments.length) return color;
+    color = nv.utils.getColor(_);
+    return chart;
+  };
+
+  chart.shape = function(_) {
+    if (!arguments.length) return shape;
+    shape = _;
+    return chart;
+  };
+
+  //============================================================
+
+
+  return chart;
+};
+
+
+// Gantt Chart
+// based on the bullet chart
+nv.models.ganttChart = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var gantt = nv.models.gantt()
+    ;
+
+  var orient = 'left' // TODO top & bottom
+    , reverse = false
+    , margin = {top: 5, right: 40, bottom: 20, left: 120}
+    , width = null
+    , height = null
+    , tickFormat = null
+    , tooltips = true
+    , tooltip = function(d, label) {
+        return '<h3>' + label + '</h3>' +
+               '<p>' + d.start + '</p>'
+      }
+    , noData = 'No Data Available.'
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    , yScale = null
+    , xScale = null
+    , xDomain = null
+    ;
+
+  //============================================================
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
+
+  var showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
+        top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
+        content = tooltip(e.value, e.label);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
+  };
+
+  //============================================================
+
+
+  function chart(selection) {
+
+    selection.d3each(function(data, i) {
+      var container = d3.select(this),
+          that = this;
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom;
+
+      chart.update = function() { chart(selection) };
+      chart.container = this;
+
+      //------------------------------------------------------------
+      // Display No Data message if there's nothing to show.
+      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        var noDataText = container.selectAll('.nv-noData').data([noData]);
+
+        noDataText.enter().append('text')
+          .attr('class', 'nvd3 nv-noData')
+          .attr('dy', '-.7em')
+          .style('text-anchor', 'middle');
+
+        noDataText
+          .attr('x', margin.left + availableWidth / 2)
+          .attr('y', 18 + margin.top + availableHeight / 2)
+          .text(function(d) { return d });
+
+        return chart;
+      } else {
+        container.selectAll('.nv-noData').remove();
+      }
+
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+      var wrap = container.selectAll('g.nv-wrap.nv-ganttChart').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-ganttChart');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
+
+      gEnter.append('g').attr('class', 'nv-ganttTicks');
+      gEnter.append('g').attr('class', 'nv-ganttWrap')
+        .attr('transform','translate(0,30)');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      //------------------------------------------------------------
+
+      yScale = d3.scale.linear()
+        .domain([0, this.maxLevel])
+        .range([0, availableHeight]);
+
+      xScale = d3.time.scale()
+        .domain(xDomain || [new Date(), new Date()])
+        .rangeRound([0, availableWidth]);
+
+      gantt
+        .xScale(xScale)
+        .xDomain(xScale.domain());
+
+      // Compute the new x-scale.
+      var x1 = xScale;
+      // Retrieve the old x-scale, if this is an update.
+      var x0 = this.__chart__ || d3.scale.linear()
+          .domain([0, Infinity])
+          .range(x1.range());
+
+      // Stash the new scale.
+      this.__chart__ = x1;
+
+      /*
+      // Derive width-scales from the x-scales.
+      var w0 = bulletWidth(x0),
+          w1 = bulletWidth(x1);
+
+      function bulletWidth(x) {
+        var x0 = x(0);
+        return function(d) {
+          return Math.abs(x(d) - x(0));
+        };
+      }
+
+      function bulletTranslate(x) {
+        return function(d) {
+          return 'translate(' + x(d) + ',0)';
+        };
+      }
+      */
+
+
+      // Compute the tick format.
+      var format = tickFormat || x1.tickFormat(availableWidth / 100 );
+
+      // Update the tick groups.
+      var tick = g.select('.nv-ganttTicks').selectAll('g.nv-tick')
+          .data(x1.ticks( availableWidth / 40 ), function(d) {
+            return this.textContent || format(d);
+          });
+
+      // Initialize the ticks with the old scale, x0.
+      var tickEnter = tick.enter().append('g')
+          .attr('class', 'nv-tick')
+          .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
+          .style('opacity', 1e-6);
+
+      tickEnter.append('line')
+          .attr('y1', 0)
+          .attr('y2', availableHeight * 7 / 6);
+
+      tickEnter.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '1em')
+          .attr('y', 0)
+          .text(format);
+
+
+      // Transition the updating ticks to the new scale, x1.
+      var tickUpdate = d3.transition(tick)
+          .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
+          .style('opacity', 1);
+
+      tickUpdate.select('line')
+          .attr('y1', 0)
+          .attr('y2', availableHeight * 7 / 6);
+
+      tickUpdate.select('text')
+          .attr('y', 0);
+
+      // Transition the exiting ticks to the new scale, x1.
+      d3.transition(tick.exit())
+          .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
+          .style('opacity', 1e-6)
+          .remove();
+
+      gantt
+        .width(availableWidth)
+        .height(availableHeight)
+
+      var ganttWrap = g.select('.nv-ganttWrap');
+      d3.transition(ganttWrap).call(gantt);
+
+
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
+
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips) showTooltip(e, that.parentNode);
+      });
+
+      //============================================================
+
+    });
+
+    d3.timer.flush();
+
+    return chart;
+  }
+
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  gantt.dispatch.on('elementMouseover.tooltip', function(e) {
+    dispatch.tooltipShow(e);
+  });
+
+  gantt.dispatch.on('elementMouseout.tooltip', function(e) {
+    dispatch.tooltipHide(e);
+  });
+
+  dispatch.on('tooltipHide', function() {
+    if (tooltips) nv.tooltip.cleanup();
+  });
+
+  //============================================================
+
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+  chart.dispatch = dispatch;
+  chart.gantt = gantt;
+
+  d3.rebind(chart, gantt, 'color', 'start', 'end', 'shape');
+
+  // left, right, top, bottom
+  chart.orient = function(x) {
+    if (!arguments.length) return orient;
+    orient = x;
+    reverse = orient == 'right' || orient == 'bottom';
+    return chart;
+  };
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.width = function(x) {
+    if (!arguments.length) return width;
+    width = x;
+    return chart;
+  };
+
+  chart.height = function(x) {
+    if (!arguments.length) return height;
+    height = x;
+    return chart;
+  };
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  };
+
+  chart.tickFormat = function(x) {
+    if (!arguments.length) return tickFormat;
+    tickFormat = x;
+    return chart;
+  };
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltips;
+    tooltips = _;
+    return chart;
+  };
+
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
+
+  chart.noData = function(_) {
+    if (!arguments.length) return noData;
+    noData = _;
+    return chart;
+  };
+
+  //============================================================
+
+
+  return chart;
+};
+
 nv.models.axis = function() {
 
   //============================================================

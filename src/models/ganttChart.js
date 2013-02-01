@@ -16,9 +16,9 @@ nv.models.ganttChart = function() {
     , height = null
     , tickFormat = null
     , tooltips = true
-    , tooltip = function(key, x, y, e, graph) {
-        return '<h3>' + x + '</h3>' +
-               '<p>' + y + '</p>'
+    , tooltip = function(d, label) {
+        return '<h3>' + label + '</h3>' +
+               '<p>' + d.start + '</p>'
       }
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
@@ -37,7 +37,7 @@ nv.models.ganttChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
         top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
-        content = tooltip(e.key, e.label, e.value, e, chart);
+        content = tooltip(e.value, e.label);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
   };
@@ -195,7 +195,6 @@ nv.models.ganttChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
-        e.key = data[0].key.title;
         if (tooltips) showTooltip(e, that.parentNode);
       });
 

@@ -4,6 +4,8 @@ JS_FILES = \
 	src/tooltip.js \
 	src/utils.js \
 	src/models/heliumBubble.js \
+	src/models/gantt.js \
+	src/models/ganttChart.js \
 	src/models/axis.js \
 	src/models/horizontalBar.js \
 	src/models/historicalBar.js \

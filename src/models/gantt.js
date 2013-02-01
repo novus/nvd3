@@ -45,6 +45,15 @@ nv.models.gantt = function() {
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
 
+      //add series index to each data point for reference
+      data = data.map(function(series, i) {
+        series.values = series.values.map(function(point) {
+          point.row = i;
+          return point;
+        });
+        return series;
+      });
+
 
       //------------------------------------------------------------
       // Setup Scales
@@ -53,7 +62,6 @@ nv.models.gantt = function() {
             d3.merge(
               data.map(function(d) {
                 return d.values.map(function(d,i) {
-                  d.row = i;
                   return d;
                 })
               })
@@ -102,12 +110,15 @@ nv.models.gantt = function() {
 
       //------------------------------------------------------------
 
+      // @todo calculating height offsets used for gantt rows and tooltips
+      // Should really use a y scale 
+      var y1  = function(d) { return rowHeight * d.row };
 
+      var xp0 = function(d) { return x0(getStart(d)) },
+          xp1 = function(d) { return x1(getStart(d)) };
 
       var w0 = function(d) { return Math.abs(x0(getStart(d)) - x0(getEnd(d))) }, // TODO: could optimize by precalculating x0(0) and x1(0)
           w1 = function(d) { return Math.abs(x1(getStart(d)) - x1(getEnd(d))) };
-      var xp0 = function(d) { return x0(getStart(d)) },
-          xp1 = function(d) { return x1(getStart(d)) };
 
       var title = g.select('.nv-titles').append('g')
           .attr('text-anchor', 'end')
@@ -124,23 +135,24 @@ nv.models.gantt = function() {
       var bars = g.selectAll('rect.nv-measure')
                 .data(function(d) { return d.values });
       bars.enter().append('rect').filter(function(d,i) { return d.duration > 0 })
+          .style('stroke', "#999999")
           .style('fill', color)
           .attr('class', "nv-measure")
           .attr('height', rowHeight / 4)
-          .attr('width', function(d, i){ return w1(d) })
+          .attr('width', function(d){ return w1(d) })
           .attr('x', function(d){ return  xp1(d) })
           .attr('y', 0 - rowHeight / 8)
           .on('mouseover', function(d) {
               dispatch.elementMouseover({
-                value: d.duration,
-                label: 'Current',
-                pos: [x1(d.start), availableHeight/2]
+                value: d,
+                label: d.activity.type,
+                pos: [xp1(d), y1(d)]
               })
           })
           .on('mouseout', function(d) {
               dispatch.elementMouseout({
-                value: d.duration,
-                label: 'Current'
+                value: d,
+                label: d.activity.type
               })
           });
       bars.exit().remove();
@@ -148,28 +160,29 @@ nv.models.gantt = function() {
       // Zero duration activities
       var points = g.selectAll('path.nv-milestone')
           .data(function(d) { return d.values });
-      points.enter().append('path').filter(function(d,i) { return d.duration == 0 })
+      points.enter().append('path').filter(function(d) { return d.duration == 0 })
           .attr("class", "nv-milestone")
-          .attr('transform', function(d,i) { 
+          .attr('transform', function(d) { 
             return 'translate(' + xp1(d) + ',0)'
           })
+          .style('fill', color)
+          .style('stroke', color)
           .attr('d',
             d3.svg.symbol()
               .type(shape)
               .size(function(d,i) { return getSize(d,i) })
           )
-          .style('fill', color)
-          .on('mouseover', function(d,i) {
-            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+          .on('mouseover', function(d) {
+            var label = d.activity.type;
 
             dispatch.elementMouseover({
               value: d,
               label: label,
-              pos: [x1(d), availableHeight/2]
+              pos: [xp1(d), y1(d)]
             })
           })
-          .on('mouseout', function(d,i) {
-            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+          .on('mouseout', function(d) {
+            var label = d.activity.type;
 
             dispatch.elementMouseout({
               value: d,
