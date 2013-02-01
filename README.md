@@ -35,3 +35,9 @@ Without UglifyJS, you won't get the minified version when running make.
 If you need to minify please build pull request in separate branch, and
 merge and minify in yout master.
 
+## (Officially) Supported Browsers
+
+* Chrome Latest Version (preferred)
+* Firefox Latest Version
+* Safari Latest Version
+* Internet Explorer 9 and 10
