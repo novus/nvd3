@@ -37,7 +37,7 @@ merge and minify in yout master.
 
 ## (Officially) Supported Browsers
 
-* Chrome Latest Version (preferred)
-* Firefox Latest Version
-* Safari Latest Version
+* Chrome latest version (preferred)
+* Firefox latest version
+* Safari latest version
 * Internet Explorer 9 and 10
