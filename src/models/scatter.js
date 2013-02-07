@@ -306,7 +306,7 @@ nv.models.scatter = function() {
                   pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                   seriesIndex: d.series,
                   pointIndex: i,
-                  d3.event
+                  e: d3.event
                 });
               })
               .on('mouseout', function(d,i) {
