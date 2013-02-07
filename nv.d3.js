@@ -5360,7 +5360,7 @@ nv.models.linePlusBarWithFocusChart = function() {
   return chart;
 }
 
-nv.models.line = function() {
+nv.models.lineWithFisheye = function() {
   //Default Settings
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
@@ -5557,7 +5557,7 @@ nv.models.line = function() {
   return chart;
 }
 
-nv.models.lineChart = function() {
+nv.models.lineWithFisheyeChart = function() {
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       color = nv.utils.defaultColor(),
       width = null, 
@@ -5575,7 +5575,7 @@ nv.models.lineChart = function() {
       ;
 
 
-  var x = d3.fisheye.scale(d3.scale.linear).distortion(0);
+  var x = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale();
 
   var lines = nv.models.line().xScale(x),
       //x = lines.xScale(),
