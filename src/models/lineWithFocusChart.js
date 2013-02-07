@@ -1,4 +1,3 @@
-
 nv.models.lineWithFocusChart = function() {
 
   //============================================================
@@ -510,6 +509,12 @@ nv.models.lineWithFocusChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+  
+  chart.brushExtent = function(_) {
+    if (!arguments.length) return brushExtent;
+    brushExtent = _;
     return chart;
   };
 

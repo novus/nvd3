@@ -1,4 +1,3 @@
-
 nv.models.scatter = function() {
 
   //============================================================
@@ -187,13 +186,13 @@ nv.models.scatter = function() {
           }
 
 
-          // if(vertices.length < 3) {
+          if(vertices.length < 3) {
             // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
             vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
             vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
             vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
             vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
-          // }
+          }
 
           var bounds = d3.geom.polygon([
               [-10,-10],
@@ -202,15 +201,14 @@ nv.models.scatter = function() {
               [width + 10,-10]
           ]);
 
-          var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
-              return {
-                'data': bounds.clip(d),
-                'series': vertices[i][2],
-                'point': vertices[i][3]
-              }
-            });
-
-
+          var voronoi = d3.geom.voronoi(vertices)
+              .map(function(d, i) {
+                return {
+                  'data': bounds.clip(d),
+                  'series': vertices[i][2],
+                  'point': vertices[i][3]
+                }})
+              .filter(function(v){ return v.data.length > 0; });
 
           var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
               .data(voronoi);
@@ -218,6 +216,7 @@ nv.models.scatter = function() {
               .attr('class', function(d,i) { return 'nv-path-'+i; });
           pointPaths.exit().remove();
           pointPaths
+              .filter(function (d) { return d.data.length > 0 })
               .attr('d', function(d) { return 'M' + d.data.join('L') + 'Z'; });
 
           pointPaths
@@ -231,7 +230,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: d.point
+                  pointIndex: d.point,
+                  e: d3.event
                 });
               })
               .on('mouseover', function(d) {
@@ -244,7 +244,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: d.point
+                  pointIndex: d.point,
+                  e: d3.event
                 });
               })
               .on('mouseout', function(d, i) {
@@ -256,7 +257,8 @@ nv.models.scatter = function() {
                   point: point,
                   series: series,
                   seriesIndex: d.series,
-                  pointIndex: d.point
+                  pointIndex: d.point,
+                  e: d3.event
                 });
               });
 
@@ -289,7 +291,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: i
+                  pointIndex: i,
+                  e: d3.event
                 });
               })
               .on('mouseover', function(d,i) {
@@ -302,7 +305,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: i
+                  pointIndex: i,
+                  e: d3.event
                 });
               })
               .on('mouseout', function(d,i) {
@@ -314,7 +318,8 @@ nv.models.scatter = function() {
                   point: point,
                   series: series,
                   seriesIndex: d.series,
-                  pointIndex: i
+                  pointIndex: i,
+                  e: d3.event
                 });
               });
           }

@@ -190,10 +190,10 @@ nv.models.multiChart = function() {
         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
       }).concat([{x:0, y:0}]) : []
 
-      yScale1 .domain(d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
+      yScale1 .domain(d3.extent(d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ).concat(lines1.forceY())))
               .range([0, availableHeight])
 
-      yScale2 .domain(d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
+      yScale2 .domain(d3.extent(d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ).concat(lines2.forceY())))
               .range([0, availableHeight])
 
       lines1.yDomain(yScale1.domain())
