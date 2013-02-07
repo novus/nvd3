@@ -201,13 +201,14 @@ nv.models.scatter = function() {
               [width + 10,-10]
           ]);
 
-          var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
-              return {
-                'data': bounds.clip(d),
-                'series': vertices[i][2],
-                'point': vertices[i][3]
-              }
-            });
+          var voronoi = d3.geom.voronoi(vertices)
+              .map(function(d, i) {
+                return {
+                  'data': bounds.clip(d),
+                  'series': vertices[i][2],
+                  'point': vertices[i][3]
+                }})
+              .filter(function(v){ return v.data.length > 0; });
 
           var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
               .data(voronoi);
