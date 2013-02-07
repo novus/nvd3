@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+text {
+  font: 12px sans-serif;
+}
+
+svg {
+  display: block;
+  border: grey dotted 1px;
+}
+
+#chart1 svg {
+  height: 500px;
+  min-width: 100px;
+  min-height: 100px;
+/*
+  margin: 50px;
+  Minimum height and width is a good idea to prevent negative SVG dimensions...
+  For example width should be =< margin.left + margin.right + 1,
+  of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
+*/
+}
+
+.nvd3 .nv-groups .nv-point {
+  transition: stroke-width 100ms linear, stroke-opacity 100ms linear;
+  -moz-transition: stroke-width 100ms linear, stroke-opacity 100ms linear;
+  -webkit-transition: stroke-width 100ms linear, stroke-opacity 100ms linear;
+}
+
+.nvtooltip {
+  transition: opacity 100ms linear;
+  -moz-transition: opacity 100ms linear;
+  -webkit-transition: opacity 100ms linear;
+
+  transition-delay: 100ms;
+  -moz-transition-delay: 100ms;
+  -webkit-transition-delay: 100ms;
+
+  padding: 2px;
+  -moz-box-shadow: 2px 2px 4px rgba(0,0,0,.5);
+  -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,.5);
+  box-shadow: 2px 2px 4px rgba(0,0,0,.5);
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+.nvtooltip h3 {
+  font-size: 10pt;
+}
+.nvtooltip p {
+  font-size: 10pt;
+}
+
+</style>
+<body>
+
+  <div id="chart1">
+    <svg style="height: 240px; width:500px;"></svg>
+  </div>
+
+<script src="../lib/d3.v2.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/scatter.js"></script>
+<script src="../src/models/line.js"></script>
+<script src="../src/models/lineTimeSeriesChart.js"></script>
+<script>
+
+
+
+
+// Wrapping in nv.addGraph allows for '0 timeout render', stors rendered charts in nv.graphs, and may do more in the future... it's NOT required
+nv.addGraph(function() {
+  var chart = nv.models.lineTimeSeriesChart();
+
+//  chart
+//      .x(function(d,i) { return i })
+
+
+//  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the partent chart, so need to chain separately
+//      .tickFormat(d3.format(',.1f'));
+
+  chart.yAxis
+      .axisLabel('Voltage (v)')
+      .tickFormat(d3.format(',.2f'));
+
+  d3.select('#chart1 svg')
+      //.datum([]) //for testing noData
+      .datum(sinAndCos())
+    .transition().duration(500)
+      .call(chart);
+
+  //TODO: Figure out a good way to do this automatically
+  nv.utils.windowResize(chart.update);
+  //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
+
+  return chart;
+});
+
+(new Date).getTime()
+
+function sinAndCos() {
+  var sin = [],
+      cos = [];
+
+  var now = Math.round((new Date).getTime()),
+      dur = 24 * 3600 * 1000,
+      step = dur / 100;
+
+  for (var i = now - dur, j = 1; i < now; i += step, j += 1) {
+    sin.push({x: i, y: j%10==0 ? null : Math.sin(i/(10*step)) }); //the nulls are to show how defined works
+    cos.push({x: i, y: .5 * Math.cos(i/(10*step))});
+  }
+
+  return [
+    {
+      area: true,
+      values: sin,
+      key: "Sine Wave",
+      color: "#ff7f0e"
+    },
+    {
+      values: cos,
+      key: "Cosine Wave",
+      color: "#2ca02c"
+    }
+  ];
+}
+
+
+</script>
