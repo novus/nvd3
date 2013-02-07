@@ -210,14 +210,13 @@ nv.models.scatter = function() {
               }
             });
 
-
-
           var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
               .data(voronoi);
           pointPaths.enter().append('path')
               .attr('class', function(d,i) { return 'nv-path-'+i; });
           pointPaths.exit().remove();
           pointPaths
+              .filter(function (d) { return d.data.length > 0 })
               .attr('d', function(d) { return 'M' + d.data.join('L') + 'Z'; });
 
           pointPaths
