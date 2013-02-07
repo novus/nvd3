@@ -61,20 +61,39 @@ nv.models.multiBar = function() {
 
 
       //------------------------------------------------------------
+      // HACK for negative value stacking
+      if (stacked)
+        data[0].values.map(function(d,i) {
+          var posBase = 0, negBase = 0;
+          data.map(function(d) {
+            var f = d.values[i]
+            f.size = Math.abs(f.y);
+            if (f.y<0)  {
+              f.y1 = negBase;
+              negBase = negBase - f.size;
+            } else
+            { 
+              f.y1 = f.size + posBase;
+              posBase = posBase + f.size;
+            }
+          });
+        });
+
+      //------------------------------------------------------------
       // Setup Scales
 
       // remap and flatten the data for use in calculating the scales' domains
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
               })
             });
 
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY)))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
           .range([availableHeight, 0]);
 
 
@@ -215,11 +234,13 @@ nv.models.multiBar = function() {
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
+
       if (stacked)
         d3.transition(bars)
             .delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('y', function(d,i) {
-              return y(getY(d,i) + (stacked ? d.y0 : 0));
+
+              return y((stacked ? d.y1 : 0));
             })
             .attr('height', function(d,i) {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);

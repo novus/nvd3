@@ -47,23 +47,23 @@ nv.log = function() {
 
 
 nv.render = function render(step) {
-  step = step || 1; // number of graphs to generate in each timout loop
+  step = step || 1; // number of graphs to generate in each timeout loop
 
-  render.active = true;
+  nv.render.active = true;
   nv.dispatch.render_start();
 
   setTimeout(function() {
     var chart, graph;
 
-    for (var i = 0; i < step && (graph = render.queue[i]); i++) {
+    for (var i = 0; i < step && (graph = nv.render.queue[i]); i++) {
       chart = graph.generate();
       if (typeof graph.callback == typeof(Function)) graph.callback(chart);
       nv.graphs.push(chart);
     }
 
-    render.queue.splice(0, i);
+    nv.render.queue.splice(0, i);
 
-    if (render.queue.length) setTimeout(arguments.callee, 0);
+    if (nv.render.queue.length) setTimeout(arguments.callee, 0);
     else { nv.render.active = false; nv.dispatch.render_end(); }
   }, 0);
 };
@@ -276,7 +276,7 @@ nv.utils.windowSize = function() {
 
 
 // Easy way to bind multiple functions to window.onresize
-// TODO: give a way to remove a function after its bound, other than removing alkl of them
+// TODO: give a way to remove a function after its bound, other than removing all of them
 nv.utils.windowResize = function(fun){
   var oldresize = window.onresize;
 
@@ -806,7 +806,7 @@ nv.models.historicalBar = function() {
 
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
-            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+            y.domain([y.domain()[0] - y.domain()[0] * 0.01, y.domain()[1] + y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
       //------------------------------------------------------------
@@ -2344,7 +2344,7 @@ nv.models.cumulativeLineChart = function() {
 
       //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
       if (v < -.95) {
-        //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically currect till it hits 100)
+        //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
         line.tempDisabled = true;
         return line;
       }
@@ -3653,7 +3653,7 @@ nv.models.line = function() {
     , color = nv.utils.defaultColor() // a function that returns a color
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
     , getY = function(d) { return d.y } // accessor to get the y value from a data point
-    , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continous when it is not defined
+    , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
     , isArea = function(d) { return d.area } // decides if a line is an area or just a line
     , clipEdge = false // if true, masks lines within x and y scale
     , x //can be accessed via chart.xScale()
@@ -5325,20 +5325,39 @@ nv.models.multiBar = function() {
 
 
       //------------------------------------------------------------
+      // HACK for negative value stacking
+      if (stacked)
+        data[0].values.map(function(d,i) {
+          var posBase = 0, negBase = 0;
+          data.map(function(d) {
+            var f = d.values[i]
+            f.size = Math.abs(f.y);
+            if (f.y<0)  {
+              f.y1 = negBase;
+              negBase = negBase - f.size;
+            } else
+            { 
+              f.y1 = f.size + posBase;
+              posBase = posBase + f.size;
+            }
+          });
+        });
+
+      //------------------------------------------------------------
       // Setup Scales
 
       // remap and flatten the data for use in calculating the scales' domains
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i), y0: d.y0 }
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
               })
             });
 
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY)))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
           .range([availableHeight, 0]);
 
 
@@ -5351,7 +5370,7 @@ nv.models.multiBar = function() {
 
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
-            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+            y.domain([y.domain()[0] - y.domain()[0] * 0.01, y.domain()[1] + y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
 
@@ -5479,11 +5498,13 @@ nv.models.multiBar = function() {
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
+
       if (stacked)
         d3.transition(bars)
             .delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('y', function(d,i) {
-              return y(getY(d,i) + (stacked ? d.y0 : 0));
+
+              return y((stacked ? d.y1 : 0));
             })
             .attr('height', function(d,i) {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
@@ -7365,7 +7386,7 @@ nv.models.ohlcBar = function() {
 
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
-            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+            y.domain([y.domain()[0] - y.domain()[0] * 0.01, y.domain()[1] + y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
       //------------------------------------------------------------
@@ -8267,7 +8288,7 @@ nv.models.scatter = function() {
     , width       = 960
     , height      = 500
     , color       = nv.utils.defaultColor() // chooses color
-    , id          = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
+    , id          = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
     , x           = d3.scale.linear()
     , y           = d3.scale.linear()
     , z           = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
@@ -8279,7 +8300,7 @@ nv.models.scatter = function() {
     , forceX      = [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
     , forceY      = [] // List of numbers to Force into the Y scale
     , forceSize   = [] // List of numbers to Force into the Size scale
-    , interactive = true // If true, plots a voronoi overlay for advanced point interection
+    , interactive = true // If true, plots a voronoi overlay for advanced point intersection
     , pointActive = function(d) { return !d.notActive } // any points that return false will be filtered out
     , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
     , clipEdge    = false // if true, masks points within x and y scale
@@ -8359,7 +8380,7 @@ nv.models.scatter = function() {
 
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
-            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+            y.domain([y.domain()[0] - y.domain()[0] * 0.01, y.domain()[1] + y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
 
