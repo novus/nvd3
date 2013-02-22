@@ -5,35 +5,36 @@ nv.models.scatter = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin      = {top: 0, right: 0, bottom: 0, left: 0}
-    , width       = 960
-    , height      = 500
-    , color       = nv.utils.defaultColor() // chooses color
-    , id          = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
-    , x           = d3.scale.linear()
-    , y           = d3.scale.linear()
-    , z           = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
-    , getX        = function(d) { return d.x } // accessor to get the x value
-    , getY        = function(d) { return d.y } // accessor to get the y value
-    , getSize     = function(d) { return d.size || 1} // accessor to get the point size
-    , getShape    = function(d) { return d.shape || 'circle' } // accessor to get point shape
-    , onlyCircles = true // Set to false to use shapes
-    , forceX      = [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
-    , forceY      = [] // List of numbers to Force into the Y scale
-    , forceSize   = [] // List of numbers to Force into the Size scale
-    , interactive = true // If true, plots a voronoi overlay for advanced point intersection
-    , pointActive = function(d) { return !d.notActive } // any points that return false will be filtered out
-    , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
-    , clipEdge    = false // if true, masks points within x and y scale
-    , clipVoronoi = true // if true, masks each point with a circle... can turn off to slightly increase performance
-    , clipRadius  = function() { return 25 } // function to get the radius for voronoi point clips
-    , xDomain     = null // Override x domain (skips the calculation from data)
-    , yDomain     = null // Override y domain
-    , sizeDomain  = null // Override point size domain
-    , sizeRange   = null
-    , singlePoint = false
-    , dispatch    = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
-    , useVoronoi  = true
+  var margin         = {top: 0, right: 0, bottom: 0, left: 0}
+    , width          = 960
+    , height         = 500
+    , color          = nv.utils.defaultColor() // chooses color
+    , id             = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
+    , x              = d3.scale.linear()
+    , y              = d3.scale.linear()
+    , z              = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
+    , getX           = function(d) { return d.x } // accessor to get the x value
+    , getY           = function(d) { return d.y } // accessor to get the y value
+    , getSize        = function(d) { return d.size || 1} // accessor to get the point size
+    , getShape       = function(d) { return d.shape || 'circle' } // accessor to get point shape
+    , onlyCircles    = true // Set to false to use shapes
+    , forceX         = [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
+    , forceY         = [] // List of numbers to Force into the Y scale
+    , forceSize      = [] // List of numbers to Force into the Size scale
+    , interactive    = true // If true, plots a voronoi overlay for advanced point intersection
+    , pointActive    = function(d) { return !d.notActive } // any points that return false will be filtered out
+    , padData        = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
+    , clipEdge       = false // if true, masks points within x and y scale
+    , clipVoronoi    = true // if true, masks each point with a circle... can turn off to slightly increase performance
+    , clipRadius     = function() { return 25 } // function to get the radius for voronoi point clips
+    , xDomain        = null // Override x domain (skips the calculation from data)
+    , yDomain        = null // Override y domain
+    , sizeDomain     = null // Override point size domain
+    , sizeRange      = null
+    , singlePoint    = false
+    , dispatch       = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
+    , useVoronoi     = true
+    , dataAttributes = false
     ;
 
   //============================================================
@@ -394,6 +395,14 @@ nv.models.scatter = function() {
             );
       }
 
+      // Add custom data-attributes to the svg elements based on a list sent as a parameter
+      // If the type is not found in the data point, returns null
+      if (dataAttributes) {
+        dataAttributes.forEach(function(type) {
+          var attribute = type;
+          points.attr('data-' + attribute, function(d,i) { return d[attribute] || null; });
+        });
+      }
 
       // Delay updating the invisible interactive layer for smoother animation
       clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
@@ -607,6 +616,12 @@ nv.models.scatter = function() {
   chart.singlePoint = function(_) {
     if (!arguments.length) return singlePoint;
     singlePoint = _;
+    return chart;
+  };
+
+  chart.dataAttributes = function(_) {
+    if (!arguments.length) return dataAttributes;
+    dataAttributes = _;
     return chart;
   };
 
