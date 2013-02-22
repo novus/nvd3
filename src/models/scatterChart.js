@@ -5,41 +5,43 @@ nv.models.scatterChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var scatter      = nv.models.scatter()
-    , xAxis        = nv.models.axis()
-    , yAxis        = nv.models.axis()
-    , legend       = nv.models.legend()
-    , controls     = nv.models.legend()
-    , distX        = nv.models.distribution()
-    , distY        = nv.models.distribution()
+  var scatter        = nv.models.scatter()
+    , xAxis          = nv.models.axis()
+    , yAxis          = nv.models.axis()
+    , legend         = nv.models.legend()
+    , controls       = nv.models.legend()
+    , distX          = nv.models.distribution()
+    , distY          = nv.models.distribution()
     ;
 
-  var margin       = {top: 30, right: 20, bottom: 50, left: 75}
-    , width        = null
-    , height       = null
-    , color        = nv.utils.defaultColor()
-    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
-    , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
-    , xPadding     = 0
-    , yPadding     = 0
-    , showDistX    = false
-    , showDistY    = false
-    , showLegend   = true
-    , showControls = !!d3.fisheye
-    , fisheye      = 0
-    , pauseFisheye = false
-    , tooltips     = true
-    , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
-    , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    //, tooltip      = function(key, x, y) { return '<h3>' + key + '</h3>' }
-    , tooltip      = null
-    , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
-    , noData       = "No Data Available."
+  var margin         = {top: 30, right: 20, bottom: 50, left: 75}
+    , width          = null
+    , height         = null
+    , color          = nv.utils.defaultColor()
+    , x              = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
+    , y              = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
+    , xPadding       = 0
+    , yPadding       = 0
+    , showDistX      = false
+    , showDistY      = false
+    , showLegend     = true
+    , showControls   = !!d3.fisheye
+    , fisheye        = 0
+    , pauseFisheye   = false
+    , tooltips       = true
+    , tooltipX       = function(key, x, y) { return '<strong>' + x + '</strong>' }
+    , tooltipY       = function(key, x, y) { return '<strong>' + y + '</strong>' }
+    //, tooltip        = function(key, x, y) { return '<h3>' + key + '</h3>' }
+    , tooltip        = null
+    , dispatch       = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , noData         = "No Data Available."
+    , dataAttributes = false
     ;
 
   scatter
     .xScale(x)
     .yScale(y)
+    .dataAttributes(dataAttributes)
     ;
   xAxis
     .orient('bottom')
@@ -458,7 +460,7 @@ nv.models.scatterChart = function() {
   chart.distX = distX;
   chart.distY = distY;
 
-  d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
+  d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi', 'dataAttributes');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -565,6 +567,12 @@ nv.models.scatterChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.dataAttributes = function(_) {
+    if (!arguments.length) return dataAttributes;
+    dataAttributes = _;
     return chart;
   };
 
