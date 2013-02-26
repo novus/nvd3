@@ -236,7 +236,12 @@ nv.models.multiBarHorizontal = function() {
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
 
       if (barColor) {
-        bars.style('fill', barColor).style('stroke', barColor);
+        bars
+          .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
+          //.style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  data.map(function(d,i) { return i }).filter(function(d,i){ return nv.log(data, !data[i].disabled) })[j]   ).toString(); })
+          .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
+          //.style('fill', barColor);
+          //.style('stroke', barColor);
       }
 
       if (stacked)

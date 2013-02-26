@@ -363,8 +363,9 @@ nv.addGraph(function() {
       .x(function(d) { return d.label })
       .y(function(d) { return d.value })
       .margin({top: 30, right: 20, bottom: 50, left: 175})
-      .showValues(true)
-      .tooltips(false)
+      //.showValues(true)
+      //.tooltips(false)
+      .barColor(d3.scale.category20().range())
       .showControls(true);
 
   chart.yAxis

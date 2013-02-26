@@ -135,6 +135,11 @@ nv.models.multiBarHorizontalChart = function() {
       if (showLegend) {
         legend.width(availableWidth / 2);
 
+        if (multibar.barColor())
+          data.forEach(function(series,i) {
+            series.color = d3.rgb('#bbb').darker(i * 2).toString();
+          })
+
         g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
@@ -330,7 +335,7 @@ nv.models.multiBarHorizontalChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'delay', 'showValues', 'valueFormat', 'stacked');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'delay', 'showValues', 'valueFormat', 'stacked', 'barColor');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
