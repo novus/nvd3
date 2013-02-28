@@ -137,7 +137,7 @@ nv.models.multiBarHorizontalChart = function() {
 
         if (multibar.barColor())
           data.forEach(function(series,i) {
-            series.color = d3.rgb('#bbb').darker(i * 2).toString();
+            series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
           })
 
         g.select('.nv-legendWrap')
