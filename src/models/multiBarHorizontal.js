@@ -16,6 +16,7 @@ nv.models.multiBarHorizontal = function() {
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , color = nv.utils.defaultColor()
     , barColor = null // adding the ability to set the color for each rather than the whole group
+    , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked = false
     , showValues = false
     , valuePadding = 60
@@ -236,12 +237,14 @@ nv.models.multiBarHorizontal = function() {
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
 
       if (barColor) {
+        if (!disabled) disabled = data.map(function() { return true });
         bars
-          .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
-          //.style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  data.map(function(d,i) { return i }).filter(function(d,i){ return nv.log(data, !data[i].disabled) })[j]   ).toString(); })
-          .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
-          //.style('fill', barColor);
-          //.style('stroke', barColor);
+          //.style('fill', barColor)
+          //.style('stroke', barColor)
+          //.style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
+          //.style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
+          .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); })
+          .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
       if (stacked)
@@ -371,6 +374,12 @@ nv.models.multiBarHorizontal = function() {
   chart.barColor = function(_) {
     if (!arguments.length) return barColor;
     barColor = nv.utils.getColor(_);
+    return chart;
+  };
+
+  chart.disabled = function(_) {
+    if (!arguments.length) return disabled;
+    disabled = _;
     return chart;
   };
 

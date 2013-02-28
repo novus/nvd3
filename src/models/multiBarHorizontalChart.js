@@ -183,6 +183,7 @@ nv.models.multiBarHorizontalChart = function() {
       // Main Chart Component(s)
 
       multibar
+        .disabled(data.map(function(series) { return series.disabled }))
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
