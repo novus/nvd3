@@ -18,8 +18,8 @@
 .nvtooltip {
   position: absolute;
   background-color: rgba(255,255,255,1);
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 8px;
+  border: 1px solid #bbb;
   z-index: 10000;
 
   font-family: Arial;
@@ -33,12 +33,12 @@
   -moz-transition-delay: 500ms;
   -webkit-transition-delay: 500ms;
 
-  -moz-box-shadow: 4px 4px 8px rgba(0,0,0,.5);
-  -webkit-box-shadow: 4px 4px 8px rgba(0,0,0,.5);
-  box-shadow: 4px 4px 8px rgba(0,0,0,.5);
+  -moz-box-shadow: 2px 2px 6px rgba(0,0,0,.5);
+  -webkit-box-shadow: 2px 2px 6px rgba(0,0,0,.5);
+  box-shadow: 2px 2px 6px rgba(0,0,0,.5);
 
-  -moz-border-radius: 10px;
-  border-radius: 10px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
 
   pointer-events: none;
 
