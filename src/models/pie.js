@@ -15,6 +15,7 @@ nv.models.pie = function() {
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
     , showLabels = true
+    , pieLabelsOutside = true
     , donutLabelsOutside = false
     , labelThreshold = .02 //if slice percentage is under this, don't show label
     , donut = false
@@ -138,9 +139,15 @@ nv.models.pie = function() {
 
         if (showLabels) {
           // This does the normal label
-          var labelsArc = arc;
+          var labelsArc
+          if (pieLabelsOutside){
+            labelsArc = arc;
+          }else{
+            labelsArc = d3.svg.arc().innerRadius(0);
+          }
+          //var labelsArc = arc;
           if (donutLabelsOutside) {
-            labelsArc = d3.svg.arc().outerRadius(arc.outerRadius())
+            labelsArc = d3.svg.arc().outerRadius(arc.outerRadius());
           }
 
           ae.append("g").classed("nv-label", true)
@@ -311,6 +318,12 @@ nv.models.pie = function() {
     donutLabelsOutside = _;
     return chart;
   };
+  
+  chart.pieLabelsOutside = function(_) {
+    if (!arguments.length) return pieLabelsOutside;
+    pieLabelsOutside = _;
+    return chart;
+  };
 
   chart.donut = function(_) {
     if (!arguments.length) return donut;
@@ -341,7 +354,6 @@ nv.models.pie = function() {
     labelThreshold = _;
     return chart;
   };
-
   //============================================================
 
 
