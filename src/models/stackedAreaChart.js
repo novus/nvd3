@@ -29,6 +29,7 @@ nv.models.stackedAreaChart = function() {
     , state = { style: stacked.style() }
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , controlWidth = 250
     ;
 
   xAxis
@@ -132,7 +133,7 @@ nv.models.stackedAreaChart = function() {
 
       if (showLegend) {
         legend
-          .width( availableWidth * 2 / 3 );
+          .width( availableWidth - controlWidth );
 
         g.select('.nv-legendWrap')
             .datum(data)
@@ -145,7 +146,7 @@ nv.models.stackedAreaChart = function() {
         }
 
         g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + ( availableWidth * 1 / 3 ) + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + controlWidth + ',' + (-margin.top) +')');
       }
 
       //------------------------------------------------------------
@@ -162,7 +163,7 @@ nv.models.stackedAreaChart = function() {
         ];
 
         controls
-          .width( Math.min(280, availableWidth * 1 / 3) )
+          .width( controlWidth )
           .color(['#444', '#444', '#444']);
 
         g.select('.nv-controlsWrap')

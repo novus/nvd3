@@ -136,6 +136,11 @@ nv.models.multiBarChart = function() {
       if (showLegend) {
         legend.width(availableWidth / 2);
 
+        if (multibar.barColor())
+          data.forEach(function(series,i) {
+            series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
+          })
+
         g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
@@ -179,6 +184,7 @@ nv.models.multiBarChart = function() {
       // Main Chart Component(s)
 
       multibar
+        .disabled(data.map(function(series) { return series.disabled }))
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
@@ -348,7 +354,7 @@ nv.models.multiBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'delay');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'delay', 'barColor');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;

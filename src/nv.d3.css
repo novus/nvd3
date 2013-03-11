@@ -18,8 +18,8 @@
 .nvtooltip {
   position: absolute;
   background-color: rgba(255,255,255,1);
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 1px;
+  border: 1px solid rgba(0,0,0,.2);
   z-index: 10000;
 
   font-family: Arial;
@@ -33,12 +33,13 @@
   -moz-transition-delay: 500ms;
   -webkit-transition-delay: 500ms;
 
-  -moz-box-shadow: 4px 4px 8px rgba(0,0,0,.5);
-  -webkit-box-shadow: 4px 4px 8px rgba(0,0,0,.5);
-  box-shadow: 4px 4px 8px rgba(0,0,0,.5);
+  -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+  box-shadow: 0 5px 10px rgba(0,0,0,.2);
 
-  -moz-border-radius: 10px;
-  border-radius: 10px;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
 
   pointer-events: none;
 
@@ -50,15 +51,29 @@
   user-select: none;
 }
 
+.nvtooltip.x-nvtooltip,
+.nvtooltip.y-nvtooltip {
+  padding: 8px;
+}
+
 .nvtooltip h3 {
   margin: 0;
-  padding: 0;
+  padding: 4px 14px;
+  line-height: 18px;
+  font-weight: normal;
+  background-color: #f7f7f7;
   text-align: center;
+
+  border-bottom: 1px solid #ebebeb;
+
+  -webkit-border-radius: 5px 5px 0 0;
+  -moz-border-radius: 5px 5px 0 0;
+  border-radius: 5px 5px 0 0;
 }
 
 .nvtooltip p {
   margin: 0;
-  padding: 0;
+  padding: 5px 14px;
   text-align: center;
 }
 
