@@ -280,7 +280,7 @@ nv.models.scatter = function() {
               //.style('pointer-events', 'auto') // recativate events, disabled by css
               .on('click', function(d,i) { 
                 //nv.log('test', d, i);
-                if (needsUpdate) return 0;
+                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
                     point  = series.values[i];
 
@@ -293,7 +293,7 @@ nv.models.scatter = function() {
                 });
               })
               .on('mouseover', function(d,i) {
-                if (needsUpdate) return 0;
+                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
                     point  = series.values[i];
 
@@ -306,7 +306,7 @@ nv.models.scatter = function() {
                 });
               })
               .on('mouseout', function(d,i) {
-                if (needsUpdate) return 0;
+                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
                     point  = series.values[i];
 
