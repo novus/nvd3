@@ -11,6 +11,7 @@ nv.models.pie = function() {
     , getValues = function(d) { return d.values }
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
+    , getDescription = function(d) { return d.description }
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
@@ -298,6 +299,12 @@ nv.models.pie = function() {
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = d3.functor(_);
+    return chart;
+  };
+  
+  chart.description = function(_) {
+    if (!arguments.length) return getDescription;
+    getDescription = _;
     return chart;
   };
 

@@ -32,10 +32,11 @@ nv.models.pieChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
+    var tooltipLabel = pie.description()(e.point) || pie.x()(e.point)
     var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
         top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
         y = pie.valueFormat()(pie.y()(e.point)),
-        content = tooltip(pie.x()(e.point), y, e, chart);
+        content = tooltip(tooltipLabel, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
@@ -214,7 +215,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'donut', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'donut', 'labelThreshold');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
