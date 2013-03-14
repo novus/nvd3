@@ -490,6 +490,7 @@ nv.models.axis = function() {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            //.data(scale.domain())
                            .data([scale.domain()[0], scale.domain()[scale.domain().length - 1]]);
+            axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
             axisMaxMin.exit().remove();
             axisMaxMin
                 .attr('transform', function(d,i) {
@@ -8177,9 +8178,9 @@ nv.models.pieChart = function() {
       var container = d3.select(this),
           that = this;
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+      var availableWidth = (width || parseInt(container.style('width')) || 960) + 40 //to keep the size of the chart but reduce svg area, might not work with legend.
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
+          availableHeight = (height || parseInt(container.style('height')) || 400) + 40
                              - margin.top - margin.bottom;
 
       chart.update = function() { chart(selection); };
