@@ -48,9 +48,9 @@ nv.models.pieChart = function() {
       var container = d3.select(this),
           that = this;
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+      var availableWidth = (width || parseInt(container.style('width')) || 960) + 40 //to keep the size of the chart but reduce svg area, might not work with legend.
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
+          availableHeight = (height || parseInt(container.style('height')) || 400) + 40
                              - margin.top - margin.bottom;
 
       chart.update = function() { chart(selection); };
@@ -214,7 +214,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'id', 'showLabels', 'donutLabelsOutside', 'donut', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'donut', 'labelThreshold');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
