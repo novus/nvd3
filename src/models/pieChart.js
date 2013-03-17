@@ -49,9 +49,9 @@ nv.models.pieChart = function() {
       var container = d3.select(this),
           that = this;
 
-      var availableWidth = (width || parseInt(container.style('width')) || 960) + 40 //to keep the size of the chart but reduce svg area, might not work with legend.
+      var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400) + 40
+          availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
       chart.update = function() { chart(selection); };
