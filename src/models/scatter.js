@@ -81,7 +81,7 @@ nv.models.scatter = function() {
 
       x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x }).concat(forceX)))
 
-      if (padData)
+      if (padData && data[0])
         x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
       else
         x.range([0, availableWidth]);

@@ -8481,7 +8481,7 @@ nv.models.scatter = function() {
 
       x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x }).concat(forceX)))
 
-      if (padData)
+      if (padData && data[0])
         x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
       else
         x.range([0, availableWidth]);
@@ -8680,7 +8680,7 @@ nv.models.scatter = function() {
               //.style('pointer-events', 'auto') // recativate events, disabled by css
               .on('click', function(d,i) { 
                 //nv.log('test', d, i);
-                if (needsUpdate) return 0;
+                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
                     point  = series.values[i];
 
@@ -8693,7 +8693,7 @@ nv.models.scatter = function() {
                 });
               })
               .on('mouseover', function(d,i) {
-                if (needsUpdate) return 0;
+                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
                     point  = series.values[i];
 
@@ -8706,7 +8706,7 @@ nv.models.scatter = function() {
                 });
               })
               .on('mouseout', function(d,i) {
-                if (needsUpdate) return 0;
+                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
                     point  = series.values[i];
 
