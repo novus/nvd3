@@ -1863,7 +1863,8 @@ nv.models.cumulativeLineChart = function() {
       chart.update = function() { chart(selection) };
       chart.container = this;
 
-
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
       var indexDrag = d3.behavior.drag()
                         .on('dragstart', dragStart)
@@ -4007,6 +4008,9 @@ nv.models.lineChart = function() {
       chart.update = function() { chart(selection) };
       chart.container = this;
 
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
 
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
@@ -4368,6 +4372,9 @@ nv.models.linePlusBarChart = function() {
 
       chart.update = function() { chart(selection) };
       chart.container = this;
+
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
 
       //------------------------------------------------------------
@@ -5760,6 +5767,9 @@ nv.models.multiBarChart = function() {
       chart.update = function() { selection.transition().call(chart) };
       chart.container = this;
 
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
 
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
@@ -6623,6 +6633,9 @@ nv.models.multiBarHorizontalChart = function() {
 
       chart.update = function() { selection.transition().call(chart) };
       chart.container = this;
+
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
 
       //------------------------------------------------------------
@@ -8174,6 +8187,8 @@ nv.models.pieChart = function() {
       chart.update = function() { chart(selection); };
       chart.container = this;
 
+      //set state.disabled
+      state.disabled = data[0].map(function(d) { return !!d.disabled });
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -9131,6 +9146,9 @@ nv.models.scatterChart = function() {
       chart.update = function() { chart(selection) };
       chart.container = this;
 
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
 
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
@@ -9704,6 +9722,9 @@ nv.models.scatterPlusLineChart = function() {
 
       chart.update = function() { chart(selection) };
       chart.container = this;
+
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
 
       //------------------------------------------------------------
@@ -11061,6 +11082,10 @@ nv.models.stackedAreaChart = function() {
 
       chart.update = function() { chart(selection) };
       chart.container = this;
+
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.

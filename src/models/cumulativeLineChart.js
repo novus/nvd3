@@ -105,7 +105,8 @@ nv.models.cumulativeLineChart = function() {
       chart.update = function() { chart(selection) };
       chart.container = this;
 
-
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
       var indexDrag = d3.behavior.drag()
                         .on('dragstart', dragStart)

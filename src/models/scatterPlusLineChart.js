@@ -105,6 +105,9 @@ nv.models.scatterPlusLineChart = function() {
       chart.update = function() { chart(selection) };
       chart.container = this;
 
+      //set state.disabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
 
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
