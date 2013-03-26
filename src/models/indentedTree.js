@@ -1,4 +1,3 @@
-
 nv.models.indentedTree = function() {
 
   //============================================================
@@ -11,6 +10,7 @@ nv.models.indentedTree = function() {
     , color = nv.utils.defaultColor()
     , id = Math.floor(Math.random() * 10000)
     , header = true
+    , filterZero = false
     , noData = "No Data Available."
     , childIndent = 20
     , columns = [{key:'key', label: 'Name', type:'text'}] //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
@@ -45,7 +45,6 @@ nv.models.indentedTree = function() {
 
       var nodes = tree.nodes(data[0]);
 
-
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
@@ -74,7 +73,7 @@ nv.models.indentedTree = function() {
 
 
       var tbody = table.selectAll('tbody')
-                    .data(function(d) {return d });
+                    .data(function(d) { return d });
       tbody.enter().append('tbody');
 
 
@@ -86,7 +85,7 @@ nv.models.indentedTree = function() {
 
       // Update the nodes…
       var node = tbody.selectAll('tr')
-          .data(function(d) { return d }, function(d) { return d.id || (d.id == ++i)});
+          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; }) }, function(d) { return d.id || (d.id == ++i)});
           //.style('display', 'table-row'); //TODO: see if this does anything
 
       node.exit().remove();
@@ -124,15 +123,16 @@ nv.models.indentedTree = function() {
             .text(function(d) { return column.format ? column.format(d) :
                                         (d[column.key] || '-') });
 
-        if  (column.showCount)
+        if  (column.showCount) {
           nodeName.append('span')
-              .attr('class', 'nv-childrenCount')
-              .text(function(d) {
-                return ((d.values && d.values.length) || (d._values && d._values.length)) ?
-                    '(' + ((d.values && d.values.length) || (d._values && d._values.length)) + ')'
-                  : ''
-              });
+              .attr('class', 'nv-childrenCount');
 
+          node.selectAll('span.nv-childrenCount').text(function(d) {
+                return ((d.values && d.values.length) || (d._values && d._values.length)) ?
+                    '(' + ((d.values && d.values.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; }).length) || (d._values && d._values.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; }).length)) + ')'
+                    : ''
+            });
+        }
 
         if (column.click)
           nodeName.select('span').on('click', column.click);
@@ -275,6 +275,12 @@ nv.models.indentedTree = function() {
     return chart;
   };
 
+  chart.filterZero = function(_) {
+    if (!arguments.length) return filterZero;
+    filterZero = _;
+    return chart;
+  };
+
   chart.columns = function(_) {
     if (!arguments.length) return columns;
     columns = _;
@@ -303,4 +309,4 @@ nv.models.indentedTree = function() {
 
 
   return chart;
-}
+};
