@@ -98,7 +98,9 @@ nv.addGraph(function() {
         .color(d3.scale.category10().range())
         .width(width)
         .height(height)
-        .donut(true);
+        .donut(false);
+
+       chart.pie.donutLabelsOutside(true).donut(true);
 
       d3.select("#test2")
           //.datum(historicalBarChart)

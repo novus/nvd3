@@ -128,9 +128,11 @@ nv.models.indentedTree = function() {
               .attr('class', 'nv-childrenCount');
 
           node.selectAll('span.nv-childrenCount').text(function(d) {
-                return ((d.values && d.values.length) || (d._values && d._values.length)) ?
-                    '(' + ((d.values && d.values.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; }).length) || (d._values && d._values.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; }).length)) + ')'
-                    : ''
+                return ((d.values && d.values.length) || (d._values && d._values.length)) ?                                   //If this is a parent
+                    '(' + ((d.values && (d.values.filter(function(d) { return filterZero ? filterZero(d) :  true; }).length)) //If children are in values check its children and filter
+                    || (d._values && d._values.filter(function(d) { return filterZero ? filterZero(d) :  true; }).length)     //Otherwise, do the same, but with the other name, _values...
+                    || 0) + ')'                                                                                               //This is the catch-all in case there are no children after a filter
+                    : ''                                                                                                     //If this is not a parent, just give an empty string
             });
         }
 
