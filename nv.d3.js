@@ -7798,10 +7798,12 @@ nv.models.pie = function() {
     , getValues = function(d) { return d.values }
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
+    , getDescription = function(d) { return d.description }
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
     , showLabels = true
+    , pieLabelsOutside = true
     , donutLabelsOutside = false
     , labelThreshold = .02 //if slice percentage is under this, don't show label
     , donut = false
@@ -7925,9 +7927,15 @@ nv.models.pie = function() {
 
         if (showLabels) {
           // This does the normal label
-          var labelsArc = arc;
+          var labelsArc
+          if (pieLabelsOutside){
+            labelsArc = arc;
+          }else{
+            labelsArc = d3.svg.arc().innerRadius(0);
+          }
+          //var labelsArc = arc;
           if (donutLabelsOutside) {
-            labelsArc = d3.svg.arc().outerRadius(arc.outerRadius())
+            labelsArc = d3.svg.arc().outerRadius(arc.outerRadius());
           }
 
           ae.append("g").classed("nv-label", true)
@@ -8080,6 +8088,12 @@ nv.models.pie = function() {
     getY = d3.functor(_);
     return chart;
   };
+  
+  chart.description = function(_) {
+    if (!arguments.length) return getDescription;
+    getDescription = _;
+    return chart;
+  };
 
   chart.showLabels = function(_) {
     if (!arguments.length) return showLabels;
@@ -8096,6 +8110,12 @@ nv.models.pie = function() {
   chart.donutLabelsOutside = function(_) {
     if (!arguments.length) return donutLabelsOutside;
     donutLabelsOutside = _;
+    return chart;
+  };
+  
+  chart.pieLabelsOutside = function(_) {
+    if (!arguments.length) return pieLabelsOutside;
+    pieLabelsOutside = _;
     return chart;
   };
 
@@ -8128,7 +8148,6 @@ nv.models.pie = function() {
     labelThreshold = _;
     return chart;
   };
-
   //============================================================
 
 
@@ -8168,10 +8187,11 @@ nv.models.pieChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
+    var tooltipLabel = pie.description()(e.point) || pie.x()(e.point)
     var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
         top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
         y = pie.valueFormat()(pie.y()(e.point)),
-        content = tooltip(pie.x()(e.point), y, e, chart);
+        content = tooltip(tooltipLabel, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
@@ -8184,9 +8204,9 @@ nv.models.pieChart = function() {
       var container = d3.select(this),
           that = this;
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+      var availableWidth = (width || parseInt(container.style('width')) || 960) + 40 //to keep the size of the chart but reduce svg area, might not work with legend.
                              - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
+          availableHeight = (height || parseInt(container.style('height')) || 400) + 40
                              - margin.top - margin.bottom;
 
       chart.update = function() { chart(selection); };
@@ -8352,7 +8372,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'id', 'showLabels', 'donutLabelsOutside', 'donut', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'donut', 'labelThreshold');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
