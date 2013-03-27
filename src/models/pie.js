@@ -11,10 +11,12 @@ nv.models.pie = function() {
     , getValues = function(d) { return d.values }
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
+    , getDescription = function(d) { return d.description }
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
     , showLabels = true
+    , pieLabelsOutside = true
     , donutLabelsOutside = false
     , labelThreshold = .02 //if slice percentage is under this, don't show label
     , donut = false
@@ -138,9 +140,15 @@ nv.models.pie = function() {
 
         if (showLabels) {
           // This does the normal label
-          var labelsArc = arc;
+          var labelsArc
+          if (pieLabelsOutside){
+            labelsArc = arc;
+          }else{
+            labelsArc = d3.svg.arc().innerRadius(0);
+          }
+          //var labelsArc = arc;
           if (donutLabelsOutside) {
-            labelsArc = d3.svg.arc().outerRadius(arc.outerRadius())
+            labelsArc = d3.svg.arc().outerRadius(arc.outerRadius());
           }
 
           ae.append("g").classed("nv-label", true)
@@ -293,6 +301,12 @@ nv.models.pie = function() {
     getY = d3.functor(_);
     return chart;
   };
+  
+  chart.description = function(_) {
+    if (!arguments.length) return getDescription;
+    getDescription = _;
+    return chart;
+  };
 
   chart.showLabels = function(_) {
     if (!arguments.length) return showLabels;
@@ -309,6 +323,12 @@ nv.models.pie = function() {
   chart.donutLabelsOutside = function(_) {
     if (!arguments.length) return donutLabelsOutside;
     donutLabelsOutside = _;
+    return chart;
+  };
+  
+  chart.pieLabelsOutside = function(_) {
+    if (!arguments.length) return pieLabelsOutside;
+    pieLabelsOutside = _;
     return chart;
   };
 
@@ -341,7 +361,6 @@ nv.models.pie = function() {
     labelThreshold = _;
     return chart;
   };
-
   //============================================================
 
 
