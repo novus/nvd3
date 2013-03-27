@@ -280,10 +280,10 @@ nv.models.multiBar = function() {
                           y(0) :
                           y(0) - y(getY(d,i)) < 1 ?
                             y(0) - 1 :
-                            y(getY(d,i))
-                })
-                .attr('height', function(d,i) {
-                  return Math.max(Math.abs(y(getY(d,i)) - y(0)),1);
+                          y(getY(d,i)) || 0;
+              })
+              .attr('height', function(d,i) {
+                  return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
                 });
             })
 
