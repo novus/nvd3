@@ -44,7 +44,7 @@ nv.models.multiChart = function() {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines1.x()(e.point, e.pointIndex)),
-        y = (e.series.bar ? yAxis1 : yAxis2).tickFormat()(lines1.y()(e.point, e.pointIndex)),
+        y = ((e.series.yAxis == 2) ? yAxis2 : yAxis1).tickFormat()(lines1.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, undefined, undefined, offsetElement.offsetParent);
