@@ -252,6 +252,9 @@ nv.models.stackedAreaChart = function() {
             return d
           });
 
+        state.disabled = data.map(function(d) { return !!d.disabled });
+        dispatch.stateChange(state);
+
         //selection.transition().call(chart);
         chart(selection);
       });
