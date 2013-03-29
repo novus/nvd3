@@ -33,7 +33,7 @@ Without UglifyJS, you won't get the minified version when running make.
 
 **We ask that you DO NOT minify pull requests... 
 If you need to minify please build pull request in separate branch, and
-merge and minify in yout master.
+merge and minify in your master.
 
 ## (Officially) Supported Browsers
 
