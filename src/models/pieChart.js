@@ -58,7 +58,7 @@ nv.models.pieChart = function() {
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data[0].map(function(d) { return !!d.disabled });
+      state.disabled = nv.isDisabled(data[0]);
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.

@@ -83,6 +83,14 @@ nv.identity = function(d) { return d; };
 
 nv.strip = function(s) { return s.replace(/(\s|&)/g,''); };
 
+nv.isDisabled = function(d){
+    try {
+        return d.map(function(d) { return !!d.disabled })
+    } catch(e) {
+        return false;
+    }
+};
+
 function daysInMonth(month,year) {
   return (new Date(year, month+1, 0)).getDate();
 }

@@ -81,7 +81,7 @@ nv.models.multiBarHorizontalChart = function() {
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data.map(function(d) { return !!d.disabled });
+      state.disabled = nv.isDisabled(data);
 
 
       //------------------------------------------------------------
