@@ -7789,7 +7789,6 @@ nv.models.ohlcBar = function() {
 
   return chart;
 }
-
 nv.models.pie = function() {
 
   //============================================================
@@ -7814,6 +7813,7 @@ nv.models.pie = function() {
     , labelSunbeamLayout = false
     , startAngle = false
     , endAngle = false
+    , donutRatio = 0.5
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     ;
 
@@ -7862,8 +7862,7 @@ nv.models.pie = function() {
 
       if (startAngle) arc.startAngle(startAngle)
       if (endAngle) arc.endAngle(endAngle);
-      if (donut) arc.innerRadius(radius / 2);
-
+      if (donut) arc.innerRadius(radius * donutRatio);
 
       // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
@@ -8127,6 +8126,12 @@ nv.models.pie = function() {
     donut = _;
     return chart;
   };
+  
+  chart.donutRatio = function(_) {
+    if (!arguments.length) return donutRatio;
+    donutRatio = _;
+    return chart;
+  };
 
   chart.startAngle = function(_) {
     if (!arguments.length) return startAngle;
@@ -8168,7 +8173,6 @@ nv.models.pie = function() {
 
   return chart;
 }
-
 nv.models.pieChart = function() {
 
   //============================================================
@@ -8387,7 +8391,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'donut', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'donut', 'donutRatio', 'labelThreshold');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
