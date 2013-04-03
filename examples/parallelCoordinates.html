@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link type="text/css" rel="stylesheet" href="../lib/nv.d3.css">
-    <link type="text/css" rel="stylesheet" href="../src/nv.d3.private.css">
-    <script type="text/javascript" src="../lib/jquery.min.js"></script>
-    <script type="text/javascript" src="../lib/d3.v3.min.js"></script>
-    <script type="text/javascript" src="../lib/nv.d3.js"></script>
-    <script type="text/javascript" src="../src/nv.d3.utils.js"></script>
-    <script type="text/javascript" src="../src/nv.d3.resizeHelper.js"></script>
-    <style>
-
+<head>
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>>
+<script src="../lib/d3.v2.js"></script>
+<script src="../nv.d3.js"></script>
+<script type="text/javascript" src="../src/utils.js"></script>
+<style>
 body {
   overflow-y: scroll;
 }
@@ -54,28 +51,23 @@ svg {
 .axis text {
   text-shadow: 0 1px 0 #fff;
 }
+</style>
+</head>
+<body>
+
+<div id="chart1" class="chart">
+  <svg></svg>
+</div>
 
 
-    </style>
-  </head>
-  <body>
+<script type="text/javascript" src="../src/models/parallelCoordinates.js"></script>
 
-    <div id="chart1" class="chart">
-      <svg></svg>
-    </div>
-
-
-    <script type="text/javascript" src="../src/models/parallelCoordinates.js"></script>
-    <script>
-
+<script>
   var chart;
   nv.addGraph(function() {
 
     chart = nv.models.parallelCoordinates()
-                  .dimensions(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"])
-                  .width(600)
-                  .height(400);
-
+                  .dimensions(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"]);
 
     d3.select('#chart1 svg')
         .datum(data)
@@ -84,6 +76,8 @@ svg {
     chart.dispatch.on('brush', function(e) {
       nv.log(e);
     });
+
+    nv.utils.windowResize(chart.update);
 
     return chart;
 
