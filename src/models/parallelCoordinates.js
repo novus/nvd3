@@ -41,6 +41,8 @@ nv.models.parallelCoordinates = function() {
 
       active = data; //set all active before first brush call
 
+      chart.update = function() { }; //This is a placeholder until this chart is made resizeable
+
       //------------------------------------------------------------
       // Setup Scales
 
@@ -85,20 +87,22 @@ nv.models.parallelCoordinates = function() {
 
 
       // Add grey background lines for context.
-      background = g.append('g')
+      background = gEnter.append('g')
           .attr('class', 'background')
         .selectAll('path')
           .data(data)
         .enter().append('path')
-          .attr('d', path);
+          .attr('d', path)
+        ;
 
       // Add blue foreground lines for focus.
-      foreground = g.append('g')
+      foreground = gEnter.append('g')
           .attr('class', 'foreground')
         .selectAll('path')
           .data(data)
         .enter().append('path')
-          .attr('d', path);
+          .attr('d', path)
+        ;
 
       // Add a group element for each dimension.
       var dimension = g.selectAll('.dimension')
