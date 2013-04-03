@@ -11,11 +11,18 @@ text {
   font: 12px sans-serif;
 }
 
+.mypiechart {
+  width: 500px;
+  border: 2px;
+}
 </style>
 <body>
 
-<svg id="test1"></svg>
-<svg id="test2"></svg>
+<h2>Test1</h2>
+<svg id="test1" class="mypiechart"></svg>
+
+<h2>Test2</h2>
+<svg id="test2" class="mypiechart"></svg>
 
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
@@ -23,26 +30,26 @@ text {
 <script src="../src/models/pie.js"></script>
 <script src="../src/models/pieChart.js"></script>
 <script src="../src/utils.js"></script>
-<script> 
+<script>
 
   var testdata = [
-    { 
+    {
       key: "One",
       y: 5
     },
-    { 
+    {
       key: "Two",
       y: 2
     },
-    { 
+    {
       key: "Three",
       y: 9
     },
-    { 
+    {
       key: "Four",
       y: 7
     },
-    { 
+    {
       key: "Five",
       y: 4
     },
@@ -57,14 +64,11 @@ text {
   ];
 
 
-
-
-var chart;
 nv.addGraph(function() {
     var width = 500,
         height = 500;
 
-    chart = nv.models.pieChart()
+    var chart = nv.models.pieChart()
         .x(function(d) { return d.key })
         .y(function(d) { return d.y })
         //.showLabels(false)
@@ -86,6 +90,7 @@ nv.addGraph(function() {
 });
 
 nv.addGraph(function() {
+
     var width = 500,
         height = 500;
 
@@ -98,13 +103,13 @@ nv.addGraph(function() {
         .color(d3.scale.category10().range())
         .width(width)
         .height(height)
-        .donut(false);
-
-       chart.pie.donutLabelsOutside(true).donut(true);
+        .donut(true);
 
     chart.pie
         .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
         .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
+
+      //chart.pie.donutLabelsOutside(true).donut(true);
 
       d3.select("#test2")
           //.datum(historicalBarChart)
