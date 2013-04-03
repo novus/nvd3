@@ -382,7 +382,7 @@ nv.models.scatterPlusLineChart = function() {
           });
         }
 
-        state.disabled = data.map(function(d) { return !!d.disabled });
+        state.disabled = nv.isDisabled(data);
         dispatch.stateChange(state);
 
         chart(selection);

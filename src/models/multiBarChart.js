@@ -267,7 +267,7 @@ nv.models.multiBarChart = function() {
           });
         }
 
-        state.disabled = data.map(function(d) { return !!d.disabled });
+        state.disabled = nv.isDisabled(data);
         dispatch.stateChange(state);
 
         selection.transition().call(chart);
