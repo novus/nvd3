@@ -1786,6 +1786,7 @@ nv.models.cumulativeLineChart = function() {
     , y //can be accessed via chart.yScale()
     , id = lines.id()
     , state = { index: 0, rescaleY: rescaleY }
+    , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
@@ -1865,6 +1866,17 @@ nv.models.cumulativeLineChart = function() {
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
+
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       var indexDrag = d3.behavior.drag()
                         .on('dragstart', dragStart)
@@ -2322,6 +2334,12 @@ nv.models.cumulativeLineChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    return chart;
+  };
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
     return chart;
   };
 
@@ -3956,6 +3974,7 @@ nv.models.lineChart = function() {
     , x
     , y
     , state = {}
+    , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
@@ -4018,6 +4037,16 @@ nv.models.lineChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
@@ -4280,6 +4309,12 @@ nv.models.lineChart = function() {
     return chart;
   };
 
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
+    return chart;
+  };
+
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
@@ -4321,6 +4356,8 @@ nv.models.linePlusBarChart = function() {
     , x
     , y1
     , y2
+    , state = {}
+    , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
@@ -4351,17 +4388,16 @@ nv.models.linePlusBarChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var state = {},
-      showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-            y = (e.series.bar ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
-            content = tooltip(e.series.key, x, y, e, chart);
+  var showTooltip = function(e, offsetElement) {
+      var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+          top = e.pos[1] + ( offsetElement.offsetTop || 0),
+          x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+          y = (e.series.bar ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
+          content = tooltip(e.series.key, x, y, e, chart);
 
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-      }
-      ;
+      nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+    }
+    ;
 
   //------------------------------------------------------------
 
@@ -4383,6 +4419,16 @@ nv.models.linePlusBarChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -4702,6 +4748,12 @@ nv.models.linePlusBarChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    return chart;
+  };
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
     return chart;
   };
 
@@ -5722,6 +5774,7 @@ nv.models.multiBarChart = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , state = { stacked: false }
+    , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = function() { return showControls ? 180 : 0 }
@@ -5778,7 +5831,16 @@ nv.models.multiBarChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
-
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
 
@@ -6130,6 +6192,12 @@ nv.models.multiBarChart = function() {
     return chart;
   };
 
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
+    return chart;
+  };
+  
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
@@ -6590,6 +6658,7 @@ nv.models.multiBarHorizontalChart = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , state = { stacked: stacked }
+    , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = function() { return showControls ? 180 : 0 }
@@ -6646,6 +6715,16 @@ nv.models.multiBarHorizontalChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -6966,6 +7045,12 @@ nv.models.multiBarHorizontalChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    return chart;
+  };
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
     return chart;
   };
 
@@ -8194,6 +8279,7 @@ nv.models.pieChart = function() {
                '<p>' +  y + '</p>'
       }
     , state = {}
+    , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
@@ -8233,6 +8319,17 @@ nv.models.pieChart = function() {
 
       //set state.disabled
       state.disabled = data[0].map(function(d) { return !!d.disabled });
+
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -8443,6 +8540,12 @@ nv.models.pieChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    return chart;
+  };
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
     return chart;
   };
 
@@ -9117,6 +9220,8 @@ nv.models.scatterChart = function() {
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
     //, tooltip      = function(key, x, y) { return '<h3>' + key + '</h3>' }
     , tooltip      = null
+    , state = {}
+    , defaultState = null
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , noData       = "No Data Available."
     ;
@@ -9147,8 +9252,7 @@ nv.models.scatterChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var state = {},
-      x0, y0;
+  var x0, y0;
 
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
@@ -9193,6 +9297,16 @@ nv.models.scatterChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
@@ -9649,6 +9763,12 @@ nv.models.scatterChart = function() {
     return chart;
   };
 
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
+    return chart;
+  };
+  
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
@@ -9694,6 +9814,8 @@ nv.models.scatterPlusLineChart = function() {
     , tooltip      = function(key, x, y, date) { return '<h3>' + key + '</h3>' 
                                                       + '<p>' + date + '</p>' }
     //, tooltip      = null
+    , state = {}
+    , defaultState = null
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , noData       = "No Data Available."
     ;
@@ -9724,8 +9846,7 @@ nv.models.scatterPlusLineChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var state = {},
-      x0, y0;
+  var x0, y0;
 
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
@@ -9770,6 +9891,16 @@ nv.models.scatterPlusLineChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
@@ -10226,6 +10357,12 @@ nv.models.scatterPlusLineChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    return chart;
+  };
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
     return chart;
   };
 
@@ -11075,6 +11212,7 @@ nv.models.stackedAreaChart = function() {
     , y //can be accessed via chart.yScale()
     , yAxisTickFormat = d3.format(',.2f')
     , state = { style: stacked.style() }
+    , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = 250
@@ -11130,6 +11268,16 @@ nv.models.stackedAreaChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -11489,6 +11637,12 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
+    return chart;
+  };
+
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
@@ -11496,6 +11650,7 @@ nv.models.stackedAreaChart = function() {
   };
 
   yAxis.setTickFormat = yAxis.tickFormat;
+
   yAxis.tickFormat = function(_) {
     if (!arguments.length) return yAxisTickFormat;
     yAxisTickFormat = _;

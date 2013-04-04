@@ -27,6 +27,7 @@ nv.models.stackedAreaChart = function() {
     , y //can be accessed via chart.yScale()
     , yAxisTickFormat = d3.format(',.2f')
     , state = { style: stacked.style() }
+    , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = 250
@@ -82,6 +83,16 @@ nv.models.stackedAreaChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -441,6 +452,12 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
+    return chart;
+  };
+
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
@@ -448,6 +465,7 @@ nv.models.stackedAreaChart = function() {
   };
 
   yAxis.setTickFormat = yAxis.tickFormat;
+
   yAxis.tickFormat = function(_) {
     if (!arguments.length) return yAxisTickFormat;
     yAxisTickFormat = _;
