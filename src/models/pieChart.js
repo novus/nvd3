@@ -57,12 +57,12 @@ nv.models.pieChart = function() {
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data[0].map(function(d) { return !!d.disabled });
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      if (!data[0] || !data[0].length) {
+      if (!data || !data.length) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
@@ -155,7 +155,7 @@ nv.models.pieChart = function() {
           });
         }
 
-        state.disabled = data[0].map(function(d) { return !!d.disabled });
+        state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
         selection.transition().call(chart)
