@@ -13,6 +13,12 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 ---
 
+# Current Improvement focus
+
+Upgrade to d3.v3 in progress!
+
+---
+
 If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models) doesn't meet your needs, fork the project, implement the model and an example using it, send us a pull request, for consideration for inclusion in the project.
 
 Please do not aggregate pull requests. Aggregated pull requests are actually more difficult to review!
