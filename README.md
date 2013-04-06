@@ -15,6 +15,10 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models) doesn't meet your needs, fork the project, implement the model and an example using it, send us a pull request, for consideration for inclusion in the project.
 
+Please do not aggregate pull requests. Aggregated pull requests are actually more difficult to review!
+
+We are currently changing our branch structure so that master will be gauranteed stable. In addition, there is now a "development" branch. This branch reflects the latest changes to nvd3 and is not necessarily stable.
+
 ---
 
 Minifying your fork:
