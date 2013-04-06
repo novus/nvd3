@@ -26,14 +26,14 @@ nv.models.indentedTree = function() {
   function chart(selection) {
     selection.each(function(data) {
       var i = 0,
-          depth = 1;
+          depth = 1,
+          container = d3.select(this);
 
       var tree = d3.layout.tree()
           .children(function(d) { return d.values })
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
-      chart.update = function() { selection.transition().call(chart) };
-      chart.container = this;
+      chart.update = function() { container.transition().duration(600).call(chart) };
 
 
       //------------------------------------------------------------
