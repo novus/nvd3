@@ -54,7 +54,6 @@ nv.models.multiBar = function() {
           size: 0.01
         };}
       )}];
-        nv.log(hideable, data)
 
       if (stacked)
         data = d3.layout.stack()
