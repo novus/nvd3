@@ -20,7 +20,7 @@ nv.models.lineChart = function() {
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
-               '<p>' +  yAxis.tickFormat()(y) + ' at ' + xAxis.tickFormat()(x) + '</p>'
+               '<p>' +  y + ' at ' + x + '</p>'
       }
     , x
     , y
@@ -60,8 +60,8 @@ nv.models.lineChart = function() {
 
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = lines.x()(e.point, e.pointIndex),
-        y = lines.y()(e.point, e.pointIndex),
+        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
