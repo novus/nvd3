@@ -10737,7 +10737,7 @@ nv.models.stackedArea = function() {
 
   scatter
     .size(2.2) // default size
-    .sizeDomain([2.2]) // all the same size by default
+    .sizeDomain([2.2,2.2]) // all the same size by default
     ;
 
   /************************************
