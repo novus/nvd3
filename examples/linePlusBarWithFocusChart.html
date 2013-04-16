@@ -88,6 +88,7 @@ nv.addGraph(function() {
         .color(d3.scale.category10().range());
 
     chart.xAxis.tickFormat(function(d) {
+
       var dx = testdata[0].values[d] && testdata[0].values[d].x || 0;
       if (dx > 0) {
           return d3.time.format('%x')(new Date(dx))
@@ -115,7 +116,7 @@ nv.addGraph(function() {
     chart.bars.forceY([0]);
     chart.bars2.forceY([0]);
     //chart.lines.forceY([0]);
-
+    nv.log(testdata);
     d3.select('#chart1 svg')
         .datum(testdata)
       .transition().duration(500).call(chart);
