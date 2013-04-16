@@ -17,6 +17,7 @@ nv.models.multiBar = function() {
     , clipEdge = true
     , stacked = false
     , color = nv.utils.defaultColor()
+    , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , delay = 1200
@@ -44,12 +45,22 @@ nv.models.multiBar = function() {
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
 
+      if(hideable && data.length) hideable = [{
+        values: data[0].values.map(function(d) {
+        return {
+          x: d.x,
+          y: 0,
+          series: d.series,
+          size: 0.01
+        };}
+      )}];
+
       if (stacked)
         data = d3.layout.stack()
                  .offset('zero')
                  .values(function(d){ return d.values })
                  .y(getY)
-                 (data);
+                 (!data.length && hideable ? hideable : data);
 
 
       //add series index to each data point for reference
@@ -170,7 +181,7 @@ nv.models.multiBar = function() {
 
 
       var bars = groups.selectAll('rect.nv-bar')
-          .data(function(d) { return d.values });
+          .data(function(d) { return (hideable && !data.length) ? hideable.values : d.values });
 
       bars.exit().remove();
 
@@ -400,6 +411,12 @@ nv.models.multiBar = function() {
   chart.id = function(_) {
     if (!arguments.length) return id;
     id = _;
+    return chart;
+  };
+
+  chart.hideable = function(_) {
+    if (!arguments.length) return hideable;
+    hideable = _;
     return chart;
   };
 
