@@ -180,7 +180,8 @@ svg .title {
   shape-rendering: crispEdges;
 }
 
-.nvd3 .nv-axis line.zero {
+.nvd3 .nv-axis .zero line,
+/*this selector may not be necessary*/ .nvd3 .nv-axis line.zero {
   stroke-opacity: .75;
 }
 

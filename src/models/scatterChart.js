@@ -104,7 +104,7 @@ nv.models.scatterChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -365,7 +365,7 @@ nv.models.scatterChart = function() {
           pauseFisheye = false;
         }
 
-        chart(selection);
+        chart.update();
       });
 
       legend.dispatch.on('legendClick', function(d,i, that) {
@@ -382,7 +382,7 @@ nv.models.scatterChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        chart(selection);
+        chart.update();
       });
 
       /*

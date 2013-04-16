@@ -78,7 +78,7 @@ nv.models.multiBarHorizontalChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { selection.transition().call(chart) };
+      chart.update = function() { container.transition().call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -264,7 +264,7 @@ nv.models.multiBarHorizontalChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -287,7 +287,7 @@ nv.models.multiBarHorizontalChart = function() {
         state.stacked = multibar.stacked();
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {

@@ -55,7 +55,8 @@ nv.models.lineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-
+    chart.update = function() { container.transition().call(chart) };
+    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
@@ -207,7 +208,7 @@ nv.models.lineChart = function() {
           pauseFisheye = false;
         }
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
 
@@ -223,7 +224,7 @@ nv.models.lineChart = function() {
           });
         }
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
 /*
@@ -251,12 +252,6 @@ nv.models.lineChart = function() {
       if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
-
-
-    //TODO: decide if this is a good idea, and if it should be in all models
-    chart.update = function() { chart(selection) };
-    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
-
 
     return chart;
   }

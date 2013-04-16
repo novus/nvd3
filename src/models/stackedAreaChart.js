@@ -77,7 +77,7 @@ nv.models.stackedAreaChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -267,7 +267,7 @@ nv.models.stackedAreaChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        chart(selection);
+        chart.update();
       });
 
       legend.dispatch.on('legendClick', function(d,i) {
@@ -284,7 +284,7 @@ nv.models.stackedAreaChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        chart(selection);
+        chart.update();
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -312,7 +312,7 @@ nv.models.stackedAreaChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        chart(selection);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -334,7 +334,7 @@ nv.models.stackedAreaChart = function() {
           stacked.style(e.style);
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
     });

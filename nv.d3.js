@@ -648,7 +648,7 @@ nv.models.axis = function() {
 
       //highlight zero line ... Maybe should not be an option and should just be in CSS?
       if (highlightZero)
-        g.selectAll('line.tick')
+        g.selectAll('.tick')
           .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
@@ -3171,18 +3171,18 @@ nv.models.indentedTree = function() {
 
   //============================================================
 
+  var idx = 0;
 
   function chart(selection) {
     selection.each(function(data) {
-      var i = 0,
-          depth = 1;
+      var depth = 1,
+          container = d3.select(this);
 
       var tree = d3.layout.tree()
           .children(function(d) { return d.values })
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
-      chart.update = function() { selection.transition().call(chart) };
-      chart.container = this;
+      chart.update = function() { container.transition().duration(600).call(chart) };
 
 
       //------------------------------------------------------------
@@ -3193,6 +3193,10 @@ nv.models.indentedTree = function() {
 
 
       var nodes = tree.nodes(data[0]);
+
+      // nodes.map(function(d) {
+      //   d.id = i++;
+      // })
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -3234,11 +3238,11 @@ nv.models.indentedTree = function() {
 
       // Update the nodes…
       var node = tbody.selectAll('tr')
-          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; }) }, function(d) { return d.id || (d.id == ++i)});
+          // .data(function(d) { return d; }, function(d) { return d.id || (d.id == ++i)});
+          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; } )}, function(d,i) { return d.id || (d.id || ++idx)});
           //.style('display', 'table-row'); //TODO: see if this does anything
 
       node.exit().remove();
-
 
       node.select('img.nv-treeicon')
           .attr('src', icon)
@@ -3289,7 +3293,6 @@ nv.models.indentedTree = function() {
           nodeName.select('span').on('click', column.click);
 
       });
-
 
       node
         .order()
@@ -3807,9 +3810,9 @@ nv.models.line = function() {
             return d3.svg.area()
                 .interpolate(interpolate)
                 .defined(defined)
-                .x(function(d,i) { return x0(getX(d,i)) })
-                .y0(function(d,i) { return y0(getY(d,i)) })
-                .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
+                .x(function(d,i) { return x(getX(d,i)) })
+                .y0(function(d,i) { return y(getY(d,i)) })
+                .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
@@ -3818,9 +3821,9 @@ nv.models.line = function() {
             return d3.svg.area()
                 .interpolate(interpolate)
                 .defined(defined)
-                .x(function(d,i) { return x0(getX(d,i)) })
-                .y0(function(d,i) { return y0(getY(d,i)) })
-                .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
+                .x(function(d,i) { return x(getX(d,i)) })
+                .y0(function(d,i) { return y(getY(d,i)) })
+                .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
@@ -4031,7 +4034,7 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -4183,7 +4186,8 @@ nv.models.lineChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        // container.transition().call(chart);
+        chart.update();
       });
 
 /*
@@ -4413,7 +4417,7 @@ nv.models.linePlusBarChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -4606,7 +4610,7 @@ nv.models.linePlusBarChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -4857,7 +4861,7 @@ nv.models.lineWithFocusChart = function() {
                              - margin.top - margin.bottom - height2,
           availableHeight2 = height2 - margin2.top - margin2.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart) };
       chart.container = this;
 
 
@@ -5096,7 +5100,7 @@ nv.models.lineWithFocusChart = function() {
           });
         }
 
-        selection.transition().call(chart);
+        container.transition().call(chart);
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -5437,7 +5441,7 @@ nv.models.linePlusBarWithFocusChart = function() {
                              - margin.top - margin.bottom - height2,
           availableHeight2 = height2 - margin2.top - margin2.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
 
@@ -5686,7 +5690,7 @@ nv.models.linePlusBarWithFocusChart = function() {
           });
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -6016,6 +6020,7 @@ nv.models.multiBar = function() {
     , barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , delay = 1200
+    , drawTime = 500
     , xDomain
     , yDomain
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
@@ -6256,7 +6261,7 @@ nv.models.multiBar = function() {
 
 
       if (stacked)
-        d3.transition(bars)
+        d3.transition(bars).duration(drawTime)
             .delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('y', function(d,i) {
 
@@ -6266,21 +6271,21 @@ nv.models.multiBar = function() {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
             .each('end', function() {
-              d3.transition(d3.select(this))
+              d3.select(this).transition().duration(drawTime)
                 .attr('x', function(d,i) {
                   return stacked ? 0 : (d.series * x.rangeBand() / data.length )
                 })
                 .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
             })
       else
-        d3.transition(bars)
+        d3.transition(bars).duration(drawTime)
           .delay(function(d,i) { return i * delay/ data[0].values.length })
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
             .each('end', function() {
-              d3.transition(d3.select(this))
+              d3.select(this).transition().duration(drawTime)
                 .attr('y', function(d,i) {
                   return getY(d,i) < 0 ?
                           y(0) :
@@ -6421,6 +6426,12 @@ nv.models.multiBar = function() {
     return chart;
   };
 
+  chart.drawTime = function(_) {
+    if (!arguments.length) return drawTime;
+    drawTime = _;
+    return chart;
+  };
+
   //============================================================
 
 
@@ -6468,7 +6479,7 @@ nv.models.multiBarChart = function() {
   xAxis
     .orient('bottom')
     .tickPadding(7)
-    .highlightZero(false)
+    .highlightZero(true)
     .showMaxMin(false)
     .tickFormat(function(d) { return d })
     ;
@@ -6507,7 +6518,7 @@ nv.models.multiBarChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { selection.transition().call(chart) };
+      chart.update = function() { container.transition().call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -6708,7 +6719,7 @@ nv.models.multiBarChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -6731,7 +6742,7 @@ nv.models.multiBarChart = function() {
         state.stacked = multibar.stacked();
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -7391,7 +7402,7 @@ nv.models.multiBarHorizontalChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { selection.transition().call(chart) };
+      chart.update = function() { container.transition().call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -7577,7 +7588,7 @@ nv.models.multiBarHorizontalChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -7600,7 +7611,7 @@ nv.models.multiBarHorizontalChart = function() {
         state.stacked = multibar.stacked();
         dispatch.stateChange(state);
 
-        selection.transition().call(chart);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -7804,6 +7815,9 @@ nv.models.multiChart = function() {
       var container = d3.select(this),
           that = this;
 
+      chart.update = function() { container.transition().call(chart); };
+      chart.container = this;
+
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
@@ -8002,7 +8016,7 @@ nv.models.multiChart = function() {
             return d;
           });
         }
-        selection.transition().call(chart);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -8010,9 +8024,6 @@ nv.models.multiChart = function() {
       });
 
     });
-
-    chart.update = function() { chart(selection) };
-    chart.container = this;
 
     return chart;
   }
@@ -8996,7 +9007,7 @@ nv.models.pieChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection); };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -9112,7 +9123,7 @@ nv.models.pieChart = function() {
         state.disabled = data[0].map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        selection.transition().call(chart)
+        chart.update();
       });
 
       pie.dispatch.on('elementMouseout.tooltip', function(e) {
@@ -9130,7 +9141,7 @@ nv.models.pieChart = function() {
           state.disabled = e.disabled;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================
@@ -9973,7 +9984,7 @@ nv.models.scatterChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -10234,7 +10245,7 @@ nv.models.scatterChart = function() {
           pauseFisheye = false;
         }
 
-        chart(selection);
+        chart.update();
       });
 
       legend.dispatch.on('legendClick', function(d,i, that) {
@@ -10251,7 +10262,7 @@ nv.models.scatterChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        chart(selection);
+        chart.update();
       });
 
       /*
@@ -10567,7 +10578,7 @@ nv.models.scatterPlusLineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -10843,7 +10854,7 @@ nv.models.scatterPlusLineChart = function() {
           pauseFisheye = false;
         }
 
-        chart(selection);
+        chart.update();
       });
 
       legend.dispatch.on('legendClick', function(d,i, that) {
@@ -10860,7 +10871,7 @@ nv.models.scatterPlusLineChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        chart(selection);
+        chart.update();
       });
 
       /*
@@ -10900,7 +10911,7 @@ nv.models.scatterPlusLineChart = function() {
           state.disabled = e.disabled;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================
@@ -11944,7 +11955,7 @@ nv.models.stackedAreaChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -12134,7 +12145,7 @@ nv.models.stackedAreaChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        chart(selection);
+        chart.update();
       });
 
       legend.dispatch.on('legendClick', function(d,i) {
@@ -12151,7 +12162,7 @@ nv.models.stackedAreaChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        chart(selection);
+        chart.update();
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -12179,7 +12190,7 @@ nv.models.stackedAreaChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        chart(selection);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -12201,7 +12212,7 @@ nv.models.stackedAreaChart = function() {
           stacked.style(e.style);
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
     });
