@@ -4539,7 +4539,7 @@ nv.models.linePlusBarChart = function() {
           .datum(dataBars.length ? dataBars : [{values:[]}])
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(!dataLines[0].disabled ? dataLines : [{values:[]}] );
+          .datum(dataLines[0] && !dataLines[0].disabled ? dataLines : [{values:[]}] );
           //.datum(!dataLines[0].disabled ? dataLines : [{values:dataLines[0].values.map(function(d) { return [d[0], null] }) }] );
 
       d3.transition(barsWrap).call(bars);
@@ -5754,6 +5754,7 @@ nv.models.linePlusBarWithFocusChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
+
         lines
         .width(availableWidth)
         .height(availableHeight1)
@@ -5979,6 +5980,13 @@ nv.models.linePlusBarWithFocusChart = function() {
     noData = _;
     return chart;
   };
+
+  chart.brushExtent = function(_) {
+    if (!arguments.length) return brushExtent;
+    brushExtent = _;
+    return chart;
+  };
+
 
   //============================================================
 
@@ -10021,10 +10029,10 @@ nv.models.scatterChart = function() {
       var wrap = container.selectAll('g.nv-wrap.nv-scatterChart').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatterChart nv-chart-' + scatter.id());
       var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+      var g = wrap.select('g');
 
       // background for pointer events
-      gEnter.append('rect').attr('class', 'nvd3 nv-background')
+      gEnter.append('rect').attr('class', 'nvd3 nv-background');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
