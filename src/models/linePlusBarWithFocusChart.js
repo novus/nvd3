@@ -424,6 +424,7 @@ nv.models.linePlusBarWithFocusChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
+
         lines
         .width(availableWidth)
         .height(availableHeight1)
@@ -649,6 +650,13 @@ nv.models.linePlusBarWithFocusChart = function() {
     noData = _;
     return chart;
   };
+
+  chart.brushExtent = function(_) {
+    if (!arguments.length) return brushExtent;
+    brushExtent = _;
+    return chart;
+  };
+
 
   //============================================================
 

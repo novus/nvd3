@@ -28,6 +28,7 @@ nv.models.cumulativeLineChart = function() {
     , y //can be accessed via chart.yScale()
     , id = lines.id()
     , state = { index: 0, rescaleY: rescaleY }
+    , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
@@ -107,6 +108,17 @@ nv.models.cumulativeLineChart = function() {
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
+
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       var indexDrag = d3.behavior.drag()
                         .on('dragstart', dragStart)
@@ -564,6 +576,12 @@ nv.models.cumulativeLineChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    return chart;
+  };
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
     return chart;
   };
 
