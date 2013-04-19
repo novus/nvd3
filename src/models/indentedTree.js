@@ -22,18 +22,18 @@ nv.models.indentedTree = function() {
 
   //============================================================
 
+  var idx = 0;
 
   function chart(selection) {
     selection.each(function(data) {
-      var i = 0,
-          depth = 1;
+      var depth = 1,
+          container = d3.select(this);
 
       var tree = d3.layout.tree()
           .children(function(d) { return d.values })
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
-      chart.update = function() { selection.transition().call(chart) };
-      chart.container = this;
+      chart.update = function() { container.transition().duration(600).call(chart) };
 
 
       //------------------------------------------------------------
@@ -44,6 +44,10 @@ nv.models.indentedTree = function() {
 
 
       var nodes = tree.nodes(data[0]);
+
+      // nodes.map(function(d) {
+      //   d.id = i++;
+      // })
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -85,11 +89,11 @@ nv.models.indentedTree = function() {
 
       // Update the nodes…
       var node = tbody.selectAll('tr')
-          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; }) }, function(d) { return d.id || (d.id == ++i)});
+          // .data(function(d) { return d; }, function(d) { return d.id || (d.id == ++i)});
+          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; } )}, function(d,i) { return d.id || (d.id || ++idx)});
           //.style('display', 'table-row'); //TODO: see if this does anything
 
       node.exit().remove();
-
 
       node.select('img.nv-treeicon')
           .attr('src', icon)
@@ -140,7 +144,6 @@ nv.models.indentedTree = function() {
           nodeName.select('span').on('click', column.click);
 
       });
-
 
       node
         .order()
