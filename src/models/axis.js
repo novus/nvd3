@@ -111,11 +111,14 @@ nv.models.axis = function() {
         case 'bottom':
           var xLabelMargin = 36;
           var maxTextWidth = 30;
+          var textHeight;
           var xTicks = g.selectAll('g').select("text");
           if (rotateLabels%360) {
             //Calculate the longest xTick width
             xTicks.each(function(d,i){
-              var width = this.getBBox().width;
+              var box = this.getBBox(),
+                  width = box.width;
+              textHeight = box.height;
               if(width > maxTextWidth) maxTextWidth = width;
             });
             //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
@@ -123,7 +126,7 @@ nv.models.axis = function() {
             var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
             //Rotate all xTicks
             xTicks
-              .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+              .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,' + (textHeight/2 + axis.tickPadding()) +')'; })
               .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
           }
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
@@ -253,7 +256,7 @@ nv.models.axis = function() {
               if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
                 if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                   d3.select(this).attr('opacity', 0);
-                
+
                 d3.select(this).select('text').attr('opacity', 0); // Don't remove the ZERO line!!
               }
             });
