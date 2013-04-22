@@ -3,11 +3,6 @@
 <link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
 <style>
 
-.sparkline path {
-  fill: none;
-  stroke: #444;
-}
-
 text {
   font: 10px sans-serif;
 }
@@ -21,6 +16,8 @@ text {
 <body>
 
   <h2>Sparkline: <svg id="chart1" class="sparkline"></svg></h2>
+
+  <h2>Sparkline with color and stroke: <svg id="chart2" class="sparklineBold"></svg></h2>
 
 <script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
@@ -46,6 +43,22 @@ nv.addGraph({
   }
 });
 
+//Format B
+nv.addGraph({
+  generate: function() {
+    var chart = nv.models.sparkline()
+                  .width(400)
+                  .height(30)
+                  .strokeWidth(function () { return 3; })
+                  .color(function () { return '#F64857'; });
+
+    d3.select("#chart2")
+      .datum(sine())
+      .call(chart);
+
+    return chart;
+  }
+});
 
 
 function sine() {

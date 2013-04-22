@@ -14,6 +14,7 @@ nv.models.sparkline = function() {
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
     , color = nv.utils.getColor(['#000'])
+    , strokeWidth = function(d) { return 1 }
     , xDomain
     , yDomain
     ;
@@ -59,13 +60,14 @@ nv.models.sparkline = function() {
       paths.exit().remove();
       paths
           .style('stroke', function(d,i) { return d.color || color(d, i) })
+          .style('stroke-width', function(d,i) { return d.strokeWidth || strokeWidth(d, i) })
           .attr('d', d3.svg.line()
             .x(function(d,i) { return x(getX(d,i)) })
             .y(function(d,i) { return y(getY(d,i)) })
           );
 
 
-      // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
+      // TODO: Add CURRENT data point (Need Min, Max, Current / Most recent)
       var points = wrap.selectAll('circle.nv-point')
           .data(function(data) {
               var yValues = data.map(function(d, i) { return getY(d,i); });
@@ -169,6 +171,12 @@ nv.models.sparkline = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
+    return chart;
+  };
+
+  chart.strokeWidth = function(_) {
+    if (!arguments.length) return strokeWidth;
+    strokeWidth = _;
     return chart;
   };
 
