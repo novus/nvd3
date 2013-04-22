@@ -143,7 +143,7 @@ nv.models.historicalBar = function() {
                     e: d3.event,
                     id: id
                 });
-              d3.event.stopPropagation();
+              //d3.event.stopPropagation();
           })
           .on('dblclick', function(d,i) {
               dispatch.elementDblClick({
@@ -155,7 +155,7 @@ nv.models.historicalBar = function() {
                   e: d3.event,
                   id: id
               });
-              d3.event.stopPropagation();
+              //d3.event.stopPropagation();
           });
 
       bars
