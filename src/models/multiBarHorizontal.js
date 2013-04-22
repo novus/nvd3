@@ -200,7 +200,7 @@ nv.models.multiBarHorizontal = function() {
               seriesIndex: d.series,
               e: d3.event
             });
-            d3.event.stopPropagation();
+            //d3.event.stopPropagation();
           })
           .on('dblclick', function(d,i) {
             dispatch.elementDblClick({
@@ -212,7 +212,7 @@ nv.models.multiBarHorizontal = function() {
               seriesIndex: d.series,
               e: d3.event
             });
-            d3.event.stopPropagation();
+            //d3.event.stopPropagation();
           });
 
 

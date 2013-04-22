@@ -181,7 +181,7 @@ nv.models.indentedTree = function() {
 
       // Toggle children on click.
       function click(d, _, unshift) {
-        d3.event.stopPropagation();
+        //d3.event.stopPropagation();
 
         if(d3.event.shiftKey && !unshift) {
           //If you shift-click, it'll toggle fold all the children, instead of itself

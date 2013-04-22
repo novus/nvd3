@@ -201,7 +201,7 @@ nv.models.multiBarTimeSeries = function() {
               seriesIndex: d.series,
               e: d3.event
             });
-            d3.event.stopPropagation();
+            //d3.event.stopPropagation();
           })
           .on('dblclick', function(d,i) {
             dispatch.elementDblClick({
@@ -213,7 +213,7 @@ nv.models.multiBarTimeSeries = function() {
               seriesIndex: d.series,
               e: d3.event
             });
-            d3.event.stopPropagation();
+            //d3.event.stopPropagation();
           });
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
