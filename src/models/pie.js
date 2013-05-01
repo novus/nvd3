@@ -53,7 +53,7 @@ nv.models.pie = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
       g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
-      var donutHole = wrap.('.nv-donutHoleLabel').data([donutHoleLabel]);
+      var donutHole = wrap.selectAll('.nv-donutHoleLabel').data([donutHoleLabel]);
 
       donutHole.enter().append('text')
         .attr('class', 'nvd3 nv-donutHoleLabel')
