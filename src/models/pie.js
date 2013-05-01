@@ -388,6 +388,12 @@ nv.models.pie = function() {
     labelThreshold = _;
     return chart;
   };
+  
+  chart.donutHoleLabel = function(_) {
+    if (!arguments.length) return donutHoleLabel;
+    donutHoleLabel = _;
+    return chart;
+  };
   //============================================================
 
 
