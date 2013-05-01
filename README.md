@@ -3,7 +3,7 @@ apology, and commitment to its permanent status as an open-source
 project.
 [http://nvd3.org/statement.html](http://nvd3.org/statement.html)
 
-# nvd3 - v0.0.1
+# nvd3 - v0.9
 
 A reusable chart library for d3.JS.
 
@@ -13,9 +13,10 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 ---
 
-# Current Improvement focus
+# Current development focus
 
-Upgrade to d3.v3 in progress!
+-Error bars in bar charts
+-Bug fixes all around
 
 ---
 
