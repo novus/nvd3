@@ -15,6 +15,7 @@ nv.models.pie = function() {
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
     , showLabels = true
+    , showDonutHoleLabel = true
     , pieLabelsOutside = true
     , donutLabelsOutside = false
     , labelThreshold = .02 //if slice percentage is under this, don't show label
@@ -24,6 +25,7 @@ nv.models.pie = function() {
     , endAngle = false
     , donutRatio = 0.5
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , donutHoleLabel = "Hole!"
     ;
 
   //============================================================
@@ -51,6 +53,15 @@ nv.models.pie = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
       g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+      var donutHole = wrap.('.nv-donutHoleLabel').data([donutHoleLabel]);
+
+      donutHole.enter().append('text')
+        .attr('class', 'nvd3 nv-donutHoleLabel')
+        .attr('dy', '-.7em')
+        .style('text-anchor', 'middle');
+        .attr('x', margin.left + availableWidth / 2)
+        .attr('y', margin.top + availableHeight / 2)
+        .text(function(d) { return d });
 
       //------------------------------------------------------------
 
