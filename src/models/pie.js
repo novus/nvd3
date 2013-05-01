@@ -57,7 +57,7 @@ nv.models.pie = function() {
 
       donutHole.enter().append('text')
         .attr('class', 'nvd3 nv-donutHoleLabel')
-        .attr('dy', '-.7em')
+        .attr('dy', '.5em')
         .style('text-anchor', 'middle')
         .attr('x', margin.left + availableWidth / 2)
         .attr('y', margin.top + availableHeight / 2)
