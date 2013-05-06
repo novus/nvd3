@@ -297,7 +297,7 @@ nv.models.linePlusBarChart = function() {
           state.disabled = e.disabled;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================

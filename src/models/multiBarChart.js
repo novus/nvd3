@@ -326,7 +326,7 @@ nv.models.multiBarChart = function() {
           state.stacked = e.stacked;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================

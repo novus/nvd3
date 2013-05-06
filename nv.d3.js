@@ -2162,7 +2162,7 @@ nv.models.cumulativeLineChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        selection.call(chart);
+        chart.update();
       });
 
 
@@ -2181,7 +2181,7 @@ nv.models.cumulativeLineChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        selection.call(chart);
+        chart.update();
       });
 
 /*
@@ -2229,7 +2229,7 @@ nv.models.cumulativeLineChart = function() {
           rescaleY = e.rescaleY;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================
@@ -4629,7 +4629,7 @@ nv.models.linePlusBarChart = function() {
           state.disabled = e.disabled;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================
@@ -6765,7 +6765,7 @@ nv.models.multiBarChart = function() {
           state.stacked = e.stacked;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================
