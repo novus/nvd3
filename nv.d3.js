@@ -351,6 +351,19 @@ nv.utils.pjax = function(links, content) {
   });
 }
 
+/* For situations where we want to approximate the width in pixels for an SVG:text element.
+Most common instance is when the element is in a display:none; container. 
+Forumla is : text.length * font-size * constant_factor
+*/
+nv.utils.calcApproxTextWidth = function (svgTextElem) {
+    if (svgTextElem instanceof d3.selection) {
+        var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""));
+        var textLength = svgTextElem.text().length;
+
+        return textLength * fontSize * 0.5; 
+    }
+    return 0;
+};
 nv.models.axis = function() {
 
   //============================================================
@@ -3533,9 +3546,13 @@ nv.models.indentedTree = function() {
 
       // NEW ALIGNING CODE, TODO: clean up
       if (align) {
+
         var seriesWidths = [];
         series.each(function(d,i) {
-              seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
+              var legendText = d3.select(this).select('text');
+              var svgComputedTextLength = legendText.node().getComputedTextLength() 
+                                         || nv.utils.calcApproxTextWidth(legendText);
+              seriesWidths.push(svgComputedTextLength + 28); // 28 is ~ the width of the circle plus some padding
             });
 
         //nv.log('Series Widths: ', JSON.stringify(seriesWidths));
