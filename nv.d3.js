@@ -9328,7 +9328,7 @@ nv.models.scatter = function() {
               })
             );
 
-      x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x }).concat(forceX)))
+      x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x; }).concat(forceX)))
 
       if (padData && data[0])
         x.range([(availableWidth * padDataOuter +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)  ]);
@@ -9353,6 +9353,14 @@ nv.models.scatter = function() {
         y.domain()[0] ?
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
           : y.domain([-1,1]);
+
+      if ( isNaN(x.domain()[0])) {
+          x.domain([-1,1]);
+      }
+
+      if ( isNaN(y.domain()[0])) {
+          y.domain([-1,1]);
+      }
 
 
       x0 = x0 || x;
@@ -9468,7 +9476,12 @@ nv.models.scatter = function() {
               .attr('class', function(d,i) { return 'nv-path-'+i; });
           pointPaths.exit().remove();
           pointPaths
-              .attr('d', function(d) { return 'M' + d.data.join('L') + 'Z'; });
+              .attr('d', function(d) {
+                if (d.data.length === 0) 
+                    return 'M 0 0'
+                else 
+                    return 'M' + d.data.join('L') + 'Z'; 
+              });
 
           pointPaths
               .on('click', function(d) {
@@ -9598,7 +9611,9 @@ nv.models.scatter = function() {
         var points = groups.selectAll('circle.nv-point')
             .data(function(d) { return d.values });
         points.enter().append('circle')
-            .attr('cx', function(d,i) { return x0(getX(d,i)) })
+            .attr('cx', function(d,i) { 
+              return x0(getX(d,i)) 
+            })
             .attr('cy', function(d,i) { return y0(getY(d,i)) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
