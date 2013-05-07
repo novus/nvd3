@@ -163,10 +163,11 @@ nv.models.multiBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
-          //.style('stroke-opacity', 1e-6)
-          //.style('fill-opacity', 1e-6)
+
+
+      groups.exit()
         .selectAll('rect.nv-bar')
+        .transition()
         .delay(function(d,i) { return i * delay/ data[0].values.length })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
@@ -262,7 +263,8 @@ nv.models.multiBar = function() {
 
 
       if (stacked)
-        d3.transition(bars).duration(drawTime)
+            bars.transition()
+          
             .delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('y', function(d,i) {
 
