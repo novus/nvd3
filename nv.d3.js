@@ -135,6 +135,10 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     gravity = gravity || 's';
     dist = dist || 20;
 
+    if (parentContainer.tagName.match(/g|svg/i)) {
+        //If the parent element is an SVG element, place tooltip in the <body> element.
+        parentContainer = null;
+    }
     var body = parentContainer ? parentContainer : document.getElementsByTagName('body')[0];
 
     container.innerHTML = content;
@@ -4063,7 +4067,7 @@ nv.models.lineChart = function() {
     // New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
     if (offsetElement) {
       var svg = d3.select(offsetElement).select('svg');
-      var viewBox = svg.attr('viewBox');
+      var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
       if (viewBox) {
         viewBox = viewBox.split(' ');
         var ratio = parseInt(svg.style('width')) / viewBox[2];
