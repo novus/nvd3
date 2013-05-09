@@ -30,6 +30,7 @@ nv.models.cumulativeLineChart = function() {
     , state = { index: 0, rescaleY: rescaleY }
     , defaultState = null
     , noData = 'No Data Available.'
+    , average = function(d) { return d.average }
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
 
@@ -227,6 +228,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-background');
       gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-avgLinesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
@@ -289,8 +291,6 @@ nv.models.cumulativeLineChart = function() {
             .text(tempDisabled.map(function(d) { return d.key }).join(', ') + ' values cannot be calculated for this time period.');
       }
 
-
-
       //------------------------------------------------------------
       // Main Chart Component(s)
 
@@ -308,16 +308,51 @@ nv.models.cumulativeLineChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled }));
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled; }));
 
 
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled && !d.tempDisabled }));
+          .datum(data.filter(function(d) { return  !d.disabled && !d.tempDisabled }));
 
       //d3.transition(linesWrap).call(lines);
       linesWrap.call(lines);
 
+      /*Handle average lines [AN-612] ----------------------------*/
+
+      //Store a series index number in the data array.
+      data.forEach(function(d,i) {
+            d.seriesIndex = i;
+      });
+
+      var avgLineData = data.filter(function(d) {
+          return !d.disabled && !!average(d);
+      });
+
+      var avgLines = g.select(".nv-avgLinesWrap").selectAll("line")
+              .data(avgLineData, function(d) { return d.key; });
+
+      avgLines.enter()
+              .append('line')
+              .style('stroke-width',2)
+              .style('stroke-dasharray','10,10')
+              .style('stroke',function (d,i) {
+                  return lines.color()(d,d.seriesIndex);
+              })
+              .attr('x1',0)
+              .attr('x2',availableWidth)
+              .attr('y1', function(d) { return y(average(d)); })
+              .attr('y2', function(d) { return y(average(d)); });
+
+      avgLines
+              .attr('x1',0)
+              .attr('x2',availableWidth)
+              .attr('y1', function(d) { return y(average(d)); })
+              .attr('y2', function(d) { return y(average(d)); });
+
+      avgLines.exit().remove();
+
+      //Create index line -----------------------------------------
 
       var indexLine = linesWrap.selectAll('.nv-indexLine')
           .data([index]);
@@ -591,6 +626,12 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  chart.average = function(_) {
+     if(!arguments.length) return average;
+     average = _;
+     return chart;
+  };
+
   //============================================================
 
 
@@ -601,6 +642,9 @@ nv.models.cumulativeLineChart = function() {
   /* Normalize the data according to an index point. */
   function indexify(idx, data) {
     return data.map(function(line, i) {
+      if (!line.values) {
+         return line;
+      }
       var v = lines.y()(line.values[idx], idx);
 
       //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue

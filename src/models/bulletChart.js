@@ -216,7 +216,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
-        e.key = data[0].title;
+        e.key = d.title;
         if (tooltips) showTooltip(e, that.parentNode);
       });
 

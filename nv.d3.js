@@ -135,6 +135,10 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     gravity = gravity || 's';
     dist = dist || 20;
 
+    if (parentContainer.tagName.match(/g|svg/i)) {
+        //If the parent element is an SVG element, place tooltip in the <body> element.
+        parentContainer = null;
+    }
     var body = parentContainer ? parentContainer : document.getElementsByTagName('body')[0];
 
     container.innerHTML = content;
@@ -351,6 +355,19 @@ nv.utils.pjax = function(links, content) {
   });
 }
 
+/* For situations where we want to approximate the width in pixels for an SVG:text element.
+Most common instance is when the element is in a display:none; container. 
+Forumla is : text.length * font-size * constant_factor
+*/
+nv.utils.calcApproxTextWidth = function (svgTextElem) {
+    if (svgTextElem instanceof d3.selection) {
+        var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""));
+        var textLength = svgTextElem.text().length;
+
+        return textLength * fontSize * 0.5; 
+    }
+    return 0;
+};
 nv.models.axis = function() {
 
   //============================================================
@@ -1633,7 +1650,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
-        e.key = data[0].title;
+        e.key = d.title;
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
@@ -1788,6 +1805,7 @@ nv.models.cumulativeLineChart = function() {
     , state = { index: 0, rescaleY: rescaleY }
     , defaultState = null
     , noData = 'No Data Available.'
+    , average = function(d) { return d.average }
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
 
@@ -1985,6 +2003,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-background');
       gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-avgLinesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
@@ -2047,8 +2066,6 @@ nv.models.cumulativeLineChart = function() {
             .text(tempDisabled.map(function(d) { return d.key }).join(', ') + ' values cannot be calculated for this time period.');
       }
 
-
-
       //------------------------------------------------------------
       // Main Chart Component(s)
 
@@ -2066,16 +2083,51 @@ nv.models.cumulativeLineChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled }));
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled; }));
 
 
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled && !d.tempDisabled }));
+          .datum(data.filter(function(d) { return  !d.disabled && !d.tempDisabled }));
 
       //d3.transition(linesWrap).call(lines);
       linesWrap.call(lines);
 
+      /*Handle average lines [AN-612] ----------------------------*/
+
+      //Store a series index number in the data array.
+      data.forEach(function(d,i) {
+            d.seriesIndex = i;
+      });
+
+      var avgLineData = data.filter(function(d) {
+          return !d.disabled && !!average(d);
+      });
+
+      var avgLines = g.select(".nv-avgLinesWrap").selectAll("line")
+              .data(avgLineData, function(d) { return d.key; });
+
+      avgLines.enter()
+              .append('line')
+              .style('stroke-width',2)
+              .style('stroke-dasharray','10,10')
+              .style('stroke',function (d,i) {
+                  return lines.color()(d,d.seriesIndex);
+              })
+              .attr('x1',0)
+              .attr('x2',availableWidth)
+              .attr('y1', function(d) { return y(average(d)); })
+              .attr('y2', function(d) { return y(average(d)); });
+
+      avgLines
+              .attr('x1',0)
+              .attr('x2',availableWidth)
+              .attr('y1', function(d) { return y(average(d)); })
+              .attr('y2', function(d) { return y(average(d)); });
+
+      avgLines.exit().remove();
+
+      //Create index line -----------------------------------------
 
       var indexLine = linesWrap.selectAll('.nv-indexLine')
           .data([index]);
@@ -2349,6 +2401,12 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  chart.average = function(_) {
+     if(!arguments.length) return average;
+     average = _;
+     return chart;
+  };
+
   //============================================================
 
 
@@ -2359,6 +2417,9 @@ nv.models.cumulativeLineChart = function() {
   /* Normalize the data according to an index point. */
   function indexify(idx, data) {
     return data.map(function(line, i) {
+      if (!line.values) {
+         return line;
+      }
       var v = lines.y()(line.values[idx], idx);
 
       //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
@@ -3533,9 +3594,13 @@ nv.models.indentedTree = function() {
 
       // NEW ALIGNING CODE, TODO: clean up
       if (align) {
+
         var seriesWidths = [];
         series.each(function(d,i) {
-              seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
+              var legendText = d3.select(this).select('text');
+              var svgComputedTextLength = legendText.node().getComputedTextLength() 
+                                         || nv.utils.calcApproxTextWidth(legendText);
+              seriesWidths.push(svgComputedTextLength + 28); // 28 is ~ the width of the circle plus some padding
             });
 
         //nv.log('Series Widths: ', JSON.stringify(seriesWidths));
@@ -4002,7 +4067,7 @@ nv.models.lineChart = function() {
     // New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
     if (offsetElement) {
       var svg = d3.select(offsetElement).select('svg');
-      var viewBox = svg.attr('viewBox');
+      var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
       if (viewBox) {
         viewBox = viewBox.split(' ');
         var ratio = parseInt(svg.style('width')) / viewBox[2];

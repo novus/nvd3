@@ -50,7 +50,7 @@ nv.models.lineChart = function() {
     // New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
     if (offsetElement) {
       var svg = d3.select(offsetElement).select('svg');
-      var viewBox = svg.attr('viewBox');
+      var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
       if (viewBox) {
         viewBox = viewBox.split(' ');
         var ratio = parseInt(svg.style('width')) / viewBox[2];
