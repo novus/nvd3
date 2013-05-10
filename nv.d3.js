@@ -135,11 +135,11 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     gravity = gravity || 's';
     dist = dist || 20;
 
-    if (parentContainer.tagName.match(/g|svg/i)) {
+    var body = parentContainer;
+    if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
         //If the parent element is an SVG element, place tooltip in the <body> element.
-        parentContainer = null;
+        body = document.getElementsByTagName('body')[0];
     }
-    var body = parentContainer ? parentContainer : document.getElementsByTagName('body')[0];
 
     container.innerHTML = content;
     container.style.left = 0;
