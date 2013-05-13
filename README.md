@@ -21,6 +21,7 @@ Upgrade to d3.v3 in progress!
 
 # Installation Instructions
 
+d3.v2.js is a dependency of nv.d3.js. Be sure to include in in your project, then:  
 Add a script tag to include nv.d3.js OR nv.d3.min.js in your project.  
 Also add a link to the nv.d3.css file.
 
