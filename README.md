@@ -7,7 +7,7 @@ project.
 
 A reusable chart library for d3.JS.
 
-Currently in an early stage of development, but will be a very active project.  It may change quite a bit from its current state, but will always try to follow the style in which d3.js was done.
+NVD3 may change from its current state, but will always try to follow the style of d3.js.
 
 You can also check out the [examples page](http://nvd3.org/ghpages/examples.html)
 
@@ -17,6 +17,21 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 -Error bars in bar charts
 -Bug fixes all around
+
+---
+
+# Installation Instructions
+
+d3.v2.js is a dependency of nv.d3.js. Be sure to include in in your project, then:  
+Add a script tag to include nv.d3.js OR nv.d3.min.js in your project.  
+Also add a link to the nv.d3.css file.
+
+Python & Django-wrapped versions available:  
+https://github.com/areski/python-nvd3  
+https://github.com/areski/django-nvd3  
+
+R package version available:  
+http://ramnathv.github.io/rCharts/r2js/
 
 ---
 
