@@ -367,12 +367,12 @@ nv.models.scatter = function() {
             .attr('cy', function(d,i) { return y0(getY(d,i)) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
-        d3.transition(groups.exit().selectAll('path.nv-point'))
+        groups.exit().selectAll('path.nv-point').transition()
             .attr('cx', function(d,i) { return x(getX(d,i)) })
             .attr('cy', function(d,i) { return y(getY(d,i)) })
             .remove();
         points.attr('class', function(d,i) { return 'nv-point nv-point-' + i });
-        d3.transition(points)
+        points.transition()
             .attr('cx', function(d,i) { return x(getX(d,i)) })
             .attr('cy', function(d,i) { return y(getY(d,i)) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });

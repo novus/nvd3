@@ -224,6 +224,8 @@ nv.models.scatterChart = function() {
           .color(data.map(function(d,i) {
             return d.color || color(d, i);
           }).filter(function(d,i) { return !data[i].disabled }))
+          .xDomain(null)
+          .yDomain(null)
 
       wrap.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
@@ -233,13 +235,16 @@ nv.models.scatterChart = function() {
       //Adjust for x and y padding
       if (xPadding) {
         var xRange = x.domain()[1] - x.domain()[0];
-        x.domain([x.domain()[0] - (xPadding * xRange), x.domain()[1] + (xPadding * xRange)]);
+        scatter.xDomain([x.domain()[0] - (xPadding * xRange), x.domain()[1] + (xPadding * xRange)]);
       }
 
       if (yPadding) {
         var yRange = y.domain()[1] - y.domain()[0];
-        y.domain([y.domain()[0] - (yPadding * yRange), y.domain()[1] + (yPadding * yRange)]);
+        scatter.yDomain([y.domain()[0] - (yPadding * yRange), y.domain()[1] + (yPadding * yRange)]);
       }
+
+      wrap.select('.nv-scatterWrap')
+          .call(scatter);
 
       //------------------------------------------------------------
 
