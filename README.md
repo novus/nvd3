@@ -21,14 +21,14 @@ Upgrade to d3.v3 in progress!
 
 # Installation Instructions
 
-Add a script tag to include nv.d3.js OR nv.d3.min.js in your project.
+Add a script tag to include nv.d3.js OR nv.d3.min.js in your project.  
 Also add a link to the nv.d3.css file.
 
-Python & Django-wrapped versions available:
-https://github.com/areski/python-nvd3
-https://github.com/areski/django-nvd3
+Python & Django-wrapped versions available:  
+https://github.com/areski/python-nvd3  
+https://github.com/areski/django-nvd3  
 
-R package version available:
+R package version available:  
 http://ramnathv.github.io/rCharts/r2js/
 
 ---
