@@ -135,11 +135,11 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     gravity = gravity || 's';
     dist = dist || 20;
 
-    if (parentContainer.tagName.match(/g|svg/i)) {
+    var body = parentContainer;
+    if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
         //If the parent element is an SVG element, place tooltip in the <body> element.
-        parentContainer = null;
+        body = document.getElementsByTagName('body')[0];
     }
-    var body = parentContainer ? parentContainer : document.getElementsByTagName('body')[0];
 
     container.innerHTML = content;
     container.style.left = 0;
@@ -11367,7 +11367,7 @@ nv.models.sparklinePlus = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      var currentValue = sparkline.y()(data[data.length-1], data.length-1);
+      
 
       chart.update = function() { chart(selection) };
       chart.container = this;
@@ -11393,6 +11393,8 @@ nv.models.sparklinePlus = function() {
       } else {
         container.selectAll('.nv-noData').remove();
       }
+
+      var currentValue = sparkline.y()(data[data.length-1], data.length-1);
 
       //------------------------------------------------------------
 
@@ -11440,7 +11442,7 @@ nv.models.sparklinePlus = function() {
 
 
       var valueWrap = g.select('.nv-valueWrap');
-
+      
       var value = valueWrap.selectAll('.nv-currentValue')
           .data([currentValue]);
 
