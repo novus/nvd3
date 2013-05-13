@@ -73,7 +73,7 @@ nv.addGraph(function() {
   chart.yAxis.tickFormat(d3.format('.02f'))
 
   d3.select('#test1 svg')
-      .datum(randomData(4,40))
+      .datum(nv.log(randomData(4,40)))
     .transition().duration(500)
       .call(chart);
 
