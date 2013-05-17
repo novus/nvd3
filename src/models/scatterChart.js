@@ -244,6 +244,7 @@ nv.models.scatterChart = function() {
       }
 
       wrap.select('.nv-scatterWrap')
+          .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
 
       //------------------------------------------------------------
@@ -404,7 +405,7 @@ nv.models.scatterChart = function() {
 
       scatter.dispatch.on('elementMouseover.tooltip', function(e) {
         d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-distx-' + e.pointIndex)
-            .attr('y1', e.pos[1] - availableHeight);
+            .attr('y1', function(d,i) { return e.pos[1] - availableHeight;});
         d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
             .attr('x2', e.pos[0] + distX.size());
 

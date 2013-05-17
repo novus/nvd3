@@ -80,7 +80,7 @@ nv.addGraph(function() {
 
   nv.utils.windowResize(chart.update);
 
-  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+  chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
 
   return chart;
 });
