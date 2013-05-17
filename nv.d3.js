@@ -2842,7 +2842,7 @@ nv.models.discreteBarChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { dispatch.beforeUpdate(); selection.transition().call(chart); };
+      chart.update = function() { dispatch.beforeUpdate(); container.transition().call(chart); };
       chart.container = this;
 
 
@@ -4282,7 +4282,7 @@ nv.models.lineChart = function() {
           state.disabled = e.disabled;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================
@@ -4483,7 +4483,7 @@ nv.models.linePlusBarChart = function() {
                              - margin.top - margin.bottom;
 
       chart.update = function() { container.transition().call(chart); };
-      chart.container = this;
+      // chart.container = this;
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
@@ -9529,13 +9529,13 @@ nv.models.scatter = function() {
           }
 
 
-          // if(vertices.length < 3) {
+          if(vertices.length) {
             // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
             vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
             vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
             vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
             vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
-          // }
+          }
 
           var bounds = d3.geom.polygon([
               [-10,-10],
@@ -9551,7 +9551,6 @@ nv.models.scatter = function() {
                 'point': vertices[i][3]
               }
             });
-
 
 
           var pointPaths = wrap.select('.nv-point-paths').selectAll('path')

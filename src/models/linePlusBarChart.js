@@ -86,7 +86,7 @@ nv.models.linePlusBarChart = function() {
                              - margin.top - margin.bottom;
 
       chart.update = function() { container.transition().call(chart); };
-      chart.container = this;
+      // chart.container = this;
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });

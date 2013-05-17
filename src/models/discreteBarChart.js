@@ -68,7 +68,7 @@ nv.models.discreteBarChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { dispatch.beforeUpdate(); selection.transition().call(chart); };
+      chart.update = function() { dispatch.beforeUpdate(); container.transition().call(chart); };
       chart.container = this;
 
 
