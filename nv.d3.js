@@ -6509,13 +6509,14 @@ nv.models.multiBarChart = function() {
     , controls = nv.models.legend()
     ;
 
-  var margin = {top: 30, right: 20, bottom: 30, left: 60}
+  var margin = {top: 30, right: 20, bottom: 50, left: 60}
     , width = null
     , height = null
     , color = nv.utils.defaultColor()
     , showControls = true
     , showLegend = true
     , reduceXTicks = true // if false a tick will show for every data point
+    , staggerLabels = false
     , rotateLabels = 0
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
@@ -6730,6 +6731,27 @@ nv.models.multiBarChart = function() {
           .selectAll('line, text')
           .style('opacity', 1)
 
+      if (staggerLabels) {
+          var getTranslate = function(x,y) {
+              return "translate(" + x + "," + y + ")";
+          };
+
+          var staggerUp = 5, staggerDown = 17;  //pixels to stagger by
+          // Issue #140
+          xTicks
+            .selectAll("text")
+            .attr('transform', function(d,i,j) { 
+                return  getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
+              });
+
+          var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
+          g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
+            .attr("transform", function(d,i) {
+                return getTranslate(0, (i === 0 || totalInBetweenTicks % 2 !== 0) ? staggerDown : staggerUp);
+            });
+      }
+
+
       if (reduceXTicks)
         xTicks
           .filter(function(d,i) {
@@ -6918,6 +6940,12 @@ nv.models.multiBarChart = function() {
     rotateLabels = _;
     return chart;
   }
+
+  chart.staggerLabels = function(_) {
+    if (!arguments.length) return staggerLabels;
+    staggerLabels = _;
+    return chart;
+  };
 
   chart.tooltip = function(_) {
     if (!arguments.length) return tooltip;
@@ -9473,8 +9501,8 @@ nv.models.scatter = function() {
             return group.values
               .map(function(point, pointIndex) {
                 // *Adding noise to make duplicates very unlikely
-                // **Injecting series and point index for reference
-                /*[SUPPORT-706] adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
+                // *Injecting series and point index for reference
+                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
                 */
                 var pX = getX(point,pointIndex) + Math.random() * 1e-10;
                 var pY = getY(point,pointIndex) + Math.random() * 1e-10;
