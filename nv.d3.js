@@ -135,7 +135,11 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     gravity = gravity || 's';
     dist = dist || 20;
 
-    var body = parentContainer ? parentContainer : document.getElementsByTagName('body')[0];
+    var body = parentContainer;
+    if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
+        //If the parent element is an SVG element, place tooltip in the <body> element.
+        body = document.getElementsByTagName('body')[0];
+    }
 
     container.innerHTML = content;
     container.style.left = 0;
@@ -351,6 +355,19 @@ nv.utils.pjax = function(links, content) {
   });
 }
 
+/* For situations where we want to approximate the width in pixels for an SVG:text element.
+Most common instance is when the element is in a display:none; container. 
+Forumla is : text.length * font-size * constant_factor
+*/
+nv.utils.calcApproxTextWidth = function (svgTextElem) {
+    if (svgTextElem instanceof d3.selection) {
+        var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""));
+        var textLength = svgTextElem.text().length;
+
+        return textLength * fontSize * 0.5; 
+    }
+    return 0;
+};
 nv.models.axis = function() {
 
   //============================================================
@@ -1633,7 +1650,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
-        e.key = data[0].title;
+        e.key = d.title;
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
@@ -1788,6 +1805,7 @@ nv.models.cumulativeLineChart = function() {
     , state = { index: 0, rescaleY: rescaleY }
     , defaultState = null
     , noData = 'No Data Available.'
+    , average = function(d) { return d.average }
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
 
@@ -1985,6 +2003,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-background');
       gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-avgLinesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
@@ -2047,8 +2066,6 @@ nv.models.cumulativeLineChart = function() {
             .text(tempDisabled.map(function(d) { return d.key }).join(', ') + ' values cannot be calculated for this time period.');
       }
 
-
-
       //------------------------------------------------------------
       // Main Chart Component(s)
 
@@ -2066,16 +2083,51 @@ nv.models.cumulativeLineChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled }));
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled; }));
 
 
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled && !d.tempDisabled }));
+          .datum(data.filter(function(d) { return  !d.disabled && !d.tempDisabled }));
 
       //d3.transition(linesWrap).call(lines);
       linesWrap.call(lines);
 
+      /*Handle average lines [AN-612] ----------------------------*/
+
+      //Store a series index number in the data array.
+      data.forEach(function(d,i) {
+            d.seriesIndex = i;
+      });
+
+      var avgLineData = data.filter(function(d) {
+          return !d.disabled && !!average(d);
+      });
+
+      var avgLines = g.select(".nv-avgLinesWrap").selectAll("line")
+              .data(avgLineData, function(d) { return d.key; });
+
+      avgLines.enter()
+              .append('line')
+              .style('stroke-width',2)
+              .style('stroke-dasharray','10,10')
+              .style('stroke',function (d,i) {
+                  return lines.color()(d,d.seriesIndex);
+              })
+              .attr('x1',0)
+              .attr('x2',availableWidth)
+              .attr('y1', function(d) { return y(average(d)); })
+              .attr('y2', function(d) { return y(average(d)); });
+
+      avgLines
+              .attr('x1',0)
+              .attr('x2',availableWidth)
+              .attr('y1', function(d) { return y(average(d)); })
+              .attr('y2', function(d) { return y(average(d)); });
+
+      avgLines.exit().remove();
+
+      //Create index line -----------------------------------------
 
       var indexLine = linesWrap.selectAll('.nv-indexLine')
           .data([index]);
@@ -2349,6 +2401,12 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  chart.average = function(_) {
+     if(!arguments.length) return average;
+     average = _;
+     return chart;
+  };
+
   //============================================================
 
 
@@ -2359,6 +2417,9 @@ nv.models.cumulativeLineChart = function() {
   /* Normalize the data according to an index point. */
   function indexify(idx, data) {
     return data.map(function(line, i) {
+      if (!line.values) {
+         return line;
+      }
       var v = lines.y()(line.values[idx], idx);
 
       //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
@@ -3533,9 +3594,13 @@ nv.models.indentedTree = function() {
 
       // NEW ALIGNING CODE, TODO: clean up
       if (align) {
+
         var seriesWidths = [];
         series.each(function(d,i) {
-              seriesWidths.push(d3.select(this).select('text').node().getComputedTextLength() + 28); // 28 is ~ the width of the circle plus some padding
+              var legendText = d3.select(this).select('text');
+              var svgComputedTextLength = legendText.node().getComputedTextLength() 
+                                         || nv.utils.calcApproxTextWidth(legendText);
+              seriesWidths.push(svgComputedTextLength + 28); // 28 is ~ the width of the circle plus some padding
             });
 
         //nv.log('Series Widths: ', JSON.stringify(seriesWidths));
@@ -4002,7 +4067,7 @@ nv.models.lineChart = function() {
     // New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
     if (offsetElement) {
       var svg = d3.select(offsetElement).select('svg');
-      var viewBox = svg.attr('viewBox');
+      var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
       if (viewBox) {
         viewBox = viewBox.split(' ');
         var ratio = parseInt(svg.style('width')) / viewBox[2];
@@ -6160,10 +6225,11 @@ nv.models.multiBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
-          //.style('stroke-opacity', 1e-6)
-          //.style('fill-opacity', 1e-6)
+
+
+      groups.exit()
         .selectAll('rect.nv-bar')
+        .transition()
         .delay(function(d,i) { return i * delay/ data[0].values.length })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
@@ -6259,7 +6325,7 @@ nv.models.multiBar = function() {
 
 
       if (stacked)
-        d3.transition(bars)
+            bars.transition()
             .delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('y', function(d,i) {
 
@@ -6443,13 +6509,14 @@ nv.models.multiBarChart = function() {
     , controls = nv.models.legend()
     ;
 
-  var margin = {top: 30, right: 20, bottom: 30, left: 60}
+  var margin = {top: 30, right: 20, bottom: 50, left: 60}
     , width = null
     , height = null
     , color = nv.utils.defaultColor()
     , showControls = true
     , showLegend = true
     , reduceXTicks = true // if false a tick will show for every data point
+    , staggerLabels = false
     , rotateLabels = 0
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
@@ -6664,6 +6731,27 @@ nv.models.multiBarChart = function() {
           .selectAll('line, text')
           .style('opacity', 1)
 
+      if (staggerLabels) {
+          var getTranslate = function(x,y) {
+              return "translate(" + x + "," + y + ")";
+          };
+
+          var staggerUp = 5, staggerDown = 17;  //pixels to stagger by
+          // Issue #140
+          xTicks
+            .selectAll("text")
+            .attr('transform', function(d,i,j) { 
+                return  getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
+              });
+
+          var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
+          g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
+            .attr("transform", function(d,i) {
+                return getTranslate(0, (i === 0 || totalInBetweenTicks % 2 !== 0) ? staggerDown : staggerUp);
+            });
+      }
+
+
       if (reduceXTicks)
         xTicks
           .filter(function(d,i) {
@@ -6852,6 +6940,12 @@ nv.models.multiBarChart = function() {
     rotateLabels = _;
     return chart;
   }
+
+  chart.staggerLabels = function(_) {
+    if (!arguments.length) return staggerLabels;
+    staggerLabels = _;
+    return chart;
+  };
 
   chart.tooltip = function(_) {
     if (!arguments.length) return tooltip;
@@ -9327,7 +9421,7 @@ nv.models.scatter = function() {
               })
             );
 
-      x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x }).concat(forceX)))
+      x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x; }).concat(forceX)))
 
       if (padData && data[0])
         x.range([(availableWidth * padDataOuter +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)  ]);
@@ -9352,6 +9446,14 @@ nv.models.scatter = function() {
         y.domain()[0] ?
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
           : y.domain([-1,1]);
+
+      if ( isNaN(x.domain()[0])) {
+          x.domain([-1,1]);
+      }
+
+      if ( isNaN(y.domain()[0])) {
+          y.domain([-1,1]);
+      }
 
 
       x0 = x0 || x;
@@ -9399,8 +9501,16 @@ nv.models.scatter = function() {
             return group.values
               .map(function(point, pointIndex) {
                 // *Adding noise to make duplicates very unlikely
-                // **Injecting series and point index for reference
-                return [x(getX(point,pointIndex)) * (Math.random() / 1e12 + 1)  , y(getY(point,pointIndex)) * (Math.random() / 1e12 + 1), groupIndex, pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
+                // *Injecting series and point index for reference
+                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
+                */
+                var pX = getX(point,pointIndex) + Math.random() * 1e-10;
+                var pY = getY(point,pointIndex) + Math.random() * 1e-10;
+
+                return [x(pX), 
+                        y(pY), 
+                        groupIndex, 
+                        pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
               })
               .filter(function(pointArray, pointIndex) {
                 return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
@@ -9467,7 +9577,12 @@ nv.models.scatter = function() {
               .attr('class', function(d,i) { return 'nv-path-'+i; });
           pointPaths.exit().remove();
           pointPaths
-              .attr('d', function(d) { return 'M' + d.data.join('L') + 'Z'; });
+              .attr('d', function(d) {
+                if (d.data.length === 0) 
+                    return 'M 0 0'
+                else 
+                    return 'M' + d.data.join('L') + 'Z'; 
+              });
 
           pointPaths
               .on('click', function(d) {
@@ -11277,7 +11392,7 @@ nv.models.sparklinePlus = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      var currentValue = sparkline.y()(data[data.length-1], data.length-1);
+      
 
       chart.update = function() { chart(selection) };
       chart.container = this;
@@ -11303,6 +11418,8 @@ nv.models.sparklinePlus = function() {
       } else {
         container.selectAll('.nv-noData').remove();
       }
+
+      var currentValue = sparkline.y()(data[data.length-1], data.length-1);
 
       //------------------------------------------------------------
 
@@ -11350,7 +11467,7 @@ nv.models.sparklinePlus = function() {
 
 
       var valueWrap = g.select('.nv-valueWrap');
-
+      
       var value = valueWrap.selectAll('.nv-currentValue')
           .data([currentValue]);
 

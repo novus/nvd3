@@ -34,7 +34,7 @@ nv.models.sparklinePlus = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      var currentValue = sparkline.y()(data[data.length-1], data.length-1);
+      
 
       chart.update = function() { chart(selection) };
       chart.container = this;
@@ -60,6 +60,8 @@ nv.models.sparklinePlus = function() {
       } else {
         container.selectAll('.nv-noData').remove();
       }
+
+      var currentValue = sparkline.y()(data[data.length-1], data.length-1);
 
       //------------------------------------------------------------
 
@@ -107,7 +109,7 @@ nv.models.sparklinePlus = function() {
 
 
       var valueWrap = g.select('.nv-valueWrap');
-
+      
       var value = valueWrap.selectAll('.nv-currentValue')
           .data([currentValue]);
 
