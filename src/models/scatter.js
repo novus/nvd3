@@ -160,8 +160,8 @@ nv.models.scatter = function() {
             return group.values
               .map(function(point, pointIndex) {
                 // *Adding noise to make duplicates very unlikely
-                // **Injecting series and point index for reference
-                /*[SUPPORT-706] adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
+                // *Injecting series and point index for reference
+                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
                 */
                 var pX = getX(point,pointIndex) + Math.random() * 1e-10;
                 var pY = getY(point,pointIndex) + Math.random() * 1e-10;
