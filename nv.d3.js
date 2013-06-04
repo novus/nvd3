@@ -2180,7 +2180,7 @@ nv.models.cumulativeLineChart = function() {
         indexLine
           .data([index]);
 
-        chart.update();
+        container.call(chart);
       }
 
       g.select('.nv-background rect')
