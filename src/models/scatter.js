@@ -22,6 +22,7 @@ nv.models.scatter = function() {
     , forceY       = [] // List of numbers to Force into the Y scale
     , forceSize    = [] // List of numbers to Force into the Size scale
     , interactive  = true // If true, plots a voronoi overlay for advanced point intersection
+    , pointKey     = null
     , pointActive  = function(d) { return !d.notActive } // any points that return false will be filtered out
     , padData      = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
     , padDataOuter = .1 //outerPadding to imitate ordinal scale outer padding
@@ -368,7 +369,7 @@ nv.models.scatter = function() {
       if (onlyCircles) {
 
         var points = groups.selectAll('circle.nv-point')
-            .data(function(d) { return d.values });
+            .data(function(d) { return d.values }, pointKey);
         points.enter().append('circle')
             .attr('cx', function(d,i) { return x0(getX(d,i)) })
             .attr('cy', function(d,i) { return y0(getY(d,i)) })
@@ -378,7 +379,11 @@ nv.models.scatter = function() {
             .attr('cx', function(d,i) { return x(getX(d,i)) })
             .attr('cy', function(d,i) { return y(getY(d,i)) })
             .remove();
-        points.attr('class', function(d,i) { return 'nv-point nv-point-' + i });
+        points.each(function(d,i) {
+          d3.select(this)
+            .classed('nv-point', true)
+            .classed('nv-point-' + i, true);
+        });
         points.transition()
             .attr('cx', function(d,i) { return x(getX(d,i)) })
             .attr('cy', function(d,i) { return y(getY(d,i)) })
@@ -403,8 +408,12 @@ nv.models.scatter = function() {
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
             })
             .remove();
-        points.attr('class', function(d,i) { return 'nv-point nv-point-' + i });
-        d3.transition(points)
+        points.each(function(d,i) {
+          d3.select(this)
+            .classed('nv-point', true)
+            .classed('nv-point-' + i, true);
+        });
+        points.transition()
             .attr('transform', function(d,i) {
               //nv.log(d,i,getX(d,i), x(getX(d,i)));
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
@@ -560,6 +569,12 @@ nv.models.scatter = function() {
   chart.interactive = function(_) {
     if (!arguments.length) return interactive;
     interactive = _;
+    return chart;
+  };
+
+  chart.pointKey = function(_) {
+    if (!arguments.length) return pointKey;
+    pointKey = _;
     return chart;
   };
 
