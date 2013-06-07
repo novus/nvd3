@@ -196,25 +196,27 @@ nv.models.historicalBarChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        .ticks( availableWidth / 100 )
-        .tickSize(-availableHeight, 0);
+      if (showXAxis) {
+        xAxis
+          .scale(x)
+          .ticks( availableWidth / 100 )
+          .tickSize(-availableHeight, 0);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
+        g.select('.nv-x.nv-axis')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+        d3.transition(g.select('.nv-x.nv-axis'))
+            .call(xAxis);
+      }
 
+      if (showYAxis) {
+        yAxis
+          .scale(y)
+          .ticks( availableHeight / 36 )
+          .tickSize( -availableWidth, 0);
 
-      yAxis
-        .scale(y)
-        .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
-
-      d3.transition(g.select('.nv-y.nv-axis'))
-          .call(yAxis);
-
+        d3.transition(g.select('.nv-y.nv-axis'))
+            .call(yAxis);
+      }
       //------------------------------------------------------------
 
 

@@ -17,6 +17,8 @@ nv.models.lineChart = function() {
     , width = null
     , height = null
     , showLegend = true
+    , showXAxis = true
+    , showYAxis = true
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -194,25 +196,27 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        .ticks( availableWidth / 100 )
-        .tickSize(-availableHeight, 0);
+      if (showXAxis) {
+        xAxis
+          .scale(x)
+          .ticks( availableWidth / 100 )
+          .tickSize(-availableHeight, 0);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
+        g.select('.nv-x.nv-axis')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+        d3.transition(g.select('.nv-x.nv-axis'))
+            .call(xAxis);
+      }
 
+      if (showYAxis) {
+        yAxis
+          .scale(y)
+          .ticks( availableHeight / 36 )
+          .tickSize( -availableWidth, 0);
 
-      yAxis
-        .scale(y)
-        .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
-
-      d3.transition(g.select('.nv-y.nv-axis'))
-          .call(yAxis);
-
+        d3.transition(g.select('.nv-y.nv-axis'))
+            .call(yAxis);
+      }
       //------------------------------------------------------------
 
 
@@ -340,6 +344,18 @@ nv.models.lineChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
     return chart;
   };
 

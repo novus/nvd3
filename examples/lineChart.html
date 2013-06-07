@@ -67,6 +67,8 @@ nv.addGraph(function() {
       .axisLabel('Voltage (v)')
       .tickFormat(d3.format(',.2f'));
 
+  chart.showXAxis(true);
+
   d3.select('#chart1 svg')
       //.datum([]) //for testing noData
       .datum(sinAndCos())
