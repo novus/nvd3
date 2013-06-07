@@ -4,13 +4,14 @@ JS_FILES = \
 	src/tooltip.js \
 	src/utils.js \
 	src/models/axis.js \
-	src/models/historicalBar.js \
 	src/models/bullet.js \
 	src/models/bulletChart.js \
 	src/models/cumulativeLineChart.js \
 	src/models/discreteBar.js \
 	src/models/discreteBarChart.js \
 	src/models/distribution.js \
+	src/models/historicalBar.js \
+	src/models/historicalBarChart.js \
 	src/models/indentedTree.js \
 	src/models/legend.js \
 	src/models/line.js \
