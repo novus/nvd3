@@ -3409,12 +3409,12 @@ nv.models.historicalBarChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
           .tickSize(-availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        d3.transition(g.select('.nv-x.nv-axis'))
+        g.select('.nv-x.nv-axis')
+          .transition()
             .call(xAxis);
       }
 
@@ -3424,7 +3424,8 @@ nv.models.historicalBarChart = function() {
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
-        d3.transition(g.select('.nv-y.nv-axis'))
+        g.select('.nv-y.nv-axis')
+          .transition().duration(0)
             .call(yAxis);
       }
       //------------------------------------------------------------
