@@ -110,7 +110,7 @@ nv.models.multiBar = function() {
             data.map(function(d) {
               return d.values.map(function(d,i) {
                 if(d._y === undefined) 
-                  d._y = d.y;
+                  d._y = getY(d);
                 if(!expanded) 
                   d.y = d._y
 
