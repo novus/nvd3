@@ -3221,14 +3221,14 @@ nv.models.historicalBarChart = function() {
     , legend = nv.models.legend()
     ;
 
-//set margin.right to 23 to fit dates on the x-axis within the chart
-  var margin = {top: 30, right: 20, bottom: 50, left: 60}
+  var margin = {top: 30, right: 90, bottom: 50, left: 90}
     , color = nv.utils.defaultColor()
     , width = null
     , height = null
     , showLegend = false
     , showXAxis = true
     , showYAxis = true
+    , rightAlignYAxis = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -3247,7 +3247,7 @@ nv.models.historicalBarChart = function() {
     .tickPadding(7)
     ;
   yAxis
-    .orient('left')
+    .orient( (rightAlignYAxis) ? 'right' : 'left')
     ;
 
   //============================================================
@@ -3383,6 +3383,10 @@ nv.models.historicalBarChart = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+        g.select(".nv-y.nv-axis")
+            .attr("transform", "translate(" + availableWidth + ",0)");
+      }
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -3566,6 +3570,13 @@ nv.models.historicalBarChart = function() {
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    return chart;
+  };
+
+  chart.rightAlignYAxis = function(_) {
+    if(!arguments.length) return rightAlignYAxis;
+    rightAlignYAxis = _;
+    yAxis.orient( (_) ? 'right' : 'left');
     return chart;
   };
 
@@ -4432,6 +4443,7 @@ nv.models.lineChart = function() {
     , showLegend = true
     , showXAxis = true
     , showYAxis = true
+    , rightAlignYAxis = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -4450,7 +4462,7 @@ nv.models.lineChart = function() {
     .tickPadding(7)
     ;
   yAxis
-    .orient('left')
+    .orient((rightAlignYAxis) ? 'right' : 'left')
     ;
 
   //============================================================
@@ -4586,6 +4598,10 @@ nv.models.lineChart = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+          g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
+      }
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -4769,6 +4785,13 @@ nv.models.lineChart = function() {
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    return chart;
+  };
+
+  chart.rightAlignYAxis = function(_) {
+    if(!arguments.length) return rightAlignYAxis;
+    rightAlignYAxis = _;
+    yAxis.orient( (_) ? 'right' : 'left');
     return chart;
   };
 
