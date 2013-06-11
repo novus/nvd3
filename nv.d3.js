@@ -1947,6 +1947,19 @@ nv.models.cumulativeLineChart = function() {
         chart.update();
       });
 
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
+
 /*
       //
       legend.dispatch.on('legendMouseover', function(d, i) {
@@ -3456,6 +3469,19 @@ nv.models.historicalBarChart = function() {
         selection.transition().call(chart);
       });
 
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
+
 /*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
@@ -4671,6 +4697,19 @@ nv.models.lineChart = function() {
         chart.update();
       });
 
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
+
 /*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
@@ -5112,6 +5151,19 @@ nv.models.linePlusBarChart = function() {
 
         chart.update();
       });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
 
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
@@ -7246,6 +7298,19 @@ nv.models.multiBarChart = function() {
         chart.update();
       });
 
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
+
       controls.dispatch.on('legendClick', function(d,i) {
         if (!d.disabled) return;
         controlsData = controlsData.map(function(s) {
@@ -8119,6 +8184,18 @@ nv.models.multiBarHorizontalChart = function() {
         dispatch.stateChange(state);
 
         chart.update();
+      });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -10838,6 +10915,19 @@ nv.models.scatterChart = function() {
         chart.update();
       });
 
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
+
       /*
       legend.dispatch.on('legendMouseover', function(d, i) {
         d.hover = true;
@@ -11446,6 +11536,19 @@ nv.models.scatterPlusLineChart = function() {
 
         chart.update();
       });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
 
       /*
       legend.dispatch.on('legendMouseover', function(d, i) {
@@ -12738,6 +12841,18 @@ nv.models.stackedAreaChart = function() {
 
         //selection.transition().call(chart);
         chart.update();
+      });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
