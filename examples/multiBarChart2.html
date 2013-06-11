@@ -55,7 +55,7 @@ var negative_test_data = new d3.range(0,3).map(function(d,i) { return {
   key: 'Stream' + i,
   values: new d3.range(0,5).map( function(f,j) {
     return { 
-             y: Math.random()*1000,
+             value: Math.random()*1000,
              x: j
            }
   })
@@ -73,7 +73,7 @@ nv.addGraph(function() {
     chart.xAxis
         .showMaxMin(true)
         .tickFormat(d3.format(',f'));
-
+    chart.y(function(d){return d.value})
     chart.showControls(true)
 
 
