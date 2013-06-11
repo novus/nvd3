@@ -16,6 +16,7 @@ nv.models.multiBar = function() {
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , clipEdge = true
     , stacked = false
+    , expanded = false
     , color = nv.utils.defaultColor()
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
@@ -55,14 +56,6 @@ nv.models.multiBar = function() {
         };}
       )}];
 
-      if (stacked)
-        data = d3.layout.stack()
-                 .offset('zero')
-                 .values(function(d){ return d.values })
-                 .y(getY)
-                 (!data.length && hideable ? hideable : data);
-
-
       //add series index to each data point for reference
       data = data.map(function(series, i) {
         series.values = series.values.map(function(point) {
@@ -71,6 +64,23 @@ nv.models.multiBar = function() {
         });
         return series;
       });
+
+      if(stacked){
+        var offset = expanded ? 'expand' : 'zero'
+        data = d3.layout.stack()
+                 .order('default')
+                 .offset(offset)
+                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+                 .x(getX)
+                 .y(getY)
+                 .out(function(d, y0, y) {
+                    d.y0 = y0
+                    d.y = stacked && expanded ? y : d._y;
+                  })
+                (data);
+      }
+
+
 
 
       //------------------------------------------------------------
@@ -99,6 +109,11 @@ nv.models.multiBar = function() {
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
+                if(d._y === undefined) 
+                  d._y = d.y;
+                if(!expanded) 
+                  d.y = d._y
+
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
               })
             });
@@ -106,10 +121,9 @@ nv.models.multiBar = function() {
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
 
-      //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
-          .range([availableHeight, 0]);
-
+            .range([availableHeight, 0]);
+        
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
       if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
       if (x.domain()[0] === x.domain()[1])
@@ -122,10 +136,8 @@ nv.models.multiBar = function() {
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
-
       x0 = x0 || x;
       y0 = y0 || y;
-
       //------------------------------------------------------------
 
 
@@ -384,6 +396,34 @@ nv.models.multiBar = function() {
     return chart;
   };
 
+  chart.expanded = function(_) {
+    if (!arguments.length) return expanded;
+    expanded = _;
+    return chart;
+  };
+
+  //shortcut for stacked + expanded
+  chart.style = function(_) {
+    if (!arguments.length) return style;
+    style = _;
+
+    switch (style) {
+      case 'group':
+        chart.stacked(false);
+        chart.expanded(false);
+        break;
+      case 'stack':
+        chart.stacked(true);
+        chart.expanded(false);
+        break;
+      case 'expand':
+        chart.stacked(true);
+        chart.expanded(true);
+        break;
+    }
+
+    return chart;
+  };
   chart.clipEdge = function(_) {
     if (!arguments.length) return clipEdge;
     clipEdge = _;
