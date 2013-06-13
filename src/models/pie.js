@@ -15,6 +15,7 @@ nv.models.pie = function() {
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
     , showLabels = true
+    , showDonutHoleLabel = false
     , pieLabelsOutside = true
     , donutLabelsOutside = false
     , labelThreshold = .02 //if slice percentage is under this, don't show label
@@ -24,6 +25,7 @@ nv.models.pie = function() {
     , endAngle = false
     , donutRatio = 0.5
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , donutHoleLabel = ""
     ;
 
   //============================================================
@@ -51,7 +53,17 @@ nv.models.pie = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
       g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+      var donutHole = wrap.selectAll('.nv-donutHoleLabel').data([donutHoleLabel]);
 
+      if(showDonutHoleLabel){
+        donutHole.enter().append('text')
+          .attr('class', 'nvd3 nv-donutHoleLabel')
+          .attr('dy', '.5em')
+          .style('text-anchor', 'middle')
+          .attr('x', margin.left + availableWidth / 2)
+          .attr('y', margin.top + availableHeight / 2)
+          .text(function(d) { return d });
+       }
       //------------------------------------------------------------
 
 
@@ -137,9 +149,10 @@ nv.models.pie = function() {
             .each(function(d) { this._current = d; });
             //.attr('d', arc);
 
-        d3.transition(slices.select('path'))
+        slices.select('path')
+            .transition()
             .attr('d', arc)
-            .attrTween('d', arcTween);
+            .attrTween('d', arcTween)
 
         if (showLabels) {
           // This does the normal label
@@ -375,6 +388,18 @@ nv.models.pie = function() {
   chart.labelThreshold = function(_) {
     if (!arguments.length) return labelThreshold;
     labelThreshold = _;
+    return chart;
+  };
+  
+  chart.donutHoleLabel = function(_) {
+    if (!arguments.length) return donutHoleLabel;
+    donutHoleLabel = _;
+    return chart;
+  };
+  
+  chart.showDonutHoleLabel = function(_) {
+    if (!arguments.length) return showDonutHoleLabel;
+    showDonutHoleLabel = _;
     return chart;
   };
   //============================================================

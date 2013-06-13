@@ -17,6 +17,8 @@ text {
 }
 </style>
 <body>
+<h2>Test0</h2>
+<svg id="test0" class="mypiechart"></svg>
 
 <h2>Test1</h2>
 <svg id="test1" class="mypiechart"></svg>
@@ -32,36 +34,44 @@ text {
 <script src="../src/utils.js"></script>
 <script>
 
-  var testdata = [
-    {
-      key: "One",
-      y: 5
-    },
-    {
-      key: "Two",
-      y: 2
-    },
-    {
-      key: "Three",
-      y: 9
-    },
-    {
-      key: "Four",
-      y: 7
-    },
-    {
-      key: "Five",
-      y: 4
-    },
-    {
-      key: "Six",
-      y: 3
-    },
-    {
-      key: "Seven",
-      y: .5
-    }
-  ];
+  var testdata =
+  {
+    key: "Cumulative Return",
+    values: [
+      { 
+        "label": "One",
+        "value" : 29.765957771107
+      } , 
+      { 
+        "label": "Two",
+        "value" : 0
+      } , 
+      { 
+        "label": "Three",
+        "value" : 32.807804682612
+      } , 
+      { 
+        "label": "Four",
+        "value" : 196.45946739256
+      } , 
+      { 
+        "label": "Five",
+        "value" : 0.19434030906893
+      } , 
+      { 
+        "label": "Six",
+        "value" : 98.079782601442
+      } , 
+      { 
+        "label": "Seven",
+        "value" : 13.925743130903
+      } , 
+      { 
+        "label": "Eight",
+        "value" : 5.1387322875705
+      }
+    ]
+  }
 
 
 nv.addGraph(function() {
@@ -69,10 +79,37 @@ nv.addGraph(function() {
         height = 500;
 
     var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .y(function(d) { return d.y })
+        .x(function(d) { return d.label })
+        .y(function(d) { return d.value })
+        .values(function(d) { return d.values })
+        .color(d3.scale.category10().range())
+        .width(width)
+        .height(height);
+      chart.donut(true)
+      chart.donutLabelsOutside(true)
+      chart.donutHoleLabel("Label")
+      chart.showDonutHoleLabel(true)
+      d3.select("#test0")
+          .datum([testdata])
+        .transition().duration(1200)
+          .attr('width', width)
+          .attr('height', height)
+          .call(chart);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
+    return chart;
+});
+
+nv.addGraph(function() {
+    var width = 500,
+        height = 500;
+
+    var chart = nv.models.pieChart()
+        .x(function(d) { return d.label })
+        .y(function(d) { return d.value })
         //.showLabels(false)
-        .values(function(d) { return d })
+        .values(function(d) { return d.values })
         .color(d3.scale.category10().range())
         .width(width)
         .height(height);
@@ -95,9 +132,9 @@ nv.addGraph(function() {
         height = 500;
 
     var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        //.y(function(d) { return d.value })
-        .values(function(d) { return d })
+        .x(function(d) { return d.label })
+        .y(function(d) { return d.value })
+        .values(function(d) { return d.values })
         //.labelThreshold(.08)
         //.showLabels(false)
         .color(d3.scale.category10().range())

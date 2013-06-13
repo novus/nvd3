@@ -28,15 +28,16 @@ nv.models.multiBarChart = function() {
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
-    , state = { stacked: false }
+    , state = { stacked: false, expanded: false }
     , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
-    , controlWidth = function() { return showControls ? 180 : 0 }
+    , controlWidth = function() { return showControls ? 240 : 0 }
     ;
 
   multibar
     .stacked(false)
+    .expanded(false)
     ;
   xAxis
     .orient('bottom')
@@ -179,7 +180,8 @@ nv.models.multiBarChart = function() {
       if (showControls) {
         var controlsData = [
           { key: 'Grouped', disabled: multibar.stacked() },
-          { key: 'Stacked', disabled: !multibar.stacked() }
+          { key: 'Expanded', disabled: !(multibar.stacked() && multibar.expanded() )},
+          { key: 'Stacked',  disabled: !(multibar.stacked() && !multibar.expanded() )}
         ];
 
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -307,22 +309,27 @@ nv.models.multiBarChart = function() {
 
       controls.dispatch.on('legendClick', function(d,i) {
         if (!d.disabled) return;
+
         controlsData = controlsData.map(function(s) {
           s.disabled = true;
           return s;
         });
         d.disabled = false;
-
         switch (d.key) {
           case 'Grouped':
-            multibar.stacked(false);
+            multibar.style('group')
             break;
           case 'Stacked':
-            multibar.stacked(true);
+            multibar.style('stack')
+            break;
+          case 'Expanded':
+            multibar.style('expand')
             break;
         }
 
         state.stacked = multibar.stacked();
+        state.expanded = multibar.expanded();
+
         dispatch.stateChange(state);
 
         selection.transition().call(chart);
@@ -346,6 +353,10 @@ nv.models.multiBarChart = function() {
         if (typeof e.stacked !== 'undefined') {
           multibar.stacked(e.stacked);
           state.stacked = e.stacked;
+        }
+        if (typeof e.expanded !== 'undefined') {
+          multibar.expanded(e.expanded);
+          state.expanded = e.expanded;
         }
 
         selection.call(chart);
@@ -390,7 +401,7 @@ nv.models.multiBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'delay', 'barColor');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'expanded', 'style', 'delay', 'barColor');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
