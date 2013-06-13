@@ -34,7 +34,7 @@ text {
 <script src="../src/utils.js"></script>
 <script>
 
-  var testdata =[
+  var testdata =
   {
     key: "Cumulative Return",
     values: [
@@ -72,16 +72,16 @@ text {
       }
     ]
   }
-] 
+
 
 nv.addGraph(function() {
     var width = 500,
         height = 500;
 
     var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .y(function(d) { return d.y })
-        .values(function(d) { return d })
+        .x(function(d) { return d.label })
+        .y(function(d) { return d.value })
+        .values(function(d) { return d.values })
         .color(d3.scale.category10().range())
         .width(width)
         .height(height);
@@ -90,7 +90,7 @@ nv.addGraph(function() {
       chart.donutHoleLabel("Label")
       chart.showDonutHoleLabel(true)
       d3.select("#test0")
-          .datum(testdata)
+          .datum([testdata])
         .transition().duration(1200)
           .attr('width', width)
           .attr('height', height)
@@ -106,10 +106,10 @@ nv.addGraph(function() {
         height = 500;
 
     var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .y(function(d) { return d.y })
+        .x(function(d) { return d.label })
+        .y(function(d) { return d.value })
         //.showLabels(false)
-        .values(function(d) { return d })
+        .values(function(d) { return d.values })
         .color(d3.scale.category10().range())
         .width(width)
         .height(height);
@@ -132,9 +132,9 @@ nv.addGraph(function() {
         height = 500;
 
     var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        //.y(function(d) { return d.value })
-        .values(function(d) { return d })
+        .x(function(d) { return d.label })
+        .y(function(d) { return d.value })
+        .values(function(d) { return d.values })
         //.labelThreshold(.08)
         //.showLabels(false)
         .color(d3.scale.category10().range())
