@@ -17,6 +17,8 @@ text {
 }
 </style>
 <body>
+<h2>Test0</h2>
+<svg id="test0" class="mypiechart"></svg>
 
 <h2>Test1</h2>
 <svg id="test1" class="mypiechart"></svg>
@@ -63,6 +65,32 @@ text {
     }
   ];
 
+nv.addGraph(function() {
+    var width = 500,
+        height = 500;
+
+    var chart = nv.models.pieChart()
+        .x(function(d) { return d.key })
+        .y(function(d) { return d.y })
+        .values(function(d) { return d })
+        .color(d3.scale.category10().range())
+        .width(width)
+        .height(height);
+      chart.donut(true)
+      chart.donutLabelsOutside(true)
+      chart.donutHoleLabel("Label")
+      chart.showDonutHoleLabel(true)
+      d3.select("#test0")
+          .datum([testdata])
+        .transition().duration(1200)
+          .attr('width', width)
+          .attr('height', height)
+          .call(chart);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
+    return chart;
+});
 
 nv.addGraph(function() {
     var width = 500,
