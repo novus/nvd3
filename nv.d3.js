@@ -6014,6 +6014,7 @@ nv.models.multiBar = function() {
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , clipEdge = true
     , stacked = false
+    , expanded = false
     , color = nv.utils.defaultColor()
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
@@ -6053,14 +6054,6 @@ nv.models.multiBar = function() {
         };}
       )}];
 
-      if (stacked)
-        data = d3.layout.stack()
-                 .offset('zero')
-                 .values(function(d){ return d.values })
-                 .y(getY)
-                 (!data.length && hideable ? hideable : data);
-
-
       //add series index to each data point for reference
       data = data.map(function(series, i) {
         series.values = series.values.map(function(point) {
@@ -6069,6 +6062,23 @@ nv.models.multiBar = function() {
         });
         return series;
       });
+
+      if(stacked){
+        var offset = expanded ? 'expand' : 'zero'
+        data = d3.layout.stack()
+                 .order('default')
+                 .offset(offset)
+                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+                 .x(getX)
+                 .y(getY)
+                 .out(function(d, y0, y) {
+                    d.y0 = y0
+                    d.y = stacked && expanded ? y : d._y;
+                  })
+                (data);
+      }
+
+
 
 
       //------------------------------------------------------------
@@ -6097,6 +6107,11 @@ nv.models.multiBar = function() {
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
+                if(d._y === undefined) 
+                  d._y = d.y;
+                if(!expanded) 
+                  d.y = d._y
+
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
               })
             });
@@ -6104,10 +6119,9 @@ nv.models.multiBar = function() {
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands([0, availableWidth], .1);
 
-      //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
-          .range([availableHeight, 0]);
-
+            .range([availableHeight, 0]);
+        
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
       if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
       if (x.domain()[0] === x.domain()[1])
@@ -6120,10 +6134,8 @@ nv.models.multiBar = function() {
             y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
-
       x0 = x0 || x;
       y0 = y0 || y;
-
       //------------------------------------------------------------
 
 
@@ -6382,6 +6394,34 @@ nv.models.multiBar = function() {
     return chart;
   };
 
+  chart.expanded = function(_) {
+    if (!arguments.length) return expanded;
+    expanded = _;
+    return chart;
+  };
+
+  //shortcut for stacked + expanded
+  chart.style = function(_) {
+    if (!arguments.length) return style;
+    style = _;
+
+    switch (style) {
+      case 'group':
+        chart.stacked(false);
+        chart.expanded(false);
+        break;
+      case 'stack':
+        chart.stacked(true);
+        chart.expanded(false);
+        break;
+      case 'expand':
+        chart.stacked(true);
+        chart.expanded(true);
+        break;
+    }
+
+    return chart;
+  };
   chart.clipEdge = function(_) {
     if (!arguments.length) return clipEdge;
     clipEdge = _;
@@ -6458,15 +6498,16 @@ nv.models.multiBarChart = function() {
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
-    , state = { stacked: false }
+    , state = { stacked: false, expanded: false }
     , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
-    , controlWidth = function() { return showControls ? 180 : 0 }
+    , controlWidth = function() { return showControls ? 240 : 0 }
     ;
 
   multibar
     .stacked(false)
+    .expanded(false)
     ;
   xAxis
     .orient('bottom')
@@ -6609,7 +6650,8 @@ nv.models.multiBarChart = function() {
       if (showControls) {
         var controlsData = [
           { key: 'Grouped', disabled: multibar.stacked() },
-          { key: 'Stacked', disabled: !multibar.stacked() }
+          { key: 'Expanded', disabled: !(multibar.stacked() && multibar.expanded() )},
+          { key: 'Stacked',  disabled: !(multibar.stacked() && !multibar.expanded() )}
         ];
 
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -6716,22 +6758,27 @@ nv.models.multiBarChart = function() {
 
       controls.dispatch.on('legendClick', function(d,i) {
         if (!d.disabled) return;
+
         controlsData = controlsData.map(function(s) {
           s.disabled = true;
           return s;
         });
         d.disabled = false;
-
         switch (d.key) {
           case 'Grouped':
-            multibar.stacked(false);
+            multibar.style('group')
             break;
           case 'Stacked':
-            multibar.stacked(true);
+            multibar.style('stack')
+            break;
+          case 'Expanded':
+            multibar.style('expand')
             break;
         }
 
         state.stacked = multibar.stacked();
+        state.expanded = multibar.expanded();
+
         dispatch.stateChange(state);
 
         selection.transition().call(chart);
@@ -6755,6 +6802,10 @@ nv.models.multiBarChart = function() {
         if (typeof e.stacked !== 'undefined') {
           multibar.stacked(e.stacked);
           state.stacked = e.stacked;
+        }
+        if (typeof e.expanded !== 'undefined') {
+          multibar.expanded(e.expanded);
+          state.expanded = e.expanded;
         }
 
         selection.call(chart);
@@ -6799,7 +6850,7 @@ nv.models.multiBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'delay', 'barColor');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'expanded', 'style', 'delay', 'barColor');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -8576,6 +8627,7 @@ nv.models.pie = function() {
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
     , showLabels = true
+    , showDonutHoleLabel = false
     , pieLabelsOutside = true
     , donutLabelsOutside = false
     , labelThreshold = .02 //if slice percentage is under this, don't show label
@@ -8585,6 +8637,7 @@ nv.models.pie = function() {
     , endAngle = false
     , donutRatio = 0.5
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , donutHoleLabel = ""
     ;
 
   //============================================================
@@ -8612,7 +8665,17 @@ nv.models.pie = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
       g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+      var donutHole = wrap.selectAll('.nv-donutHoleLabel').data([donutHoleLabel]);
 
+      if(showDonutHoleLabel){
+        donutHole.enter().append('text')
+          .attr('class', 'nvd3 nv-donutHoleLabel')
+          .attr('dy', '.5em')
+          .style('text-anchor', 'middle')
+          .attr('x', margin.left + availableWidth / 2)
+          .attr('y', margin.top + availableHeight / 2)
+          .text(function(d) { return d });
+       }
       //------------------------------------------------------------
 
 
@@ -8936,6 +8999,18 @@ nv.models.pie = function() {
   chart.labelThreshold = function(_) {
     if (!arguments.length) return labelThreshold;
     labelThreshold = _;
+    return chart;
+  };
+  
+  chart.donutHoleLabel = function(_) {
+    if (!arguments.length) return donutHoleLabel;
+    donutHoleLabel = _;
+    return chart;
+  };
+  
+  chart.showDonutHoleLabel = function(_) {
+    if (!arguments.length) return showDonutHoleLabel;
+    showDonutHoleLabel = _;
     return chart;
   };
   //============================================================
