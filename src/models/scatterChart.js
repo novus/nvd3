@@ -25,13 +25,15 @@ nv.models.scatterChart = function() {
     , showDistX    = false
     , showDistY    = false
     , showLegend   = true
+    , showXAxis    = true
+    , showYAxis    = true
+    , rightAlignYAxis = false
     , showControls = !!d3.fisheye
     , fisheye      = 0
     , pauseFisheye = false
     , tooltips     = true
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    //, tooltip      = function(key, x, y) { return '<h3>' + key + '</h3>' }
     , tooltip      = null
     , state = {}
     , defaultState = null
@@ -48,7 +50,7 @@ nv.models.scatterChart = function() {
     .tickPadding(10)
     ;
   yAxis
-    .orient('left')
+    .orient((rightAlignYAxis) ? 'right' : 'left')
     .tickPadding(10)
     ;
   distX
@@ -214,6 +216,10 @@ nv.models.scatterChart = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+          g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
+      }
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -252,24 +258,27 @@ nv.models.scatterChart = function() {
 
       //------------------------------------------------------------
       // Setup Axes
+      if (showXAxis) {
+        xAxis
+            .scale(x)
+            .ticks( xAxis.ticks() && xAxis.ticks().length ? xAxis.ticks() : availableWidth / 100 )
+            .tickSize( -availableHeight , 0);
 
-      xAxis
-          .scale(x)
-          .ticks( xAxis.ticks() && xAxis.ticks().length ? xAxis.ticks() : availableWidth / 100 )
-          .tickSize( -availableHeight , 0);
+        g.select('.nv-x.nv-axis')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')')
+            .call(xAxis);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')')
-          .call(xAxis);
+      }
 
+      if (showYAxis) {
+        yAxis
+            .scale(y)
+            .ticks( yAxis.ticks() && yAxis.ticks().length ? yAxis.ticks() : availableHeight / 36 )
+            .tickSize( -availableWidth, 0);
 
-      yAxis
-          .scale(y)
-          .ticks( yAxis.ticks() && yAxis.ticks().length ? yAxis.ticks() : availableHeight / 36 )
-          .tickSize( -availableWidth, 0);
-
-      g.select('.nv-y.nv-axis')
-          .call(yAxis);
+        g.select('.nv-y.nv-axis')
+            .call(yAxis);
+      }
 
 
       if (showDistX) {
@@ -299,7 +308,8 @@ nv.models.scatterChart = function() {
         gEnter.select('.nv-distWrap').append('g')
             .attr('class', 'nv-distributionY');
         g.select('.nv-distributionY')
-            .attr('transform', 'translate(-' + distY.size() + ',0)')
+            .attr('transform', 
+              'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
       }
@@ -337,8 +347,12 @@ nv.models.scatterChart = function() {
         g.select('.nv-scatterWrap')
             .call(scatter);
 
-        g.select('.nv-x.nv-axis').call(xAxis);
-        g.select('.nv-y.nv-axis').call(yAxis);
+        if (showXAxis)
+          g.select('.nv-x.nv-axis').call(xAxis);
+        
+        if (showYAxis)
+          g.select('.nv-y.nv-axis').call(yAxis);
+        
         g.select('.nv-distributionX')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
@@ -546,6 +560,26 @@ nv.models.scatterChart = function() {
     showLegend = _;
     return chart;
   };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
+    return chart;
+  };
+
+  chart.rightAlignYAxis = function(_) {
+    if(!arguments.length) return rightAlignYAxis;
+    rightAlignYAxis = _;
+    yAxis.orient( (_) ? 'right' : 'left');
+    return chart;
+  };
+
 
   chart.fisheye = function(_) {
     if (!arguments.length) return fisheye;

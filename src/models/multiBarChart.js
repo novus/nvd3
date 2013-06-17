@@ -18,6 +18,9 @@ nv.models.multiBarChart = function() {
     , color = nv.utils.defaultColor()
     , showControls = true
     , showLegend = true
+    , showXAxis = true
+    , showYAxis = true
+    , rightAlignYAxis = false
     , reduceXTicks = true // if false a tick will show for every data point
     , staggerLabels = false
     , rotateLabels = 0
@@ -46,7 +49,7 @@ nv.models.multiBarChart = function() {
     .tickFormat(function(d) { return d })
     ;
   yAxis
-    .orient('left')
+    .orient((rightAlignYAxis) ? 'right' : 'left')
     .tickFormat(d3.format(',.1f'))
     ;
 
@@ -194,6 +197,10 @@ nv.models.multiBarChart = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+          g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
+      }
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -218,67 +225,71 @@ nv.models.multiBarChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        .ticks( availableWidth / 100 )
-        .tickSize(-availableHeight, 0);
+      if (showXAxis) {
+          xAxis
+            .scale(x)
+            .ticks( availableWidth / 100 )
+            .tickSize(-availableHeight, 0);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
+          g.select('.nv-x.nv-axis')
+              .attr('transform', 'translate(0,' + y.range()[0] + ')');
+          d3.transition(g.select('.nv-x.nv-axis'))
+              .call(xAxis);
 
-      var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
+          var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
 
-      xTicks
-          .selectAll('line, text')
-          .style('opacity', 1)
-
-      if (staggerLabels) {
-          var getTranslate = function(x,y) {
-              return "translate(" + x + "," + y + ")";
-          };
-
-          var staggerUp = 5, staggerDown = 17;  //pixels to stagger by
-          // Issue #140
           xTicks
-            .selectAll("text")
-            .attr('transform', function(d,i,j) { 
-                return  getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
-              });
+              .selectAll('line, text')
+              .style('opacity', 1)
 
-          var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
-          g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
-            .attr("transform", function(d,i) {
-                return getTranslate(0, (i === 0 || totalInBetweenTicks % 2 !== 0) ? staggerDown : staggerUp);
-            });
+          if (staggerLabels) {
+              var getTranslate = function(x,y) {
+                  return "translate(" + x + "," + y + ")";
+              };
+
+              var staggerUp = 5, staggerDown = 17;  //pixels to stagger by
+              // Issue #140
+              xTicks
+                .selectAll("text")
+                .attr('transform', function(d,i,j) { 
+                    return  getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
+                  });
+
+              var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
+              g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
+                .attr("transform", function(d,i) {
+                    return getTranslate(0, (i === 0 || totalInBetweenTicks % 2 !== 0) ? staggerDown : staggerUp);
+                });
+          }
+
+          if (reduceXTicks)
+            xTicks
+              .filter(function(d,i) {
+                  return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
+                })
+              .selectAll('text, line')
+              .style('opacity', 0);
+
+          if(rotateLabels)
+            xTicks
+              .selectAll('text')
+              .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
+              .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end');
+          
+          g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
+              .style('opacity', 1);
       }
 
 
-      if (reduceXTicks)
-        xTicks
-          .filter(function(d,i) {
-              return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
-            })
-          .selectAll('text, line')
-          .style('opacity', 0);
+      if (showYAxis) {      
+          yAxis
+            .scale(y)
+            .ticks( availableHeight / 36 )
+            .tickSize( -availableWidth, 0);
 
-      if(rotateLabels)
-        xTicks
-          .selectAll('text')
-          .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
-          .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end');
-      
-      g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
-          .style('opacity', 1);
-
-      yAxis
-        .scale(y)
-        .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
-
-      d3.transition(g.select('.nv-y.nv-axis'))
-          .call(yAxis);
+          d3.transition(g.select('.nv-y.nv-axis'))
+              .call(yAxis);
+      }
 
       //------------------------------------------------------------
 
@@ -442,6 +453,25 @@ nv.models.multiBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
+    return chart;
+  };
+
+  chart.rightAlignYAxis = function(_) {
+    if(!arguments.length) return rightAlignYAxis;
+    rightAlignYAxis = _;
+    yAxis.orient( (_) ? 'right' : 'left');
     return chart;
   };
 

@@ -23,6 +23,9 @@ nv.models.scatterPlusLineChart = function() {
     , showDistX    = false
     , showDistY    = false
     , showLegend   = true
+    , showXAxis    = true
+    , showYAxis    = true
+    , rightAlignYAxis = false
     , showControls = !!d3.fisheye
     , fisheye      = 0
     , pauseFisheye = false
@@ -31,7 +34,6 @@ nv.models.scatterPlusLineChart = function() {
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
     , tooltip      = function(key, x, y, date) { return '<h3>' + key + '</h3>' 
                                                       + '<p>' + date + '</p>' }
-    //, tooltip      = null
     , state = {}
     , defaultState = null
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
@@ -47,7 +49,7 @@ nv.models.scatterPlusLineChart = function() {
     .tickPadding(10)
     ;
   yAxis
-    .orient('left')
+    .orient((rightAlignYAxis) ? 'right' : 'left')
     .tickPadding(10)
     ;
   distX
@@ -177,6 +179,11 @@ nv.models.scatterPlusLineChart = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+          g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
+      }
+
       //------------------------------------------------------------
 
 
@@ -261,23 +268,26 @@ nv.models.scatterPlusLineChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-          .scale(x)
-          .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
-          .tickSize( -availableHeight , 0);
+      if (showXAxis) {
+        xAxis
+            .scale(x)
+            .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
+            .tickSize( -availableHeight , 0);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')')
-          .call(xAxis);
+        g.select('.nv-x.nv-axis')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')')
+            .call(xAxis);
+      }
 
+      if (showYAxis) {
+        yAxis
+            .scale(y)
+            .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
+            .tickSize( -availableWidth, 0);
 
-      yAxis
-          .scale(y)
-          .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
-          .tickSize( -availableWidth, 0);
-
-      g.select('.nv-y.nv-axis')
-          .call(yAxis);
+        g.select('.nv-y.nv-axis')
+            .call(yAxis);
+      }
 
 
       if (showDistX) {
@@ -307,7 +317,7 @@ nv.models.scatterPlusLineChart = function() {
         gEnter.select('.nv-distWrap').append('g')
             .attr('class', 'nv-distributionY');
         g.select('.nv-distributionY')
-            .attr('transform', 'translate(-' + distY.size() + ',0)')
+            .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
       }
@@ -345,8 +355,13 @@ nv.models.scatterPlusLineChart = function() {
         g.select('.nv-scatterWrap')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(scatter);
-        g.select('.nv-x.nv-axis').call(xAxis);
-        g.select('.nv-y.nv-axis').call(yAxis);
+
+        if (showXAxis)
+          g.select('.nv-x.nv-axis').call(xAxis);
+
+        if (showYAxis)
+          g.select('.nv-y.nv-axis').call(yAxis);
+        
         g.select('.nv-distributionX')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
@@ -552,6 +567,25 @@ nv.models.scatterPlusLineChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
+    return chart;
+  };
+
+  chart.rightAlignYAxis = function(_) {
+    if(!arguments.length) return rightAlignYAxis;
+    rightAlignYAxis = _;
+    yAxis.orient( (_) ? 'right' : 'left');
     return chart;
   };
 
