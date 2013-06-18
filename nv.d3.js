@@ -3537,8 +3537,7 @@ nv.models.indentedTree = function() {
 
 
   return chart;
-};
-nv.models.legend = function() {
+};nv.models.legend = function() {
 
   //============================================================
   // Public Variables with Default Settings
