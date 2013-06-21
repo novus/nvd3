@@ -16,9 +16,9 @@ text {
 
 <svg id="test1"></svg>
 
-<script src="../lib/d3.v3.js"></script>
+<script src="../lib/d3.v2.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/models/historicalBar.js"></script>
+<script src="../src/models/historicalBarChart.js"></script>
 <script src="../src/utils.js"></script>
 
 <script> 
@@ -29,11 +29,20 @@ nv.addGraph({
     var width = nv.utils.windowSize().width - 40,
         height = nv.utils.windowSize().height - 40;
 
-    var chart = nv.models.historicalBar()
-        .padData(true)
+    var chart = nv.models.historicalBarChart()
+    //    .padData(true)
         .width(width)
-        .height(height);
+        .height(height /2);
 
+    chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+        .tickFormat(d3.format(',.1f'));
+
+    chart.yAxis
+        .axisLabel('Voltage (v)')
+        .tickFormat(d3.format(',.2f'));
+
+    chart.showXAxis(true).showYAxis(true);
+        
     d3.select("#test1")
       .attr('width', width)
       .attr('height', height)
@@ -44,26 +53,7 @@ nv.addGraph({
   },
   callback: function(graph) {
 
-    graph.dispatch.on('elementMouseover', function(e) {
-        var offsetElement = document.getElementById("chart"),
-                left = e.pos[0],
-                top = e.pos[1];
 
-                /*
-        var content = '<h3>' + e.label + '</h3>' +
-                '<p>' +
-                e.value +
-                '</p>';
-                */
-
-        var content = '<p>' + e.point.y + '</p>';
-
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
-    });
-
-    graph.dispatch.on('elementMouseout', function(e) {
-        nv.tooltip.cleanup();
-    });
 
     /*
     graph.dispatch.on('elementClick', function(e) {
@@ -94,7 +84,7 @@ nv.addGraph({
 
     window.onresize = function() {
       var width = nv.utils.windowSize().width - 40,
-          height = nv.utils.windowSize().height - 40;
+          height = nv.utils.windowSize().height /2 - 40;
 
       graph
         .width(width)

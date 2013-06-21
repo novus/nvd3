@@ -46,7 +46,7 @@ div {
   </div>
 </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <!--<script src="../lib/fisheye.js"></script>-->
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
@@ -80,7 +80,7 @@ nv.addGraph(function() {
 
   nv.utils.windowResize(chart.update);
 
-  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+  chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
 
   return chart;
 });

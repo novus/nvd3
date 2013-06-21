@@ -55,6 +55,9 @@ nv.models.multiChart = function() {
       var container = d3.select(this),
           that = this;
 
+      chart.update = function() { container.transition().call(chart); };
+      chart.container = this;
+
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
@@ -253,7 +256,7 @@ nv.models.multiChart = function() {
             return d;
           });
         }
-        selection.transition().call(chart);
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -261,9 +264,6 @@ nv.models.multiChart = function() {
       });
 
     });
-
-    chart.update = function() { chart(selection) };
-    chart.container = this;
 
     return chart;
   }

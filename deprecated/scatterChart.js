@@ -54,7 +54,7 @@ nv.models.scatterChart = function() {
           that = this;
 
       //TODO: decide if this makes sense to add into all the models for ease of updating (updating without needing the selection)
-      chart.update = function() { selection.transition().call(chart) };
+      chart.update = function() { container.transition().call(chart) };
 
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
@@ -169,8 +169,8 @@ nv.models.scatterChart = function() {
             return d;
           });
         }
-
-        selection.transition().call(chart)
+        
+        chart.update();
       });
 
       /*

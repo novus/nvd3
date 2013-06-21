@@ -21,6 +21,7 @@ nv.models.multiBar = function() {
     , barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , delay = 1200
+    , drawTime = 500
     , xDomain
     , yDomain
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
@@ -263,6 +264,7 @@ nv.models.multiBar = function() {
 
       if (stacked)
             bars.transition()
+          
             .delay(function(d,i) { return i * delay / data[0].values.length })
             .attr('y', function(d,i) {
 
@@ -272,21 +274,21 @@ nv.models.multiBar = function() {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
             .each('end', function() {
-              d3.transition(d3.select(this))
+              d3.select(this).transition().duration(drawTime)
                 .attr('x', function(d,i) {
                   return stacked ? 0 : (d.series * x.rangeBand() / data.length )
                 })
                 .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
             })
       else
-        d3.transition(bars)
+        d3.transition(bars).duration(drawTime)
           .delay(function(d,i) { return i * delay/ data[0].values.length })
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
             .each('end', function() {
-              d3.transition(d3.select(this))
+              d3.select(this).transition().duration(drawTime)
                 .attr('y', function(d,i) {
                   return getY(d,i) < 0 ?
                           y(0) :
@@ -424,6 +426,12 @@ nv.models.multiBar = function() {
   chart.delay = function(_) {
     if (!arguments.length) return delay;
     delay = _;
+    return chart;
+  };
+
+  chart.drawTime = function(_) {
+    if (!arguments.length) return drawTime;
+    drawTime = _;
     return chart;
   };
 

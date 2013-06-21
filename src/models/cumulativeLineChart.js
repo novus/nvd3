@@ -104,7 +104,7 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -405,7 +405,7 @@ nv.models.cumulativeLineChart = function() {
         indexLine
           .data([index]);
 
-        chart.update();
+        container.call(chart);
       }
 
       g.select('.nv-background rect')
@@ -439,7 +439,7 @@ nv.models.cumulativeLineChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        selection.call(chart);
+        chart.update();
       });
 
 
@@ -458,8 +458,21 @@ nv.models.cumulativeLineChart = function() {
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
-        selection.call(chart);
+        chart.update();
       });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
 
 /*
       //
@@ -506,7 +519,7 @@ nv.models.cumulativeLineChart = function() {
           rescaleY = e.rescaleY;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================

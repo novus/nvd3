@@ -17,7 +17,7 @@
 
 .nvtooltip {
   position: absolute;
-  background-color: rgba(255,255,255,1);
+  background-color: rgba(255,255,255,0.75);
   padding: 1px;
   border: 1px solid rgba(0,0,0,.2);
   z-index: 10000;
@@ -25,6 +25,7 @@
   font-family: Arial;
   font-size: 13px;
 
+  /*
   transition: opacity 500ms linear;
   -moz-transition: opacity 500ms linear;
   -webkit-transition: opacity 500ms linear;
@@ -32,6 +33,7 @@
   transition-delay: 500ms;
   -moz-transition-delay: 500ms;
   -webkit-transition-delay: 500ms;
+  */
 
   -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
@@ -61,7 +63,7 @@
   padding: 4px 14px;
   line-height: 18px;
   font-weight: normal;
-  background-color: #f7f7f7;
+  background-color: rgba(247,247,247,0.75);
   text-align: center;
 
   border-bottom: 1px solid #ebebeb;
@@ -175,12 +177,12 @@ svg .title {
 
 .nvd3 .nv-axis line {
   fill: none;
-  stroke: #000;
-  stroke-opacity: .25;
+  stroke: #e5e5e5;
   shape-rendering: crispEdges;
 }
 
-.nvd3 .nv-axis line.zero {
+.nvd3 .nv-axis .zero line,
+/*this selector may not be necessary*/ .nvd3 .nv-axis line.zero {
   stroke-opacity: .75;
 }
 

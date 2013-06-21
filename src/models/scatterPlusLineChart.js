@@ -103,7 +103,7 @@ nv.models.scatterPlusLineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -379,7 +379,7 @@ nv.models.scatterPlusLineChart = function() {
           pauseFisheye = false;
         }
 
-        chart(selection);
+        chart.update();
       });
 
       legend.dispatch.on('legendClick', function(d,i, that) {
@@ -396,8 +396,21 @@ nv.models.scatterPlusLineChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        chart(selection);
+        chart.update();
       });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
+      });
+
 
       /*
       legend.dispatch.on('legendMouseover', function(d, i) {
@@ -436,7 +449,7 @@ nv.models.scatterPlusLineChart = function() {
           state.disabled = e.disabled;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================
