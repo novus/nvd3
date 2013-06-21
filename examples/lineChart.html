@@ -36,7 +36,7 @@ svg {
     <svg style="height: 500px;"></svg>
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/utils.js"></script>
@@ -66,6 +66,8 @@ nv.addGraph(function() {
   chart.yAxis
       .axisLabel('Voltage (v)')
       .tickFormat(d3.format(',.2f'));
+
+  chart.showXAxis(true);
 
   d3.select('#chart1 svg')
       //.datum([]) //for testing noData

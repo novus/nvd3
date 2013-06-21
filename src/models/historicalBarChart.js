@@ -11,12 +11,15 @@ nv.models.historicalBarChart = function() {
     , legend = nv.models.legend()
     ;
 
-//set margin.right to 23 to fit dates on the x-axis within the chart
-  var margin = {top: 30, right: 20, bottom: 50, left: 60}
+
+  var margin = {top: 30, right: 90, bottom: 50, left: 90}
     , color = nv.utils.defaultColor()
     , width = null
     , height = null
     , showLegend = false
+    , showXAxis = true
+    , showYAxis = true
+    , rightAlignYAxis = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -35,7 +38,7 @@ nv.models.historicalBarChart = function() {
     .tickPadding(7)
     ;
   yAxis
-    .orient('left')
+    .orient( (rightAlignYAxis) ? 'right' : 'left')
     ;
 
   //============================================================
@@ -171,6 +174,11 @@ nv.models.historicalBarChart = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+        g.select(".nv-y.nv-axis")
+            .attr("transform", "translate(" + availableWidth + ",0)");
+      }
+
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -194,25 +202,28 @@ nv.models.historicalBarChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        .ticks( availableWidth / 100 )
-        .tickSize(-availableHeight, 0);
+      if (showXAxis) {
+        xAxis
+          .scale(x)
+          .tickSize(-availableHeight, 0);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
+        g.select('.nv-x.nv-axis')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+        g.select('.nv-x.nv-axis')
+          .transition()
+            .call(xAxis);
+      }
 
+      if (showYAxis) {
+        yAxis
+          .scale(y)
+          .ticks( availableHeight / 36 )
+          .tickSize( -availableWidth, 0);
 
-      yAxis
-        .scale(y)
-        .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
-
-      d3.transition(g.select('.nv-y.nv-axis'))
-          .call(yAxis);
-
+        g.select('.nv-y.nv-axis')
+          .transition().duration(0)
+            .call(yAxis);
+      }
       //------------------------------------------------------------
 
 
@@ -235,6 +246,18 @@ nv.models.historicalBarChart = function() {
         dispatch.stateChange(state);
 
         selection.transition().call(chart);
+      });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
       });
 
 /*
@@ -339,6 +362,25 @@ nv.models.historicalBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
+    return chart;
+  };
+
+  chart.rightAlignYAxis = function(_) {
+    if(!arguments.length) return rightAlignYAxis;
+    rightAlignYAxis = _;
+    yAxis.orient( (_) ? 'right' : 'left');
     return chart;
   };
 

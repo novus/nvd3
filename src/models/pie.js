@@ -233,6 +233,8 @@ nv.models.pie = function() {
         }
 
         function arcTween(a) {
+          a.endAngle = isNaN(a.endAngle) ? 0 : a.endAngle;
+          a.startAngle = isNaN(a.startAngle) ? 0 : a.startAngle;
           if (!donut) a.innerRadius = 0;
           var i = d3.interpolate(this._current, a);
           this._current = i(0);

@@ -54,7 +54,7 @@ nv.models.pieChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { chart(selection); };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -170,7 +170,7 @@ nv.models.pieChart = function() {
         state.disabled = data[0].map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        selection.transition().call(chart)
+        chart.update();
       });
 
       pie.dispatch.on('elementMouseout.tooltip', function(e) {
@@ -188,7 +188,7 @@ nv.models.pieChart = function() {
           state.disabled = e.disabled;
         }
 
-        selection.call(chart);
+        chart.update();
       });
 
       //============================================================

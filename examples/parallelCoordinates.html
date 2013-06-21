@@ -1,11 +1,8 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <html>
 <head>
 <link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-<script src="../lib/d3.v2.js"></script>
-<script src="../nv.d3.js"></script>
-<script type="text/javascript" src="../src/utils.js"></script>
 <style>
 
 body {
@@ -32,7 +29,9 @@ svg {
   <svg></svg>
 </div>
 
-
+<script type="text/javascript" src="../lib/d3.v3.js"></script>
+<script type="text/javascript" src="../nv.d3.js"></script>
+<script type="text/javascript" src="../src/utils.js"></script>
 <script type="text/javascript" src="../src/models/parallelCoordinates.js"></script>
 
 <script>
@@ -46,9 +45,9 @@ svg {
         .datum(data)
         .call(chart);
 
-    chart.dispatch.on('brush', function(e) {
-      nv.log(e);
-    });
+    // chart.dispatch.on('brush', function(e) {
+    //   nv.log(e);
+    // });
 
     nv.utils.windowResize(chart.update);
 

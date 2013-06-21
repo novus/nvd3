@@ -22,6 +22,7 @@ nv.models.scatter = function() {
     , forceY       = [] // List of numbers to Force into the Y scale
     , forceSize    = [] // List of numbers to Force into the Size scale
     , interactive  = true // If true, plots a voronoi overlay for advanced point intersection
+    , pointKey     = null
     , pointActive  = function(d) { return !d.notActive } // any points that return false will be filtered out
     , padData      = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
     , padDataOuter = .1 //outerPadding to imitate ordinal scale outer padding
@@ -205,13 +206,13 @@ nv.models.scatter = function() {
           }
 
 
-          // if(vertices.length < 3) {
+          if(vertices.length) {
             // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
             vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
             vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
             vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
             vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
-          // }
+          }
 
           var bounds = d3.geom.polygon([
               [-10,-10],
@@ -227,7 +228,6 @@ nv.models.scatter = function() {
                 'point': vertices[i][3]
               }
             });
-
 
 
           var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
@@ -369,18 +369,22 @@ nv.models.scatter = function() {
       if (onlyCircles) {
 
         var points = groups.selectAll('circle.nv-point')
-            .data(function(d) { return d.values });
+            .data(function(d) { return d.values }, pointKey);
         points.enter().append('circle')
             .attr('cx', function(d,i) { return x0(getX(d,i)) })
             .attr('cy', function(d,i) { return y0(getY(d,i)) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
-        d3.transition(groups.exit().selectAll('path.nv-point'))
+        groups.exit().selectAll('path.nv-point').transition()
             .attr('cx', function(d,i) { return x(getX(d,i)) })
             .attr('cy', function(d,i) { return y(getY(d,i)) })
             .remove();
-        points.attr('class', function(d,i) { return 'nv-point nv-point-' + i });
-        d3.transition(points)
+        points.each(function(d,i) {
+          d3.select(this)
+            .classed('nv-point', true)
+            .classed('nv-point-' + i, true);
+        });
+        points.transition()
             .attr('cx', function(d,i) { return x(getX(d,i)) })
             .attr('cy', function(d,i) { return y(getY(d,i)) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
@@ -404,8 +408,12 @@ nv.models.scatter = function() {
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
             })
             .remove();
-        points.attr('class', function(d,i) { return 'nv-point nv-point-' + i });
-        d3.transition(points)
+        points.each(function(d,i) {
+          d3.select(this)
+            .classed('nv-point', true)
+            .classed('nv-point-' + i, true);
+        });
+        points.transition()
             .attr('transform', function(d,i) {
               //nv.log(d,i,getX(d,i), x(getX(d,i)));
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
@@ -561,6 +569,12 @@ nv.models.scatter = function() {
   chart.interactive = function(_) {
     if (!arguments.length) return interactive;
     interactive = _;
+    return chart;
+  };
+
+  chart.pointKey = function(_) {
+    if (!arguments.length) return pointKey;
+    pointKey = _;
     return chart;
   };
 
