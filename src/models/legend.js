@@ -10,6 +10,7 @@ nv.models.legend = function() {
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
     , align = true
+    , rightAlign = true
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout')
     ;
 
@@ -116,7 +117,12 @@ nv.models.legend = function() {
             });
 
         //position legend as far right as possible within the total width
-        g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
+        if (rightAlign) {
+           g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
+        }
+        else {
+           g.attr('transform', 'translate(0' + ',' + margin.top + ')');
+        }
 
         height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 20);
 
@@ -197,6 +203,12 @@ nv.models.legend = function() {
   chart.align = function(_) {
     if (!arguments.length) return align;
     align = _;
+    return chart;
+  };
+
+  chart.rightAlign = function(_) {
+    if (!arguments.length) return rightAlign;
+    rightAlign = _;
     return chart;
   };
 
