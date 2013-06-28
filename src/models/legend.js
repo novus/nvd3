@@ -10,11 +10,13 @@ nv.models.legend = function() {
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
     , align = true
+    , radioMode = false   // series selection in the legend behaves like radio buttons
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout')
     ;
 
   //============================================================
 
+  var _firstTime = true; //See TODO below (or issue #168)
 
   function chart(selection) {
     selection.each(function(data) {
@@ -44,6 +46,20 @@ nv.models.legend = function() {
             dispatch.legendMouseout(d,i);
           })
           .on('click', function(d,i) {
+            if(radioMode){
+              //We always want the legend items to behave as radio buttons (like with dblclick).
+              //Only one can be active at a time so turn off all other
+              //series and then let legendClick proceed as normal to enable the
+              //correct one and update the chart.
+
+              // mark the series svg objects as disabled by adding the disabled class
+              series.classed('disabled',true);
+
+              // ensure the series data objects also have a disabled property set
+              // this property is checked by the legendClick handlers in the different chart types
+              series.data().forEach(function(d){d.disabled=true;})
+            }
+            //proceed as normal
             dispatch.legendClick(d,i);
           })
           .on('dblclick', function(d,i) {
@@ -56,6 +72,18 @@ nv.models.legend = function() {
           .attr('text-anchor', 'start')
           .attr('dy', '.32em')
           .attr('dx', '8');
+
+      //When in radioMode we have to ensure that the very first time the chart is loaded
+      //only one series is selected. In order to distinguish between the very first load and
+      //a series switch use a private flag _firstTime.
+      //TODO: this is a bit of a hack but saw no cleaner way (issue #168)
+      if(radioMode && _firstTime){
+          //disable all series except the first one
+          series.data().forEach(function(d){d.disabled=true;});
+          series.data()[0].disabled=false;
+          _firstTime = false;
+      }
+
       series.classed('disabled', function(d) { return d.disabled });
       series.exit().remove();
       series.select('circle')
@@ -197,6 +225,12 @@ nv.models.legend = function() {
   chart.align = function(_) {
     if (!arguments.length) return align;
     align = _;
+    return chart;
+  };
+
+  chart.radioMode = function(_) {
+    if (!arguments.length) return radioMode;
+    radioMode = _;
     return chart;
   };
 
