@@ -1285,347 +1285,6 @@ nv.models.bullet = function() {
       var measure = g.selectAll('rect.nv-measure')
           .data(measurez);
 
-<<<<<<< Updated upstream
-      dispatch.on('tooltipShow', function(e) {
-        e.key = d.title;
-        if (tooltips) showTooltip(e, that.parentNode);
-      });
-
-      //============================================================
-
-    });
-
-    d3.timer.flush();
-
-    return chart;
-  }
-
-
-  //============================================================
-  // Event Handling/Dispatching (out of chart's scope)
-  //------------------------------------------------------------
-
-  bullet.dispatch.on('elementMouseover.tooltip', function(e) {
-    dispatch.tooltipShow(e);
-  });
-
-  bullet.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
-  });
-
-  dispatch.on('tooltipHide', function() {
-    if (tooltips) nv.tooltip.cleanup();
-  });
-
-  //============================================================
-
-
-  //============================================================
-  // Expose Public Variables
-  //------------------------------------------------------------
-
-  chart.dispatch = dispatch;
-  chart.bullet = bullet;
-
-  d3.rebind(chart, bullet, 'color');
-
-  // left, right, top, bottom
-  chart.orient = function(x) {
-    if (!arguments.length) return orient;
-    orient = x;
-    reverse = orient == 'right' || orient == 'bottom';
-    return chart;
-  };
-
-  // ranges (bad, satisfactory, good)
-  chart.ranges = function(x) {
-    if (!arguments.length) return ranges;
-    ranges = x;
-    return chart;
-  };
-
-  // markers (previous, goal)
-  chart.markers = function(x) {
-    if (!arguments.length) return markers;
-    markers = x;
-    return chart;
-  };
-
-  // measures (actual, forecast)
-  chart.measures = function(x) {
-    if (!arguments.length) return measures;
-    measures = x;
-    return chart;
-  };
-
-  chart.width = function(x) {
-    if (!arguments.length) return width;
-    width = x;
-    return chart;
-  };
-
-  chart.height = function(x) {
-    if (!arguments.length) return height;
-    height = x;
-    return chart;
-  };
-
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return chart;
-  };
-
-  chart.tickFormat = function(x) {
-    if (!arguments.length) return tickFormat;
-    tickFormat = x;
-    return chart;
-  };
-
-  chart.tooltips = function(_) {
-    if (!arguments.length) return tooltips;
-    tooltips = _;
-    return chart;
-  };
-
-  chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
-    return chart;
-  };
-
-  chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
-    return chart;
-  };
-
-  //============================================================
-
-
-  return chart;
-};
-
-
-
-nv.models.cumulativeLineChart = function() {
-
-  //============================================================
-  // Public Variables with Default Settings
-  //------------------------------------------------------------
-
-  var lines = nv.models.line()
-    , xAxis = nv.models.axis()
-    , yAxis = nv.models.axis()
-    , legend = nv.models.legend()
-    , controls = nv.models.legend()
-    ;
-
-  var margin = {top: 30, right: 30, bottom: 50, left: 60}
-    , color = nv.utils.defaultColor()
-    , width = null
-    , height = null
-    , showLegend = true
-    , showXAxis = true
-    , showYAxis = true
-    , rightAlignYAxis = false
-    , tooltips = true
-    , showControls = true
-    , rescaleY = true
-    , tooltip = function(key, x, y, e, graph) {
-        return '<h3>' + key + '</h3>' +
-               '<p>' +  y + ' at ' + x + '</p>'
-      }
-    , x //can be accessed via chart.xScale()
-    , y //can be accessed via chart.yScale()
-    , id = lines.id()
-    , state = { index: 0, rescaleY: rescaleY }
-    , defaultState = null
-    , noData = 'No Data Available.'
-    , average = function(d) { return d.average }
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
-    ;
-
-  xAxis
-    .orient('bottom')
-    .tickPadding(7)
-    ;
-  yAxis
-    .orient((rightAlignYAxis) ? 'right' : 'left')
-    ;
-
-  //============================================================
-
-
-  //============================================================
-  // Private Variables
-  //------------------------------------------------------------
-
-   var dx = d3.scale.linear()
-     , index = {i: 0, x: 0}
-     ;
-
-  var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
-        content = tooltip(e.series.key, x, y, e, chart);
-
-    nv.tooltip.show([left, top], content, null, null, offsetElement);
-  };
-
-/*
-  //Moved to see if we can get better behavior to fix issue #315
-  var indexDrag = d3.behavior.drag()
-                    .on('dragstart', dragStart)
-                    .on('drag', dragMove)
-                    .on('dragend', dragEnd);
-
-  function dragStart(d,i) {
-    d3.select(chart.container)
-        .style('cursor', 'ew-resize');
-  }
-
-  function dragMove(d,i) {
-    d.x += d3.event.dx;
-    d.i = Math.round(dx.invert(d.x));
-
-    d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
-    chart.update();
-  }
-
-  function dragEnd(d,i) {
-    d3.select(chart.container)
-        .style('cursor', 'auto');
-    chart.update();
-  }
-*/
-
-  //============================================================
-
-
-  function chart(selection) {
-    selection.each(function(data) {
-      var container = d3.select(this).classed('nv-chart-' + id, true),
-          that = this;
-
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                             - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
-
-
-      chart.update = function() { container.transition().call(chart) };
-      chart.container = this;
-
-      //set state.disabled
-      state.disabled = data.map(function(d) { return !!d.disabled });
-
-      if (!defaultState) {
-        var key;
-        defaultState = {};
-        for (key in state) {
-          if (state[key] instanceof Array)
-            defaultState[key] = state[key].slice(0);
-          else
-            defaultState[key] = state[key];
-        }
-      }
-
-      var indexDrag = d3.behavior.drag()
-                        .on('dragstart', dragStart)
-                        .on('drag', dragMove)
-                        .on('dragend', dragEnd);
-
-
-      function dragStart(d,i) {
-        d3.select(chart.container)
-            .style('cursor', 'ew-resize');
-      }
-
-      function dragMove(d,i) {
-        index.x = d3.event.x;
-        index.i = Math.round(dx.invert(index.x));
-        updateZero();
-      }
-
-      function dragEnd(d,i) {
-        d3.select(chart.container)
-            .style('cursor', 'auto');
-
-        // update state and send stateChange with new index
-        state.index = index.i;
-        dispatch.stateChange(state);
-      }
-
-
-
-
-      //------------------------------------------------------------
-      // Display No Data message if there's nothing to show.
-
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-        var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-        noDataText.enter().append('text')
-          .attr('class', 'nvd3 nv-noData')
-          .attr('dy', '-.7em')
-          .style('text-anchor', 'middle');
-
-        noDataText
-          .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
-          .text(function(d) { return d });
-
-        return chart;
-      } else {
-        container.selectAll('.nv-noData').remove();
-      }
-
-      //------------------------------------------------------------
-
-
-      //------------------------------------------------------------
-      // Setup Scales
-
-      x = lines.xScale();
-      y = lines.yScale();
-
-
-      if (!rescaleY) {
-        var seriesDomains = data
-          .filter(function(series) { return !series.disabled })
-          .map(function(series,i) {
-            var initialDomain = d3.extent(series.values, lines.y());
-
-            //account for series being disabled when losing 95% or more
-            if (initialDomain[0] < -.95) initialDomain[0] = -.95;
-
-            return [
-              (initialDomain[0] - initialDomain[1]) / (1 + initialDomain[1]),
-              (initialDomain[1] - initialDomain[0]) / (1 + initialDomain[0])
-            ];
-          });
-
-        var completeDomain = [
-          d3.min(seriesDomains, function(d) { return d[0] }),
-          d3.max(seriesDomains, function(d) { return d[1] })
-        ]
-
-        lines.yDomain(completeDomain);
-      } else {
-        lines.yDomain(null);
-      }
-
-
-      dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
-          .range([0, availableWidth])
-          .clamp(true);
-=======
       measure.enter().append('rect')
           .attr('class', function(d, i) { return 'nv-measure nv-s' + i; })
           .style('fill', function(d,i) { return color(d,i ) })
@@ -1646,7 +1305,6 @@ nv.models.cumulativeLineChart = function() {
                 label: 'Current' //TODO: make these labels a variable
               })
           })
->>>>>>> Stashed changes
 
       d3.transition(measure)
           .attr('width', w1)
@@ -1761,18 +1419,11 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
-<<<<<<< Updated upstream
-      if (rightAlignYAxis) {
-          g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + availableWidth + ",0)");
-      }
-=======
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     return chart;
   };
->>>>>>> Stashed changes
 
   //============================================================
 
@@ -1854,32 +1505,6 @@ nv.models.bulletChart = function() {
           .attr('dy', '-.7em')
           .style('text-anchor', 'middle');
 
-<<<<<<< Updated upstream
-      if (showXAxis) {
-        xAxis
-          .scale(x)
-          //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
-          .ticks( Math.min(data[0].values.length,availableWidth/70) )
-          .tickSize(-availableHeight, 0);
-
-        g.select('.nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        d3.transition(g.select('.nv-x.nv-axis'))
-            .call(xAxis);
-      }
-
-
-      if (showYAxis) {
-        yAxis
-          .scale(y)
-          .ticks( availableHeight / 36 )
-          .tickSize( -availableWidth, 0);
-
-        d3.transition(g.select('.nv-y.nv-axis'))
-            .call(yAxis);
-      }
-      //------------------------------------------------------------
-=======
         noDataText
           .attr('x', margin.left + availableWidth / 2)
           .attr('y', 18 + margin.top + availableHeight / 2)
@@ -1897,7 +1522,6 @@ nv.models.bulletChart = function() {
       var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
           measurez = measures.call(this, d, i).slice().sort(d3.descending);
->>>>>>> Stashed changes
 
 
       //------------------------------------------------------------
@@ -2124,25 +1748,6 @@ nv.models.bulletChart = function() {
     return chart;
   };
 
-  chart.showXAxis = function(_) {
-    if (!arguments.length) return showXAxis;
-    showXAxis = _;
-    return chart;
-  };
-
-  chart.showYAxis = function(_) {
-    if (!arguments.length) return showYAxis;
-    showYAxis = _;
-    return chart;
-  };
-
-  chart.rightAlignYAxis = function(_) {
-    if(!arguments.length) return rightAlignYAxis;
-    rightAlignYAxis = _;
-    yAxis.orient( (_) ? 'right' : 'left');
-    return chart;
-  };
-
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
@@ -2187,6 +1792,9 @@ nv.models.cumulativeLineChart = function() {
     , width = null
     , height = null
     , showLegend = true
+    , showXAxis = true
+    , showYAxis = true
+    , rightAlignYAxis = false
     , tooltips = true
     , showControls = true
     , rescaleY = true
@@ -2209,7 +1817,7 @@ nv.models.cumulativeLineChart = function() {
     .tickPadding(7)
     ;
   yAxis
-    .orient('left')
+    .orient((rightAlignYAxis) ? 'right' : 'left')
     ;
 
   //============================================================
@@ -2448,24 +2056,14 @@ nv.models.cumulativeLineChart = function() {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+          g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
+      }
 
       // Show error if series goes below 100%
       var tempDisabled = data.filter(function(d) { return d.tempDisabled });
 
-<<<<<<< Updated upstream
-  var margin = {top: 15, right: 10, bottom: 50, left: 60}
-    , width = null
-    , height = null
-    , color = nv.utils.getColor()
-    , showXAxis = true
-    , showYAxis = true
-    , rightAlignYAxis = false
-    , staggerLabels = false
-    , tooltips = true
-    , tooltip = function(key, x, y, e, graph) {
-        return '<h3>' + x + '</h3>' +
-               '<p>' +  y + '</p>'
-=======
       wrap.select('.tempDisabled').remove(); //clean-up and prevent duplicates
       if (tempDisabled.length) {
         wrap.append('text').attr('class', 'tempDisabled')
@@ -2473,24 +2071,10 @@ nv.models.cumulativeLineChart = function() {
             .attr('y', '-.71em')
             .style('text-anchor', 'end')
             .text(tempDisabled.map(function(d) { return d.key }).join(', ') + ' values cannot be calculated for this time period.');
->>>>>>> Stashed changes
       }
 
-<<<<<<< Updated upstream
-  xAxis
-    .orient('bottom')
-    .highlightZero(false)
-    .showMaxMin(false)
-    .tickFormat(function(d) { return d })
-    ;
-  yAxis
-    .orient((rightAlignYAxis) ? 'right' : 'left')
-    .tickFormat(d3.format(',.1f'))
-    ;
-=======
       //------------------------------------------------------------
       // Main Chart Component(s)
->>>>>>> Stashed changes
 
       gEnter.select('.nv-background')
         .append('rect');
@@ -2571,26 +2155,29 @@ nv.models.cumulativeLineChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
-        .ticks( Math.min(data[0].values.length,availableWidth/70) )
-        .tickSize(-availableHeight, 0);
+      if (showXAxis) {
+        xAxis
+          .scale(x)
+          //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
+          .ticks( Math.min(data[0].values.length,availableWidth/70) )
+          .tickSize(-availableHeight, 0);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-      d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
+        g.select('.nv-x.nv-axis')
+            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+        d3.transition(g.select('.nv-x.nv-axis'))
+            .call(xAxis);
+      }
 
 
-      yAxis
-        .scale(y)
-        .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
+      if (showYAxis) {
+        yAxis
+          .scale(y)
+          .ticks( availableHeight / 36 )
+          .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.nv-y.nv-axis'))
-          .call(yAxis);
-
+        d3.transition(g.select('.nv-y.nv-axis'))
+            .call(yAxis);
+      }
       //------------------------------------------------------------
 
 
@@ -2606,14 +2193,6 @@ nv.models.cumulativeLineChart = function() {
         container.call(chart);
       }
 
-<<<<<<< Updated upstream
-      if (rightAlignYAxis) {
-          g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + availableWidth + ",0)");
-      }
-
-      //------------------------------------------------------------
-=======
       g.select('.nv-background rect')
           .on('click', function() {
             index.x = d3.mouse(this)[0];
@@ -2640,7 +2219,6 @@ nv.models.cumulativeLineChart = function() {
       controls.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
         rescaleY = !d.disabled;
->>>>>>> Stashed changes
 
         state.rescaleY = rescaleY;
         dispatch.stateChange(state);
@@ -2698,49 +2276,15 @@ nv.models.cumulativeLineChart = function() {
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
-<<<<<<< Updated upstream
-      if (showXAxis) {
-          xAxis
-            .scale(x)
-            .ticks( availableWidth / 100 )
-            .tickSize(-availableHeight, 0);
-
-          g.select('.nv-x.nv-axis')
-              .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
-          //d3.transition(g.select('.nv-x.nv-axis'))
-          g.select('.nv-x.nv-axis').transition().duration(0)
-              .call(xAxis);
-=======
 
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
->>>>>>> Stashed changes
 
         if (typeof e.disabled !== 'undefined') {
           data.forEach(function(series,i) {
             series.disabled = e.disabled[i];
           });
 
-<<<<<<< Updated upstream
-          var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
-
-          if (staggerLabels) {
-            xTicks
-                .selectAll('text')
-                .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
-          }
-      }
-
-      if (showYAxis) {
-          yAxis
-            .scale(y)
-            .ticks( availableHeight / 36 )
-            .tickSize( -availableWidth, 0);
-
-          d3.transition(g.select('.nv-y.nv-axis'))
-              .call(yAxis);
-      }
-=======
           state.disabled = e.disabled;
         }
 
@@ -2750,7 +2294,6 @@ nv.models.cumulativeLineChart = function() {
           index.x = dx(index.i);
 
           state.index = e.index;
->>>>>>> Stashed changes
 
           indexLine
             .data([index]);
@@ -2829,8 +2372,25 @@ nv.models.cumulativeLineChart = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-<<<<<<< Updated upstream
-    discretebar.color(color);
+    legend.color(color);
+    return chart;
+  };
+
+  chart.rescaleY = function(_) {
+    if (!arguments.length) return rescaleY;
+    rescaleY = _
+    return rescaleY;
+  };
+
+  chart.showControls = function(_) {
+    if (!arguments.length) return showControls;
+    showControls = _;
+    return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return showLegend;
+    showLegend = _;
     return chart;
   };
 
@@ -2850,51 +2410,6 @@ nv.models.cumulativeLineChart = function() {
     if(!arguments.length) return rightAlignYAxis;
     rightAlignYAxis = _;
     yAxis.orient( (_) ? 'right' : 'left');
-    return chart;
-  };
-
-  chart.staggerLabels = function(_) {
-    if (!arguments.length) return staggerLabels;
-    staggerLabels = _;
-    return chart;
-  };
-
-  chart.tooltips = function(_) {
-    if (!arguments.length) return tooltips;
-    tooltips = _;
-    return chart;
-  };
-
-  chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
-    return chart;
-  };
-
-  chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
-=======
-    legend.color(color);
->>>>>>> Stashed changes
-    return chart;
-  };
-
-  chart.rescaleY = function(_) {
-    if (!arguments.length) return rescaleY;
-    rescaleY = _
-    return rescaleY;
-  };
-
-  chart.showControls = function(_) {
-    if (!arguments.length) return showControls;
-    showControls = _;
-    return chart;
-  };
-
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
     return chart;
   };
 
@@ -3311,15 +2826,13 @@ nv.models.discreteBarChart = function() {
     , yAxis = nv.models.axis()
     ;
 
-<<<<<<< Updated upstream
-  var margin = {top: 30, right: 90, bottom: 50, left: 90}
-    , color = nv.utils.defaultColor()
-=======
   var margin = {top: 15, right: 10, bottom: 50, left: 60}
->>>>>>> Stashed changes
     , width = null
     , height = null
     , color = nv.utils.getColor()
+    , showXAxis = true
+    , showYAxis = true
+    , rightAlignYAxis = false
     , staggerLabels = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
@@ -3339,7 +2852,7 @@ nv.models.discreteBarChart = function() {
     .tickFormat(function(d) { return d })
     ;
   yAxis
-    .orient('left')
+    .orient((rightAlignYAxis) ? 'right' : 'left')
     .tickFormat(d3.format(',.1f'))
     ;
 
@@ -3425,17 +2938,13 @@ nv.models.discreteBarChart = function() {
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      if (rightAlignYAxis) {
+          g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
+      }
+
       //------------------------------------------------------------
 
-<<<<<<< Updated upstream
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-      if (rightAlignYAxis) {
-        g.select(".nv-y.nv-axis")
-            .attr("transform", "translate(" + availableWidth + ",0)");
-      }
-=======
->>>>>>> Stashed changes
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -3467,42 +2976,37 @@ nv.models.discreteBarChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        .ticks( availableWidth / 100 )
-        .tickSize(-availableHeight, 0);
+      if (showXAxis) {
+          xAxis
+            .scale(x)
+            .ticks( availableWidth / 100 )
+            .tickSize(-availableHeight, 0);
 
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
-      //d3.transition(g.select('.nv-x.nv-axis'))
-      g.select('.nv-x.nv-axis').transition().duration(0)
-          .call(xAxis);
+          g.select('.nv-x.nv-axis')
+              .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
+          //d3.transition(g.select('.nv-x.nv-axis'))
+          g.select('.nv-x.nv-axis').transition().duration(0)
+              .call(xAxis);
 
-<<<<<<< Updated upstream
 
-/*
-      legend.dispatch.on('legendMouseover', function(d, i) {
-        d.hover = true;
-        selection.transition().call(chart)
-      });
-=======
->>>>>>> Stashed changes
+          var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
-      var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
-
-      if (staggerLabels) {
-        xTicks
-            .selectAll('text')
-            .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
+          if (staggerLabels) {
+            xTicks
+                .selectAll('text')
+                .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
+          }
       }
 
-      yAxis
-        .scale(y)
-        .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
+      if (showYAxis) {
+          yAxis
+            .scale(y)
+            .ticks( availableHeight / 36 )
+            .tickSize( -availableWidth, 0);
 
-      d3.transition(g.select('.nv-y.nv-axis'))
-          .call(yAxis);
+          d3.transition(g.select('.nv-y.nv-axis'))
+              .call(yAxis);
+      }
 
       //------------------------------------------------------------
 
@@ -3580,6 +3084,25 @@ nv.models.discreteBarChart = function() {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     discretebar.color(color);
+    return chart;
+  };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
+    return chart;
+  };
+
+  chart.rightAlignYAxis = function(_) {
+    if(!arguments.length) return rightAlignYAxis;
+    rightAlignYAxis = _;
+    yAxis.orient( (_) ? 'right' : 'left');
     return chart;
   };
 
