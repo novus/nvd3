@@ -43,12 +43,6 @@ nv.models.stackedAreaChart = function() {
   yAxis
     .orient((rightAlignYAxis) ? 'right' : 'left')
     ;
-  stacked.scatter
-    .pointActive(function(d) {
-      //console.log(stacked.y()(d), !!Math.round(stacked.y()(d) * 100));
-      return !!Math.round(stacked.y()(d) * 100);
-    })
-    ;
 
   //============================================================
 
