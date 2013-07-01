@@ -55,6 +55,19 @@ fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
 
 Without UglifyJS, you won't get the minified version when running make.
 
+## use grunt
+
+You can use grunt insteadof makefile to build js file. See more about [grunt](http://gruntjs.com/).
+***[Nodejs](http://nodejs.org/) must be installed before you can use grunt.***
+Run `npm install` in root dir to install grunt and it's dependencies.
+
+Then, you can use these commands:
+
+    grunt # build nv.d3.js
+    grunt production # build nv.d3.js and nv.d3.min.js
+    grunt watch # watch file changes in src/, and rebuild nv.d3.js, it's very helpful when delevop nvd3
+    grunt lint # run jshint on src/**/*.js
+
 **We ask that you DO NOT minify pull requests... 
 If you need to minify please build pull request in separate branch, and
 merge and minify in your master.

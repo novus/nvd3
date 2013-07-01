@@ -14,7 +14,11 @@ nv.models.multiChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       },
-      x, y; //can be accessed via chart.lines.[x/y]Scale()
+      x,
+      y,
+      yDomain1,
+      yDomain2
+      ; //can be accessed via chart.lines.[x/y]Scale()
 
   //============================================================
   // Private Variables
@@ -193,10 +197,10 @@ nv.models.multiChart = function() {
         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
       }).concat([{x:0, y:0}]) : []
 
-      yScale1 .domain(d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
+      yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
               .range([0, availableHeight])
 
-      yScale2 .domain(d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
+      yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
               .range([0, availableHeight])
 
       lines1.yDomain(yScale1.domain())
@@ -393,6 +397,18 @@ nv.models.multiChart = function() {
     getY = _;
     lines1.y(_);
     bars1.y(_);
+    return chart;
+  };
+
+  chart.yDomain1 = function(_) {
+    if (!arguments.length) return yDomain1;
+    yDomain1 = _;
+    return chart;
+  };
+
+  chart.yDomain2 = function(_) {
+    if (!arguments.length) return yDomain2;
+    yDomain2 = _;
     return chart;
   };
 
