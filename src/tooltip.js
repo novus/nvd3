@@ -13,7 +13,26 @@
   window.nv.models.tooltip = function() {
         var nvtooltip = {};
 
-        var content = ''    //HTML contents of the tooltip.
+        var content = null    //HTML contents of the tooltip.  If null, the content is generated via the data variable.
+        ,   data = null     /* Tooltip data. If data is given in the proper format, a consistent tooltip is generated.
+        Format of data:
+        {
+            key: "Date",
+            value: "August 2009",
+            series: [
+                    {
+                        key: "Series 1",
+                        value: "Value 1"
+                    },
+                    {
+                        key: "Series 2",
+                        value: "Value 2"
+                    }
+            ]
+
+        }
+
+        */
         ,   gravity = 's'   //Can be 'n','s','e','w'. Determines how tooltip is positioned.
         ,   distance = 20   //Distance to offset tooltip from the mouse location.
         ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
@@ -21,6 +40,22 @@
         ,   chartContainer = null   //Parent container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ;
+
+        var contentGenerator = function(d) {
+            if (content != null) return content;
+
+            if (d == null) return '';
+
+            var html = "<table><thead><strong class='x-value'>" + d.value + "</strong></thead><tbody>";
+            if (d.series instanceof Array) {
+                d.series.forEach(function(item) {
+                    html += "<tr><td class='key'>" + item.key + ":</td>";
+                    html += "<td class='value'>" + item.value + "</td></tr>"; 
+                });
+            }
+            html += "</tbody></table>";
+            return html;
+        };
 
         //In situations where the chart is in a 'viewBox', re-position the tooltip based on how far chart is zoomed.
         function convertViewBoxRatio() {
@@ -37,6 +72,7 @@
             }
         }
 
+
         //Draw the tooltip onto the DOM.
         nvtooltip.render = function() {
             convertViewBoxRatio();
@@ -48,8 +84,9 @@
                 left += (chartContainer.offsetLeft || 0);
                 top += (chartContainer.offsetTop || 0);
             }
+
             nv.tooltip.show([left, top],
-                 content, 
+                 contentGenerator(data), 
                  gravity, 
                  distance, 
                  document.getElementsByTagName('body')[0],
@@ -59,6 +96,20 @@
         nvtooltip.content = function(_) {
             if (!arguments.length) return content;
             content = _;
+            return nvtooltip;
+        };
+
+        nvtooltip.contentGenerator = function(_) {
+            if (!arguments.length) return contentGenerator;
+            if (typeof _ === 'function') {
+                contentGenerator = _;
+            }
+            return nvtooltip;
+        };
+
+        nvtooltip.data = function(_) {
+            if (!arguments.length) return data;
+            data = _;
             return nvtooltip;
         };
 
