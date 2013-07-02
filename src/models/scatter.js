@@ -252,7 +252,8 @@ nv.models.scatter = function() {
                 data.forEach(function(item) {
                     allSeriesData.push({
                         key: item.key,
-                        value: getY(item.values[d.point], d.point)
+                        value: getY(item.values[d.point], d.point),
+                        color: color(item)
                     });
                 });
 

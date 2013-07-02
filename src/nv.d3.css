@@ -35,7 +35,7 @@
 
 */
 
-  -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+ /* -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   box-shadow: 0 5px 10px rgba(0,0,0,.2);
 
@@ -50,7 +50,7 @@
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  user-select: none;
+  user-select: none; */
 }
 
 .nvtooltip.x-nvtooltip,
@@ -101,6 +101,11 @@
   font-weight: bold;
 }
 
+.nvtooltip table td.legend div {
+  width: 8px;
+  height: 8px;
+  vertical-align: middle;
+}
 .nvtooltip-pending-removal {
   position: absolute;
   pointer-events: none;

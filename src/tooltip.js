@@ -23,11 +23,13 @@
             series: [
                     {
                         key: "Series 1",
-                        value: "Value 1"
+                        value: "Value 1",
+                        color: "#000"
                     },
                     {
                         key: "Series 2",
-                        value: "Value 2"
+                        value: "Value 2",
+                        color: "#00f"
                     }
             ]
 
@@ -52,11 +54,13 @@
 
             if (d == null) return '';
 
-            var html = "<table><thead><tr><td colspan='2'><strong class='x-value'>" + d.value + "</strong></td></tr></thead><tbody>";
+            var html = "<table><thead><tr><td colspan='3'><strong class='x-value'>" + d.value + "</strong></td></tr></thead><tbody>";
             if (d.series instanceof Array) {
                 d.series.forEach(function(item, i) {
                     var isSelected = (item.key === d.seriesSelectedKey) ? "selected" : "";
-                    html += "<tr class='" + isSelected + "'><td class='key'>" + item.key + ":</td>";
+                    html += "<tr class='" + isSelected + "'>";
+                    html += "<td class='legend'><div style='background-color: " + item.color + ";'></div></td>";
+                    html += "<td class='key'>" + item.key + ":</td>";
                     html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
                 });
             }
