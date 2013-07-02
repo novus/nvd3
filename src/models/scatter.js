@@ -34,7 +34,7 @@ nv.models.scatter = function() {
     , sizeDomain   = null // Override point size domain
     , sizeRange    = null
     , singlePoint  = false
-    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
+    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'highlightPoint')
     , useVoronoi   = true
     ;
 
@@ -439,17 +439,18 @@ nv.models.scatter = function() {
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
-
+  dispatch.on('highlightPoint', function(seriesIndex, pointIndex, isHoverOver) {
+      if (interactive) {
+          d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+            .classed("hover",isHoverOver);
+      }
+  });
   dispatch.on('elementMouseover.point', function(d) {
-    if (interactive)
-      d3.select('.nv-chart-' + id + ' .nv-series-' + d.seriesIndex + ' .nv-point-' + d.pointIndex)
-          .classed('hover', true);
+      dispatch.highlightPoint(d.seriesIndex,d.pointIndex,true);
   });
 
   dispatch.on('elementMouseout.point', function(d) {
-    if (interactive)
-      d3.select('.nv-chart-' + id + ' .nv-series-' + d.seriesIndex + ' .nv-point-' + d.pointIndex)
-          .classed('hover', false);
+      dispatch.highlightPoint(d.seriesIndex,d.pointIndex,false);
   });
 
   //============================================================

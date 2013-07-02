@@ -305,10 +305,16 @@ nv.models.lineChart = function() {
 
   lines.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    e.allSeriesData.forEach(function(item, i) {
+        lines.dispatch.highlightPoint(i, e.pointIndex, true);
+    });
     dispatch.tooltipShow(e);
   });
 
   lines.dispatch.on('elementMouseout.tooltip', function(e) {
+    e.allSeriesData.forEach(function(item, i) {
+        lines.dispatch.highlightPoint(i, e.pointIndex, false);
+    });
     dispatch.tooltipHide(e);
   });
 
