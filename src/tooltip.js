@@ -19,6 +19,7 @@
         {
             key: "Date",
             value: "August 2009",
+            seriesSelectedKey: "Series 2", 
             series: [
                     {
                         key: "Series 1",
@@ -39,18 +40,24 @@
         ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
         ,   chartContainer = null   //Parent container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
+        ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
         ;
+
+        var valueFormatter = function(d,i) {
+            return d;
+        };
 
         var contentGenerator = function(d) {
             if (content != null) return content;
 
             if (d == null) return '';
 
-            var html = "<table><thead><strong class='x-value'>" + d.value + "</strong></thead><tbody>";
+            var html = "<table><thead><tr><td colspan='2'><strong class='x-value'>" + d.value + "</strong></td></tr></thead><tbody>";
             if (d.series instanceof Array) {
-                d.series.forEach(function(item) {
-                    html += "<tr><td class='key'>" + item.key + ":</td>";
-                    html += "<td class='value'>" + item.value + "</td></tr>"; 
+                d.series.forEach(function(item, i) {
+                    var isSelected = (item.key === d.seriesSelectedKey) ? "selected" : "";
+                    html += "<tr class='" + isSelected + "'><td class='key'>" + item.key + ":</td>";
+                    html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
                 });
             }
             html += "</tbody></table>";
@@ -75,6 +82,8 @@
 
         //Draw the tooltip onto the DOM.
         nvtooltip.render = function() {
+            if (!enabled) return;
+
             convertViewBoxRatio();
 
             var left = position.left;
@@ -150,6 +159,19 @@
             return nvtooltip;
         };
 
+        nvtooltip.enabled = function(_) {
+            if (!arguments.length) return enabled;
+            enabled = _;
+            return nvtooltip;
+        };
+
+        nvtooltip.valueFormatter = function(_) {
+            if (!arguments.length) return valueFormatter;
+            if (typeof _ === 'function') {
+                valueFormatter = _;
+            }
+            return nvtooltip;
+        };
 
 
         return nvtooltip;

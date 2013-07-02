@@ -84,6 +84,23 @@
   margin: 2px 0;
 }
 
+.nvtooltip table {
+  margin: 6px;
+}
+
+.nvtooltip table td {
+  padding-right: 6px;
+  padding-bottom: 3px;
+}
+
+.nvtooltip table tr.selected td.key {
+  font-weight: bold;
+}
+.nvtooltip table td.value {
+  text-align: right;
+  font-weight: bold;
+}
+
 .nvtooltip-pending-removal {
   position: absolute;
   pointer-events: none;

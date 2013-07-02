@@ -49,25 +49,22 @@ nv.models.lineChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex))
-        ;
+    var x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex));
 
     var tip = nv.models.tooltip()
             .position({left: e.pos[0], top: e.pos[1]})
             .chartContainer(offsetElement)
             .fixedTop(30)
-           // .contentGenerator(tooltip)
+            .enabled(tooltips)
+            .valueFormatter(function(d,i) {
+               return yAxis.tickFormat()(d);
+            })
             .data(
                 {
-                  key: e.series.key,
+                  key: "",
                   value: x,
-                  series: [
-                    {key: e.series.key,
-                    value: y},
-                    {key: 'Series2',
-                     value: y}
-                  ]
+                  seriesSelectedKey: e.series.key,
+                  series: e.allSeriesData
                 }
               )
             .render()
@@ -277,7 +274,7 @@ nv.models.lineChart = function() {
 */
 
       dispatch.on('tooltipShow', function(e) {
-        if (tooltips) showTooltip(e, that.parentNode);
+         showTooltip(e, that.parentNode);
       });
 
 

@@ -243,44 +243,38 @@ nv.models.scatter = function() {
                     return 'M' + d.data.join('L') + 'Z'; 
               });
 
+          var mouseEventCallback = function(d,mDispatch) {
+                if (needsUpdate) return 0;
+                var series = data[d.series],
+                    point  = series.values[d.point];
+
+                var allSeriesData = [];
+                data.forEach(function(item) {
+                    allSeriesData.push({
+                        key: item.key,
+                        value: getY(item.values[d.point], d.point)
+                    });
+                });
+
+                mDispatch({
+                  point: point,
+                  series: series,
+                  pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                  seriesIndex: d.series,
+                  pointIndex: d.point,
+                  allSeriesData: allSeriesData
+                });
+          };
+
           pointPaths
               .on('click', function(d) {
-                if (needsUpdate) return 0;
-                var series = data[d.series],
-                    point  = series.values[d.point];
-
-                dispatch.elementClick({
-                  point: point,
-                  series: series,
-                  pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
-                  seriesIndex: d.series,
-                  pointIndex: d.point
-                });
+                mouseEventCallback(d, dispatch.elementClick);
               })
               .on('mouseover', function(d) {
-                if (needsUpdate) return 0;
-                var series = data[d.series],
-                    point  = series.values[d.point];
-
-                dispatch.elementMouseover({
-                  point: point,
-                  series: series,
-                  pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
-                  seriesIndex: d.series,
-                  pointIndex: d.point
-                });
+                mouseEventCallback(d, dispatch.elementMouseover);
               })
               .on('mouseout', function(d, i) {
-                if (needsUpdate) return 0;
-                var series = data[d.series],
-                    point  = series.values[d.point];
-
-                dispatch.elementMouseout({
-                  point: point,
-                  series: series,
-                  seriesIndex: d.series,
-                  pointIndex: d.point
-                });
+                mouseEventCallback(d, dispatch.elementMouseout);
               });
 
 
