@@ -147,9 +147,22 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-linesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('rect').attr('class', 'nv-mouseMoveLayer');
 
       //------------------------------------------------------------
 
+      wrap.select(".nv-mouseMoveLayer")
+      .attr("width",availableWidth)
+      .attr("height",availableHeight)
+      .attr("opacity", 0)
+      .on("mousemove",function() {
+          var padding = Math.floor(availableWidth / data[0].values.length);
+          var pointIndex = Math.floor(x.invert(d3.mouse(this)[0] + padding));
+          lines.dispatch.clearHighlights();
+          data.forEach(function(item, i) {
+              lines.dispatch.highlightPoint(i, pointIndex, true);
+          }); 
+      });
 
       //------------------------------------------------------------
       // Legend

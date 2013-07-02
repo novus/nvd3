@@ -34,7 +34,7 @@ nv.models.scatter = function() {
     , sizeDomain   = null // Override point size domain
     , sizeRange    = null
     , singlePoint  = false
-    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'highlightPoint')
+    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'highlightPoint', 'clearHighlights')
     , useVoronoi   = true
     ;
 
@@ -440,6 +440,10 @@ nv.models.scatter = function() {
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
+  dispatch.on('clearHighlights', function() {
+      d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover",false);
+  });
+
   dispatch.on('highlightPoint', function(seriesIndex, pointIndex, isHoverOver) {
       if (interactive) {
           d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
