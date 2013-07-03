@@ -269,7 +269,7 @@ nv.models.scatterChart = function() {
 
 
       g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + scatter.yScale().range()[0] + ')')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')')
           .call(xAxis);
 
 
