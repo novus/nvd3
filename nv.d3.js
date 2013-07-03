@@ -9863,6 +9863,7 @@ nv.models.pieChart = function() {
 
   return chart;
 }
+
 nv.models.scatter = function() {
 
   //============================================================
@@ -9900,8 +9901,6 @@ nv.models.scatter = function() {
     , singlePoint  = false
     , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
     , useVoronoi   = true
-    , ordinalX     = false
-    , ordinalY     = false
     ;
 
   //============================================================
@@ -9946,56 +9945,41 @@ nv.models.scatter = function() {
                 })
               })
             );
-      if(nv.utils.isOrdinalValue(seriesData[0].x)){
-        ordinalX = true;
-      }
-      if(nv.utils.isOrdinalValue(seriesData[0].y)){
-        ordinalY = true;
-      }
 
+      x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x; }).concat(forceX)))
 
-      if(ordinalX){
-        var xVals = seriesData.map(function(d) { return d.x; });
-        x = d3.scale.ordinal().domain(xVals).rangePoints([0, availableWidth]);
-      }else{
-        x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x; }).concat(forceX)))
-        if (padData && data[0])
-          x.range([(availableWidth * padDataOuter +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)  ]);
-          //x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
-        else
-          x.range([0, availableWidth]);
+      if (padData && data[0])
+        x.range([(availableWidth * padDataOuter +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)  ]);
+        //x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+      else
+        x.range([0, availableWidth]);
 
-        if (x.domain()[0] === x.domain()[1]) singlePoint = true;
-
-        if (x.domain()[0] === x.domain()[1])
-          x.domain()[0] ?
-              x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
-            : x.domain([-1,1]);
-
-        if ( isNaN(x.domain()[0])) {
-            x.domain([-1,1]);
-        }
-      }
-
-      if(ordinalY){
-        var yVals = seriesData.map(function(d) { return d.y; });
-        y = d3.scale.ordinal().domain(yVals).rangePoints([availableHeight,0]);
-      }else{
-        if(y.domain()[0] === y.domain()[1]) singlePoint = true;
-        y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
-            .range([availableHeight, 0]);
-        if (y.domain()[0] === y.domain()[1])
-          y.domain()[0] ?
-              y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
-            : y.domain([-1,1]);
-
-        if ( isNaN(y.domain()[0])) {
-            y.domain([-1,1]);
-        }
-      }
+      y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
+          .range([availableHeight, 0]);
 
       z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
           .range(sizeRange || [16, 256]);
+
+      // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
+      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
+      if (x.domain()[0] === x.domain()[1])
+        x.domain()[0] ?
+            x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
+          : x.domain([-1,1]);
+
+      if (y.domain()[0] === y.domain()[1])
+        y.domain()[0] ?
+            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+          : y.domain([-1,1]);
+
+      if ( isNaN(x.domain()[0])) {
+          x.domain([-1,1]);
+      }
+
+      if ( isNaN(y.domain()[0])) {
+          y.domain([-1,1]);
+      }
+
 
       x0 = x0 || x;
       y0 = y0 || y;
@@ -10062,7 +10046,7 @@ nv.models.scatter = function() {
 
 
         //inject series and point index for reference into voronoi
-        if (useVoronoi && (!ordinalX && !ordinalY)) {
+        if (useVoronoi === true) {
 
           if (clipVoronoi) {
             var pointClipsEnter = wrap.select('defs').selectAll('.nv-point-clips')
@@ -10539,6 +10523,7 @@ nv.models.scatter = function() {
 
   return chart;
 }
+
 nv.models.scatterChart = function() {
 
   //============================================================
@@ -10684,6 +10669,7 @@ nv.models.scatterChart = function() {
 
       //------------------------------------------------------------
 
+
       //------------------------------------------------------------
       // Setup Scales
 
@@ -10770,9 +10756,6 @@ nv.models.scatterChart = function() {
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
 
-      // Need to reset x,y scales as the types are now dependent on data!
-      x = scatter.xScale();
-      y = scatter.yScale();
 
       //Adjust for x and y padding
       if (xPadding) {
@@ -10800,6 +10783,11 @@ nv.models.scatterChart = function() {
           .ticks( xAxis.ticks() && xAxis.ticks().length ? xAxis.ticks() : availableWidth / 100 )
           .tickSize( -availableHeight , 0);
 
+      g.select('.nv-x.nv-axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')')
+          .call(xAxis);
+
+
       yAxis
           .scale(y)
           .ticks( yAxis.ticks() && yAxis.ticks().length ? yAxis.ticks() : availableHeight / 36 )
@@ -10807,12 +10795,6 @@ nv.models.scatterChart = function() {
 
       g.select('.nv-y.nv-axis')
           .call(yAxis);
-
-
-      g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + scatter.yScale().range()[0] + ')')
-          .call(xAxis);
-
 
 
       if (showDistX) {
