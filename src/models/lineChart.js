@@ -10,6 +10,7 @@ nv.models.lineChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
     , interactiveLayer = nv.interactiveLineLayer()
+    , tooltip = nv.models.tooltip()
     ;
 
 //set margin.right to 23 to fit dates on the x-axis within the chart
@@ -55,7 +56,9 @@ nv.models.lineChart = function() {
     var tip = nv.models.tooltip()
             .position(e.position)
             .chartContainer(offsetElement)
-            .fixedTop(30)
+            .gravity('w')
+            .distance(50)
+            .snapDistance(25)
             .enabled(tooltips)
             .valueFormatter(function(d,i) {
                return yAxis.tickFormat()(d);
@@ -191,6 +194,7 @@ nv.models.lineChart = function() {
       lines
         .width(availableWidth)
         .height(availableHeight)
+        .interactive(false)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
@@ -268,18 +272,24 @@ nv.models.lineChart = function() {
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.dispatch.clearHighlights();
           var xValue, allData = [];
-          data.forEach(function(series,i) {
+          data
+          .filter(function(series, i) { 
+            series.seriesIndex = i;
+            return !series.disabled; 
+          })
+          .forEach(function(series,i) {
               lines.dispatch.highlightPoint(i, e.pointIndex, true);
-
+              var point = series.values[e.pointIndex];
+              if (typeof point === 'undefined') return;
               allData.push({
                   key: series.key,
                   value: lines.y()(series.values[e.pointIndex], e.pointIndex),
-                  color: color(series)
+                  color: color(series,series.seriesIndex)
               });
           });
 
           showTooltip({
-              position: {left: e.mouseX + margin.left, top: e.mouseY + margin.top},
+              position: {left: e.pointLocation + margin.left, top: e.mouseY + margin.top},
               pointIndex: e.pointIndex,
               allSeriesData: allData
 
@@ -409,11 +419,6 @@ nv.models.lineChart = function() {
     return chart;
   };
 
-  chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
-    return chart;
-  };
 
   chart.state = function(_) {
     if (!arguments.length) return state;

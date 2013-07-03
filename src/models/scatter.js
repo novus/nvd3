@@ -445,17 +445,16 @@ nv.models.scatter = function() {
   });
 
   dispatch.on('highlightPoint', function(seriesIndex, pointIndex, isHoverOver) {
-      if (interactive) {
-          d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-            .classed("hover",isHoverOver);
-      }
+      d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+          .classed("hover",isHoverOver);
+      
   });
   dispatch.on('elementMouseover.point', function(d) {
-      dispatch.highlightPoint(d.seriesIndex,d.pointIndex,true);
+     if (interactive) dispatch.highlightPoint(d.seriesIndex,d.pointIndex,true);
   });
 
   dispatch.on('elementMouseout.point', function(d) {
-      dispatch.highlightPoint(d.seriesIndex,d.pointIndex,false);
+     if (interactive) dispatch.highlightPoint(d.seriesIndex,d.pointIndex,false);
   });
 
   //============================================================

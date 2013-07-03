@@ -23,15 +23,15 @@ nv.interactiveLineLayer = function() {
 				var availableWidth = (width || 960), availableHeight = (height || 400);
 
 				var wrap = container.selectAll("g.nv-wrap.nv-interactiveLineLayer").data([data]);
-				var gEnter = wrap.enter()
-								.append("g").attr("class", " nv-wrap nv-interactiveLineLayer")
-								.append("g");
+				var wrapEnter = wrap.enter()
+								.append("g").attr("class", " nv-wrap nv-interactiveLineLayer");
+								
 				
-				var guideLine = gEnter.append("g").attr("class","nv-interactiveGuideLine");
-				var mouseMoveLayer = gEnter.append("rect").attr("class", "nv-mouseMoveLayer");
+				wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
+				wrapEnter.append("rect").attr("class", "nv-mouseMoveLayer");
 				
 
-				mouseMoveLayer
+				wrap.select(".nv-mouseMoveLayer")
 					  .attr("width",availableWidth)
 				      .attr("height",availableHeight)
 				      .attr("opacity", 0)
@@ -40,16 +40,17 @@ nv.interactiveLineLayer = function() {
 				          var mouseX = d3.mouse(this)[0];
 				          var mouseY = d3.mouse(this)[1];
 				          var pointIndex = Math.floor(xScale.invert(mouseX + padding));
-				          if (pointIndex !== previousXCoordinate) {
-				          	  previousXCoordinate = pointIndex;
-					          dispatch.elementMousemove({
-					          		mouseX: mouseX,
-					          		mouseY: mouseY,
-					          		pointIndex: pointIndex
-					          });
+				          var pointLocation = xScale(pointIndex);
+				          dispatch.elementMousemove({
+				          		mouseX: mouseX,
+				          		mouseY: mouseY,
+				          		pointIndex: pointIndex,
+				          		pointLocation: pointLocation
+				          });
 
-					          showGuideLine(xScale(pointIndex));
-				      	  }
+				          showGuideLine(pointLocation);
+
+				      	  
 				      })
 				      .on("mouseout",function() {
 				      	  var padding = Math.floor(xScale(1)) /2;
@@ -75,7 +76,7 @@ nv.interactiveLineLayer = function() {
 
 				 	line.enter()
 				 		.append("line")
-				 		.attr("stroke", "#00f")
+				 		.attr("stroke", "#ccc")
 				 		.attr("x1", function(d) { return d;})
 				 		.attr("x2", function(d) { return d;})
 				 		.attr("y1", availableHeight)

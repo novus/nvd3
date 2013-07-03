@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+text {
+  font: 12px sans-serif;
+}
+
+.chart {
+  float: left;
+  width: 50%;
+}
+.chart svg {
+  height: 500px;
+  width: 100%;
+}
+
+</style>
+<body>
+
+  <div class='chart' id='chart1'>
+    <svg></svg>
+  </div>
+  <div class='chart' id='chart2'>
+    <svg></svg>
+  </div>
+  <div class='chart' id='chart3'>
+    <svg></svg>
+  </div>
+  <div class='chart' id='chart4'>
+    <svg></svg>
+  </div>
+   <div class='chart' id='chart5'>
+    <svg></svg>
+  </div>
+   <div class='chart' id='chart6'>
+    <svg></svg>
+  </div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/interactiveLayer.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/scatter.js"></script>
+<script src="../src/models/line.js"></script>
+<script src="../src/models/lineChart.js"></script>
+<script>
+
+//------------ CHART 1 
+defaultChartConfig("chart1", sinAndCos(), true);
+
+//-------------- CHART 2
+nv.addGraph(function() {
+  var chart;
+  chart = nv.models.lineChart();
+
+  chart
+      .x(function(d,i) { return i });
+
+
+  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+      .tickFormat(d3.format(',.1f'));
+
+  chart.yAxis
+      .axisLabel('Voltage (v)')
+      .tickFormat(d3.format(',.4f'));
+
+  chart.showXAxis(true).showYAxis(true).rightAlignYAxis(true).margin({right: 90});
+
+  d3.select('#chart2 svg')
+      //.datum([]) //for testing noData
+      .datum(hyperbole())
+      .transition().duration(500)
+      .call(chart);
+
+  nv.utils.windowResize(chart.update);
+
+  return chart;
+});
+
+defaultChartConfig("chart3", smallDataSet(3));
+defaultChartConfig("chart4", badDataSet());
+defaultChartConfig("chart5", smallDataSet(1));
+defaultChartConfig("chart6", normalDist());
+
+
+function defaultChartConfig(containerid, data, useDates) {
+  nv.addGraph(function() {
+    var chart;
+    chart = nv.models.lineChart();
+
+    chart
+        .x(function(d,i) { return i });
+
+    var formatter;
+    if (useDates !== undefined) {
+        formatter = function(d,i) {
+                var now = (new Date()).getTime() - 86400 * 1000 * 365;
+                now = new Date(now + d * 86400 * 1000);
+                return d3.time.format('%b %d %Y')(now );
+        }
+    }
+    else {
+        formatter = d3.format(",.1f");
+    }
+    chart.margin({right: 40});
+    chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+        .tickFormat(
+            formatter
+          );
+
+    chart.yAxis
+        .axisLabel('Voltage (v)')
+        .tickFormat(d3.format(',.2f'));
+
+
+    d3.select('#' + containerid + ' svg')
+        .datum(data)
+      .transition().duration(500)
+        .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+}
+
+function sinAndCos() {
+  var sin = [],
+      cos = [],
+      rand = [],
+      rand2 = []
+      ;
+
+  var now = (new Date()).getTime();
+  for (var i = 0; i < 100; i++) {
+    sin.push({x: i, y: i % 10 == 5 ? null : Math.sin(i/10) }); //the nulls are to show how defined works
+    cos.push({x: i, y: .5 * Math.cos(i/10)});
+    rand.push({x:i, y: Math.random() / 10});
+    rand2.push({x: i, y: Math.cos(i/10) + Math.random() / 10 })
+  }
+
+  return [
+    {
+      area: true,
+      values: sin,
+      key: "Sine Wave",
+      color: "#ff7f0e"
+    },
+    {
+      values: cos,
+      key: "Cosine Wave",
+      color: "#2ca02c"
+    },
+    {
+      values: rand,
+      key: "Random Points",
+      color: "#2222ff"
+    }
+    ,
+    {
+      values: rand2,
+      key: "Random Cosine",
+      color: "#667711"
+    }
+  ];
+}
+
+function hyperbole() {
+  var series1 = [], series2 = [], series3 = [];
+  for(var i = 1; i < 100; i++) {
+      series1.push({x: i, y: 1 / i});
+      series2.push({x: i, y: 5 / i});
+      series3.push({x: i, y: -8 / i});
+  }
+
+  return [
+    {values: series1, key: "Series 1"},
+    {values: series2, key: "Series 2"},
+    {values: series3, key: "Series 3"}
+  ];
+}
+
+function smallDataSet(n) {
+  var series = [];
+  for(var i = 0; i < n; i++) {
+      series.push({x: i, y: i * 0.3 + 2})
+  }
+  return [
+    {values: series, key: "Line 1"}
+  ];
+}
+
+function badDataSet() {
+  var series1 = [], series2 = [];
+  for(var i =0; i < 30; i++) {
+    series1.push({x:i, y: i*0.3 + 12});
+  }
+  for(i = 0; i < 30; i += 5) {
+    series2.push({x:i, y: i*0.7 + 8});
+  }
+  return [
+      {values: series1, key:"Series 1"},
+      {values: series2, key:"Series 2"}
+  ];
+}
+
+function normalDist() {
+  var series1 = [], series2 = [];
+  for(var i = -500; i < 500; i += 1) {
+     var x = i / 100;
+     var y = 0.3989 * Math.pow(2.71, -0.5*x*x);
+     series1.push({x:i, y:y});
+     series2.push({x:i, y:y*2});
+  }
+  return [
+  {values: series1, key:"Normal 1"},
+  {values: series2, key:"Normal 2"}];
+}
+
+</script>

@@ -38,6 +38,7 @@
         */
         ,   gravity = 's'   //Can be 'n','s','e','w'. Determines how tooltip is positioned.
         ,   distance = 20   //Distance to offset tooltip from the mouse location.
+        ,   snapDistance = 30
         ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
         ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
         ,   chartContainer = null   //Parent container that holds the chart.
@@ -68,6 +69,12 @@
             return html;
         };
 
+        var dataSeriesExists = function(d) {
+            if (d && d.series && d.series.length > 0) return true;
+
+            return false;
+        };
+
         //In situations where the chart is in a 'viewBox', re-position the tooltip based on how far chart is zoomed.
         function convertViewBoxRatio() {
             if (chartContainer) {
@@ -87,6 +94,7 @@
         //Draw the tooltip onto the DOM.
         nvtooltip.render = function() {
             if (!enabled) return;
+            if (!dataSeriesExists(data)) return;
 
             convertViewBoxRatio();
 
@@ -96,6 +104,11 @@
             if (chartContainer) {
                 left += (chartContainer.offsetLeft || 0);
                 top += (chartContainer.offsetTop || 0);
+            }
+
+            if (snapDistance && snapDistance > 0) {
+              //  left = Math.floor(left/snapDistance) * snapDistance;
+                top = Math.floor(top/snapDistance) * snapDistance;
             }
 
             nv.tooltip.show([left, top],
@@ -135,6 +148,12 @@
         nvtooltip.distance = function(_) {
             if (!arguments.length) return distance;
             distance = _;
+            return nvtooltip;
+        };
+
+        nvtooltip.snapDistance = function(_) {
+            if (!arguments.length) return snapDistance;
+            snapDistance = _;
             return nvtooltip;
         };
 
@@ -264,6 +283,8 @@
               case 'w':
                 left = pos[0] + dist;
                 top = pos[1] - (height / 2);
+                var tLeft = tooltipLeft(container);
+                var tTop = tooltipTop(container);
                 if (tLeft + width > windowWidth) left = pos[0] - width - dist;
                 if (tTop < scrollTop) top = scrollTop + 5;
                 if (tTop + height > scrollTop + windowHeight) top = scrollTop - height - 5;
