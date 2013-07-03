@@ -9,6 +9,7 @@ nv.models.lineChart = function() {
     , xAxis = nv.models.axis()
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
+    , interactiveLayer = nv.interactiveLineLayer()
     ;
 
 //set margin.right to 23 to fit dates on the x-axis within the chart
@@ -52,7 +53,7 @@ nv.models.lineChart = function() {
     var x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex));
 
     var tip = nv.models.tooltip()
-            .position({left: e.pos[0], top: e.pos[1]})
+            .position(e.position)
             .chartContainer(offsetElement)
             .fixedTop(30)
             .enabled(tooltips)
@@ -63,7 +64,7 @@ nv.models.lineChart = function() {
                 {
                   key: "",
                   value: x,
-                  seriesSelectedKey: e.series.key,
+                //  seriesSelectedKey: e.series.key,
                   series: e.allSeriesData
                 }
               )
@@ -147,22 +148,13 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-linesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
-      gEnter.append('rect').attr('class', 'nv-mouseMoveLayer');
+      gEnter.append('g').attr('class', 'nv-interactive');
 
       //------------------------------------------------------------
+      //Set up interactive layer
+      interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
 
-      wrap.select(".nv-mouseMoveLayer")
-      .attr("width",availableWidth)
-      .attr("height",availableHeight)
-      .attr("opacity", 0)
-      .on("mousemove",function() {
-          var padding = Math.floor(availableWidth / data[0].values.length);
-          var pointIndex = Math.floor(x.invert(d3.mouse(this)[0] + padding));
-          lines.dispatch.clearHighlights();
-          data.forEach(function(item, i) {
-              lines.dispatch.highlightPoint(i, pointIndex, true);
-          }); 
-      });
+      wrap.select(".nv-interactive").call(interactiveLayer);
 
       //------------------------------------------------------------
       // Legend
@@ -273,18 +265,31 @@ nv.models.lineChart = function() {
           chart.update();
       });
 
+      interactiveLayer.dispatch.on('elementMousemove', function(e) {
+          lines.dispatch.clearHighlights();
+          var xValue, allData = [];
+          data.forEach(function(series,i) {
+              lines.dispatch.highlightPoint(i, e.pointIndex, true);
 
-/*
-      legend.dispatch.on('legendMouseover', function(d, i) {
-        d.hover = true;
-        selection.transition().call(chart)
+              allData.push({
+                  key: series.key,
+                  value: lines.y()(series.values[e.pointIndex], e.pointIndex),
+                  color: color(series)
+              });
+          });
+
+          showTooltip({
+              position: {left: e.mouseX + margin.left, top: e.mouseY + margin.top},
+              pointIndex: e.pointIndex,
+              allSeriesData: allData
+
+          }, that.parentNode);
       });
 
-      legend.dispatch.on('legendMouseout', function(d, i) {
-        d.hover = false;
-        selection.transition().call(chart)
+      interactiveLayer.dispatch.on("elementMouseout",function(e) {
+          dispatch.tooltipHide();
+          lines.dispatch.clearHighlights();
       });
-*/
 
       dispatch.on('tooltipShow', function(e) {
          showTooltip(e, that.parentNode);
@@ -318,17 +323,11 @@ nv.models.lineChart = function() {
 
   lines.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-    e.allSeriesData.forEach(function(item, i) {
-        lines.dispatch.highlightPoint(i, e.pointIndex, true);
-    });
-    dispatch.tooltipShow(e);
+  //  dispatch.tooltipShow(e);
   });
 
   lines.dispatch.on('elementMouseout.tooltip', function(e) {
-    e.allSeriesData.forEach(function(item, i) {
-        lines.dispatch.highlightPoint(i, e.pointIndex, false);
-    });
-    dispatch.tooltipHide(e);
+   // dispatch.tooltipHide(e);
   });
 
   dispatch.on('tooltipHide', function() {
@@ -349,7 +348,7 @@ nv.models.lineChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
+  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;

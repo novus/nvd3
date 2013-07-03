@@ -181,27 +181,37 @@
         return nvtooltip;
   };
 
-  //Global utility function to render a tooltip on the DOM.
   nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
-
-            var container = document.createElement('div');
+        var container = document.getElementsByClassName("nvtooltip");
+        if (container.length === 0) {
+            //Create new tooltip div if it doesn't exist on DOM.
+            container = document.createElement('div');
                 container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
-
-            gravity = gravity || 's';
-            dist = dist || 20;
 
             var body = parentContainer;
             if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
                 //If the parent element is an SVG element, place tooltip in the <body> element.
                 body = document.getElementsByTagName('body')[0];
             }
-
-            container.innerHTML = content;
+       
             container.style.left = 0;
             container.style.top = 0;
             container.style.opacity = 0;
 
             body.appendChild(container);
+
+        }
+        else {
+            container = container[0];
+        }
+        container.innerHTML = content;
+
+        nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
+
+  };
+
+  //Global utility function to render a tooltip on the DOM.
+  nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
 
             var height = parseInt(container.offsetHeight),
                 width = parseInt(container.offsetWidth),
@@ -214,8 +224,13 @@
             windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
             windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
 
+            gravity = gravity || 's';
+            dist = dist || 20;
+
             var tooltipTop = function ( Elem ) {
                 var offsetTop = top;
+                if (Elem.offsetParent.tagName === 'BODY') return offsetTop;
+
                 do {
                     if( !isNaN( Elem.offsetTop ) ) {
                         offsetTop += (Elem.offsetTop);
@@ -226,6 +241,8 @@
 
             var tooltipLeft = function ( Elem ) {
                 var offsetLeft = left;
+                if (Elem.offsetParent.tagName === 'BODY') return offsetLeft;
+
                 do {
                     if( !isNaN( Elem.offsetLeft ) ) {
                         offsetLeft += (Elem.offsetLeft);
