@@ -1,4 +1,3 @@
-
 nv.utils.windowSize = function() {
     // Sane defaults
     var size = {width: 640, height: 480};
@@ -115,4 +114,8 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
         return textLength * fontSize * 0.5; 
     }
     return 0;
+};
+
+nv.utils.isOrdinalValue = function (val) {
+  return Object.prototype.toString.call(val) == '[object String]';
 };
