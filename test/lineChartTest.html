@@ -62,7 +62,7 @@ defaultChartConfig("chart1", sinAndCos(), true);
 //-------------- CHART 2
 nv.addGraph(function() {
   var chart;
-  chart = nv.models.lineChart();
+  chart = nv.models.lineChart().useInteractiveGuideline(false);
 
   chart
       .x(function(d,i) { return i });
@@ -97,7 +97,7 @@ defaultChartConfig("chart6", normalDist());
 function defaultChartConfig(containerid, data, useDates) {
   nv.addGraph(function() {
     var chart;
-    chart = nv.models.lineChart();
+    chart = nv.models.lineChart().useInteractiveGuideline(true);
 
     chart
         .x(function(d,i) { return i });

@@ -248,22 +248,12 @@ nv.models.scatter = function() {
                 var series = data[d.series],
                     point  = series.values[d.point];
 
-                var allSeriesData = [];
-                data.forEach(function(item) {
-                    allSeriesData.push({
-                        key: item.key,
-                        value: getY(item.values[d.point], d.point),
-                        color: color(item)
-                    });
-                });
-
                 mDispatch({
                   point: point,
                   series: series,
                   pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: d.point,
-                  allSeriesData: allSeriesData
+                  pointIndex: d.point
                 });
           };
 
@@ -446,8 +436,7 @@ nv.models.scatter = function() {
 
   dispatch.on('highlightPoint', function(seriesIndex, pointIndex, isHoverOver) {
       d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-          .classed("hover",isHoverOver);
-      
+          .classed("hover",isHoverOver);     
   });
   dispatch.on('elementMouseover.point', function(d) {
      if (interactive) dispatch.highlightPoint(d.seriesIndex,d.pointIndex,true);

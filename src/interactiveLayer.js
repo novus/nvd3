@@ -3,13 +3,15 @@ This places a rectangle on top of the chart. When you mouse move over it, it sen
 containing the X-coordinate. It can also render a vertical line where the mouse is located.
 
 */
-nv.interactiveLineLayer = function() {
-
+nv.interactiveGuideline = function() {
+	var tooltip = nv.models.tooltip();
 	//Public settings
 	var width = null
 	, height = null
 	, xScale = d3.scale.linear()
+	, yScale = d3.scale.linear()
 	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout')
+	, showGuideLine = true
 	;
 
 	//Private variables
@@ -40,15 +42,16 @@ nv.interactiveLineLayer = function() {
 				          var mouseX = d3.mouse(this)[0];
 				          var mouseY = d3.mouse(this)[1];
 				          var pointIndex = Math.floor(xScale.invert(mouseX + padding));
-				          var pointLocation = xScale(pointIndex);
+				          var pointXLocation = xScale(pointIndex);
 				          dispatch.elementMousemove({
 				          		mouseX: mouseX,
 				          		mouseY: mouseY,
 				          		pointIndex: pointIndex,
-				          		pointLocation: pointLocation
+				          		pointXLocation: pointXLocation,
+				          		pointYLocation: mouseY   	//TODO: Return the proper Y coordinate, not just mouseY.
 				          });
 
-				          showGuideLine(pointLocation);
+				          renderGuideLine(pointXLocation);
 
 				      	  
 				      })
@@ -64,19 +67,20 @@ nv.interactiveLineLayer = function() {
 					          		pointIndex: pointIndex
 					      });
 
-					      showGuideLine(null);
+					      renderGuideLine(null);
 				     
 				      })
 				      ;
 
-				 function showGuideLine(x) {
+				 function renderGuideLine(x) {
+				 	if (!showGuideLine) return;
 				 	var line = wrap.select(".nv-interactiveGuideLine")
 				 	      .selectAll("line")
 				 	      .data((x != null) ? [x] : [], String);
 
 				 	line.enter()
 				 		.append("line")
-				 		.attr("stroke", "#ccc")
+				 		.attr("class", "nv-guideline")
 				 		.attr("x1", function(d) { return d;})
 				 		.attr("x2", function(d) { return d;})
 				 		.attr("y1", availableHeight)
@@ -89,6 +93,7 @@ nv.interactiveLineLayer = function() {
 	}
 
 	layer.dispatch = dispatch;
+	layer.tooltip = tooltip;
 
 	layer.width = function(_) {
 		if (!arguments.length) return width;
@@ -105,6 +110,12 @@ nv.interactiveLineLayer = function() {
 	layer.xScale = function(_) {
 		if (!arguments.length) return xScale;
 		xScale = _;
+		return layer;
+	};
+
+	layer.showGuideLine = function(_) {
+		if (!arguments.length) return showGuideLine;
+		showGuideLine = _;
 		return layer;
 	};
 

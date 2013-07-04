@@ -9,8 +9,7 @@ nv.models.lineChart = function() {
     , xAxis = nv.models.axis()
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
-    , interactiveLayer = nv.interactiveLineLayer()
-    , tooltip = nv.models.tooltip()
+    , interactiveLayer = nv.interactiveGuideline()
     ;
 
 //set margin.right to 23 to fit dates on the x-axis within the chart
@@ -22,10 +21,11 @@ nv.models.lineChart = function() {
     , showXAxis = true
     , showYAxis = true
     , rightAlignYAxis = false
+    , useInteractiveGuideline = false
     , tooltips = true
-    , tooltip = function(d) {
-        return '<h3>' + d.key + '</h3>' +
-               '<p>' +  d.series[0].value + ' at ' + d.value + '</p>'
+    , tooltip = function(key, x, y, e, graph) {
+        return '<h3>' + key + '</h3>' +
+               '<p>' +  y + ' at ' + x + '</p>'
       }
     , x
     , y
@@ -51,29 +51,14 @@ nv.models.lineChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex));
+    if (useInteractiveGuideline) return;
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
+        content = tooltip(e.series.key, x, y, e, chart);
 
-    var tip = nv.models.tooltip()
-            .position(e.position)
-            .chartContainer(offsetElement)
-            .gravity('w')
-            .distance(50)
-            .snapDistance(25)
-            .enabled(tooltips)
-            .valueFormatter(function(d,i) {
-               return yAxis.tickFormat()(d);
-            })
-            .data(
-                {
-                  key: "",
-                  value: x,
-                //  seriesSelectedKey: e.series.key,
-                  series: e.allSeriesData
-                }
-              )
-            .render()
-    ;
-
+    nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
   //============================================================
@@ -155,10 +140,10 @@ nv.models.lineChart = function() {
 
       //------------------------------------------------------------
       //Set up interactive layer
-      interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
-
-      wrap.select(".nv-interactive").call(interactiveLayer);
-
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
       //------------------------------------------------------------
       // Legend
 
@@ -194,7 +179,7 @@ nv.models.lineChart = function() {
       lines
         .width(availableWidth)
         .height(availableHeight)
-        .interactive(false)
+        .interactive(!useInteractiveGuideline)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
@@ -271,7 +256,7 @@ nv.models.lineChart = function() {
 
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.dispatch.clearHighlights();
-          var xValue, allData = [];
+          var singlePoint, allData = [];
           data
           .filter(function(series, i) { 
             series.seriesIndex = i;
@@ -281,19 +266,32 @@ nv.models.lineChart = function() {
               lines.dispatch.highlightPoint(i, e.pointIndex, true);
               var point = series.values[e.pointIndex];
               if (typeof point === 'undefined') return;
+              if (typeof singlePoint === 'undefined') singlePoint = point;
               allData.push({
                   key: series.key,
-                  value: lines.y()(series.values[e.pointIndex], e.pointIndex),
+                  value: lines.y()(point, e.pointIndex),
                   color: color(series,series.seriesIndex)
               });
           });
 
-          showTooltip({
-              position: {left: e.pointLocation + margin.left, top: e.mouseY + margin.top},
-              pointIndex: e.pointIndex,
-              allSeriesData: allData
+          var xValue = xAxis.tickFormat()(lines.x()(singlePoint,e.pointIndex));
 
-          }, that.parentNode);
+          interactiveLayer.tooltip
+                  .position({left: e.pointXLocation + margin.left, top: e.mouseY + margin.top})
+                  .chartContainer(that.parentNode)
+                  .enabled(tooltips)
+                  .valueFormatter(function(d,i) {
+                     return yAxis.tickFormat()(d);
+                  })
+                  .data(
+                      {
+                        key: "",
+                        value: xValue,
+                      //  seriesSelectedKey: e.series.key,
+                        series: allData
+                      }
+                  )();
+
       });
 
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
@@ -333,11 +331,11 @@ nv.models.lineChart = function() {
 
   lines.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-  //  dispatch.tooltipShow(e);
+    dispatch.tooltipShow(e);
   });
 
   lines.dispatch.on('elementMouseout.tooltip', function(e) {
-   // dispatch.tooltipHide(e);
+    dispatch.tooltipHide(e);
   });
 
   dispatch.on('tooltipHide', function() {
@@ -413,12 +411,23 @@ nv.models.lineChart = function() {
     return chart;
   };
 
+  chart.useInteractiveGuideline = function(_) {
+    if(!arguments.length) return useInteractiveGuideline;
+    useInteractiveGuideline = _;
+    return chart;
+  };
+
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
     return chart;
   };
 
+  chart.tooltipContent = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  };
 
   chart.state = function(_) {
     if (!arguments.length) return state;

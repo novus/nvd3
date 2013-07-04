@@ -11,8 +11,6 @@
   /* Model which can be instantiated to handle tooltip rendering.
   */
   window.nv.models.tooltip = function() {
-        var nvtooltip = {};
-
         var content = null    //HTML contents of the tooltip.  If null, the content is generated via the data variable.
         ,   data = null     /* Tooltip data. If data is given in the proper format, a consistent tooltip is generated.
         Format of data:
@@ -36,9 +34,9 @@
         }
 
         */
-        ,   gravity = 's'   //Can be 'n','s','e','w'. Determines how tooltip is positioned.
-        ,   distance = 20   //Distance to offset tooltip from the mouse location.
-        ,   snapDistance = 30
+        ,   gravity = 'w'   //Can be 'n','s','e','w'. Determines how tooltip is positioned.
+        ,   distance = 50   //Distance to offset tooltip from the mouse location.
+        ,   snapDistance = 25   //Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
         ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
         ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
         ,   chartContainer = null   //Parent container that holds the chart.
@@ -90,9 +88,27 @@
             }
         }
 
+        //Creates new tooltip container, or uses existing one on DOM.
+        function getTooltipContainer(newContent) {
+            var container = document.getElementsByClassName("nvtooltip");
+            if (container.length === 0) {
+                //Create new tooltip div if it doesn't exist on DOM.
+                container = document.createElement('div');
+                container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
+                var body = document.getElementsByTagName('body')[0]; //All new tooltips are placed directly on <body>
+                body.appendChild(container);
+            }
+            else {
+                //Element already exists on DOM, so reuse it.
+                container = container[0];
+            }
+
+            container.innerHTML = newContent;
+            return container;
+        }
 
         //Draw the tooltip onto the DOM.
-        nvtooltip.render = function() {
+        function nvtooltip() {
             if (!enabled) return;
             if (!dataSeriesExists(data)) return;
 
@@ -107,16 +123,14 @@
             }
 
             if (snapDistance && snapDistance > 0) {
-              //  left = Math.floor(left/snapDistance) * snapDistance;
                 top = Math.floor(top/snapDistance) * snapDistance;
             }
 
-            nv.tooltip.show([left, top],
-                 contentGenerator(data), 
-                 gravity, 
-                 distance, 
-                 document.getElementsByTagName('body')[0],
-                 classes);
+             var container = getTooltipContainer(contentGenerator(data));
+            
+
+            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
+            return nvtooltip;
         };
 
         nvtooltip.content = function(_) {
@@ -200,33 +214,27 @@
         return nvtooltip;
   };
 
+
+  //Original tooltip.show function. Kept for backward compatibility.
   nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
-        var container = document.getElementsByClassName("nvtooltip");
-        if (container.length === 0) {
-            //Create new tooltip div if it doesn't exist on DOM.
-            container = document.createElement('div');
-                container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
+      
+        //Create new tooltip div if it doesn't exist on DOM.
+        var   container = document.createElement('div');
+        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
 
-            var body = parentContainer;
-            if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
-                //If the parent element is an SVG element, place tooltip in the <body> element.
-                body = document.getElementsByTagName('body')[0];
-            }
-       
-            container.style.left = 0;
-            container.style.top = 0;
-            container.style.opacity = 0;
-
-            body.appendChild(container);
-
+        var body = parentContainer;
+        if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
+            //If the parent element is an SVG element, place tooltip in the <body> element.
+            body = document.getElementsByTagName('body')[0];
         }
-        else {
-            container = container[0];
-        }
+   
+        container.style.left = 0;
+        container.style.top = 0;
+        container.style.opacity = 0;
         container.innerHTML = content;
+        body.appendChild(container);
 
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
-
   };
 
   //Global utility function to render a tooltip on the DOM.

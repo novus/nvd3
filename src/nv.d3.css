@@ -725,3 +725,10 @@ svg .title {
 .nvd3 .axis text {
   text-shadow: 0 1px 0 #fff;
 }
+
+/****
+Interactive Layer
+*/
+.nvd3 line.nv-guideline {
+  stroke: #ccc;
+}
