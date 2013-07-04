@@ -7,6 +7,7 @@
 
 body {
   overflow-y:scroll;
+  font-family: arial;
 }
 
 text {
@@ -14,33 +15,75 @@ text {
 }
 
 .chart {
-  float: left;
+  float:left;
+  height: 500px;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 2em;
+}
+.chart.full {
+  width: 100%;
+}
+
+.chart.half {
   width: 50%;
 }
-.chart svg {
-  height: 500px;
-  width: 100%;
+
+.chart.third {
+  width: 33%;
 }
 
 </style>
 <body>
+  <h3>Line chart test cases - feel free to add more tests</h3>
+  <div class='chart full' id='chart1'>
+    Example of chart with many series', and new interactive guideline plus tooltip.
+    <svg></svg>
+  </div>
+  <div class='chart half' id='chart2'>
+    Chart with old tooltip style.
+    <svg></svg>
+  </div>
+  <div class='chart half' id='chart3'>
+    Chart with three data points.
+    <svg></svg>
+  </div>
+  <div class='chart third' id='chart4'>
+    Chart where two series have different number of points.
+    <svg></svg>
+  </div>
+   <div class='chart third' id='chart5'>
+    Chart with one point.
+    <svg></svg>
+  </div>
+   <div class='chart third' id='chart6'>
+    Chart with 1000 points.
+    <svg></svg>
+  </div>
 
-  <div class='chart' id='chart1'>
+  <div class='chart third' id='chart7'>
+    Chart with no data.
     <svg></svg>
   </div>
-  <div class='chart' id='chart2'>
+   <div class='chart third' id='chart8'>
+    All points random. No order.
     <svg></svg>
   </div>
-  <div class='chart' id='chart3'>
+   <div class='chart third' id='chart9'>
+    Points do not increase linearly.
     <svg></svg>
   </div>
-  <div class='chart' id='chart4'>
+
+  <div class='chart third' id='chart10'>
+    Chart with 15 series'
     <svg></svg>
   </div>
-   <div class='chart' id='chart5'>
+   <div class='chart third' id='chart11'>
+    Data points go backwards
     <svg></svg>
   </div>
-   <div class='chart' id='chart6'>
+   <div class='chart third' id='chart12'>
+    Duplicate X coordinate points.
     <svg></svg>
   </div>
 
@@ -57,9 +100,9 @@ text {
 <script>
 
 //------------ CHART 1 
-defaultChartConfig("chart1", sinAndCos(), true);
+defaultChartConfig("chart1", sinAndCos(),true, true);
 
-//-------------- CHART 2
+//-------------- CHART 2  --- Chart without the interactive guideline.
 nv.addGraph(function() {
   var chart;
   chart = nv.models.lineChart().useInteractiveGuideline(false);
@@ -93,11 +136,20 @@ defaultChartConfig("chart4", badDataSet());
 defaultChartConfig("chart5", smallDataSet(1));
 defaultChartConfig("chart6", normalDist());
 
+defaultChartConfig("chart7", smallDataSet(0));
+defaultChartConfig("chart8", allRandom(),false);
+defaultChartConfig("chart9", fibonacci());
 
-function defaultChartConfig(containerid, data, useDates) {
+defaultChartConfig("chart10", lotsofSeries());
+defaultChartConfig("chart11", backwards(),false);
+defaultChartConfig("chart12", duplicateX(),false);
+
+
+function defaultChartConfig(containerid, data, guideline, useDates) {
+  if (guideline === undefined) guideline = true;
   nv.addGraph(function() {
     var chart;
-    chart = nv.models.lineChart().useInteractiveGuideline(true);
+    chart = nv.models.lineChart().useInteractiveGuideline(guideline);
 
     chart
         .x(function(d,i) { 
@@ -226,8 +278,72 @@ function normalDist() {
      series2.push({x:i, y:y*2});
   }
   return [
-  {values: series1, key:"Normal 1"},
+  {values: series1, key:"Normal 1", area:true},
   {values: series2, key:"Normal 2"}];
 }
 
+
+function allRandom() {
+  var series = [];
+  for(var i = 0; i < 20; i++) {
+    series.push({x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20) });
+  }
+  return [{values: series,area:true, key: "Total Chaos"}];
+}
+
+function fibonacci() {
+  var series = [
+      {x:1, y:1},
+      {x:2, y:2.5},
+      {x:3, y:4},
+      {x:5, y:6.7},
+      {x:8, y:10.1},
+      {x:13, y:20.1},
+      {x:21, y:35.1},
+      {x:34, y:60.0},
+      {x:55, y:70.9},
+      {x:89, y:100.3}
+  ];
+
+  return [{values: series,area:true,color: "#22fb88", key: "Fibonacci"}];
+}
+
+function lotsofSeries() {
+  var rval = [];
+  for(var n = 0; n < 15; n++) {
+      var values = [];
+      var slope = Math.random() * 5;
+      for(var i =0; i < 30; i++) {
+          values.push(
+              {x: i,
+              y: i * slope + Math.random()*5}
+            );
+      }
+      var isArea = (Math.random() > 0.5);
+      rval.push({key: "Series " + n, area: isArea, values: values});
+  }
+  return rval;
+}
+
+function backwards() {
+  var series = [];
+  for(var i = 30; i >= 1; i--) {
+      series.push({x: i, y: Math.sqrt(i) });
+  }
+  return [{values: series, key: "Backwards series", area:true}];
+}
+
+function duplicateX() {
+  return [
+    {key: "Duplicate X",
+      area: true,
+      values: [
+        {x: 4, y: 10},
+        {x: 4, y: 11},
+        {x: 4, y: 12},
+        {x: 4, y: 13}
+      ]
+    }
+  ];
+}
 </script>
