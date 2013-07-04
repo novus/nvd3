@@ -65,7 +65,7 @@ nv.addGraph(function() {
   chart = nv.models.lineChart().useInteractiveGuideline(false);
 
   chart
-      .x(function(d,i) { return i });
+      .x(function(d,i) { return d.x });
 
 
   chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
@@ -100,7 +100,9 @@ function defaultChartConfig(containerid, data, useDates) {
     chart = nv.models.lineChart().useInteractiveGuideline(true);
 
     chart
-        .x(function(d,i) { return i });
+        .x(function(d,i) { 
+          return d.x
+        });
 
     var formatter;
     if (useDates !== undefined) {

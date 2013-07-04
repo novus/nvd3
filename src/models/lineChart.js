@@ -254,19 +254,23 @@ nv.models.lineChart = function() {
           chart.update();
       });
 
+      
+
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.dispatch.clearHighlights();
-          var singlePoint, allData = [];
+          var singlePoint, pointIndex, pointXLocation, allData = [];
           data
           .filter(function(series, i) { 
             series.seriesIndex = i;
             return !series.disabled; 
           })
           .forEach(function(series,i) {
-              lines.dispatch.highlightPoint(i, e.pointIndex, true);
-              var point = series.values[e.pointIndex];
+              pointIndex = nv.interactiveBisect(series.values, e.pointXValue, lines.x());
+              lines.dispatch.highlightPoint(i, pointIndex, true);
+              var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
+              if (typeof pointXLocation === 'undefined') pointXLocation = lines.xScale()(lines.x()(point));
               allData.push({
                   key: series.key,
                   value: lines.y()(point, e.pointIndex),
@@ -274,10 +278,9 @@ nv.models.lineChart = function() {
               });
           });
 
-          var xValue = xAxis.tickFormat()(lines.x()(singlePoint,e.pointIndex));
-
+          var xValue = xAxis.tickFormat()(lines.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
-                  .position({left: e.pointXLocation + margin.left, top: e.mouseY + margin.top})
+                  .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
                   .valueFormatter(function(d,i) {
@@ -291,6 +294,8 @@ nv.models.lineChart = function() {
                         series: allData
                       }
                   )();
+
+          interactiveLayer.renderGuideLine(pointXLocation);
 
       });
 

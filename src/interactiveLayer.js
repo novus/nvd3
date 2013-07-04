@@ -38,41 +38,32 @@ nv.interactiveGuideline = function() {
 				      .attr("height",availableHeight)
 				      .attr("opacity", 0)
 				      .on("mousemove",function() {
-				          var padding = Math.floor(xScale(1)) /2;
 				          var mouseX = d3.mouse(this)[0];
 				          var mouseY = d3.mouse(this)[1];
-				          var pointIndex = Math.floor(xScale.invert(mouseX + padding));
-				          var pointXLocation = xScale(pointIndex);
+				          var pointXValue = xScale.invert(mouseX);
 				          dispatch.elementMousemove({
 				          		mouseX: mouseX,
 				          		mouseY: mouseY,
-				          		pointIndex: pointIndex,
-				          		pointXLocation: pointXLocation,
-				          		pointYLocation: mouseY   	//TODO: Return the proper Y coordinate, not just mouseY.
+				          		pointXValue: pointXValue,
 				          });
-
-				          renderGuideLine(pointXLocation);
-
 				      	  
 				      })
 				      .on("mouseout",function() {
-				      	  var padding = Math.floor(xScale(1)) /2;
 				          var mouseX = d3.mouse(this)[0];
 				          var mouseY = d3.mouse(this)[1];
-				          var pointIndex = Math.floor(xScale.invert(mouseX + padding));
 				          
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
 					          		mouseY: mouseY,
-					          		pointIndex: pointIndex
 					      });
 
-					      renderGuideLine(null);
+					      layer.renderGuideLine(null);
 				     
 				      })
 				      ;
 
-				 function renderGuideLine(x) {
+				 //Draws a vertical guideline at the given X postion.
+				 layer.renderGuideLine = function(x) {
 				 	if (!showGuideLine) return;
 				 	var line = wrap.select(".nv-interactiveGuideLine")
 				 	      .selectAll("line")
@@ -121,4 +112,32 @@ nv.interactiveGuideline = function() {
 
 
 	return layer;
+};
+
+/* Utility class that uses d3.bisect to find the index in a given array, where a search value can be inserted.
+This is different from normal bisectLeft; this function finds the nearest index to insert the search value.
+
+For instance, lets say your array is [1,2,3,5,10,30], and you search for 28. 
+Normal d3.bisectLeft will return 4, because 28 is inserted after the number 10.  But interactiveBisect will return 5
+because 28 is closer to 30 than 10.
+*/
+nv.interactiveBisect = function (values, searchVal, xAccessor) {
+      if (! values instanceof Array) return null;
+      if (typeof xAccessor !== 'function') xAccessor = function(d) { return d.x;}
+
+      var bisect = d3.bisector(xAccessor).left;
+      var index = d3.max([0, bisect(values,searchVal) - 1]);
+      var currentValue = xAccessor(values[index]);
+      if (typeof currentValue === 'undefined') currentValue = index;
+
+      if (currentValue === searchVal) return index;  //found exact match
+
+      var nextIndex = d3.min([index+1, values.length - 1]);
+      var nextValue = xAccessor(values[nextIndex]);
+      if (typeof nextValue === 'undefined') nextValue = nextIndex;
+
+      if (Math.abs(nextValue - searchVal) >= Math.abs(currentValue - searchVal))
+          return index;
+      else
+          return nextIndex
 };
