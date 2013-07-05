@@ -625,7 +625,7 @@ nv.models.cumulativeLineChart = function() {
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
 
-  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi','useVoronoi',  'id');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -671,7 +671,8 @@ nv.models.cumulativeLineChart = function() {
     if(!arguments.length) return useInteractiveGuideline;
     useInteractiveGuideline = _;
     if (_ === true) {
-       lines.interactive(false);
+       chart.interactive(false);
+       chart.useVoronoi(false);
     }
     return chart;
   };

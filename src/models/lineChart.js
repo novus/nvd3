@@ -417,7 +417,8 @@ nv.models.lineChart = function() {
     if(!arguments.length) return useInteractiveGuideline;
     useInteractiveGuideline = _;
     if (_ === true) {
-       lines.interactive(false);
+       chart.interactive(false);
+       chart.useVoronoi(false);
     }
     return chart;
   };
