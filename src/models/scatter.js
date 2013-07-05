@@ -245,8 +245,10 @@ nv.models.scatter = function() {
 
           var mouseEventCallback = function(d,mDispatch) {
                 if (needsUpdate) return 0;
-                var series = data[d.series],
-                    point  = series.values[d.point];
+                var series = data[d.series];
+                if (typeof series === 'undefined') return;
+                
+                var point  = series.values[d.point];
 
                 mDispatch({
                   point: point,
@@ -356,13 +358,13 @@ nv.models.scatter = function() {
         var points = groups.selectAll('circle.nv-point')
             .data(function(d) { return d.values }, pointKey);
         points.enter().append('circle')
-            .attr('cx', function(d,i) { return x0(getX(d,i)) })
-            .attr('cy', function(d,i) { return y0(getY(d,i)) })
+            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
+            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
         groups.exit().selectAll('path.nv-point').transition()
-            .attr('cx', function(d,i) { return x(getX(d,i)) })
-            .attr('cy', function(d,i) { return y(getY(d,i)) })
+            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
+            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .remove();
         points.each(function(d,i) {
           d3.select(this)
@@ -370,8 +372,8 @@ nv.models.scatter = function() {
             .classed('nv-point-' + i, true);
         });
         points.transition()
-            .attr('cx', function(d,i) { return x(getX(d,i)) })
-            .attr('cy', function(d,i) { return y(getY(d,i)) })
+            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
+            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
 
       } else {

@@ -67,7 +67,7 @@ nv.interactiveGuideline = function() {
 				 	if (!showGuideLine) return;
 				 	var line = wrap.select(".nv-interactiveGuideLine")
 				 	      .selectAll("line")
-				 	      .data((x != null) ? [x] : [], String);
+				 	      .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
 
 				 	line.enter()
 				 		.append("line")

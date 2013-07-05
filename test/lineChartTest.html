@@ -56,6 +56,11 @@
     <svg></svg>
   </div>
 
+  <div class='chart third' id='chart13'>
+    What if there are null, Infinity and NaN values in points?
+    <svg></svg>
+  </div>
+
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
@@ -112,6 +117,7 @@ defaultChartConfig("chart9", fibonacci());
 defaultChartConfig("chart10", lotsofSeries());
 defaultChartConfig("chart11", backwards(),false);
 defaultChartConfig("chart12", duplicateX(),false);
+defaultChartConfig("chart13", withNaNs());
 
 
 function defaultChartConfig(containerid, data, guideline, useDates) {
@@ -314,5 +320,24 @@ function duplicateX() {
       ]
     }
   ];
+}
+
+function withNaNs() {
+  return [
+      {key: "NaN Points",
+        values: [
+            {x: 1, y: NaN},
+            {x: 2, y: undefined},
+            {x: 3, y: false},
+            {x: 4, y: null},
+            {x: 5, y: "Hello"},
+            {x: NaN, y: NaN},
+            {x: null, y: null},
+            {x: undefined, y: undefined},
+            {x: "Hello", y: "World"},
+            {x: Infinity, y: Infinity}
+        ]
+      }
+  ]
 }
 </script>

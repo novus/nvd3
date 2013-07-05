@@ -116,3 +116,14 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
     }
     return 0;
 };
+
+/* Numbers that are undefined, null or NaN, convert them to zeros.
+*/
+nv.utils.NaNtoZero = function(n) {
+    if (typeof n !== 'number' 
+        || isNaN(n) 
+        || n === null
+        || n === Infinity) return 0;
+
+    return n;
+};
