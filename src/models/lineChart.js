@@ -51,7 +51,6 @@ nv.models.lineChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    if (useInteractiveGuideline) return;
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
@@ -179,7 +178,6 @@ nv.models.lineChart = function() {
       lines
         .width(availableWidth)
         .height(availableHeight)
-        .interactive(!useInteractiveGuideline)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
@@ -265,20 +263,20 @@ nv.models.lineChart = function() {
             return !series.disabled; 
           })
           .forEach(function(series,i) {
-              pointIndex = nv.interactiveBisect(series.values, e.pointXValue, lines.x());
+              pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
               lines.dispatch.highlightPoint(i, pointIndex, true);
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
-              if (typeof pointXLocation === 'undefined') pointXLocation = lines.xScale()(lines.x()(point));
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point));
               allData.push({
                   key: series.key,
-                  value: lines.y()(point, e.pointIndex),
+                  value: chart.y()(point, e.pointIndex),
                   color: color(series,series.seriesIndex)
               });
           });
 
-          var xValue = xAxis.tickFormat()(lines.x()(singlePoint,pointIndex));
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
@@ -288,9 +286,7 @@ nv.models.lineChart = function() {
                   })
                   .data(
                       {
-                        key: "",
                         value: xValue,
-                      //  seriesSelectedKey: e.series.key,
                         series: allData
                       }
                   )();
@@ -360,6 +356,7 @@ nv.models.lineChart = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+  chart.interactiveLayer = interactiveLayer;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
 
@@ -419,6 +416,9 @@ nv.models.lineChart = function() {
   chart.useInteractiveGuideline = function(_) {
     if(!arguments.length) return useInteractiveGuideline;
     useInteractiveGuideline = _;
+    if (_ === true) {
+       lines.interactive(false);
+    }
     return chart;
   };
 

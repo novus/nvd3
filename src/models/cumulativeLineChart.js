@@ -10,6 +10,7 @@ nv.models.cumulativeLineChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
     , controls = nv.models.legend()
+    , interactiveLayer = nv.interactiveGuideline()
     ;
 
   var margin = {top: 30, right: 30, bottom: 50, left: 60}
@@ -22,6 +23,7 @@ nv.models.cumulativeLineChart = function() {
     , rightAlignYAxis = false
     , tooltips = true
     , showControls = true
+    , useInteractiveGuideline = false
     , rescaleY = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -234,9 +236,14 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-avgLinesWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
+      gEnter.append('g').attr('class', 'nv-interactive');
 
       //------------------------------------------------------------
-
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
 
       //------------------------------------------------------------
       // Legend
@@ -497,6 +504,52 @@ nv.models.cumulativeLineChart = function() {
       });
 */
 
+       interactiveLayer.dispatch.on('elementMousemove', function(e) {
+          lines.dispatch.clearHighlights();
+          var singlePoint, pointIndex, pointXLocation, allData = [];
+          data
+          .filter(function(series, i) { 
+            series.seriesIndex = i;
+            return !series.disabled; 
+          })
+          .forEach(function(series,i) {
+              pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+              lines.dispatch.highlightPoint(i, pointIndex, true);
+              var point = series.values[pointIndex];
+              if (typeof point === 'undefined') return;
+              if (typeof singlePoint === 'undefined') singlePoint = point;
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point));
+              allData.push({
+                  key: series.key,
+                  value: chart.y()(point, e.pointIndex),
+                  color: color(series,series.seriesIndex)
+              });
+          });
+
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          interactiveLayer.tooltip
+                  .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                  .chartContainer(that.parentNode)
+                  .enabled(tooltips)
+                  .valueFormatter(function(d,i) {
+                     return yAxis.tickFormat()(d);
+                  })
+                  .data(
+                      {
+                        value: xValue,
+                        series: allData
+                      }
+                  )();
+
+          interactiveLayer.renderGuideLine(pointXLocation);
+
+      });
+
+      interactiveLayer.dispatch.on("elementMouseout",function(e) {
+          dispatch.tooltipHide();
+          lines.dispatch.clearHighlights();
+      });
+
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
       });
@@ -570,8 +623,9 @@ nv.models.cumulativeLineChart = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+  chart.interactiveLayer = interactiveLayer;
 
-  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -610,6 +664,15 @@ nv.models.cumulativeLineChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    return chart;
+  };
+
+  chart.useInteractiveGuideline = function(_) {
+    if(!arguments.length) return useInteractiveGuideline;
+    useInteractiveGuideline = _;
+    if (_ === true) {
+       lines.interactive(false);
+    }
     return chart;
   };
 
