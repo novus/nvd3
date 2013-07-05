@@ -10,6 +10,7 @@ nv.models.stackedAreaChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
     , controls = nv.models.legend()
+    , interactiveLayer = nv.interactiveGuideline()
     ;
 
   var margin = {top: 30, right: 25, bottom: 50, left: 60}
@@ -21,6 +22,7 @@ nv.models.stackedAreaChart = function() {
     , showXAxis = true
     , showYAxis = true
     , rightAlignYAxis = false
+    , useInteractiveGuideline = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -136,9 +138,14 @@ nv.models.stackedAreaChart = function() {
       gEnter.append('g').attr('class', 'nv-stackedWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
+      gEnter.append('g').attr('class', 'nv-interactive');
 
       //------------------------------------------------------------
-
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
 
       //------------------------------------------------------------
       // Legend
@@ -332,6 +339,54 @@ nv.models.stackedAreaChart = function() {
         chart.update();
       });
 
+
+      interactiveLayer.dispatch.on('elementMousemove', function(e) {
+          stacked.scatter.dispatch.clearHighlights();
+          var singlePoint, pointIndex, pointXLocation, allData = [];
+          data
+          .filter(function(series, i) { 
+            series.seriesIndex = i;
+            return !series.disabled; 
+          })
+          .forEach(function(series,i) {
+              pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+              stacked.scatter.dispatch.highlightPoint(i, pointIndex, true);
+              var point = series.values[pointIndex];
+              if (typeof point === 'undefined') return;
+              if (typeof singlePoint === 'undefined') singlePoint = point;
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point));
+              allData.push({
+                  key: series.key,
+                  value: chart.y()(point, e.pointIndex),
+                  color: color(series,series.seriesIndex)
+              });
+          });
+
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          interactiveLayer.tooltip
+                  .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                  .chartContainer(that.parentNode)
+                  .enabled(tooltips)
+                  .valueFormatter(function(d,i) {
+                     return yAxis.tickFormat()(d);
+                  })
+                  .data(
+                      {
+                        value: xValue,
+                        series: allData
+                      }
+                  )();
+
+          interactiveLayer.renderGuideLine(pointXLocation);
+
+      });
+
+      interactiveLayer.dispatch.on("elementMouseout",function(e) {
+          dispatch.tooltipHide();
+          stacked.scatter.dispatch.clearHighlights();
+      });
+
+
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
       });
@@ -401,6 +456,7 @@ nv.models.stackedAreaChart = function() {
   chart.controls = controls;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+  chart.interactiveLayer = interactiveLayer;
 
   d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'sizeDomain', 'interactive', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
 
@@ -461,6 +517,15 @@ nv.models.stackedAreaChart = function() {
     if(!arguments.length) return rightAlignYAxis;
     rightAlignYAxis = _;
     yAxis.orient( (_) ? 'right' : 'left');
+    return chart;
+  };
+
+  chart.useInteractiveGuideline = function(_) {
+    if(!arguments.length) return useInteractiveGuideline;
+    useInteractiveGuideline = _;
+    if (_ === true) {
+       stacked.interactive(false);
+    }
     return chart;
   };
 
