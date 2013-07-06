@@ -25,3 +25,7 @@ text {
 .chart.third {
   width: 33%;
 }
+
+.navigation a{
+  margin-right: 1em;
+}

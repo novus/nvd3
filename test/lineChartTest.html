@@ -6,6 +6,12 @@
 
 <body>
   <h3>Line chart test cases - feel free to add more tests</h3>
+  <div class='navigation'>
+      Tests:
+      <a href="lineChartTest.html">Line Chart</a>
+      <a href="stackedAreaChartTest.html">Stacked Area</a>
+      <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
+  </div>
   <div class='chart full' id='chart1'>
     Example of chart with many series', and new interactive guideline plus tooltip.
     <svg></svg>
@@ -129,7 +135,7 @@ function defaultChartConfig(containerid, data, guideline, useDates) {
 
     chart
         .x(function(d,i) { 
-          return d.x
+          return d.x;
         });
 
     var formatter;
