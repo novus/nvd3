@@ -2368,7 +2368,7 @@ nv.models.cumulativeLineChart = function() {
 */
 
        interactiveLayer.dispatch.on('elementMousemove', function(e) {
-          lines.dispatch.clearHighlights();
+          lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
           .filter(function(series, i) { 
@@ -2377,7 +2377,7 @@ nv.models.cumulativeLineChart = function() {
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-              lines.dispatch.highlightPoint(i, pointIndex, true);
+              lines.highlightPoint(i, pointIndex, true);
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
@@ -2410,7 +2410,7 @@ nv.models.cumulativeLineChart = function() {
 
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
           dispatch.tooltipHide();
-          lines.dispatch.clearHighlights();
+          lines.clearHighlights();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -3456,6 +3456,7 @@ nv.models.historicalBar = function() {
     , xDomain
     , yDomain
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , interactive = true
     ;
 
   //============================================================
@@ -3499,8 +3500,8 @@ nv.models.historicalBar = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-bar').data([data[0].values]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bar');
+      var wrap = container.selectAll('g.nv-wrap.nv-historicalBar-' + id).data([data[0].values]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-historicalBar-' + id);
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
@@ -3547,6 +3548,7 @@ nv.models.historicalBar = function() {
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .on('mouseover', function(d,i) {
+            if (!interactive) return;
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
                 point: d,
@@ -3559,6 +3561,7 @@ nv.models.historicalBar = function() {
 
           })
           .on('mouseout', function(d,i) {
+                if (!interactive) return;
                 d3.select(this).classed('hover', false);
                 dispatch.elementMouseout({
                     point: d,
@@ -3569,6 +3572,7 @@ nv.models.historicalBar = function() {
                 });
           })
           .on('click', function(d,i) {
+                if (!interactive) return;
                 dispatch.elementClick({
                     //label: d[label],
                     value: getY(d,i),
@@ -3581,6 +3585,7 @@ nv.models.historicalBar = function() {
               d3.event.stopPropagation();
           })
           .on('dblclick', function(d,i) {
+              if (!interactive) return;
               dispatch.elementDblClick({
                   //label: d[label],
                   value: getY(d,i),
@@ -3617,7 +3622,20 @@ nv.models.historicalBar = function() {
     return chart;
   }
 
+  //Create methods to allow outside functions to highlight a specific bar.
+  chart.highlightPoint = function(pointIndex, isHoverOver) {
+      d3.select(".nv-historicalBar-" + id)
+        .select(".nv-bars .nv-bar-0-" + pointIndex)
+              .classed("hover", isHoverOver)
+               ;
+  };
 
+  chart.clearHighlights = function() {
+      d3.select(".nv-historicalBar-" + id)
+        .select(".nv-bars .nv-bar.hover")
+              .classed("hover", false)
+               ;
+  };
   //============================================================
   // Expose Public Variables
   //------------------------------------------------------------
@@ -3714,6 +3732,12 @@ nv.models.historicalBar = function() {
   chart.id = function(_) {
     if (!arguments.length) return id;
     id = _;
+    return chart;
+  };
+
+  chart.interactive = function(_) {
+    if(!arguments.length) return interactive;
+    interactive = false;
     return chart;
   };
 
@@ -3862,8 +3886,8 @@ nv.models.historicalBarChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-lineChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-historicalBarChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-historicalBarChart').append('g');
       var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
@@ -4053,7 +4077,8 @@ nv.models.historicalBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, bars, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
+  d3.rebind(chart, bars, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 
+    'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate','highlightPoint','clearHighlights', 'interactive');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -4889,7 +4914,8 @@ nv.models.line = function() {
   chart.dispatch = scatter.dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData');
+  d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 
+    'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData','highlightPoint','clearHighlights');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -5219,7 +5245,7 @@ nv.models.lineChart = function() {
       
 
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
-          lines.dispatch.clearHighlights();
+          lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
           .filter(function(series, i) { 
@@ -5228,7 +5254,7 @@ nv.models.lineChart = function() {
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-              lines.dispatch.highlightPoint(i, pointIndex, true);
+              lines.highlightPoint(i, pointIndex, true);
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
@@ -5261,7 +5287,7 @@ nv.models.lineChart = function() {
 
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
           dispatch.tooltipHide();
-          lines.dispatch.clearHighlights();
+          lines.clearHighlights();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -10497,7 +10523,7 @@ nv.models.scatter = function() {
     , sizeDomain   = null // Override point size domain
     , sizeRange    = null
     , singlePoint  = false
-    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'highlightPoint', 'clearHighlights')
+    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
     , useVoronoi   = true
     ;
 
@@ -10895,20 +10921,23 @@ nv.models.scatter = function() {
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
-  dispatch.on('clearHighlights', function() {
+  chart.clearHighlights = function() {
+      //Remove the 'hover' class from all highlighted points.
       d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover",false);
-  });
+  };
 
-  dispatch.on('highlightPoint', function(seriesIndex, pointIndex, isHoverOver) {
+  chart.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) {
       d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-          .classed("hover",isHoverOver);     
-  });
+          .classed("hover",isHoverOver); 
+  };
+
+
   dispatch.on('elementMouseover.point', function(d) {
-     if (interactive) dispatch.highlightPoint(d.seriesIndex,d.pointIndex,true);
+     if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,true);
   });
 
   dispatch.on('elementMouseout.point', function(d) {
-     if (interactive) dispatch.highlightPoint(d.seriesIndex,d.pointIndex,false);
+     if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,false);
   });
 
   //============================================================
@@ -13128,7 +13157,8 @@ nv.models.stackedArea = function() {
   chart.dispatch = dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi','clipRadius');
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 
+    'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi','clipRadius','highlightPoint','clearHighlights');
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -13569,7 +13599,7 @@ nv.models.stackedAreaChart = function() {
 
 
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
-          stacked.scatter.dispatch.clearHighlights();
+          stacked.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
           .filter(function(series, i) { 
@@ -13578,7 +13608,7 @@ nv.models.stackedAreaChart = function() {
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-              stacked.scatter.dispatch.highlightPoint(i, pointIndex, true);
+              stacked.highlightPoint(i, pointIndex, true);
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
@@ -13611,7 +13641,7 @@ nv.models.stackedAreaChart = function() {
 
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
           dispatch.tooltipHide();
-          stacked.scatter.dispatch.clearHighlights();
+          stacked.clearHighlights();
       });
 
 

@@ -21,6 +21,7 @@ nv.models.historicalBar = function() {
     , xDomain
     , yDomain
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , interactive = true
     ;
 
   //============================================================
@@ -112,6 +113,7 @@ nv.models.historicalBar = function() {
           .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
           .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
           .on('mouseover', function(d,i) {
+            if (!interactive) return;
             d3.select(this).classed('hover', true);
             dispatch.elementMouseover({
                 point: d,
@@ -124,6 +126,7 @@ nv.models.historicalBar = function() {
 
           })
           .on('mouseout', function(d,i) {
+                if (!interactive) return;
                 d3.select(this).classed('hover', false);
                 dispatch.elementMouseout({
                     point: d,
@@ -134,6 +137,7 @@ nv.models.historicalBar = function() {
                 });
           })
           .on('click', function(d,i) {
+                if (!interactive) return;
                 dispatch.elementClick({
                     //label: d[label],
                     value: getY(d,i),
@@ -146,6 +150,7 @@ nv.models.historicalBar = function() {
               d3.event.stopPropagation();
           })
           .on('dblclick', function(d,i) {
+              if (!interactive) return;
               dispatch.elementDblClick({
                   //label: d[label],
                   value: getY(d,i),
@@ -292,6 +297,12 @@ nv.models.historicalBar = function() {
   chart.id = function(_) {
     if (!arguments.length) return id;
     id = _;
+    return chart;
+  };
+
+  chart.interactive = function(_) {
+    if(!arguments.length) return interactive;
+    interactive = false;
     return chart;
   };
 
