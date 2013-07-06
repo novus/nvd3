@@ -39,7 +39,7 @@
         ,   snapDistance = 25   //Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
         ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
         ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
-        ,   chartContainer = null   //Parent container that holds the chart.
+        ,   chartContainer = null   //SVG Container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
         ;
@@ -118,8 +118,8 @@
             var top = (fixedTop != null) ? fixedTop : position.top;
 
             if (chartContainer) {
-                left += (chartContainer.offsetLeft || 0);
-                top += (chartContainer.offsetTop || 0);
+                left = nv.tooltip.findTotalOffsetLeft(chartContainer, left);
+                top = nv.tooltip.findTotalOffsetTop(chartContainer,top);
             }
 
             if (snapDistance && snapDistance > 0) {
@@ -237,6 +237,30 @@
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
   };
 
+  nv.tooltip.findTotalOffsetTop = function ( Elem, initialTop ) {
+                var offsetTop = initialTop;
+                if (Elem.parentNode.tagName === 'BODY') return offsetTop;
+
+                do {
+                    if( !isNaN( Elem.offsetTop ) ) {
+                        offsetTop += (Elem.offsetTop);
+                    }
+                } while( Elem = Elem.offsetParent );
+                return offsetTop;
+  };
+
+  nv.tooltip.findTotalOffsetLeft = function ( Elem, initialLeft) {
+                var offsetLeft = initialLeft;
+                if (Elem.parentNode.tagName === 'BODY') return offsetLeft;
+
+                do {
+                    if( !isNaN( Elem.offsetLeft ) ) {
+                        offsetLeft += (Elem.offsetLeft);
+                    }
+                } while( Elem = Elem.offsetParent );
+                return offsetLeft;
+  };
+
   //Global utility function to render a tooltip on the DOM.
   nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
 
@@ -255,28 +279,12 @@
             dist = dist || 20;
 
             var tooltipTop = function ( Elem ) {
-                var offsetTop = top;
-                if (Elem.offsetParent.tagName === 'BODY') return offsetTop;
-
-                do {
-                    if( !isNaN( Elem.offsetTop ) ) {
-                        offsetTop += (Elem.offsetTop);
-                    }
-                } while( Elem = Elem.offsetParent );
-                return offsetTop;
-            }
+                return nv.tooltip.findTotalOffsetTop(Elem, top);
+            };
 
             var tooltipLeft = function ( Elem ) {
-                var offsetLeft = left;
-                if (Elem.offsetParent.tagName === 'BODY') return offsetLeft;
-
-                do {
-                    if( !isNaN( Elem.offsetLeft ) ) {
-                        offsetLeft += (Elem.offsetLeft);
-                    }
-                } while( Elem = Elem.offsetParent );
-                return offsetLeft;
-            }
+                return nv.tooltip.findTotalOffsetLeft(Elem,left);
+            };
 
             switch (gravity) {
               case 'e':
