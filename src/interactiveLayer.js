@@ -16,11 +16,15 @@ nv.interactiveGuideline = function() {
 
 	//Private variables
 	var previousXCoordinate = null
+	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1
 	;
+
+
 
 	function layer(selection) {
 		selection.each(function(data) {
 				var container = d3.select(this);
+				var offsetLeft = nv.tooltip.findTotalOffsetLeft(nv.tooltip.findFirstNonSVGParent(this),0);
 
 				var availableWidth = (width || 960), availableHeight = (height || 400);
 
@@ -39,6 +43,17 @@ nv.interactiveGuideline = function() {
 				      .attr("opacity", 0)
 				      .on("mousemove",function() {
 				          var mouseX = d3.mouse(this)[0];
+
+				          if (isMSIE) {
+				          	 /*
+								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer.
+								d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
+								over a rect in IE.  THe coordinates are off by 25% of the element's offsetLeft position.
+								For instance, if the <rect> is 100px left of the screen, the left most mouse point returned
+								will be -25 on IE. This hack solves the problem.
+				          	 */
+				          	 mouseX = mouseX + 0.25 * offsetLeft;
+				          }
 				          var mouseY = d3.mouse(this)[1];
 				          var pointXValue = xScale.invert(mouseX);
 				          dispatch.elementMousemove({

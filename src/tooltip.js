@@ -107,12 +107,7 @@
             return container;
         }
 
-        function findFirstNonSVGParent(Elem) {
-            while(Elem.tagName.match(/^g|svg$/i) !== null) {
-                Elem = Elem.parentNode;
-            }
-            return Elem;
-        }
+        
 
         //Draw the tooltip onto the DOM.
         function nvtooltip() {
@@ -124,7 +119,7 @@
             var left = position.left;
             var top = (fixedTop != null) ? fixedTop : position.top;
 
-            chartContainer = findFirstNonSVGParent(chartContainer);
+            chartContainer = nv.tooltip.findFirstNonSVGParent(chartContainer);
             if (chartContainer) {
                 left = nv.tooltip.findTotalOffsetLeft(chartContainer, left);
                 top = nv.tooltip.findTotalOffsetTop(chartContainer,top);
@@ -243,6 +238,13 @@
         body.appendChild(container);
 
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
+  };
+
+  nv.tooltip.findFirstNonSVGParent = function(Elem) {
+            while(Elem.tagName.match(/^g|svg$/i) !== null) {
+                Elem = Elem.parentNode;
+            }
+            return Elem;
   };
 
   nv.tooltip.findTotalOffsetTop = function ( Elem, initialTop ) {
