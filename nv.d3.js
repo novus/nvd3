@@ -246,17 +246,17 @@ Has the following known issues:
 */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
       if (! values instanceof Array) return null;
-      if (typeof xAccessor !== 'function') xAccessor = function(d) { return d.x;}
+      if (typeof xAccessor !== 'function') xAccessor = function(d,i) { return d.x;}
 
       var bisect = d3.bisector(xAccessor).left;
       var index = d3.max([0, bisect(values,searchVal) - 1]);
-      var currentValue = xAccessor(values[index]);
+      var currentValue = xAccessor(values[index], index);
       if (typeof currentValue === 'undefined') currentValue = index;
 
       if (currentValue === searchVal) return index;  //found exact match
 
       var nextIndex = d3.min([index+1, values.length - 1]);
-      var nextValue = xAccessor(values[nextIndex]);
+      var nextValue = xAccessor(values[nextIndex], index);
       if (typeof nextValue === 'undefined') nextValue = nextIndex;
 
       if (Math.abs(nextValue - searchVal) >= Math.abs(currentValue - searchVal))
@@ -2381,10 +2381,10 @@ nv.models.cumulativeLineChart = function() {
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
-              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point));
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
               allData.push({
                   key: series.key,
-                  value: chart.y()(point, e.pointIndex),
+                  value: chart.y()(point, pointIndex),
                   color: color(series,series.seriesIndex)
               });
           });
@@ -5258,10 +5258,10 @@ nv.models.lineChart = function() {
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
-              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point));
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
               allData.push({
                   key: series.key,
-                  value: chart.y()(point, e.pointIndex),
+                  value: chart.y()(point, pointIndex),
                   color: color(series,series.seriesIndex)
               });
           });
@@ -13612,10 +13612,10 @@ nv.models.stackedAreaChart = function() {
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
-              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point));
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
               allData.push({
                   key: series.key,
-                  value: chart.y()(point, e.pointIndex),
+                  value: chart.y()(point, pointIndex),
                   color: color(series,series.seriesIndex)
               });
           });

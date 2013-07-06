@@ -268,10 +268,10 @@ nv.models.lineChart = function() {
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
-              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point));
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
               allData.push({
                   key: series.key,
-                  value: chart.y()(point, e.pointIndex),
+                  value: chart.y()(point, pointIndex),
                   color: color(series,series.seriesIndex)
               });
           });
