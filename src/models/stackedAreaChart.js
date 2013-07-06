@@ -341,7 +341,7 @@ nv.models.stackedAreaChart = function() {
 
 
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
-          stacked.scatter.dispatch.clearHighlights();
+          stacked.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
           .filter(function(series, i) { 
@@ -350,7 +350,7 @@ nv.models.stackedAreaChart = function() {
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-              stacked.scatter.dispatch.highlightPoint(i, pointIndex, true);
+              stacked.highlightPoint(i, pointIndex, true);
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
@@ -383,7 +383,7 @@ nv.models.stackedAreaChart = function() {
 
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
           dispatch.tooltipHide();
-          stacked.scatter.dispatch.clearHighlights();
+          stacked.clearHighlights();
       });
 
 

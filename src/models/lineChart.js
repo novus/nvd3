@@ -255,7 +255,7 @@ nv.models.lineChart = function() {
       
 
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
-          lines.dispatch.clearHighlights();
+          lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
           .filter(function(series, i) { 
@@ -264,7 +264,7 @@ nv.models.lineChart = function() {
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-              lines.dispatch.highlightPoint(i, pointIndex, true);
+              lines.highlightPoint(i, pointIndex, true);
               var point = series.values[pointIndex];
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
@@ -297,7 +297,7 @@ nv.models.lineChart = function() {
 
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
           dispatch.tooltipHide();
-          lines.dispatch.clearHighlights();
+          lines.clearHighlights();
       });
 
       dispatch.on('tooltipShow', function(e) {
