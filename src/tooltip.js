@@ -119,10 +119,9 @@
             var left = position.left;
             var top = (fixedTop != null) ? fixedTop : position.top;
 
-            chartContainer = nv.tooltip.findFirstNonSVGParent(chartContainer);
             if (chartContainer) {
-                left = nv.tooltip.findTotalOffsetLeft(chartContainer, left);
-                top = nv.tooltip.findTotalOffsetTop(chartContainer,top);
+                left += chartContainer.getBoundingClientRect().left + window.pageXOffset;
+                top += chartContainer.getBoundingClientRect().top + window.pageYOffset;
             }
 
             if (snapDistance && snapDistance > 0) {
@@ -278,8 +277,8 @@
                 width = parseInt(container.offsetWidth),
                 windowWidth = nv.utils.windowSize().width,
                 windowHeight = nv.utils.windowSize().height,
-                scrollTop = window.scrollY,
-                scrollLeft = window.scrollX,
+                scrollTop = window.pageYOffset,
+                scrollLeft = window.pageXOffset,
                 left, top;
 
             windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
