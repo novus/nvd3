@@ -301,7 +301,7 @@ nv.models.lineChart = function() {
       });
 
       dispatch.on('tooltipShow', function(e) {
-         showTooltip(e, that.parentNode);
+        if (tooltips) showTooltip(e, that.parentNode);
       });
 
 
