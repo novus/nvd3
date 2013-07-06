@@ -248,7 +248,7 @@ svg .title {
   -webkit-transition: fill-opacity 250ms linear;
 }
 
-.nvd3 .nv-bars rect:hover {
+.nvd3 .nv-bars rect.hover {
   fill-opacity: 1;
 }
 
