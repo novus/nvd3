@@ -44,7 +44,7 @@ nv.interactiveGuideline = function() {
 				          dispatch.elementMousemove({
 				          		mouseX: mouseX,
 				          		mouseY: mouseY,
-				          		pointXValue: pointXValue,
+				          		pointXValue: pointXValue
 				          });
 				      	  
 				      })
@@ -54,7 +54,7 @@ nv.interactiveGuideline = function() {
 				          
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
-					          		mouseY: mouseY,
+					          		mouseY: mouseY
 					      });
 
 					      layer.renderGuideLine(null);
