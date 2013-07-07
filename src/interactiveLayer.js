@@ -20,12 +20,18 @@ nv.interactiveGuideline = function() {
 	;
 
 
+	function findFirstSVGParent(Elem) {
+		while(Elem.tagName.match(/^svg$/i) === null) {
+			Elem = Elem.parentNode;
+		}
+		return Elem;
+	}
 
 	function layer(selection) {
 		selection.each(function(data) {
 				var container = d3.select(this);
-				var offsetLeft = nv.tooltip.findTotalOffsetLeft(nv.tooltip.findFirstNonSVGParent(this),0);
-
+				var offsetParent = findFirstSVGParent(this);
+				
 				var availableWidth = (width || 960), availableHeight = (height || 400);
 
 				var wrap = container.selectAll("g.nv-wrap.nv-interactiveLineLayer").data([data]);
@@ -43,7 +49,9 @@ nv.interactiveGuideline = function() {
 				      .attr("opacity", 0)
 				      .on("mousemove",function() {
 				          var mouseX = d3.mouse(this)[0];
-
+				          var mouseY = d3.mouse(this)[1];
+				          var offsetLeft = offsetParent.getBoundingClientRect().left;
+						  var offsetTop = offsetParent.getBoundingClientRect().top;
 				          if (isMSIE) {
 				          	 /*
 								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer.
@@ -53,8 +61,9 @@ nv.interactiveGuideline = function() {
 								will be -25 on IE. This hack solves the problem.
 				          	 */
 				          	 mouseX = mouseX + 0.25 * offsetLeft;
+				          	 mouseY = mouseY + 0.25 * offsetTop;
 				          }
-				          var mouseY = d3.mouse(this)[1];
+				          
 				          var pointXValue = xScale.invert(mouseX);
 				          dispatch.elementMousemove({
 				          		mouseX: mouseX,
