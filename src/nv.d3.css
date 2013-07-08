@@ -24,6 +24,7 @@
 
   font-family: Arial;
   font-size: 13px;
+  text-align: left;
 
   /*transition: opacity 500ms linear;
   -moz-transition: opacity 500ms linear;
@@ -96,6 +97,10 @@
 
 .nvtooltip table tr.selected td.key {
   font-weight: bold;
+}
+
+.nvtooltip table td.key {
+  font-weight:normal;
 }
 .nvtooltip table td.value {
   text-align: right;

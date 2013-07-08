@@ -101,7 +101,12 @@
                 //Create new tooltip div if it doesn't exist on DOM.
                 container = document.createElement('div');
                 container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
-                var body = document.getElementsByTagName('body')[0]; //All new tooltips are placed directly on <body>
+                var body;
+                if (chartContainer)
+                    body = chartContainer;
+                else
+                    body = document.getElementsByTagName('body')[0];
+
                 body.appendChild(container);
             }
             else {
@@ -126,8 +131,11 @@
             var top = (fixedTop != null) ? fixedTop : position.top;
 
             if (chartContainer) {
-                left += chartContainer.getBoundingClientRect().left + window.pageXOffset;
-                top += chartContainer.getBoundingClientRect().top + window.pageYOffset;
+                var svgComp = chartContainer.getElementsByTagName("svg")[0];
+                var boundRect = (svgComp) ? svgComp.getBoundingClientRect() : chartContainer.getBoundingClientRect();
+                
+                left += boundRect.left + window.pageXOffset;
+                top  += boundRect.top + window.pageYOffset;
             }
 
             if (snapDistance && snapDistance > 0) {
@@ -137,7 +145,7 @@
              var container = getTooltipContainer(contentGenerator(data));
             
 
-            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
+            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container, true);
             return nvtooltip;
         };
 
@@ -285,7 +293,7 @@
   };
 
   //Global utility function to render a tooltip on the DOM.
-  nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
+  nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container, skipOffsetCalc) {
 
             var height = parseInt(container.offsetHeight),
                 width = parseInt(container.offsetWidth),
@@ -302,12 +310,12 @@
             dist = dist || 20;
 
             var tooltipTop = function ( Elem ) {
-                if (Elem.parentNode.tagName === 'BODY') return top;
+                if (skipOffsetCalc === true) return top;
                 return nv.tooltip.findTotalOffsetTop(Elem, top);
             };
 
             var tooltipLeft = function ( Elem ) {
-                if (Elem.parentNode.tagName === 'BODY') return left;
+                if (skipOffsetCalc === true) return left;
                 return nv.tooltip.findTotalOffsetLeft(Elem,left);
             };
 
@@ -372,7 +380,6 @@
                 tooltips[0].style.opacity = 0;
                 tooltips[0].className = 'nvtooltip-pending-removal';
               }
-
 
               setTimeout(function() {
 
