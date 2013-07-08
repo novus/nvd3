@@ -48,10 +48,10 @@ nv.interactiveGuideline = function() {
 				      .attr("height",availableHeight)
 				      .attr("opacity", 0)
 				      .on("mousemove",function() {
-				          var mouseX = d3.mouse(this)[0];
-				          var mouseY = d3.mouse(this)[1];
-				          var offsetLeft = offsetParent.getBoundingClientRect().left;
-						  var offsetTop = offsetParent.getBoundingClientRect().top;
+				      	  var d3mouse = d3.mouse(this);
+				          var mouseX = d3mouse[0];
+				          var mouseY = d3mouse[1];
+				          
 				          if (isMSIE) {
 				          	 /*
 								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer.
@@ -60,6 +60,8 @@ nv.interactiveGuideline = function() {
 								For instance, if the <rect> is 100px left of the screen, the left most mouse point returned
 								will be -25 on IE. This hack solves the problem.
 				          	 */
+				          	 var offsetLeft = offsetParent.getBoundingClientRect().left;
+						     var offsetTop = offsetParent.getBoundingClientRect().top;
 				          	 mouseX = mouseX + 0.25 * offsetLeft;
 				          	 mouseY = mouseY + 0.25 * offsetTop;
 				          }
@@ -73,8 +75,9 @@ nv.interactiveGuideline = function() {
 				      	  
 				      })
 				      .on("mouseout",function() {
-				          var mouseX = d3.mouse(this)[0];
-				          var mouseY = d3.mouse(this)[1];
+				          var d3mouse = d3.mouse(this);
+				          var mouseX = d3mouse[0];
+				          var mouseY = d3mouse[1];
 				          
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
