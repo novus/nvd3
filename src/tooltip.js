@@ -58,7 +58,7 @@
                 d.series.forEach(function(item, i) {
                     var isSelected = (item.key === d.seriesSelectedKey) ? "selected" : "";
                     html += "<tr class='" + isSelected + "'>";
-                    html += "<td class='legend'><div style='background-color: " + item.color + ";'></div></td>";
+                    html += "<td class='legend-color-guide'><div style='background-color: " + item.color + ";'></div></td>";
                     html += "<td class='key'>" + item.key + ":</td>";
                     html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
                 });

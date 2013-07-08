@@ -2,6 +2,9 @@
 This places a rectangle on top of the chart. When you mouse move over it, it sends a dispatch
 containing the X-coordinate. It can also render a vertical line where the mouse is located.
 
+dispatch.elementMousemove is the important event to latch onto.  It is fired whenever the mouse moves over
+the rectangle. The dispatch is given one object which contains the mouseX/Y location.
+It also has 'pointXValue', which is the conversion of mouseX to the x-axis scale.
 */
 nv.interactiveGuideline = function() {
 	var tooltip = nv.models.tooltip();
@@ -147,6 +150,8 @@ This is different from normal bisectLeft; this function finds the nearest index 
 For instance, lets say your array is [1,2,3,5,10,30], and you search for 28. 
 Normal d3.bisectLeft will return 4, because 28 is inserted after the number 10.  But interactiveBisect will return 5
 because 28 is closer to 30 than 10.
+
+Unit tests can be found in: interactiveBisectTest.html
 
 Has the following known issues:
    * Will not work if the data points move backwards (ie, 10,9,8,7, etc) or if the data points are in random order.

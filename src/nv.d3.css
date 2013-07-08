@@ -101,7 +101,7 @@
   font-weight: bold;
 }
 
-.nvtooltip table td.legend div {
+.nvtooltip table td.legend-color-guide div {
   width: 8px;
   height: 8px;
   vertical-align: middle;

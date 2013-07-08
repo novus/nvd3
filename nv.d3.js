@@ -121,6 +121,9 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
 This places a rectangle on top of the chart. When you mouse move over it, it sends a dispatch
 containing the X-coordinate. It can also render a vertical line where the mouse is located.
 
+dispatch.elementMousemove is the important event to latch onto.  It is fired whenever the mouse moves over
+the rectangle. The dispatch is given one object which contains the mouseX/Y location.
+It also has 'pointXValue', which is the conversion of mouseX to the x-axis scale.
 */
 nv.interactiveGuideline = function() {
 	var tooltip = nv.models.tooltip();
@@ -135,12 +138,22 @@ nv.interactiveGuideline = function() {
 
 	//Private variables
 	var previousXCoordinate = null
+	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1
 	;
+
+
+	function findFirstSVGParent(Elem) {
+		while(Elem.tagName.match(/^svg$/i) === null) {
+			Elem = Elem.parentNode;
+		}
+		return Elem;
+	}
 
 	function layer(selection) {
 		selection.each(function(data) {
 				var container = d3.select(this);
-
+				var offsetParent = findFirstSVGParent(this);
+				
 				var availableWidth = (width || 960), availableHeight = (height || 400);
 
 				var wrap = container.selectAll("g.nv-wrap.nv-interactiveLineLayer").data([data]);
@@ -157,8 +170,24 @@ nv.interactiveGuideline = function() {
 				      .attr("height",availableHeight)
 				      .attr("opacity", 0)
 				      .on("mousemove",function() {
-				          var mouseX = d3.mouse(this)[0];
-				          var mouseY = d3.mouse(this)[1];
+				      	  var d3mouse = d3.mouse(this);
+				          var mouseX = d3mouse[0];
+				          var mouseY = d3mouse[1];
+				          
+				          if (isMSIE) {
+				          	 /*
+								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer.
+								d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
+								over a rect in IE.  THe coordinates are off by 25% of the element's offsetLeft position.
+								For instance, if the <rect> is 100px left of the screen, the left most mouse point returned
+								will be -25 on IE. This hack solves the problem.
+				          	 */
+				          	 var offsetLeft = offsetParent.getBoundingClientRect().left;
+						     var offsetTop = offsetParent.getBoundingClientRect().top;
+				          	 mouseX = mouseX + 0.25 * offsetLeft;
+				          	 mouseY = mouseY + 0.25 * offsetTop;
+				          }
+				          
 				          var pointXValue = xScale.invert(mouseX);
 				          dispatch.elementMousemove({
 				          		mouseX: mouseX,
@@ -168,8 +197,9 @@ nv.interactiveGuideline = function() {
 				      	  
 				      })
 				      .on("mouseout",function() {
-				          var mouseX = d3.mouse(this)[0];
-				          var mouseY = d3.mouse(this)[1];
+				          var d3mouse = d3.mouse(this);
+				          var mouseX = d3mouse[0];
+				          var mouseY = d3mouse[1];
 				          
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
@@ -240,6 +270,8 @@ For instance, lets say your array is [1,2,3,5,10,30], and you search for 28.
 Normal d3.bisectLeft will return 4, because 28 is inserted after the number 10.  But interactiveBisect will return 5
 because 28 is closer to 30 than 10.
 
+Unit tests can be found in: interactiveBisectTest.html
+
 Has the following known issues:
    * Will not work if the data points move backwards (ie, 10,9,8,7, etc) or if the data points are in random order.
    * Won't work if there are duplicate x coordinate values.
@@ -256,7 +288,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
       if (currentValue === searchVal) return index;  //found exact match
 
       var nextIndex = d3.min([index+1, values.length - 1]);
-      var nextValue = xAccessor(values[nextIndex], index);
+      var nextValue = xAccessor(values[nextIndex], nextIndex);
       if (typeof nextValue === 'undefined') nextValue = nextIndex;
 
       if (Math.abs(nextValue - searchVal) >= Math.abs(currentValue - searchVal))
@@ -304,7 +336,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         ,   snapDistance = 25   //Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
         ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
         ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
-        ,   chartContainer = null   //Parent container that holds the chart.
+        ,   chartContainer = null   //SVG Container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
         ;
@@ -323,7 +355,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
                 d.series.forEach(function(item, i) {
                     var isSelected = (item.key === d.seriesSelectedKey) ? "selected" : "";
                     html += "<tr class='" + isSelected + "'>";
-                    html += "<td class='legend'><div style='background-color: " + item.color + ";'></div></td>";
+                    html += "<td class='legend-color-guide'><div style='background-color: " + item.color + ";'></div></td>";
                     html += "<td class='key'>" + item.key + ":</td>";
                     html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
                 });
@@ -372,6 +404,8 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
             return container;
         }
 
+        
+
         //Draw the tooltip onto the DOM.
         function nvtooltip() {
             if (!enabled) return;
@@ -383,8 +417,8 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
             var top = (fixedTop != null) ? fixedTop : position.top;
 
             if (chartContainer) {
-                left += (chartContainer.offsetLeft || 0);
-                top += (chartContainer.offsetTop || 0);
+                left += chartContainer.getBoundingClientRect().left + window.pageXOffset;
+                top += chartContainer.getBoundingClientRect().top + window.pageYOffset;
             }
 
             if (snapDistance && snapDistance > 0) {
@@ -502,6 +536,37 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
   };
 
+  nv.tooltip.findFirstNonSVGParent = function(Elem) {
+            while(Elem.tagName.match(/^g|svg$/i) !== null) {
+                Elem = Elem.parentNode;
+            }
+            return Elem;
+  };
+
+  nv.tooltip.findTotalOffsetTop = function ( Elem, initialTop ) {
+                var offsetTop = initialTop;
+                
+
+                do {
+                    if( !isNaN( Elem.offsetTop ) ) {
+                        offsetTop += (Elem.offsetTop);
+                    }
+                } while( Elem = Elem.offsetParent );
+                return offsetTop;
+  };
+
+  nv.tooltip.findTotalOffsetLeft = function ( Elem, initialLeft) {
+                var offsetLeft = initialLeft;
+                
+
+                do {
+                    if( !isNaN( Elem.offsetLeft ) ) {
+                        offsetLeft += (Elem.offsetLeft);
+                    }
+                } while( Elem = Elem.offsetParent );
+                return offsetLeft;
+  };
+
   //Global utility function to render a tooltip on the DOM.
   nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
 
@@ -509,8 +574,8 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
                 width = parseInt(container.offsetWidth),
                 windowWidth = nv.utils.windowSize().width,
                 windowHeight = nv.utils.windowSize().height,
-                scrollTop = window.scrollY,
-                scrollLeft = window.scrollX,
+                scrollTop = window.pageYOffset,
+                scrollLeft = window.pageXOffset,
                 left, top;
 
             windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
@@ -520,28 +585,14 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
             dist = dist || 20;
 
             var tooltipTop = function ( Elem ) {
-                var offsetTop = top;
-                if (Elem.offsetParent.tagName === 'BODY') return offsetTop;
-
-                do {
-                    if( !isNaN( Elem.offsetTop ) ) {
-                        offsetTop += (Elem.offsetTop);
-                    }
-                } while( Elem = Elem.offsetParent );
-                return offsetTop;
-            }
+                if (Elem.parentNode.tagName === 'BODY') return top;
+                return nv.tooltip.findTotalOffsetTop(Elem, top);
+            };
 
             var tooltipLeft = function ( Elem ) {
-                var offsetLeft = left;
-                if (Elem.offsetParent.tagName === 'BODY') return offsetLeft;
-
-                do {
-                    if( !isNaN( Elem.offsetLeft ) ) {
-                        offsetLeft += (Elem.offsetLeft);
-                    }
-                } while( Elem = Elem.offsetParent );
-                return offsetLeft;
-            }
+                if (Elem.parentNode.tagName === 'BODY') return left;
+                return nv.tooltip.findTotalOffsetLeft(Elem,left);
+            };
 
             switch (gravity) {
               case 'e':
@@ -2392,7 +2443,7 @@ nv.models.cumulativeLineChart = function() {
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
-                  .chartContainer(that.parentNode)
+                  .chartContainer(that)
                   .enabled(tooltips)
                   .valueFormatter(function(d,i) {
                      return yAxis.tickFormat()(d);
@@ -5269,7 +5320,7 @@ nv.models.lineChart = function() {
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
-                  .chartContainer(that.parentNode)
+                  .chartContainer(that)
                   .enabled(tooltips)
                   .valueFormatter(function(d,i) {
                      return yAxis.tickFormat()(d);
@@ -13623,7 +13674,7 @@ nv.models.stackedAreaChart = function() {
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
-                  .chartContainer(that.parentNode)
+                  .chartContainer(that)
                   .enabled(tooltips)
                   .valueFormatter(function(d,i) {
                      return yAxis.tickFormat()(d);
