@@ -96,22 +96,20 @@
 
         //Creates new tooltip container, or uses existing one on DOM.
         function getTooltipContainer(newContent) {
-            var container = document.getElementsByClassName("nvtooltip");
-            if (container.length === 0) {
-                //Create new tooltip div if it doesn't exist on DOM.
-                container = document.createElement('div');
-                container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
+            var container = d3.select(".nvtooltip");
+            if (container.node() === null) {
                 var body;
                 if (chartContainer)
-                    body = chartContainer;
+                    body = d3.select(chartContainer);
                 else
-                    body = document.getElementsByTagName('body')[0];
+                    body = d3.select("body");
 
-                body.appendChild(container);
+                //Create new tooltip div if it doesn't exist on DOM.
+                container = body.append("div").attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"));
             }
             else {
                 //Element already exists on DOM, so reuse it.
-                container = container[0];
+                container = container.node();
             }
 
             container.innerHTML = newContent;
