@@ -6,68 +6,70 @@
 
 <body>
   <h3>Line chart test cases - feel free to add more tests</h3>
-  <div class='navigation'>
-      Tests:
-      <a href="lineChartTest.html">Line Chart</a>
-      <a href="stackedAreaChartTest.html">Stacked Area</a>
-      <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
-      <a href="interactiveBisectTest.html">nv.interactiveBisect unit tests</a>
-  </div>
-  <div class='chart full' id='chart1'>
-    Example of chart with many series', and new interactive guideline plus tooltip.
-    <svg></svg>
-  </div>
-  <div class='chart half' id='chart2'>
-    Chart with old tooltip style.
-    <svg></svg>
-  </div>
-  <div class='chart half' id='chart3'>
-    Chart with three data points.
-    <svg></svg>
-  </div>
-  <div class='chart third' id='chart4'>
-    Chart where two series have different number of points.
-    <svg></svg>
-  </div>
-   <div class='chart third' id='chart5'>
-    Chart with one point.
-    <svg></svg>
-  </div>
-   <div class='chart third' id='chart6'>
-    Chart with 1000 points.
-    <svg></svg>
-  </div>
+  <div style='position:relative;'>
+      <div class='navigation'>
+          Tests:
+          <a href="lineChartTest.html">Line Chart</a>
+          <a href="stackedAreaChartTest.html">Stacked Area</a>
+          <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
+          <a href="interactiveBisectTest.html">nv.interactiveBisect unit tests</a>
+      </div>
+      <div class='chart full' id='chart1'>
+        Example of chart with many series', and new interactive guideline plus tooltip.
+        <svg></svg>
+      </div>
+      <div class='chart half' id='chart2'>
+        Chart with old tooltip style.
+        <svg></svg>
+      </div>
+      <div class='chart half' id='chart3'>
+        Chart with three data points.
+        <svg></svg>
+      </div>
+      <div class='chart third' id='chart4'>
+        Chart where two series have different number of points.
+        <svg></svg>
+      </div>
+       <div class='chart third' id='chart5'>
+        Chart with one point.
+        <svg></svg>
+      </div>
+       <div class='chart third' id='chart6'>
+        Chart with 1000 points.
+        <svg></svg>
+      </div>
 
-  <div class='chart third' id='chart7'>
-    Chart with no data.
-    <svg></svg>
-  </div>
-   <div class='chart third' id='chart8'>
-    All points random. No order.
-    <svg></svg>
-  </div>
-   <div class='chart third' id='chart9'>
-    Points do not increase linearly.
-    <svg></svg>
-  </div>
+      <div class='chart third' id='chart7'>
+        Chart with no data.
+        <svg></svg>
+      </div>
+       <div class='chart third' id='chart8'>
+        All points random. No order.
+        <svg></svg>
+      </div>
+       <div class='chart third' id='chart9'>
+        Points do not increase linearly.
+        <svg></svg>
+      </div>
 
-  <div class='chart third' id='chart10'>
-    Chart with 15 series'
-    <svg></svg>
-  </div>
-   <div class='chart third' id='chart11'>
-    Data points go backwards
-    <svg></svg>
-  </div>
-   <div class='chart third' id='chart12'>
-    Duplicate X coordinate points.
-    <svg></svg>
-  </div>
+      <div class='chart third' id='chart10'>
+        Chart with 15 series'
+        <svg></svg>
+      </div>
+       <div class='chart third' id='chart11'>
+        Data points go backwards
+        <svg></svg>
+      </div>
+       <div class='chart third' id='chart12'>
+        Duplicate X coordinate points.
+        <svg></svg>
+      </div>
 
-  <div class='chart third' id='chart13'>
-    What if there are null, Infinity and NaN values in points?
-    <svg></svg>
-  </div>
+      <div class='chart third' id='chart13'>
+        What if there are null, Infinity and NaN values in points?
+        <svg></svg>
+      </div>
+    </div>
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>

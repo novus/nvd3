@@ -39,7 +39,7 @@
         ,   snapDistance = 25   //Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
         ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
         ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
-        ,   chartContainer = null   //SVG Container that holds the chart.
+        ,   chartContainer = null   //Parent DIV, of the SVG Container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
         ;
@@ -96,24 +96,24 @@
 
         //Creates new tooltip container, or uses existing one on DOM.
         function getTooltipContainer(newContent) {
-            var container = d3.select(".nvtooltip");
+            var body;
+            if (chartContainer)
+                body = d3.select(chartContainer);
+            else
+                body = d3.select("body");
+
+            var container = body.select(".nvtooltip");
             if (container.node() === null) {
-                var body;
-                if (chartContainer)
-                    body = d3.select(chartContainer);
-                else
-                    body = d3.select("body");
-
                 //Create new tooltip div if it doesn't exist on DOM.
-                container = body.append("div").attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"));
+                container = body.append("div")
+                    .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
+                    ;
             }
-            else {
-                //Element already exists on DOM, so reuse it.
-                container = container.node();
-            }
+        
 
-            container.innerHTML = newContent;
-            return container;
+            container.node().innerHTML = newContent;
+            container.style("top",0).style("left",0);
+            return container.node();
         }
 
         
@@ -127,23 +127,27 @@
 
             var left = position.left;
             var top = (fixedTop != null) ? fixedTop : position.top;
+            var container = getTooltipContainer(contentGenerator(data));
 
             if (chartContainer) {
                 var svgComp = chartContainer.getElementsByTagName("svg")[0];
                 var boundRect = (svgComp) ? svgComp.getBoundingClientRect() : chartContainer.getBoundingClientRect();
-                
-                left += boundRect.left + window.pageXOffset;
-                top  += boundRect.top + window.pageYOffset;
+                var svgOffset = {left:0,top:0};
+                if (svgComp) {
+                    var svgBound = svgComp.getBoundingClientRect();
+                    var chartBound = chartContainer.getBoundingClientRect();
+                    svgOffset.top = Math.abs(svgBound.top - chartBound.top);
+                    svgOffset.left = Math.abs(svgBound.left - chartBound.left);
+                }
+                left += chartContainer.offsetLeft + svgOffset.left;
+                top += chartContainer.offsetTop + svgOffset.top;
             }
 
             if (snapDistance && snapDistance > 0) {
                 top = Math.floor(top/snapDistance) * snapDistance;
             }
 
-             var container = getTooltipContainer(contentGenerator(data));
-            
-
-            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container, true);
+            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container, false);
             return nvtooltip;
         };
 
