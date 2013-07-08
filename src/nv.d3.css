@@ -89,8 +89,9 @@
 }
 
 .nvtooltip table td {
-  padding-right: 6px;
+  padding-right: 9px;
   padding-bottom: 3px;
+  vertical-align: middle;
 }
 
 .nvtooltip table tr.selected td.key {
