@@ -341,7 +341,13 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
         ;
 
+        //Format function for the tooltip values column
         var valueFormatter = function(d,i) {
+            return d;
+        };
+
+        //Format function for the tooltip header value.
+        var headerFormatter = function(d) {
             return d;
         };
 
@@ -350,7 +356,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
 
             if (d == null) return '';
 
-            var html = "<table><thead><tr><td colspan='3'><strong class='x-value'>" + d.value + "</strong></td></tr></thead><tbody>";
+            var html = "<table><thead><tr><td colspan='3'><strong class='x-value'>" + headerFormatter(d.value) + "</strong></td></tr></thead><tbody>";
             if (d.series instanceof Array) {
                 d.series.forEach(function(item, i) {
                     var isSelected = (item.key === d.seriesSelectedKey) ? "selected" : "";
@@ -373,7 +379,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         //In situations where the chart is in a 'viewBox', re-position the tooltip based on how far chart is zoomed.
         function convertViewBoxRatio() {
             if (chartContainer) {
-              var svg = d3.select(chartContainer).select('svg');
+              var svg = d3.select(chartContainer);
               var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
               if (viewBox) {
                 viewBox = viewBox.split(' ');
@@ -505,6 +511,14 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
             if (!arguments.length) return valueFormatter;
             if (typeof _ === 'function') {
                 valueFormatter = _;
+            }
+            return nvtooltip;
+        };
+
+        nvtooltip.headerFormatter = function(_) {
+            if (!arguments.length) return headerFormatter;
+            if (typeof _ === 'function') {
+                headerFormatter = _;
             }
             return nvtooltip;
         };
