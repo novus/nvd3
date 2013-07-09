@@ -95,10 +95,6 @@
   vertical-align: middle;
 }
 
-.nvtooltip table tr.selected td.key {
-  font-weight: bold;
-}
-
 .nvtooltip table td.key {
   font-weight:normal;
 }

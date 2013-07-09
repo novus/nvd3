@@ -1,14 +1,19 @@
+/* Tooltip rendering model for nvd3 charts.
+window.nv.models.tooltip is the updated,new way to render tooltips.
 
-/*****
- * A no-frills tooltip implementation.
- *****/
-
-
+window.nv.tooltip.show is the old tooltip code.
+window.nv.tooltip.* also has various helper methods.
+*/
 (function() {
 
   window.nv.tooltip = {};
 
   /* Model which can be instantiated to handle tooltip rendering.
+    Example usage: 
+    var tip = nv.models.tooltip().gravity('w').distance(23)
+                .data(myDataObject);
+
+        tip();    //just invoke the returned function to render tooltip.
   */
   window.nv.models.tooltip = function() {
         var content = null    //HTML contents of the tooltip.  If null, the content is generated via the data variable.
@@ -16,8 +21,7 @@
         Format of data:
         {
             key: "Date",
-            value: "August 2009",
-            seriesSelectedKey: "Series 2", 
+            value: "August 2009", 
             series: [
                     {
                         key: "Series 1",
@@ -54,6 +58,8 @@
             return d;
         };
 
+        //By default, the tooltip model renders a beautiful table inside a DIV.
+        //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
             if (content != null) return content;
 
@@ -62,8 +68,7 @@
             var html = "<table><thead><tr><td colspan='3'><strong class='x-value'>" + headerFormatter(d.value) + "</strong></td></tr></thead><tbody>";
             if (d.series instanceof Array) {
                 d.series.forEach(function(item, i) {
-                    var isSelected = (item.key === d.seriesSelectedKey) ? "selected" : "";
-                    html += "<tr class='" + isSelected + "'>";
+                    html += "<tr>";
                     html += "<td class='legend-color-guide'><div style='background-color: " + item.color + ";'></div></td>";
                     html += "<td class='key'>" + item.key + ":</td>";
                     html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
@@ -147,7 +152,7 @@
                 top = Math.floor(top/snapDistance) * snapDistance;
             }
 
-            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container, false);
+            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
             return nvtooltip;
         };
 
@@ -263,6 +268,7 @@
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
   };
 
+  //Looks up the ancestry of a DOM element, and returns the first NON-svg node.
   nv.tooltip.findFirstNonSVGParent = function(Elem) {
             while(Elem.tagName.match(/^g|svg$/i) !== null) {
                 Elem = Elem.parentNode;
@@ -270,10 +276,11 @@
             return Elem;
   };
 
+  //Finds the total offsetTop of a given DOM element.
+  //Looks up the entire ancestry of an element, up to the first relatively positioned element.
   nv.tooltip.findTotalOffsetTop = function ( Elem, initialTop ) {
                 var offsetTop = initialTop;
                 
-
                 do {
                     if( !isNaN( Elem.offsetTop ) ) {
                         offsetTop += (Elem.offsetTop);
@@ -282,10 +289,11 @@
                 return offsetTop;
   };
 
+  //Finds the total offsetLeft of a given DOM element.
+  //Looks up the entire ancestry of an element, up to the first relatively positioned element.
   nv.tooltip.findTotalOffsetLeft = function ( Elem, initialLeft) {
                 var offsetLeft = initialLeft;
                 
-
                 do {
                     if( !isNaN( Elem.offsetLeft ) ) {
                         offsetLeft += (Elem.offsetLeft);
@@ -295,7 +303,11 @@
   };
 
   //Global utility function to render a tooltip on the DOM.
-  nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container, skipOffsetCalc) {
+  //pos = [X,Y] coordinates of where to place the tooltip, relative to the SVG chart container.
+  //gravity = how to orient the tooltip
+  //dist = how far away from the mouse to place tooltip
+  //container = tooltip DIV
+  nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
 
             var height = parseInt(container.offsetHeight),
                 width = parseInt(container.offsetWidth),
@@ -312,12 +324,10 @@
             dist = dist || 20;
 
             var tooltipTop = function ( Elem ) {
-                if (skipOffsetCalc === true) return top;
                 return nv.tooltip.findTotalOffsetTop(Elem, top);
             };
 
             var tooltipLeft = function ( Elem ) {
-                if (skipOffsetCalc === true) return left;
                 return nv.tooltip.findTotalOffsetLeft(Elem,left);
             };
 
@@ -364,8 +374,8 @@
             container.style.left = left+'px';
             container.style.top = top+'px';
             container.style.opacity = 1;
-            container.style.position = 'absolute'; //fix scroll bar issue
-            container.style.pointerEvents = 'none'; //fix scroll bar issue
+            container.style.position = 'absolute'; 
+            container.style.pointerEvents = 'none';
 
             return container;
     };
