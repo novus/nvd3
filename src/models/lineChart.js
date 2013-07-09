@@ -138,12 +138,6 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'nv-interactive');
 
       //------------------------------------------------------------
-      //Set up interactive layer
-      if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
-        wrap.select(".nv-interactive").call(interactiveLayer);
-      }
-      //------------------------------------------------------------
       // Legend
 
       if (showLegend) {
@@ -174,6 +168,15 @@ nv.models.lineChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
+
+      
+      //------------------------------------------------------------
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
+
 
       lines
         .width(availableWidth)
