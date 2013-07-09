@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.1a';
+nv.version = '1.0.0b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -2933,7 +2933,7 @@ nv.models.discreteBar = function() {
           })
         .select('rect')
           .attr('height', function(d,i) {
-            return  Math.max(Math.abs(y(getY(d,i)) - y(0)) || 1)
+            return  Math.max(Math.abs(y(getY(d,i)) - y((yDomain && yDomain[0]) || 0)) || 1)
           });
 
 
@@ -3155,7 +3155,7 @@ nv.models.discreteBarChart = function() {
       // Setup Scales
 
       x = discretebar.xScale();
-      y = discretebar.yScale();
+      y = discretebar.yScale().clamp(true);
 
       //------------------------------------------------------------
 
