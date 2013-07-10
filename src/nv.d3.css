@@ -25,15 +25,15 @@
   font-family: Arial;
   font-size: 13px;
 
-  /*
-  transition: opacity 500ms linear;
+  /*transition: opacity 500ms linear;
   -moz-transition: opacity 500ms linear;
   -webkit-transition: opacity 500ms linear;
 
   transition-delay: 500ms;
   -moz-transition-delay: 500ms;
   -webkit-transition-delay: 500ms;
-  */
+
+*/
 
   -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
