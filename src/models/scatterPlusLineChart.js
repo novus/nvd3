@@ -238,29 +238,28 @@ nv.models.scatterPlusLineChart = function() {
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
 
-
       wrap.select('.nv-regressionLinesWrap')
           .attr('clip-path', 'url(#nv-edge-clip-' + scatter.id() + ')');
 
       var regWrap = wrap.select('.nv-regressionLinesWrap').selectAll('.nv-regLines')
-                      .data(function(d) { return d });
+                      .data(function(d) {return d });
+      
+      regWrap.enter().append('g').attr('class', 'nv-regLines');
 
-      var reglines = regWrap.enter()
-                       .append('g').attr('class', 'nv-regLines')
+      var regLine = regWrap.selectAll('.nv-regLine').data(function(d){return [d]});
+      var regLineEnter = regLine.enter()
                        .append('line').attr('class', 'nv-regLine')
                        .style('stroke-opacity', 0);
 
-      //d3.transition(regWrap.selectAll('.nv-regLines line'))
-      regWrap.selectAll('.nv-regLines line')
+      regLine
           .attr('x1', x.range()[0])
           .attr('x2', x.range()[1])
-          .attr('y1', function(d,i) { return y(x.domain()[0] * d.slope + d.intercept) })
+          .attr('y1', function(d,i) {return y(x.domain()[0] * d.slope + d.intercept) })
           .attr('y2', function(d,i) { return y(x.domain()[1] * d.slope + d.intercept) })
           .style('stroke', function(d,i,j) { return color(d,j) })
           .style('stroke-opacity', function(d,i) {
             return (d.disabled || typeof d.slope === 'undefined' || typeof d.intercept === 'undefined') ? 0 : 1 
           });
-
 
       //------------------------------------------------------------
 
