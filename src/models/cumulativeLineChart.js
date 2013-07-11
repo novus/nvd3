@@ -152,9 +152,6 @@ nv.models.cumulativeLineChart = function() {
         dispatch.stateChange(state);
       }
 
-
-
-
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
@@ -224,17 +221,18 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
+      var foregroundPointerEvents = (useInteractiveGuideline) ? "none" : "all";
 
       var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-cumulativeLine').append('g');
       var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-interactive');
-      gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events","none");
-      gEnter.append('g').attr('class', 'nv-y nv-axis').style("pointer-events","none");
-      gEnter.append('g').attr('class', 'nv-background').style("pointer-events","none");
-      gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events","none");
-      gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events","none");
+      gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-y nv-axis').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-background').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
       
