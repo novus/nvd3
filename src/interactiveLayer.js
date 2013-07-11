@@ -55,7 +55,7 @@ nv.interactiveGuideline = function() {
 				          var mouseX = d3mouse[0];
 				          var mouseY = d3mouse[1];
 				          
-				          if (isMSIE) {
+				          if (isMSIE && (mouseX < 0) || (mouseY < 0)) {
 				          	 /*
 								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer.
 								d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
