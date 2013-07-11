@@ -141,7 +141,8 @@ window.nv.tooltip.* also has various helper methods.
                 if (svgComp) {
                     var svgBound = svgComp.getBoundingClientRect();
                     var chartBound = chartContainer.getBoundingClientRect();
-                    svgOffset.top = Math.abs(svgBound.top - chartBound.top);
+                    var svgBoundTopClamped = (svgBound.top < 0) ? 0 : svgBound.top;
+                    svgOffset.top = Math.abs(svgBoundTopClamped - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
                 left += chartContainer.offsetLeft + svgOffset.left;
