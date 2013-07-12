@@ -201,6 +201,25 @@ nv.interactiveGuideline = function() {
 				          var mouseX = d3mouse[0];
 				          var mouseY = d3mouse[1];
 				          
+				          if (isMSIE) {
+				          	/* 
+				          	  On IE9+, the pointer-events property does not work for DIV's (it does on Chrome, FireFox).
+				          	  So the result is, when you mouse over this interactive layer, and then mouse over a tooltip,
+				          	  the mouseout event is called, causing the tooltip to disappear. This causes very buggy behavior.
+				          	  To bypass this, only on IE, we check d3.event.relatedTarget. If this is equal to anything in the tooltip,
+				          	  we do NOT fire elementMouseout.
+
+				          	*/
+				          	 var rTarget = d3.event.relatedTarget;
+				          	 if (rTarget) {
+				          	 	while(rTarget && rTarget.id !== tooltip.id()) {
+				          	 		rTarget = rTarget.parentNode;
+				          	 	}
+				          	 	if (rTarget && tooltip.id() === rTarget.id) {
+				          	 		return;
+				          	 	}
+				          	 }
+				          }
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
 					          		mouseY: mouseY
@@ -343,6 +362,8 @@ window.nv.tooltip.* also has various helper methods.
         ,   chartContainer = null   //Parent DIV, of the SVG Container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
+        //Generates a unique id when you create a new tooltip() object
+        ,   id = "nvtooltip-" + Math.floor(Math.random() * 100000)
         ;
 
         //Format function for the tooltip values column
@@ -409,6 +430,7 @@ window.nv.tooltip.* also has various helper methods.
                 //Create new tooltip div if it doesn't exist on DOM.
                 container = body.append("div")
                     .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
+                    .attr("id",id)
                     ;
             }
         
@@ -438,8 +460,7 @@ window.nv.tooltip.* also has various helper methods.
                 if (svgComp) {
                     var svgBound = svgComp.getBoundingClientRect();
                     var chartBound = chartContainer.getBoundingClientRect();
-                    var svgBoundTopClamped = (svgBound.top < 0) ? 0 : svgBound.top;
-                    svgOffset.top = Math.abs(svgBoundTopClamped - chartBound.top);
+                    svgOffset.top = Math.abs(svgBound.top - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
                 left += chartContainer.offsetLeft + svgOffset.left;
@@ -537,6 +558,11 @@ window.nv.tooltip.* also has various helper methods.
                 headerFormatter = _;
             }
             return nvtooltip;
+        };
+
+        //id() is a read-only function. You can't use it to set the id.
+        nvtooltip.id = function() {
+            return id;
         };
 
 
