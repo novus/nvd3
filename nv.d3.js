@@ -10986,7 +10986,9 @@ nv.models.scatter = function() {
         points.each(function(d,i) {
           d3.select(this)
             .classed('nv-point', true)
-            .classed('nv-point-' + i, true);
+            .classed('nv-point-' + i, true)
+            .classed('hover',false)
+            ;
         });
         points.transition()
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
@@ -11015,7 +11017,9 @@ nv.models.scatter = function() {
         points.each(function(d,i) {
           d3.select(this)
             .classed('nv-point', true)
-            .classed('nv-point-' + i, true);
+            .classed('nv-point-' + i, true)
+            .classed('hover',false)
+            ;
         });
         points.transition()
             .attr('transform', function(d,i) {
