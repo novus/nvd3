@@ -82,6 +82,25 @@ nv.interactiveGuideline = function() {
 				          var mouseX = d3mouse[0];
 				          var mouseY = d3mouse[1];
 				          
+				          if (isMSIE) {
+				          	/* 
+				          	  On IE9+, the pointer-events property does not work for DIV's (it does on Chrome, FireFox).
+				          	  So the result is, when you mouse over this interactive layer, and then mouse over a tooltip,
+				          	  the mouseout event is called, causing the tooltip to disappear. This causes very buggy behavior.
+				          	  To bypass this, only on IE, we check d3.event.relatedTarget. If this is equal to anything in the tooltip,
+				          	  we do NOT fire elementMouseout.
+
+				          	*/
+				          	 var rTarget = d3.event.relatedTarget;
+				          	 if (rTarget) {
+				          	 	while(rTarget && rTarget.id !== tooltip.id()) {
+				          	 		rTarget = rTarget.parentNode;
+				          	 	}
+				          	 	if (rTarget && tooltip.id() === rTarget.id) {
+				          	 		return;
+				          	 	}
+				          	 }
+				          }
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
 					          		mouseY: mouseY
