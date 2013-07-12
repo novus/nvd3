@@ -46,6 +46,8 @@ window.nv.tooltip.* also has various helper methods.
         ,   chartContainer = null   //Parent DIV, of the SVG Container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
+        //Generates a unique id when you create a new tooltip() object
+        ,   id = "nvtooltip-" + Math.floor(Math.random() * 100000)
         ;
 
         //Format function for the tooltip values column
@@ -112,6 +114,7 @@ window.nv.tooltip.* also has various helper methods.
                 //Create new tooltip div if it doesn't exist on DOM.
                 container = body.append("div")
                     .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
+                    .attr("id",id)
                     ;
             }
         
@@ -240,6 +243,11 @@ window.nv.tooltip.* also has various helper methods.
                 headerFormatter = _;
             }
             return nvtooltip;
+        };
+
+        //id() is a read-only function. You can't use it to set the id.
+        nvtooltip.id = function() {
+            return id;
         };
 
 
