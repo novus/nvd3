@@ -90,6 +90,9 @@ window.nv.tooltip.* also has various helper methods.
         function convertViewBoxRatio() {
             if (chartContainer) {
               var svg = d3.select(chartContainer);
+              if (svg.node().tagName !== "svg") {
+                 svg = svg.select("svg");
+              }
               var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
               if (viewBox) {
                 viewBox = viewBox.split(' ');
@@ -120,7 +123,7 @@ window.nv.tooltip.* also has various helper methods.
         
 
             container.node().innerHTML = newContent;
-            container.style("top",0).style("left",0);
+            container.style("top",0).style("left",0).style("opacity",0);
             return container.node();
         }
 
