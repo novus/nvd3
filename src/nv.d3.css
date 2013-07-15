@@ -51,9 +51,9 @@
     putting a "with-transitions" class on the container div.
 */
 .nvtooltip.with-transitions, .with-transitions .nvtooltip {
-  transition: opacity 500ms linear;
-  -moz-transition: opacity 500ms linear;
-  -webkit-transition: opacity 500ms linear;
+  transition: opacity 250ms linear;
+  -moz-transition: opacity 250ms linear;
+  -webkit-transition: opacity 250ms linear;
 
   transition-delay: 250ms;
   -moz-transition-delay: 250ms;
