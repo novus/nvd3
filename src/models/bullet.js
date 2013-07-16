@@ -147,14 +147,14 @@ nv.models.bullet = function() {
           .on('mouseover', function() {
               dispatch.elementMouseover({
                 value: measurez[0],
-                label: measureLabelz[0] ? measureLabelz[0] : 'Current',
+                label: measureLabelz[0] || 'Current',
                 pos: [x1(measurez[0]), availableHeight/2]
               })
           })
           .on('mouseout', function() {
               dispatch.elementMouseout({
                 value: measurez[0],
-                label: measureLabelz[0] ? measureLabelz[0] : 'Current'
+                label: measureLabelz[0] || 'Current'
               })
           })
 
@@ -166,14 +166,14 @@ nv.models.bullet = function() {
             .on('mouseover', function() {
               dispatch.elementMouseover({
                 value: markerz[0],
-                label: markerLabelz[0] ? markerLabelz[0] : 'Previous',
+                label: markerLabelz[0] || 'Previous',
                 pos: [x1(markerz[0]), availableHeight/2]
               })
             })
             .on('mouseout', function() {
               dispatch.elementMouseout({
                 value: markerz[0],
-                label: markerLabelz[0] ? markerLabelz[0] : 'Previous'
+                label: markerLabelz[0] || 'Previous'
               })
             });
       } else {
@@ -183,7 +183,7 @@ nv.models.bullet = function() {
 
       wrap.selectAll('.nv-range')
           .on('mouseover', function(d,i) {
-            var label = rangeLabelz[i] ? rangeLabelz[i] : !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+            var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
 
             dispatch.elementMouseover({
               value: d,
@@ -192,7 +192,7 @@ nv.models.bullet = function() {
             })
           })
           .on('mouseout', function(d,i) {
-            var label = rangeLabelz[i] ? rangeLabelz[i] : !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+            var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
 
             dispatch.elementMouseout({
               value: d,
