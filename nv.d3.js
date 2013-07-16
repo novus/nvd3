@@ -4685,9 +4685,15 @@ nv.models.indentedTree = function() {
         var seriesWidths = [];
         series.each(function(d,i) {
               var legendText = d3.select(this).select('text');
-              var svgComputedTextLength = legendText.node().getComputedTextLength() 
-                                         || nv.utils.calcApproxTextWidth(legendText);
-              seriesWidths.push(svgComputedTextLength + 28); // 28 is ~ the width of the circle plus some padding
+              var nodeTextLength;
+              try {
+                nodeTextLength = legendText.node().getComputedTextLength();
+              }
+              catch(e) {
+                nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
+              }
+             
+              seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
             });
 
         //nv.log('Series Widths: ', JSON.stringify(seriesWidths));

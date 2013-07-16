@@ -39,6 +39,8 @@
   text-align: left;
   pointer-events: none;
 
+  white-space: nowrap;
+
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
