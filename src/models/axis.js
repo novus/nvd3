@@ -124,7 +124,7 @@ nv.models.axis = function() {
             //Rotate all xTicks
             xTicks
               .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
-              .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
+              .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
           }
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
@@ -147,7 +147,7 @@ nv.models.axis = function() {
                 .attr('dy', '.71em')
                 .attr('y', axis.tickPadding())
                 .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
-                .attr('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
+                .style('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
                 .text(function(d,i) {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
@@ -167,7 +167,7 @@ nv.models.axis = function() {
         case 'right':
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
           axisLabel
-              .attr('text-anchor', rotateYLabel ? 'middle' : 'begin')
+              .style('text-anchor', rotateYLabel ? 'middle' : 'begin')
               .attr('transform', rotateYLabel ? 'rotate(90)' : '')
               .attr('y', rotateYLabel ? (-Math.max(margin.right,width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
               .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
@@ -185,7 +185,7 @@ nv.models.axis = function() {
                 .attr('dy', '.32em')
                 .attr('y', 0)
                 .attr('x', axis.tickPadding())
-                .attr('text-anchor', 'start')
+                .style('text-anchor', 'start')
                 .text(function(d,i) {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
@@ -209,7 +209,7 @@ nv.models.axis = function() {
           */
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
           axisLabel
-              .attr('text-anchor', rotateYLabel ? 'middle' : 'end')
+              .style('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
               .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
