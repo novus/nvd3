@@ -19,7 +19,7 @@ nv.interactiveGuideline = function() {
 
 	//Private variables
 	var previousXCoordinate = null
-	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1
+	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
 	;
 
 
@@ -57,16 +57,14 @@ nv.interactiveGuideline = function() {
 				          
 				          if (isMSIE) {
 				          	 /*
-								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer.
+								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
 								d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
-								over a rect in IE.  THe coordinates are off by 25% of the element's offsetLeft position.
-								For instance, if the <rect> is 100px left of the screen, the left most mouse point returned
-								will be -25 on IE. This hack solves the problem.
+								over a rect in IE 10.
+								However, d3.event.offsetX/Y also returns the mouse coordinates
+								relative to the triggering <rect>. So we use offsetX/Y on IE.  
 				          	 */
-				          	 var offsetLeft = offsetParent.getBoundingClientRect().left;
-						     var offsetTop = offsetParent.getBoundingClientRect().top;
-				          	 mouseX = mouseX + 0.25 * offsetLeft;
-				          	 mouseY = mouseY + 0.25 * offsetTop;
+				          	 mouseX = d3.event.offsetX;
+				          	 mouseY = d3.event.offsetY;
 				          }
 				          
 				          var pointXValue = xScale.invert(mouseX);
@@ -82,6 +80,25 @@ nv.interactiveGuideline = function() {
 				          var mouseX = d3mouse[0];
 				          var mouseY = d3mouse[1];
 				          
+				          if (isMSIE) {
+				          	/* 
+				          	  On IE 9+, the pointer-events property does not work for DIV's (it does on Chrome, FireFox).
+				          	  So the result is, when you mouse over this interactive layer, and then mouse over a tooltip,
+				          	  the mouseout event is called, causing the tooltip to disappear. This causes very buggy behavior.
+				          	  To bypass this, only on IE, we check d3.event.relatedTarget. If this is equal to anything in the tooltip,
+				          	  we do NOT fire elementMouseout.
+
+				          	*/
+				          	 var rTarget = d3.event.relatedTarget;
+				          	 if (rTarget) {
+				          	 	while(rTarget && rTarget.id !== tooltip.id()) {
+				          	 		rTarget = rTarget.parentNode;
+				          	 	}
+				          	 	if (rTarget && tooltip.id() === rTarget.id) {
+				          	 		return;
+				          	 	}
+				          	 }
+				          }
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
 					          		mouseY: mouseY
