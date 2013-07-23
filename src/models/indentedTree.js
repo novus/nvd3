@@ -18,6 +18,7 @@ nv.models.indentedTree = function() {
     , iconOpen = 'images/grey-plus.png' //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
     , iconClose = 'images/grey-minus.png'
     , dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout')
+    , getUrl = function(d) { return d.url }
     ;
 
   //============================================================
@@ -122,10 +123,21 @@ nv.models.indentedTree = function() {
         }
 
 
-        nodeName.append('span')
-            .attr('class', d3.functor(column.classes) )
-            .text(function(d) { return column.format ? column.format(d) :
+        nodeName.each(function(d) {
+          if (!index && getUrl(d))
+            d3.select(this)
+              .append('a')
+              .attr('href',getUrl)
+              .append('span')
+          else
+            d3.select(this)
+              .append('span')
+
+            d3.select(this).select('span')
+              .attr('class', d3.functor(column.classes) )
+              .text(function(d) { return column.format ? column.format(d) :
                                         (d[column.key] || '-') });
+          });
 
         if  (column.showCount) {
           nodeName.append('span')
@@ -140,8 +152,8 @@ nv.models.indentedTree = function() {
             });
         }
 
-        if (column.click)
-          nodeName.select('span').on('click', column.click);
+        // if (column.click)
+        //   nodeName.select('span').on('click', column.click);
 
       });
 
@@ -307,6 +319,12 @@ nv.models.indentedTree = function() {
   chart.iconClose = function(_){
      if (!arguments.length) return iconClose;
     iconClose = _;
+    return chart;
+  }
+
+  chart.getUrl = function(_){
+     if (!arguments.length) return getUrl;
+    getUrl = _;
     return chart;
   }
 
