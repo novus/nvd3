@@ -706,7 +706,6 @@ window.nv.tooltip.* also has various helper methods.
             container.style.top = top+'px';
             container.style.opacity = 1;
             container.style.position = 'absolute'; 
-            container.style.pointerEvents = 'none';
 
             return container;
     };
