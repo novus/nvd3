@@ -138,7 +138,7 @@ nv.interactiveGuideline = function() {
 
 	//Private variables
 	var previousXCoordinate = null
-	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1
+	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
 	;
 
 
@@ -176,16 +176,14 @@ nv.interactiveGuideline = function() {
 				          
 				          if (isMSIE) {
 				          	 /*
-								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer.
+								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
 								d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
-								over a rect in IE.  THe coordinates are off by 25% of the element's offsetLeft position.
-								For instance, if the <rect> is 100px left of the screen, the left most mouse point returned
-								will be -25 on IE. This hack solves the problem.
+								over a rect in IE 10.
+								However, d3.event.offsetX/Y also returns the mouse coordinates
+								relative to the triggering <rect>. So we use offsetX/Y on IE.  
 				          	 */
-				          	 var offsetLeft = offsetParent.getBoundingClientRect().left;
-						     var offsetTop = offsetParent.getBoundingClientRect().top;
-				          	 mouseX = mouseX + 0.25 * offsetLeft;
-				          	 mouseY = mouseY + 0.25 * offsetTop;
+				          	 mouseX = d3.event.offsetX;
+				          	 mouseY = d3.event.offsetY;
 				          }
 				          
 				          var pointXValue = xScale.invert(mouseX);
@@ -201,6 +199,25 @@ nv.interactiveGuideline = function() {
 				          var mouseX = d3mouse[0];
 				          var mouseY = d3mouse[1];
 				          
+				          if (isMSIE) {
+				          	/* 
+				          	  On IE 9+, the pointer-events property does not work for DIV's (it does on Chrome, FireFox).
+				          	  So the result is, when you mouse over this interactive layer, and then mouse over a tooltip,
+				          	  the mouseout event is called, causing the tooltip to disappear. This causes very buggy behavior.
+				          	  To bypass this, only on IE, we check d3.event.relatedTarget. If this is equal to anything in the tooltip,
+				          	  we do NOT fire elementMouseout.
+
+				          	*/
+				          	 var rTarget = d3.event.relatedTarget;
+				          	 if (rTarget) {
+				          	 	while(rTarget && rTarget.id !== tooltip.id()) {
+				          	 		rTarget = rTarget.parentNode;
+				          	 	}
+				          	 	if (rTarget && tooltip.id() === rTarget.id) {
+				          	 		return;
+				          	 	}
+				          	 }
+				          }
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
 					          		mouseY: mouseY
@@ -343,6 +360,8 @@ window.nv.tooltip.* also has various helper methods.
         ,   chartContainer = null   //Parent DIV, of the SVG Container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
+        //Generates a unique id when you create a new tooltip() object
+        ,   id = "nvtooltip-" + Math.floor(Math.random() * 100000)
         ;
 
         //Format function for the tooltip values column
@@ -385,6 +404,9 @@ window.nv.tooltip.* also has various helper methods.
         function convertViewBoxRatio() {
             if (chartContainer) {
               var svg = d3.select(chartContainer);
+              if (svg.node().tagName !== "svg") {
+                 svg = svg.select("svg");
+              }
               var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
               if (viewBox) {
                 viewBox = viewBox.split(' ');
@@ -408,13 +430,14 @@ window.nv.tooltip.* also has various helper methods.
             if (container.node() === null) {
                 //Create new tooltip div if it doesn't exist on DOM.
                 container = body.append("div")
-                    .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
+                    .attr("class", "nvtooltip with-3d-shadow " + (classes? classes: "xy-tooltip"))
+                    .attr("id",id)
                     ;
             }
         
 
             container.node().innerHTML = newContent;
-            container.style("top",0).style("left",0);
+            container.style("top",0).style("left",0).style("opacity",0);
             return container.node();
         }
 
@@ -538,6 +561,11 @@ window.nv.tooltip.* also has various helper methods.
             return nvtooltip;
         };
 
+        //id() is a read-only function. You can't use it to set the id.
+        nvtooltip.id = function() {
+            return id;
+        };
+
 
         return nvtooltip;
   };
@@ -548,7 +576,7 @@ window.nv.tooltip.* also has various helper methods.
       
         //Create new tooltip div if it doesn't exist on DOM.
         var   container = document.createElement('div');
-        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
+        container.className = 'nvtooltip with-3d-shadow ' + (classes ? classes : 'xy-tooltip');
 
         var body = parentContainer;
         if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
@@ -665,6 +693,12 @@ window.nv.tooltip.* also has various helper methods.
                 if (tLeft + width > windowWidth) left = left - width/2 + 5;
                 if (scrollTop > tTop) top = scrollTop;
                 break;
+              case 'none':
+                left = pos[0];
+                top = pos[1] - dist;
+                var tLeft = tooltipLeft(container);
+                var tTop = tooltipTop(container);
+                break;
             }
 
 
@@ -672,7 +706,6 @@ window.nv.tooltip.* also has various helper methods.
             container.style.top = top+'px';
             container.style.opacity = 1;
             container.style.position = 'absolute'; 
-            container.style.pointerEvents = 'none';
 
             return container;
     };
@@ -2099,9 +2132,6 @@ nv.models.cumulativeLineChart = function() {
         dispatch.stateChange(state);
       }
 
-
-
-
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
@@ -2171,26 +2201,21 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
+      var foregroundPointerEvents = (useInteractiveGuideline) ? "none" : "all";
 
       var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-cumulativeLine').append('g');
       var g = wrap.select('g');
 
-      gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
-      gEnter.append('g').attr('class', 'nv-background');
-      gEnter.append('g').attr('class', 'nv-linesWrap');
-      gEnter.append('g').attr('class', 'nv-avgLinesWrap');
+      gEnter.append('g').attr('class', 'nv-interactive');
+      gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-y nv-axis').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-background').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
-      gEnter.append('g').attr('class', 'nv-interactive');
-
-      //------------------------------------------------------------
-      //Set up interactive layer
-      if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
-        wrap.select(".nv-interactive").call(interactiveLayer);
-      }
+      
 
       //------------------------------------------------------------
       // Legend
@@ -2254,6 +2279,13 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
+      
+      //------------------------------------------------------------
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
 
       gEnter.select('.nv-background')
         .append('rect');
@@ -2293,6 +2325,14 @@ nv.models.cumulativeLineChart = function() {
       var avgLines = g.select(".nv-avgLinesWrap").selectAll("line")
               .data(avgLineData, function(d) { return d.key; });
 
+      var getAvgLineY = function(d) {
+          //If average lines go off the svg element, clamp them to the svg bounds.
+          var yVal = y(average(d));
+          if (yVal < 0) return 0;
+          if (yVal > availableHeight) return availableHeight;
+          return yVal;
+      };
+
       avgLines.enter()
               .append('line')
               .style('stroke-width',2)
@@ -2302,14 +2342,20 @@ nv.models.cumulativeLineChart = function() {
               })
               .attr('x1',0)
               .attr('x2',availableWidth)
-              .attr('y1', function(d) { return y(average(d)); })
-              .attr('y2', function(d) { return y(average(d)); });
+              .attr('y1', getAvgLineY)
+              .attr('y2', getAvgLineY);
 
       avgLines
+              .style('stroke-opacity',function(d){
+                  //If average lines go offscreen, make them transparent
+                  var yVal = y(average(d));
+                  if (yVal < 0 || yVal > availableHeight) return 0;
+                  return 1;
+              })
               .attr('x1',0)
               .attr('x2',availableWidth)
-              .attr('y1', function(d) { return y(average(d)); })
-              .attr('y2', function(d) { return y(average(d)); });
+              .attr('y1', getAvgLineY)
+              .attr('y2', getAvgLineY);
 
       avgLines.exit().remove();
 
@@ -2322,6 +2368,7 @@ nv.models.cumulativeLineChart = function() {
           .attr('x', -2)
           .attr('fill', 'red')
           .attr('fill-opacity', .5)
+          .style("pointer-events","all")
           .call(indexDrag)
 
       indexLine
@@ -4643,9 +4690,15 @@ nv.models.indentedTree = function() {
         var seriesWidths = [];
         series.each(function(d,i) {
               var legendText = d3.select(this).select('text');
-              var svgComputedTextLength = legendText.node().getComputedTextLength() 
-                                         || nv.utils.calcApproxTextWidth(legendText);
-              seriesWidths.push(svgComputedTextLength + 28); // 28 is ~ the width of the circle plus some padding
+              var nodeTextLength;
+              try {
+                nodeTextLength = legendText.node().getComputedTextLength();
+              }
+              catch(e) {
+                nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
+              }
+             
+              seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
             });
 
         //nv.log('Series Widths: ', JSON.stringify(seriesWidths));
@@ -5212,12 +5265,6 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'nv-interactive');
 
       //------------------------------------------------------------
-      //Set up interactive layer
-      if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
-        wrap.select(".nv-interactive").call(interactiveLayer);
-      }
-      //------------------------------------------------------------
       // Legend
 
       if (showLegend) {
@@ -5248,6 +5295,15 @@ nv.models.lineChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
+
+      
+      //------------------------------------------------------------
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
+
 
       lines
         .width(availableWidth)
@@ -10942,7 +10998,9 @@ nv.models.scatter = function() {
         points.each(function(d,i) {
           d3.select(this)
             .classed('nv-point', true)
-            .classed('nv-point-' + i, true);
+            .classed('nv-point-' + i, true)
+            .classed('hover',false)
+            ;
         });
         points.transition()
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
@@ -10971,7 +11029,9 @@ nv.models.scatter = function() {
         points.each(function(d,i) {
           d3.select(this)
             .classed('nv-point', true)
-            .classed('nv-point-' + i, true);
+            .classed('nv-point-' + i, true)
+            .classed('hover',false)
+            ;
         });
         points.transition()
             .attr('transform', function(d,i) {
@@ -11333,7 +11393,7 @@ nv.models.scatterChart = function() {
                              - margin.top - margin.bottom;
 
       chart.update = function() { container.transition().call(chart); };
-      // chart.container = this;
+      chart.container = this;
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
@@ -13482,13 +13542,6 @@ nv.models.stackedAreaChart = function() {
       gEnter.append('g').attr('class', 'nv-interactive');
 
       //------------------------------------------------------------
-      //Set up interactive layer
-      if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
-        wrap.select(".nv-interactive").call(interactiveLayer);
-      }
-
-      //------------------------------------------------------------
       // Legend
 
       if (showLegend) {
@@ -13555,6 +13608,13 @@ nv.models.stackedAreaChart = function() {
       //------------------------------------------------------------
       // Main Chart Component(s)
 
+      //------------------------------------------------------------
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
+      
       stacked
         .width(availableWidth)
         .height(availableHeight)

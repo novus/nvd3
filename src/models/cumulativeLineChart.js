@@ -152,9 +152,6 @@ nv.models.cumulativeLineChart = function() {
         dispatch.stateChange(state);
       }
 
-
-
-
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
@@ -224,26 +221,21 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
+      var foregroundPointerEvents = (useInteractiveGuideline) ? "none" : "all";
 
       var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-cumulativeLine').append('g');
       var g = wrap.select('g');
 
-      gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
-      gEnter.append('g').attr('class', 'nv-background');
-      gEnter.append('g').attr('class', 'nv-linesWrap');
-      gEnter.append('g').attr('class', 'nv-avgLinesWrap');
+      gEnter.append('g').attr('class', 'nv-interactive');
+      gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-y nv-axis').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-background').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
-      gEnter.append('g').attr('class', 'nv-interactive');
-
-      //------------------------------------------------------------
-      //Set up interactive layer
-      if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
-        wrap.select(".nv-interactive").call(interactiveLayer);
-      }
+      
 
       //------------------------------------------------------------
       // Legend
@@ -307,6 +299,13 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
+      
+      //------------------------------------------------------------
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
 
       gEnter.select('.nv-background')
         .append('rect');
@@ -346,6 +345,14 @@ nv.models.cumulativeLineChart = function() {
       var avgLines = g.select(".nv-avgLinesWrap").selectAll("line")
               .data(avgLineData, function(d) { return d.key; });
 
+      var getAvgLineY = function(d) {
+          //If average lines go off the svg element, clamp them to the svg bounds.
+          var yVal = y(average(d));
+          if (yVal < 0) return 0;
+          if (yVal > availableHeight) return availableHeight;
+          return yVal;
+      };
+
       avgLines.enter()
               .append('line')
               .style('stroke-width',2)
@@ -355,14 +362,20 @@ nv.models.cumulativeLineChart = function() {
               })
               .attr('x1',0)
               .attr('x2',availableWidth)
-              .attr('y1', function(d) { return y(average(d)); })
-              .attr('y2', function(d) { return y(average(d)); });
+              .attr('y1', getAvgLineY)
+              .attr('y2', getAvgLineY);
 
       avgLines
+              .style('stroke-opacity',function(d){
+                  //If average lines go offscreen, make them transparent
+                  var yVal = y(average(d));
+                  if (yVal < 0 || yVal > availableHeight) return 0;
+                  return 1;
+              })
               .attr('x1',0)
               .attr('x2',availableWidth)
-              .attr('y1', function(d) { return y(average(d)); })
-              .attr('y2', function(d) { return y(average(d)); });
+              .attr('y1', getAvgLineY)
+              .attr('y2', getAvgLineY);
 
       avgLines.exit().remove();
 
@@ -375,6 +388,7 @@ nv.models.cumulativeLineChart = function() {
           .attr('x', -2)
           .attr('fill', 'red')
           .attr('fill-opacity', .5)
+          .style("pointer-events","all")
           .call(indexDrag)
 
       indexLine

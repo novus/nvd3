@@ -46,6 +46,8 @@ window.nv.tooltip.* also has various helper methods.
         ,   chartContainer = null   //Parent DIV, of the SVG Container that holds the chart.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
+        //Generates a unique id when you create a new tooltip() object
+        ,   id = "nvtooltip-" + Math.floor(Math.random() * 100000)
         ;
 
         //Format function for the tooltip values column
@@ -88,6 +90,9 @@ window.nv.tooltip.* also has various helper methods.
         function convertViewBoxRatio() {
             if (chartContainer) {
               var svg = d3.select(chartContainer);
+              if (svg.node().tagName !== "svg") {
+                 svg = svg.select("svg");
+              }
               var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
               if (viewBox) {
                 viewBox = viewBox.split(' ');
@@ -111,13 +116,14 @@ window.nv.tooltip.* also has various helper methods.
             if (container.node() === null) {
                 //Create new tooltip div if it doesn't exist on DOM.
                 container = body.append("div")
-                    .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
+                    .attr("class", "nvtooltip with-3d-shadow " + (classes? classes: "xy-tooltip"))
+                    .attr("id",id)
                     ;
             }
         
 
             container.node().innerHTML = newContent;
-            container.style("top",0).style("left",0);
+            container.style("top",0).style("left",0).style("opacity",0);
             return container.node();
         }
 
@@ -241,6 +247,11 @@ window.nv.tooltip.* also has various helper methods.
             return nvtooltip;
         };
 
+        //id() is a read-only function. You can't use it to set the id.
+        nvtooltip.id = function() {
+            return id;
+        };
+
 
         return nvtooltip;
   };
@@ -251,7 +262,7 @@ window.nv.tooltip.* also has various helper methods.
       
         //Create new tooltip div if it doesn't exist on DOM.
         var   container = document.createElement('div');
-        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
+        container.className = 'nvtooltip with-3d-shadow ' + (classes ? classes : 'xy-tooltip');
 
         var body = parentContainer;
         if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
@@ -368,6 +379,12 @@ window.nv.tooltip.* also has various helper methods.
                 if (tLeft + width > windowWidth) left = left - width/2 + 5;
                 if (scrollTop > tTop) top = scrollTop;
                 break;
+              case 'none':
+                left = pos[0];
+                top = pos[1] - dist;
+                var tLeft = tooltipLeft(container);
+                var tTop = tooltipTop(container);
+                break;
             }
 
 
@@ -375,7 +392,6 @@ window.nv.tooltip.* also has various helper methods.
             container.style.top = top+'px';
             container.style.opacity = 1;
             container.style.position = 'absolute'; 
-            container.style.pointerEvents = 'none';
 
             return container;
     };
