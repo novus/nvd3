@@ -210,7 +210,12 @@ nv.models.stackedAreaChart = function() {
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        interactiveLayer
+           .width(availableWidth)
+           .height(availableHeight)
+           .margin({left: margin.left, top: margin.top})
+           .svgContainer(container)
+           .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
       }
       

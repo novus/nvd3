@@ -258,7 +258,7 @@ function defaultChartConfig(container, data, useGuideline) {
         .tickFormat(d3.format(',.2f'));
 
     d3.select('#' + container + ' svg')
-      .datum(data)
+          .datum(data)
         .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -286,6 +286,8 @@ nv.addGraph(function() {
   d3.select('#chart2 svg')
     .datum(histcatexpshort)
       .call(chart);
+
+
 
   nv.utils.windowResize(chart.update);
 

@@ -11,10 +11,16 @@ nv.interactiveGuideline = function() {
 	//Public settings
 	var width = null
 	, height = null
+    //Please pass in the bounding chart's top and left margins
+    //This is important for calculating the correct mouseX/Y positions.
+	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
 	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout')
 	, showGuideLine = true
+	, svgContainer = null  
+    //Must pass in the bounding chart's <svg> container.
+    //The mousemove event is attached to this container.
 	;
 
 	//Private variables
@@ -23,17 +29,9 @@ nv.interactiveGuideline = function() {
 	;
 
 
-	function findFirstSVGParent(Elem) {
-		while(Elem.tagName.match(/^svg$/i) === null) {
-			Elem = Elem.parentNode;
-		}
-		return Elem;
-	}
-
 	function layer(selection) {
 		selection.each(function(data) {
 				var container = d3.select(this);
-				var offsetParent = findFirstSVGParent(this);
 				
 				var availableWidth = (width || 960), availableHeight = (height || 400);
 
@@ -42,14 +40,13 @@ nv.interactiveGuideline = function() {
 								.append("g").attr("class", " nv-wrap nv-interactiveLineLayer");
 								
 				
-				wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
-				wrapEnter.append("rect").attr("class", "nv-mouseMoveLayer");
+				wrapEnter.append("g").attr("class","nv-interactiveGuideLine").style("pointer-events","none");
 				
+				if (!svgContainer) {
+					return;
+				}
 
-				wrap.select(".nv-mouseMoveLayer")
-					  .attr("width",availableWidth)
-				      .attr("height",availableHeight)
-				      .attr("opacity", 0)
+				svgContainer
 				      .on("mousemove",function() {
 				      	  var d3mouse = d3.mouse(this);
 				          var mouseX = d3mouse[0];
@@ -65,6 +62,17 @@ nv.interactiveGuideline = function() {
 				          	 */
 				          	 mouseX = d3.event.offsetX;
 				          	 mouseY = d3.event.offsetY;
+				          }
+
+				          mouseX -= margin.left;
+				          mouseY -= margin.top;
+				          if (mouseX < 0 || mouseY < 0 
+				          	|| mouseX > availableWidth || mouseY > availableHeight) {
+                                dispatch.elementMouseout({
+                                    mouseX: mouseX,
+                                    mouseY: mouseY
+                                });
+                                return;
 				          }
 				          
 				          var pointXValue = xScale.invert(mouseX);
@@ -99,6 +107,10 @@ nv.interactiveGuideline = function() {
 				          	 	}
 				          	 }
 				          }
+                          
+                          mouseX -= margin.left;
+                          mouseY -= margin.top;
+
 					      dispatch.elementMouseout({
 					          		mouseX: mouseX,
 					          		mouseY: mouseY
@@ -133,6 +145,13 @@ nv.interactiveGuideline = function() {
 	layer.dispatch = dispatch;
 	layer.tooltip = tooltip;
 
+	layer.margin = function(_) {
+	    if (!arguments.length) return margin;
+	    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+	    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+	    return layer;
+    };
+
 	layer.width = function(_) {
 		if (!arguments.length) return width;
 		width = _;
@@ -154,6 +173,12 @@ nv.interactiveGuideline = function() {
 	layer.showGuideLine = function(_) {
 		if (!arguments.length) return showGuideLine;
 		showGuideLine = _;
+		return layer;
+	};
+
+	layer.svgContainer = function(_) {
+		if (!arguments.length) return svgContainer;
+		svgContainer = _;
 		return layer;
 	};
 
