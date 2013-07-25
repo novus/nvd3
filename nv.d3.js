@@ -130,10 +130,16 @@ nv.interactiveGuideline = function() {
 	//Public settings
 	var width = null
 	, height = null
+    //Please pass in the bounding chart's top and left margins
+    //This is important for calculating the correct mouseX/Y positions.
+	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
 	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout')
 	, showGuideLine = true
+	, svgContainer = null  
+    //Must pass in the bounding chart's <svg> container.
+    //The mousemove event is attached to this container.
 	;
 
 	//Private variables
@@ -142,17 +148,9 @@ nv.interactiveGuideline = function() {
 	;
 
 
-	function findFirstSVGParent(Elem) {
-		while(Elem.tagName.match(/^svg$/i) === null) {
-			Elem = Elem.parentNode;
-		}
-		return Elem;
-	}
-
 	function layer(selection) {
 		selection.each(function(data) {
 				var container = d3.select(this);
-				var offsetParent = findFirstSVGParent(this);
 				
 				var availableWidth = (width || 960), availableHeight = (height || 400);
 
@@ -162,74 +160,74 @@ nv.interactiveGuideline = function() {
 								
 				
 				wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
-				wrapEnter.append("rect").attr("class", "nv-mouseMoveLayer");
 				
+				if (!svgContainer) {
+					return;
+				}
 
-				wrap.select(".nv-mouseMoveLayer")
-					  .attr("width",availableWidth)
-				      .attr("height",availableHeight)
-				      .attr("opacity", 0)
-				      .on("mousemove",function() {
-				      	  var d3mouse = d3.mouse(this);
-				          var mouseX = d3mouse[0];
-				          var mouseY = d3mouse[1];
-				          
-				          if (isMSIE) {
-				          	 /*
-								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
-								d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
-								over a rect in IE 10.
-								However, d3.event.offsetX/Y also returns the mouse coordinates
-								relative to the triggering <rect>. So we use offsetX/Y on IE.  
-				          	 */
-				          	 mouseX = d3.event.offsetX;
-				          	 mouseY = d3.event.offsetY;
-				          }
-				          
-				          var pointXValue = xScale.invert(mouseX);
-				          dispatch.elementMousemove({
-				          		mouseX: mouseX,
-				          		mouseY: mouseY,
-				          		pointXValue: pointXValue
-				          });
-				      	  
-				      })
-				      .on("mouseout",function() {
-				          var d3mouse = d3.mouse(this);
-				          var mouseX = d3mouse[0];
-				          var mouseY = d3mouse[1];
-				          
-				          if (isMSIE) {
-				          	/* 
-				          	  On IE 9+, the pointer-events property does not work for DIV's (it does on Chrome, FireFox).
-				          	  So the result is, when you mouse over this interactive layer, and then mouse over a tooltip,
-				          	  the mouseout event is called, causing the tooltip to disappear. This causes very buggy behavior.
-				          	  To bypass this, only on IE, we check d3.event.relatedTarget. If this is equal to anything in the tooltip,
-				          	  we do NOT fire elementMouseout.
+                function mouseHandler() {
+                      var d3mouse = d3.mouse(this);
+                      var mouseX = d3mouse[0];
+                      var mouseY = d3mouse[1];
+                      var subtractMargin = true;
+                      if (isMSIE) {
+                         /*
+                            D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
+                            d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
+                            over a rect in IE 10.
+                            However, d3.event.offsetX/Y also returns the mouse coordinates
+                            relative to the triggering <rect>. So we use offsetX/Y on IE.  
+                         */
+                         mouseX = d3.event.offsetX;
+                         mouseY = d3.event.offsetY;
 
-				          	*/
-				          	 var rTarget = d3.event.relatedTarget;
-				          	 if (rTarget) {
-				          	 	while(rTarget && rTarget.id !== tooltip.id()) {
-				          	 		rTarget = rTarget.parentNode;
-				          	 	}
-				          	 	if (rTarget && tooltip.id() === rTarget.id) {
-				          	 		return;
-				          	 	}
-				          	 }
-				          }
-					      dispatch.elementMouseout({
-					          		mouseX: mouseX,
-					          		mouseY: mouseY
-					      });
+                         /*
+                            On IE, if you attach a mouse event listener to the <svg> container,
+                            it will actually trigger it for all the child elements (like <path>, <circle>, etc).
+                            When this happens on IE, the offsetX/Y is set to where ever the child element
+                            is located.
+                            As a result, we do NOT need to subtract margins to figure out the mouse X/Y
+                            position under this scenario. Removing the line below *will* cause 
+                            the interactive layer to not work right on IE.
+                         */
+                         if(d3.event.target.tagName !== "svg")
+                            subtractMargin = false;
+                          
+                      }
 
-					      layer.renderGuideLine(null);
-				     
-				      })
+                      if(subtractMargin) {
+                         mouseX -= margin.left;
+                         mouseY -= margin.top;
+                      }
+
+                      /* If mouseX/Y is outside of the chart's bounds,
+                      trigger a mouseOut event.
+                      */
+                      if (mouseX < 0 || mouseY < 0 
+                        || mouseX > availableWidth || mouseY > availableHeight) {
+                            dispatch.elementMouseout({
+                               mouseX: mouseX,
+                               mouseY: mouseY
+                            });
+                            layer.renderGuideLine(null); //hide the guideline
+                            return;
+                      }
+                      
+                      var pointXValue = xScale.invert(mouseX);
+                      dispatch.elementMousemove({
+                            mouseX: mouseX,
+                            mouseY: mouseY,
+                            pointXValue: pointXValue
+                      });
+                }
+
+				svgContainer
+				      .on("mousemove",mouseHandler, true)
+				      .on("mouseout",mouseHandler,true)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.
-				 layer.renderGuideLine = function(x) {
+				layer.renderGuideLine = function(x) {
 				 	if (!showGuideLine) return;
 				 	var line = wrap.select(".nv-interactiveGuideLine")
 				 	      .selectAll("line")
@@ -245,12 +243,19 @@ nv.interactiveGuideline = function() {
 				 		;
 				 	line.exit().remove();
 
-				 }
+				}
 		});
 	}
 
 	layer.dispatch = dispatch;
 	layer.tooltip = tooltip;
+
+	layer.margin = function(_) {
+	    if (!arguments.length) return margin;
+	    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+	    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+	    return layer;
+    };
 
 	layer.width = function(_) {
 		if (!arguments.length) return width;
@@ -273,6 +278,12 @@ nv.interactiveGuideline = function() {
 	layer.showGuideLine = function(_) {
 		if (!arguments.length) return showGuideLine;
 		showGuideLine = _;
+		return layer;
+	};
+
+	layer.svgContainer = function(_) {
+		if (!arguments.length) return svgContainer;
+		svgContainer = _;
 		return layer;
 	};
 
@@ -2210,7 +2221,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-interactive');
       gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-y nv-axis').style("pointer-events",foregroundPointerEvents);
-      gEnter.append('g').attr('class', 'nv-background').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-background');
       gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-legendWrap');
@@ -2283,7 +2294,12 @@ nv.models.cumulativeLineChart = function() {
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        interactiveLayer
+          .width(availableWidth)
+          .height(availableHeight)
+          .margin({left:margin.left,top:margin.top})
+          .svgContainer(container)
+          .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
       }
 
@@ -4319,6 +4335,7 @@ nv.models.indentedTree = function() {
     , iconOpen = 'images/grey-plus.png' //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
     , iconClose = 'images/grey-minus.png'
     , dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout')
+    , getUrl = function(d) { return d.url }
     ;
 
   //============================================================
@@ -4423,10 +4440,21 @@ nv.models.indentedTree = function() {
         }
 
 
-        nodeName.append('span')
-            .attr('class', d3.functor(column.classes) )
-            .text(function(d) { return column.format ? column.format(d) :
+        nodeName.each(function(d) {
+          if (!index && getUrl(d))
+            d3.select(this)
+              .append('a')
+              .attr('href',getUrl)
+              .append('span')
+          else
+            d3.select(this)
+              .append('span')
+
+            d3.select(this).select('span')
+              .attr('class', d3.functor(column.classes) )
+              .text(function(d) { return column.format ? column.format(d) :
                                         (d[column.key] || '-') });
+          });
 
         if  (column.showCount) {
           nodeName.append('span')
@@ -4441,8 +4469,8 @@ nv.models.indentedTree = function() {
             });
         }
 
-        if (column.click)
-          nodeName.select('span').on('click', column.click);
+        // if (column.click)
+        //   nodeName.select('span').on('click', column.click);
 
       });
 
@@ -4608,6 +4636,12 @@ nv.models.indentedTree = function() {
   chart.iconClose = function(_){
      if (!arguments.length) return iconClose;
     iconClose = _;
+    return chart;
+  }
+
+  chart.getUrl = function(_){
+     if (!arguments.length) return getUrl;
+    getUrl = _;
     return chart;
   }
 
@@ -5300,7 +5334,12 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        interactiveLayer
+           .width(availableWidth)
+           .height(availableHeight)
+           .margin({left:margin.left, top:margin.top})
+           .svgContainer(container)
+           .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
       }
 
@@ -13611,7 +13650,12 @@ nv.models.stackedAreaChart = function() {
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        interactiveLayer
+           .width(availableWidth)
+           .height(availableHeight)
+           .margin({left: margin.left, top: margin.top})
+           .svgContainer(container)
+           .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
       }
       
