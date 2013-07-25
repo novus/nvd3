@@ -230,7 +230,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-interactive');
       gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-y nv-axis').style("pointer-events",foregroundPointerEvents);
-      gEnter.append('g').attr('class', 'nv-background').style("pointer-events",foregroundPointerEvents);
+      gEnter.append('g').attr('class', 'nv-background');
       gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events",foregroundPointerEvents);
       gEnter.append('g').attr('class', 'nv-legendWrap');
@@ -303,7 +303,12 @@ nv.models.cumulativeLineChart = function() {
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
-        interactiveLayer.width(availableWidth).height(availableHeight).xScale(x);
+        interactiveLayer
+          .width(availableWidth)
+          .height(availableHeight)
+          .margin({left:margin.left,top:margin.top})
+          .svgContainer(container)
+          .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
       }
 

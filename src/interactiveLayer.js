@@ -40,89 +40,75 @@ nv.interactiveGuideline = function() {
 								.append("g").attr("class", " nv-wrap nv-interactiveLineLayer");
 								
 				
-				wrapEnter.append("g").attr("class","nv-interactiveGuideLine").style("pointer-events","none");
+				wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
 				
 				if (!svgContainer) {
 					return;
 				}
 
-				svgContainer
-				      .on("mousemove",function() {
-				      	  var d3mouse = d3.mouse(this);
-				          var mouseX = d3mouse[0];
-				          var mouseY = d3mouse[1];
-				          
-				          if (isMSIE) {
-				          	 /*
-								D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
-								d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
-								over a rect in IE 10.
-								However, d3.event.offsetX/Y also returns the mouse coordinates
-								relative to the triggering <rect>. So we use offsetX/Y on IE.  
-				          	 */
-				          	 mouseX = d3.event.offsetX;
-				          	 mouseY = d3.event.offsetY;
-				          }
+                function mouseHandler() {
+                      var d3mouse = d3.mouse(this);
+                      var mouseX = d3mouse[0];
+                      var mouseY = d3mouse[1];
+                      var subtractMargin = true;
+                      if (isMSIE) {
+                         /*
+                            D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
+                            d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
+                            over a rect in IE 10.
+                            However, d3.event.offsetX/Y also returns the mouse coordinates
+                            relative to the triggering <rect>. So we use offsetX/Y on IE.  
+                         */
+                         mouseX = d3.event.offsetX;
+                         mouseY = d3.event.offsetY;
 
-				          mouseX -= margin.left;
-				          mouseY -= margin.top;
-				          if (mouseX < 0 || mouseY < 0 
-				          	|| mouseX > availableWidth || mouseY > availableHeight) {
-                                dispatch.elementMouseout({
-                                    mouseX: mouseX,
-                                    mouseY: mouseY
-                                });
-                                return;
-				          }
-				          
-				          var pointXValue = xScale.invert(mouseX);
-				          dispatch.elementMousemove({
-				          		mouseX: mouseX,
-				          		mouseY: mouseY,
-				          		pointXValue: pointXValue
-				          });
-				      	  
-				      })
-				      .on("mouseout",function() {
-				          var d3mouse = d3.mouse(this);
-				          var mouseX = d3mouse[0];
-				          var mouseY = d3mouse[1];
-				          
-				          if (isMSIE) {
-				          	/* 
-				          	  On IE 9+, the pointer-events property does not work for DIV's (it does on Chrome, FireFox).
-				          	  So the result is, when you mouse over this interactive layer, and then mouse over a tooltip,
-				          	  the mouseout event is called, causing the tooltip to disappear. This causes very buggy behavior.
-				          	  To bypass this, only on IE, we check d3.event.relatedTarget. If this is equal to anything in the tooltip,
-				          	  we do NOT fire elementMouseout.
-
-				          	*/
-				          	 var rTarget = d3.event.relatedTarget;
-				          	 if (rTarget) {
-				          	 	while(rTarget && rTarget.id !== tooltip.id()) {
-				          	 		rTarget = rTarget.parentNode;
-				          	 	}
-				          	 	if (rTarget && tooltip.id() === rTarget.id) {
-				          	 		return;
-				          	 	}
-				          	 }
-				          }
+                         /*
+                            On IE, if you attach a mouse event listener to the <svg> container,
+                            it will actually trigger it for all the child elements (like <path>, <circle>, etc).
+                            When this happens on IE, the offsetX/Y is set to where ever the child element
+                            is located.
+                            As a result, we do NOT need to subtract margins to figure out the mouse X/Y
+                            position under this scenario. Removing the line below *will* cause 
+                            the interactive layer to not work right on IE.
+                         */
+                         if(d3.event.target.tagName !== "svg")
+                            subtractMargin = false;
                           
-                          mouseX -= margin.left;
-                          mouseY -= margin.top;
+                      }
 
-					      dispatch.elementMouseout({
-					          		mouseX: mouseX,
-					          		mouseY: mouseY
-					      });
+                      if(subtractMargin) {
+                         mouseX -= margin.left;
+                         mouseY -= margin.top;
+                      }
 
-					      layer.renderGuideLine(null);
-				     
-				      })
+                      /* If mouseX/Y is outside of the chart's bounds,
+                      trigger a mouseOut event.
+                      */
+                      if (mouseX < 0 || mouseY < 0 
+                        || mouseX > availableWidth || mouseY > availableHeight) {
+                            dispatch.elementMouseout({
+                               mouseX: mouseX,
+                               mouseY: mouseY
+                            });
+                            layer.renderGuideLine(null); //hide the guideline
+                            return;
+                      }
+                      
+                      var pointXValue = xScale.invert(mouseX);
+                      dispatch.elementMousemove({
+                            mouseX: mouseX,
+                            mouseY: mouseY,
+                            pointXValue: pointXValue
+                      });
+                }
+
+				svgContainer
+				      .on("mousemove",mouseHandler, true)
+				      .on("mouseout",mouseHandler,true)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.
-				 layer.renderGuideLine = function(x) {
+				layer.renderGuideLine = function(x) {
 				 	if (!showGuideLine) return;
 				 	var line = wrap.select(".nv-interactiveGuideLine")
 				 	      .selectAll("line")
@@ -138,7 +124,7 @@ nv.interactiveGuideline = function() {
 				 		;
 				 	line.exit().remove();
 
-				 }
+				}
 		});
 	}
 

@@ -191,6 +191,9 @@ svg .title {
 /**********
 *  Axes
 */
+.nvd3 .nv-axis {
+  pointer-events:none;
+}
 
 .nvd3 .nv-axis path {
   fill: none;
@@ -740,6 +743,9 @@ svg .title {
 /****
 Interactive Layer
 */
+.nvd3 .nv-interactiveGuideLine {
+  pointer-events:none;
+}
 .nvd3 line.nv-guideline {
   stroke: #ccc;
 }
