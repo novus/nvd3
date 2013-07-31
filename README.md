@@ -15,17 +15,17 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 # Current development focus
 
--Error bars in bar charts
--Unifying common API functions between charts
--Bug fixes all around
+- Error bars in bar charts
+- Unifying common API functions between charts
+- Bug fixes all around
 
 ---
 
 # Installation Instructions
 
-d3.v3.js is a dependency of nv.d3.js. Be sure to include in in your project, then:  
-Add a script tag to include nv.d3.js OR nv.d3.min.js in your project.  
-Also add a link to the nv.d3.css file.
+`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include in in your project, then:  
+Add a script tag to include `nv.d3.js` OR `nv.d3.min.js` in your project.  
+Also add a link to the `nv.d3.css` file.
 
 See wiki -> Documentation for more detail
 
