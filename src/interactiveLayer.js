@@ -85,7 +85,9 @@ nv.interactiveGuideline = function() {
                       trigger a mouseOut event.
                       */
                       if (mouseX < 0 || mouseY < 0 
-                        || mouseX > availableWidth || mouseY > availableHeight) {
+                        || mouseX > availableWidth || mouseY > availableHeight
+                        || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
+                        ) {
                             dispatch.elementMouseout({
                                mouseX: mouseX,
                                mouseY: mouseY
