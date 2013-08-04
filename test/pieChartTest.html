@@ -104,7 +104,6 @@ function defaultChart(containerId, data) {
       var chart = nv.models.pieChart()
           .x(function(d) { return d.key })
           .y(function(d) { return d.y })
-          .values(function(d) { return d })
           .color(d3.scale.category10().range())
           .width(width)
           .height(height);
@@ -129,7 +128,6 @@ nv.addGraph(function() {
 
     var chart = nv.models.pieChart()
         .x(function(d) { return d.key })
-        .values(function(d) { return d })
         .color(d3.scale.category10().range())
         .width(width)
         .height(height)

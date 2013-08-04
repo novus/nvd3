@@ -117,7 +117,7 @@ nv.models.pieChart = function() {
           .key(pie.x());
 
         wrap.select('.nv-legendWrap')
-            .datum(pie.values()(data))
+            .datum(data)
             .call(legend);
 
         if ( margin.top != legend.height()) {
@@ -159,8 +159,8 @@ nv.models.pieChart = function() {
       legend.dispatch.on('legendClick', function(d) {
         d.disabled = !d.disabled;
 
-        if (!pie.values()(data).filter(function(d) { return !d.disabled }).length) {
-          pie.values()(data).map(function(d) {
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
             d.disabled = false;
             wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
@@ -175,13 +175,12 @@ nv.models.pieChart = function() {
 
       legend.dispatch.on('legendDblclick', function(d) {
           //Double clicking should always enable current series, and disabled all others.
-          var pieData = pie.values()(data);
-          pieData.forEach(function(d) {
+          data.forEach(function(d) {
              d.disabled = true;
           });
           d.disabled = false;  
 
-          state.disabled = pieData.map(function(d) { return !!d.disabled });
+          state.disabled = data.map(function(d) { return !!d.disabled });
           dispatch.stateChange(state);
           chart.update();
       });
