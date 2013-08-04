@@ -1,4 +1,3 @@
-
 nv.models.lineWithFocusChart = function() {
 
   //============================================================
@@ -550,6 +549,12 @@ nv.models.lineWithFocusChart = function() {
     if (!arguments.length) return yAxis.tickFormat();
     yAxis.tickFormat(_);
     y2Axis.tickFormat(_);
+    return chart;
+  };
+  
+  chart.brushExtent = function(_) {
+    if (!arguments.length) return brushExtent;
+    brushExtent = _;
     return chart;
   };
 
