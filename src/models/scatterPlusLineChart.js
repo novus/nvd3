@@ -107,7 +107,7 @@ nv.models.scatterPlusLineChart = function() {
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data.map(function(d) { return !!d.disabled });
+      state.disabled = nv.isDisabled(data);
 
       if (!defaultState) {
         var key;
@@ -393,7 +393,7 @@ nv.models.scatterPlusLineChart = function() {
           });
         }
 
-        state.disabled = data.map(function(d) { return !!d.disabled });
+        state.disabled = nv.isDisabled(data);
         dispatch.stateChange(state);
 
         chart.update();

@@ -81,7 +81,7 @@ nv.models.stackedAreaChart = function() {
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data.map(function(d) { return !!d.disabled });
+      state.disabled = nv.isDisabled(data);
 
       if (!defaultState) {
         var key;
@@ -263,7 +263,7 @@ nv.models.stackedAreaChart = function() {
             return d
           });
 
-        state.disabled = data.map(function(d) { return !!d.disabled });
+        state.disabled = nv.isDisabled(data);
         dispatch.stateChange(state);
 
         //selection.transition().call(chart);
