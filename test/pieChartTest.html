@@ -26,6 +26,25 @@ text {
   <svg></svg>
 </div>
 
+<div class='chart third' id="test3">
+  <h2>Pie chart with 30 series'</h2>
+  <svg></svg>
+</div>
+
+<div class='chart third' id="test4">
+  <h2>Empty array passed in</h2>
+  <svg></svg>
+</div>
+
+<div class='chart third' id="test5">
+  <h2>Series' have only zero values</h2>
+  <svg></svg>
+</div>
+
+<div class='chart third' id="test6">
+  <h2>NaN, null, undefined values passed in</h2>
+  <svg></svg>
+</div>
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
@@ -35,7 +54,7 @@ text {
 <script src="../src/utils.js"></script>
 <script>
 
-  var testdata = [
+var testdata = [
     {
       key: "One",
       y: 5
@@ -66,31 +85,43 @@ text {
     }
   ];
 
+function thirtySeries() {
+  var data = [];
+  for(var i =0; i < 30; i++) {
+    data.push({
+      key: "Series-" + i,
+      y: Math.floor(Math.random() * 100)
+    });
+  }
+  return data;
+}
 
-nv.addGraph(function() {
-    var width = 500,
-        height = 500;
+function defaultChart(containerId, data) {
+  nv.addGraph(function() {
+      var width = 500,
+          height = 500;
 
-    var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .y(function(d) { return d.y })
-        .values(function(d) { return d })
-        .color(d3.scale.category10().range())
-        .width(width)
-        .height(height);
+      var chart = nv.models.pieChart()
+          .x(function(d) { return d.key })
+          .y(function(d) { return d.y })
+          .values(function(d) { return d })
+          .color(d3.scale.category10().range())
+          .width(width)
+          .height(height);
 
-      d3.select("#test1 svg")
-          .datum(testdata)
-        .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
+        d3.select("#" + containerId + " svg")
+            .datum(data)
+          .transition().duration(1200)
+            .attr('width', width)
+            .attr('height', height)
+            .call(chart);
 
-    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+      nv.utils.windowResize(chart.update);
+      return chart;
+  });
+}
 
-    return chart;
-});
-
+//Adds donut pie chart.
 nv.addGraph(function() {
 
     var width = 500,
@@ -114,8 +145,18 @@ nv.addGraph(function() {
           .attr('width', width)
           .attr('height', height)
           .call(chart);
-
+    nv.utils.windowResize(chart.update);
     return chart;
 });
 
+defaultChart("test1", testdata);
+defaultChart("test3", thirtySeries());
+defaultChart("test4",[]);
+defaultChart("test5",[{key: "Zero series", y: 0}, {key: "Zero series 2", y: 0}]);
+defaultChart("test6", [
+      {key: "Undefined", y: undefined},
+      {key: "Nan", y: NaN},
+      {key: "null", y: null},
+      {key: "zero", y: 0}
+  ])
 </script>
