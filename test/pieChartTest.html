@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
 <style>
 
 body {
   overflow-y:scroll;
+  font-family: Arial;
 }
 
 text {
   font: 12px sans-serif;
 }
 
-.mypiechart {
-  width: 500px;
-  border: 2px;
-}
 </style>
-<body>
+<body class='with-transitions'>
 
-<h2>Test1</h2>
-<svg id="test1" class="mypiechart"></svg>
+<div class='chart third' id="test1">
+  <h2>Standard Pie Chart</h2>
+  <svg></svg>
+</div>
 
-<h2>Test2</h2>
-<svg id="test2" class="mypiechart"></svg>
+<div class='chart third' id="test2">
+  <h2>Donut pie chart</h2>
+  <svg></svg>
+</div>
+
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
@@ -71,13 +74,12 @@ nv.addGraph(function() {
     var chart = nv.models.pieChart()
         .x(function(d) { return d.key })
         .y(function(d) { return d.y })
-        //.showLabels(false)
         .values(function(d) { return d })
         .color(d3.scale.category10().range())
         .width(width)
         .height(height);
 
-      d3.select("#test1")
+      d3.select("#test1 svg")
           .datum(testdata)
         .transition().duration(1200)
           .attr('width', width)
@@ -96,10 +98,7 @@ nv.addGraph(function() {
 
     var chart = nv.models.pieChart()
         .x(function(d) { return d.key })
-        //.y(function(d) { return d.value })
         .values(function(d) { return d })
-        //.labelThreshold(.08)
-        //.showLabels(false)
         .color(d3.scale.category10().range())
         .width(width)
         .height(height)
@@ -109,10 +108,7 @@ nv.addGraph(function() {
         .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
         .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
 
-      //chart.pie.donutLabelsOutside(true).donut(true);
-
-      d3.select("#test2")
-          //.datum(historicalBarChart)
+      d3.select("#test2 svg")
           .datum(testdata)
         .transition().duration(1200)
           .attr('width', width)
