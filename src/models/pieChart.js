@@ -156,7 +156,7 @@ nv.models.pieChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('legendClick', function(d,i, that) {
+      legend.dispatch.on('legendClick', function(d) {
         d.disabled = !d.disabled;
 
         if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
@@ -171,6 +171,19 @@ nv.models.pieChart = function() {
         dispatch.stateChange(state);
 
         chart.update();
+      });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          var pieData = pie.values()(data[0]);
+          pieData.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = pieData.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
       });
 
       pie.dispatch.on('elementMouseout.tooltip', function(e) {
