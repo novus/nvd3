@@ -3,7 +3,8 @@ apology, and commitment to its permanent status as an open-source
 project.
 [http://nvd3.org/statement.html](http://nvd3.org/statement.html)
 
-# nvd3 - v1.0.0-beta (nvd3 development branch)
+# nvd3 - v1.0.0-beta 
+Note: version 1.0.0-beta is currently in the development branch.
 
 A reusable chart library for d3.JS.
 
