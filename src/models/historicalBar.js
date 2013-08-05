@@ -170,7 +170,7 @@ nv.models.historicalBar = function() {
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
-      bars.transition().
+      bars.transition()
           .attr('y', function(d,i) {
             return getY(d,i) < 0 ?
                     y(0) :
