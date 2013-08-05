@@ -1290,6 +1290,9 @@ nv.models.bullet = function() {
     , ranges = function(d) { return d.ranges }
     , markers = function(d) { return d.markers }
     , measures = function(d) { return d.measures }
+    , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
+    , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
+    , measureLabels = function(d) { return d.measureLabels ? d.measureLabels : []  }
     , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
     , width = 380
     , height = 30
@@ -1309,7 +1312,10 @@ nv.models.bullet = function() {
 
       var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
-          measurez = measures.call(this, d, i).slice().sort(d3.descending);
+          measurez = measures.call(this, d, i).slice().sort(d3.descending),
+          rangeLabelz = rangeLabels.call(this, d, i).slice(),
+          markerLabelz = markerLabels.call(this, d, i).slice(),
+          measureLabelz = measureLabels.call(this, d, i).slice();
 
 
       //------------------------------------------------------------
@@ -1416,14 +1422,14 @@ nv.models.bullet = function() {
           .on('mouseover', function() {
               dispatch.elementMouseover({
                 value: measurez[0],
-                label: 'Current',
+                label: measureLabelz[0] || 'Current',
                 pos: [x1(measurez[0]), availableHeight/2]
               })
           })
           .on('mouseout', function() {
               dispatch.elementMouseout({
                 value: measurez[0],
-                label: 'Current'
+                label: measureLabelz[0] || 'Current'
               })
           })
 
@@ -1435,14 +1441,14 @@ nv.models.bullet = function() {
             .on('mouseover', function() {
               dispatch.elementMouseover({
                 value: markerz[0],
-                label: 'Previous',
+                label: markerLabelz[0] || 'Previous',
                 pos: [x1(markerz[0]), availableHeight/2]
               })
             })
             .on('mouseout', function() {
               dispatch.elementMouseout({
                 value: markerz[0],
-                label: 'Previous'
+                label: markerLabelz[0] || 'Previous'
               })
             });
       } else {
@@ -1452,7 +1458,7 @@ nv.models.bullet = function() {
 
       wrap.selectAll('.nv-range')
           .on('mouseover', function(d,i) {
-            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+            var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
 
             dispatch.elementMouseover({
               value: d,
@@ -1461,7 +1467,7 @@ nv.models.bullet = function() {
             })
           })
           .on('mouseout', function(d,i) {
-            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+            var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
 
             dispatch.elementMouseout({
               value: d,
@@ -3686,7 +3692,7 @@ nv.models.historicalBar = function() {
 
 
       var bars = wrap.select('.nv-bars').selectAll('.nv-bar')
-          .data(function(d) { return d });
+          .data(function(d) { return d }, function(d,i) {return getX(d,i)});
 
       bars.exit().remove();
 
@@ -3982,7 +3988,7 @@ nv.models.historicalBarChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -9990,7 +9996,6 @@ nv.models.pie = function() {
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 500
     , height = 500
-    , getValues = function(d) { return d.values }
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
     , getDescription = function(d) { return d.description }
@@ -10025,7 +10030,7 @@ nv.models.pie = function() {
       // Setup containers and skeleton of chart
 
       //var wrap = container.selectAll('.nv-wrap.nv-pie').data([data]);
-      var wrap = container.selectAll('.nv-wrap.nv-pie').data([getValues(data[0])]);
+      var wrap = container.selectAll('.nv-wrap.nv-pie').data(data);
       var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
@@ -10268,8 +10273,7 @@ nv.models.pie = function() {
   };
 
   chart.values = function(_) {
-    if (!arguments.length) return getValues;
-    getValues = _;
+    nv.log("pie.values() is no longer supported.");
     return chart;
   };
 
@@ -10427,7 +10431,7 @@ nv.models.pieChart = function() {
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data[0].map(function(d) { return !!d.disabled });
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
         var key;
@@ -10443,7 +10447,7 @@ nv.models.pieChart = function() {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      if (!data[0] || !data[0].length) {
+      if (!data || !data.length) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
@@ -10486,7 +10490,7 @@ nv.models.pieChart = function() {
           .key(pie.x());
 
         wrap.select('.nv-legendWrap')
-            .datum(pie.values()(data[0]))
+            .datum(data)
             .call(legend);
 
         if ( margin.top != legend.height()) {
@@ -10514,7 +10518,7 @@ nv.models.pieChart = function() {
 
 
       var pieWrap = g.select('.nv-pieWrap')
-          .datum(data);
+          .datum([data]);
 
       d3.transition(pieWrap).call(pie);
 
@@ -10525,21 +10529,33 @@ nv.models.pieChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('legendClick', function(d,i, that) {
+      legend.dispatch.on('legendClick', function(d) {
         d.disabled = !d.disabled;
 
-        if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
-          pie.values()(data[0]).map(function(d) {
+        if (!data.filter(function(d) { return !d.disabled }).length) {
+          data.map(function(d) {
             d.disabled = false;
             wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
 
-        state.disabled = data[0].map(function(d) { return !!d.disabled });
+        state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
         chart.update();
+      });
+
+      legend.dispatch.on('legendDblclick', function(d) {
+          //Double clicking should always enable current series, and disabled all others.
+          data.forEach(function(d) {
+             d.disabled = true;
+          });
+          d.disabled = false;  
+
+          state.disabled = data.map(function(d) { return !!d.disabled });
+          dispatch.stateChange(state);
+          chart.update();
       });
 
       pie.dispatch.on('elementMouseout.tooltip', function(e) {
@@ -10550,7 +10566,7 @@ nv.models.pieChart = function() {
       dispatch.on('changeState', function(e) {
 
         if (typeof e.disabled !== 'undefined') {
-          data[0].forEach(function(series,i) {
+          data.forEach(function(series,i) {
             series.disabled = e.disabled[i];
           });
 
