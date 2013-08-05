@@ -102,7 +102,7 @@ nv.models.historicalBar = function() {
 
 
       var bars = wrap.select('.nv-bars').selectAll('.nv-bar')
-          .data(function(d) { return d });
+          .data(function(d) { return d }, function(d,i) {return getX(d,i)});
 
       bars.exit().remove();
 
