@@ -17,7 +17,8 @@
   <div class='chart half' id='chart4'>Chart with two points<svg></svg></div>
   <div class='chart half' id='chart5'>Chart with 'holes'<svg></svg></div>
   <div class='chart half' id='chart6'>Total random points<svg></svg></div>
-  <div class='chart half' id='chart7'>No data<svg></svg></div>
+  <div class='chart half' id='chart7'>Less than four points, old tooltips<svg></svg></div>
+  <div class='chart half' id='chart8'>No data<svg></svg></div>
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
@@ -234,6 +235,19 @@ function totalRandom() {
   return rval;
 }
 
+function nPoints() {
+  var rval = [
+    {key: "Series 1", 
+    values: [
+        [1,2],
+        [2,4],
+        [3,8]
+    ]}
+  ];
+  return rval;
+
+}
+
 //an example of harmonizing colors between visualizations
 //observe that Consumer Discretionary and Consumer Staples have 
 //been flipped in the second chart
@@ -299,5 +313,6 @@ defaultChartConfig("chart3", histcatexplong_singledatapoint);
 defaultChartConfig("chart4", histcatexplong_twodatapoint);
 defaultChartConfig("chart5", histcatexplong_withholes);
 defaultChartConfig("chart6", totalRandom(), false);
-defaultChartConfig("chart7", []);
+defaultChartConfig("chart7", nPoints(),false);
+defaultChartConfig("chart8", []);
 </script>
