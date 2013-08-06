@@ -46,6 +46,7 @@ nv.models.pieChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var seriesData = pie.values()(data[0])
       var container = d3.select(this),
           that = this;
 
@@ -58,7 +59,7 @@ nv.models.pieChart = function() {
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data[0].map(function(d) { return !!d.disabled });
+      state.disabled = seriesData.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
         var key;
@@ -74,7 +75,7 @@ nv.models.pieChart = function() {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      if (!data[0] || !data[0].length) {
+      if (!seriesData || !seriesData.length) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
@@ -117,7 +118,7 @@ nv.models.pieChart = function() {
           .key(pie.x());
 
         wrap.select('.nv-legendWrap')
-            .datum(pie.values()(data[0]))
+            .datum(seriesData)
             .call(legend);
 
         if ( margin.top != legend.height()) {
@@ -159,15 +160,15 @@ nv.models.pieChart = function() {
       legend.dispatch.on('legendClick', function(d,i, that) {
         d.disabled = !d.disabled;
 
-        if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
-          pie.values()(data[0]).map(function(d) {
+        if (!seriesData.filter(function(d) { return !d.disabled }).length) {
+          seriesData.map(function(d) {
             d.disabled = false;
             wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
 
-        state.disabled = data[0].map(function(d) { return !!d.disabled });
+        state.disabled = seriesData.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
         chart.update();
@@ -181,7 +182,7 @@ nv.models.pieChart = function() {
       dispatch.on('changeState', function(e) {
 
         if (typeof e.disabled !== 'undefined') {
-          data[0].forEach(function(series,i) {
+          seriesData.forEach(function(series,i) {
             series.disabled = e.disabled[i];
           });
 
