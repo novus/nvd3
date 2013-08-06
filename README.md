@@ -72,9 +72,11 @@ Then, you can use these commands:
 If you need to minify please build pull request in separate branch, and
 merge and minify in your master.
 
-## (Officially) Supported Browsers
+## Supported Browsers
 
 * Chrome latest version (preferred)
 * Firefox latest version
 * Safari latest version
 * Internet Explorer 9 and 10
+* (unofficially) Opera 15+.
+
