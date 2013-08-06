@@ -87,7 +87,15 @@ nv.interactiveGuideline = function() {
                       if (mouseX < 0 || mouseY < 0 
                         || mouseX > availableWidth || mouseY > availableHeight
                         || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
-                        ) {
+                        ) 
+                      {
+                      		if (isMSIE) {
+                      			if (d3.event.relatedTarget 
+                      				&& d3.event.relatedTarget.ownerSVGElement === undefined
+                      				&& d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass)) {
+                      				return;
+                      			}
+                      		}
                             dispatch.elementMouseout({
                                mouseX: mouseX,
                                mouseY: mouseY

@@ -50,6 +50,9 @@ window.nv.tooltip.* also has various helper methods.
         ,   id = "nvtooltip-" + Math.floor(Math.random() * 100000)
         ;
 
+        //CSS class to specify whether element should not have mouse events.
+        var  nvPointerEventsClass = "nv-pointer-events-none";
+
         //Format function for the tooltip values column
         var valueFormatter = function(d,i) {
             return d;
@@ -124,6 +127,7 @@ window.nv.tooltip.* also has various helper methods.
 
             container.node().innerHTML = newContent;
             container.style("top",0).style("left",0).style("opacity",0);
+            container.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
             return container.node();
         }
 
@@ -162,6 +166,8 @@ window.nv.tooltip.* also has various helper methods.
             return nvtooltip;
         };
 
+        nvtooltip.nvPointerEventsClass = nvPointerEventsClass;
+        
         nvtooltip.content = function(_) {
             if (!arguments.length) return content;
             content = _;

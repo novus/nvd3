@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '1.0.0b';
+nv.version = '1.1.0b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -206,7 +206,15 @@ nv.interactiveGuideline = function() {
                       if (mouseX < 0 || mouseY < 0 
                         || mouseX > availableWidth || mouseY > availableHeight
                         || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
-                        ) {
+                        ) 
+                      {
+                      		if (isMSIE) {
+                      			if (d3.event.relatedTarget 
+                      				&& d3.event.relatedTarget.ownerSVGElement === undefined
+                      				&& d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass)) {
+                      				return;
+                      			}
+                      		}
                             dispatch.elementMouseout({
                                mouseX: mouseX,
                                mouseY: mouseY
@@ -377,6 +385,9 @@ window.nv.tooltip.* also has various helper methods.
         ,   id = "nvtooltip-" + Math.floor(Math.random() * 100000)
         ;
 
+        //CSS class to specify whether element should not have mouse events.
+        var  nvPointerEventsClass = "nv-pointer-events-none";
+
         //Format function for the tooltip values column
         var valueFormatter = function(d,i) {
             return d;
@@ -451,6 +462,7 @@ window.nv.tooltip.* also has various helper methods.
 
             container.node().innerHTML = newContent;
             container.style("top",0).style("left",0).style("opacity",0);
+            container.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
             return container.node();
         }
 
@@ -489,6 +501,8 @@ window.nv.tooltip.* also has various helper methods.
             return nvtooltip;
         };
 
+        nvtooltip.nvPointerEventsClass = nvPointerEventsClass;
+        
         nvtooltip.content = function(_) {
             if (!arguments.length) return content;
             content = _;
