@@ -133,9 +133,6 @@ nv.models.stackedArea = function() {
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-
-
-
       var area = d3.svg.area()
           .x(function(d,i)  { return x(getX(d,i)) })
           .y0(function(d) { return y(d.display.y0) })
@@ -150,8 +147,10 @@ nv.models.stackedArea = function() {
 
       var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
           .data(function(d) { return d });
-          //.data(function(d) { return d }, function(d) { return d.key });
       path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
+          .attr('d', function(d,i){
+            return zeroArea(d.values, d.seriesIndex);
+          })
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
             dispatch.areaMouseover({
@@ -179,15 +178,13 @@ nv.models.stackedArea = function() {
               seriesIndex: i
             });
           })
-      //d3.transition(path.exit())
-      path.exit()
+      d3.transition(path.exit())
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
           .style('fill', function(d,i){ return d.color || color(d, i) })
           .style('stroke', function(d,i){ return d.color || color(d, i) });
-      //d3.transition(path)
-      path
+      d3.transition(path)
           .attr('d', function(d,i) { return area(d.values,i) })
 
 
