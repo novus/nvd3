@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '1.1.0b';
+nv.version = '1.1.1b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -13128,6 +13128,7 @@ nv.models.stackedArea = function() {
     , y //can be accessed via chart.yScale()
     , scatter = nv.models.scatter()
     , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout')
+    , transitionDuration = 500  //allow users to override stacked area transition duration.
     ;
 
   scatter
@@ -13244,9 +13245,6 @@ nv.models.stackedArea = function() {
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-
-
-
       var area = d3.svg.area()
           .x(function(d,i)  { return x(getX(d,i)) })
           .y0(function(d) { 
@@ -13264,11 +13262,12 @@ nv.models.stackedArea = function() {
 
 
       var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
-          .data(function(d) { 
-            return d 
-          });
-          //.data(function(d) { return d }, function(d) { return d.key });
+          .data(function(d) { return d });
+
       path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
+          .attr('d', function(d,i){
+            return zeroArea(d.values, d.seriesIndex);
+          })
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
             dispatch.areaMouseover({
@@ -13296,8 +13295,7 @@ nv.models.stackedArea = function() {
               seriesIndex: i
             });
           })
-      //d3.transition(path.exit())
-      path.exit()
+      path.exit().transition().duration(transitionDuration)
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
@@ -13305,11 +13303,11 @@ nv.models.stackedArea = function() {
             return d.color || color(d, d.seriesIndex) 
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
-      //d3.transition(path)
-      path
+      path.transition().duration(transitionDuration)
           .attr('d', function(d,i) { 
             return area(d.values,i) 
-          })
+          });
+
 
 
       //============================================================
@@ -13447,10 +13445,14 @@ nv.models.stackedArea = function() {
   chart.interpolate = function(_) {
 	    if (!arguments.length) return interpolate;
 	    interpolate = _;
-	    return interpolate;
-  
+	    return chart;
   };
   
+  chart.transitionDuration = function(_) {
+      if (!arguments.length) return transitionDuration;
+      transitionDuration = _;
+      return chart;
+  };
   //============================================================
 
 
@@ -13684,7 +13686,7 @@ nv.models.stackedAreaChart = function() {
 
       var stackedWrap = g.select('.nv-stackedWrap')
           .datum(data);
-      //d3.transition(stackedWrap).call(stacked);
+
       stackedWrap.call(stacked);
 
       //------------------------------------------------------------
@@ -13759,7 +13761,6 @@ nv.models.stackedAreaChart = function() {
         state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        //selection.transition().call(chart);
         chart.update();
       });
 
@@ -13799,7 +13800,6 @@ nv.models.stackedAreaChart = function() {
         state.style = stacked.style();
         dispatch.stateChange(state);
 
-        //selection.transition().call(chart);
         chart.update();
       });
 
@@ -13922,7 +13922,7 @@ nv.models.stackedAreaChart = function() {
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
 
-  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
+  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate','transitionDuration');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
