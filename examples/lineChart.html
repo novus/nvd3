@@ -58,10 +58,12 @@ var chart;
 nv.addGraph(function() {
   chart = nv.models.lineChart();
   chart
+    .margin({left: 100, bottom: 100})
     .x(function(d,i) { return i })
 
   // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
   chart.xAxis
+    .axisLabel("Time (s)")
     .tickFormat(d3.format(',.1f'));
 
   chart.yAxis
