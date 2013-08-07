@@ -187,7 +187,7 @@ nv.models.stackedArea = function() {
               seriesIndex: i
             });
           })
-      d3.transition(path.exit())
+      path.exit().transition()
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
@@ -195,7 +195,7 @@ nv.models.stackedArea = function() {
             return d.color || color(d, d.seriesIndex) 
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
-      d3.transition(path)
+      path.transition()
           .attr('d', function(d,i) { 
             return area(d.values,i) 
           });
