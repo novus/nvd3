@@ -137,9 +137,6 @@ nv.models.stackedArea = function() {
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-
-
-
       var area = d3.svg.area()
           .x(function(d,i)  { return x(getX(d,i)) })
           .y0(function(d) { 
@@ -157,11 +154,12 @@ nv.models.stackedArea = function() {
 
 
       var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
-          .data(function(d) { 
-            return d 
-          });
-          //.data(function(d) { return d }, function(d) { return d.key });
+          .data(function(d) { return d });
+
       path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
+          .attr('d', function(d,i){
+            return zeroArea(d.values, d.seriesIndex);
+          })
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
             dispatch.areaMouseover({
@@ -189,8 +187,7 @@ nv.models.stackedArea = function() {
               seriesIndex: i
             });
           })
-      //d3.transition(path.exit())
-      path.exit()
+      d3.transition(path.exit())
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
@@ -198,11 +195,11 @@ nv.models.stackedArea = function() {
             return d.color || color(d, d.seriesIndex) 
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
-      //d3.transition(path)
-      path
+      d3.transition(path)
           .attr('d', function(d,i) { 
             return area(d.values,i) 
-          })
+          });
+
 
 
       //============================================================
