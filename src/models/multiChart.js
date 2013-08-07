@@ -4,7 +4,7 @@ nv.models.multiChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
+  var margin = {top: 30, right: 90, bottom: 50, left: 80},
       color = d3.scale.category20().range(),
       width = null, 
       height = null,
@@ -14,6 +14,7 @@ nv.models.multiChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       },
+      maxXLabelLength = 5,
       x, y; //can be accessed via chart.lines.[x/y]Scale()
 
   //============================================================
@@ -24,18 +25,18 @@ nv.models.multiChart = function() {
       yScale1 = d3.scale.linear(),
       yScale2 = d3.scale.linear(),
 
-      lines1 = nv.models.line().yScale(yScale1),
-      lines2 = nv.models.line().yScale(yScale2),
+      lines1 = nv.models.line().yScale(yScale1).xScale(x),
+      lines2 = nv.models.line().yScale(yScale2).xScale(x),
 
       bars1 = nv.models.multiBar().stacked(false).yScale(yScale1),
       bars2 = nv.models.multiBar().stacked(false).yScale(yScale2),
 
-      stack1 = nv.models.stackedArea().yScale(yScale1),
-      stack2 = nv.models.stackedArea().yScale(yScale2),
+      stack1 = nv.models.stackedArea().yScale(yScale1).xScale(x),
+      stack2 = nv.models.stackedArea().yScale(yScale2).xScale(x),
 
-      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
-      yAxis1 = nv.models.axis().scale(yScale1).orient('left'),
-      yAxis2 = nv.models.axis().scale(yScale2).orient('right'),
+      xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5).highlightZero(false).showMaxMin(false),
+      yAxis1 = nv.models.axis().scale(yScale1).orient('left').width(80),
+      yAxis2 = nv.models.axis().scale(yScale2).orient('right').width(60),
 
       legend = nv.models.legend().height(30),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
@@ -44,7 +45,7 @@ nv.models.multiChart = function() {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines1.x()(e.point, e.pointIndex)),
-        y = ((e.series.yAxis == 2) ? yAxis2 : yAxis1).tickFormat()(lines1.y()(e.point, e.pointIndex)),
+        y = (e.series.yAxis == 2 ? yAxis2 : yAxis1).tickFormat()(lines1.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, undefined, undefined, offsetElement.offsetParent);
@@ -93,12 +94,12 @@ nv.models.multiChart = function() {
       gEnter.append('g').attr('class', 'x axis');
       gEnter.append('g').attr('class', 'y1 axis');
       gEnter.append('g').attr('class', 'y2 axis');
-      gEnter.append('g').attr('class', 'lines1Wrap');
-      gEnter.append('g').attr('class', 'lines2Wrap');
-      gEnter.append('g').attr('class', 'bars1Wrap');
-      gEnter.append('g').attr('class', 'bars2Wrap');
       gEnter.append('g').attr('class', 'stack1Wrap');
       gEnter.append('g').attr('class', 'stack2Wrap');
+      gEnter.append('g').attr('class', 'bars1Wrap');
+      gEnter.append('g').attr('class', 'bars2Wrap');
+      gEnter.append('g').attr('class', 'lines1Wrap');
+      gEnter.append('g').attr('class', 'lines2Wrap');
       gEnter.append('g').attr('class', 'legendWrap');
 
       var g = wrap.select('g');
@@ -116,8 +117,8 @@ nv.models.multiChart = function() {
 
         if ( margin.top != legend.height()) {
           margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+          height = margin.top + availableHeight + margin.bottom;
+          container.style('height', height, 'important')
         }
 
         g.select('.legendWrap')
@@ -199,6 +200,39 @@ nv.models.multiChart = function() {
       yScale2 .domain(d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
               .range([0, availableHeight])
 
+      var breathingRoomOnDomain = function(domain){
+        var width = domain[1] - domain[0];
+        if(width == 0){return domain};
+        var bottom = domain[1] - width * 1.05;
+        if(bottom < 0 && domain[0] >= 0){bottom = 0};
+
+        return [bottom, domain[1]];
+      }
+
+      yScale1.domain(breathingRoomOnDomain(yScale1.domain()))
+      yScale2.domain(breathingRoomOnDomain(yScale2.domain()))
+
+      var alternateDomains = [[], []]
+      var dataLength = data.length
+      for(var dIdx = 0; dIdx < dataLength; dIdx = dIdx + 1){
+        if(!data[dIdx].disabled){
+          yAxis = data[dIdx].yAxis - 1
+          if(data[dIdx].minimum != undefined){
+            alternateDomains[yAxis][0] = alternateDomains[yAxis][0] == undefined ? data[dIdx].minimum : Math.min(data[dIdx].minimum, alternateDomains[yAxis][0])
+          }
+          if(data[dIdx].maximum != undefined){
+            alternateDomains[yAxis][1] = alternateDomains[yAxis][1] == undefined ? data[dIdx].maximum : Math.max(data[dIdx].maximum, alternateDomains[yAxis][1])
+          }
+        }
+      }
+
+      var setAlternateDomain = function(domain, alternateDomain){
+        return [(alternateDomain[0] != undefined ? Math.min(alternateDomain[0], domain[0]) : domain[0]), (alternateDomain[1] != undefined ? Math.max(alternateDomain[1], domain[1]) : domain[1]) ]
+      }
+
+      yScale1.domain(setAlternateDomain(yScale1.domain(), alternateDomains[0]))
+      yScale2.domain(setAlternateDomain(yScale2.domain(), alternateDomains[1]))
+
       lines1.yDomain(yScale1.domain())
       bars1.yDomain(yScale1.domain())
       stack1.yDomain(yScale1.domain())
@@ -207,19 +241,26 @@ nv.models.multiChart = function() {
       bars2.yDomain(yScale2.domain())
       stack2.yDomain(yScale2.domain())
 
+      if(dataLines1.length){d3.transition(lines1Wrap).call(lines1);}
+      if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
+
       if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
       if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
 
       if(dataBars1.length){d3.transition(bars1Wrap).call(bars1);}
       if(dataBars2.length){d3.transition(bars2Wrap).call(bars2);}
 
-      if(dataLines1.length){d3.transition(lines1Wrap).call(lines1);}
-      if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
-      
+      var exampleBars = dataBars1.length ? dataBars1 : dataBars2
+      if (exampleBars.length){
+        var xAxisOrginalDomain = xAxis.domain()
+        var adjust = (xAxisOrginalDomain[1] - xAxisOrginalDomain[0]) / exampleBars[0].values.length
+        xAxis.domain([xAxisOrginalDomain[0] - 1.25 * adjust / 2, xAxisOrginalDomain[1] + 1.25 * adjust / 2])
+      }
+
 
 
       xAxis
-        .ticks( availableWidth / 100 )
+        .ticks( availableWidth / (10 * maxXLabelLength) )
         .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
@@ -230,14 +271,20 @@ nv.models.multiChart = function() {
       yAxis1
         .ticks( availableHeight / 36 )
         .tickSize( -availableWidth, 0);
-
+      
+      d3.transition(g.select('.lines1Wrap')).style('opacity', dataLines1.length ? 1 : 0)
+      d3.transition(g.select('.lines2Wrap')).style('opacity', dataLines2.length ? 1 : 0)
+      d3.transition(g.select('.stack1Wrap')).style('opacity', dataStack1.length ? 1 : 0)
+      d3.transition(g.select('.stack2Wrap')).style('opacity', dataStack2.length ? 1 : 0)
+      d3.transition(g.select('.bars1Wrap')).style('opacity', dataBars1.length ? 1 : 0)
+      d3.transition(g.select('.bars2Wrap')).style('opacity', dataBars2.length ? 1 : 0)
 
       d3.transition(g.select('.y1.axis'))
           .call(yAxis1);
 
       yAxis2
         .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
+        .tickSize(series1.length ? 0 : -availableWidth, 0);
 
       d3.transition(g.select('.y2.axis'))
           .call(yAxis2);
@@ -310,9 +357,7 @@ nv.models.multiChart = function() {
   });
 
   stack1.dispatch.on('tooltipShow', function(e) {
-    //disable tooltips when value ~= 0
-    //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-    if (!Math.round(stack1.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
+    if (!Math.round(stack1.y()(e.point) * 100)) {
       setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
       return false;
     }
@@ -326,9 +371,7 @@ nv.models.multiChart = function() {
   });
 
   stack2.dispatch.on('tooltipShow', function(e) {
-    //disable tooltips when value ~= 0
-    //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-    if (!Math.round(stack2.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
+    if (!Math.round(stack2.y()(e.point) * 100)) {
       setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
       return false;
     }
@@ -344,19 +387,6 @@ nv.models.multiChart = function() {
     lines1.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
-  });
-
-  lines1.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
-  });
-
-  lines2.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-    dispatch.tooltipShow(e);
-  });
-
-  lines2.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
   });
 
   dispatch.on('tooltipHide', function() {
@@ -436,6 +466,12 @@ nv.models.multiChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.maxXLabelLength = function(_) {
+    if (!arguments.length) return maxXLabelLength;
+    maxXLabelLength = _;
     return chart;
   };
 
