@@ -24,6 +24,7 @@ nv.models.multiBar = function() {
     , drawTime = 500
     , xDomain
     , yDomain
+    , groupSpacing = 0.1
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     ;
 
@@ -105,7 +106,7 @@ nv.models.multiBar = function() {
             });
 
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-          .rangeBands([0, availableWidth], .1);
+          .rangeBands([0, availableWidth], groupSpacing);
 
       //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
@@ -432,6 +433,12 @@ nv.models.multiBar = function() {
   chart.drawTime = function(_) {
     if (!arguments.length) return drawTime;
     drawTime = _;
+    return chart;
+  };
+
+  chart.groupSpacing = function(_) {
+    if (!arguments.length) return groupSpacing;
+    groupSpacing = _;
     return chart;
   };
 
