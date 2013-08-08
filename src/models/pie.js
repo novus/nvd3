@@ -16,6 +16,7 @@ nv.models.pie = function() {
     , showLabels = true
     , pieLabelsOutside = true
     , donutLabelsOutside = false
+    , labelType = "key"
     , labelThreshold = .02 //if slice percentage is under this, don't show label
     , donut = false
     , labelSunbeamLayout = false
@@ -211,7 +212,12 @@ nv.models.pie = function() {
                 .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
                 .text(function(d, i) {
                   var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
-                  return (d.value && percent > labelThreshold) ? getX(d.data) : '';
+                  var labelTypes = {
+                    "key" : getX(d.data),
+                    "value": getY(d.data),
+                    "percent": d3.format('%')(percent)
+                  };
+                  return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                 });
 
             var textBox = slice.select('text').node().getBBox();
@@ -327,6 +333,12 @@ nv.models.pie = function() {
   chart.pieLabelsOutside = function(_) {
     if (!arguments.length) return pieLabelsOutside;
     pieLabelsOutside = _;
+    return chart;
+  };
+
+  chart.labelType = function(_) {
+    if (!arguments.length) return labelType;
+    labelType = _;
     return chart;
   };
 
