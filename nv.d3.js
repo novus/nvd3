@@ -10029,8 +10029,11 @@ nv.models.scatter = function() {
                 // *Injecting series and point index for reference
                 /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
                 */
-                var pX = getX(point,pointIndex) + Math.random() * 1e-7;
-                var pY = getY(point,pointIndex) + Math.random() * 1e-7;
+                var pointX  = getX(point,pointIndex)
+                var pX      = !pointX instanceof Date ? pointX + Math.random() * 1e-7 : pointX
+                    
+                var pointY  = getY(point,pointIndex)
+                var pY     = !pointY instanceof Date ? pointY + Math.random() * 1e-7 : pointY
 
                 return [x(pX), 
                         y(pY), 
