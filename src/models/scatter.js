@@ -1,4 +1,3 @@
-
 nv.models.scatter = function() {
 
   //============================================================
@@ -254,7 +253,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: d.point
+                  pointIndex: d.point,
+                  e: d3.event
                 });
               })
               .on('mouseover', function(d) {
@@ -267,7 +267,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: d.point
+                  pointIndex: d.point,
+                  e: d3.event
                 });
               })
               .on('mouseout', function(d, i) {
@@ -279,7 +280,8 @@ nv.models.scatter = function() {
                   point: point,
                   series: series,
                   seriesIndex: d.series,
-                  pointIndex: d.point
+                  pointIndex: d.point,
+                  e: d3.event
                 });
               });
 
@@ -312,7 +314,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: i
+                  pointIndex: i,
+                  e: d3.event
                 });
               })
               .on('mouseover', function(d,i) {
@@ -325,7 +328,8 @@ nv.models.scatter = function() {
                   series: series,
                   pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                   seriesIndex: d.series,
-                  pointIndex: i
+                  pointIndex: i,
+                  e: d3.event
                 });
               })
               .on('mouseout', function(d,i) {
@@ -337,7 +341,8 @@ nv.models.scatter = function() {
                   point: point,
                   series: series,
                   seriesIndex: d.series,
-                  pointIndex: i
+                  pointIndex: i,
+                  e: d3.event
                 });
               });
           }
