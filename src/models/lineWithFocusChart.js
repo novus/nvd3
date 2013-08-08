@@ -378,6 +378,10 @@ nv.models.lineWithFocusChart = function() {
         brushExtent = brush.empty() ? null : brush.extent();
         extent = brush.empty() ? x2.domain() : brush.extent();
 
+        //The brush extent cannot be less than one.  If it is, don't update the line chart.
+        if (Math.abs(extent[0] - extent[1]) <= 1) {
+          return;
+        }
 
         dispatch.brush({extent: extent, brush: brush});
 
