@@ -3,7 +3,7 @@ apology, and commitment to its permanent status as an open-source
 project.
 [http://nvd3.org/statement.html](http://nvd3.org/statement.html)
 
-# nvd3 - v1.0.0-beta
+# nvd3 - v1.0.0-beta 
 
 A reusable chart library for d3.JS.
 
@@ -15,17 +15,17 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 # Current development focus
 
--Error bars in bar charts
--Unifying common API functions between charts
--Bug fixes all around
+- Error bars in bar charts
+- Unifying common API functions between charts
+- Bug fixes all around
 
 ---
 
 # Installation Instructions
 
-d3.v3.js is a dependency of nv.d3.js. Be sure to include in in your project, then:  
-Add a script tag to include nv.d3.js OR nv.d3.min.js in your project.  
-Also add a link to the nv.d3.css file.
+`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include in in your project, then:  
+Add a script tag to include `nv.d3.js` OR `nv.d3.min.js` in your project.  
+Also add a link to the `nv.d3.css` file.
 
 See wiki -> Documentation for more detail
 
@@ -72,9 +72,11 @@ Then, you can use these commands:
 If you need to minify please build pull request in separate branch, and
 merge and minify in your master.
 
-## (Officially) Supported Browsers
+## Supported Browsers
 
 * Chrome latest version (preferred)
 * Firefox latest version
 * Safari latest version
 * Internet Explorer 9 and 10
+* (unofficially) Opera 15+.
+
