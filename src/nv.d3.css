@@ -360,6 +360,11 @@ svg .title {
   */
 }
 
+.nvd3 .nv-groups path.nv-line.nv-thin-line {
+  stroke-width: 1px;
+}
+
+
 .nvd3 .nv-groups path.nv-area {
   stroke: none;
   /*
