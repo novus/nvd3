@@ -38,6 +38,11 @@ text {
   <svg></svg>
 </div>
 
+<div class='chart third' id='test7'>
+  <h2>Pie chart with percent label type</h2>
+  <svg></svg>
+</div>
+
 <div class='chart third' id="test4">
   <h2>Empty array passed in</h2>
   <svg></svg>
@@ -103,7 +108,7 @@ function thirtySeries() {
   return data;
 }
 
-function defaultChart(containerId, data) {
+function defaultChart(containerId, data, labelType) {
   nv.addGraph(function() {
       var width = 500,
           height = 500;
@@ -113,7 +118,9 @@ function defaultChart(containerId, data) {
           .y(function(d) { return d.y })
           .color(d3.scale.category10().range())
           .width(width)
-          .height(height);
+          .height(height)
+          .labelType(labelType)
+          ;
 
         d3.select("#" + containerId + " svg")
             .datum(data)
@@ -164,4 +171,6 @@ defaultChart("test6", [
       {key: "null", y: null},
       {key: "zero", y: 0}
   ])
+
+defaultChart("test7",testdata, "percent");
 </script>

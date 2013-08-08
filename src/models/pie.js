@@ -339,6 +339,7 @@ nv.models.pie = function() {
   chart.labelType = function(_) {
     if (!arguments.length) return labelType;
     labelType = _;
+    labelType = labelType || "key";
     return chart;
   };
 
