@@ -194,6 +194,7 @@ keyColor = function(d, i) {return colors(d.key)};
 var chart;
 nv.addGraph(function() {
   chart = nv.models.stackedAreaChart()
+               // .width(600).height(500)
                 .useInteractiveGuideline(true)
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
