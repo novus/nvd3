@@ -3714,8 +3714,8 @@ nv.models.historicalBar = function() {
       var barsEnter = bars.enter().append('rect')
           //.attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
           .attr('x', 0 )
-          .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-          .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
+          .attr('y', function(d,i) {  return nv.utils.NaNtoZero(y(Math.max(0, getY(d,i)))) })
+          .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.abs(y(getY(d,i)) - y(0))) })
           .on('mouseover', function(d,i) {
             if (!interactive) return;
             d3.select(this).classed('hover', true);
@@ -3776,13 +3776,14 @@ nv.models.historicalBar = function() {
 
       bars.transition()
           .attr('y', function(d,i) {
-            return getY(d,i) < 0 ?
+            var rval = getY(d,i) < 0 ?
                     y(0) :
                     y(0) - y(getY(d,i)) < 1 ?
                       y(0) - 1 :
-                      y(getY(d,i))
+                      y(getY(d,i));
+            return nv.utils.NaNtoZero(rval);
           })
-          .attr('height', function(d,i) { return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) });
+          .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.max(Math.abs(y(getY(d,i)) - y(0)),1)) });
 
     });
 
