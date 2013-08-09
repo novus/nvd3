@@ -145,8 +145,9 @@ nv.models.stackedAreaChart = function() {
       // Legend
 
       if (showLegend) {
+        var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
         legend
-          .width( availableWidth - controlWidth );
+          .width(legendWidth);
 
         g.select('.nv-legendWrap')
             .datum(data)
@@ -159,7 +160,7 @@ nv.models.stackedAreaChart = function() {
         }
 
         g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + controlWidth + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
       }
 
       //------------------------------------------------------------
