@@ -11544,7 +11544,8 @@ nv.models.scatterChart = function() {
       // Legend
 
       if (showLegend) {
-        legend.width( availableWidth / 2 );
+        var legendWidth = (showControls) ? availableWidth / 2 : availableWidth;
+        legend.width(legendWidth);
 
         wrap.select('.nv-legendWrap')
             .datum(data)
@@ -11557,7 +11558,7 @@ nv.models.scatterChart = function() {
         }
 
         wrap.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + (availableWidth - legendWidth) + ',' + (-margin.top) +')');
       }
 
       //------------------------------------------------------------
@@ -13625,8 +13626,9 @@ nv.models.stackedAreaChart = function() {
       // Legend
 
       if (showLegend) {
+        var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
         legend
-          .width( availableWidth - controlWidth );
+          .width(legendWidth);
 
         g.select('.nv-legendWrap')
             .datum(data)
@@ -13639,7 +13641,7 @@ nv.models.stackedAreaChart = function() {
         }
 
         g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + controlWidth + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
       }
 
       //------------------------------------------------------------
