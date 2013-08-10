@@ -3,7 +3,18 @@
 
 <link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+#chart14 {
+  overflow: scroll;
+  width: 500px;
+  height: 300px;
+}
 
+#chart14 svg {
+  width: 700px;
+  height: 400px;
+}
+</style>
 <body>
   <h3>Line chart test cases - feel free to add more tests</h3>
   <div style='position:relative;'>
@@ -65,6 +76,11 @@
       </div>
        <div class='chart third' id='chart12'>
         Duplicate X coordinate points.
+        <svg></svg>
+      </div>
+
+      <div class='chart third' id='chart14'>
+        Chart in a overflow div with scrolls
         <svg></svg>
       </div>
 
@@ -131,9 +147,11 @@ defaultChartConfig("chart10", lotsofSeries());
 defaultChartConfig("chart11", backwards(),false);
 defaultChartConfig("chart12", duplicateX(),false);
 defaultChartConfig("chart13", withNaNs());
+defaultChartConfig("chart14",sinAndCos(), true, false, {width: 700, height: 400});
 
 
-function defaultChartConfig(containerid, data, guideline, useDates) {
+function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
+  if (auxOptions === undefined) auxOptions = {};
   if (guideline === undefined) guideline = true;
   nv.addGraph(function() {
     var chart;
@@ -143,6 +161,12 @@ function defaultChartConfig(containerid, data, guideline, useDates) {
         .x(function(d,i) { 
           return d.x;
         });
+
+    if (auxOptions.width) 
+      chart.width(auxOptions.width);
+
+    if (auxOptions.height)
+      chart.height(auxOptions.height);
 
     var formatter;
     if (useDates !== undefined) {
