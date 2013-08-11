@@ -25,7 +25,7 @@ nv.models.lineChart = function() {
       xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
-      controls = nv.models.legend().height(30),
+      controls = nv.models.legend().height(30).updateState(false),
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
 
@@ -212,33 +212,9 @@ nv.models.lineChart = function() {
       });
 
 
-
-      legend.dispatch.on('legendClick', function(d,i) { 
-        d.disabled = !d.disabled;
-
-        if (!data.filter(function(d) { return !d.disabled }).length) {
-          data.map(function(d) {
-            d.disabled = false;
-            wrap.selectAll('.nv-series').classed('disabled', false);
-            return d;
-          });
-        }
-
+      legend.dispatch.on('stateChange', function(newState) { 
         chart.update();
       });
-
-/*
-      //
-      legend.dispatch.on('legendMouseover', function(d, i) {
-        d.hover = true;
-        selection.transition().call(chart)
-      });
-
-      legend.dispatch.on('legendMouseout', function(d, i) {
-        d.hover = false;
-        selection.transition().call(chart)
-      });
-*/
 
       lines.dispatch.on('elementMouseover.tooltip', function(e) {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
