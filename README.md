@@ -3,9 +3,22 @@ apology, and commitment to its permanent status as an open-source
 project.
 [http://nvd3.org/statement.html](http://nvd3.org/statement.html)
 
-# nvd3 - v1.0.0-beta 
+# nvd3 - v1.1.x-beta
+## Release notes for version 1.1 beta
+* Line charts now have a new tooltip option available. This new tooltip displays all series information at once, and shows up anywhere your mouse moves.
+To enable, set **useInteractiveGuideline** to true. See examples in the **test/** directory for how this tooltip works.
+* New test pages have been created for various kinds of charts. They live in the **test/** directory. The goal of these test pages is to aid
+in regression testing coverage when changes are made to charts.
+* Pie charts accept data in a different way, and if you update to version 1.1, your pie charts will likely break. See the pie chart examples for how
+data should be properly passed in. It's a very simple change.
+* Pie charts can now accept a 'labelType' property. 
+* Tooltip transitions are **turned off** by default, if you update to the latest nv.d3.css.  To bring them back, add a 'with-transitions' CSS class
+to the containing chart DIV.
+* Stacked area charts have transitions again. Duration is controlled via a 'transitionDuration' property.
 
-A reusable chart library for d3.JS.
+
+## Overview
+A reusable chart library for d3.js.
 
 NVD3 may change from its current state, but will always try to follow the style of d3.js.
 
