@@ -358,6 +358,8 @@ nv.models.scatter = function() {
         var points = groups.selectAll('circle.nv-point')
             .data(function(d) { return d.values }, pointKey);
         points.enter().append('circle')
+            .style('fill', function (d,i) { return d.color })
+            .style('stroke', function (d,i) { return d.color })
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
@@ -383,6 +385,8 @@ nv.models.scatter = function() {
         var points = groups.selectAll('path.nv-point')
             .data(function(d) { return d.values });
         points.enter().append('path')
+            .style('fill', function (d,i) { return d.color })
+            .style('stroke', function (d,i) { return d.color })
             .attr('transform', function(d,i) {
               return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
             })
