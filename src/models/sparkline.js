@@ -16,6 +16,8 @@ nv.models.sparkline = function() {
     , color = nv.utils.getColor(['#000'])
     , xDomain
     , yDomain
+    , xRange
+    , yRange
     ;
 
   //============================================================
@@ -32,10 +34,10 @@ nv.models.sparkline = function() {
       // Setup Scales
 
       x   .domain(xDomain || d3.extent(data, getX ))
-          .range([0, availableWidth]);
+          .range(xRange || [0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(data, getY ))
-          .range([availableHeight, 0]);
+          .range(yRange || [availableHeight, 0]);
 
       //------------------------------------------------------------
 
@@ -157,6 +159,18 @@ nv.models.sparkline = function() {
   chart.yDomain = function(_) {
     if (!arguments.length) return yDomain;
     yDomain = _;
+    return chart;
+  };
+
+  chart.xRange = function(_) {
+    if (!arguments.length) return xRange;
+    xRange = _;
+    return chart;
+  };
+
+  chart.yRange = function(_) {
+    if (!arguments.length) return yRange;
+    yRange = _;
     return chart;
   };
 

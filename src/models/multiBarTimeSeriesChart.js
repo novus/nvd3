@@ -317,7 +317,7 @@ nv.models.multiBarTimeSeriesChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'delay');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked', 'delay');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;

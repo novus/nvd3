@@ -241,7 +241,7 @@ nv.models.discreteBarChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
+  d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;

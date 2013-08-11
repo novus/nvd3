@@ -31,6 +31,8 @@ nv.models.scatter = function() {
     , clipRadius   = function() { return 25 } // function to get the radius for voronoi point clips
     , xDomain      = null // Override x domain (skips the calculation from data)
     , yDomain      = null // Override y domain
+    , xRange       = null // Override x range
+    , yRange       = null // Override y range
     , sizeDomain   = null // Override point size domain
     , sizeRange    = null
     , singlePoint  = false
@@ -84,13 +86,13 @@ nv.models.scatter = function() {
       x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x; }).concat(forceX)))
 
       if (padData && data[0])
-        x.range([(availableWidth * padDataOuter +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)  ]);
+        x.range(xRange || [(availableWidth * padDataOuter +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)  ]);
         //x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
       else
-        x.range([0, availableWidth]);
+        x.range(xRange || [0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
-          .range([availableHeight, 0]);
+          .range(yRange || [availableHeight, 0]);
 
       z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
           .range(sizeRange || [16, 256]);
@@ -540,6 +542,18 @@ nv.models.scatter = function() {
   chart.sizeDomain = function(_) {
     if (!arguments.length) return sizeDomain;
     sizeDomain = _;
+    return chart;
+  };
+
+  chart.xRange = function(_) {
+    if (!arguments.length) return xRange;
+    xRange = _;
+    return chart;
+  };
+
+  chart.yRange = function(_) {
+    if (!arguments.length) return yRange;
+    yRange = _;
     return chart;
   };
 
