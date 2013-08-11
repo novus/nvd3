@@ -231,7 +231,8 @@ nv.models.lineChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(state) {
+      legend.dispatch.on('stateChange', function(newState) {
+          state = newState;
           dispatch.stateChange(state);
           chart.update();
       });
