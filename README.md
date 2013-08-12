@@ -17,6 +17,7 @@ to the containing chart DIV.
 * Stacked area charts have transitions again. Duration is controlled via a 'transitionDuration' property.
 * Issue #127: Adding ability to override individual scatter plot point colors.
 * Issue #216: Exposing xRange and yRange overrides for all charts.
+* Issue #168: Adding legend.radioButtonMode(). When set to true, legend click behavior will match those of radio buttons.
 
 
 ## Overview
