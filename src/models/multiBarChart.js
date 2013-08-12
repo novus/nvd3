@@ -506,6 +506,14 @@ nv.models.multiBarChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return multibar.transitionDuration();
+    multibar.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
+  };
+
   //============================================================
 
 
