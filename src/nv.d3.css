@@ -345,7 +345,7 @@ svg .title {
 
 .nvd3 .nv-groups path.nv-line {
   fill: none;
-  stroke-width: 2.5px;
+  stroke-width: 1.5px;
   /*
   stroke-linecap: round;
   shape-rendering: geometricPrecision;
