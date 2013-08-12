@@ -911,6 +911,7 @@ nv.models.axis = function() {
     , staggerLabels = false
     , isOrdinal = false
     , ticks = null
+    , transitionDuration = 250
     ;
 
   axis
@@ -956,8 +957,7 @@ nv.models.axis = function() {
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
 
 
-      d3.transition(g)
-          .call(axis);
+      g.transition().duration(transitionDuration).call(axis);
 
       scale0 = scale0 || axis.scale();
 
@@ -1280,6 +1280,12 @@ nv.models.axis = function() {
     if (!arguments.length) return staggerLabels;
     staggerLabels = _;
     return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+      if (!arguments.length) return transitionDuration;
+      transitionDuration = _;
+      return chart;
   };
 
 
@@ -2730,6 +2736,14 @@ nv.models.cumulativeLineChart = function() {
      return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return lines.transitionDuration();
+    lines.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
+  };
+
   //============================================================
 
 
@@ -2793,6 +2807,7 @@ nv.models.discreteBar = function() {
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     , rectClass = 'discreteBar'
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -2874,14 +2889,16 @@ nv.models.discreteBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
+      groups.exit()
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
-      d3.transition(groups)
+      groups
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -2966,7 +2983,8 @@ nv.models.discreteBar = function() {
         .select('rect')
           .attr('class', rectClass)
           .attr('width', x.rangeBand() * .9 / data.length);
-      d3.transition(bars)
+      bars.transition()
+          .duration(transitionDuration)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
             var left = x(getX(d,i)) + x.rangeBand() * .05,
@@ -3103,7 +3121,13 @@ nv.models.discreteBar = function() {
     if (!arguments.length) return rectClass;
     rectClass = _;
     return chart;
-  }
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
+    return chart;
+  };
   //============================================================
 
 
@@ -3425,6 +3449,14 @@ nv.models.discreteBarChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return discretebar.transitionDuration();
+    discretebar.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
+  };
+
   //============================================================
 
 
@@ -3445,6 +3477,7 @@ nv.models.distribution = function() {
     , color = nv.utils.defaultColor()
     , scale = d3.scale.linear()
     , domain
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -3500,7 +3533,8 @@ nv.models.distribution = function() {
       dist.enter().append('line')
           .attr(axis + '1', function(d,i) { return scale0(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale0(getData(d,i)) })
-      d3.transition(distWrap.exit().selectAll('line.nv-dist' + axis))
+      distWrap.exit().selectAll('line.nv-dist' + axis)
+          .transition().duration(transitionDuration)
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
           .style('stroke-opacity', 0)
@@ -3509,7 +3543,8 @@ nv.models.distribution = function() {
           .attr('class', function(d,i) { return 'nv-dist' + axis + ' nv-dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
-      d3.transition(dist)
+      dist
+          .transition().duration(transitionDuration)
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
 
@@ -3568,6 +3603,12 @@ nv.models.distribution = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
@@ -5569,7 +5610,7 @@ nv.models.lineChart = function() {
   chart.interactiveLayer = interactiveLayer;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
-    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate','transitionDuration');
+    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -5661,6 +5702,14 @@ nv.models.lineChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return lines.transitionDuration();
+    lines.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
     return chart;
   };
 
@@ -7337,6 +7386,7 @@ nv.models.multiBar = function() {
     , xRange
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -7475,11 +7525,16 @@ nv.models.multiBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
+      groups.exit()
+        .transition().duration(transitionDuration)
           //.style('stroke-opacity', 1e-6)
           //.style('fill-opacity', 1e-6)
         .selectAll('rect.nv-bar')
-        .delay(function(d,i) { return i * delay/ data[0].values.length })
+        .delay(function(d,i) { 
+          if (transitionDuration <= 10) return 0;
+          else
+             return i * delay/ data[0].values.length;
+        })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
@@ -7488,7 +7543,8 @@ nv.models.multiBar = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i) });
-      d3.transition(groups)
+      groups
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -7575,7 +7631,12 @@ nv.models.multiBar = function() {
 
       if (stacked)
           bars.transition()
-            .delay(function(d,i) { return i * delay / data[0].values.length })
+            .duration(transitionDuration)
+            .delay(function(d,i) { 
+                if (transitionDuration <= 10) return 0;
+                else
+                  return i * delay / data[0].values.length;
+            })
             .attr('y', function(d,i) {
 
               return y((stacked ? d.y1 : 0));
@@ -7584,18 +7645,25 @@ nv.models.multiBar = function() {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
             .transition()
+            .duration(transitionDuration)
             .attr('x', function(d,i) {
                   return stacked ? 0 : (d.series * x.rangeBand() / data.length )
             })
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
           bars.transition()
-            .delay(function(d,i) { return i * delay/ data[0].values.length })
+            .duration(transitionDuration)
+            .delay(function(d,i) { 
+              if (transitionDuration <= 10) return 0;
+              else
+                return i * delay/ data[0].values.length;
+            })
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
             .transition()
+            .duration(transitionDuration)
             .attr('y', function(d,i) {
                 return getY(d,i) < 0 ?
                         y(0) :
@@ -7745,6 +7813,13 @@ nv.models.multiBar = function() {
   chart.delay = function(_) {
     if (!arguments.length) return delay;
     delay = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
+    if (_ === 0) transitionDuration = 10;
     return chart;
   };
 
@@ -8258,6 +8333,14 @@ nv.models.multiBarChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return multibar.transitionDuration();
+    multibar.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
     return chart;
   };
 
@@ -10684,6 +10767,7 @@ nv.models.scatter = function() {
     , singlePoint  = false
     , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
     , useVoronoi   = true
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -10987,14 +11071,16 @@ nv.models.scatter = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
+      groups.exit()
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
-      d3.transition(groups)
+      groups
+          .transition().duration(transitionDuration)
           .style('fill', function(d,i) { return color(d, i) })
           .style('stroke', function(d,i) { return color(d, i) })
           .style('stroke-opacity', 1)
@@ -11013,6 +11099,7 @@ nv.models.scatter = function() {
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
         groups.exit().selectAll('path.nv-point').transition()
+            .duration(transitionDuration)
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .remove();
@@ -11024,6 +11111,7 @@ nv.models.scatter = function() {
             ;
         });
         points.transition()
+            .duration(transitionDuration)
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
@@ -11044,7 +11132,8 @@ nv.models.scatter = function() {
                 .size(function(d,i) { return z(getSize(d,i)) })
             );
         points.exit().remove();
-        d3.transition(groups.exit().selectAll('path.nv-point'))
+        groups.exit().selectAll('path.nv-point')
+            .transition().duration(transitionDuration)
             .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
             })
@@ -11057,6 +11146,7 @@ nv.models.scatter = function() {
             ;
         });
         points.transition()
+            .duration(transitionDuration)
             .attr('transform', function(d,i) {
               //nv.log(d,i,getX(d,i), x(getX(d,i)));
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
@@ -11311,6 +11401,12 @@ nv.models.scatter = function() {
   chart.singlePoint = function(_) {
     if (!arguments.length) return singlePoint;
     singlePoint = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
@@ -11929,6 +12025,16 @@ nv.models.scatterChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return scatter.transitionDuration();
+    scatter.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    distX.transitionDuration(_);
+    distY.transitionDuration(_);
+    return chart;
+  };
+
   //============================================================
 
 
@@ -12536,6 +12642,16 @@ nv.models.scatterPlusLineChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return scatter.transitionDuration();
+    scatter.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    distX.transitionDuration(_);
+    distY.transitionDuration(_);
     return chart;
   };
 
@@ -13827,7 +13943,7 @@ nv.models.stackedAreaChart = function() {
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
 
-  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate','transitionDuration');
+  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -13935,6 +14051,14 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return stacked.transitionDuration();
+    stacked.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
+  };
+
   yAxis.setTickFormat = yAxis.tickFormat;
 
   yAxis.tickFormat = function(_) {
@@ -13942,6 +14066,7 @@ nv.models.stackedAreaChart = function() {
     yAxisTickFormat = _;
     return yAxis;
   };
+
 
   //============================================================
 

@@ -26,7 +26,7 @@ nv.models.multiBar = function() {
     , xRange
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
-    , transitionDuration = 10
+    , transitionDuration = 250
     ;
 
   //============================================================
