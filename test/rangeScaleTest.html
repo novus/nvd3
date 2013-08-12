@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+
+</style>
+<body>
+  <h3>Test cases for Domain and Range overrides - Example of a polylinear scale</h3>
+  <div style='position:relative;'>
+      <div class='navigation'>
+          Tests:
+          <a href="lineChartTest.html">Line Chart</a>
+          <a href="stackedAreaChartTest.html">Stacked Area</a>
+          <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
+          <a href="ScatterChartTest.html">Scatter</a>
+          <a href="pieChartTest.html">Pie chart</a>
+      </div>
+      <div class='chart full' id='chart1'>
+        yDomain = [0,2,200], yRange = [500,50,0]
+        <svg></svg>
+      </div>
+      <div class='chart half with-transitions' id='chart2'>
+        
+        <svg></svg>
+      </div>
+  </div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/interactiveLayer.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/scatter.js"></script>
+<script src="../src/models/line.js"></script>
+<script src="../src/models/lineChart.js"></script>
+<script>
+
+//------------ CHART 1 
+defaultChartConfig("chart1", sinAndCos(),true, false);
+
+
+function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
+  if (auxOptions === undefined) auxOptions = {};
+  if (guideline === undefined) guideline = true;
+  nv.addGraph(function() {
+    var chart;
+    chart = nv.models.lineChart().useInteractiveGuideline(guideline);
+
+    var fullChartHeight = 500 - chart.margin().top - chart.margin().bottom;
+    chart
+        .x(function(d,i) { 
+          return d.x;
+        })
+        .yDomain([0,2,200])   //Using a polylinear scale
+        .yRange([fullChartHeight,50,0])
+        ;
+
+    if (auxOptions.width) 
+      chart.width(auxOptions.width);
+
+    if (auxOptions.height)
+      chart.height(auxOptions.height);
+
+    var formatter;
+    if (useDates) {
+        formatter = function(d,i) {
+                var now = (new Date()).getTime() - 86400 * 1000 * 365;
+                now = new Date(now + d * 86400 * 1000);
+                return d3.time.format('%b %d %Y')(now );
+        }
+    }
+    else {
+        formatter = d3.format(",.1f");
+    }
+
+    chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+        .tickFormat(
+            formatter
+          );
+
+    chart.yAxis
+        .axisLabel('Voltage (v)')
+        .tickFormat(d3.format(',.2f'));
+
+
+    d3.select('#' + containerid + ' svg')
+        .datum(data)
+      .transition().duration(500)
+        .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+}
+
+function sinAndCos() {
+  var sin = [],
+      cos = [],
+      higherOrder = []
+      ;
+
+  var now = (new Date()).getTime();
+  for (var i = 0; i < 100; i++) {
+    sin.push({x: i, y:  Math.abs(Math.sin(i/10)) }); //the nulls are to show how defined works
+    cos.push({x: i, y: Math.abs(.5 * Math.cos(i/10)) });
+
+    higherOrder.push({x: i, y: Math.cos(i) * 100 + 100});
+  }
+
+  return [
+    {
+      values: sin,
+      key: "Sine Wave",
+      color: "#ff7f0e"
+    },
+    {
+      values: cos,
+      key: "Cosine Wave",
+      color: "#2ca02c"
+    },
+    {
+      values: higherOrder,
+      key: "Higher Order",
+      color: "#fc34ff"
+    }
+  ];
+}
+
+
+</script>
