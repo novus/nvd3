@@ -4947,6 +4947,7 @@ nv.models.line = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , interpolate = "linear" // controls the line interpolation
+    , transitionDuration = 250  //override the transition duration
     ;
 
   scatter
@@ -5011,7 +5012,7 @@ nv.models.line = function() {
       var scatterWrap = wrap.select('.nv-scatterWrap');
           //.datum(data); // Data automatically trickles down from the wrap
 
-      d3.transition(scatterWrap).call(scatter);
+      scatterWrap.transition().call(scatter);
 
 
 
@@ -5035,7 +5036,8 @@ nv.models.line = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
+      groups.exit()
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
@@ -5044,7 +5046,8 @@ nv.models.line = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i)});
-      d3.transition(groups)
+      groups
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -5064,7 +5067,8 @@ nv.models.line = function() {
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
-      d3.transition(groups.exit().selectAll('path.nv-area'))
+      groups.exit().selectAll('path.nv-area')
+          .transition().duration(transitionDuration)
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -5075,7 +5079,8 @@ nv.models.line = function() {
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
-      d3.transition(areaPaths)
+      areaPaths
+          .transition().duration(transitionDuration)
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -5100,7 +5105,8 @@ nv.models.line = function() {
               .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
               .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
           );
-      d3.transition(groups.exit().selectAll('path.nv-line'))
+      groups.exit().selectAll('path.nv-line')
+          .transition().duration(transitionDuration)
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -5108,7 +5114,8 @@ nv.models.line = function() {
               .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
               .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
           );
-      d3.transition(linePaths)
+      linePaths
+          .transition().duration(transitionDuration)
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -5203,6 +5210,12 @@ nv.models.line = function() {
     if (!arguments.length) return isArea;
     isArea = d3.functor(_);
     return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+      if (!arguments.length) return transitionDuration;
+      transitionDuration = _;
+      return chart;
   };
 
   //============================================================
@@ -5423,7 +5436,8 @@ nv.models.lineChart = function() {
 
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        d3.transition(g.select('.nv-x.nv-axis'))
+        g.select('.nv-x.nv-axis')
+            .transition()
             .call(xAxis);
       }
 
@@ -5433,7 +5447,8 @@ nv.models.lineChart = function() {
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
-        d3.transition(g.select('.nv-y.nv-axis'))
+        g.select('.nv-y.nv-axis')
+            .transition()
             .call(yAxis);
       }
       //------------------------------------------------------------
@@ -5553,7 +5568,8 @@ nv.models.lineChart = function() {
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
 
-  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
+  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
+    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate','transitionDuration');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
