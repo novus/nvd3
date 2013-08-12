@@ -18,12 +18,23 @@
           <a href="pieChartTest.html">Pie chart</a>
       </div>
       <div class='chart full' id='chart1'>
-        yDomain = [0,2,200], yRange = [500,50,0]
+        Line chart: yDomain = [0,2,200], yRange = [500,50,0]
         <svg></svg>
       </div>
       <div class='chart half with-transitions' id='chart2'>
-        
+        Historical bar chart: yDomain = [0,2,130], yRange = [500,50,0]
         <svg></svg>
+      </div>
+
+      <div class='half'>
+        Notes:
+        The chart.yRange() and chart.xRange() properties are an advanced feature.  They are useful
+        in situations where your data has wild extremes: ie, you have lots of smaller numbers, and lots of really big numbers.<br/><br/>
+
+        Without a polylinear scale, those really big data points will overwhelm the small points.<br/><br/>
+
+        Please look at the examples to understand how polylinear scales work.  Comment/uncomment the lines that alter yDomain and yRange
+        to see the effect it has on the charts.
       </div>
   </div>
 
@@ -37,13 +48,16 @@
 <script src="../src/models/scatter.js"></script>
 <script src="../src/models/line.js"></script>
 <script src="../src/models/lineChart.js"></script>
+<script src="../src/models/historicalBar.js"></script>
+<script src="../src/models/historicalBarChart.js"></script>
 <script>
 
 //------------ CHART 1 
-defaultChartConfig("chart1", sinAndCos(),true, false);
+lineChartConfig("chart1", sinAndCos(),true, false);
+barChartConfig(dataWithSpikes());
 
 
-function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
+function lineChartConfig(containerid, data, guideline, useDates, auxOptions) {
   if (auxOptions === undefined) auxOptions = {};
   if (guideline === undefined) guideline = true;
   nv.addGraph(function() {
@@ -55,7 +69,7 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
         .x(function(d,i) { 
           return d.x;
         })
-        .yDomain([0,2,200])   //Using a polylinear scale
+       .yDomain([0,2,200])   //Using a polylinear scale
         .yRange([fullChartHeight,50,0])
         ;
 
@@ -86,7 +100,6 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
         .axisLabel('Voltage (v)')
         .tickFormat(d3.format(',.2f'));
 
-
     d3.select('#' + containerid + ' svg')
         .datum(data)
       .transition().duration(500)
@@ -96,6 +109,33 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
 
     return chart;
   });
+}
+
+function barChartConfig(data) {
+    nv.addGraph(function() {
+      var chart = nv.models.historicalBarChart();
+      var fullChartHeight = 500 - chart.margin().top - chart.margin().bottom;
+      chart.color(["#ff7f0e"])
+      .yDomain([0,2,130])
+      .yRange([fullChartHeight,50,0])
+      ;
+
+      chart.xAxis 
+      .tickFormat(d3.format(',.1f'))
+      .axisLabel("Time")
+      ;
+
+       chart.yAxis
+      .axisLabel('Random Number')
+      .tickFormat(d3.format(',.4f'));
+      d3.select("#chart2 svg")
+        .datum(data)
+        .transition().duration(500)
+        .call(chart);
+
+      nv.utils.windowResize(chart.update);
+      return chart;
+    });
 }
 
 function sinAndCos() {
@@ -131,5 +171,21 @@ function sinAndCos() {
   ];
 }
 
+function dataWithSpikes() {
+   var rval = [];
+   for(var i =0; i < 100; i++) {
+
+      var spike = (Math.random() > 0.9);
+      rval.push({
+        x: i,
+        y: (spike) ? Math.random() * 100 + 30 : Math.random()
+      });
+   }
+   return [
+      {key: "Series 1",
+      color : "orange",
+      values: rval}
+   ];
+}
 
 </script>
