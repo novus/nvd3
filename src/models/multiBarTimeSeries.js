@@ -19,6 +19,8 @@ nv.models.multiBarTimeSeries = function() {
     , delay = 1200
     , xDomain
     , yDomain
+    , xRange
+    , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     ;
 
@@ -69,11 +71,11 @@ nv.models.multiBarTimeSeries = function() {
               })
             });
 
-      x   .domain(d3.extent(d3.merge(seriesData).map(function(d) { return d.x })))
-          .range([0, availableWidth]);
+      x   .domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x })))
+          .range(xRange || [0, availableWidth]);
 
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY)))
-          .range([availableHeight, 0]);
+          .range(yRange || [availableHeight, 0]);
 
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -324,6 +326,18 @@ nv.models.multiBarTimeSeries = function() {
   chart.yDomain = function(_) {
     if (!arguments.length) return yDomain;
     yDomain = _;
+    return chart;
+  };
+
+  chart.xRange = function(_) {
+    if (!arguments.length) return xRange;
+    xRange = _;
+    return chart;
+  };
+
+  chart.yRange = function(_) {
+    if (!arguments.length) return yRange;
+    yRange = _;
     return chart;
   };
 
