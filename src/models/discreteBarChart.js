@@ -314,6 +314,14 @@ nv.models.discreteBarChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return discretebar.transitionDuration();
+    discretebar.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
+  };
+
   //============================================================
 
 
