@@ -211,7 +211,8 @@ nv.models.lineChart = function() {
 
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        d3.transition(g.select('.nv-x.nv-axis'))
+        g.select('.nv-x.nv-axis')
+            .transition()
             .call(xAxis);
       }
 
@@ -221,7 +222,8 @@ nv.models.lineChart = function() {
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
-        d3.transition(g.select('.nv-y.nv-axis'))
+        g.select('.nv-y.nv-axis')
+            .transition()
             .call(yAxis);
       }
       //------------------------------------------------------------
@@ -341,7 +343,8 @@ nv.models.lineChart = function() {
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
 
-  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
+  d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
+    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate','transitionDuration');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;

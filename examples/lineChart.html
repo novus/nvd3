@@ -60,6 +60,7 @@ nv.addGraph(function() {
   chart
     .margin({left: 100, bottom: 100})
     .x(function(d,i) { return i })
+    ;
 
   // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
   chart.xAxis
@@ -75,7 +76,6 @@ nv.addGraph(function() {
   d3.select('#chart1 svg')
     //.datum([]) //for testing noData
     .datum(sinAndCos())
-    .transition().duration(500)
     .call(chart);
 
   //TODO: Figure out a good way to do this automatically
