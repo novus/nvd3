@@ -608,6 +608,16 @@ nv.models.scatterChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return scatter.transitionDuration();
+    scatter.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    distX.transitionDuration(_);
+    distY.transitionDuration(_);
+    return chart;
+  };
+
   //============================================================
 
 

@@ -66,7 +66,7 @@ nv.addGraph(function() {
   chart = nv.models.scatterPlusLineChart()
                 .showDistX(true)
                 .showDistY(true)
-                //.height(500)
+                .transitionDuration(300)
                 .color(d3.scale.category10().range());
 
   chart.xAxis.tickFormat(d3.format('.02f'))
@@ -74,7 +74,6 @@ nv.addGraph(function() {
 
   d3.select('#test1 svg')
       .datum(nv.log(randomData(4,40)))
-    .transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);
