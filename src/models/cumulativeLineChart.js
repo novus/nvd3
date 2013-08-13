@@ -439,8 +439,13 @@ nv.models.cumulativeLineChart = function() {
       function updateZero() {
         indexLine
           .data([index]);
-
+        
+        //When dragging the index line, turn off line transitions.
+        // Then turn them back on when done dragging.
+        var oldDuration = chart.transitionDuration();
+        chart.transitionDuration(0);
         container.call(chart);
+        chart.transitionDuration(oldDuration);
       }
 
       g.select('.nv-background rect')
