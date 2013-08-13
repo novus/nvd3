@@ -108,7 +108,8 @@ function defaultChartTest(container, data, margin) {
   nv.addGraph(function() {
     var chart;
     chart = nv.models.scatterChart()
-                  .showDistX(true).showDistY(true);
+                  .showDistX(true).showDistY(true)
+                  ;
     chart.xAxis.tickFormat(d3.format('.02f'));
     chart.yAxis.tickFormat(d3.format('.02f'));
     if (margin) {
