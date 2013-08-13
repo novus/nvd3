@@ -25,7 +25,6 @@ nv.interactiveGuideline = function() {
 	;
 
 	//Private variables
-	var previousXCoordinate = null
 	var isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
 	;
 
