@@ -154,13 +154,11 @@ window.nv.tooltip.* also has various helper methods.
                     svgOffset.top = Math.abs(svgBound.top - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
-
                 //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
                 //You need to also add any offset between the <svg> element and its containing <div>
                 //Finally, add any offset of the containing <div> on the whole page.
                 left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
                 top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
-
             }
 
             if (snapDistance && snapDistance > 0) {
