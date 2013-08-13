@@ -67,6 +67,14 @@
     Scatter plus line: y=-0.5x + 1.0;
     <svg></svg>
   </div>
+  <div id="test14" class="chart third">
+    Scatter chart: duplicate y values
+    <svg></svg>
+  </div>
+  <div id="test15" class="chart third">
+    Scatter chart: duplicate x values
+    <svg></svg>
+  </div>
 
 
 
@@ -103,12 +111,32 @@ defaultChartTest("test10", randomData(30,2));
 scatterPlusLineTest("test11", randomDataSloped(2,0));
 scatterPlusLineTest("test12", randomDataSloped(2,10));
 scatterPlusLineTest("test13", randomDataSloped(-0.5,1));
+defaultChartTest("test14", [
+{key: "Duplicate Y",
+     values: [
+        {x: 0, y: 10}, {x:1, y:10},{x:2, y:10},{x:3, y:10}
+     ]
+    }
+]);
+
+defaultChartTest("test15",[
+   {key: "Duplicate X",
+      area: true,
+      values: [
+        {x: 4, y: 10},
+        {x: 4, y: 11},
+        {x: 4, y: 12},
+        {x: 4, y: 13}
+      ]
+    }
+]);
 
 function defaultChartTest(container, data, margin) {
   nv.addGraph(function() {
     var chart;
     chart = nv.models.scatterChart()
-                  .showDistX(true).showDistY(true);
+                  .showDistX(true).showDistY(true)
+                  ;
     chart.xAxis.tickFormat(d3.format('.02f'));
     chart.yAxis.tickFormat(d3.format('.02f'));
     if (margin) {

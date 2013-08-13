@@ -1,6 +1,6 @@
 
 nv.models.scatterChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -232,29 +232,35 @@ nv.models.scatterChart = function() {
           .height(availableHeight)
           .color(data.map(function(d,i) {
             return d.color || color(d, i);
-          }).filter(function(d,i) { return !data[i].disabled }))
-          .xDomain(null)
-          .yDomain(null)
+          }).filter(function(d,i) { return !data[i].disabled }));
+
+      if (xPadding !== 0)
+        scatter.xDomain(null);
+
+      if (yPadding !== 0)
+        scatter.yDomain(null);
 
       wrap.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
 
-
       //Adjust for x and y padding
-      if (xPadding) {
+      if (xPadding !== 0) {
         var xRange = x.domain()[1] - x.domain()[0];
         scatter.xDomain([x.domain()[0] - (xPadding * xRange), x.domain()[1] + (xPadding * xRange)]);
       }
 
-      if (yPadding) {
+      if (yPadding !== 0) {
         var yRange = y.domain()[1] - y.domain()[0];
         scatter.yDomain([y.domain()[0] - (yPadding * yRange), y.domain()[1] + (yPadding * yRange)]);
       }
 
-      wrap.select('.nv-scatterWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
-          .call(scatter);
+      //Only need to update the scatter again if x/yPadding changed the domain.
+      if (yPadding !== 0 || xPadding !== 0) {
+        wrap.select('.nv-scatterWrap')
+            .datum(data.filter(function(d) { return !d.disabled }))
+            .call(scatter);
+      }
 
       //------------------------------------------------------------
 
@@ -605,6 +611,16 @@ nv.models.scatterChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return scatter.transitionDuration();
+    scatter.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    distX.transitionDuration(_);
+    distY.transitionDuration(_);
     return chart;
   };
 

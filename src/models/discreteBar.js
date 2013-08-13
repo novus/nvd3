@@ -1,6 +1,6 @@
 //TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -23,6 +23,7 @@ nv.models.discreteBar = function() {
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     , rectClass = 'discreteBar'
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -104,14 +105,16 @@ nv.models.discreteBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
+      groups.exit()
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
-      d3.transition(groups)
+      groups
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -196,7 +199,8 @@ nv.models.discreteBar = function() {
         .select('rect')
           .attr('class', rectClass)
           .attr('width', x.rangeBand() * .9 / data.length);
-      d3.transition(bars)
+      bars.transition()
+          .duration(transitionDuration)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
             var left = x(getX(d,i)) + x.rangeBand() * .05,
@@ -333,7 +337,13 @@ nv.models.discreteBar = function() {
     if (!arguments.length) return rectClass;
     rectClass = _;
     return chart;
-  }
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
+    return chart;
+  };
   //============================================================
 
 

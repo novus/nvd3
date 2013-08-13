@@ -199,7 +199,7 @@ nv.addGraph(function() {
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
                 .color(keyColor)
-                .transitionDuration(300);
+                .transitionDuration(250);
                 //.clipEdge(true);
 
 // chart.stacked.scatter.clipVoronoi(false);
@@ -225,7 +225,8 @@ nv.addGraph(function() {
   var chart = nv.models.stackedAreaChart()
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
-                .color(keyColor);
+                .color(keyColor)
+                ;
                 //.clipEdge(true);
 
   chart.xAxis

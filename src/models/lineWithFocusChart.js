@@ -1,6 +1,6 @@
 
 nv.models.lineWithFocusChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -271,7 +271,7 @@ nv.models.lineWithFocusChart = function() {
           .attr('y', 0)
           .attr('height', availableHeight2);
 
-      gBrush = g.select('.nv-x.nv-brush')
+      var gBrush = g.select('.nv-x.nv-brush')
           .call(brush);
       gBrush.selectAll('rect')
           //.attr('y', -5)
@@ -366,7 +366,7 @@ nv.models.lineWithFocusChart = function() {
 
       function onBrush() {
         brushExtent = brush.empty() ? null : brush.extent();
-        extent = brush.empty() ? x2.domain() : brush.extent();
+        var extent = brush.empty() ? x2.domain() : brush.extent();
 
         //The brush extent cannot be less than one.  If it is, don't update the line chart.
         if (Math.abs(extent[0] - extent[1]) <= 1) {

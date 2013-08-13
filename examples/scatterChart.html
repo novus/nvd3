@@ -68,7 +68,9 @@ nv.addGraph(function() {
                 .showDistY(true)
                 //.height(500)
                 .useVoronoi(true)
-                .color(d3.scale.category10().range());
+                .color(d3.scale.category10().range())
+                .transitionDuration(300)
+                ;
 
   chart.xAxis.tickFormat(d3.format('.02f'));
   chart.yAxis.tickFormat(d3.format('.02f'));
@@ -78,7 +80,6 @@ nv.addGraph(function() {
 
   d3.select('#test1 svg')
       .datum(randomData(4,40))
-    .transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);

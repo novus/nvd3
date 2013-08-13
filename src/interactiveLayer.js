@@ -7,6 +7,7 @@ the rectangle. The dispatch is given one object which contains the mouseX/Y loca
 It also has 'pointXValue', which is the conversion of mouseX to the x-axis scale.
 */
 nv.interactiveGuideline = function() {
+	"use strict";
 	var tooltip = nv.models.tooltip();
 	//Public settings
 	var width = null
@@ -24,8 +25,7 @@ nv.interactiveGuideline = function() {
 	;
 
 	//Private variables
-	var previousXCoordinate = null
-	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
+	var isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
 	;
 
 
@@ -196,6 +196,7 @@ Has the following known issues:
    * Won't work if there are duplicate x coordinate values.
 */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
+	  "use strict";
       if (! values instanceof Array) return null;
       if (typeof xAccessor !== 'function') xAccessor = function(d,i) { return d.x;}
 

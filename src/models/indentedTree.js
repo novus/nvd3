@@ -1,5 +1,5 @@
 nv.models.indentedTree = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 nv.models.historicalBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

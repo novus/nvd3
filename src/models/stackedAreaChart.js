@@ -1,6 +1,6 @@
 
 nv.models.stackedAreaChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -442,7 +442,7 @@ nv.models.stackedAreaChart = function() {
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
 
-  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate','transitionDuration');
+  d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -550,6 +550,14 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return stacked.transitionDuration();
+    stacked.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
+  };
+
   yAxis.setTickFormat = yAxis.tickFormat;
 
   yAxis.tickFormat = function(_) {
@@ -557,6 +565,7 @@ nv.models.stackedAreaChart = function() {
     yAxisTickFormat = _;
     return yAxis;
   };
+
 
   //============================================================
 

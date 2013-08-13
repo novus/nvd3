@@ -1,6 +1,6 @@
 
 nv.models.multiBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -26,6 +26,7 @@ nv.models.multiBar = function() {
     , xRange
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -164,11 +165,16 @@ nv.models.multiBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      d3.transition(groups.exit())
+      groups.exit()
+        .transition().duration(transitionDuration)
           //.style('stroke-opacity', 1e-6)
           //.style('fill-opacity', 1e-6)
         .selectAll('rect.nv-bar')
-        .delay(function(d,i) { return i * delay/ data[0].values.length })
+        .delay(function(d,i) { 
+          if (transitionDuration <= 10) return 0;
+          else
+             return i * delay/ data[0].values.length;
+        })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
@@ -177,7 +183,8 @@ nv.models.multiBar = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i) });
-      d3.transition(groups)
+      groups
+          .transition().duration(transitionDuration)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -264,7 +271,12 @@ nv.models.multiBar = function() {
 
       if (stacked)
           bars.transition()
-            .delay(function(d,i) { return i * delay / data[0].values.length })
+            .duration(transitionDuration)
+            .delay(function(d,i) { 
+                if (transitionDuration <= 10) return 0;
+                else
+                  return i * delay / data[0].values.length;
+            })
             .attr('y', function(d,i) {
 
               return y((stacked ? d.y1 : 0));
@@ -273,18 +285,25 @@ nv.models.multiBar = function() {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
             .transition()
+            .duration(transitionDuration)
             .attr('x', function(d,i) {
                   return stacked ? 0 : (d.series * x.rangeBand() / data.length )
             })
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
           bars.transition()
-            .delay(function(d,i) { return i * delay/ data[0].values.length })
+            .duration(transitionDuration)
+            .delay(function(d,i) { 
+              if (transitionDuration <= 10) return 0;
+              else
+                return i * delay/ data[0].values.length;
+            })
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
             .transition()
+            .duration(transitionDuration)
             .attr('y', function(d,i) {
                 return getY(d,i) < 0 ?
                         y(0) :
@@ -434,6 +453,13 @@ nv.models.multiBar = function() {
   chart.delay = function(_) {
     if (!arguments.length) return delay;
     delay = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
+    if (_ === 0) transitionDuration = 10;
     return chart;
   };
 

@@ -1,6 +1,6 @@
 
 nv.models.ohlcBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

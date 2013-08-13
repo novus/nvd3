@@ -1,6 +1,6 @@
 
 nv.models.stackedArea = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

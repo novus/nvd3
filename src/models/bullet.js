@@ -4,7 +4,7 @@
 // http://projects.instantcognition.com/protovis/bulletchart/
 
 nv.models.bullet = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

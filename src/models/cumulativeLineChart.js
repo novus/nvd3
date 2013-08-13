@@ -1,6 +1,6 @@
 
 nv.models.cumulativeLineChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -221,7 +221,7 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
-
+      var interactivePointerEvents = (useInteractiveGuideline) ? "none" : "all";
       var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-cumulativeLine').append('g');
       var g = wrap.select('g');
@@ -230,7 +230,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events","none");
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-background');
-      gEnter.append('g').attr('class', 'nv-linesWrap');
+      gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events",interactivePointerEvents);
       gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events","none");
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
@@ -439,8 +439,13 @@ nv.models.cumulativeLineChart = function() {
       function updateZero() {
         indexLine
           .data([index]);
-
+        
+        //When dragging the index line, turn off line transitions.
+        // Then turn them back on when done dragging.
+        var oldDuration = chart.transitionDuration();
+        chart.transitionDuration(0);
         container.call(chart);
+        chart.transitionDuration(oldDuration);
       }
 
       g.select('.nv-background rect')
@@ -714,6 +719,14 @@ nv.models.cumulativeLineChart = function() {
      if(!arguments.length) return average;
      average = _;
      return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return lines.transitionDuration();
+    lines.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
   };
 
   //============================================================
