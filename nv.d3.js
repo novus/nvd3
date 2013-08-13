@@ -624,8 +624,10 @@ window.nv.tooltip.* also has various helper methods.
         body.appendChild(container);
         
         //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
-        pos[0] = pos[0] - parentContainer.scrollLeft;
-        pos[1] = pos[1] - parentContainer.scrollTop;
+        if (parentContainer) {
+           pos[0] = pos[0] - parentContainer.scrollLeft;
+           pos[1] = pos[1] - parentContainer.scrollTop;
+        }
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
   };
 
@@ -2467,8 +2469,13 @@ nv.models.cumulativeLineChart = function() {
       function updateZero() {
         indexLine
           .data([index]);
-
+        
+        //When dragging the index line, turn off line transitions.
+        // Then turn them back on when done dragging.
+        var oldDuration = chart.transitionDuration();
+        chart.transitionDuration(0);
         container.call(chart);
+        chart.transitionDuration(oldDuration);
       }
 
       g.select('.nv-background rect')
