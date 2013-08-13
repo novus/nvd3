@@ -3,7 +3,7 @@
 var nv = window.nv || {};
 
 
-nv.version = '1.1.4b';
+nv.version = '1.1.5b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -127,6 +127,7 @@ the rectangle. The dispatch is given one object which contains the mouseX/Y loca
 It also has 'pointXValue', which is the conversion of mouseX to the x-axis scale.
 */
 nv.interactiveGuideline = function() {
+	"use strict";
 	var tooltip = nv.models.tooltip();
 	//Public settings
 	var width = null
@@ -144,8 +145,7 @@ nv.interactiveGuideline = function() {
 	;
 
 	//Private variables
-	var previousXCoordinate = null
-	isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
+	var isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
 	;
 
 
@@ -316,6 +316,7 @@ Has the following known issues:
    * Won't work if there are duplicate x coordinate values.
 */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
+	  "use strict";
       if (! values instanceof Array) return null;
       if (typeof xAccessor !== 'function') xAccessor = function(d,i) { return d.x;}
 
@@ -341,7 +342,7 @@ window.nv.tooltip.show is the old tooltip code.
 window.nv.tooltip.* also has various helper methods.
 */
 (function() {
-
+  "use strict";
   window.nv.tooltip = {};
 
   /* Model which can be instantiated to handle tooltip rendering.
@@ -490,8 +491,11 @@ window.nv.tooltip.* also has various helper methods.
                     svgOffset.top = Math.abs(svgBound.top - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
-                left += chartContainer.offsetLeft + svgOffset.left;
-                top += chartContainer.offsetTop + svgOffset.top;
+                //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
+                //You need to also add any offset between the <svg> element and its containing <div>
+                //Finally, add any offset of the containing <div> on the whole page.
+                left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
+                top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
             }
 
             if (snapDistance && snapDistance > 0) {
@@ -600,6 +604,7 @@ window.nv.tooltip.* also has various helper methods.
 
 
   //Original tooltip.show function. Kept for backward compatibility.
+  // pos = [left,top]
   nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
       
         //Create new tooltip div if it doesn't exist on DOM.
@@ -617,7 +622,10 @@ window.nv.tooltip.* also has various helper methods.
         container.style.opacity = 0;
         container.innerHTML = content;
         body.appendChild(container);
-
+        
+        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
+        pos[0] = pos[0] - parentContainer.scrollLeft;
+        pos[1] = pos[1] - parentContainer.scrollTop;
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
   };
 
@@ -656,7 +664,7 @@ window.nv.tooltip.* also has various helper methods.
   };
 
   //Global utility function to render a tooltip on the DOM.
-  //pos = [X,Y] coordinates of where to place the tooltip, relative to the SVG chart container.
+  //pos = [left,top] coordinates of where to place the tooltip, relative to the SVG chart container.
   //gravity = how to orient the tooltip
   //dist = how far away from the mouse to place tooltip
   //container = tooltip DIV
@@ -891,7 +899,7 @@ nv.utils.NaNtoZero = function(n) {
     return n;
 };
 nv.models.axis = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -1300,7 +1308,7 @@ nv.models.axis = function() {
 // http://projects.instantcognition.com/protovis/bulletchart/
 
 nv.models.bullet = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -1682,7 +1690,7 @@ nv.models.bullet = function() {
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
 nv.models.bulletChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -2020,7 +2028,7 @@ nv.models.bulletChart = function() {
 
 
 nv.models.cumulativeLineChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -2784,7 +2792,7 @@ nv.models.cumulativeLineChart = function() {
 }
 //TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -3135,7 +3143,7 @@ nv.models.discreteBar = function() {
 }
 
 nv.models.discreteBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -3464,7 +3472,7 @@ nv.models.discreteBarChart = function() {
 }
 
 nv.models.distribution = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -3619,7 +3627,7 @@ nv.models.distribution = function() {
 }
 //TODO: consider deprecating and using multibar with single series for this
 nv.models.historicalBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -3945,7 +3953,7 @@ nv.models.historicalBar = function() {
 }
 
 nv.models.historicalBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -4366,7 +4374,7 @@ nv.models.historicalBarChart = function() {
   return chart;
 }
 nv.models.indentedTree = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -4700,7 +4708,7 @@ nv.models.indentedTree = function() {
 
   return chart;
 };nv.models.legend = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -4832,7 +4840,7 @@ nv.models.indentedTree = function() {
           columnWidths = [];
           seriesPerRow--;
 
-          for (k = 0; k < seriesWidths.length; k++) {
+          for (var k = 0; k < seriesWidths.length; k++) {
             if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
               columnWidths[k % seriesPerRow] = seriesWidths[k];
           }
@@ -4968,7 +4976,7 @@ nv.models.indentedTree = function() {
 }
 
 nv.models.line = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -5266,7 +5274,7 @@ nv.models.line = function() {
 }
 
 nv.models.lineChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -5720,7 +5728,7 @@ nv.models.lineChart = function() {
 }
 
 nv.models.linePlusBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -6151,7 +6159,7 @@ nv.models.linePlusBarChart = function() {
 }
 
 nv.models.lineWithFocusChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -6422,7 +6430,7 @@ nv.models.lineWithFocusChart = function() {
           .attr('y', 0)
           .attr('height', availableHeight2);
 
-      gBrush = g.select('.nv-x.nv-brush')
+      var gBrush = g.select('.nv-x.nv-brush')
           .call(brush);
       gBrush.selectAll('rect')
           //.attr('y', -5)
@@ -6517,7 +6525,7 @@ nv.models.lineWithFocusChart = function() {
 
       function onBrush() {
         brushExtent = brush.empty() ? null : brush.extent();
-        extent = brush.empty() ? x2.domain() : brush.extent();
+        var extent = brush.empty() ? x2.domain() : brush.extent();
 
         //The brush extent cannot be less than one.  If it is, don't update the line chart.
         if (Math.abs(extent[0] - extent[1]) <= 1) {
@@ -6705,7 +6713,7 @@ nv.models.lineWithFocusChart = function() {
 }
 
 nv.models.linePlusBarWithFocusChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -7360,7 +7368,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 }
 
 nv.models.multiBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -7830,7 +7838,7 @@ nv.models.multiBar = function() {
 }
 
 nv.models.multiBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -8351,7 +8359,7 @@ nv.models.multiBarChart = function() {
 }
 
 nv.models.multiBarHorizontal = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -8785,7 +8793,7 @@ nv.models.multiBarHorizontal = function() {
 }
 
 nv.models.multiBarHorizontalChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -9210,7 +9218,7 @@ nv.models.multiBarHorizontalChart = function() {
   return chart;
 }
 nv.models.multiChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -9662,7 +9670,7 @@ nv.models.multiChart = function() {
 
 
 nv.models.ohlcBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -10040,7 +10048,7 @@ nv.models.ohlcBar = function() {
   return chart;
 }
 nv.models.pie = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -10437,7 +10445,7 @@ nv.models.pie = function() {
   return chart;
 }
 nv.models.pieChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -10729,7 +10737,7 @@ nv.models.pieChart = function() {
 }
 
 nv.models.scatter = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -10836,7 +10844,7 @@ nv.models.scatter = function() {
 
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
-            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+            y.domain([y.domain()[0] - y.domain()[0] * 0.01, y.domain()[1] + y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
       if ( isNaN(x.domain()[0])) {
@@ -11417,7 +11425,7 @@ nv.models.scatter = function() {
 }
 
 nv.models.scatterChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -11649,29 +11657,35 @@ nv.models.scatterChart = function() {
           .height(availableHeight)
           .color(data.map(function(d,i) {
             return d.color || color(d, i);
-          }).filter(function(d,i) { return !data[i].disabled }))
-          .xDomain(null)
-          .yDomain(null)
+          }).filter(function(d,i) { return !data[i].disabled }));
+
+      if (xPadding !== 0)
+        scatter.xDomain(null);
+
+      if (yPadding !== 0)
+        scatter.yDomain(null);
 
       wrap.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
 
-
       //Adjust for x and y padding
-      if (xPadding) {
+      if (xPadding !== 0) {
         var xRange = x.domain()[1] - x.domain()[0];
         scatter.xDomain([x.domain()[0] - (xPadding * xRange), x.domain()[1] + (xPadding * xRange)]);
       }
 
-      if (yPadding) {
+      if (yPadding !== 0) {
         var yRange = y.domain()[1] - y.domain()[0];
         scatter.yDomain([y.domain()[0] - (yPadding * yRange), y.domain()[1] + (yPadding * yRange)]);
       }
 
-      wrap.select('.nv-scatterWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
-          .call(scatter);
+      //Only need to update the scatter again if x/yPadding changed the domain.
+      if (yPadding !== 0 || xPadding !== 0) {
+        wrap.select('.nv-scatterWrap')
+            .datum(data.filter(function(d) { return !d.disabled }))
+            .call(scatter);
+      }
 
       //------------------------------------------------------------
 
@@ -12042,7 +12056,7 @@ nv.models.scatterChart = function() {
 }
 
 nv.models.scatterPlusLineChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -12662,7 +12676,7 @@ nv.models.scatterPlusLineChart = function() {
 }
 
 nv.models.sparkline = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -12855,7 +12869,7 @@ nv.models.sparkline = function() {
 }
 
 nv.models.sparklinePlus = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -13148,7 +13162,7 @@ nv.models.sparklinePlus = function() {
 }
 
 nv.models.stackedArea = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -13501,7 +13515,7 @@ nv.models.stackedArea = function() {
 }
 
 nv.models.stackedAreaChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
