@@ -1,6 +1,6 @@
 
 nv.models.scatter = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

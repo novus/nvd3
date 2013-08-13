@@ -1,6 +1,6 @@
 
 nv.models.stackedAreaChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

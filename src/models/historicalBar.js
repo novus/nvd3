@@ -1,6 +1,6 @@
 //TODO: consider deprecating and using multibar with single series for this
 nv.models.historicalBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

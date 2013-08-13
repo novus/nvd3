@@ -1,6 +1,6 @@
 //TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

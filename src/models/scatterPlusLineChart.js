@@ -1,6 +1,6 @@
 
 nv.models.scatterPlusLineChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

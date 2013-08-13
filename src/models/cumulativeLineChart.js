@@ -1,6 +1,6 @@
 
 nv.models.cumulativeLineChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

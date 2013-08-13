@@ -1,6 +1,6 @@
 
 nv.models.discreteBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

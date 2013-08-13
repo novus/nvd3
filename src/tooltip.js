@@ -5,7 +5,7 @@ window.nv.tooltip.show is the old tooltip code.
 window.nv.tooltip.* also has various helper methods.
 */
 (function() {
-
+  "use strict";
   window.nv.tooltip = {};
 
   /* Model which can be instantiated to handle tooltip rendering.

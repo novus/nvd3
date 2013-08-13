@@ -1,6 +1,6 @@
 
 nv.models.linePlusBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

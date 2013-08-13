@@ -3,7 +3,7 @@
 // http://bl.ocks.org/jasondavies/1341281
 
 nv.models.parallelCoordinates = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 nv.models.multiBarChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
