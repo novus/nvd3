@@ -1,6 +1,6 @@
 
 nv.models.distribution = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

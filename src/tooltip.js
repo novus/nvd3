@@ -5,7 +5,7 @@ window.nv.tooltip.show is the old tooltip code.
 window.nv.tooltip.* also has various helper methods.
 */
 (function() {
-
+  "use strict";
   window.nv.tooltip = {};
 
   /* Model which can be instantiated to handle tooltip rendering.
@@ -154,8 +154,13 @@ window.nv.tooltip.* also has various helper methods.
                     svgOffset.top = Math.abs(svgBound.top - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
-                left += chartContainer.offsetLeft + svgOffset.left;
-                top += chartContainer.offsetTop + svgOffset.top;
+
+                //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
+                //You need to also add any offset between the <svg> element and its containing <div>
+                //Finally, add any offset of the containing <div> on the whole page.
+                left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
+                top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
+
             }
 
             if (snapDistance && snapDistance > 0) {
@@ -264,6 +269,7 @@ window.nv.tooltip.* also has various helper methods.
 
 
   //Original tooltip.show function. Kept for backward compatibility.
+  // pos = [left,top]
   nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
       
         //Create new tooltip div if it doesn't exist on DOM.
@@ -281,7 +287,10 @@ window.nv.tooltip.* also has various helper methods.
         container.style.opacity = 0;
         container.innerHTML = content;
         body.appendChild(container);
-
+        
+        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
+        pos[0] = pos[0] - parentContainer.scrollLeft;
+        pos[1] = pos[1] - parentContainer.scrollTop;
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
   };
 
@@ -320,7 +329,7 @@ window.nv.tooltip.* also has various helper methods.
   };
 
   //Global utility function to render a tooltip on the DOM.
-  //pos = [X,Y] coordinates of where to place the tooltip, relative to the SVG chart container.
+  //pos = [left,top] coordinates of where to place the tooltip, relative to the SVG chart container.
   //gravity = how to orient the tooltip
   //dist = how far away from the mouse to place tooltip
   //container = tooltip DIV

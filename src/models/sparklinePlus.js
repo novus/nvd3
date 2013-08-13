@@ -1,6 +1,6 @@
 
 nv.models.sparklinePlus = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

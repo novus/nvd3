@@ -1,6 +1,6 @@
 
 nv.models.scatter = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -107,7 +107,7 @@ nv.models.scatter = function() {
 
       if (y.domain()[0] === y.domain()[1])
         y.domain()[0] ?
-            y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+            y.domain([y.domain()[0] - y.domain()[0] * 0.01, y.domain()[1] + y.domain()[1] * 0.01])
           : y.domain([-1,1]);
 
       if ( isNaN(x.domain()[0])) {

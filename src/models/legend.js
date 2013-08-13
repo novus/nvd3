@@ -1,5 +1,5 @@
 nv.models.legend = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -131,7 +131,7 @@ nv.models.legend = function() {
           columnWidths = [];
           seriesPerRow--;
 
-          for (k = 0; k < seriesWidths.length; k++) {
+          for (var k = 0; k < seriesWidths.length; k++) {
             if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
               columnWidths[k % seriesPerRow] = seriesWidths[k];
           }

@@ -1,6 +1,6 @@
 
 nv.models.chartName = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

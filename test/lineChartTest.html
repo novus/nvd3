@@ -4,13 +4,13 @@
 <link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
 <style>
-#chart14 {
+#chart13, #chart14 {
   overflow: scroll;
   width: 500px;
   height: 300px;
 }
 
-#chart14 svg {
+#chart13 svg, #chart14 svg {
   width: 700px;
   height: 400px;
 }
@@ -80,12 +80,23 @@
         <svg></svg>
       </div>
 
-      <div class='chart third' id='chart14'>
-        Chart in a overflow div with scrolls
+      <div class='chart third' id='chart16'>
+        Duplicate Y coordinate points.
         <svg></svg>
       </div>
 
       <div class='chart third' id='chart13'>
+        Chart in a overflow div with scrolls (new tooltips)
+        <svg></svg>
+      </div>
+
+      <div class='chart third' id='chart14'>
+        Chart in a overflow div with scrolls (old tooltips)
+        <svg></svg>
+      </div>
+
+      <div style='clear:both;'></div>
+      <div class='chart third' id='chart15'>
         What if there are null, Infinity and NaN values in points?
         <svg></svg>
       </div>
@@ -147,9 +158,10 @@ defaultChartConfig("chart9", fibonacci());
 defaultChartConfig("chart10", lotsofSeries());
 defaultChartConfig("chart11", backwards(),false);
 defaultChartConfig("chart12", duplicateX(),false);
-defaultChartConfig("chart13", withNaNs());
-defaultChartConfig("chart14",sinAndCos(), true, false, {width: 700, height: 400});
-
+defaultChartConfig("chart13",hyperbole(), true, false, {width: 700, height: 400});
+defaultChartConfig("chart14",hyperbole(), false, false, {width: 700, height: 400});
+defaultChartConfig("chart15", withNaNs());
+defaultChartConfig("chart16", duplicateY(), false);
 
 function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
   if (auxOptions === undefined) auxOptions = {};
@@ -356,6 +368,16 @@ function duplicateX() {
         {x: 4, y: 12},
         {x: 4, y: 13}
       ]
+    }
+  ];
+}
+
+function duplicateY() {
+  return [
+    {key: "Duplicate Y",
+     values: [
+        {x: 0, y: 10}, {x:1, y:10},{x:2, y:10},{x:3, y:10}
+     ]
     }
   ];
 }
