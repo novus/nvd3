@@ -119,7 +119,7 @@ window.nv.tooltip.* also has various helper methods.
             if (container.node() === null) {
                 //Create new tooltip div if it doesn't exist on DOM.
                 container = body.append("div")
-                    .attr("class", "nvtooltip with-3d-shadow " + (classes? classes: "xy-tooltip"))
+                    .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
                     .attr("id",id)
                     ;
             }
@@ -272,7 +272,7 @@ window.nv.tooltip.* also has various helper methods.
       
         //Create new tooltip div if it doesn't exist on DOM.
         var   container = document.createElement('div');
-        container.className = 'nvtooltip with-3d-shadow ' + (classes ? classes : 'xy-tooltip');
+        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
 
         var body = parentContainer;
         if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
