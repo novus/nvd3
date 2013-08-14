@@ -75,7 +75,10 @@
     Scatter chart: duplicate x values
     <svg></svg>
   </div>
-
+  <div id="test16" class="chart third">
+    Scatter chart: extremely small data points (1e-10)
+    <svg></svg>
+  </div>
 
 
 </div>
@@ -130,6 +133,8 @@ defaultChartTest("test15",[
       ]
     }
 ]);
+
+defaultChartTest("test16",tinyPoints());
 
 function defaultChartTest(container, data, margin) {
   nv.addGraph(function() {
@@ -218,5 +223,17 @@ function randomDataSloped(slope,intercept) { //# groups,# points per group
   }
 
   return data;
+}
+
+
+function tinyPoints() {
+  var rval = {key: "Tiny points", values: []};
+  for(var i =1; i < 20; i++) {
+    rval.values.push({
+       x: Math.random() * 1e-10,
+       y: Math.random() * 1e-10
+    });
+  }
+  return [rval];
 }
 </script>
