@@ -13,7 +13,7 @@
 /********************
   Box shadow and border radius styling
 */
-.with-3d-shadow {
+.nvtooltip.with-3d-shadow, .with-3d-shadow .nvtooltip {
   -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   box-shadow: 0 5px 10px rgba(0,0,0,.2);

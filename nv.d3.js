@@ -3,7 +3,7 @@
 var nv = window.nv || {};
 
 
-nv.version = '1.1.5b';
+nv.version = '1.1.7b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -609,7 +609,7 @@ window.nv.tooltip.* also has various helper methods.
       
         //Create new tooltip div if it doesn't exist on DOM.
         var   container = document.createElement('div');
-        container.className = 'nvtooltip with-3d-shadow ' + (classes ? classes : 'xy-tooltip');
+        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
 
         var body = parentContainer;
         if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
@@ -10911,11 +10911,11 @@ nv.models.scatter = function() {
                 // *Injecting series and point index for reference
                 /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
                 */
-                var pX = getX(point,pointIndex) + Math.random() * 1e-7;
-                var pY = getY(point,pointIndex) + Math.random() * 1e-7;
+                var pX = getX(point,pointIndex);
+                var pY = getY(point,pointIndex);
 
-                return [x(pX), 
-                        y(pY), 
+                return [x(pX)+ Math.random() * 1e-7, 
+                        y(pY)+ Math.random() * 1e-7, 
                         groupIndex, 
                         pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
               })
@@ -11430,7 +11430,6 @@ nv.models.scatter = function() {
 
   return chart;
 }
-
 nv.models.scatterChart = function() {
   "use strict";
   //============================================================

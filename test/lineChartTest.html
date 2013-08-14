@@ -100,6 +100,10 @@
         What if there are null, Infinity and NaN values in points?
         <svg></svg>
       </div>
+      <div class='chart third' id='chart17'>
+        Chart with very small, 1e-10, points (old tooltips)
+        <svg></svg>
+      </div>
     </div>
 
 <script src="../lib/d3.v3.js"></script>
@@ -162,6 +166,7 @@ defaultChartConfig("chart13",hyperbole(), true, false, {width: 700, height: 400}
 defaultChartConfig("chart14",hyperbole(), false, false, {width: 700, height: 400});
 defaultChartConfig("chart15", withNaNs());
 defaultChartConfig("chart16", duplicateY(), false);
+defaultChartConfig("chart17", tinyPoints(), false);
 
 function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
   if (auxOptions === undefined) auxOptions = {};
@@ -399,5 +404,16 @@ function withNaNs() {
         ]
       }
   ]
+}
+
+function tinyPoints() {
+  var rval = {key: "Tiny points", values: []};
+  for(var i =1; i < 20; i++) {
+    rval.values.push({
+       x: i,
+       y: Math.random() * 1e-10
+    });
+  }
+  return [rval];
 }
 </script>

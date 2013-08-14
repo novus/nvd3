@@ -1,4 +1,3 @@
-
 nv.models.scatterChart = function() {
   "use strict";
   //============================================================
