@@ -3,7 +3,7 @@
 var nv = window.nv || {};
 
 
-nv.version = '1.1.7b';
+nv.version = '1.1.8b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -967,7 +967,7 @@ nv.models.axis = function() {
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
 
 
-      g.transition().duration(transitionDuration).call(axis);
+      g.transition().call(axis);
 
       scale0 = scale0 || axis.scale();
 
