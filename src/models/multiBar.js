@@ -25,7 +25,7 @@ nv.models.multiBar = function() {
     , yDomain
     , xRange
     , yRange
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('lastBarAnimated', 'barsAnimated', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     , transitionDuration = 250
     ;
 
@@ -104,7 +104,8 @@ nv.models.multiBar = function() {
               return d.values.map(function(d,i) {
                 return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
               })
-            });
+            }),
+          singlePoint;
 
       x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands(xRange || [0, availableWidth], .1);
@@ -268,6 +269,24 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
+      var lastBar = d3.merge(bars).reverse()[0];
+      var barDispatch = function(bar, d, i) {
+          dispatch.barsAnimated({
+              index: i,
+              data: d,
+              series: data[d.series],
+              bar: bar
+          });
+
+          if (lastBar === bar) {
+              dispatch.lastBarAnimated({
+                  index: i,
+                  data: d,
+                  series: data[d.series],
+                  bar: bar
+              });
+          }
+      };
 
       if (stacked)
           bars.transition()
@@ -289,7 +308,10 @@ nv.models.multiBar = function() {
             .attr('x', function(d,i) {
                   return stacked ? 0 : (d.series * x.rangeBand() / data.length )
             })
-            .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+            .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+            .each('end', function(d, i){
+                  barDispatch(this, d, i);
+            });
       else
           bars.transition()
             .duration(transitionDuration)
@@ -313,8 +335,10 @@ nv.models.multiBar = function() {
             })
             .attr('height', function(d,i) {
                 return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+            })
+            .each('end', function(d, i){
+                  barDispatch(this, d, i);
             });
-
 
 
       //store old scales for use in transitions on update
