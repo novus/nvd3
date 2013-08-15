@@ -84,9 +84,11 @@ nv.models.legend = function() {
           });
       seriesEnter.append('circle')
           .style('stroke-width', 2)
+          .attr('class','nv-legend-symbol')
           .attr('r', 5);
       seriesEnter.append('text')
           .attr('text-anchor', 'start')
+          .attr('class','nv-legend-text')
           .attr('dy', '.32em')
           .attr('dx', '8');
       series.classed('disabled', function(d) { return d.disabled });

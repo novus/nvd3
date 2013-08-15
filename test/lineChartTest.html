@@ -120,7 +120,7 @@
 <script>
 
 //------------ CHART 1 
-defaultChartConfig("chart1", dummyStocks(),true, true);
+defaultChartConfig("chart1", dummyStocks(),true, true, {forceY:false});
 
 //-------------- CHART 2  --- Chart without the interactive guideline.
 nv.addGraph(function() {
@@ -186,6 +186,9 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
 
     if (auxOptions.height)
       chart.height(auxOptions.height);
+
+    if (auxOptions.forceY) 
+      chart.forceY([0]);
 
     var formatter;
     if (useDates !== undefined) {

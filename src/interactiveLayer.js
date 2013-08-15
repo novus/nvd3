@@ -51,6 +51,7 @@ nv.interactiveGuideline = function() {
                       var mouseX = d3mouse[0];
                       var mouseY = d3mouse[1];
                       var subtractMargin = true;
+                      var mouseOutAnyReason = false;
                       if (isMSIE) {
                          /*
                             D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
@@ -73,6 +74,9 @@ nv.interactiveGuideline = function() {
                          */
                          if(d3.event.target.tagName !== "svg")
                             subtractMargin = false;
+
+                         if (d3.event.target.className.baseVal.match("nv-legend"))
+                         	mouseOutAnyReason = true;
                           
                       }
 
@@ -87,6 +91,7 @@ nv.interactiveGuideline = function() {
                       if (mouseX < 0 || mouseY < 0 
                         || mouseX > availableWidth || mouseY > availableHeight
                         || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
+                        || mouseOutAnyReason
                         ) 
                       {
                       		if (isMSIE) {

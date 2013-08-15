@@ -128,6 +128,7 @@ window.nv.tooltip.* also has various helper methods.
             container.node().innerHTML = newContent;
             container.style("top",0).style("left",0).style("opacity",0);
             container.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
+            container.classed(nvPointerEventsClass,true);
             return container.node();
         }
 
