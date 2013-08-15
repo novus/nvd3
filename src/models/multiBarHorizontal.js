@@ -26,7 +26,7 @@ nv.models.multiBarHorizontal = function() {
     , yDomain
     , xRange
     , yRange
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('lastBarAnimated', 'barsAnimated', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     ;
 
   //============================================================
@@ -249,6 +249,25 @@ nv.models.multiBarHorizontal = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
+        var lastBar = d3.merge(bars.selectAll('rect')).reverse()[0];
+        var barDispatch = function(bar, d, i) {
+            dispatch.barsAnimated({
+                index: i,
+                data: d,
+                series: data[d.series],
+                bar: bar
+            });
+
+            if (lastBar === bar) {
+                dispatch.lastBarAnimated({
+                    index: i,
+                    data: d,
+                    series: data[d.series],
+                    bar: bar
+                });
+            }
+        };
+
       if (stacked)
         d3.transition(bars)
             //.delay(function(d,i) { return i * delay / data[0].values.length })
@@ -261,7 +280,10 @@ nv.models.multiBarHorizontal = function() {
             .attr('width', function(d,i) {
               return Math.abs(y(getY(d,i) + d.y0) - y(d.y0))
             })
-            .attr('height', x.rangeBand() );
+            .attr('height', x.rangeBand() )
+            .each('end', function(d, i){
+                barDispatch(this, d, i);
+            });
       else
         d3.transition(bars)
           //.delay(function(d,i) { return i * delay / data[0].values.length })
@@ -279,6 +301,9 @@ nv.models.multiBarHorizontal = function() {
             .attr('height', x.rangeBand() / data.length )
             .attr('width', function(d,i) {
               return Math.max(Math.abs(y(getY(d,i)) - y(0)),1)
+            })
+            .each('end', function(d, i){
+                barDispatch(this, d, i);
             });
 
 
