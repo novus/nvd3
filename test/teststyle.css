@@ -26,6 +26,10 @@ text {
   width: 33%;
 }
 
+.chart.selected {
+  width: 100% !important;
+}
+
 .navigation a{
   margin-right: 1em;
 }
