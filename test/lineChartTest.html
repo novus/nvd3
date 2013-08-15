@@ -30,7 +30,8 @@
           <a href="interactiveBisectTest.html">nv.interactiveBisect unit tests</a>
       </div>
       <div class='chart full' id='chart1'>
-        Example of chart with many series', and new interactive guideline plus tooltip.
+        Example of chart with many series', and new interactive guideline plus tooltip. A chunk of data was purposely removed
+        to show how the chart handles it.
         <svg></svg>
       </div>
       <div class='chart half with-transitions' id='chart2'>
@@ -119,7 +120,7 @@
 <script>
 
 //------------ CHART 1 
-defaultChartConfig("chart1", sinAndCos(),true, true);
+defaultChartConfig("chart1", dummyStocks(),true, true);
 
 //-------------- CHART 2  --- Chart without the interactive guideline.
 nv.addGraph(function() {
@@ -141,7 +142,7 @@ nv.addGraph(function() {
 
   d3.select('#chart2 svg')
       //.datum([]) //for testing noData
-      .datum(hyperbole())
+      .datum(dummyStocks(50))
       .transition().duration(500)
       .call(chart);
 
@@ -416,4 +417,33 @@ function tinyPoints() {
   }
   return [rval];
 }
+
+function dummyStocks(numPoints) {
+  numPoints = numPoints || 200;
+  function volatileChart(key,startPrice, volatility, isArea) {
+     var rval = {key: key, values: []};
+     if (isArea) rval.area = true;
+     for(var i = 1; i < numPoints; i++) {
+
+        rval.values.push({x: i, y: (i > 110 && i < 130) ? null : startPrice});
+        var rnd = Math.random();
+        var changePct = 2 * volatility * rnd;
+        if ( changePct > volatility) {
+           changePct -= (2*volatility);
+        }
+
+        startPrice = startPrice + startPrice * changePct;
+
+     }
+     return rval;
+  }
+
+  var stocks = [];
+  stocks.push(volatileChart("APPL",5.00, 0.02));
+  stocks.push(volatileChart("GOOG", 6.01,0.024));
+  stocks.push(volatileChart("MSFT", 2.01, 0.012));
+  stocks.push(volatileChart("IBM US", 2.5, 0.08, true));
+  return stocks;
+}
+
 </script>

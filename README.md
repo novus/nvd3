@@ -19,6 +19,7 @@ to the containing chart DIV.
 * Issue #127: Adding ability to override individual scatter plot point colors.
 * Issue #216: Exposing xRange and yRange overrides for all charts.
 * Issue #168: Adding legend.radioButtonMode(). When set to true, legend click behavior will match those of radio buttons.
+* Line stroke-width has been reduced to 1.5px, from 2.5px.
 
 
 ## Overview
