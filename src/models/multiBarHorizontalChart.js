@@ -31,6 +31,7 @@ nv.models.multiBarHorizontalChart = function() {
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = function() { return showControls ? 180 : 0 }
+    , controlsData = [{key: 'Grouped', disabled: multibar.stacked()},{key: 'Stacked', disabled: !multibar.stacked()}]
     ;
 
   multibar
@@ -177,11 +178,6 @@ nv.models.multiBarHorizontalChart = function() {
       // Controls
 
       if (showControls) {
-        var controlsData = [
-          { key: 'Grouped', disabled: multibar.stacked() },
-          { key: 'Stacked', disabled: !multibar.stacked() }
-        ];
-
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
         g.select('.nv-controlsWrap')
             .datum(controlsData)
@@ -266,10 +262,10 @@ nv.models.multiBarHorizontalChart = function() {
         d.disabled = false;
 
         switch (d.key) {
-          case 'Grouped':
+          case controlsData[0].key:
             multibar.stacked(false);
             break;
-          case 'Stacked':
+          case controlsData[1].key:
             multibar.stacked(true);
             break;
         }
@@ -368,6 +364,13 @@ nv.models.multiBarHorizontalChart = function() {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     legend.color(color);
+    return chart;
+  };
+
+  chart.controlsData = function(_) {
+    if (!arguments.length) return controlsData;
+    controlsData[0].key = typeof _.groupedName === 'string' ? _.groupedName : controlsData[0].key;
+    controlsData[1].key = typeof _.stackedName === 'string' ? _.stackedName : controlsData[1].key;
     return chart;
   };
 

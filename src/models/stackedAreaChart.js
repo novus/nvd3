@@ -36,6 +36,11 @@ nv.models.stackedAreaChart = function() {
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = 250
+    , controlsData = [
+        { key: 'Stacked', disabled: stacked.offset() != 'zero' },
+        { key: 'Stream', disabled: stacked.offset() != 'wiggle' },
+        { key: 'Expanded', disabled: stacked.offset() != 'expand' }
+      ]
     ;
 
   xAxis
@@ -171,12 +176,6 @@ nv.models.stackedAreaChart = function() {
       // Controls
 
       if (showControls) {
-        var controlsData = [
-          { key: 'Stacked', disabled: stacked.offset() != 'zero' },
-          { key: 'Stream', disabled: stacked.offset() != 'wiggle' },
-          { key: 'Expanded', disabled: stacked.offset() != 'expand' }
-        ];
-
         controls
           .width( controlWidth )
           .color(['#444', '#444', '#444']);
@@ -306,13 +305,13 @@ nv.models.stackedAreaChart = function() {
         d.disabled = false;
 
         switch (d.key) {
-          case 'Stacked':
+          case controlsData[0].key:
             stacked.style('stack');
             break;
-          case 'Stream':
+          case controlsData[1].key:
             stacked.style('stream');
             break;
-          case 'Expanded':
+          case controlsData[2].key:
             stacked.style('expand');
             break;
         }
@@ -476,6 +475,14 @@ nv.models.stackedAreaChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    return chart;
+  };
+
+  chart.controlsData = function(_) {
+    if (!arguments.length) return controlsData;
+    controlsData[0].key = typeof _.stackedName === 'string' ? _.stackedName : controlsData[0].key;
+    controlsData[1].key = typeof _.streamName === 'string' ? _.streamName : controlsData[1].key;
+    controlsData[2].key = typeof _.expandedName === 'string' ? _.expandedName : controlsData[2].key;
     return chart;
   };
 
