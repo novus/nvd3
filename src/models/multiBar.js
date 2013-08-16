@@ -455,7 +455,6 @@ nv.models.multiBar = function() {
   chart.transitionDuration = function(_) {
     if (!arguments.length) return transitionDuration;
     transitionDuration = _;
-    if (_ === 0) transitionDuration = 10;
     return chart;
   };
 
