@@ -415,6 +415,14 @@ nv.models.historicalBarChart = function() {
     return chart;
   };
 
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return bars.transitionDuration();
+    bars.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
+    return chart;
+  };
+
   //============================================================
 
 

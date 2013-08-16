@@ -33,7 +33,9 @@ nv.addGraph({
     var chart = nv.models.historicalBarChart()
     //    .padData(true)
         .width(width)
-        .height(height /2);
+        .height(height /2)
+        .transitionDuration(0)
+        ;
 
     chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
         .tickFormat(d3.format(',.1f'));

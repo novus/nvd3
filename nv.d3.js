@@ -3,7 +3,7 @@
 var nv = window.nv || {};
 
 
-nv.version = '1.1.8b';
+nv.version = '1.1.9b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -973,7 +973,7 @@ nv.models.axis = function() {
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
 
 
-      g.transition().call(axis);
+      g.transition().duration(transitionDuration).call(axis);
 
       scale0 = scale0 || axis.scale();
 
@@ -3664,6 +3664,7 @@ nv.models.historicalBar = function() {
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     , interactive = true
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -3812,7 +3813,7 @@ nv.models.historicalBar = function() {
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
-      bars.transition()
+      bars.transition().duration(transitionDuration)
           .attr('y', function(d,i) {
             var rval = getY(d,i) < 0 ?
                     y(0) :
@@ -3956,6 +3957,12 @@ nv.models.historicalBar = function() {
   chart.interactive = function(_) {
     if(!arguments.length) return interactive;
     interactive = false;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
@@ -4378,6 +4385,14 @@ nv.models.historicalBarChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return bars.transitionDuration();
+    bars.transitionDuration(_);
+    xAxis.transitionDuration(_);
+    yAxis.transitionDuration(_);
     return chart;
   };
 

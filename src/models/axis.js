@@ -65,7 +65,7 @@ nv.models.axis = function() {
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
 
 
-      g.transition().call(axis);
+      g.transition().duration(transitionDuration).call(axis);
 
       scale0 = scale0 || axis.scale();
 

@@ -24,6 +24,7 @@ nv.models.historicalBar = function() {
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     , interactive = true
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -172,7 +173,7 @@ nv.models.historicalBar = function() {
           .attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
-      bars.transition()
+      bars.transition().duration(transitionDuration)
           .attr('y', function(d,i) {
             var rval = getY(d,i) < 0 ?
                     y(0) :
@@ -316,6 +317,12 @@ nv.models.historicalBar = function() {
   chart.interactive = function(_) {
     if(!arguments.length) return interactive;
     interactive = false;
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
