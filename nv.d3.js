@@ -7682,8 +7682,6 @@ nv.models.multiBar = function() {
             .attr('height', function(d,i) {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
-            .transition()
-            .duration(transitionDuration)
             .attr('x', function(d,i) {
                   return stacked ? 0 : (d.series * x.rangeBand() / data.length )
             })
@@ -7700,8 +7698,6 @@ nv.models.multiBar = function() {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
-            .transition()
-            .duration(transitionDuration)
             .attr('y', function(d,i) {
                 return getY(d,i) < 0 ?
                         y(0) :
