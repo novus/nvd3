@@ -137,6 +137,11 @@
 <script src="testScript.js"></script>
 <script>
 
+d3.select("body").on("keydown",function() {
+  if (d3.event.ctrlKey && d3.event.which === 75) {
+     alert("keydowned");
+  }
+});
 //------------ CHART 1 
 defaultChartConfig("chart1", dummyStocks(),true, true, {forceY:false});
 
