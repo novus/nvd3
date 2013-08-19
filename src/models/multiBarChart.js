@@ -273,7 +273,7 @@ nv.models.multiBarChart = function() {
 
           if(rotateLabels)
             xTicks
-              .selectAll('text')
+              .selectAll('.tick text')
               .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
               .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end');
           
