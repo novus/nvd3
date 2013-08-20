@@ -4531,6 +4531,7 @@ nv.models.indentedTree = function() {
             d3.select(this)
               .append('a')
               .attr('href',getUrl)
+              .attr('class', d3.functor(column.classes))
               .append('span')
           else
             d3.select(this)
@@ -7512,7 +7513,6 @@ nv.models.multiBar = function() {
           .range(yRange || [availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
-      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
       if (x.domain()[0] === x.domain()[1])
         x.domain()[0] ?
             x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
@@ -8136,7 +8136,7 @@ nv.models.multiBarChart = function() {
 
           if(rotateLabels)
             xTicks
-              .selectAll('text')
+              .selectAll('.tick text')
               .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
               .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end');
           

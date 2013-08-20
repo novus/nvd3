@@ -128,6 +128,7 @@ nv.models.indentedTree = function() {
             d3.select(this)
               .append('a')
               .attr('href',getUrl)
+              .attr('class', d3.functor(column.classes))
               .append('span')
           else
             d3.select(this)
