@@ -4531,6 +4531,7 @@ nv.models.indentedTree = function() {
             d3.select(this)
               .append('a')
               .attr('href',getUrl)
+              .attr('class', d3.functor(column.classes))
               .append('span')
           else
             d3.select(this)
@@ -8135,7 +8136,7 @@ nv.models.multiBarChart = function() {
 
           if(rotateLabels)
             xTicks
-              .selectAll('text')
+              .selectAll('.tick text')
               .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
               .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end');
           
