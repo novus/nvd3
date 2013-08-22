@@ -13597,7 +13597,7 @@ nv.models.stackedAreaChart = function() {
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = 250
-    , controlsData = ['Stacked','Stream','Expanded']
+    , cData = ['Stacked','Stream','Expanded']
     ;
 
   xAxis
@@ -13738,6 +13738,8 @@ nv.models.stackedAreaChart = function() {
           { key: 'Stream', disabled: stacked.offset() != 'wiggle' },
           { key: 'Expanded', disabled: stacked.offset() != 'expand' }
         ];
+
+        controlWidth = (cData.length/3) * 260;
 
         controlsData = controlsData.filter(function(d) {
           return cData.indexOf(d.key) > -1;
