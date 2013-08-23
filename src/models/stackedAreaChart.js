@@ -135,7 +135,7 @@ nv.models.stackedAreaChart = function() {
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedAreaChart').append('g');
       var g = wrap.select('g');
 
-      gEnter.append("rect").attr("width",availableWidth).attr("height",availableHeight).style("opacity",0);
+      gEnter.append("rect").style("opacity",0);
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-stackedWrap');
@@ -143,6 +143,7 @@ nv.models.stackedAreaChart = function() {
       gEnter.append('g').attr('class', 'nv-controlsWrap');
       gEnter.append('g').attr('class', 'nv-interactive');
 
+      g.select("rect").attr("width",availableWidth).attr("height",availableHeight);
       //------------------------------------------------------------
       // Legend
 
