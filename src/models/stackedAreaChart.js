@@ -36,6 +36,7 @@ nv.models.stackedAreaChart = function() {
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = 250
+    , cData = ['Stacked','Stream','Expanded']
     ;
 
   xAxis
@@ -177,6 +178,12 @@ nv.models.stackedAreaChart = function() {
           { key: 'Expanded', disabled: stacked.offset() != 'expand' }
         ];
 
+        controlWidth = (cData.length/3) * 260;
+
+        controlsData = controlsData.filter(function(d) {
+          return cData.indexOf(d.key) > -1;
+        })
+
         controls
           .width( controlWidth )
           .color(['#444', '#444', '#444']);
@@ -258,7 +265,6 @@ nv.models.stackedAreaChart = function() {
           .tickSize(-availableWidth, 0)
           .setTickFormat(stacked.offset() == 'expand' ? d3.format('%') : yAxisTickFormat);
 
-  
         g.select('.nv-y.nv-axis')
           .transition().duration(0)
             .call(yAxis);
@@ -555,6 +561,12 @@ nv.models.stackedAreaChart = function() {
     stacked.transitionDuration(_);
     xAxis.transitionDuration(_);
     yAxis.transitionDuration(_);
+    return chart;
+  };
+
+  chart.controlsData = function(_) {
+    if (!arguments.length) return cData;
+    cData = _;
     return chart;
   };
 
