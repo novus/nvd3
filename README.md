@@ -96,5 +96,5 @@ merge and minify in your master.
 * Firefox latest version
 * Safari latest version
 * Internet Explorer 9 and 10
-* (unofficially) Opera 15+.
+* Opera 15+.
 

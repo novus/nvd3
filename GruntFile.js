@@ -11,6 +11,7 @@ module.exports = function(grunt) {
                 src: [
                      'src/intro.js',
                      'src/core.js',
+                     'src/interactiveLayer.js',
                      'src/tooltip.js',
                      'src/utils.js',
                      'src/models/axis.js',
@@ -21,6 +22,8 @@ module.exports = function(grunt) {
                      'src/models/discreteBar.js',
                      'src/models/discreteBarChart.js',
                      'src/models/distribution.js',
+                     'src/models/historicalBar.js',
+                     'src/models/historicalBarChart.js',
                      'src/models/indentedTree.js',
                      'src/models/legend.js',
                      'src/models/line.js',
