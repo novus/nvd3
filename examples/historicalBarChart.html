@@ -14,95 +14,51 @@ text {
 </style>
 <body class='with-3d-shadow with-transitions'>
 
+<div style="width: 100%; height: 400px;">
 <svg id="test1"></svg>
-
+</div>
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
+<script src="../src/models/axis.js"></script>
 <script src="../src/models/historicalBar.js"></script>
 <script src="../src/models/historicalBarChart.js"></script>
 <script src="../src/utils.js"></script>
 
 <script> 
 
+var chart;
+nv.addGraph(function() {
+  chart = nv.models.historicalBarChart();
+  chart
+    .margin({left: 100, bottom: 100})
+    .x(function(d,i) { return i })
+    .transitionDuration(250)
+    ;
 
-nv.addGraph({
-  generate: function() {
-    var width = nv.utils.windowSize().width - 40,
-        height = nv.utils.windowSize().height - 40;
+  // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+  chart.xAxis
+    .axisLabel("Time (s)")
+    .tickFormat(d3.format(',.1f'));
 
-    var chart = nv.models.historicalBarChart()
-    //    .padData(true)
-        .width(width)
-        .height(height /2)
-        .transitionDuration(0)
-        ;
+  chart.yAxis
+    .axisLabel('Voltage (v)')
+    .tickFormat(d3.format(',.2f'));
 
-    chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
-        .tickFormat(d3.format(',.1f'));
+  chart.showXAxis(true);
 
-    chart.yAxis
-        .axisLabel('Voltage (v)')
-        .tickFormat(d3.format(',.2f'));
+  d3.select('#test1')
+    .datum(sinData())
+    .transition().duration(0)
+    .call(chart);
 
-    chart.showXAxis(true).showYAxis(true);
-        
-    d3.select("#test1")
-      .attr('width', width)
-      .attr('height', height)
-      .datum(sinData())
-      .call(chart);
+  //TODO: Figure out a good way to do this automatically
+  nv.utils.windowResize(chart.update);
+  //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
 
-    return chart;
-  },
-  callback: function(graph) {
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
-
-
-    /*
-    graph.dispatch.on('elementClick', function(e) {
-        console.log("Bar Click",e);
-    });
-
-    graph.dispatch.on('chartClick', function(e) {
-        console.log("Chart Click",e);
-    });
-
-    graph.dispatch.on('chartClick', function(e) {
-        console.log('Click Switching to');
-        if (td === 0) {
-            d3.select("#test1")
-                    .datum(testdata2)
-                    .call(graph);
-            td = 1;
-
-        } else {
-            d3.select("#test1")
-                    .datum(testdata)
-                    .call(graph);
-            td = 0;
-        }
-      });
-    */
-
-
-    window.onresize = function() {
-      var width = nv.utils.windowSize().width - 40,
-          height = nv.utils.windowSize().height /2 - 40;
-
-      graph
-        .width(width)
-        .height(height)
-
-      d3.select("#test1")
-          .attr('width', width)
-          .attr('height', height)
-        .call(graph);
-    };
-  }
+  return chart;
 });
-
-
-
 
 
 //Simple test data generators

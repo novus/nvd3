@@ -31,6 +31,7 @@ nv.models.historicalBarChart = function() {
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , transitionDuration = 250
     ;
 
   xAxis
@@ -85,7 +86,7 @@ nv.models.historicalBarChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { container.transition().call(chart) };
+      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -194,7 +195,7 @@ nv.models.historicalBarChart = function() {
       var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      d3.transition(barsWrap).call(bars);
+      barsWrap.transition().call(bars);
 
       //------------------------------------------------------------
 
@@ -210,7 +211,7 @@ nv.models.historicalBarChart = function() {
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
         g.select('.nv-x.nv-axis')
-          .transition()
+            .transition()
             .call(xAxis);
       }
 
@@ -221,7 +222,7 @@ nv.models.historicalBarChart = function() {
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
-          .transition().duration(0)
+          .transition()
             .call(yAxis);
       }
       //------------------------------------------------------------
@@ -259,18 +260,6 @@ nv.models.historicalBarChart = function() {
           dispatch.stateChange(state);
           chart.update();
       });
-
-/*
-      legend.dispatch.on('legendMouseover', function(d, i) {
-        d.hover = true;
-        selection.transition().call(chart)
-      });
-
-      legend.dispatch.on('legendMouseout', function(d, i) {
-        d.hover = false;
-        selection.transition().call(chart)
-      });
-*/
 
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
@@ -416,10 +405,8 @@ nv.models.historicalBarChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return bars.transitionDuration();
-    bars.transitionDuration(_);
-    xAxis.transitionDuration(_);
-    yAxis.transitionDuration(_);
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
