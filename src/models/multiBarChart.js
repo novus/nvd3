@@ -276,7 +276,7 @@ nv.models.multiBarChart = function() {
             xTicks
               .selectAll('.tick text')
               .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
-              .attr('text-anchor', rotateLabels > 0 ? 'start' : 'end');
+              .style('text-anchor', rotateLabels > 0 ? 'start' : 'end');
           
           g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
               .style('opacity', 1);
@@ -292,6 +292,7 @@ nv.models.multiBarChart = function() {
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
       }
+
 
       //------------------------------------------------------------
 
