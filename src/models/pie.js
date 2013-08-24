@@ -130,8 +130,8 @@ nv.models.pie = function() {
               });
 
         slices
-            .attr('fill', function(d,i) { return color(d, i); })
-            .attr('stroke', function(d,i) { return color(d, i); });
+            .attr('fill', function(d,i) { return color(d.data, i); })
+            .attr('stroke', function(d,i) { return color(d.data, i); });
 
         var paths = ae.append('path')
             .each(function(d) { this._current = d; });
