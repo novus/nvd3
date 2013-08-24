@@ -20,7 +20,6 @@ nv.models.line = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , interpolate = "linear" // controls the line interpolation
-    , transitionDuration = 250  //override the transition duration
     ;
 
   scatter
@@ -110,7 +109,7 @@ nv.models.line = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       groups.exit()
-          .transition().duration(transitionDuration)
+          .transition()
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
@@ -120,7 +119,7 @@ nv.models.line = function() {
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i)});
       groups
-          .transition().duration(transitionDuration)
+          .transition()
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -141,19 +140,10 @@ nv.models.line = function() {
                 .apply(this, [d.values])
           });
       groups.exit().selectAll('path.nv-area')
-          .transition().duration(transitionDuration)
-          .attr('d', function(d) {
-            return d3.svg.area()
-                .interpolate(interpolate)
-                .defined(defined)
-                .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-                .y0(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-                .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-                //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
-                .apply(this, [d.values])
-          });
+           .remove();
+           
       areaPaths
-          .transition().duration(transitionDuration)
+          .transition()
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -179,7 +169,7 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
           );
       groups.exit().selectAll('path.nv-line')
-          .transition().duration(transitionDuration)
+          .transition()
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -188,7 +178,7 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
           );
       linePaths
-          .transition().duration(transitionDuration)
+          .transition()
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -283,12 +273,6 @@ nv.models.line = function() {
     if (!arguments.length) return isArea;
     isArea = d3.functor(_);
     return chart;
-  };
-
-  chart.transitionDuration = function(_) {
-      if (!arguments.length) return transitionDuration;
-      transitionDuration = _;
-      return chart;
   };
 
   //============================================================

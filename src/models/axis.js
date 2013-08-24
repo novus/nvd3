@@ -19,7 +19,6 @@ nv.models.axis = function() {
     , staggerLabels = false
     , isOrdinal = false
     , ticks = null
-    , transitionDuration = 250
     ;
 
   axis
@@ -65,7 +64,7 @@ nv.models.axis = function() {
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
 
 
-      g.transition().duration(transitionDuration).call(axis);
+      g.transition().call(axis);
 
       scale0 = scale0 || axis.scale();
 
@@ -102,7 +101,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition().duration(transitionDuration)
+            axisMaxMin.transition()
                 .attr('transform', function(d,i) {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
@@ -152,7 +151,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition().duration(transitionDuration)
+            axisMaxMin.transition()
                 .attr('transform', function(d,i) {
                   //return 'translate(' + scale.range()[i] + ',0)'
                   //return 'translate(' + scale(d) + ',0)'
@@ -190,7 +189,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition().duration(transitionDuration)
+            axisMaxMin.transition()
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -232,7 +231,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition().duration(transitionDuration)
+            axisMaxMin.transition()
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -389,13 +388,6 @@ nv.models.axis = function() {
     staggerLabels = _;
     return chart;
   };
-
-  chart.transitionDuration = function(_) {
-      if (!arguments.length) return transitionDuration;
-      transitionDuration = _;
-      return chart;
-  };
-
 
   //============================================================
 

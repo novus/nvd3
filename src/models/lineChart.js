@@ -32,6 +32,7 @@ nv.models.lineChart = function() {
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , transitionDuration = 250
     ;
 
   xAxis
@@ -73,7 +74,7 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { container.transition().call(chart) };
+      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -196,7 +197,7 @@ nv.models.lineChart = function() {
       var linesWrap = g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      d3.transition(linesWrap).call(lines);
+      linesWrap.transition().call(lines);
 
       //------------------------------------------------------------
 
@@ -441,10 +442,8 @@ nv.models.lineChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return lines.transitionDuration();
-    lines.transitionDuration(_);
-    xAxis.transitionDuration(_);
-    yAxis.transitionDuration(_);
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
