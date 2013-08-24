@@ -199,7 +199,7 @@ nv.addGraph(function() {
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
                 .color(keyColor)
-                .transitionDuration(250);
+                .transitionDuration(300);
                 //.clipEdge(true);
 
 // chart.stacked.scatter.clipVoronoi(false);
@@ -212,7 +212,8 @@ nv.addGraph(function() {
 
   d3.select('#chart1')
     .datum(histcatexplong)
-      .transition().duration(0).call(chart);
+    .transition().duration(0)
+    .call(chart);
 
   nv.utils.windowResize(chart.update);
 
@@ -237,8 +238,6 @@ nv.addGraph(function() {
 
   d3.select('#chart2')
     .datum(histcatexpshort)
-    .transition().duration(0)
-      //.transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);

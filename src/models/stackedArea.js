@@ -21,7 +21,6 @@ nv.models.stackedArea = function() {
     , y //can be accessed via chart.yScale()
     , scatter = nv.models.scatter()
     , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout')
-    , transitionDuration = 500  //allow users to override stacked area transition duration.
     ;
 
   scatter
@@ -121,12 +120,7 @@ nv.models.stackedArea = function() {
       var scatterWrap = g.select('.nv-scatterWrap')
           .datum(data);
 
-      //d3.transition(scatterWrap).call(scatter);
       scatterWrap.call(scatter);
-
-
-
-
 
       defsEnter.append('clipPath')
           .attr('id', 'nv-edge-clip-' + id)
@@ -188,7 +182,7 @@ nv.models.stackedArea = function() {
               seriesIndex: i
             });
           })
-      path.exit().transition().duration(transitionDuration)
+      path.exit().transition()
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
@@ -196,7 +190,7 @@ nv.models.stackedArea = function() {
             return d.color || color(d, d.seriesIndex) 
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
-      path.transition().duration(transitionDuration)
+      path.transition()
           .attr('d', function(d,i) { 
             return area(d.values,i) 
           });
@@ -339,12 +333,6 @@ nv.models.stackedArea = function() {
 	    if (!arguments.length) return interpolate;
 	    interpolate = _;
 	    return chart;
-  };
-  
-  chart.transitionDuration = function(_) {
-      if (!arguments.length) return transitionDuration;
-      transitionDuration = _;
-      return chart;
   };
   //============================================================
 
