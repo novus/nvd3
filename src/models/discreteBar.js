@@ -23,7 +23,6 @@ nv.models.discreteBar = function() {
     , yRange
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     , rectClass = 'discreteBar'
-    , transitionDuration = 250
     ;
 
   //============================================================
@@ -106,7 +105,7 @@ nv.models.discreteBar = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       groups.exit()
-          .transition().duration(transitionDuration)
+          .transition()
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
@@ -114,7 +113,7 @@ nv.models.discreteBar = function() {
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       groups
-          .transition().duration(transitionDuration)
+          .transition()
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -184,10 +183,15 @@ nv.models.discreteBar = function() {
       if (showValues) {
         barsEnter.append('text')
           .attr('text-anchor', 'middle')
+          ;
+
         bars.select('text')
+          .text(function(d,i) { return valueFormat(getY(d,i)) })
+          .transition()
           .attr('x', x.rangeBand() * .9 / 2)
           .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
-          .text(function(d,i) { return valueFormat(getY(d,i)) });
+          
+          ;
       } else {
         bars.selectAll('text').remove();
       }
@@ -198,9 +202,9 @@ nv.models.discreteBar = function() {
           .style('stroke', function(d,i) { return d.color || color(d,i) })
         .select('rect')
           .attr('class', rectClass)
+          .transition()
           .attr('width', x.rangeBand() * .9 / data.length);
       bars.transition()
-          .duration(transitionDuration)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
             var left = x(getX(d,i)) + x.rangeBand() * .05,
@@ -336,12 +340,6 @@ nv.models.discreteBar = function() {
   chart.rectClass= function(_) {
     if (!arguments.length) return rectClass;
     rectClass = _;
-    return chart;
-  };
-
-  chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
     return chart;
   };
   //============================================================

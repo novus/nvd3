@@ -27,6 +27,7 @@ nv.models.discreteBarChart = function() {
     , y
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
+    , transitionDuration = 250
     ;
 
   xAxis
@@ -71,7 +72,10 @@ nv.models.discreteBarChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { dispatch.beforeUpdate(); container.transition().call(chart); };
+      chart.update = function() { 
+        dispatch.beforeUpdate(); 
+        container.transition().duration(transitionDuration).call(chart); 
+      };
       chart.container = this;
 
 
@@ -141,7 +145,7 @@ nv.models.discreteBarChart = function() {
       var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      d3.transition(barsWrap).call(discretebar);
+      barsWrap.transition().call(discretebar);
 
       //------------------------------------------------------------
 
@@ -169,7 +173,7 @@ nv.models.discreteBarChart = function() {
           g.select('.nv-x.nv-axis')
               .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
           //d3.transition(g.select('.nv-x.nv-axis'))
-          g.select('.nv-x.nv-axis').transition().duration(0)
+          g.select('.nv-x.nv-axis').transition()
               .call(xAxis);
 
 
@@ -188,7 +192,7 @@ nv.models.discreteBarChart = function() {
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
-          d3.transition(g.select('.nv-y.nv-axis'))
+          g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
       }
 
@@ -315,10 +319,8 @@ nv.models.discreteBarChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return discretebar.transitionDuration();
-    discretebar.transitionDuration(_);
-    xAxis.transitionDuration(_);
-    yAxis.transitionDuration(_);
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
