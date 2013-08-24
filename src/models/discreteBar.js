@@ -172,6 +172,12 @@ nv.models.discreteBar = function() {
             d3.event.stopPropagation();
           });
 
+      if (function(d,i) {return d.url !== undefined})
+      {
+        barsEnter = barsEnter.append('a')
+          .attr('xlink:href', function(d,i) {return d.url});
+      }
+
       barsEnter.append('rect')
           .attr('height', 0)
           .attr('width', x.rangeBand() * .9 / data.length )
@@ -189,11 +195,11 @@ nv.models.discreteBar = function() {
 
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
-          .style('fill', function(d,i) { return d.color || color(d,i) })
-          .style('stroke', function(d,i) { return d.color || color(d,i) })
         .select('rect')
           .attr('class', rectClass)
-          .attr('width', x.rangeBand() * .9 / data.length);
+          .attr('width', x.rangeBand() * .9 / data.length)
+          .style('fill', function(d,i) { return d.color || color(d,i) })
+          .style('stroke', function(d,i) { return d.color || color(d,i) });
       d3.transition(bars)
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
