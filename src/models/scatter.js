@@ -38,7 +38,6 @@ nv.models.scatter = function() {
     , singlePoint  = false
     , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
     , useVoronoi   = true
-    , transitionDuration = 250
     ;
 
   //============================================================
@@ -343,15 +342,12 @@ nv.models.scatter = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       groups.exit()
-          .transition().duration(transitionDuration)
-          .style('stroke-opacity', 1e-6)
-          .style('fill-opacity', 1e-6)
           .remove();
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       groups
-          .transition().duration(transitionDuration)
+          .transition()
           .style('fill', function(d,i) { return color(d, i) })
           .style('stroke', function(d,i) { return color(d, i) })
           .style('stroke-opacity', 1)
@@ -370,7 +366,6 @@ nv.models.scatter = function() {
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
         groups.exit().selectAll('path.nv-point').transition()
-            .duration(transitionDuration)
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .remove();
@@ -382,7 +377,6 @@ nv.models.scatter = function() {
             ;
         });
         points.transition()
-            .duration(transitionDuration)
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
@@ -404,7 +398,7 @@ nv.models.scatter = function() {
             );
         points.exit().remove();
         groups.exit().selectAll('path.nv-point')
-            .transition().duration(transitionDuration)
+            .transition()
             .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
             })
@@ -417,7 +411,6 @@ nv.models.scatter = function() {
             ;
         });
         points.transition()
-            .duration(transitionDuration)
             .attr('transform', function(d,i) {
               //nv.log(d,i,getX(d,i), x(getX(d,i)));
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
@@ -672,12 +665,6 @@ nv.models.scatter = function() {
   chart.singlePoint = function(_) {
     if (!arguments.length) return singlePoint;
     singlePoint = _;
-    return chart;
-  };
-
-  chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
     return chart;
   };
 

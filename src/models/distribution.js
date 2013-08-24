@@ -13,7 +13,6 @@ nv.models.distribution = function() {
     , color = nv.utils.defaultColor()
     , scale = d3.scale.linear()
     , domain
-    , transitionDuration = 250
     ;
 
   //============================================================
@@ -70,7 +69,7 @@ nv.models.distribution = function() {
           .attr(axis + '1', function(d,i) { return scale0(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale0(getData(d,i)) })
       distWrap.exit().selectAll('line.nv-dist' + axis)
-          .transition().duration(transitionDuration)
+          .transition()
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
           .style('stroke-opacity', 0)
@@ -80,7 +79,7 @@ nv.models.distribution = function() {
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
       dist
-          .transition().duration(transitionDuration)
+          .transition()
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
 
@@ -141,13 +140,6 @@ nv.models.distribution = function() {
     color = nv.utils.getColor(_);
     return chart;
   };
-
-  chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
-    return chart;
-  };
-
   //============================================================
 
 
