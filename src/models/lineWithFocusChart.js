@@ -34,6 +34,7 @@ nv.models.lineWithFocusChart = function() {
       }
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , transitionDuration = 250
     ;
 
   lines
@@ -87,7 +88,7 @@ nv.models.lineWithFocusChart = function() {
                              - margin.top - margin.bottom - height2,
           availableHeight2 = height2 - margin2.top - margin2.bottom;
 
-      chart.update = function() { container.transition().call(chart) };
+      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
 
@@ -249,7 +250,13 @@ nv.models.lineWithFocusChart = function() {
 
       brush
         .x(x2)
-        .on('brush', onBrush);
+        .on('brush', function() {
+            //When brushing, turn off transitions because chart needs to change immediately.
+            var oldTransition = chart.transitionDuration();
+            chart.transitionDuration(0); 
+            onBrush();
+            chart.transitionDuration(oldTransition);
+        });
 
       if (brushExtent) brush.extent(brushExtent);
 
@@ -392,13 +399,13 @@ nv.models.lineWithFocusChart = function() {
                   }
                 })
             );
-        d3.transition(focusLinesWrap).call(lines);
+        focusLinesWrap.transition().duration(transitionDuration).call(lines);
 
 
         // Update Main (Focus) Axes
-        d3.transition(g.select('.nv-focus .nv-x.nv-axis'))
+        g.select('.nv-focus .nv-x.nv-axis').transition().duration(transitionDuration)
             .call(xAxis);
-        d3.transition(g.select('.nv-focus .nv-y.nv-axis'))
+        g.select('.nv-focus .nv-y.nv-axis').transition().duration(transitionDuration)
             .call(yAxis);
       }
 
@@ -544,6 +551,12 @@ nv.models.lineWithFocusChart = function() {
     if (!arguments.length) return yAxis.tickFormat();
     yAxis.tickFormat(_);
     y2Axis.tickFormat(_);
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 

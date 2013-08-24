@@ -52,6 +52,7 @@ svg {
 nv.addGraph(function() {
   var chart = nv.models.lineWithFocusChart();
 
+ // chart.transitionDuration(500);
   chart.xAxis
       .tickFormat(d3.format(',f'));
   chart.x2Axis
@@ -64,7 +65,6 @@ nv.addGraph(function() {
 
   d3.select('#chart svg')
       .datum(testData())
-    .transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);
