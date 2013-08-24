@@ -146,6 +146,8 @@ nv.models.multiBar = function() {
 
       //------------------------------------------------------------
 
+
+
       defsEnter.append('clipPath')
           .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
@@ -158,13 +160,16 @@ nv.models.multiBar = function() {
 
 
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
-          .data(function(d) { return d }, function(d,i) { return i});
+          .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       groups.exit()
+        .transition()
         .selectAll('rect.nv-bar')
-          .transition()
+        .delay(function(d,i) { 
+             return i * delay/ data[0].values.length;
+        })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
@@ -192,7 +197,9 @@ nv.models.multiBar = function() {
           })
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
-          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+          .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+          .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
+          ;
       bars
           .style('fill', function(d,i,j){ return color(d, j, i);  })
           .style('stroke', function(d,i,j){ return color(d, j, i); })
@@ -243,7 +250,6 @@ nv.models.multiBar = function() {
             });
             d3.event.stopPropagation();
           });
-
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
           .transition()
@@ -259,6 +265,10 @@ nv.models.multiBar = function() {
 
       if (stacked)
           bars.transition()
+            .delay(function(d,i) { 
+
+                  return i * delay / data[0].values.length;
+            })
             .attr('y', function(d,i) {
 
               return y((stacked ? d.y1 : 0));
@@ -272,6 +282,9 @@ nv.models.multiBar = function() {
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
           bars.transition()
+            .delay(function(d,i) { 
+                return i * delay/ data[0].values.length;
+            })
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
