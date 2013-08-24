@@ -27,7 +27,6 @@ nv.models.multiBar = function() {
     , yRange
     , groupSpacing = 0.1
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
-    , transitionDuration = 250
     ;
 
   //============================================================
@@ -147,8 +146,6 @@ nv.models.multiBar = function() {
 
       //------------------------------------------------------------
 
-
-
       defsEnter.append('clipPath')
           .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
@@ -166,15 +163,8 @@ nv.models.multiBar = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       groups.exit()
-        .transition().duration(transitionDuration)
-          //.style('stroke-opacity', 1e-6)
-          //.style('fill-opacity', 1e-6)
         .selectAll('rect.nv-bar')
-        .delay(function(d,i) { 
-          if (transitionDuration <= 10) return 0;
-          else
-             return i * delay/ data[0].values.length;
-        })
+          .transition()
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
@@ -184,7 +174,7 @@ nv.models.multiBar = function() {
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i) });
       groups
-          .transition().duration(transitionDuration)
+          .transition()
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -253,17 +243,15 @@ nv.models.multiBar = function() {
             });
             d3.event.stopPropagation();
           });
+
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
+          .transition()
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
 
       if (barColor) {
         if (!disabled) disabled = data.map(function() { return true });
         bars
-          //.style('fill', barColor)
-          //.style('stroke', barColor)
-          //.style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
-          //.style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
           .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); })
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
@@ -271,12 +259,6 @@ nv.models.multiBar = function() {
 
       if (stacked)
           bars.transition()
-            .duration(transitionDuration)
-            .delay(function(d,i) { 
-                if (transitionDuration <= 10) return 0;
-                else
-                  return i * delay / data[0].values.length;
-            })
             .attr('y', function(d,i) {
 
               return y((stacked ? d.y1 : 0));
@@ -290,12 +272,6 @@ nv.models.multiBar = function() {
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
           bars.transition()
-            .duration(transitionDuration)
-            .delay(function(d,i) { 
-              if (transitionDuration <= 10) return 0;
-              else
-                return i * delay/ data[0].values.length;
-            })
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
@@ -449,12 +425,6 @@ nv.models.multiBar = function() {
   chart.delay = function(_) {
     if (!arguments.length) return delay;
     delay = _;
-    return chart;
-  };
-
-  chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
     return chart;
   };
 
