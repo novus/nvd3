@@ -37,6 +37,7 @@ nv.models.cumulativeLineChart = function() {
     , noData = 'No Data Available.'
     , average = function(d) { return d.average }
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , transitionDuration = 250
     ;
 
   xAxis
@@ -109,7 +110,7 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { container.transition().call(chart) };
+      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -444,7 +445,7 @@ nv.models.cumulativeLineChart = function() {
         // Then turn them back on when done dragging.
         var oldDuration = chart.transitionDuration();
         chart.transitionDuration(0);
-        container.call(chart);
+        chart.update();
         chart.transitionDuration(oldDuration);
       }
 
@@ -722,10 +723,8 @@ nv.models.cumulativeLineChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return lines.transitionDuration();
-    lines.transitionDuration(_);
-    xAxis.transitionDuration(_);
-    yAxis.transitionDuration(_);
+    if (!arguments.length) return transitionDuration;
+    transitionDuration = _;
     return chart;
   };
 
