@@ -229,6 +229,8 @@ nv.models.sparklinePlus = function() {
 
   d3.rebind(chart, sparkline, 'x', 'y', 'xScale', 'yScale', 'color');
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;

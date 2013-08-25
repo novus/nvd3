@@ -306,6 +306,8 @@ nv.models.bullet = function() {
 
   chart.dispatch = dispatch;
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   // left, right, top, bottom
   chart.orient = function(_) {
     if (!arguments.length) return orient;
