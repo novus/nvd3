@@ -38,6 +38,7 @@ nv.addGraph({
       .attr('width', width)
       .attr('height', height)
       .datum(sinData())
+      .transition()
       .call(chart);
 
     return chart;
