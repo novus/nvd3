@@ -9,7 +9,7 @@ project.
 To enable, set **useInteractiveGuideline** to true. See examples in the **test/** directory for how this tooltip works.
 * New test pages have been created for various kinds of charts. They live in the **test/** directory. The goal of these test pages is to aid
 in regression testing coverage when changes are made to charts.
-* Pie charts accept data in a different way, and if you update to version 1.1, your pie charts will likely break. See the pie chart examples for how
+* Pie charts accept data in a different way, and if you update to version 1.1, **your pie charts will break**. See the pie chart examples for how
 data should be properly passed in. It's a very simple change.
 * Pie charts can now accept a 'labelType' property. 
 * Tooltip transitions are **turned off** by default, if you update to the latest nv.d3.css.  To bring them back, add a 'with-transitions' CSS class
