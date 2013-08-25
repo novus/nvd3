@@ -52,7 +52,7 @@ function defaultChartConfig(containerId, data) {
 
 defaultChartConfig("#chart1",sine());
 defaultChartConfig("#chart2", volatileChart(130.0, 0.02));
-defaultChartConfig("#chart3", volatileChart(25.0, 0.09));
+defaultChartConfig("#chart3", volatileChart(25.0, 0.09,30));
 
 
 function sine() {
@@ -66,10 +66,11 @@ function sine() {
   return sin;
 }
 
-function volatileChart(startPrice, volatility) {
+function volatileChart(startPrice, volatility, numPoints) {
      var rval =  [];
      var now =+new Date();
-     for(var i = 1; i < 100; i++) {
+     numPoints = numPoints || 100;
+     for(var i = 1; i < numPoints; i++) {
 
         rval.push({x: now + i * 1000 * 60 * 60 * 24, y: startPrice});
         var rnd = Math.random();
