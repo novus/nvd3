@@ -317,6 +317,8 @@ nv.models.axis = function() {
   d3.rebind(chart, axis, 'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
   d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   chart.margin = function(_) {
     if(!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;

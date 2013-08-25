@@ -56,12 +56,15 @@ svg {
 var chart;
 
 nv.addGraph(function() {
-  chart = nv.models.lineChart();
-  chart
-    .margin({left: 100, bottom: 100})
-    .x(function(d,i) { return i })
-    .transitionDuration(300)
-    ;
+  chart = nv.models.lineChart()
+  .options({
+    margin: {left: 100, bottom: 100},
+    x: function(d,i) { return i},
+    showXAxis: true,
+    showYAxis: true,
+    transitionDuration: 250
+  })
+  ;
 
   // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
   chart.xAxis
@@ -71,8 +74,6 @@ nv.addGraph(function() {
   chart.yAxis
     .axisLabel('Voltage (v)')
     .tickFormat(d3.format(',.2f'));
-
-  chart.showXAxis(true);
 
   d3.select('#chart1 svg')
     .datum(sinAndCos())

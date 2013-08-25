@@ -128,3 +128,25 @@ nv.utils.NaNtoZero = function(n) {
 
     return n;
 };
+
+/*
+Snippet of code you can insert into each nv.models.* to give you the ability to
+do things like:
+chart.options({
+  showXAxis: true,
+  tooltips: true
+});
+
+To enable in the chart:
+chart.options = nv.utils.optionsFunc.bind(chart);
+*/
+nv.utils.optionsFunc = function(args) {
+    if (args) {
+      d3.map(args).forEach((function(key,value) {
+        if (typeof this[key] === "function") {
+           this[key](value);
+        }
+      }).bind(this));
+    }
+    return this;
+};

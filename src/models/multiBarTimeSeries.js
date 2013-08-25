@@ -272,6 +272,8 @@ nv.models.multiBarTimeSeries = function() {
 
   chart.dispatch = dispatch;
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;

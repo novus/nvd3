@@ -258,6 +258,8 @@ nv.models.bulletChart = function() {
 
   d3.rebind(chart, bullet, 'color');
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   // left, right, top, bottom
   chart.orient = function(x) {
     if (!arguments.length) return orient;
