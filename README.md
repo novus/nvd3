@@ -20,9 +20,9 @@ to the containing chart DIV.
 * Issue #216: Exposing xRange and yRange overrides for all charts.
 * Issue #168: Adding legend.radioButtonMode(). When set to true, legend click behavior will match those of radio buttons.
 * Line stroke-width has been reduced to 1.5px, from 2.5px.
-* Multibar charts no longer have a transition delay set for each bar. 
 * Added Multibar chart property "groupSpacing".
-
+* Charts now have a method called "options()", where you can pass in chart configurations via an object.
+* examples/index.html page created, for quick access to all NVD3 examples and test pages.
 
 ## Overview
 A reusable chart library for d3.js.
