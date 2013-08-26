@@ -54,11 +54,11 @@ nv.models.pieChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().call(chart); };
+      chart.update = function() { chart(selection); };
       chart.container = this;
 
       //set state.disabled
-      state.disabled = data[0].map(function(d) { return !!d.disabled });
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
         var key;
@@ -74,7 +74,7 @@ nv.models.pieChart = function() {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      if (!data[0] || !data[0].length) {
+      if (!data || !data.length) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
@@ -167,10 +167,10 @@ nv.models.pieChart = function() {
           });
         }
 
-        state.disabled = data[0].map(function(d) { return !!d.disabled });
+        state.disabled = data.map(function(d) { return !!d.disabled });
         dispatch.stateChange(state);
 
-        chart.update();
+        selection.transition().call(chart);
       });
 
       pie.dispatch.on('elementMouseout.tooltip', function(e) {
@@ -189,6 +189,7 @@ nv.models.pieChart = function() {
         }
 
         chart.update();
+        selection.call(chart);
       });
 
       //============================================================

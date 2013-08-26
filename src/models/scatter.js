@@ -51,7 +51,17 @@ nv.models.scatter = function() {
     ;
 
   //============================================================
-
+  function pointCoordinateWithJitter(coordinateGetter, point, pointIndex) {
+    var pCoordinate = coordinateGetter(point, pointIndex),
+        jitter = Math.random();
+    if (typeof pCoordinate.setMilliseconds === "function") {
+      var millisecondJitter = jitter * 1e3;
+      pCoordinate.setMilliseconds(millisecondJitter);
+      return pCoordinate
+    } else {
+      return pCoordinate + jitter * 1e-7
+    }
+  }
 
   function chart(selection) {
     selection.each(function(data) {
@@ -150,35 +160,21 @@ nv.models.scatter = function() {
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-
       function updateInteractiveLayer() {
 
         if (!interactive) return false;
 
         var eventElements;
 
-        var vertices = d3.merge(data.map(function(group, groupIndex) {
-            return group.values
-              .map(function(point, pointIndex) {
-                // *Adding noise to make duplicates very unlikely
-                // *Injecting series and point index for reference
-                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                */
-                var pX = getX(point,pointIndex) + Math.random() * 1e-7;
-                var pY = getY(point,pointIndex) + Math.random() * 1e-7;
-
-                return [x(pX), 
-                        y(pY), 
-                        groupIndex, 
-                        pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
-              })
-              .filter(function(pointArray, pointIndex) {
-                return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
-              })
+        var vertices = d3.merge(data.map(function (group, groupIndex) {
+          return group.values.map(function (point, pointIndex) {
+            var pX = pointCoordinateWithJitter(getX, point, pointIndex);
+            var pY = pointCoordinateWithJitter(getY, point, pointIndex);
+            return [x(pX), y(pY), groupIndex, pointIndex, point]
+          }).filter(function (pointArray, pointIndex) {
+            return pointActive(pointArray[4], pointIndex)
           })
-        );
-
-
+        }));
 
         //inject series and point index for reference into voronoi
         if (useVoronoi === true) {
