@@ -10,6 +10,7 @@ nv.models.legend = function() {
     , invertOrder = false
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
+    , shape = {shape: 'circle', attrs: { 'r': 5}}
     , align = true
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout')
     ;
@@ -56,16 +57,16 @@ nv.models.legend = function() {
           .on('dblclick', function(d,i) {
             dispatch.legendDblclick(d,i);
           });
-      seriesEnter.append('circle')
+      seriesEnter.append(shape.shape)
           .style('stroke-width', 2)
-          .attr('r', 5);
+          .attr(shape.attrs);
       seriesEnter.append('text')
           .attr('text-anchor', 'start')
           .attr('dy', '.32em')
           .attr('dx', '8');
       series.classed('disabled', function(d) { return d.disabled });
       series.exit().remove();
-      series.select('circle')
+      series.select(shape.shape)
           .style('fill', function(d,i) { return d.color || color(d,i)})
           .style('stroke', function(d,i) { return d.color || color(d, i) });
       series.select('text').text(getKey);
@@ -204,6 +205,13 @@ nv.models.legend = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
+    return chart;
+  };
+
+  chart.shape = function(_) {
+    if (!arguments.length) return shape;
+    shape.shape = _.shape;
+    shape.attrs = _.attrs;
     return chart;
   };
 
