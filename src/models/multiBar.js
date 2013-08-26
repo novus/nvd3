@@ -19,6 +19,7 @@ nv.models.multiBar = function() {
     , color = nv.utils.defaultColor()
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
+    , barSpacing = .1
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , delay = 1200
     , drawTime = 500
@@ -105,7 +106,7 @@ nv.models.multiBar = function() {
             });
 
       x   .domain(d3.merge(seriesData).map(function(d) { return d.x }))
-          .rangeBands([0, availableWidth], .1);
+          .rangeBands([0, availableWidth], barSpacing);
 
       //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
@@ -402,6 +403,12 @@ nv.models.multiBar = function() {
   chart.barColor = function(_) {
     if (!arguments.length) return barColor;
     barColor = nv.utils.getColor(_);
+    return chart;
+  };
+
+  chart.barSpacing = function(_) {
+    if (!arguments.length) return barSpacing;
+    barSpacing = _;
     return chart;
   };
 
