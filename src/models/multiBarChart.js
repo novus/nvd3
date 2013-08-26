@@ -342,7 +342,7 @@ nv.models.multiBarChart = function() {
       });
 
       dispatch.on('tooltipShow', function(e) {
-        if (tooltips) showTooltip(e, that.parentNode)
+        if (tooltips) chart.showTooltip(e, that.parentNode)
       });
 
       // Update chart from a state object passed to event handler
@@ -399,6 +399,7 @@ nv.models.multiBarChart = function() {
   // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.multibar = multibar;
+  chart.showTooltip = showTooltip;
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
@@ -442,6 +443,12 @@ nv.models.multiBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.showTooltip = function(_) {
+    if (!arguments.length) return showTooltip;
+    showTooltip = _;
     return chart;
   };
 
