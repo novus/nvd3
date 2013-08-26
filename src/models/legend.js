@@ -11,6 +11,7 @@ nv.models.legend = function() {
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
     , shape = {shape: 'circle', attrs: { 'r': 5}}
+    , textAttrs = { 'text-anchor': 'start', 'dy': '.32em', 'dx': '8' }
     , align = true
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout')
     ;
@@ -61,9 +62,7 @@ nv.models.legend = function() {
           .style('stroke-width', 2)
           .attr(shape.attrs);
       seriesEnter.append('text')
-          .attr('text-anchor', 'start')
-          .attr('dy', '.32em')
-          .attr('dx', '8');
+          .attr(textAttrs)
       series.classed('disabled', function(d) { return d.disabled });
       series.exit().remove();
       series.select(shape.shape)
@@ -212,6 +211,12 @@ nv.models.legend = function() {
     if (!arguments.length) return shape;
     shape.shape = _.shape;
     shape.attrs = _.attrs;
+    return chart;
+  };
+
+  chart.textAttrs = function(_) {
+    if (!arguments.length) return textAttrs;
+    textAttrs = _;
     return chart;
   };
 
