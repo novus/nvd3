@@ -7,6 +7,7 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 0}
     , width = 400
     , height = 20
+    , invertOrder = false
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
     , align = true
@@ -19,13 +20,19 @@ nv.models.legend = function() {
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
-          container = d3.select(this);
+          container = d3.select(this),
+          legendData;
 
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-legend').data([data]);
+      if (invertOrder) {
+        legendData = data.slice(0);
+        legendData = legendData.reverse();
+      }
+
+      var wrap = container.selectAll('g.nv-legend').data([legendData || data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
       var g = wrap.select('g');
 
@@ -179,6 +186,12 @@ nv.models.legend = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.invertOrder = function(_) {
+    if (!arguments.length) return invertOrder;
+    invertOrder = _;
     return chart;
   };
 
