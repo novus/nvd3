@@ -68,8 +68,7 @@ nv.addGraph(function() {
                 .showDistY(true)
                 .useVoronoi(true)
                 .color(d3.scale.category10().range())
-                .transitionDuration(300)
-                ;
+                .transitionDuration(300);
 
   chart.xAxis.tickFormat(d3.format('.02f'));
   chart.yAxis.tickFormat(d3.format('.02f'));
@@ -78,8 +77,8 @@ nv.addGraph(function() {
   });
 
   d3.select('#test1 svg')
-      .datum(randomData(4,40))
-      .call(chart);
+    .datum(randomData(4,40))
+    .call(chart);
 
   nv.utils.windowResize(chart.update);
 
@@ -94,13 +93,13 @@ function randomData(groups, points) { //# groups,# points per group
       shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
       random = d3.random.normal();
 
-  for (i = 0; i < groups; i++) {
+  for (var i = 0; i < groups; i++) {
     data.push({
       key: 'Group ' + i,
       values: []
     });
 
-    for (j = 0; j < points; j++) {
+    for (var j = 0; j < points; j++) {
       data[i].values.push({
         x: random(), 
         y: random(), 

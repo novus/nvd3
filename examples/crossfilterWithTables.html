@@ -60,16 +60,16 @@ svg {
 
 extend = function(destination, source) {
     for (var property in source) {
-    if (property in destination) { 
-      if ( typeof source[property] === "object" &&
-        typeof destination[property] === "object") {
-          destination[property] = extend(destination[property], source[property]);
+      if (property in destination) { 
+        if ( typeof source[property] === "object" &&
+          typeof destination[property] === "object") {
+            destination[property] = extend(destination[property], source[property]);
+        } else {
+          continue;
+        }
       } else {
-        continue;
-      }
-    } else {
-      destination[property] = source[property];
-    };
+        destination[property] = source[property];
+      };
     }
     return destination;
 };
@@ -93,24 +93,26 @@ nv.addGraph(function() {
 
   var data = normalizeData(rawData.datum, 
         [
-        {
-          name: 'Stream #1',
-          key: 'stream1'
-        },
-        {
-          name: 'Stream #2',
-          key: 'stream2'
-        },
-        {
-          name: 'Stream #3',
-          key: 'stream3'
-        }
-        ]);
+          {
+            name: 'Stream #1',
+            key: 'stream1'
+          },
+          {
+            name: 'Stream #2',
+            key: 'stream2'
+          },
+          {
+            name: 'Stream #3',
+            key: 'stream3'
+          }
+        ]
+      );
+
 nv.log(data);
   d3.select('#chart svg')
-      .datum(data)
+    .datum(data)
     .transition().duration(500)
-      .call(chart);
+    .call(chart);
 
   nv.utils.windowResize(chart.update);
 
@@ -142,7 +144,7 @@ function streams(key) {
   stream.enter().append("div")
       .attr("class", "stream-data")
       .html(function(d) {
-        return  d[key]; 
+        return d[key]; 
       })
 
   stream.exit().remove();
@@ -159,8 +161,8 @@ function normalizeData(data, series) {
     var sorted = sort(seriesData, 0, seriesData.length);
     var values = [];
 
-    seriesData.forEach(function(item, index) {
-        values.push({x: item.key,  y: item.value[series[i].key]});
+    seriesData.forEach(function (item, index) {
+        values.push({x: item.key, y: item.value[series[i].key]});
     });
 
     result.push({key: series[i].name, values: values, color: series[i].color});
@@ -173,8 +175,8 @@ function testCrossfilterData() {
   var data = crossfilter(testData());
 
   try {
-    data.data = data.dimension(function(d) { return d.x; });
-    data.datum = data.data.group(function(d) { return d; });
+    data.data = data.dimension(function (d) { return d.x; });
+    data.datum = data.data.group(function (d) { return d; });
     data.datum.reduce(
       function (p, v) {
         p.count++;
@@ -246,7 +248,8 @@ function testCrossfilterData() {
         p.stream1 += v.stream1;
         p.stream2 += v.stream2;
         p.stream3 += v.stream3;
-        return p; },
+        return p; 
+      },
       function (p, v) {
         p.count--;
         p.stream1 -= v.stream1;
@@ -270,8 +273,8 @@ function testData() {
   var data2 = [];
   var data3 = [];
 
-  stream_layers(3,128,.1).map(function(layer, index) {
-    layer.forEach(function(item, i) {
+  stream_layers(3,128,.1).map(function (layer, index) {
+    layer.forEach(function (item, i) {
       var object = { x: item.x };
       object['stream' + (index + 1)] = item.y;
       eval('data' + (index + 1)).push(object);

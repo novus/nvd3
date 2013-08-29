@@ -31,9 +31,8 @@ nv.addGraph(function() {
   chart = nv.models.historicalBarChart();
   chart
     .margin({left: 100, bottom: 100})
-    .x(function(d,i) { return i })
-    .transitionDuration(250)
-    ;
+    .x(function(d,i) { return i; })
+    .transitionDuration(250);
 
   // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
   chart.xAxis

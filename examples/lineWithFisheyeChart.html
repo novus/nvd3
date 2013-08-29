@@ -61,9 +61,9 @@ nv.addGraph(function() {
       .tickFormat(d3.format(',.2f'));
 
   d3.select('#chart1 svg')
-      .datum(sinAndCos())
+    .datum(sinAndCos())
     .transition().duration(500)
-      .call(chart);
+    .call(chart);
 
   //TODO: Figure out a good way to do this automatically
   nv.utils.windowResize(chart.update);
@@ -96,6 +96,5 @@ function sinAndCos() {
     }
   ];
 }
-
 
 </script>

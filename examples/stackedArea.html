@@ -27,7 +27,6 @@ text {
 <script src="../src/models/stackedArea.js"></script>
 <script>
 
-
 //Format A
 nv.addGraph({
   generate: function() {
@@ -35,44 +34,42 @@ nv.addGraph({
         m = 200; // number of samples per layer
         //color = d3.interpolateRgb("#aad", "#556");
 
-    var data = stream_layers(n,m).map(function(data, i) {
+    var data = stream_layers(n,m).map(function (data, i) {
       return { 
         key: 'Stream' + i,
         values: data
       };
     });
 
-
     var width = nv.utils.windowSize().width - 20,
         height = nv.utils.windowSize().height - 20;
 
     var chart = nv.models.stackedArea()
                 .width(width)
-                .height(height)
+                .height(height);
                 //.offset('wiggle')
                 //.order('default')
 
-
     var svg = d3.select('#chart svg')
-      .attr('width', width)
-      .attr('height', height)
-      .datum(data)
+                .attr('width', width)
+                .attr('height', height)
+                .datum(data);
 
     svg.transition().duration(500).call(chart);
 
     return chart;
   },
-  callback: function(graph) {
+  callback: function (graph) {
 
 
 
     graph.dispatch.on('tooltipShow', function(e) {
-        var offsetElement = document.getElementById("chart"),
-                left = e.pos[0] + offsetElement.offsetLeft,
-                top = e.pos[1] + offsetElement.offsetTop,
-                formatterY = d3.format(",.2%"),
+      var offsetElement = document.getElementById("chart"),
+          left = e.pos[0] + offsetElement.offsetLeft,
+          top = e.pos[1] + offsetElement.offsetTop,
+          formatterY = d3.format(",.2%"),
           formatterX = function(d) {
-            return   d3.time.format('%x')(new Date(d))
+            return d3.time.format('%x')(new Date(d));
           };
 
       var content = '<h3>' + e.series.key + '</h3>' +
@@ -102,9 +99,8 @@ nv.addGraph({
         height = margin.top + margin.bottom + 20;
 
 
-      graph
-         .width(width)
-         .height(height);
+      graph.width(width)
+           .height(height);
 
       d3.select('#chart svg')
         .attr('width', width)
@@ -151,6 +147,5 @@ function stream_waves(n, m) {
 function stream_index(d, i) {
   return {x: i, y: Math.max(0, d)};
 }
-
 
 </script>
