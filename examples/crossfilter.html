@@ -82,23 +82,23 @@ nv.addGraph(function() {
 
    var data = normalizeData(dimension.top(Infinity), 
         [
-        { 
-          name: 'Stream #1',
-          key: 'stream1'
-        },
-        { 
-          name: 'Stream #2',
-          key: 'stream2'
-        },
-        { 
-          name: 'Stream #3',
-          key: 'stream3'
-        }
+          { 
+            name: 'Stream #1',
+            key: 'stream1'
+          },
+          { 
+            name: 'Stream #2',
+            key: 'stream2'
+          },
+          { 
+            name: 'Stream #3',
+            key: 'stream3'
+          }
         ], 'x');  
     
   d3.select('#chart svg')
       .datum(data)
-    .transition().duration(500)
+      .transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);
@@ -135,8 +135,7 @@ function testCrossfilterData() {
   try 
   {
     data.data = data.dimension(function(d) { return d.y; });
-  } catch (e) 
-  {
+  } catch (e) {
     console.log(e.stack);
   }
   
@@ -150,11 +149,11 @@ function testData() {
   var data3 = [];
   
   stream_layers(3,128,.1).map(function(layer, index) {
-    layer.forEach(function(item, i) {
-    var object = { x: item.x };
-    object['stream' + (index + 1)] = item.y;
-    eval('data' + (index + 1)).push(object);
-  });
+    layer.forEach(function  (item, i) {
+      var object = { x: item.x };
+      object['stream' + (index + 1)] = item.y;
+      eval('data' + (index + 1)).push(object);
+    });
   });
   
   var data = extend(data1, data2);
@@ -162,6 +161,5 @@ function testData() {
   
   return result;
 }
-
 
 </script>

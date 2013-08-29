@@ -97,8 +97,8 @@ var testColumns = [
     showCount: true,
     width: '75%',
     type: 'text',
-    classes: function(d) { return d.url ? 'clickable name' : 'name' },
-    click: function(d) {
+    classes: function (d) { return d.url ? 'clickable name' : 'name'; },
+    click: function (d) {
        if (d.url) window.location.href = d.url;
     }
   },
@@ -117,7 +117,7 @@ nv.addGraph(function() {
                 .columns(testColumns);
 
   d3.select('#example1')
-      .datum(testTree)
+    .datum(testTree)
     .call(chart);
 });
 

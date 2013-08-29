@@ -46,8 +46,8 @@ text {
       y: 4
     },
     {
-        key: "Six",
-        y: 3
+      key: "Six",
+      y: 3
     }
   ];
 
@@ -57,13 +57,13 @@ nv.addGraph(function() {
         height = nv.utils.windowSize().height / 2 - 40;
 
     var chart = nv.models.pie()
-        .values(function(d) { return d })
+        .values(function (d) { return d; })
         .width(width)
         .height(height);
 
     d3.select("#test1")
         .datum([testdata])
-      .transition().duration(1200)
+        .transition().duration(1200)
         .attr('width', width)
         .attr('height', height)
         .call(chart);
@@ -76,14 +76,14 @@ nv.addGraph(function() {
         height = nv.utils.windowSize().height / 2 - 40;
 
     var chart = nv.models.pie()
-        .values(function(d) { return d })
+        .values(function (d) { return d; })
         .width(width)
         .height(height)
         .donut(true);
 
     d3.select("#test2")
         .datum([testdata])
-      .transition().duration(1200)
+        .transition().duration(1200)
         .attr('width', width)
         .attr('height', height)
         .call(chart);

@@ -51,16 +51,16 @@ svg {
 
 extend = function(destination, source) {
     for (var property in source) {
-    if (property in destination) { 
-      if ( typeof source[property] === "object" && 
-        typeof destination[property] === "object") {
-          destination[property] = extend(destination[property], source[property]);
+      if (property in destination) { 
+        if ( typeof source[property] === "object" && 
+          typeof destination[property] === "object") {
+            destination[property] = extend(destination[property], source[property]);
+        } else {
+          continue; 
+        } 
       } else {
-        continue; 
-      } 
-    } else {
-      destination[property] = source[property];
-    };
+        destination[property] = source[property];
+      };
     }
     return destination;
 };
@@ -81,23 +81,24 @@ nv.addGraph(function() {
   var rawData = testCrossfilterData();  
   var data = normalizeData(rawData.datum, 
         [
-        { 
-          name: 'Stream #1',
-          key: 'stream1'
-        },
-        { 
-          name: 'Stream #2',
-          key: 'stream2'
-        },
-        { 
-          name: 'Stream #3',
-          key: 'stream3'
-        }
-        ]);  
+          { 
+            name: 'Stream #1',
+            key: 'stream1'
+          },
+          { 
+            name: 'Stream #2',
+            key: 'stream2'
+          },
+          { 
+            name: 'Stream #3',
+            key: 'stream3'
+          }
+        ]
+      );  
     
   d3.select('#chart svg')
       .datum(data)
-    .transition().duration(500)
+      .transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);
@@ -140,16 +141,17 @@ function testCrossfilterData() {
                 p.stream1 += v.stream1; 
                 p.stream2 += v.stream2;
                 p.stream3 += v.stream3;
-                return p; }, 
+                return p; 
+              }, 
               function (p, v) { 
                 p.count--;
                 p.stream1 -= v.stream1; 
                 p.stream2 -= v.stream2;
                 p.stream3 -= v.stream3;
-                return p; },
+                return p; 
+              },
               function () { return {count: 0, stream1: 0, stream2: 0, stream3: 0}; });    
-  } catch (e) 
-  {
+  } catch (e) {
     console.log(e.stack);
   }
   
@@ -162,12 +164,12 @@ function testData() {
   var data2 = [];
   var data3 = [];
   
-  stream_layers(3,128,.1).map(function(layer, index) {
-    layer.forEach(function(item, i) {
-    var object = { x: item.x };
-    object['stream' + (index + 1)] = item.y;
-    eval('data' + (index + 1)).push(object);
-  });
+  stream_layers(3,128,.1).map(function (layer, index) {
+      layer.forEach(function(item, i) {
+      var object = { x: item.x };
+      object['stream' + (index + 1)] = item.y;
+      eval('data' + (index + 1)).push(object);
+    });
   });
   
   var data = extend(data1, data2);
@@ -175,6 +177,5 @@ function testData() {
   
   return result;
 }
-
 
 </script>

@@ -31,20 +31,19 @@ svg.sparkline {
 function defaultChartConfig(containerId, data) {
   nv.addGraph(function() {
 
-    var chart = nv.models.sparklinePlus()
+    var chart = nv.models.sparklinePlus();
 
     chart
       .margin({left:70})
-      .x(function(d,i) { return i })
+      .x(function(d,i) { return i; })
       .xTickFormat(function(d) {
-        return d3.time.format('%x')(new Date(data[d].x))
+        return d3.time.format('%x')(new Date(data[d].x));
       })
 
     d3.select(containerId)
         .datum(data)
-      .transition().duration(250)
+        .transition().duration(250)
         .call(chart);
-
 
     return chart;
   });
@@ -82,5 +81,4 @@ function volatileChart(startPrice, volatility, numPoints) {
      }
      return rval;
 }
-
 </script>

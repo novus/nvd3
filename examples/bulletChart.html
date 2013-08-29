@@ -38,7 +38,7 @@ var chart2 = nv.models.bulletChart()
     .width(width - margin.right - margin.left)
     .height(height - margin.top - margin.bottom);
 
-  data = [
+var data = [
   {"title":"Revenue","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[220],"markers":[250]}
   /*
   //TODO: fix the tooltip offset if multiple
@@ -50,7 +50,7 @@ var chart2 = nv.models.bulletChart()
   */
 ];
 
-dataWithLabels = [
+var dataWithLabels = [
   {"title":"Revenue","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[220],"markers":[250],
   "rangeLabels":['Maximum Inventory','Average Inventory','Minimum Inventory'], "measureLabels":['Current Inventory'], "markerLabels":['Target Inventory'] }
 ];
@@ -70,14 +70,13 @@ dataWithLabels = [
 
 
   var vis2 = d3.select("#chart2").selectAll("svg")
-    .data(dataWithLabels)
-    .enter().append('svg')
+      .data(dataWithLabels)
+      .enter().append('svg')
       .attr('class',"bullet nvd3")
       .attr("width",width)
       .attr("height",height);
 
-      vis2.transition().duration(1000).call(chart2);
-
+  vis2.transition().duration(1000).call(chart2);
 
   window.transition = function() {
     vis.datum(randomize)
@@ -108,9 +107,6 @@ function randomizer(d) {
 }
 
 
-
-
 d3.select('body').on('click', window.transition);
-
 
 </script>

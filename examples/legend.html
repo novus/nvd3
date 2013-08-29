@@ -22,10 +22,10 @@ nv.addGraph({
         height = 20;
 
     var chart = nv.models.legend()
-                .width(width)
-                .height(height);
+                  .width(width)
+                  .height(height);
 
-    chart.dispatch.on('legendClick', function(d,i) { console.log(d,i) });
+    chart.dispatch.on('legendClick', function (d,i) { console.log(d,i); });
 
     //chart.xaxis.tickFormat(d3.format(".02f"))
 
@@ -37,13 +37,13 @@ nv.addGraph({
 
     return chart;
   },
-  callback: function(graph) {
+  callback: function (graph) {
     var chart = graph,
         height = chart.height();
 
     d3.select('#test1')
-        .attr('height', height)
-        .call(chart)
+      .attr('height', height)
+      .call(chart);
   }
 });
 
@@ -71,6 +71,5 @@ function sinAndCos() {
     }
   ];
 }
-
 
 </script>
