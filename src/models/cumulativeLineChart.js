@@ -510,7 +510,7 @@ nv.models.cumulativeLineChart = function() {
               });
           });
 
-          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
