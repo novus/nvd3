@@ -434,7 +434,11 @@ window.nv.tooltip.* also has various helper methods.
                     html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
                 });
             }
-            html += "</tbody></table>";
+            html += "</tbody>";
+            html += "</table>";
+            if (d.footer !== undefined)
+                html += "<div class='footer'>" + d.footer + "</div>";
+            
             return html;
         };
 

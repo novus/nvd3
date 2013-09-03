@@ -116,6 +116,12 @@
   height: 8px;
   vertical-align: middle;
 }
+
+.nvtooltip .footer {
+  background-color: rgba(210, 231, 249, 0.35);
+  padding: 3px 0 3px 0;
+}
+
 .nvtooltip-pending-removal {
   position: absolute;
   pointer-events: none;
