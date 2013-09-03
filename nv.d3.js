@@ -140,7 +140,7 @@ nv.interactiveGuideline = function() {
 	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
-	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout')
+	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick')
 	, showGuideLine = true
 	, svgContainer = null  
     //Must pass in the bounding chart's <svg> container.
@@ -238,11 +238,21 @@ nv.interactiveGuideline = function() {
                             mouseY: mouseY,
                             pointXValue: pointXValue
                       });
+
+                      //If user double clicks the layer, fire a elementDblclick dispatch.
+                      if (d3.event.type === "dblclick") {
+                        dispatch.elementDblclick({
+                            mouseX: mouseX,
+                            mouseY: mouseY,
+                            pointXValue: pointXValue
+                        });
+                      }
                 }
 
 				svgContainer
 				      .on("mousemove",mouseHandler, true)
-				      .on("mouseout",mouseHandler,true)
+				      .on("mouseout" ,mouseHandler,true)
+                      .on("dblclick" ,mouseHandler)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.
@@ -497,7 +507,16 @@ window.nv.tooltip.* also has various helper methods.
                 if (svgComp) {
                     var svgBound = svgComp.getBoundingClientRect();
                     var chartBound = chartContainer.getBoundingClientRect();
-                    svgOffset.top = Math.abs(svgBound.top - chartBound.top);
+                    var svgBoundTop = svgBound.top;
+                    
+                    //Defensive code. Sometimes, svgBoundTop can be a really negative
+                    //  number, like -134254. That's a bug. 
+                    //  If such a number is found, use zero instead. FireFox bug only
+                    if (svgBoundTop < 0) {
+                        var containerBound = chartContainer.getBoundingClientRect();
+                        svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
+                    } 
+                    svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
                 //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
@@ -2576,7 +2595,7 @@ nv.models.cumulativeLineChart = function() {
               });
           });
 
-          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
