@@ -491,6 +491,8 @@ nv.models.cumulativeLineChart = function() {
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
+          
+          
           data
           .filter(function(series, i) { 
             series.seriesIndex = i;
@@ -509,6 +511,20 @@ nv.models.cumulativeLineChart = function() {
                   color: color(series,series.seriesIndex)
               });
           });
+
+          //Highlight the tooltip entry based on which point the mouse is closest to.
+          if (allData.length > 2) {
+            var yValue = chart.yScale().invert(e.mouseY);
+            var yDistMax = Infinity, indexToHighlight = null;
+            allData.forEach(function(series,i) {
+               var delta = Math.abs(yValue - series.value);
+               if ( delta < yDistMax) {
+                  yDistMax = delta;
+                  indexToHighlight = i;
+               }
+            });
+            allData[indexToHighlight].highlight = true;
+          }
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
           interactiveLayer.tooltip

@@ -428,7 +428,13 @@ window.nv.tooltip.* also has various helper methods.
             var html = "<table><thead><tr><td colspan='3'><strong class='x-value'>" + headerFormatter(d.value) + "</strong></td></tr></thead><tbody>";
             if (d.series instanceof Array) {
                 d.series.forEach(function(item, i) {
-                    html += "<tr>";
+                    if (item.highlight) {
+                        html += "<tr class='highlight'>";
+                    }
+                    else {
+                        html += "<tr>";
+                    }
+                    
                     html += "<td class='legend-color-guide'><div style='background-color: " + item.color + ";'></div></td>";
                     html += "<td class='key'>" + item.key + ":</td>";
                     html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
