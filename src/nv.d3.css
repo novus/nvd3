@@ -121,7 +121,7 @@
 
 .nvtooltip .footer {
   background-color: rgba(210, 231, 249, 0.35);
-  padding: 3px 0 3px 0;
+  padding: 3px;
 }
 
 .nvtooltip tr.highlight  {
