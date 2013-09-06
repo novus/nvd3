@@ -367,7 +367,8 @@ nv.addGraph(function() {
       //.tooltips(false)
       .barColor(d3.scale.category20().range())
       .transitionDuration(250)
-      .showControls(true);
+      .stacked(true)
+      //.showControls(false);
 
   chart.yAxis
       .tickFormat(d3.format(',.2f'));

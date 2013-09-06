@@ -99,10 +99,8 @@
 }
 
 .nvtooltip table td {
-  padding-right: 9px;
-  padding-bottom: 5px;
+  padding: 2px 9px 2px 0;
   vertical-align: middle;
-
 }
 
 .nvtooltip table td.key {
@@ -120,13 +118,10 @@
 }
 
 .nvtooltip .footer {
-  background-color: rgba(210, 231, 249, 0.35);
   padding: 3px;
+  text-align: center;
 }
 
-.nvtooltip tr.highlight  {
-  background-color: #eee;
-}
 
 .nvtooltip-pending-removal {
   position: absolute;
