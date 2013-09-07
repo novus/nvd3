@@ -16,6 +16,7 @@ nv.models.multiBar = function() {
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , clipEdge = true
     , stacked = false
+    , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
     , color = nv.utils.defaultColor()
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
@@ -60,7 +61,7 @@ nv.models.multiBar = function() {
 
       if (stacked)
         data = d3.layout.stack()
-                 .offset('zero')
+                 .offset(stackOffset)
                  .values(function(d){ return d.values })
                  .y(getY)
                  (!data.length && hideable ? hideable : data);
@@ -398,6 +399,12 @@ nv.models.multiBar = function() {
   chart.stacked = function(_) {
     if (!arguments.length) return stacked;
     stacked = _;
+    return chart;
+  };
+
+  chart.stackOffset = function(_) {
+    if (!arguments.length) return stackOffset;
+    stackOffset = _;
     return chart;
   };
 
