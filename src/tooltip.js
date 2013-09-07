@@ -106,8 +106,8 @@ window.nv.tooltip.* also has various helper methods.
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight)
                     d3.select(this)
-                        .style("border-bottom","solid 1px " + p.color)
-                        .style("border-top","solid 1px " + p.color)
+                        .style("border-bottom-color", p.color)
+                        .style("border-top-color", p.color)
                         ;
             });
 

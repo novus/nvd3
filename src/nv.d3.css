@@ -98,6 +98,7 @@
   border-spacing:0;
 }
 
+
 .nvtooltip table td {
   padding: 2px 9px 2px 0;
   vertical-align: middle;
@@ -109,6 +110,14 @@
 .nvtooltip table td.value {
   text-align: right;
   font-weight: bold;
+}
+
+.nvtooltip table tr.highlight td {
+  padding: 1px 9px 1px 0;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-top-style: solid;
+  border-top-width: 1px;
 }
 
 .nvtooltip table td.legend-color-guide div {

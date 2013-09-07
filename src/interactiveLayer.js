@@ -231,3 +231,21 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
       else
           return nextIndex
 };
+
+/*
+Returns the index in the array "values" that is closest to searchVal.
+Only returns an index if searchVal is within some "threshold".
+Otherwise, returns null.
+*/
+nv.nearestValueIndex = function (values, searchVal, threshold) {
+      "use strict";
+      var yDistMax = Infinity, indexToHighlight = null;
+      values.forEach(function(d,i) {
+         var delta = Math.abs(searchVal - d);
+         if ( delta < yDistMax && delta < threshold) {
+            yDistMax = delta;
+            indexToHighlight = i;
+         }
+      });
+      return indexToHighlight;
+};

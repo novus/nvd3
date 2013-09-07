@@ -515,15 +515,11 @@ nv.models.cumulativeLineChart = function() {
           //Highlight the tooltip entry based on which point the mouse is closest to.
           if (allData.length > 2) {
             var yValue = chart.yScale().invert(e.mouseY);
-            var yDistMax = Infinity, indexToHighlight = null;
-            allData.forEach(function(series,i) {
-               var delta = Math.abs(yValue - series.value);
-               if ( delta < yDistMax) {
-                  yDistMax = delta;
-                  indexToHighlight = i;
-               }
-            });
-            allData[indexToHighlight].highlight = true;
+            var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+            var threshold = 0.03 * domainExtent;
+            var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+            if (indexToHighlight !== null)
+              allData[indexToHighlight].highlight = true;
           }
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
