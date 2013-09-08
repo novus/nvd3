@@ -389,6 +389,7 @@ nv.models.multiBarChart = function() {
   // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.multibar = multibar;
+  chart.controls = controls;
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;

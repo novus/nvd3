@@ -236,6 +236,7 @@ nv.models.lineChart = function() {
 
   chart.dispatch = dispatch;
   chart.legend = legend;
+  chart.controls = controls;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
