@@ -40,7 +40,7 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 # Installation Instructions
 
-`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include in in your project, then:  
+`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include it in your project, then:  
 Add a script tag to include `nv.d3.js` OR `nv.d3.min.js` in your project.  
 Also add a link to the `nv.d3.css` file.
 
