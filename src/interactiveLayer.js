@@ -242,7 +242,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
       var yDistMax = Infinity, indexToHighlight = null;
       values.forEach(function(d,i) {
          var delta = Math.abs(searchVal - d);
-         if ( delta < yDistMax && delta < threshold) {
+         if ( delta <= yDistMax && delta < threshold) {
             yDistMax = delta;
             indexToHighlight = i;
          }

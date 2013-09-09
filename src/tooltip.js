@@ -80,7 +80,7 @@ window.nv.tooltip.* also has various helper methods.
                 .attr("colspan",3)
                 .append("strong")
                     .classed("x-value",true)
-                    .text(headerFormatter(d.value));
+                    .html(headerFormatter(d.value));
 
             var tbodyEnter = table.selectAll("tbody")
                 .data([d])
@@ -98,10 +98,10 @@ window.nv.tooltip.* also has various helper methods.
                     .style("background-color", function(p) { return p.color});
             trowEnter.append("td")
                 .classed("key",true)
-                .text(function(p) {return p.key});
+                .html(function(p) {return p.key});
             trowEnter.append("td")
                 .classed("value",true)
-                .text(function(p,i) { return valueFormatter(p.value,i) });
+                .html(function(p,i) { return valueFormatter(p.value,i) });
 
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight)
