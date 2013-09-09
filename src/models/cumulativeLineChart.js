@@ -655,8 +655,8 @@ nv.models.cumulativeLineChart = function() {
 
   chart.rescaleY = function(_) {
     if (!arguments.length) return rescaleY;
-    rescaleY = _
-    return rescaleY;
+    rescaleY = _;
+    return chart;
   };
 
   chart.showControls = function(_) {
