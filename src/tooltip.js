@@ -103,12 +103,16 @@ window.nv.tooltip.* also has various helper methods.
                 .classed("value",true)
                 .html(function(p,i) { return valueFormatter(p.value,i) });
 
+
             trowEnter.selectAll("td").each(function(p) {
-                if (p.highlight)
+                if (p.highlight) {
+                    var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
+                    var opacity = 0.6;
                     d3.select(this)
-                        .style("border-bottom-color", p.color)
-                        .style("border-top-color", p.color)
+                        .style("border-bottom-color", opacityScale(opacity))
+                        .style("border-top-color", opacityScale(opacity))
                         ;
+                }
             });
 
             var html = table.node().outerHTML;
