@@ -28,11 +28,11 @@ text {
 </style>
 <body>
 
-  <div id="chart1">
+  <div id="chart1" class='with-3d-shadow with-transitions'>
     <svg> </svg>
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/utils.js"></script>
 <script src="../src/tooltip.js"></script>
@@ -89,7 +89,8 @@ nv.addGraph(function() {
     chart.xAxis.tickFormat(function(d) {
       var dx = testdata[0].values[d] && testdata[0].values[d].x || 0;
       return dx ? d3.time.format('%x')(new Date(dx)) : '';
-    });
+      })
+      .showMaxMin(false);
 
     chart.y1Axis
         .tickFormat(d3.format(',f'));
@@ -97,7 +98,7 @@ nv.addGraph(function() {
     chart.y2Axis
         .tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
 
-    chart.bars.forceY([0]);
+    chart.bars.forceY([0]).padData(false);
     //chart.lines.forceY([0]);
 
     d3.select('#chart1 svg')

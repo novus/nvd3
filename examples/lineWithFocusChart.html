@@ -32,11 +32,11 @@ svg {
 </style>
 <body>
 
-  <div id="chart">
+  <div id="chart" class='with-3d-shadow with-transitions'>
     <svg style="height: 500px;"></svg>
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/utils.js"></script>
@@ -52,6 +52,7 @@ svg {
 nv.addGraph(function() {
   var chart = nv.models.lineWithFocusChart();
 
+ // chart.transitionDuration(500);
   chart.xAxis
       .tickFormat(d3.format(',f'));
   chart.x2Axis
@@ -64,7 +65,6 @@ nv.addGraph(function() {
 
   d3.select('#chart svg')
       .datum(testData())
-    .transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);

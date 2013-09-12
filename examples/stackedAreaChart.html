@@ -18,7 +18,7 @@ text {
 }
 
 </style>
-<body>
+<body class='with-3d-shadow with-transitions'>
 
   <div>
     <svg id="chart1"></svg>
@@ -28,11 +28,12 @@ text {
     <!--<svg id="chart2"></svg>-->
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/utils.js"></script>
 <script src="../src/models/axis.js"></script>
 <script src="../src/tooltip.js"></script>
+<script src="../src/interactiveLayer.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
 <script src="../src/models/scatter.js"></script>
@@ -193,9 +194,12 @@ keyColor = function(d, i) {return colors(d.key)};
 var chart;
 nv.addGraph(function() {
   chart = nv.models.stackedAreaChart()
+               // .width(600).height(500)
+                .useInteractiveGuideline(true)
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
                 .color(keyColor)
+                .transitionDuration(300);
                 //.clipEdge(true);
 
 // chart.stacked.scatter.clipVoronoi(false);
@@ -208,7 +212,8 @@ nv.addGraph(function() {
 
   d3.select('#chart1')
     .datum(histcatexplong)
-      .transition().duration(500).call(chart);
+    .transition().duration(0)
+    .call(chart);
 
   nv.utils.windowResize(chart.update);
 
@@ -221,7 +226,8 @@ nv.addGraph(function() {
   var chart = nv.models.stackedAreaChart()
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
-                .color(keyColor);
+                .color(keyColor)
+                ;
                 //.clipEdge(true);
 
   chart.xAxis
@@ -232,7 +238,6 @@ nv.addGraph(function() {
 
   d3.select('#chart2')
     .datum(histcatexpshort)
-      //.transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);

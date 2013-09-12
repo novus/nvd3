@@ -38,7 +38,7 @@ div {
 
 </style>
 
-<body>
+<body class='with-3d-shadow with-transitions'>
 
 <div id="offsetDiv">
   <div id="test1" class="chartWrap">
@@ -46,7 +46,7 @@ div {
   </div>
 </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../lib/fisheye.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
@@ -66,15 +66,14 @@ nv.addGraph(function() {
   chart = nv.models.scatterPlusLineChart()
                 .showDistX(true)
                 .showDistY(true)
-                //.height(500)
+                .transitionDuration(300)
                 .color(d3.scale.category10().range());
 
   chart.xAxis.tickFormat(d3.format('.02f'))
   chart.yAxis.tickFormat(d3.format('.02f'))
 
   d3.select('#test1 svg')
-      .datum(randomData(4,40))
-    .transition().duration(500)
+      .datum(nv.log(randomData(4,40)))
       .call(chart);
 
   nv.utils.windowResize(chart.update);

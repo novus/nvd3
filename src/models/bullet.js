@@ -4,7 +4,7 @@
 // http://projects.instantcognition.com/protovis/bulletchart/
 
 nv.models.bullet = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -15,6 +15,9 @@ nv.models.bullet = function() {
     , ranges = function(d) { return d.ranges }
     , markers = function(d) { return d.markers }
     , measures = function(d) { return d.measures }
+    , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
+    , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
+    , measureLabels = function(d) { return d.measureLabels ? d.measureLabels : []  }
     , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
     , width = 380
     , height = 30
@@ -34,7 +37,10 @@ nv.models.bullet = function() {
 
       var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
           markerz = markers.call(this, d, i).slice().sort(d3.descending),
-          measurez = measures.call(this, d, i).slice().sort(d3.descending);
+          measurez = measures.call(this, d, i).slice().sort(d3.descending),
+          rangeLabelz = rangeLabels.call(this, d, i).slice(),
+          markerLabelz = markerLabels.call(this, d, i).slice(),
+          measureLabelz = measureLabels.call(this, d, i).slice();
 
 
       //------------------------------------------------------------
@@ -141,14 +147,14 @@ nv.models.bullet = function() {
           .on('mouseover', function() {
               dispatch.elementMouseover({
                 value: measurez[0],
-                label: 'Current',
+                label: measureLabelz[0] || 'Current',
                 pos: [x1(measurez[0]), availableHeight/2]
               })
           })
           .on('mouseout', function() {
               dispatch.elementMouseout({
                 value: measurez[0],
-                label: 'Current'
+                label: measureLabelz[0] || 'Current'
               })
           })
 
@@ -160,14 +166,14 @@ nv.models.bullet = function() {
             .on('mouseover', function() {
               dispatch.elementMouseover({
                 value: markerz[0],
-                label: 'Previous',
+                label: markerLabelz[0] || 'Previous',
                 pos: [x1(markerz[0]), availableHeight/2]
               })
             })
             .on('mouseout', function() {
               dispatch.elementMouseout({
                 value: markerz[0],
-                label: 'Previous'
+                label: markerLabelz[0] || 'Previous'
               })
             });
       } else {
@@ -177,7 +183,7 @@ nv.models.bullet = function() {
 
       wrap.selectAll('.nv-range')
           .on('mouseover', function(d,i) {
-            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+            var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
 
             dispatch.elementMouseover({
               value: d,
@@ -186,7 +192,7 @@ nv.models.bullet = function() {
             })
           })
           .on('mouseout', function(d,i) {
-            var label = !i ? "Maximum" : i == 1 ? "Mean" : "Minimum";
+            var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
 
             dispatch.elementMouseout({
               value: d,
@@ -300,6 +306,8 @@ nv.models.bullet = function() {
 
   chart.dispatch = dispatch;
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   // left, right, top, bottom
   chart.orient = function(_) {
     if (!arguments.length) return orient;

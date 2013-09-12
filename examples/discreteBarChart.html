@@ -36,7 +36,7 @@ svg {
     <svg></svg>
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <!-- including all the components so I don't have to minify every time I test in development -->
 <script src="../src/tooltip.js"></script>
@@ -101,10 +101,11 @@ nv.addGraph(function() {
       //.staggerLabels(historicalBarChart[0].values.length > 8)
       .tooltips(false)
       .showValues(true)
+      .transitionDuration(250)
+      ;
 
   d3.select('#chart1 svg')
       .datum(historicalBarChart)
-    .transition().duration(500)
       .call(chart);
 
   nv.utils.windowResize(chart.update);

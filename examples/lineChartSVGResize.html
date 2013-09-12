@@ -23,11 +23,11 @@ svg {
     <a href="#" id="zoomIn">Zoom In</a> <a href="#" id="zoomOut">Zoom Out</a>
   </div>
 
-  <div id="chart1">
+  <div id="chart1" class='with-transitions'>
     <svg></svg>
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/utils.js"></script>
@@ -46,7 +46,7 @@ nv.addGraph(function() {
   var height = 300;
   var zoom = 1;
 
-
+  chart.useInteractiveGuideline(true);
   chart.xAxis
       .tickFormat(d3.format(',r'));
 

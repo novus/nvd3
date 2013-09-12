@@ -3,7 +3,7 @@
 // http://bl.ocks.org/jasondavies/1341281
 
 nv.models.parallelCoordinates = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -177,7 +177,8 @@ nv.models.parallelCoordinates = function() {
 
 
   chart.dispatch = dispatch;
-
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;

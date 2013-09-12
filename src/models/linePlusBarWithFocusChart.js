@@ -1,6 +1,6 @@
 
 nv.models.linePlusBarWithFocusChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -43,6 +43,7 @@ nv.models.linePlusBarWithFocusChart = function() {
     , y4
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , transitionDuration = 0
     ;
 
   lines
@@ -107,7 +108,7 @@ nv.models.linePlusBarWithFocusChart = function() {
                              - margin.top - margin.bottom - height2,
           availableHeight2 = height2 - margin2.top - margin2.bottom;
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
       chart.container = this;
 
 
@@ -258,8 +259,8 @@ nv.models.linePlusBarWithFocusChart = function() {
       g.select('.nv-context')
           .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
 
-      d3.transition(bars2Wrap).call(bars2);
-      d3.transition(lines2Wrap).call(lines2);
+      bars2Wrap.transition().call(bars2);
+      lines2Wrap.transition().call(lines2);
 
       //------------------------------------------------------------
 
@@ -310,7 +311,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
       g.select('.nv-context .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y3.range()[0] + ')');
-      d3.transition(g.select('.nv-context .nv-x.nv-axis'))
+      g.select('.nv-context .nv-x.nv-axis').transition()
           .call(x2Axis);
 
 
@@ -323,7 +324,7 @@ nv.models.linePlusBarWithFocusChart = function() {
           .style('opacity', dataBars.length ? 1 : 0)
           .attr('transform', 'translate(0,' + x2.range()[0] + ')');
           
-      d3.transition(g.select('.nv-context .nv-y1.nv-axis'))
+      g.select('.nv-context .nv-y1.nv-axis').transition()
           .call(y3Axis);
           
 
@@ -336,7 +337,7 @@ nv.models.linePlusBarWithFocusChart = function() {
           .style('opacity', dataLines.length ? 1 : 0)
           .attr('transform', 'translate(' + x2.range()[1] + ',0)');
 
-      d3.transition(g.select('.nv-context .nv-y2.nv-axis'))
+      g.select('.nv-context .nv-y2.nv-axis').transition()
           .call(y4Axis);
           
       //------------------------------------------------------------
@@ -345,18 +346,8 @@ nv.models.linePlusBarWithFocusChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('legendClick', function(d,i) { 
-        d.disabled = !d.disabled;
-
-        if (!data.filter(function(d) { return !d.disabled }).length) {
-          data.map(function(d) {
-            d.disabled = false;
-            wrap.selectAll('.nv-series').classed('disabled', false);
-            return d;
-          });
-        }
-
-        selection.call(chart);
+      legend.dispatch.on('stateChange', function(newState) { 
+        chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
@@ -424,6 +415,7 @@ nv.models.linePlusBarWithFocusChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
+
         lines
         .width(availableWidth)
         .height(availableHeight1)
@@ -476,7 +468,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
         
-        d3.transition(g.select('.nv-x.nv-axis'))
+        g.select('.nv-x.nv-axis').transition().duration(transitionDuration)
           .call(xAxis);
         //------------------------------------------------------------
         
@@ -484,8 +476,8 @@ nv.models.linePlusBarWithFocusChart = function() {
         //------------------------------------------------------------
         // Update Main (Focus) Bars and Lines
 
-        d3.transition(focusBarsWrap).call(bars);
-        d3.transition(focusLinesWrap).call(lines);
+        focusBarsWrap.transition().duration(transitionDuration).call(bars);
+        focusLinesWrap.transition().duration(transitionDuration).call(lines);
         
         //------------------------------------------------------------
         
@@ -515,9 +507,9 @@ nv.models.linePlusBarWithFocusChart = function() {
           .style('opacity', dataLines.length ? 1 : 0)
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
-        d3.transition(g.select('.nv-focus .nv-y1.nv-axis'))
+        g.select('.nv-focus .nv-y1.nv-axis').transition().duration(transitionDuration)
             .call(y1Axis);
-        d3.transition(g.select('.nv-focus .nv-y2.nv-axis'))
+        g.select('.nv-focus .nv-y2.nv-axis').transition().duration(transitionDuration)
             .call(y2Axis);
       }
 
@@ -580,8 +572,10 @@ nv.models.linePlusBarWithFocusChart = function() {
 
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
-  //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+  //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
@@ -649,6 +643,13 @@ nv.models.linePlusBarWithFocusChart = function() {
     noData = _;
     return chart;
   };
+
+  chart.brushExtent = function(_) {
+    if (!arguments.length) return brushExtent;
+    brushExtent = _;
+    return chart;
+  };
+
 
   //============================================================
 

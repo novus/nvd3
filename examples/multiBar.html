@@ -21,12 +21,13 @@ text {
     <svg></svg>
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
 <script src="../src/models/multiBar.js"></script>
+<script src="../src/utils.js"></script>
 <script src="stream_layers.js"></script>
 <script>
 
@@ -81,6 +82,7 @@ nv.addGraph({
       d3.select('#test1 svg')
         .attr('width', width)
         .attr('height', height)
+        transition().duration(500)
         .call(graph);
 
       };
