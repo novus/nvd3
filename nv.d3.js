@@ -3,7 +3,7 @@
 var nv = window.nv || {};
 
 
-nv.version = '1.1.10b';
+nv.version = '1.1.11b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -140,7 +140,7 @@ nv.interactiveGuideline = function() {
 	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
-	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout')
+	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick')
 	, showGuideLine = true
 	, svgContainer = null  
     //Must pass in the bounding chart's <svg> container.
@@ -238,11 +238,21 @@ nv.interactiveGuideline = function() {
                             mouseY: mouseY,
                             pointXValue: pointXValue
                       });
+
+                      //If user double clicks the layer, fire a elementDblclick dispatch.
+                      if (d3.event.type === "dblclick") {
+                        dispatch.elementDblclick({
+                            mouseX: mouseX,
+                            mouseY: mouseY,
+                            pointXValue: pointXValue
+                        });
+                      }
                 }
 
 				svgContainer
 				      .on("mousemove",mouseHandler, true)
-				      .on("mouseout",mouseHandler,true)
+				      .on("mouseout" ,mouseHandler,true)
+                      .on("dblclick" ,mouseHandler)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.
@@ -343,6 +353,24 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
           return index;
       else
           return nextIndex
+};
+
+/*
+Returns the index in the array "values" that is closest to searchVal.
+Only returns an index if searchVal is within some "threshold".
+Otherwise, returns null.
+*/
+nv.nearestValueIndex = function (values, searchVal, threshold) {
+      "use strict";
+      var yDistMax = Infinity, indexToHighlight = null;
+      values.forEach(function(d,i) {
+         var delta = Math.abs(searchVal - d);
+         if ( delta <= yDistMax && delta < threshold) {
+            yDistMax = delta;
+            indexToHighlight = i;
+         }
+      });
+      return indexToHighlight;
 };/* Tooltip rendering model for nvd3 charts.
 window.nv.models.tooltip is the updated,new way to render tooltips.
 
@@ -389,6 +417,7 @@ window.nv.tooltip.* also has various helper methods.
         ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
         ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
         ,   chartContainer = null   //Parent DIV, of the SVG Container that holds the chart.
+        ,   tooltipElem = null  //actual DOM element representing the tooltip.
         ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
         ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
         //Generates a unique id when you create a new tooltip() object
@@ -415,17 +444,51 @@ window.nv.tooltip.* also has various helper methods.
 
             if (d == null) return '';
 
-            var html = "<table><thead><tr><td colspan='3'><strong class='x-value'>" + headerFormatter(d.value) + "</strong></td></tr></thead><tbody>";
-            if (d.series instanceof Array) {
-                d.series.forEach(function(item, i) {
-                    html += "<tr>";
-                    html += "<td class='legend-color-guide'><div style='background-color: " + item.color + ";'></div></td>";
-                    html += "<td class='key'>" + item.key + ":</td>";
-                    html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
-                });
-            }
-            html += "</tbody></table>";
+            var table = d3.select(document.createElement("table"));
+            var theadEnter = table.selectAll("thead")
+                .data([d])
+                .enter().append("thead");
+            theadEnter.append("tr")
+                .append("td")
+                .attr("colspan",3)
+                .append("strong")
+                    .classed("x-value",true)
+                    .html(headerFormatter(d.value));
+
+            var tbodyEnter = table.selectAll("tbody")
+                .data([d])
+                .enter().append("tbody");
+            var trowEnter = tbodyEnter.selectAll("tr")
+                .data(function(p) { return p.series})
+                .enter()
+                .append("tr")
+                .classed("highlight", function(p) { return p.highlight})
+                ;
+
+            trowEnter.append("td")
+                .classed("legend-color-guide",true)
+                .append("div")
+                    .style("background-color", function(p) { return p.color});
+            trowEnter.append("td")
+                .classed("key",true)
+                .html(function(p) {return p.key});
+            trowEnter.append("td")
+                .classed("value",true)
+                .html(function(p,i) { return valueFormatter(p.value,i) });
+
+            trowEnter.selectAll("td").each(function(p) {
+                if (p.highlight)
+                    d3.select(this)
+                        .style("border-bottom-color", p.color)
+                        .style("border-top-color", p.color)
+                        ;
+            });
+
+            var html = table.node().outerHTML;
+            if (d.footer !== undefined)
+                html += "<div class='footer'>" + d.footer + "</div>";
             return html;
+
         };
 
         var dataSeriesExists = function(d) {
@@ -489,7 +552,7 @@ window.nv.tooltip.* also has various helper methods.
             var left = position.left;
             var top = (fixedTop != null) ? fixedTop : position.top;
             var container = getTooltipContainer(contentGenerator(data));
-
+            tooltipElem = container;
             if (chartContainer) {
                 var svgComp = chartContainer.getElementsByTagName("svg")[0];
                 var boundRect = (svgComp) ? svgComp.getBoundingClientRect() : chartContainer.getBoundingClientRect();
@@ -497,7 +560,16 @@ window.nv.tooltip.* also has various helper methods.
                 if (svgComp) {
                     var svgBound = svgComp.getBoundingClientRect();
                     var chartBound = chartContainer.getBoundingClientRect();
-                    svgOffset.top = Math.abs(svgBound.top - chartBound.top);
+                    var svgBoundTop = svgBound.top;
+                    
+                    //Defensive code. Sometimes, svgBoundTop can be a really negative
+                    //  number, like -134254. That's a bug. 
+                    //  If such a number is found, use zero instead. FireFox bug only
+                    if (svgBoundTop < 0) {
+                        var containerBound = chartContainer.getBoundingClientRect();
+                        svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
+                    } 
+                    svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
                 //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
@@ -521,6 +593,11 @@ window.nv.tooltip.* also has various helper methods.
             if (!arguments.length) return content;
             content = _;
             return nvtooltip;
+        };
+
+        //Returns tooltipElem...not able to set it.
+        nvtooltip.tooltipElem = function() {
+            return tooltipElem;
         };
 
         nvtooltip.contentGenerator = function(_) {
@@ -952,6 +1029,7 @@ nv.utils.optionsFunc = function(args) {
     , staggerLabels = false
     , isOrdinal = false
     , ticks = null
+    , axisLabelDistance = 12 //The larger this number is, the closer the axis label is to the axis.
     ;
 
   axis
@@ -1143,7 +1221,7 @@ nv.utils.optionsFunc = function(args) {
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
-              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + axisLabelDistance) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -1321,6 +1399,12 @@ nv.utils.optionsFunc = function(args) {
   chart.staggerLabels = function(_) {
     if (!arguments.length) return staggerLabels;
     staggerLabels = _;
+    return chart;
+  };
+
+  chart.axisLabelDistance = function(_) {
+    if (!arguments.length) return axisLabelDistance;
+    axisLabelDistance = _;
     return chart;
   };
 
@@ -2550,6 +2634,8 @@ nv.models.cumulativeLineChart = function() {
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
+          
+          
           data
           .filter(function(series, i) { 
             series.seriesIndex = i;
@@ -2569,7 +2655,17 @@ nv.models.cumulativeLineChart = function() {
               });
           });
 
-          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          //Highlight the tooltip entry based on which point the mouse is closest to.
+          if (allData.length > 2) {
+            var yValue = chart.yScale().invert(e.mouseY);
+            var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+            var threshold = 0.03 * domainExtent;
+            var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+            if (indexToHighlight !== null)
+              allData[indexToHighlight].highlight = true;
+          }
+
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
@@ -2702,8 +2798,8 @@ nv.models.cumulativeLineChart = function() {
 
   chart.rescaleY = function(_) {
     if (!arguments.length) return rescaleY;
-    rescaleY = _
-    return rescaleY;
+    rescaleY = _;
+    return chart;
   };
 
   chart.showControls = function(_) {
@@ -5563,6 +5659,15 @@ nv.models.lineChart = function() {
                   color: color(series,series.seriesIndex)
               });
           });
+          //Highlight the tooltip entry based on which point the mouse is closest to.
+          if (allData.length > 2) {
+            var yValue = chart.yScale().invert(e.mouseY);
+            var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+            var threshold = 0.03 * domainExtent;
+            var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+            if (indexToHighlight !== null)
+              allData[indexToHighlight].highlight = true;
+          }
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
@@ -7438,6 +7543,7 @@ nv.models.multiBar = function() {
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , clipEdge = true
     , stacked = false
+    , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
     , color = nv.utils.defaultColor()
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
@@ -7482,7 +7588,7 @@ nv.models.multiBar = function() {
 
       if (stacked)
         data = d3.layout.stack()
-                 .offset('zero')
+                 .offset(stackOffset)
                  .values(function(d){ return d.values })
                  .y(getY)
                  (!data.length && hideable ? hideable : data);
@@ -7820,6 +7926,12 @@ nv.models.multiBar = function() {
   chart.stacked = function(_) {
     if (!arguments.length) return stacked;
     stacked = _;
+    return chart;
+  };
+
+  chart.stackOffset = function(_) {
+    if (!arguments.length) return stackOffset;
+    stackOffset = _;
     return chart;
   };
 
@@ -8272,7 +8384,7 @@ nv.models.multiBarChart = function() {
   chart.yAxis = yAxis;
 
   d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge',
-   'id', 'stacked', 'delay', 'barColor','groupSpacing');
+   'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
   
@@ -9778,7 +9890,6 @@ nv.models.ohlcBar = function() {
           .range(yRange || [availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
-      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
       if (x.domain()[0] === x.domain()[1])
         x.domain()[0] ?
             x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
@@ -10847,12 +10958,10 @@ nv.models.scatter = function() {
           container = d3.select(this);
 
       //add series index to each data point for reference
-      data = data.map(function(series, i) {
-        series.values = series.values.map(function(point) {
+      data.forEach(function(series, i) {
+        series.values.forEach(function(point) {
           point.series = i;
-          return point;
         });
-        return series;
       });
 
       //------------------------------------------------------------
@@ -10954,9 +11063,9 @@ nv.models.scatter = function() {
                 var pX = getX(point,pointIndex);
                 var pY = getY(point,pointIndex);
 
-                return [x(pX)+ Math.random() * 1e-7, 
-                        y(pY)+ Math.random() * 1e-7, 
-                        groupIndex, 
+                return [x(pX)+ Math.random() * 1e-7,
+                        y(pY)+ Math.random() * 1e-7,
+                        groupIndex,
                         pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
               })
               .filter(function(pointArray, pointIndex) {
@@ -11024,17 +11133,17 @@ nv.models.scatter = function() {
           pointPaths.exit().remove();
           pointPaths
               .attr('d', function(d) {
-                if (d.data.length === 0) 
+                if (d.data.length === 0)
                     return 'M 0 0'
-                else 
-                    return 'M' + d.data.join('L') + 'Z'; 
+                else
+                    return 'M' + d.data.join('L') + 'Z';
               });
 
           var mouseEventCallback = function(d,mDispatch) {
                 if (needsUpdate) return 0;
                 var series = data[d.series];
                 if (typeof series === 'undefined') return;
-                
+
                 var point  = series.values[d.point];
 
                 mDispatch({
@@ -11075,7 +11184,7 @@ nv.models.scatter = function() {
             .selectAll('.nv-point')
               //.data(dataWithPoints)
               //.style('pointer-events', 'auto') // recativate events, disabled by css
-              .on('click', function(d,i) { 
+              .on('click', function(d,i) {
                 //nv.log('test', d, i);
                 if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
@@ -11234,7 +11343,7 @@ nv.models.scatter = function() {
 
   chart.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) {
       d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-          .classed("hover",isHoverOver); 
+          .classed("hover",isHoverOver);
   };
 
 
@@ -11255,7 +11364,7 @@ nv.models.scatter = function() {
 
   chart.dispatch = dispatch;
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
@@ -13890,9 +13999,27 @@ nv.models.stackedAreaChart = function() {
               allData.push({
                   key: series.key,
                   value: chart.y()(point, pointIndex),
-                  color: color(series,series.seriesIndex)
+                  color: color(series,series.seriesIndex),
+                  stackedValue: point.display
               });
           });
+
+          allData.reverse();
+
+          //Highlight the tooltip entry based on which stack the mouse is closest to.
+          if (allData.length > 2) {
+            var yValue = chart.yScale().invert(e.mouseY);
+            var yDistMax = Infinity, indexToHighlight = null;
+            allData.forEach(function(series,i) {
+               if ( yValue >= series.stackedValue.y0 && yValue <= (series.stackedValue.y0 + series.stackedValue.y))
+               {
+                  indexToHighlight = i;
+                  return;
+               }
+            });
+            if (indexToHighlight != null)
+               allData[indexToHighlight].highlight = true;
+          }
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip

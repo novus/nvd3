@@ -19,6 +19,7 @@ nv.models.axis = function() {
     , staggerLabels = false
     , isOrdinal = false
     , ticks = null
+    , axisLabelDistance = 12 //The larger this number is, the closer the axis label is to the axis.
     ;
 
   axis
@@ -210,7 +211,7 @@ nv.models.axis = function() {
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
-              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + axisLabelDistance) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -388,6 +389,12 @@ nv.models.axis = function() {
   chart.staggerLabels = function(_) {
     if (!arguments.length) return staggerLabels;
     staggerLabels = _;
+    return chart;
+  };
+
+  chart.axisLabelDistance = function(_) {
+    if (!arguments.length) return axisLabelDistance;
+    axisLabelDistance = _;
     return chart;
   };
 

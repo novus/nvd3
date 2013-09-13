@@ -17,7 +17,7 @@ nv.interactiveGuideline = function() {
 	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
-	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout')
+	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick')
 	, showGuideLine = true
 	, svgContainer = null  
     //Must pass in the bounding chart's <svg> container.
@@ -115,11 +115,21 @@ nv.interactiveGuideline = function() {
                             mouseY: mouseY,
                             pointXValue: pointXValue
                       });
+
+                      //If user double clicks the layer, fire a elementDblclick dispatch.
+                      if (d3.event.type === "dblclick") {
+                        dispatch.elementDblclick({
+                            mouseX: mouseX,
+                            mouseY: mouseY,
+                            pointXValue: pointXValue
+                        });
+                      }
                 }
 
 				svgContainer
 				      .on("mousemove",mouseHandler, true)
-				      .on("mouseout",mouseHandler,true)
+				      .on("mouseout" ,mouseHandler,true)
+                      .on("dblclick" ,mouseHandler)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.
@@ -220,4 +230,22 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
           return index;
       else
           return nextIndex
+};
+
+/*
+Returns the index in the array "values" that is closest to searchVal.
+Only returns an index if searchVal is within some "threshold".
+Otherwise, returns null.
+*/
+nv.nearestValueIndex = function (values, searchVal, threshold) {
+      "use strict";
+      var yDistMax = Infinity, indexToHighlight = null;
+      values.forEach(function(d,i) {
+         var delta = Math.abs(searchVal - d);
+         if ( delta <= yDistMax && delta < threshold) {
+            yDistMax = delta;
+            indexToHighlight = i;
+         }
+      });
+      return indexToHighlight;
 };

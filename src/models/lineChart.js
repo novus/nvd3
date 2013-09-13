@@ -262,6 +262,15 @@ nv.models.lineChart = function() {
                   color: color(series,series.seriesIndex)
               });
           });
+          //Highlight the tooltip entry based on which point the mouse is closest to.
+          if (allData.length > 2) {
+            var yValue = chart.yScale().invert(e.mouseY);
+            var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+            var threshold = 0.03 * domainExtent;
+            var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+            if (indexToHighlight !== null)
+              allData[indexToHighlight].highlight = true;
+          }
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip

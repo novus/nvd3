@@ -349,9 +349,27 @@ nv.models.stackedAreaChart = function() {
               allData.push({
                   key: series.key,
                   value: chart.y()(point, pointIndex),
-                  color: color(series,series.seriesIndex)
+                  color: color(series,series.seriesIndex),
+                  stackedValue: point.display
               });
           });
+
+          allData.reverse();
+
+          //Highlight the tooltip entry based on which stack the mouse is closest to.
+          if (allData.length > 2) {
+            var yValue = chart.yScale().invert(e.mouseY);
+            var yDistMax = Infinity, indexToHighlight = null;
+            allData.forEach(function(series,i) {
+               if ( yValue >= series.stackedValue.y0 && yValue <= (series.stackedValue.y0 + series.stackedValue.y))
+               {
+                  indexToHighlight = i;
+                  return;
+               }
+            });
+            if (indexToHighlight != null)
+               allData[indexToHighlight].highlight = true;
+          }
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
