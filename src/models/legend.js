@@ -76,7 +76,7 @@ nv.models.legend = function() {
                 data.forEach(function(series) {
                    series.disabled = true;
                 });
-                d.disabled = false; 
+                d.disabled = false;
                 dispatch.stateChange({
                     disabled: data.map(function(d) { return !!d.disabled })
                 });
@@ -110,11 +110,14 @@ nv.models.legend = function() {
               var nodeTextLength;
               try {
                 nodeTextLength = legendText.node().getComputedTextLength();
+                if (nodeTextLength === 0) {
+                  nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
+                }
               }
               catch(e) {
                 nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
               }
-             
+
               seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
             });
 
@@ -205,7 +208,7 @@ nv.models.legend = function() {
 
   chart.dispatch = dispatch;
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
