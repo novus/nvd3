@@ -59,8 +59,6 @@ nv.models.pieChart = function() {
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
-<<<<<<< HEAD
-=======
 
       if (!defaultState) {
         var key;
@@ -72,7 +70,6 @@ nv.models.pieChart = function() {
             defaultState[key] = state[key];
         }
       }
->>>>>>> upstream/master
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -159,30 +156,12 @@ nv.models.pieChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-<<<<<<< HEAD
-      legend.dispatch.on('legendClick', function(d,i, that) {
-        d.disabled = !d.disabled;
-
-        if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
-          pie.values()(data[0]).map(function(d) {
-            d.disabled = false;
-            wrap.selectAll('.nv-series').classed('disabled', false);
-            return d;
-          });
-        }
-
-        state.disabled = data.map(function(d) { return !!d.disabled });
-=======
       legend.dispatch.on('stateChange', function(newState) {
         state = newState;
->>>>>>> upstream/master
         dispatch.stateChange(state);
         chart.update();
       });
 
-      pie.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
 
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
@@ -196,6 +175,10 @@ nv.models.pieChart = function() {
         }
 
         chart.update();
+      });
+      
+      dispatch.on('tooltipShow', function(e) {
+    	    if (tooltips) showTooltip(e, that.parentNode);
       });
 
       //============================================================
@@ -214,9 +197,9 @@ nv.models.pieChart = function() {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
   });
-
-  dispatch.on('tooltipShow', function(e) {
-    if (tooltips) showTooltip(e);
+  
+  pie.dispatch.on('elementMouseout.tooltip', function(e) {
+      dispatch.tooltipHide(e);
   });
 
   dispatch.on('tooltipHide', function() {
