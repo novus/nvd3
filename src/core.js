@@ -8,7 +8,7 @@ nv.dev = true //set false when in production
 window.nv = nv;
 
 nv.tooltip = {}; // For the tooltip system
-nv.utils = {}; // Utility subsystem
+nv.utils = nv.utils || {}; // Utility subsystem
 nv.models = {}; //stores all the possible models/components
 nv.charts = {}; //stores all the ready to use charts
 nv.graphs = []; //stores all the graphs currently on the page
