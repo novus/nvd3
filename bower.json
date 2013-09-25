@@ -18,9 +18,9 @@
   ],
   "license": "Apache License, v2.0",
   "dependencies": {
-  d3: "3.3.5"
-  }
-  "ignore": [
+  "d3": "3.3.5"
+  },
+  "ignore" : [
     "**/.*",
     "node_modules",
     "bower_components",
