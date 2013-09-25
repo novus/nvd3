@@ -346,9 +346,12 @@ nv.models.stackedAreaChart = function() {
               if (typeof point === 'undefined') return;
               if (typeof singlePoint === 'undefined') singlePoint = point;
               if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+
+              //If we are in 'expand' mode, use the stacked percent value instead of raw value.
+              var tooltipValue = (stacked.style() == 'expand') ? point.display.y : chart.y()(point,pointIndex);
               allData.push({
                   key: series.key,
-                  value: chart.y()(point, pointIndex),
+                  value: tooltipValue,
                   color: color(series,series.seriesIndex),
                   stackedValue: point.display
               });
@@ -372,13 +375,16 @@ nv.models.stackedAreaChart = function() {
           }
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+
+          //If we are in 'expand' mode, force the format to be a percentage.
+          var valueFormatter = (stacked.style() == 'expand') ? 
+               function(d,i) {return d3.format(".1%")(d);} :
+               function(d,i) {return yAxis.tickFormat()(d); };
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
-                  .valueFormatter(function(d,i) {
-                     return yAxis.tickFormat()(d);
-                  })
+                  .valueFormatter(valueFormatter)
                   .data(
                       {
                         value: xValue,
