@@ -44,7 +44,7 @@ nv.models.stackedArea = function() {
 
 
   function chart(selection) {
-    selection.each(function(dataRaw) {
+    selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -57,9 +57,9 @@ nv.models.stackedArea = function() {
 
       //------------------------------------------------------------
 
-
+      var dataRaw = data;
       // Injecting point index into each point because d3.layout.stack().out does not give index
-      dataRaw = dataRaw.map(function(aseries, i) {
+      data = data.map(function(aseries, i) {
                aseries.seriesIndex = i;
                aseries.values = aseries.values.map(function(d, j) {
                  d.index = j;
@@ -69,11 +69,11 @@ nv.models.stackedArea = function() {
                return aseries;
              });
 
-      var dataFiltered = dataRaw.filter(function(series) {
+      var dataFiltered = data.filter(function(series) {
             return !series.disabled;
       });
 
-      var data = d3.layout.stack()
+      data = d3.layout.stack()
                .order(order)
                .offset(offset)
                .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
