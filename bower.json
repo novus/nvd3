@@ -20,7 +20,7 @@
   "dependencies": {
     "d3": "3.3.5"
   },
-  "ignore": [
+  "ignore" : [
     "**/.*",
     "node_modules",
     "bower_components",
