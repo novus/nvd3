@@ -37,6 +37,7 @@ nv.models.stackedAreaChart = function() {
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = 250
     , cData = ['Stacked','Stream','Expanded']
+    , controlLabels = {}
     , transitionDuration = 250
     ;
 
@@ -175,15 +176,36 @@ nv.models.stackedAreaChart = function() {
 
       if (showControls) {
         var controlsData = [
-          { key: 'Stacked', disabled: stacked.offset() != 'zero' },
-          { key: 'Stream', disabled: stacked.offset() != 'wiggle' },
-          { key: 'Expanded', disabled: stacked.offset() != 'expand' }
+          {
+            key: controlLabels.stacked || 'Stacked', 
+            metaKey: 'Stacked', 
+            disabled: stacked.style() != 'stack', 
+            style: 'stack' 
+          },
+          {
+            key: controlLabels.stream || 'Stream', 
+            metaKey: 'Stream', 
+            disabled: stacked.style() != 'stream', 
+            style: 'stream' 
+          },
+          {
+            key: controlLabels.expanded || 'Expanded', 
+            metaKey: 'Expanded', 
+            disabled: stacked.style() != 'expand', 
+            style: 'expand' 
+          },
+          {
+            key: controlLabels.stack_percent || 'Stack %', 
+            metaKey: 'Stack_Percent', 
+            disabled: stacked.style() != 'stack_percent', 
+            style: 'stack_percent' 
+          }
         ];
 
         controlWidth = (cData.length/3) * 260;
 
         controlsData = controlsData.filter(function(d) {
-          return cData.indexOf(d.key) > -1;
+          return cData.indexOf(d.metaKey) !== -1;
         })
 
         controls
@@ -265,7 +287,8 @@ nv.models.stackedAreaChart = function() {
           .scale(y)
           .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
           .tickSize(-availableWidth, 0)
-          .setTickFormat(stacked.offset() == 'expand' ? d3.format('%') : yAxisTickFormat);
+          .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent') 
+                ? d3.format('%') : yAxisTickFormat);
 
         g.select('.nv-y.nv-axis')
           .transition().duration(0)
@@ -312,17 +335,8 @@ nv.models.stackedAreaChart = function() {
         });
         d.disabled = false;
 
-        switch (d.key) {
-          case 'Stacked':
-            stacked.style('stack');
-            break;
-          case 'Stream':
-            stacked.style('stream');
-            break;
-          case 'Expanded':
-            stacked.style('expand');
-            break;
-        }
+        stacked.style(d.style);
+    
 
         state.style = stacked.style();
         dispatch.stateChange(state);
@@ -592,6 +606,13 @@ nv.models.stackedAreaChart = function() {
   chart.controlsData = function(_) {
     if (!arguments.length) return cData;
     cData = _;
+    return chart;
+  };
+
+  chart.controlLabels = function(_) {
+    if (!arguments.length) return controlLabels;
+    if (typeof _ !== 'object') return controlLabels;
+    controlLabels = _;
     return chart;
   };
 

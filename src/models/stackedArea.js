@@ -57,7 +57,7 @@ nv.models.stackedArea = function() {
 
       //------------------------------------------------------------
 
-
+      var dataRaw = data;
       // Injecting point index into each point because d3.layout.stack().out does not give index
       data = data.map(function(aseries, i) {
                aseries.seriesIndex = i;
@@ -209,6 +209,29 @@ nv.models.stackedArea = function() {
       });
 
       //============================================================
+      //Special offset functions
+      chart.d3_stackedOffset_stackPercent = function(stackData) {
+          var n = stackData.length,    //How many series 
+          m = stackData[0].length,     //how many points per series
+          k = 1 / n,
+           i, 
+           j,
+           o,
+           y0 = [];
+
+          for (j = 0; j < m; ++j) { //Looping through all points
+            for (i = 0, o = 0; i < dataRaw.length; i++)  //looping through series'
+                o += getY(dataRaw[i].values[j])   //total value of all points at a certian point in time.
+
+            if (o) for (i = 0; i < n; i++)
+               stackData[i][j][1] /= o; 
+            else 
+              for (i = 0; i < n; i++) 
+               stackData[i][j][1] = k;
+          }
+          for (j = 0; j < m; ++j) y0[j] = 0;
+          return y0;
+      };
 
     });
 
@@ -233,7 +256,6 @@ nv.models.stackedArea = function() {
   });
 
   //============================================================
-
 
   //============================================================
   // Global getters and setters
@@ -324,6 +346,10 @@ nv.models.stackedArea = function() {
           break;
       case 'expand':
         chart.offset('expand');
+        chart.order('default');
+        break;
+      case 'stack_percent':
+        chart.offset(chart.d3_stackedOffset_stackPercent);
         chart.order('default');
         break;
     }
