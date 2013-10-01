@@ -137,7 +137,8 @@ nv.models.pie = function() {
             .each(function(d) { this._current = d; });
             //.attr('d', arc);
 
-        d3.transition(slices.select('path'))
+        slices.select('path')
+          .transition()
             .attr('d', arc)
             .attrTween('d', arcTween);
 
