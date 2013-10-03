@@ -61,9 +61,10 @@ nv.models.stackedArea = function() {
       // Injecting point index into each point because d3.layout.stack().out does not give index
       data.forEach(function(aseries, i) {
         aseries.seriesIndex = i;
-        aseries.values = aseries.values.forEach(function(d, j) {
+        aseries.values = aseries.values.map(function(d, j) {
           d.index = j;
           d.seriesIndex = i;
+          return d;
         });
       });
 
@@ -209,10 +210,10 @@ nv.models.stackedArea = function() {
       //============================================================
       //Special offset functions
       chart.d3_stackedOffset_stackPercent = function(stackData) {
-          var n = stackData.length,    //How many series 
+          var n = stackData.length,    //How many series
           m = stackData[0].length,     //how many points per series
           k = 1 / n,
-           i, 
+           i,
            j,
            o,
            y0 = [];
@@ -222,9 +223,9 @@ nv.models.stackedArea = function() {
                 o += getY(dataRaw[i].values[j])   //total value of all points at a certian point in time.
 
             if (o) for (i = 0; i < n; i++)
-               stackData[i][j][1] /= o; 
-            else 
-              for (i = 0; i < n; i++) 
+               stackData[i][j][1] /= o;
+            else
+              for (i = 0; i < n; i++)
                stackData[i][j][1] = k;
           }
           for (j = 0; j < m; ++j) y0[j] = 0;
