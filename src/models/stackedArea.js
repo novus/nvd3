@@ -181,9 +181,9 @@ nv.models.stackedArea = function() {
               seriesIndex: d.seriesIndex
             });
           })
-      path.exit().transition()
-          .attr('d', function(d,i) { return zeroArea(d.values,i) })
-          .remove();
+
+      path.exit().remove();
+
       path
           .style('fill', function(d,i){
             return d.color || color(d, d.seriesIndex)
