@@ -29,6 +29,9 @@ nv.models.cumulativeLineChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       }
+    , valueFormatter = function(d, i) {
+        return yAxis.tickFormat()(d);
+      }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , id = lines.id()
@@ -527,9 +530,7 @@ nv.models.cumulativeLineChart = function() {
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
-                  .valueFormatter(function(d,i) {
-                     return yAxis.tickFormat()(d);
-                  })
+                  .valueFormatter(valueFormatter)
                   .data(
                       {
                         value: xValue,
@@ -709,6 +710,12 @@ nv.models.cumulativeLineChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.valueFormatter = function(_) {
+    if (!arguments.length) return valueFormatter;
+    valueFormatter = _;
     return chart;
   };
 

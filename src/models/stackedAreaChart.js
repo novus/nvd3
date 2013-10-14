@@ -28,6 +28,9 @@ nv.models.stackedAreaChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
       }
+    , valueFormatter = function(d, i) {
+        return yAxis.tickFormat()(d);
+      }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , yAxisTickFormat = d3.format(',.2f')
@@ -389,14 +392,14 @@ nv.models.stackedAreaChart = function() {
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
 
           //If we are in 'expand' mode, force the format to be a percentage.
-          var valueFormatter = (stacked.style() == 'expand') ? 
+          var currentValueFormatter = (stacked.style() == 'expand') ? 
                function(d,i) {return d3.format(".1%")(d);} :
-               function(d,i) {return yAxis.tickFormat()(d); };
+               valueFormatter;
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
-                  .valueFormatter(valueFormatter)
+                  .valueFormatter(currentValueFormatter)
                   .data(
                       {
                         value: xValue,
@@ -574,6 +577,12 @@ nv.models.stackedAreaChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.valueFormatter = function(_) {
+    if (!arguments.length) return valueFormatter;
+    valueFormatter = _;
     return chart;
   };
 

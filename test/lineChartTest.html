@@ -122,6 +122,11 @@
         <button>Select chart</button>
         <svg></svg>
       </div>
+      <div class='chart third' id='chart18'>
+        Chart with custom valueFormatter with interactive guideline
+        <button>Select chart</button>
+        <svg></svg>
+      </div>
     </div>
 
 <script src="../lib/d3.v3.js"></script>
@@ -191,6 +196,12 @@ defaultChartConfig("chart14",hyperbole(), false, false, {width: 700, height: 400
 defaultChartConfig("chart15", withNaNs());
 defaultChartConfig("chart16", duplicateY(), false);
 defaultChartConfig("chart17", tinyPoints(), false);
+defaultChartConfig("chart18", dummyStocks(), true, true, {
+  forceY:false,
+  valueFormatter: function(d, i) {
+    return("(" + i + ") is " + d3.format(',.1f')(d));
+  }
+});
 
 function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
   if (auxOptions === undefined) auxOptions = {};
@@ -212,6 +223,9 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
 
     if (auxOptions.forceY) 
       chart.forceY([0]);
+
+    if (auxOptions.valueFormatter)
+      chart.valueFormatter(auxOptions.valueFormatter);
 
     var formatter;
     if (useDates !== undefined) {

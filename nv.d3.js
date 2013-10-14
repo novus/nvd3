@@ -2176,6 +2176,9 @@ nv.models.cumulativeLineChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       }
+    , valueFormatter = function(d, i) {
+        return yAxis.tickFormat()(d);
+      }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , id = lines.id()
@@ -2674,9 +2677,7 @@ nv.models.cumulativeLineChart = function() {
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
-                  .valueFormatter(function(d,i) {
-                     return yAxis.tickFormat()(d);
-                  })
+                  .valueFormatter(valueFormatter)
                   .data(
                       {
                         value: xValue,
@@ -2859,6 +2860,12 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  chart.valueFormatter = function(_) {
+    if (!arguments.length) return valueFormatter;
+    valueFormatter = _;
+    return chart;
+  };
+
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
@@ -2974,12 +2981,10 @@ nv.models.discreteBar = function() {
 
 
       //add series index to each data point for reference
-      data = data.map(function(series, i) {
-        series.values = series.values.map(function(point) {
+      data.forEach(function(series, i) {
+        series.values.forEach(function(point) {
           point.series = i;
-          return point;
         });
-        return series;
       });
 
 
@@ -3055,7 +3060,7 @@ nv.models.discreteBar = function() {
 
       var barsEnter = bars.enter().append('g')
           .attr('transform', function(d,i,j) {
-              return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05 ) + ', ' + y(0) + ')' 
+              return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05 ) + ', ' + y(0) + ')'
           })
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
             d3.select(this).classed('hover', true);
@@ -3119,7 +3124,7 @@ nv.models.discreteBar = function() {
           .transition()
           .attr('x', x.rangeBand() * .9 / 2)
           .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
-          
+
           ;
       } else {
         bars.selectAll('text').remove();
@@ -3168,7 +3173,7 @@ nv.models.discreteBar = function() {
   chart.dispatch = dispatch;
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
@@ -5427,6 +5432,9 @@ nv.models.lineChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       }
+    , valueFormatter = function(d, i) {
+        return yAxis.tickFormat()(d);
+      }
     , x
     , y
     , state = {}
@@ -5678,9 +5686,7 @@ nv.models.lineChart = function() {
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
-                  .valueFormatter(function(d,i) {
-                     return yAxis.tickFormat()(d);
-                  })
+                  .valueFormatter(valueFormatter)
                   .data(
                       {
                         value: xValue,
@@ -5832,6 +5838,12 @@ nv.models.lineChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.valueFormatter = function(_) {
+    if (!arguments.length) return valueFormatter;
+    valueFormatter = _;
     return chart;
   };
 
@@ -7599,12 +7611,10 @@ nv.models.multiBar = function() {
 
 
       //add series index to each data point for reference
-      data = data.map(function(series, i) {
-        series.values = series.values.map(function(point) {
+      data.forEach(function(series, i) {
+        series.values.forEach(function(point) {
           point.series = i;
-          return point;
         });
-        return series;
       });
 
 
@@ -7620,7 +7630,7 @@ nv.models.multiBar = function() {
               f.y1 = negBase;
               negBase = negBase - f.size;
             } else
-            { 
+            {
               f.y1 = f.size + posBase;
               posBase = posBase + f.size;
             }
@@ -7699,7 +7709,7 @@ nv.models.multiBar = function() {
       groups.exit()
         .transition()
         .selectAll('rect.nv-bar')
-        .delay(function(d,i) { 
+        .delay(function(d,i) {
              return i * delay/ data[0].values.length;
         })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
@@ -7797,7 +7807,7 @@ nv.models.multiBar = function() {
 
       if (stacked)
           bars.transition()
-            .delay(function(d,i) { 
+            .delay(function(d,i) {
 
                   return i * delay / data[0].values.length;
             })
@@ -7814,7 +7824,7 @@ nv.models.multiBar = function() {
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
           bars.transition()
-            .delay(function(d,i) { 
+            .delay(function(d,i) {
                 return i * delay/ data[0].values.length;
             })
             .attr('x', function(d,i) {
@@ -7851,7 +7861,7 @@ nv.models.multiBar = function() {
   chart.dispatch = dispatch;
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
@@ -8576,12 +8586,10 @@ nv.models.multiBarHorizontal = function() {
 
 
       //add series index to each data point for reference
-      data = data.map(function(series, i) {
-        series.values = series.values.map(function(point) {
+      data.forEach(function(series, i) {
+        series.values.forEach(function(point) {
           point.series = i;
-          return point;
         });
-        return series;
       });
 
 
@@ -8598,7 +8606,7 @@ nv.models.multiBarHorizontal = function() {
               f.y1 = negBase - f.size;
               negBase = negBase - f.size;
             } else
-            { 
+            {
               f.y1 = posBase;
               posBase = posBase + f.size;
             }
@@ -8775,7 +8783,7 @@ nv.models.multiBarHorizontal = function() {
         bars.transition()
             .attr('transform', function(d,i) {
               //TODO: stacked must be all positive or all negative, not both?
-              return 'translate(' + 
+              return 'translate(' +
               (getY(d,i) < 0 ? y(getY(d,i)) : y(0))
               + ',' +
               (d.series * x.rangeBand() / data.length
@@ -8807,7 +8815,7 @@ nv.models.multiBarHorizontal = function() {
   chart.dispatch = dispatch;
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
@@ -13370,15 +13378,14 @@ nv.models.stackedArea = function() {
 
       var dataRaw = data;
       // Injecting point index into each point because d3.layout.stack().out does not give index
-      data = data.map(function(aseries, i) {
-               aseries.seriesIndex = i;
-               aseries.values = aseries.values.map(function(d, j) {
-                 d.index = j;
-                 d.seriesIndex = i;
-                 return d;
-               })
-               return aseries;
-             });
+      data.forEach(function(aseries, i) {
+        aseries.seriesIndex = i;
+        aseries.values = aseries.values.map(function(d, j) {
+          d.index = j;
+          d.seriesIndex = i;
+          return d;
+        });
+      });
 
       var dataFiltered = data.filter(function(series) {
             return !series.disabled;
@@ -13445,11 +13452,11 @@ nv.models.stackedArea = function() {
 
       var area = d3.svg.area()
           .x(function(d,i)  { return x(getX(d,i)) })
-          .y0(function(d) { 
-              return y(d.display.y0) 
+          .y0(function(d) {
+              return y(d.display.y0)
           })
-          .y1(function(d) { 
-              return y(d.display.y + d.display.y0) 
+          .y1(function(d) {
+              return y(d.display.y + d.display.y0)
           })
           .interpolate(interpolate);
 
@@ -13497,13 +13504,13 @@ nv.models.stackedArea = function() {
           .attr('d', function(d,i) { return zeroArea(d.values,i) })
           .remove();
       path
-          .style('fill', function(d,i){ 
-            return d.color || color(d, d.seriesIndex) 
+          .style('fill', function(d,i){
+            return d.color || color(d, d.seriesIndex)
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
       path.transition()
-          .attr('d', function(d,i) { 
-            return area(d.values,i) 
+          .attr('d', function(d,i) {
+            return area(d.values,i)
           });
 
 
@@ -13522,10 +13529,10 @@ nv.models.stackedArea = function() {
       //============================================================
       //Special offset functions
       chart.d3_stackedOffset_stackPercent = function(stackData) {
-          var n = stackData.length,    //How many series 
+          var n = stackData.length,    //How many series
           m = stackData[0].length,     //how many points per series
           k = 1 / n,
-           i, 
+           i,
            j,
            o,
            y0 = [];
@@ -13535,9 +13542,9 @@ nv.models.stackedArea = function() {
                 o += getY(dataRaw[i].values[j])   //total value of all points at a certian point in time.
 
             if (o) for (i = 0; i < n; i++)
-               stackData[i][j][1] /= o; 
-            else 
-              for (i = 0; i < n; i++) 
+               stackData[i][j][1] /= o;
+            else
+              for (i = 0; i < n; i++)
                stackData[i][j][1] = k;
           }
           for (j = 0; j < m; ++j) y0[j] = 0;
@@ -13575,11 +13582,11 @@ nv.models.stackedArea = function() {
   chart.dispatch = dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
     'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi','clipRadius','highlightPoint','clearHighlights');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
@@ -13707,6 +13714,9 @@ nv.models.stackedAreaChart = function() {
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
+      }
+    , valueFormatter = function(d, i) {
+        return yAxis.tickFormat()(d);
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
@@ -13932,7 +13942,7 @@ nv.models.stackedAreaChart = function() {
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
       }
-      
+
       stacked
         .width(availableWidth)
         .height(availableHeight)
@@ -13956,7 +13966,7 @@ nv.models.stackedAreaChart = function() {
 
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + availableHeight + ')');
- 
+
         g.select('.nv-x.nv-axis')
           .transition().duration(0)
             .call(xAxis);
@@ -13984,14 +13994,12 @@ nv.models.stackedAreaChart = function() {
 
       stacked.dispatch.on('areaClick.toggle', function(e) {
         if (data.filter(function(d) { return !d.disabled }).length === 1)
-          data = data.map(function(d) {
+          data.forEach(function(d) {
             d.disabled = false;
-            return d
           });
         else
-          data = data.map(function(d,i) {
+          data.forEach(function(d,i) {
             d.disabled = (i != e.seriesIndex);
-            return d
           });
 
         state.disabled = data.map(function(d) { return !!d.disabled });
@@ -14029,9 +14037,9 @@ nv.models.stackedAreaChart = function() {
           stacked.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
-          .filter(function(series, i) { 
+          .filter(function(series, i) {
             series.seriesIndex = i;
-            return !series.disabled; 
+            return !series.disabled;
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
@@ -14073,7 +14081,7 @@ nv.models.stackedAreaChart = function() {
           //If we are in 'expand' mode, force the format to be a percentage.
           var valueFormatter = (stacked.style() == 'expand') ? 
                function(d,i) {return d3.format(".1%")(d);} :
-               function(d,i) {return yAxis.tickFormat()(d); };
+               valueformatter;
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
@@ -14170,7 +14178,7 @@ nv.models.stackedAreaChart = function() {
   d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -14256,6 +14264,12 @@ nv.models.stackedAreaChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  chart.valueFormatter = function(_) {
+    if (!arguments.length) return valueFormatter;
+    valueFormatter = _;
     return chart;
   };
 

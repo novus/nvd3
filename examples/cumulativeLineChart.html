@@ -76,6 +76,11 @@ nv.addGraph(function() {
   chart.yAxis
       .tickFormat(d3.format(',.1%'));
 
+  //example of custom value formatting for interactive guideline
+  chart.valueFormatter(function(d, i) {
+    return(d3.format(',.1%')(d))
+  });
+
   d3.select('#chart1 svg')
       .datum(cumulativeTestData())
       .call(chart);

@@ -19,6 +19,8 @@
   <div class='chart half' id='chart6'>Total random points<button>Select chart</button><svg></svg></div>
   <div class='chart half' id='chart7'>Less than four points, old tooltips<button>Select chart</button><svg></svg></div>
   <div class='chart half' id='chart8'>No data<svg></svg></div>
+  <div class='chart half' id='chart9'>Full chart with custom valueFormatter<button>Select chart</button><svg></svg></div>
+
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
@@ -255,8 +257,9 @@ function nPoints() {
 var colors = d3.scale.category20();
 var keyColor = function(d, i) {return colors(d.key)};
 
-function defaultChartConfig(container, data, useGuideline) {
+function defaultChartConfig(container, data, useGuideline, auxOptions) {
   if (useGuideline === undefined) useGuideline = true;
+  if (auxOptions === undefined) auxOptions = {};
   nv.addGraph(function() {
     var chart;
     chart = nv.models.stackedAreaChart()
@@ -271,6 +274,9 @@ function defaultChartConfig(container, data, useGuideline) {
 
     chart.yAxis
         .tickFormat(d3.format(',.2f'));
+
+    if (auxOptions.valueFormatter)
+      chart.valueFormatter(auxOptions.valueFormatter);
 
     d3.select('#' + container + ' svg')
           .datum(data)
@@ -317,4 +323,9 @@ defaultChartConfig("chart5", histcatexplong_withholes);
 defaultChartConfig("chart6", totalRandom(), false);
 defaultChartConfig("chart7", nPoints(),false);
 defaultChartConfig("chart8", []);
+defaultChartConfig("chart9", histcatexplong, true, {
+  valueFormatter: function(d, i) {
+    return("(" + i + ") is " + d3.format(',.1f')(d));
+  }
+});
 </script>
