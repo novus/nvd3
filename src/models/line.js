@@ -13,7 +13,9 @@ nv.models.line = function() {
     , height = 500
     , color = nv.utils.defaultColor() // a function that returns a color
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
-    , getY = function(d) { return d.y } // accessor to get the y value from a data point
+    , getY = function(d) { return (d.y == null || !Array.isArray(d.y) ? d.y : d.y[0]) } // accessor to get the y value from a data point
+    , getYMin = function(d) { return (d.y == null ? null : (Array.isArray(d.y) ? d.y[1] : y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0]) ) } // accessor to get the y value from a data point
+    , isArrayY = function(d) { return (d.y == null ? false : Array.isArray(d.y)) }
     , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
     , isArea = function(d) { return d.area } // decides if a line is an area or just a line
     , clipEdge = false // if true, masks lines within x and y scale
@@ -135,8 +137,7 @@ nv.models.line = function() {
                 .defined(defined)
                 .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
-                .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-                //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
+                .y1(function(d,i) { return y0( getYMin(d,i) ) })
                 .apply(this, [d.values])
           });
       groups.exit().selectAll('path.nv-area')
@@ -150,8 +151,7 @@ nv.models.line = function() {
                 .defined(defined)
                 .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-                .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-                //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
+                .y1(function(d,i) { return y( getYMin(d,i) ) })
                 .apply(this, [d.values])
           });
 
@@ -166,7 +166,7 @@ nv.models.line = function() {
               .interpolate(interpolate)
               .defined(defined)
               .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
-              .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
+              .y(function(d,i) { return (isArrayY(d) ? Infinity : nv.utils.NaNtoZero(y0(getY(d,i)))) })
           );
       groups.exit().selectAll('path.nv-line')
           .transition()
@@ -175,7 +175,7 @@ nv.models.line = function() {
               .interpolate(interpolate)
               .defined(defined)
               .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-              .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
+              .y(function(d,i) { return (isArrayY(d) ? Infinity : nv.utils.NaNtoZero(y(getY(d,i)))) })
           );
       linePaths
           .transition()
@@ -184,7 +184,7 @@ nv.models.line = function() {
               .interpolate(interpolate)
               .defined(defined)
               .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-              .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
+              .y(function(d,i) { return (isArrayY(d) ? Infinity : nv.utils.NaNtoZero(y(getY(d,i)))) })
           );
 
 
