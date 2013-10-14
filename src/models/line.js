@@ -138,9 +138,6 @@ nv.models.line = function() {
                 .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
                 .y1(function(d,i) { return y0( getYMin(d,i) ) })
-                //.y1(function(d,i) { return y0( nv.utils.NaNtoZero(getYMin(d,i)) ) })
-                //.y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-                //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
       groups.exit().selectAll('path.nv-area')
@@ -155,9 +152,6 @@ nv.models.line = function() {
                 .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
                 .y1(function(d,i) { return y( getYMin(d,i) ) })
-                //.y1(function(d,i) { return y( (isArrayY(d) ? nv.utils.NaNtoZero(y0(getYMin(d,i))) : 0) ) })
-                //.y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-                //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
 
