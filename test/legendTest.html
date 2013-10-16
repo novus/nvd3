@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+.chart {
+  width: 500px;
+  height: 100px;
+}
+
+/* Required for square legend icons to be hollow when disabled */
+.nvd3 .nv-legend .disabled rect {
+  fill-opacity: 0;
+}
+
+/* Showing css customization of legend text */
+svg.nvd3.large-legend-text .nv-legend text {
+  font-size: 18px;
+}
+</style>
+<body>
+  <h3>Legend test cases - feel free to add more tests</h3>
+  <div style='position:relative;'>
+      <div class='navigation'>
+          Tests:
+          <a href="lineChartTest.html">Line Chart</a>
+          <a href="stackedAreaChartTest.html">Stacked Area</a>
+          <a href="ScatterChartTest.html">Scatter</a>
+          <a href="pieChartTest.html">Pie chart</a>
+          <a href="realTimeChartTest.html">Real time</a>
+          <a href="polylinearTest.html">Polylinear</a>
+          <a href="interactiveBisectTest.html">nv.interactiveBisect unit tests</a>
+          <a href="legendTest.html">Legends</a>
+          <a href="multiBarChartTest.html">Multibar</a>
+
+        </div>
+        <div class="navigation">
+          Examples:
+          <a href="../examples/multiBar.html">Multibar Stream</a>
+          <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
+      </div>
+      <div class='chart full' id='chart1'>
+        Legend with default options
+        <button>Select chart</button>
+        <svg class="nvd3"></svg>
+      </div>
+      <div class='chart half' id='chart2'>
+        Legend with custom colors, a disabled series, and a narrow width to force vertical display
+        <button>Select chart</button>
+        <svg class="nvd3"></svg>
+      </div>
+      <div class='chart half' id='chart3'>
+        Squares as icons
+        <button>Select chart</button>
+        <svg class="nvd3"></svg>
+      </div>
+      <div class='chart half' id='chart4'>
+        With increased text size and label padding
+        <button>Select chart</button>
+        <svg class="nvd3 large-legend-text"></svg>
+      </div>
+      <div class='chart half' id='chart5'>
+        With radio button mode enabled
+        <button>Select chart</button>
+        <svg class="nvd3"></svg>
+      </div>
+      <div class='chart half' id='chart6'>
+        With update state disabled
+        <button>Select chart</button>
+        <svg class="nvd3"></svg>
+      </div>
+    </div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="testScript.js"></script>
+<script>
+
+//------------ Render charts
+defaultChartConfig("chart1", simple());
+
+defaultChartConfig("chart2", withOptions(), {width: 200});
+
+defaultChartConfig("chart3", simple(), {
+  formatter: function(seriesEnter, color, getKey) {
+    var colorFunction = function(d, i) {return d.color || color(d,i)};
+    seriesEnter.append('rect')
+      .style({
+        'stroke-width': 1,
+        'fill': colorFunction,
+        'stroke': colorFunction
+      }).attr({
+        'width': 8,
+        'height': 8,
+        'x': 0,
+        'y': '-3'
+      });
+
+    seriesEnter.append('text')
+      .attr({
+        'text-anchor': 'start',
+        'dy': '.40em',
+        'dx': '12'
+    }).text(getKey);
+
+    return seriesEnter;
+  }
+});
+
+defaultChartConfig("chart4", simple(), {
+  formatter: function(seriesEnter, color, getKey) {
+    var colorFunction = function(d, i) {return d.color || color(d,i)};
+    seriesEnter.append('rect')
+      .style({
+        'stroke-width': 1,
+        'fill': colorFunction,
+        'stroke': colorFunction
+      }).attr({
+        'width': 16,
+        'height': 16,
+        'x': 0,
+        'y': '-3'
+      });
+
+    seriesEnter.append('text')
+      .attr({
+        'text-anchor': 'start',
+        'dy': '.64em',
+        'dx': '20'
+    }).text(getKey);
+
+    return seriesEnter;
+  },
+  labelPadding: 40,
+  width: 300
+});
+
+defaultChartConfig("chart5", simple(), {
+  radioButtonMode: true
+});
+
+defaultChartConfig("chart6", simple(), {
+  updateState: false
+});
+
+function defaultChartConfig(containerid, data, auxOptions) {
+  if (auxOptions === undefined) auxOptions = {};
+
+  nv.addGraph(function() {
+    var chart;
+    chart = nv.models.legend();
+
+    chart.options(auxOptions);
+
+    var container = d3.select('#' + containerid + ' svg').datum(data);
+
+    var render = function() {
+      container.transition().duration(500)
+          .call(chart);
+    }
+    render();
+
+    chart.dispatch.on('stateChange', function(newState) {
+      render();
+    });
+
+    nv.utils.windowResize(render);
+
+    return chart;
+  });
+}
+
+function simple() {
+  return [
+    {
+      values: [],
+      key: "Series one"
+    },
+    {
+      values: [],
+      key: "Series two"
+    },
+    {
+      values: [],
+      key: "Series three"
+    },
+    {
+      values: [],
+      key: "Series four"
+    }
+  ];
+};
+
+function withOptions() {
+  return [
+    {
+      values: [],
+      key: "Series one",
+      color: "#ff7f0e"
+    },
+    {
+      values: [],
+      key: "Default disabled",
+      color: "#2ca02c",
+      disabled: true
+    },
+    {
+      values: [],
+      key: "Three",
+      color: "#2222ff"
+    }
+    ,
+    {
+      values: [],
+      key: "Four",
+      color: "#667711"
+    }
+  ];
+};
+
+</script>
