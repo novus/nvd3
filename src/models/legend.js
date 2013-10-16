@@ -7,6 +7,7 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 0}
     , width = 400
     , height = 20
+    , labelPadding = 28 // 28 is ~ the width of the circle plus some padding
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
     , align = true
@@ -14,6 +15,24 @@ nv.models.legend = function() {
     , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
     , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
+    , formatter = function(seriesEnter, color, getKey) {
+        var colorFunction = function(d,i) {
+          return d.color || color(d,i);
+        };
+        seriesEnter.append('circle')
+            .attr('class','nv-legend-symbol')
+            .attr('r', 5)
+            .style('stroke-width', 2)
+            .style('fill', colorFunction)
+            .style('stroke', colorFunction);
+        seriesEnter.append('text')
+            .attr('text-anchor', 'start')
+            .attr('class','nv-legend-text')
+            .attr('dy', '.32em')
+            .attr('dx', '8')
+            .text(getKey);
+        return seriesEnter;
+      }
     ;
 
   //============================================================
@@ -82,21 +101,11 @@ nv.models.legend = function() {
                 });
             }
           });
-      seriesEnter.append('circle')
-          .style('stroke-width', 2)
-          .attr('class','nv-legend-symbol')
-          .attr('r', 5);
-      seriesEnter.append('text')
-          .attr('text-anchor', 'start')
-          .attr('class','nv-legend-text')
-          .attr('dy', '.32em')
-          .attr('dx', '8');
+
+      formatter(seriesEnter, color, getKey);
+
       series.classed('disabled', function(d) { return d.disabled });
       series.exit().remove();
-      series.select('circle')
-          .style('fill', function(d,i) { return d.color || color(d,i)})
-          .style('stroke', function(d,i) { return d.color || color(d, i) });
-      series.select('text').text(getKey);
 
 
       //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
@@ -115,7 +124,7 @@ nv.models.legend = function() {
                 nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
               }
              
-              seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
+              seriesWidths.push(nodeTextLength + labelPadding);
             });
 
         var seriesPerRow = 0;
@@ -172,7 +181,7 @@ nv.models.legend = function() {
             xpos;
         series
             .attr('transform', function(d, i) {
-              var length = d3.select(this).select('text').node().getComputedTextLength() + 28;
+              var length = d3.select(this).select('text').node().getComputedTextLength() + labelPadding;
               xpos = newxpos;
 
               if (width < margin.left + margin.right + xpos + length) {
@@ -227,6 +236,12 @@ nv.models.legend = function() {
     return chart;
   };
 
+  chart.labelPadding = function(_) {
+    if (!arguments.length) return labelPadding;
+    labelPadding = _;
+    return chart;
+  };
+
   chart.key = function(_) {
     if (!arguments.length) return getKey;
     getKey = _;
@@ -260,6 +275,12 @@ nv.models.legend = function() {
   chart.radioButtonMode = function(_) {
     if (!arguments.length) return radioButtonMode;
     radioButtonMode = _;
+    return chart;
+  };
+
+  chart.formatter = function(_) {
+    if (!arguments.length) return formatter;
+    formatter = _;
     return chart;
   };
 
