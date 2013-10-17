@@ -76,15 +76,31 @@ module.exports = function(grunt) {
                 tasks: ['concat']
             }
         },
-
+        copy: {
+          css: {
+            files: [
+              { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
+            ]
+          }
+        },
+        cssmin: {
+          dist: {
+            files: {
+              'nv.d3.min.css' : ['nv.d3.css']
+            }
+          }
+        }
     });
 
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
 
-    grunt.registerTask('default', ['concat']);
-    grunt.registerTask('production', ['concat', 'uglify']);
+    grunt.registerTask('default', ['concat', 'copy']);
+    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
+    grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
 };
