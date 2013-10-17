@@ -1,4 +1,3 @@
-
 nv.models.sparklinePlus = function() {
   "use strict";
   //============================================================
@@ -171,7 +170,7 @@ nv.models.sparklinePlus = function() {
 
 
         hoverEnter.append('text').attr('class', 'nv-xValue')
-            .attr('x', -6)
+            .attr('x', 6)
             .attr('y', -margin.top)
             .attr('text-anchor', 'end')
             .attr('dy', '.9em')
