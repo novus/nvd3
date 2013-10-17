@@ -68,7 +68,15 @@ The easiest way to install UglifyJS and CSSMin is via npm. Run `npm install -g u
 Once you have the `uglifyjs` and `cssmin` commands available, running `make` from your
 fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
 
-Without UglifyJS of CSSMin, you won't get the minified versions when running make.
+    make # build nv.d3.js and nv.d3.css and minify
+    make nv.d3.js # Build nv.d3.js
+    make nv.d3.min.js # Minify nv.d3.js into nv.d3.min.js
+    make nv.d3.css # Build nv.d3.css
+    make nv.d3.min.css # Minify nv.d3.css into nv.d3.min.css
+    make clean # Delete nv.d3.*js and nv.d3.*css
+
+
+*Without UglifyJS of CSSMin, you won't get the minified versions when running make.**
 
 ### Using Grunt
 

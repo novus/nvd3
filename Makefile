@@ -69,4 +69,4 @@ nv.d3.css: Makefile
 
 
 clean:
-	rm -rf nv.d3.js nv.d3.min.js nv.d3.css nv.d3.min.css
+	rm -rf nv.d3*.js nv.d3*.css
