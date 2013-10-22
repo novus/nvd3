@@ -193,7 +193,8 @@ nv.models.scatterPlusLineChart = function() {
       // Legend
 
       if (showLegend) {
-        legend.width( availableWidth / 2 );
+        var legendWidth = (showControls) ? availableWidth / 2 : availableWidth;
+        legend.width(legendWidth);
 
         wrap.select('.nv-legendWrap')
             .datum(data)
@@ -206,7 +207,7 @@ nv.models.scatterPlusLineChart = function() {
         }
 
         wrap.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + (availableWidth - legendWidth) + ',' + (-margin.top) +')');
       }
 
       //------------------------------------------------------------
