@@ -10388,6 +10388,13 @@ nv.models.pie = function() {
 
             });
 
+          var labelLocationHash = {};
+          var avgHeight = 14;
+          var avgWidth = 140;
+          var createHashKey = function(coordinates) {
+
+              return Math.floor(coordinates[0]/avgWidth) * avgWidth + ',' + Math.floor(coordinates[1]/avgHeight) * avgHeight;
+          };
           pieLabels.transition()
                 .attr('transform', function(d) {
                   if (labelSunbeamLayout) {
@@ -10403,7 +10410,19 @@ nv.models.pie = function() {
                     } else {
                       d.outerRadius = radius + 10; // Set Outer Coordinate
                       d.innerRadius = radius + 15; // Set Inner Coordinate
-                      return 'translate(' + labelsArc.centroid(d) + ')'
+
+                      /*
+                      Overlapping pie labels are not good. What this attempts to do is, prevent overlapping.
+                      Each label location is hashed, and if a hash collision occurs, we assume an overlap.
+                      Adjust the label's y-position to remove the overlap.
+                      */
+                      var center = labelsArc.centroid(d);
+                      var hashKey = createHashKey(center);
+                      if (labelLocationHash[hashKey]) {
+                        center[1] -= avgHeight;
+                      }
+                      labelHash[createHashKey(center)] = true;
+                      return 'translate(' + center + ')'
                     }
                 });
           pieLabels.select(".nv-label text")
