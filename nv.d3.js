@@ -10421,7 +10421,7 @@ nv.models.pie = function() {
                       if (labelLocationHash[hashKey]) {
                         center[1] -= avgHeight;
                       }
-                      labelHash[createHashKey(center)] = true;
+                      labelLocationHash[createHashKey(center)] = true;
                       return 'translate(' + center + ')'
                     }
                 });
