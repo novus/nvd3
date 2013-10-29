@@ -19,8 +19,8 @@ nv.models.lineChart = function() {
     , showLegend = true
     , showXAxis = true
     , showYAxis = true
-    , translateLegendX = 0
-    , translateLegendY = 0
+    , translateLegendX = undefined
+    , translateLegendY = undefined
     , rightAlignYAxis = false
     , useInteractiveGuideline = false
     , tooltips = true
@@ -161,8 +161,9 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        // if no translate set, 
-        if ((translateLegendX === 0) && (translateLegendY === 0)) {
+        // if no translate set, use default
+        if ((translateLegendX === undefined) && 
+            (translateLegendY === undefined)) {
             translateLegendY = -margin.top;
         }
 
