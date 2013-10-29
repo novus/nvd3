@@ -19,9 +19,13 @@ nv.models.lineChart = function() {
     , showLegend = true
     , showXAxis = true
     , showYAxis = true
+    , translateLegendX = 0
+    , translateLegendY = 0
     , rightAlignYAxis = false
     , useInteractiveGuideline = false
     , tooltips = true
+    , tooltipXFormat = undefined
+    , tooltipYFormat = undefined
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
@@ -51,14 +55,15 @@ nv.models.lineChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-        y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
+      tooltipXFormat = tooltipXFormat === undefined ? xAxis.tickFormat() : tooltipXFormat;
+      tooltipYFormat = tooltipYFormat === undefined ? yAxis.tickFormat() : tooltipYFormat;
+      var left = e.pos[0] + (offsetElement.offsetLeft || 0),
+        top = e.pos[1] + (offsetElement.offsetTop || 0),
+        x = tooltipXFormat(lines.x()(e.point, e.pointIndex)),
+        y = tooltipYFormat(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
-
-    nv.tooltip.show([left, top], content, null, null, offsetElement);
-  };
+      nv.tooltip.show([left, top], content, null, null, offsetElement);
+    };
 
   //============================================================
 
@@ -156,8 +161,14 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
         }
 
+        // if no translate set, 
+        if ((translateLegendX === 0) && (translateLegendY === 0)) {
+            translateLegendY = -margin.top;
+        }
+
         wrap.select('.nv-legendWrap')
-            .attr('transform', 'translate(0,' + (-margin.top) +')')
+          .attr('transform', 'translate( ' + translateLegendX + ',' + translateLegendY + ')');
+
       }
 
       //------------------------------------------------------------
@@ -392,6 +403,18 @@ nv.models.lineChart = function() {
     showLegend = _;
     return chart;
   };
+  
+  chart.translateLegendX = function(_) {
+    if (!arguments.length) return translateLegendX;
+    translateLegendX = _;
+    return chart;
+  };
+
+  chart.translateLegendY = function(_) {
+    if (!arguments.length) return translateLegendY;
+    translateLegendY = _;
+    return chart;
+  };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
@@ -425,6 +448,18 @@ nv.models.lineChart = function() {
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
+    return chart;
+  };
+  
+  chart.tooltipXFormat = function(_) {
+    if (!arguments.length) return tooltipXFormat;
+    tooltipXFormat = _;
+    return chart;
+  };
+
+  chart.tooltipYFormat = function(_) {
+    if (!arguments.length) return tooltipYFormat;
+    tooltipYFormat = _;
     return chart;
   };
 
