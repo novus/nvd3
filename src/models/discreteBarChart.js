@@ -6,6 +6,7 @@ nv.models.discreteBarChart = function() {
   //------------------------------------------------------------
 
   var discretebar = nv.models.discreteBar()
+    , lines = nv.models.line()
     , xAxis = nv.models.axis()
     , yAxis = nv.models.axis()
     ;
@@ -28,6 +29,8 @@ nv.models.discreteBarChart = function() {
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
     , transitionDuration = 250
+    , average = function(d) { return d.average }
+    , showAverage = false
     ;
 
   xAxis
@@ -123,6 +126,7 @@ nv.models.discreteBarChart = function() {
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-barsWrap');
+      gEnter.append('g').attr('class', 'nv-avgLineWrap').style("pointer-events","none");
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -132,6 +136,20 @@ nv.models.discreteBarChart = function() {
       }
 
       //------------------------------------------------------------
+      // Calculate yDomain to allow average line to be outside
+      // the data range
+      if (showAverage) {
+          var range = [
+            0,
+            d3.max([
+                d3.max(data, function (series) {
+                    return d3.max(series.values, function(value) {
+                        return chart.y()(value);
+                    })
+                }),
+                d3.max(data, function (d) { return average(d);})])
+          ];
+      }
 
 
       //------------------------------------------------------------
@@ -141,6 +159,11 @@ nv.models.discreteBarChart = function() {
         .width(availableWidth)
         .height(availableHeight);
 
+      if (showAverage){
+          discretebar
+            .yDomain(range);
+      }
+
 
       var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
@@ -148,8 +171,55 @@ nv.models.discreteBarChart = function() {
       barsWrap.transition().call(discretebar);
 
       //------------------------------------------------------------
+      // Handle average lines [AN-612]
 
+      if (showAverage) {
+          //Store a series index number in the data array.
+          data.forEach(function(d,i) {
+                d.seriesIndex = i;
+          });
 
+          var avgLineData = data.filter(function(d) {
+              return !d.disabled && !!average(d);
+          });
+
+          var avgLines = g.select(".nv-avgLineWrap").selectAll("line")
+                  .data(avgLineData, function(d) { return d.key; });
+
+          var getAvgLineY = function(d) {
+              //If average lines go off the svg element, clamp them to the svg bounds.
+              var yVal = y(average(d));
+              if (yVal < 0) return 0;
+              if (yVal > availableHeight) return availableHeight;
+              return yVal;
+          };
+
+          avgLines.enter()
+                  .append('line')
+                  .style('stroke-width',2)
+                  .style('stroke-dasharray','10,10')
+                  .style('stroke',function (d,i) {
+                      return lines.color()(d,d.seriesIndex);
+                  })
+                  .attr('x1',0)
+                  .attr('x2',availableWidth)
+                  .attr('y1', getAvgLineY)
+                  .attr('y2', getAvgLineY);
+
+          avgLines
+                  .style('stroke-opacity',function(d){
+                      //If average lines go offscreen, make them transparent
+                      var yVal = y(average(d));
+                      if (yVal < 0 || yVal > availableHeight) return 0;
+                      return 1;
+                  })
+                  .attr('x1',0)
+                  .attr('x2',availableWidth)
+                  .attr('y1', getAvgLineY)
+                  .attr('y2', getAvgLineY);
+
+          avgLines.exit().remove();
+      }
 
       defsEnter.append('clipPath')
           .attr('id', 'nv-x-label-clip-' + discretebar.id())
@@ -318,6 +388,18 @@ nv.models.discreteBarChart = function() {
     if (!arguments.length) return noData;
     noData = _;
     return chart;
+  };
+
+  chart.showAverage = function(_) {
+    if (!arguments.length) return showAverage;
+    showAverage = _;
+    return chart;
+  };
+
+  chart.average = function(_) {
+     if(!arguments.length) return average;
+     average = _;
+     return chart;
   };
 
   chart.transitionDuration = function(_) {
