@@ -8526,6 +8526,7 @@ nv.models.multiBarHorizontal = function() {
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked = false
     , showValues = false
+    , showBarLabels = false
     , valuePadding = 60
     , valueFormat = d3.format(',.2f')
     , delay = 1200
@@ -8738,6 +8739,21 @@ nv.models.multiBarHorizontal = function() {
         bars.selectAll('text').text('');
       }
 
+      if (showBarLabels && !stacked) {
+        barsEnter.append('text').classed('nv-bar-label',true);
+        bars.select('text.nv-bar-label')
+            .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'start' : 'end' })
+            .attr('y', x.rangeBand() / (data.length * 2))
+            .attr('dy', '.32em')
+            .text(function(d,i) { return getX(d,i) });
+        bars.transition()
+          .select('text.nv-bar-label')
+            .attr('x', function(d,i) { return getY(d,i) < 0 ? y(0) - y(getY(d,i)) + 4 : -4 });
+      }
+      else {
+        bars.selectAll('text.nv-bar-label').text('');
+      }
+
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
 
@@ -8911,6 +8927,13 @@ nv.models.multiBarHorizontal = function() {
     showValues = _;
     return chart;
   };
+
+  chart.showBarLabels = function(_) {
+    if (!arguments.length) return showBarLabels;
+    showBarLabels = _;
+    return chart;
+  };
+
 
   chart.valueFormat= function(_) {
     if (!arguments.length) return valueFormat;
@@ -9183,7 +9206,7 @@ nv.models.multiBarHorizontalChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
         state = newState;
         dispatch.stateChange(state);
         chart.update();
@@ -9273,10 +9296,11 @@ nv.models.multiBarHorizontalChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge', 'id', 'delay', 'showValues', 'valueFormat', 'stacked', 'barColor');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
+    'clipEdge', 'id', 'delay', 'showValues','showBarLabels', 'valueFormat', 'stacked', 'barColor');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
