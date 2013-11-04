@@ -18,6 +18,8 @@ nv.models.multiBarHorizontalChart = function() {
     , color = nv.utils.defaultColor()
     , showControls = true
     , showLegend = true
+    , showXAxis = true
+    , showYAxis = true
     , stacked = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
@@ -219,30 +221,35 @@ nv.models.multiBarHorizontalChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        .ticks( availableHeight / 24 )
-        .tickSize(-availableWidth, 0);
+      if (showXAxis) {
+          xAxis
+            .scale(x)
+            .ticks( availableHeight / 24 )
+            .tickSize(-availableWidth, 0);
 
-      g.select('.nv-x.nv-axis').transition()
-          .call(xAxis);
+          g.select('.nv-x.nv-axis').transition()
+              .call(xAxis);
 
-      var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+          var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
-      xTicks
-          .selectAll('line, text')
-          .style('opacity', 1)
+          xTicks
+              .selectAll('line, text')
+              .style('opacity', 1);
+      }
 
 
-      yAxis
-        .scale(y)
-        .ticks( availableWidth / 100 )
-        .tickSize( -availableHeight, 0);
+      if (showYAxis) {
+          yAxis
+            .scale(y)
+            .ticks( availableWidth / 100 )
+            .tickSize( -availableHeight, 0);
 
-      g.select('.nv-y.nv-axis')
-          .attr('transform', 'translate(0,' + availableHeight + ')');
-      g.select('.nv-y.nv-axis').transition()
-          .call(yAxis);
+          g.select('.nv-y.nv-axis')
+              .attr('transform', 'translate(0,' + availableHeight + ')');
+          g.select('.nv-y.nv-axis').transition()
+              .call(yAxis);
+      }
+
 
       //------------------------------------------------------------
 
@@ -384,6 +391,18 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
     return chart;
   };
 
