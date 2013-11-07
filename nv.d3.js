@@ -8526,6 +8526,7 @@ nv.models.multiBarHorizontal = function() {
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked = false
     , showValues = false
+    , showBarLabels = false
     , valuePadding = 60
     , valueFormat = d3.format(',.2f')
     , delay = 1200
@@ -8738,6 +8739,21 @@ nv.models.multiBarHorizontal = function() {
         bars.selectAll('text').text('');
       }
 
+      if (showBarLabels && !stacked) {
+        barsEnter.append('text').classed('nv-bar-label',true);
+        bars.select('text.nv-bar-label')
+            .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'start' : 'end' })
+            .attr('y', x.rangeBand() / (data.length * 2))
+            .attr('dy', '.32em')
+            .text(function(d,i) { return getX(d,i) });
+        bars.transition()
+          .select('text.nv-bar-label')
+            .attr('x', function(d,i) { return getY(d,i) < 0 ? y(0) - y(getY(d,i)) + 4 : -4 });
+      }
+      else {
+        bars.selectAll('text.nv-bar-label').text('');
+      }
+
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
 
@@ -8912,6 +8928,13 @@ nv.models.multiBarHorizontal = function() {
     return chart;
   };
 
+  chart.showBarLabels = function(_) {
+    if (!arguments.length) return showBarLabels;
+    showBarLabels = _;
+    return chart;
+  };
+
+
   chart.valueFormat= function(_) {
     if (!arguments.length) return valueFormat;
     valueFormat = _;
@@ -8949,6 +8972,8 @@ nv.models.multiBarHorizontalChart = function() {
     , color = nv.utils.defaultColor()
     , showControls = true
     , showLegend = true
+    , showXAxis = true
+    , showYAxis = true
     , stacked = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
@@ -9150,30 +9175,35 @@ nv.models.multiBarHorizontalChart = function() {
       //------------------------------------------------------------
       // Setup Axes
 
-      xAxis
-        .scale(x)
-        .ticks( availableHeight / 24 )
-        .tickSize(-availableWidth, 0);
+      if (showXAxis) {
+          xAxis
+            .scale(x)
+            .ticks( availableHeight / 24 )
+            .tickSize(-availableWidth, 0);
 
-      g.select('.nv-x.nv-axis').transition()
-          .call(xAxis);
+          g.select('.nv-x.nv-axis').transition()
+              .call(xAxis);
 
-      var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+          var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
-      xTicks
-          .selectAll('line, text')
-          .style('opacity', 1)
+          xTicks
+              .selectAll('line, text')
+              .style('opacity', 1);
+      }
 
 
-      yAxis
-        .scale(y)
-        .ticks( availableWidth / 100 )
-        .tickSize( -availableHeight, 0);
+      if (showYAxis) {
+          yAxis
+            .scale(y)
+            .ticks( availableWidth / 100 )
+            .tickSize( -availableHeight, 0);
 
-      g.select('.nv-y.nv-axis')
-          .attr('transform', 'translate(0,' + availableHeight + ')');
-      g.select('.nv-y.nv-axis').transition()
-          .call(yAxis);
+          g.select('.nv-y.nv-axis')
+              .attr('transform', 'translate(0,' + availableHeight + ')');
+          g.select('.nv-y.nv-axis').transition()
+              .call(yAxis);
+      }
+
 
       //------------------------------------------------------------
 
@@ -9273,7 +9303,8 @@ nv.models.multiBarHorizontalChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge', 'id', 'delay', 'showValues', 'valueFormat', 'stacked', 'barColor');
+  d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
+    'clipEdge', 'id', 'delay', 'showValues','showBarLabels', 'valueFormat', 'stacked', 'barColor');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -9314,6 +9345,18 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.showXAxis = function(_) {
+    if (!arguments.length) return showXAxis;
+    showXAxis = _;
+    return chart;
+  };
+
+  chart.showYAxis = function(_) {
+    if (!arguments.length) return showYAxis;
+    showYAxis = _;
     return chart;
   };
 
@@ -10245,9 +10288,11 @@ nv.models.pie = function() {
       var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-pie');
+      gEnter.append('g').attr('class', 'nv-pieLabels');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
       g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+      g.select('.nv-pieLabels').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
       //------------------------------------------------------------
 
@@ -10278,7 +10323,11 @@ nv.models.pie = function() {
       var slices = wrap.select('.nv-pie').selectAll('.nv-slice')
           .data(pie);
 
+      var pieLabels = wrap.select('.nv-pieLabels').selectAll('.nv-label')
+          .data(pie);
+
       slices.exit().remove();
+      pieLabels.exit().remove();
 
       var ae = slices.enter().append('g')
               .attr('class', 'nv-slice')
@@ -10342,71 +10391,84 @@ nv.models.pie = function() {
         if (showLabels) {
           // This does the normal label
           var labelsArc = d3.svg.arc().innerRadius(0);
-          
+
           if (pieLabelsOutside){ labelsArc = arc; }
 
           if (donutLabelsOutside) { labelsArc = d3.svg.arc().outerRadius(arc.outerRadius()); }
 
-          ae.append("g").classed("nv-label", true)
-            .each(function(d, i) {
-              var group = d3.select(this);
+          pieLabels.enter().append("g").classed("nv-label",true)
+            .each(function(d,i) {
+                var group = d3.select(this);
 
-              group
-                .attr('transform', function(d) {
-                     if (labelSunbeamLayout) {
-                       d.outerRadius = arcRadius + 10; // Set Outer Coordinate
-                       d.innerRadius = arcRadius + 15; // Set Inner Coordinate
-                       var rotateAngle = (d.startAngle + d.endAngle) / 2 * (180 / Math.PI);
-                       if ((d.startAngle+d.endAngle)/2 < Math.PI) {
-                       	 rotateAngle -= 90;
+                group
+                  .attr('transform', function(d) {
+                       if (labelSunbeamLayout) {
+                         d.outerRadius = arcRadius + 10; // Set Outer Coordinate
+                         d.innerRadius = arcRadius + 15; // Set Inner Coordinate
+                         var rotateAngle = (d.startAngle + d.endAngle) / 2 * (180 / Math.PI);
+                         if ((d.startAngle+d.endAngle)/2 < Math.PI) {
+                           rotateAngle -= 90;
+                         } else {
+                           rotateAngle += 90;
+                         }
+                         return 'translate(' + labelsArc.centroid(d) + ') rotate(' + rotateAngle + ')';
                        } else {
-                       	 rotateAngle += 90;
+                         d.outerRadius = radius + 10; // Set Outer Coordinate
+                         d.innerRadius = radius + 15; // Set Inner Coordinate
+                         return 'translate(' + labelsArc.centroid(d) + ')'
                        }
-                       return 'translate(' + labelsArc.centroid(d) + ') rotate(' + rotateAngle + ')';
-                     } else {
-                       d.outerRadius = radius + 10; // Set Outer Coordinate
-                       d.innerRadius = radius + 15; // Set Inner Coordinate
-                       return 'translate(' + labelsArc.centroid(d) + ')'
-                     }
-                });
+                  });
 
-              group.append('rect')
-                  .style('stroke', '#fff')
-                  .style('fill', '#fff')
-                  .attr("rx", 3)
-                  .attr("ry", 3);
+                group.append('rect')
+                    .style('stroke', '#fff')
+                    .style('fill', '#fff')
+                    .attr("rx", 3)
+                    .attr("ry", 3);
 
-              group.append('text')
-                  .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
-                  .style('fill', '#000')
+                group.append('text')
+                    .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
+                    .style('fill', '#000')
 
-
-          });
-
-          slices.select(".nv-label").transition()
-            .attr('transform', function(d) {
-            	if (labelSunbeamLayout) {
-                  d.outerRadius = arcRadius + 10; // Set Outer Coordinate
-                  d.innerRadius = arcRadius + 15; // Set Inner Coordinate
-                  var rotateAngle = (d.startAngle + d.endAngle) / 2 * (180 / Math.PI);
-                  if ((d.startAngle+d.endAngle)/2 < Math.PI) {
-                    rotateAngle -= 90;
-                  } else {
-                    rotateAngle += 90;
-                  }
-                  return 'translate(' + labelsArc.centroid(d) + ') rotate(' + rotateAngle + ')';
-                } else {
-                  d.outerRadius = radius + 10; // Set Outer Coordinate
-                  d.innerRadius = radius + 15; // Set Inner Coordinate
-                  return 'translate(' + labelsArc.centroid(d) + ')'
-                }
             });
 
-          slices.each(function(d, i) {
-            var slice = d3.select(this);
+          var labelLocationHash = {};
+          var avgHeight = 14;
+          var avgWidth = 140;
+          var createHashKey = function(coordinates) {
 
-            slice
-              .select(".nv-label text")
+              return Math.floor(coordinates[0]/avgWidth) * avgWidth + ',' + Math.floor(coordinates[1]/avgHeight) * avgHeight;
+          };
+          pieLabels.transition()
+                .attr('transform', function(d) {
+                  if (labelSunbeamLayout) {
+                      d.outerRadius = arcRadius + 10; // Set Outer Coordinate
+                      d.innerRadius = arcRadius + 15; // Set Inner Coordinate
+                      var rotateAngle = (d.startAngle + d.endAngle) / 2 * (180 / Math.PI);
+                      if ((d.startAngle+d.endAngle)/2 < Math.PI) {
+                        rotateAngle -= 90;
+                      } else {
+                        rotateAngle += 90;
+                      }
+                      return 'translate(' + labelsArc.centroid(d) + ') rotate(' + rotateAngle + ')';
+                    } else {
+                      d.outerRadius = radius + 10; // Set Outer Coordinate
+                      d.innerRadius = radius + 15; // Set Inner Coordinate
+
+                      /*
+                      Overlapping pie labels are not good. What this attempts to do is, prevent overlapping.
+                      Each label location is hashed, and if a hash collision occurs, we assume an overlap.
+                      Adjust the label's y-position to remove the overlap.
+                      */
+                      var center = labelsArc.centroid(d);
+                      var hashKey = createHashKey(center);
+                      if (labelLocationHash[hashKey]) {
+                        center[1] -= avgHeight;
+                      }
+                      labelLocationHash[createHashKey(center)] = true;
+                      return 'translate(' + center + ')'
+                    }
+                });
+          pieLabels.select(".nv-label text")
                 .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
                 .text(function(d, i) {
                   var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
@@ -10417,15 +10479,6 @@ nv.models.pie = function() {
                   };
                   return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                 });
-
-            var textBox = slice.select('text').node().getBBox();
-            slice.select(".nv-label rect")
-              .attr("width", textBox.width + 10)
-              .attr("height", textBox.height + 10)
-              .attr("transform", function() {
-                return "translate(" + [textBox.x - 5, textBox.y - 5] + ")";
-              });
-          });
         }
 
 
@@ -10504,7 +10557,7 @@ nv.models.pie = function() {
     getY = d3.functor(_);
     return chart;
   };
-  
+
   chart.description = function(_) {
     if (!arguments.length) return getDescription;
     getDescription = _;
@@ -10516,7 +10569,7 @@ nv.models.pie = function() {
     showLabels = _;
     return chart;
   };
-  
+
   chart.labelSunbeamLayout = function(_) {
     if (!arguments.length) return labelSunbeamLayout;
     labelSunbeamLayout = _;
@@ -10528,7 +10581,7 @@ nv.models.pie = function() {
     donutLabelsOutside = _;
     return chart;
   };
-  
+
   chart.pieLabelsOutside = function(_) {
     if (!arguments.length) return pieLabelsOutside;
     pieLabelsOutside = _;
@@ -10547,7 +10600,7 @@ nv.models.pie = function() {
     donut = _;
     return chart;
   };
-  
+
   chart.donutRatio = function(_) {
     if (!arguments.length) return donutRatio;
     donutRatio = _;
