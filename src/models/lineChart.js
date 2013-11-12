@@ -85,7 +85,7 @@ nv.models.lineChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
-    
+
       if (!defaultState) {
         var key;
         defaultState = {};
@@ -162,9 +162,10 @@ nv.models.lineChart = function() {
         }
 
         // if no translate set, use default
-        if ((translateLegendX === undefined) && 
+        if ((translateLegendX === undefined) &&
             (translateLegendY === undefined)) {
             translateLegendY = -margin.top;
+            translateLegendX = 0;
         }
 
         wrap.select('.nv-legendWrap')
@@ -184,7 +185,7 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Main Chart Component(s)
 
-      
+
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
@@ -257,9 +258,9 @@ nv.models.lineChart = function() {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
-          .filter(function(series, i) { 
+          .filter(function(series, i) {
             series.seriesIndex = i;
-            return !series.disabled; 
+            return !series.disabled;
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
@@ -404,7 +405,7 @@ nv.models.lineChart = function() {
     showLegend = _;
     return chart;
   };
-  
+
   chart.translateLegendX = function(_) {
     if (!arguments.length) return translateLegendX;
     translateLegendX = _;
@@ -451,7 +452,7 @@ nv.models.lineChart = function() {
     tooltips = _;
     return chart;
   };
-  
+
   chart.tooltipXFormat = function(_) {
     if (!arguments.length) return tooltipXFormat;
     tooltipXFormat = _;
