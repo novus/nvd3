@@ -9172,8 +9172,7 @@ nv.models.multiBarHorizontalChart = function() {
           var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
           xTicks
-              .selectAll('line, text')
-              .style('opacity', 1);
+              .selectAll('line, text');
       }
 
       if (showYAxis) {
