@@ -138,7 +138,9 @@ nv.models.multiBarHorizontalChart = function() {
       var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis')
+            .append('g').attr('class', 'nv-zeroLine')
+            .append('line');
       gEnter.append('g').attr('class', 'nv-barsWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
@@ -229,11 +231,6 @@ nv.models.multiBarHorizontalChart = function() {
 
       var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
-      xTicks
-          .selectAll('line, text')
-          .style('opacity', 1)
-
-
       yAxis
         .scale(y)
         .ticks( availableWidth / 100 )
@@ -243,6 +240,14 @@ nv.models.multiBarHorizontalChart = function() {
           .attr('transform', 'translate(0,' + availableHeight + ')');
       g.select('.nv-y.nv-axis').transition()
           .call(yAxis);
+
+      // Zero line
+      g.select(".nv-zeroLine line")
+        .attr("x1", y(0))
+        .attr("x2", y(0))
+        .attr("y1", 0)
+        .attr("y2", -availableHeight)
+        ;
 
       //------------------------------------------------------------
 

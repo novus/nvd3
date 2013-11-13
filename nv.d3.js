@@ -2219,35 +2219,7 @@ nv.models.cumulativeLineChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
-/*
-  //Moved to see if we can get better behavior to fix issue #315
-  var indexDrag = d3.behavior.drag()
-                    .on('dragstart', dragStart)
-                    .on('drag', dragMove)
-                    .on('dragend', dragEnd);
-
-  function dragStart(d,i) {
-    d3.select(chart.container)
-        .style('cursor', 'ew-resize');
-  }
-
-  function dragMove(d,i) {
-    d.x += d3.event.dx;
-    d.i = Math.round(dx.invert(d.x));
-
-    d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
-    chart.update();
-  }
-
-  function dragEnd(d,i) {
-    d3.select(chart.container)
-        .style('cursor', 'auto');
-    chart.update();
-  }
-*/
-
   //============================================================
-
 
   function chart(selection) {
     selection.each(function(data) {
@@ -3402,7 +3374,10 @@ nv.models.discreteBarChart = function() {
       var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis')
+            .append('g').attr('class', 'nv-zeroLine')
+            .append('line');
+        
       gEnter.append('g').attr('class', 'nv-barsWrap');
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -3476,6 +3451,14 @@ nv.models.discreteBarChart = function() {
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
       }
+
+      // Zero line
+      g.select(".nv-zeroLine line")
+        .attr("x1",0)
+        .attr("x2",availableWidth)
+        .attr("y1", y(0))
+        .attr("y2", y(0))
+        ;
 
       //------------------------------------------------------------
 
@@ -9069,7 +9052,9 @@ nv.models.multiBarHorizontalChart = function() {
       var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis')
+            .append('g').attr('class', 'nv-zeroLine')
+            .append('line');
       gEnter.append('g').attr('class', 'nv-barsWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
@@ -9160,11 +9145,6 @@ nv.models.multiBarHorizontalChart = function() {
 
       var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
-      xTicks
-          .selectAll('line, text')
-          .style('opacity', 1)
-
-
       yAxis
         .scale(y)
         .ticks( availableWidth / 100 )
@@ -9174,6 +9154,14 @@ nv.models.multiBarHorizontalChart = function() {
           .attr('transform', 'translate(0,' + availableHeight + ')');
       g.select('.nv-y.nv-axis').transition()
           .call(yAxis);
+
+      // Zero line
+      g.select(".nv-zeroLine line")
+        .attr("x1", y(0))
+        .attr("x2", y(0))
+        .attr("y1", 0)
+        .attr("y2", -availableHeight)
+        ;
 
       //------------------------------------------------------------
 
