@@ -108,7 +108,6 @@ nv.models.multiBar = function() {
       x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-      //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
           .range(yRange || [availableHeight, 0]);
 
@@ -265,20 +264,18 @@ nv.models.multiBar = function() {
       if (stacked)
           bars.transition()
             .delay(function(d,i) {
-
-                  return i * delay / data[0].values.length;
+              return i * delay / data[0].values.length;
             })
             .attr('y', function(d,i) {
-
-              return y((stacked ? d.y1 : 0));
+              return y(d.y1);
             })
             .attr('height', function(d,i) {
-              return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
+              return Math.max(Math.abs(y(d.y + d.y0) - y(d.y0)),1);
             })
             .attr('x', function(d,i) {
-                  return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+              return 0;
             })
-            .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+            .attr('width', x.rangeBand());
       else
           bars.transition()
             .delay(function(d,i) {
