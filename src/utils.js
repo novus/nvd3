@@ -57,6 +57,17 @@ nv.utils.defaultColor = function() {
     return function(d, i) { return d.color || colors[i % colors.length] };
 }
 
+nv.utils.defaultLineStyle = function() {
+    var styles = {
+        'solid': ('0,0'),
+        'dotted': ('2,4'),
+        'dashed': ('7,7')
+    }
+    return function(d, i) {
+        console.log(d.style ? styles[d.style] || d.style : styles.solid );
+        return d.style ? styles[d.style] || d.style : styles.solid };
+}
+
 
 // Returns a color function that takes the result of 'getKey' for each series and
 // looks for a corresponding color from the dictionary,

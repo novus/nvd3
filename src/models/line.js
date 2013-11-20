@@ -12,6 +12,7 @@ nv.models.line = function() {
     , width = 960
     , height = 500
     , color = nv.utils.defaultColor() // a function that returns a color
+    , style = nv.utils.defaultLineStyle()
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
     , getY = function(d) { return d.y } // accessor to get the y value from a data point
     , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
@@ -116,7 +117,8 @@ nv.models.line = function() {
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
-          .style('stroke', function(d,i){ return color(d, i)});
+          .style('stroke', function(d,i){ return color(d, i)})
+          .style('stroke-dasharray', function(d,i){ return style(d, i)});
       d3.transition(groups)
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);

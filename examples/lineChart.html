@@ -88,11 +88,13 @@ nv.addGraph(function() {
 
 function sinAndCos() {
   var sin = [],
-      cos = [];
+      cos = []
+      tan = [];
 
   for (var i = 0; i < 100; i++) {
     sin.push({x: i, y: i % 10 == 5 ? null : Math.sin(i/10) }); //the nulls are to show how defined works
     cos.push({x: i, y: .5 * Math.cos(i/10)});
+    tan.push({x: i, y: .01   * Math.tan(i/10)});
   }
 
   return [
@@ -105,7 +107,14 @@ function sinAndCos() {
     {
       values: cos,
       key: "Cosine Wave",
-      color: "#2ca02c"
+      color: "#2ca02c",
+      style: 'dotted'
+    },
+    {
+      values: tan,
+      key: "Tan Wave",
+      color: "#3300CC",
+      style: ('5,5,10,10,20,10')
     }
   ];
 }
