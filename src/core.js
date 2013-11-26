@@ -2,7 +2,7 @@
 var nv = window.nv || {};
 
 
-nv.version = '1.1.14b';
+nv.version = '1.1.15b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -67,7 +67,10 @@ nv.render = function render(step) {
     nv.render.queue.splice(0, i);
 
     if (nv.render.queue.length) setTimeout(arguments.callee, 0);
-    else { nv.render.active = false; nv.dispatch.render_end(); }
+    else {
+      nv.dispatch.render_end();
+      nv.render.active = false;
+    }
   }, 0);
 };
 

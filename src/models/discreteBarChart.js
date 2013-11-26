@@ -121,7 +121,10 @@ nv.models.discreteBarChart = function() {
       var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis')
+            .append('g').attr('class', 'nv-zeroLine')
+            .append('line');
+        
       gEnter.append('g').attr('class', 'nv-barsWrap');
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -195,6 +198,14 @@ nv.models.discreteBarChart = function() {
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
       }
+
+      // Zero line
+      g.select(".nv-zeroLine line")
+        .attr("x1",0)
+        .attr("x2",availableWidth)
+        .attr("y1", y(0))
+        .attr("y2", y(0))
+        ;
 
       //------------------------------------------------------------
 
