@@ -421,7 +421,7 @@ nv.models.stackedAreaChart = function() {
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
 
-        if (typeof e.disabled !== 'undefined') {
+        if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
           data.forEach(function(series,i) {
             series.disabled = e.disabled[i];
           });
