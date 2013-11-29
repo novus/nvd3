@@ -95,6 +95,11 @@
     <button>Select chart</button>
     <svg></svg>
   </div>
+  <div id="test17" class="chart third">
+    Scatter plus function: y=sin(x);
+    <button>Select chart</button>
+    <svg></svg>
+  </div>
 
 
 </div>
@@ -152,6 +157,8 @@ defaultChartTest("test15",[
 ]);
 
 defaultChartTest("test16",tinyPoints());
+
+scatterPlusLineTest("test17", randomDataWithLines(0.0,5.0, function(x) { return Math.sin(x) }));
 
 function defaultChartTest(container, data, margin) {
   nv.addGraph(function() {
@@ -242,6 +249,35 @@ function randomDataSloped(slope,intercept) { //# groups,# points per group
   return data;
 }
 
+function randomDataWithLines(xMin, xMax, lineFunc) { //# groups,# points per group
+  var data = [],
+      shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
+      random = d3.random.normal();
+
+  var groups = 2, points = 10;
+  var xRange = [];
+  var b = xMin;
+  while (b < xMax) { b+=0.1; xRange.push(b) }
+  for (i = 0; i < groups; i++) {
+    data.push({
+      key: 'Group ' + i,
+      values: [],
+      lines: xRange.map(function(x) { return { x: x, y: lineFunc(x) }})
+    });
+
+    for (j = 0; j < xRange.length; j++) {
+      var x = xRange[j];
+      data[i].values.push({
+        x: x,
+        y: lineFunc(x) + (Math.random() - 0.5) * 0.2,
+        size: Math.random(),
+        shape: shapes[j % 6]
+      });
+    }
+  }
+
+  return data;
+}
 
 function tinyPoints() {
   var rval = {key: "Tiny points", values: []};

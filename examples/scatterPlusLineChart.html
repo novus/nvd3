@@ -96,6 +96,26 @@ function randomData(groups, points) { //# groups,# points per group
       slope: Math.random() - .01,
       intercept: Math.random() - .5
     });
+    if(i % 2 == 0) {
+      data[i].lines = [
+        {
+          x: 0.0 - i,
+          y: 0.0 + i
+        },
+        {
+          x: 2.0 + i,
+          y: -1.0 - i
+        },
+        {
+          x: 2.5 + i,
+          y: -0.5 - i
+        },
+        {
+          x: 3.0 + i,
+          y: 1.0 - i
+        }
+      ]
+    }
 
     for (j = 0; j < points; j++) {
       data[i].values.push({
