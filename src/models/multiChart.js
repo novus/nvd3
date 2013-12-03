@@ -14,6 +14,7 @@ nv.models.multiChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       },
+      interpolate = 'monotone',  // controls lines interpolation
       x,
       y,
       yDomain1,
@@ -132,7 +133,7 @@ nv.models.multiChart = function() {
       lines1
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
+        .interpolate(interpolate)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
@@ -140,7 +141,7 @@ nv.models.multiChart = function() {
       lines2
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
+        .interpolate(interpolate)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
@@ -389,6 +390,12 @@ nv.models.multiChart = function() {
     getY = _;
     lines1.y(_);
     bars1.y(_);
+    return chart;
+  };
+
+  chart.interpolate = function(_) {
+    if (!arguments.length) return interpolate;
+    interpolate = _;
     return chart;
   };
 
