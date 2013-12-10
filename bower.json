@@ -9,7 +9,7 @@
     "Frank Shao"
   ],
   "description": "Re-usable charts and chart components for d3.",
-  "main": "nv.d3.js",
+  "main": ["nv.d3.js", "src/nv.d3.css"],
   "keywords": [
     "d3",
     "visualization",
@@ -18,7 +18,7 @@
   ],
   "license": "Apache License, v2.0",
   "dependencies": {
-    "d3": "3.3.5"
+    "d3": "~3.3.5"
   },
   "ignore" : [
     "**/.*",
@@ -26,7 +26,8 @@
     "bower_components",
     "test",
     "tests",
-    "src",
+    "src/models/*",
+    "src/*.js",
     "lib",
     "examples",
     "deprecated"

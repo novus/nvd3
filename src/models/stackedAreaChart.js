@@ -177,28 +177,28 @@ nv.models.stackedAreaChart = function() {
       if (showControls) {
         var controlsData = [
           {
-            key: controlLabels.stacked || 'Stacked', 
-            metaKey: 'Stacked', 
-            disabled: stacked.style() != 'stack', 
-            style: 'stack' 
+            key: controlLabels.stacked || 'Stacked',
+            metaKey: 'Stacked',
+            disabled: stacked.style() != 'stack',
+            style: 'stack'
           },
           {
-            key: controlLabels.stream || 'Stream', 
-            metaKey: 'Stream', 
-            disabled: stacked.style() != 'stream', 
-            style: 'stream' 
+            key: controlLabels.stream || 'Stream',
+            metaKey: 'Stream',
+            disabled: stacked.style() != 'stream',
+            style: 'stream'
           },
           {
-            key: controlLabels.expanded || 'Expanded', 
-            metaKey: 'Expanded', 
-            disabled: stacked.style() != 'expand', 
-            style: 'expand' 
+            key: controlLabels.expanded || 'Expanded',
+            metaKey: 'Expanded',
+            disabled: stacked.style() != 'expand',
+            style: 'expand'
           },
           {
-            key: controlLabels.stack_percent || 'Stack %', 
-            metaKey: 'Stack_Percent', 
-            disabled: stacked.style() != 'stack_percent', 
-            style: 'stack_percent' 
+            key: controlLabels.stack_percent || 'Stack %',
+            metaKey: 'Stack_Percent',
+            disabled: stacked.style() != 'stack_percent',
+            style: 'stack_percent'
           }
         ];
 
@@ -287,7 +287,7 @@ nv.models.stackedAreaChart = function() {
           .scale(y)
           .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
           .tickSize(-availableWidth, 0)
-          .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent') 
+          .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent')
                 ? d3.format('%') : yAxisTickFormat);
 
         g.select('.nv-y.nv-axis')
@@ -334,7 +334,7 @@ nv.models.stackedAreaChart = function() {
         d.disabled = false;
 
         stacked.style(d.style);
-    
+
 
         state.style = stacked.style();
         dispatch.stateChange(state);
@@ -376,7 +376,13 @@ nv.models.stackedAreaChart = function() {
             var yValue = chart.yScale().invert(e.mouseY);
             var yDistMax = Infinity, indexToHighlight = null;
             allData.forEach(function(series,i) {
-               if ( yValue >= series.stackedValue.y0 && yValue <= (series.stackedValue.y0 + series.stackedValue.y))
+
+               //To handle situation where the stacked area chart is negative, we need to use absolute values
+               //when checking if the mouse Y value is within the stack area.
+               yValue = Math.abs(yValue);
+               var stackedY0 = Math.abs(series.stackedValue.y0);
+               var stackedY = Math.abs(series.stackedValue.y);
+               if ( yValue >= stackedY0 && yValue <= (stackedY + stackedY0))
                {
                   indexToHighlight = i;
                   return;
@@ -389,7 +395,7 @@ nv.models.stackedAreaChart = function() {
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
 
           //If we are in 'expand' mode, force the format to be a percentage.
-          var valueFormatter = (stacked.style() == 'expand') ? 
+          var valueFormatter = (stacked.style() == 'expand') ?
                function(d,i) {return d3.format(".1%")(d);} :
                function(d,i) {return yAxis.tickFormat()(d); };
           interactiveLayer.tooltip
