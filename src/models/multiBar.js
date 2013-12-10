@@ -166,8 +166,8 @@ nv.models.multiBar = function() {
       groups.exit()
         .transition()
         .selectAll('rect.nv-bar')
-        .delay(function(d,i) {
-             return i * delay/ data[0].values.length;
+        .delay(function (d, i) {
+             return i * delay / (!data.length && hideable ? hideable : data)[0].values.length;
         })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)

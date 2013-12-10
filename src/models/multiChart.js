@@ -31,8 +31,8 @@ nv.models.multiChart = function() {
       lines1 = nv.models.line().yScale(yScale1),
       lines2 = nv.models.line().yScale(yScale2),
 
-      bars1 = nv.models.multiBar().stacked(false).yScale(yScale1),
-      bars2 = nv.models.multiBar().stacked(false).yScale(yScale2),
+      bars1 = nv.models.multiBar().stacked(false).yScale(yScale1).hideable(true),
+      bars2 = nv.models.multiBar().stacked(false).yScale(yScale2).hideable(true),
 
       stack1 = nv.models.stackedArea().yScale(yScale1),
       stack2 = nv.models.stackedArea().yScale(yScale2),
@@ -214,11 +214,11 @@ nv.models.multiChart = function() {
       if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
       if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
 
-      if(dataBars1.length){d3.transition(bars1Wrap).call(bars1);}
-      if(dataBars2.length){d3.transition(bars2Wrap).call(bars2);}
+      d3.transition(bars1Wrap).call(bars1);
+      d3.transition(bars2Wrap).call(bars2);
 
-      if(dataLines1.length){d3.transition(lines1Wrap).call(lines1);}
-      if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
+      d3.transition(lines1Wrap).call(lines1);
+      d3.transition(lines2Wrap).call(lines2);
       
 
 
