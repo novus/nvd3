@@ -91,26 +91,26 @@ nv.models.multiChart = function() {
       x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
           .range([0, availableWidth]);
 
-      var wrap = container.selectAll('g.wrap.multiChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
+      var wrap = container.selectAll('g.nv-wrap.nv-multiChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nv-wrap nvd3 nv-multiChart').append('g');
 
-      gEnter.append('g').attr('class', 'x axis');
-      gEnter.append('g').attr('class', 'y1 axis');
-      gEnter.append('g').attr('class', 'y2 axis');
-      gEnter.append('g').attr('class', 'lines1Wrap');
-      gEnter.append('g').attr('class', 'lines2Wrap');
-      gEnter.append('g').attr('class', 'bars1Wrap');
-      gEnter.append('g').attr('class', 'bars2Wrap');
-      gEnter.append('g').attr('class', 'stack1Wrap');
-      gEnter.append('g').attr('class', 'stack2Wrap');
-      gEnter.append('g').attr('class', 'legendWrap');
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+      gEnter.append('g').attr('class', 'nv-y2 nv-axis');
+      gEnter.append('g').attr('class', 'nv-stack1Wrap');
+      gEnter.append('g').attr('class', 'nv-stack2Wrap');
+      gEnter.append('g').attr('class', 'nv-bars1Wrap');
+      gEnter.append('g').attr('class', 'nv-bars2Wrap');
+      gEnter.append('g').attr('class', 'nv-lines1Wrap');
+      gEnter.append('g').attr('class', 'nv-lines2Wrap');
+      gEnter.append('g').attr('class', 'nv-legendWrap');
 
       var g = wrap.select('g');
 
       if (showLegend) {
         legend.width( availableWidth / 2 );
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .datum(data.map(function(series) { 
               series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
               series.key = series.originalKey + (series.yAxis == 1 ? '' : ' (right axis)');
@@ -124,7 +124,7 @@ nv.models.multiChart = function() {
                              - margin.top - margin.bottom;
         }
 
-        g.select('.legendWrap')
+        g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
       }
 
@@ -176,18 +176,18 @@ nv.models.multiChart = function() {
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-      var lines1Wrap = g.select('.lines1Wrap')
+      var lines1Wrap = g.select('.nv-lines1Wrap')
           .datum(dataLines1)
-      var bars1Wrap = g.select('.bars1Wrap')
+      var bars1Wrap = g.select('.nv-bars1Wrap')
           .datum(dataBars1)
-      var stack1Wrap = g.select('.stack1Wrap')
+      var stack1Wrap = g.select('.nv-stack1Wrap')
           .datum(dataStack1)
 
-      var lines2Wrap = g.select('.lines2Wrap')
+      var lines2Wrap = g.select('.nv-lines2Wrap')
           .datum(dataLines2)
-      var bars2Wrap = g.select('.bars2Wrap')
+      var bars2Wrap = g.select('.nv-bars2Wrap')
           .datum(dataBars2)
-      var stack2Wrap = g.select('.stack2Wrap')
+      var stack2Wrap = g.select('.nv-stack2Wrap')
           .datum(dataStack2)
 
       var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
@@ -226,9 +226,9 @@ nv.models.multiChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      g.select('.x.axis')
+      g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + availableHeight + ')');
-      d3.transition(g.select('.x.axis'))
+      d3.transition(g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
       yAxis1
@@ -236,17 +236,18 @@ nv.models.multiChart = function() {
         .tickSize( -availableWidth, 0);
 
 
-      d3.transition(g.select('.y1.axis'))
+      d3.transition(g.select('.nv-y1.nv-axis'))
+          .style('opacity', series1.length ? 1 : 0)
           .call(yAxis1);
 
       yAxis2
         .ticks( availableHeight / 36 )
-        .tickSize( -availableWidth, 0);
+        .tickSize(series1.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
-      d3.transition(g.select('.y2.axis'))
+      d3.transition(g.select('.nv-y2.nv-axis'))
           .call(yAxis2);
 
-      g.select('.y2.axis')
+      g.select('.nv-y2.nv-axis')
           .style('opacity', series2.length ? 1 : 0)
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
