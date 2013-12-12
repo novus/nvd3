@@ -17,7 +17,7 @@
     "charts"
   ],
   "license": "Apache License, v2.0",
-  "dependencies": {
+  "peerDependencies": {
     "d3": "~3.3.5"
   },
   "devDependencies": {
