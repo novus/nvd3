@@ -14,6 +14,8 @@ nv.models.multiChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       },
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y },
       x,
       y,
       yDomain1,
