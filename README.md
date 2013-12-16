@@ -58,23 +58,29 @@ We are currently changing our branch structure so that master will be gauranteed
 
 ---
 
-Minifying your fork:
+## Minifying your fork:
 
-The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS).
+### Using Make
+The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS) and [CSSMin](https://github.com/jbleuzen/node-cssmin)
 
-The easiest way to install is to install via npm. Run `npm install
-uglify-js` from your home directory, then add the output from `npm bin`
-into your path so that you have access to `uglifyjs` from the command
-line (remember to restart your terminal window when adding to the path.)
+The easiest way to install UglifyJS and CSSMin is via npm. Run `npm install -g uglify-js cssmin`. After installing verify the setup by running `uglifyjs --version` and `cssmin --help`.
 
-Once you have `uglifyjs` command available, running `make` from your
+Once you have the `uglifyjs` and `cssmin` commands available, running `make` from your
 fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
 
-Without UglifyJS, you won't get the minified version when running make.
+    make # build nv.d3.js and nv.d3.css and minify
+    make nv.d3.js # Build nv.d3.js
+    make nv.d3.min.js # Minify nv.d3.js into nv.d3.min.js
+    make nv.d3.css # Build nv.d3.css
+    make nv.d3.min.css # Minify nv.d3.css into nv.d3.min.css
+    make clean # Delete nv.d3.*js and nv.d3.*css
 
-## use grunt
 
-You can use grunt insteadof makefile to build js file. See more about [grunt](http://gruntjs.com/).
+*Without UglifyJS of CSSMin, you won't get the minified versions when running make.**
+
+### Using Grunt
+
+You can use grunt instead of makefile to build js file. See more about [grunt](http://gruntjs.com/).
 ***[Nodejs](http://nodejs.org/) must be installed before you can use grunt.***
 Run `npm install` in root dir to install grunt and it's dependencies.
 

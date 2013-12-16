@@ -57,17 +57,16 @@ nv.models.stackedArea = function() {
 
       //------------------------------------------------------------
 
-
+      var dataRaw = data;
       // Injecting point index into each point because d3.layout.stack().out does not give index
-      data = data.map(function(aseries, i) {
-               aseries.seriesIndex = i;
-               aseries.values = aseries.values.map(function(d, j) {
-                 d.index = j;
-                 d.seriesIndex = i;
-                 return d;
-               })
-               return aseries;
-             });
+      data.forEach(function(aseries, i) {
+        aseries.seriesIndex = i;
+        aseries.values = aseries.values.map(function(d, j) {
+          d.index = j;
+          d.seriesIndex = i;
+          return d;
+        });
+      });
 
       var dataFiltered = data.filter(function(series) {
             return !series.disabled;
@@ -134,11 +133,11 @@ nv.models.stackedArea = function() {
 
       var area = d3.svg.area()
           .x(function(d,i)  { return x(getX(d,i)) })
-          .y0(function(d) { 
-              return y(d.display.y0) 
+          .y0(function(d) {
+              return y(d.display.y0)
           })
-          .y1(function(d) { 
-              return y(d.display.y + d.display.y0) 
+          .y1(function(d) {
+              return y(d.display.y + d.display.y0)
           })
           .interpolate(interpolate);
 
@@ -161,7 +160,7 @@ nv.models.stackedArea = function() {
               point: d,
               series: d.key,
               pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: i
+              seriesIndex: d.seriesIndex
             });
           })
           .on('mouseout', function(d,i) {
@@ -170,7 +169,7 @@ nv.models.stackedArea = function() {
               point: d,
               series: d.key,
               pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: i
+              seriesIndex: d.seriesIndex
             });
           })
           .on('click', function(d,i) {
@@ -179,20 +178,20 @@ nv.models.stackedArea = function() {
               point: d,
               series: d.key,
               pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: i
+              seriesIndex: d.seriesIndex
             });
           })
-      path.exit().transition()
-          .attr('d', function(d,i) { return zeroArea(d.values,i) })
-          .remove();
+
+      path.exit().remove();
+
       path
-          .style('fill', function(d,i){ 
-            return d.color || color(d, d.seriesIndex) 
+          .style('fill', function(d,i){
+            return d.color || color(d, d.seriesIndex)
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
       path.transition()
-          .attr('d', function(d,i) { 
-            return area(d.values,i) 
+          .attr('d', function(d,i) {
+            return area(d.values,i)
           });
 
 
@@ -209,6 +208,29 @@ nv.models.stackedArea = function() {
       });
 
       //============================================================
+      //Special offset functions
+      chart.d3_stackedOffset_stackPercent = function(stackData) {
+          var n = stackData.length,    //How many series
+          m = stackData[0].length,     //how many points per series
+          k = 1 / n,
+           i,
+           j,
+           o,
+           y0 = [];
+
+          for (j = 0; j < m; ++j) { //Looping through all points
+            for (i = 0, o = 0; i < dataRaw.length; i++)  //looping through series'
+                o += getY(dataRaw[i].values[j])   //total value of all points at a certian point in time.
+
+            if (o) for (i = 0; i < n; i++)
+               stackData[i][j][1] /= o;
+            else
+              for (i = 0; i < n; i++)
+               stackData[i][j][1] = k;
+          }
+          for (j = 0; j < m; ++j) y0[j] = 0;
+          return y0;
+      };
 
     });
 
@@ -234,7 +256,6 @@ nv.models.stackedArea = function() {
 
   //============================================================
 
-
   //============================================================
   // Global getters and setters
   //------------------------------------------------------------
@@ -242,11 +263,11 @@ nv.models.stackedArea = function() {
   chart.dispatch = dispatch;
   chart.scatter = scatter;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
     'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi','clipRadius','highlightPoint','clearHighlights');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = d3.functor(_);
@@ -324,6 +345,10 @@ nv.models.stackedArea = function() {
           break;
       case 'expand':
         chart.offset('expand');
+        chart.order('default');
+        break;
+      case 'stack_percent':
+        chart.offset(chart.d3_stackedOffset_stackPercent);
         chart.order('default');
         break;
     }

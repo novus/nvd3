@@ -69,35 +69,7 @@ nv.models.cumulativeLineChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
-/*
-  //Moved to see if we can get better behavior to fix issue #315
-  var indexDrag = d3.behavior.drag()
-                    .on('dragstart', dragStart)
-                    .on('drag', dragMove)
-                    .on('dragend', dragEnd);
-
-  function dragStart(d,i) {
-    d3.select(chart.container)
-        .style('cursor', 'ew-resize');
-  }
-
-  function dragMove(d,i) {
-    d.x += d3.event.dx;
-    d.i = Math.round(dx.invert(d.x));
-
-    d3.select(this).attr('transform', 'translate(' + dx(d.i) + ',0)');
-    chart.update();
-  }
-
-  function dragEnd(d,i) {
-    d3.select(chart.container)
-        .style('cursor', 'auto');
-    chart.update();
-  }
-*/
-
   //============================================================
-
 
   function chart(selection) {
     selection.each(function(data) {
@@ -238,7 +210,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events","none");
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
-      
+
 
       //------------------------------------------------------------
       // Legend
@@ -271,7 +243,13 @@ nv.models.cumulativeLineChart = function() {
           { key: 'Re-scale y-axis', disabled: !rescaleY }
         ];
 
-        controls.width(140).color(['#444', '#444', '#444']);
+        controls
+            .width(140)
+            .color(['#444', '#444', '#444'])
+            .rightAlign(false)
+            .margin({top: 5, right: 0, bottom: 5, left: 20})
+            ;
+
         g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
@@ -302,7 +280,7 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
-      
+
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
@@ -443,7 +421,7 @@ nv.models.cumulativeLineChart = function() {
       function updateZero() {
         indexLine
           .data([index]);
-        
+
         //When dragging the index line, turn off line transitions.
         // Then turn them back on when done dragging.
         var oldDuration = chart.transitionDuration();
@@ -475,7 +453,7 @@ nv.models.cumulativeLineChart = function() {
         updateZero();
       });
 
-      controls.dispatch.on('legendClick', function(d,i) { 
+      controls.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
         rescaleY = !d.disabled;
 
@@ -486,7 +464,7 @@ nv.models.cumulativeLineChart = function() {
 
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled; 
+        state.disabled = newState.disabled;
         dispatch.stateChange(state);
         chart.update();
       });
@@ -494,12 +472,12 @@ nv.models.cumulativeLineChart = function() {
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
-          
-          
+
+
           data
-          .filter(function(series, i) { 
+          .filter(function(series, i) {
             series.seriesIndex = i;
-            return !series.disabled; 
+            return !series.disabled;
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
@@ -627,7 +605,7 @@ nv.models.cumulativeLineChart = function() {
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi','useVoronoi',  'id');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;

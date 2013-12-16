@@ -19,6 +19,7 @@ nv.models.multiBarHorizontal = function() {
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked = false
     , showValues = false
+    , showBarLabels = false
     , valuePadding = 60
     , valueFormat = d3.format(',.2f')
     , delay = 1200
@@ -58,12 +59,10 @@ nv.models.multiBarHorizontal = function() {
 
 
       //add series index to each data point for reference
-      data = data.map(function(series, i) {
-        series.values = series.values.map(function(point) {
+      data.forEach(function(series, i) {
+        series.values.forEach(function(point) {
           point.series = i;
-          return point;
         });
-        return series;
       });
 
 
@@ -80,7 +79,7 @@ nv.models.multiBarHorizontal = function() {
               f.y1 = negBase - f.size;
               negBase = negBase - f.size;
             } else
-            { 
+            {
               f.y1 = posBase;
               posBase = posBase + f.size;
             }
@@ -233,6 +232,21 @@ nv.models.multiBarHorizontal = function() {
         bars.selectAll('text').text('');
       }
 
+      if (showBarLabels && !stacked) {
+        barsEnter.append('text').classed('nv-bar-label',true);
+        bars.select('text.nv-bar-label')
+            .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'start' : 'end' })
+            .attr('y', x.rangeBand() / (data.length * 2))
+            .attr('dy', '.32em')
+            .text(function(d,i) { return getX(d,i) });
+        bars.transition()
+          .select('text.nv-bar-label')
+            .attr('x', function(d,i) { return getY(d,i) < 0 ? y(0) - y(getY(d,i)) + 4 : -4 });
+      }
+      else {
+        bars.selectAll('text.nv-bar-label').text('');
+      }
+
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
 
@@ -257,7 +271,7 @@ nv.models.multiBarHorizontal = function() {
         bars.transition()
             .attr('transform', function(d,i) {
               //TODO: stacked must be all positive or all negative, not both?
-              return 'translate(' + 
+              return 'translate(' +
               (getY(d,i) < 0 ? y(getY(d,i)) : y(0))
               + ',' +
               (d.series * x.rangeBand() / data.length
@@ -289,7 +303,7 @@ nv.models.multiBarHorizontal = function() {
   chart.dispatch = dispatch;
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
@@ -406,6 +420,13 @@ nv.models.multiBarHorizontal = function() {
     showValues = _;
     return chart;
   };
+
+  chart.showBarLabels = function(_) {
+    if (!arguments.length) return showBarLabels;
+    showBarLabels = _;
+    return chart;
+  };
+
 
   chart.valueFormat= function(_) {
     if (!arguments.length) return valueFormat;
