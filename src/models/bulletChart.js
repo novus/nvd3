@@ -26,7 +26,7 @@ nv.models.bulletChart = function() {
                '<p>' + y + '</p>'
       }
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
     ;
 
   //============================================================
@@ -57,7 +57,10 @@ nv.models.bulletChart = function() {
           that = this;
 
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //------------------------------------------------------------

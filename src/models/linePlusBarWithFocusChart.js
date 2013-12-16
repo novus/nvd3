@@ -42,7 +42,7 @@ nv.models.linePlusBarWithFocusChart = function() {
     , y3
     , y4
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'beforeUpdate')
     , transitionDuration = 0
     ;
 

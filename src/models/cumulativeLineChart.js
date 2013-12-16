@@ -36,7 +36,7 @@ nv.models.cumulativeLineChart = function() {
     , defaultState = null
     , noData = 'No Data Available.'
     , average = function(d) { return d.average }
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , transitionDuration = 250
     ;
 
@@ -110,7 +110,10 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+        chart.update = function() {
+            dispatch.beforeUpdate();
+            container.transition().duration(transitionDuration).call(chart);
+        };
       chart.container = this;
 
       //set state.disabled

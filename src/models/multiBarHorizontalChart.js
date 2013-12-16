@@ -29,7 +29,7 @@ nv.models.multiBarHorizontalChart = function() {
     , state = { stacked: stacked }
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
     ;
@@ -80,7 +80,10 @@ nv.models.multiBarHorizontalChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled

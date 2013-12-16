@@ -2161,7 +2161,7 @@ nv.models.bulletChart = function() {
                '<p>' + y + '</p>'
       }
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
     ;
 
   //============================================================
@@ -2192,7 +2192,10 @@ nv.models.bulletChart = function() {
           that = this;
 
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //------------------------------------------------------------
@@ -2514,7 +2517,7 @@ nv.models.cumulativeLineChart = function() {
     , defaultState = null
     , noData = 'No Data Available.'
     , average = function(d) { return d.average }
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , transitionDuration = 250
     ;
 
@@ -2588,7 +2591,10 @@ nv.models.cumulativeLineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+        chart.update = function() {
+            dispatch.beforeUpdate();
+            container.transition().duration(transitionDuration).call(chart);
+        };
       chart.container = this;
 
       //set state.disabled
@@ -4122,7 +4128,7 @@ nv.models.historicalBarChart = function() {
     , state = {}
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , transitionDuration = 250
     ;
 
@@ -5432,7 +5438,7 @@ nv.models.lineChart = function() {
     , state = {}
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , transitionDuration = 250
     ;
 
@@ -5897,7 +5903,7 @@ nv.models.linePlusBarChart = function() {
     , state = {}
     , defaultState = null
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     ;
 
   bars
@@ -6331,7 +6337,7 @@ nv.models.lineWithFocusChart = function() {
                '<p>' +  y + ' at ' + x + '</p>'
       }
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'beforeUpdate')
     , transitionDuration = 250
     ;
 
@@ -6915,7 +6921,7 @@ nv.models.linePlusBarWithFocusChart = function() {
     , y3
     , y4
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'beforeUpdate')
     , transitionDuration = 0
     ;
 
@@ -8028,7 +8034,7 @@ nv.models.multiBarChart = function() {
     , state = { stacked: false }
     , defaultState = null
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
     ;
@@ -8079,7 +8085,10 @@ nv.models.multiBarChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled
@@ -8973,7 +8982,7 @@ nv.models.multiBarHorizontalChart = function() {
     , state = { stacked: stacked }
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
     ;
@@ -9024,7 +9033,10 @@ nv.models.multiBarHorizontalChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled
@@ -9420,7 +9432,7 @@ nv.models.multiChart = function() {
       yAxis2 = nv.models.axis().scale(yScale2).orient('right'),
 
       legend = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate');
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -9437,7 +9449,10 @@ nv.models.multiChart = function() {
       var container = d3.select(this),
           that = this;
 
-      chart.update = function() { container.transition().call(chart); };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
@@ -11610,7 +11625,7 @@ nv.models.scatterChart = function() {
     , tooltip      = null
     , state = {}
     , defaultState = null
-    , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , noData       = "No Data Available."
     , transitionDuration = 250
     ;
@@ -11682,7 +11697,10 @@ nv.models.scatterChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled
@@ -12238,7 +12256,7 @@ nv.models.scatterPlusLineChart = function() {
                                                       + '<p>' + date + '</p>' }
     , state = {}
     , defaultState = null
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , noData       = "No Data Available."
     , transitionDuration = 250
     ;
@@ -12309,7 +12327,10 @@ nv.models.scatterPlusLineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled
@@ -13688,7 +13709,7 @@ nv.models.stackedAreaChart = function() {
     , state = { style: stacked.style() }
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'beforeUpdate')
     , controlWidth = 250
     , cData = ['Stacked','Stream','Expanded']
     , transitionDuration = 250
@@ -13733,7 +13754,10 @@ nv.models.stackedAreaChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+        chart.update = function() {
+            dispatch.beforeUpdate();
+            container.transition().duration(transitionDuration).call(chart);
+        };
       chart.container = this;
 
       //set state.disabled

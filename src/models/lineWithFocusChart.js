@@ -32,7 +32,7 @@ nv.models.lineWithFocusChart = function() {
                '<p>' +  y + ' at ' + x + '</p>'
       }
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'beforeUpdate')
     , transitionDuration = 250
     ;
 

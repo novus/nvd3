@@ -27,7 +27,7 @@ nv.models.lineChart = function() {
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30).updateState(false),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate');
 
 
   var showTooltip = function(e, offsetElement) {
