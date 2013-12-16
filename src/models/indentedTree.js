@@ -17,8 +17,9 @@ nv.models.indentedTree = function() {
     , tableClass = null
     , iconOpen = 'images/grey-plus.png' //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
     , iconClose = 'images/grey-minus.png'
-    , dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout', 'beforeUpdate')
     , getUrl = function(d) { return d.url }
+    , transitionDuration = 250
     ;
 
   //============================================================
@@ -34,7 +35,10 @@ nv.models.indentedTree = function() {
           .children(function(d) { return d.values })
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
-      chart.update = function() { container.transition().duration(600).call(chart) };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
 
 
       //------------------------------------------------------------

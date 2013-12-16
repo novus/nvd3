@@ -27,6 +27,7 @@ nv.models.bulletChart = function() {
       }
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
+    , transitionDuration = 250
     ;
 
   //============================================================
