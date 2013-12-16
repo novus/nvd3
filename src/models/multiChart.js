@@ -42,7 +42,7 @@ nv.models.multiChart = function() {
       yAxis2 = nv.models.axis().scale(yScale2).orient('right'),
 
       legend = nv.models.legend().height(30),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate');
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -59,7 +59,10 @@ nv.models.multiChart = function() {
       var container = d3.select(this),
           that = this;
 
-      chart.update = function() { container.transition().call(chart); };
+      chart.update = function() {
+          dispatch.beforeUpdate();
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
