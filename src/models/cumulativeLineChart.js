@@ -38,6 +38,7 @@ nv.models.cumulativeLineChart = function() {
     , average = function(d) { return d.average }
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , transitionDuration = 250
+    , noErrorCheck = false  //if set to TRUE, will bypass an error check in the indexify function.
     ;
 
   xAxis
@@ -720,6 +721,12 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  chart.noErrorCheck = function(_) {
+    if (!arguments.length) return noErrorCheck;
+    noErrorCheck = _;
+    return chart;
+  };
+
   //============================================================
 
 
@@ -736,8 +743,9 @@ nv.models.cumulativeLineChart = function() {
       var v = lines.y()(line.values[idx], idx);
 
       //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
-      if (v < -.95) {
+      if (v < -.95 && !noErrorCheck) {
         //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
+
         line.tempDisabled = true;
         return line;
       }
