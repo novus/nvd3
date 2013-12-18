@@ -1,24 +1,6 @@
-# NVD3 - v1.1.10-beta
-## Release notes for version 1.1.10 beta
-* Line charts now have a new tooltip option available. This new tooltip displays all series information at once, and shows up anywhere your mouse moves.
-To enable, set **useInteractiveGuideline** to true. See examples in the **test/** directory for how this tooltip works.
-* New test pages have been created for various kinds of charts. They live in the **test/** directory. The goal of these test pages is to aid
-in regression testing coverage when changes are made to charts.
-* Pie charts accept data in a different way, and if you update to version 1.1, **your pie charts will break**. See the pie chart examples for how
-data should be properly passed in. It's a very simple change.
-* Pie charts can now accept a 'labelType' property. 
-* Tooltip transitions are **turned off** by default, if you update to the latest nv.d3.css.  To bring them back, add a 'with-transitions' CSS class
-to the containing chart DIV.
-* Stacked area charts have transitions again. Duration is controlled via a 'transitionDuration' property.
-* Line, cumulative, scatter, multi bar and discrete bar charts also have the 'transitionDuration' property.
-* Issue #127: Adding ability to override individual scatter plot point colors.
-* Issue #216: Exposing xRange and yRange overrides for all charts.
-* Issue #168: Adding legend.radioButtonMode(). When set to true, legend click behavior will match those of radio buttons.
-* Line stroke-width has been reduced to 1.5px, from 2.5px.
-* Hover points on line and stacked area charts are now a small solid dot, instead of a large ring.
-* Added Multibar chart property "groupSpacing".
-* Charts now have a method called "options()", where you can pass in chart configurations via an object.
-* examples/index.html page created, for quick access to all NVD3 examples and test pages.
+# NVD3 - v1.1.15-beta
+## Release notes for version 1.1.15 beta
+* Various fixes across the board
 
 ## Overview
 A reusable chart library for d3.js.
@@ -40,8 +22,8 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 # Installation Instructions
 
-`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include in in your project, then:  
-Add a script tag to include `nv.d3.js` OR `nv.d3.min.js` in your project.  
+`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include in in your project, then:
+Add a script tag to include `nv.d3.js` OR `nv.d3.min.js` in your project.
 Also add a link to the `nv.d3.css` file.
 
 See wiki -> Documentation for more detail
@@ -91,12 +73,12 @@ Then, you can use these commands:
     grunt watch # watch file changes in src/, and rebuild nv.d3.js, it's very helpful when delevop NVD3
     grunt lint # run jshint on src/**/*.js
 
-**We ask that you DO NOT minify pull requests... 
+**We ask that you DO NOT minify pull requests...
 If you need to minify please build pull request in separate branch, and
 merge and minify in your master.
 
 ## Supported Browsers
-NVD3 runs best on WebKit based browsers. 
+NVD3 runs best on WebKit based browsers.
 
 * **Google Chrome: latest version (preferred)**
 * **Opera 15+ (preferred)**
