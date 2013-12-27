@@ -27,17 +27,22 @@ nv.utils.windowSize = function() {
 
 
 
-// Easy way to bind multiple functions to window.onresize
-// TODO: give a way to remove a function after its bound, other than removing all of them
-nv.utils.windowResize = function(fun){
-  if (fun === undefined) return;
-  var oldresize = window.onresize;
+// Adds a resize listener to the window.
+nv.utils.onWindowResize = function(fun) {
+  if (fun == null) return;
 
-  window.onresize = function(e) {
-    if (typeof oldresize == 'function') oldresize(e);
-    fun(e);
-  }
-}
+  window.addEventListener('resize', fun);
+};
+
+// Backwards compatibility with current API.
+nv.utils.windowResize = nv.utils.onWindowResize;
+
+// Removes a resize listener from the window.
+nv.utils.offWindowResize = function(fun) {
+  if (fun == null) return;
+
+  window.removeEventListener('resize', fun);
+};
 
 // Backwards compatible way to implement more d3-like coloring of graphs.
 // If passed an array, wrap it in a function which implements the old default
