@@ -74,6 +74,10 @@ module.exports = function(grunt) {
             js: {
                 files: ["src/**/*.js"],
                 tasks: ['concat']
+            },
+            less: {
+                files: ["src/**/*.less"],
+                tasks: ['less']
             }
         },
         less: {
