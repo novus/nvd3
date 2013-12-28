@@ -58,7 +58,7 @@ fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
     make clean # Delete nv.d3.*js and nv.d3.*css
 
 
-*Without UglifyJS of CSSMin, you won't get the minified versions when running make.**
+**Without UglifyJS of CSSMin, you won't get the minified versions when running make.**
 
 ### Using Grunt
 
@@ -68,9 +68,9 @@ Run `npm install` in root dir to install grunt and it's dependencies.
 
 Then, you can use these commands:
 
-    grunt # build nv.d3.js
-    grunt production # build nv.d3.js and nv.d3.min.js
-    grunt watch # watch file changes in src/, and rebuild nv.d3.js, it's very helpful when delevop NVD3
+    grunt # build nv.d3.js and nv.d3.css
+    grunt production # build nv.d3.js, nv.d3.css and nv.d3.min.js
+    grunt watch # watch file changes in src/,nv.d3.less and rebuild nv.d3.js/nv.d3.css, it's very helpful when delevop NVD3
     grunt lint # run jshint on src/**/*.js
 
 **We ask that you DO NOT minify pull requests...
