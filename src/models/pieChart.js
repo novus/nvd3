@@ -113,8 +113,7 @@ nv.models.pieChart = function() {
 
       if (showLegend) {
         legend
-          .width( availableWidth )
-          .key(pie.x());
+          .width( availableWidth );
 
         wrap.select('.nv-legendWrap')
             .datum(data)
