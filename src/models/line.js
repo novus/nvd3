@@ -94,7 +94,7 @@ nv.models.line = function() {
 
       wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
           .attr('width', availableWidth)
-          .attr('height', availableHeight);
+          .attr('height', (availableHeight > 0) ? availableHeight : 0);
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
       scatterWrap

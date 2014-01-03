@@ -80,7 +80,7 @@ nv.models.lineChart = function() {
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
-    
+
       if (!defaultState) {
         var key;
         defaultState = {};
@@ -139,7 +139,9 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-interactive');
 
-      g.select("rect").attr("width",availableWidth).attr("height",availableHeight);
+      g.select("rect")
+        .attr("width",availableWidth)
+        .attr("height",(availableHeight > 0) ? availableHeight : 0);
       //------------------------------------------------------------
       // Legend
 
@@ -172,7 +174,7 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Main Chart Component(s)
 
-      
+
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
@@ -245,9 +247,9 @@ nv.models.lineChart = function() {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
           data
-          .filter(function(series, i) { 
+          .filter(function(series, i) {
             series.seriesIndex = i;
-            return !series.disabled; 
+            return !series.disabled;
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());

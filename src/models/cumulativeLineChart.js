@@ -38,6 +38,7 @@ nv.models.cumulativeLineChart = function() {
     , average = function(d) { return d.average }
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , transitionDuration = 250
+    , noErrorCheck = false  //if set to TRUE, will bypass an error check in the indexify function.
     ;
 
   xAxis
@@ -207,7 +208,7 @@ nv.models.cumulativeLineChart = function() {
       gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events","none");
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
-      
+
 
       //------------------------------------------------------------
       // Legend
@@ -240,7 +241,13 @@ nv.models.cumulativeLineChart = function() {
           { key: 'Re-scale y-axis', disabled: !rescaleY }
         ];
 
-        controls.width(140).color(['#444', '#444', '#444']);
+        controls
+            .width(140)
+            .color(['#444', '#444', '#444'])
+            .rightAlign(false)
+            .margin({top: 5, right: 0, bottom: 5, left: 20})
+            ;
+
         g.select('.nv-controlsWrap')
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
@@ -271,7 +278,7 @@ nv.models.cumulativeLineChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
-      
+
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
@@ -412,7 +419,7 @@ nv.models.cumulativeLineChart = function() {
       function updateZero() {
         indexLine
           .data([index]);
-        
+
         //When dragging the index line, turn off line transitions.
         // Then turn them back on when done dragging.
         var oldDuration = chart.transitionDuration();
@@ -444,7 +451,7 @@ nv.models.cumulativeLineChart = function() {
         updateZero();
       });
 
-      controls.dispatch.on('legendClick', function(d,i) { 
+      controls.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
         rescaleY = !d.disabled;
 
@@ -455,7 +462,7 @@ nv.models.cumulativeLineChart = function() {
 
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled; 
+        state.disabled = newState.disabled;
         dispatch.stateChange(state);
         chart.update();
       });
@@ -463,12 +470,12 @@ nv.models.cumulativeLineChart = function() {
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
-          
-          
+
+
           data
-          .filter(function(series, i) { 
+          .filter(function(series, i) {
             series.seriesIndex = i;
-            return !series.disabled; 
+            return !series.disabled;
           })
           .forEach(function(series,i) {
               pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
@@ -596,7 +603,7 @@ nv.models.cumulativeLineChart = function() {
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi','useVoronoi',  'id');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -714,6 +721,12 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  chart.noErrorCheck = function(_) {
+    if (!arguments.length) return noErrorCheck;
+    noErrorCheck = _;
+    return chart;
+  };
+
   //============================================================
 
 
@@ -730,8 +743,9 @@ nv.models.cumulativeLineChart = function() {
       var v = lines.y()(line.values[idx], idx);
 
       //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
-      if (v < -.95) {
+      if (v < -.95 && !noErrorCheck) {
         //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
+
         line.tempDisabled = true;
         return line;
       }
