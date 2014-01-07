@@ -10960,7 +10960,7 @@ nv.models.scatter = function() {
     , height       = 500
     , color        = nv.utils.defaultColor() // chooses color
     , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
-    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : d3.scale.linear()
+    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : d3.scale.linear() //Add fisheye code /linear chart creation from scatterChart here
     , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : d3.scale.linear()
     , z            = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
     , getX         = function(d) { return d.x } // accessor to get the x value
@@ -11641,7 +11641,7 @@ nv.models.scatterChart = function() {
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
-    , x
+    , x //Don't want to set these scales here, we pull them from scatter.
     , y
     , xPadding     = 0
     , yPadding     = 0
@@ -11664,6 +11664,8 @@ nv.models.scatterChart = function() {
     , noData       = "No Data Available."
     , transitionDuration = 250
     ;
+
+    //no point in setting scatters scales anymore, instead we pull the scales from scatter (like all the other charts)
 
   xAxis
     .orient('bottom')
@@ -11771,6 +11773,9 @@ nv.models.scatterChart = function() {
 
       //------------------------------------------------------------
       // Setup Scales
+      
+      // Pull scales from scatter, this way if they have been modified/reset between creation and running of the chart, 
+      // we get what is actually set
       x = scatter.xScale();
       y = scatter.yScale();
 
