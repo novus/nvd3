@@ -17,7 +17,7 @@ nv.models.scatterChart = function() {
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
-    , x
+    , x //Don't want to set these scales here, we pull them from scatter.
     , y
     , xPadding     = 0
     , yPadding     = 0
@@ -40,6 +40,8 @@ nv.models.scatterChart = function() {
     , noData       = "No Data Available."
     , transitionDuration = 250
     ;
+
+    //no point in setting scatters scales anymore, instead we pull the scales from scatter (like all the other charts)
 
   xAxis
     .orient('bottom')
@@ -147,6 +149,9 @@ nv.models.scatterChart = function() {
 
       //------------------------------------------------------------
       // Setup Scales
+      
+      // Pull scales from scatter, this way if they have been modified/reset between creation and running of the chart, 
+      // we get what is actually set
       x = scatter.xScale();
       y = scatter.yScale();
 
