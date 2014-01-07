@@ -10960,8 +10960,8 @@ nv.models.scatter = function() {
     , height       = 500
     , color        = nv.utils.defaultColor() // chooses color
     , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
-    , x            = d3.scale.linear()
-    , y            = d3.scale.linear()
+    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : d3.scale.linear()
+    , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : d3.scale.linear()
     , z            = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
     , getX         = function(d) { return d.x } // accessor to get the x value
     , getY         = function(d) { return d.y } // accessor to get the y value
@@ -11641,8 +11641,8 @@ nv.models.scatterChart = function() {
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
-    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
-    , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
+    , x
+    , y
     , xPadding     = 0
     , yPadding     = 0
     , showDistX    = false
@@ -11665,10 +11665,6 @@ nv.models.scatterChart = function() {
     , transitionDuration = 250
     ;
 
-  scatter
-    .xScale(x)
-    .yScale(y)
-    ;
   xAxis
     .orient('bottom')
     .tickPadding(10)
@@ -11775,6 +11771,8 @@ nv.models.scatterChart = function() {
 
       //------------------------------------------------------------
       // Setup Scales
+      x = scatter.xScale();
+      y = scatter.yScale();
 
       x0 = x0 || x;
       y0 = y0 || y;

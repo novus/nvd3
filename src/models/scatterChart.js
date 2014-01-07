@@ -17,8 +17,8 @@ nv.models.scatterChart = function() {
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
-    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
-    , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
+    , x
+    , y
     , xPadding     = 0
     , yPadding     = 0
     , showDistX    = false
@@ -41,10 +41,6 @@ nv.models.scatterChart = function() {
     , transitionDuration = 250
     ;
 
-  scatter
-    .xScale(x)
-    .yScale(y)
-    ;
   xAxis
     .orient('bottom')
     .tickPadding(10)
@@ -151,6 +147,8 @@ nv.models.scatterChart = function() {
 
       //------------------------------------------------------------
       // Setup Scales
+      x = scatter.xScale();
+      y = scatter.yScale();
 
       x0 = x0 || x;
       y0 = y0 || y;
