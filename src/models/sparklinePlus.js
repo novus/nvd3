@@ -107,22 +107,24 @@ nv.models.sparklinePlus = function() {
 
       //------------------------------------------------------------
 
+      // Show latest value if specified
+      if (showValue) {
+        var valueWrap = g.select('.nv-valueWrap');
+        
+        var value = valueWrap.selectAll('.nv-currentValue')
+            .data([currentValue]);
 
-      var valueWrap = g.select('.nv-valueWrap');
-      
-      var value = valueWrap.selectAll('.nv-currentValue')
-          .data([currentValue]);
+        value.enter().append('text').attr('class', 'nv-currentValue')
+            .attr('dx', rightAlignValue ? -8 : 8)
+            .attr('dy', '.9em')
+            .style('text-anchor', rightAlignValue ? 'end' : 'start');
 
-      value.enter().append('text').attr('class', 'nv-currentValue')
-          .attr('dx', rightAlignValue ? -8 : 8)
-          .attr('dy', '.9em')
-          .style('text-anchor', rightAlignValue ? 'end' : 'start');
-
-      value
-          .attr('x', availableWidth + (rightAlignValue ? margin.right : 0))
-          .attr('y', alignValue ? function(d) { return y(d) } : 0)
-          .style('fill', sparkline.color()(data[data.length-1], data.length-1))
-          .text(yTickFormat(currentValue));
+        value
+            .attr('x', availableWidth + (rightAlignValue ? margin.right : 0))
+            .attr('y', alignValue ? function(d) { return y(d) } : 0)
+            .style('fill', sparkline.color()(data[data.length-1], data.length-1))
+            .text(yTickFormat(currentValue));
+      }
 
 
 
