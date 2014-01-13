@@ -85,7 +85,12 @@ nv.models.multiBarChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() {
+        if (transitionDuration > 0)
+          container.transition().duration(transitionDuration).call(chart)
+        else
+          container.call(chart)
+      };
       chart.container = this;
 
       //set state.disabled
@@ -414,12 +419,14 @@ nv.models.multiBarChart = function() {
   };
 
   chart.height = function(_) {
+
     if (!arguments.length) return height;
     height = _;
     return chart;
   };
 
   chart.color = function(_) {
+
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     legend.color(color);
@@ -464,6 +471,7 @@ nv.models.multiBarChart = function() {
   };
 
   chart.rotateLabels = function(_) {
+    nv.deprecated();
     if (!arguments.length) return rotateLabels;
     rotateLabels = _;
     return chart;

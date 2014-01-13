@@ -48,6 +48,8 @@ nv.addGraph({
                 .width(width)
                 .height(height)
                 .stacked(true)
+                .delay(1000)
+
 
 
     var svg = d3.select('#test1 svg')
@@ -55,7 +57,7 @@ nv.addGraph({
       .attr('height', height)
       .datum(test_data);
 
-    svg.transition().duration(500).call(chart);
+    svg.transition().duration(0).call(chart);
 
     return chart;
   },

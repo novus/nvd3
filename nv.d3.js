@@ -49,6 +49,11 @@ nv.log = function() {
   return arguments[arguments.length - 1];
 };
 
+nv.deprecated = function(name) {
+  if (nv.dev && console && console.warn)
+    console.warn('`' + name + '` has been deprecated.');
+}
+
 
 nv.render = function render(step) {
   step = step || 1; // number of graphs to generate in each timeout loop
@@ -7549,7 +7554,7 @@ nv.models.multiBar = function() {
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-    , delay = 1200
+    , duration = 0
     , xDomain
     , yDomain
     , xRange
@@ -7684,16 +7689,15 @@ nv.models.multiBar = function() {
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-
-
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d,i) { return i });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       groups.exit()
-        .transition()
         .selectAll('rect.nv-bar')
+        .transition()
+        
         .delay(function(d,i) {
              return i * delay/ data[0].values.length;
         })
@@ -7706,7 +7710,6 @@ nv.models.multiBar = function() {
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i) });
       groups
-          .transition()
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -7779,7 +7782,6 @@ nv.models.multiBar = function() {
           });
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
-          .transition()
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
 
       if (barColor) {
@@ -7789,45 +7791,37 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
-
+      var barSelection = duration === 0 ? bars : bars.transition().delay(function(d,i) {
+                return i * duration / data[0].values.length;
+            });
       if (stacked)
-          bars.transition()
-            .delay(function(d,i) {
-
-                  return i * delay / data[0].values.length;
-            })
+          barSelection
             .attr('y', function(d,i) {
-
               return y((stacked ? d.y1 : 0));
             })
             .attr('height', function(d,i) {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
             .attr('x', function(d,i) {
-                  return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+              return stacked ? 0 : (d.series * x.rangeBand() / data.length )
             })
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
-          bars.transition()
-            .delay(function(d,i) {
-                return i * delay/ data[0].values.length;
-            })
+          barSelection
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
             .attr('y', function(d,i) {
-                return getY(d,i) < 0 ?
-                        y(0) :
-                        y(0) - y(getY(d,i)) < 1 ?
-                          y(0) - 1 :
-                        y(getY(d,i)) || 0;
+              return getY(d,i) < 0 ?
+                      y(0) :
+                      y(0) - y(getY(d,i)) < 1 ?
+                        y(0) - 1 :
+                      y(getY(d,i)) || 0;
             })
             .attr('height', function(d,i) {
-                return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+              return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
             });
-
-
 
       //store old scales for use in transitions on update
       x0 = x.copy();
@@ -7971,8 +7965,9 @@ nv.models.multiBar = function() {
   };
 
   chart.delay = function(_) {
-    if (!arguments.length) return delay;
-    delay = _;
+    nv.deprecated('multiBar.delay');
+    if (!arguments.length) return duration;
+    duration = _;
     return chart;
   };
 
@@ -7981,6 +7976,13 @@ nv.models.multiBar = function() {
     groupSpacing = _;
     return chart;
   };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  }
+
 
   //============================================================
 
@@ -8074,7 +8076,12 @@ nv.models.multiBarChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() {
+        if (transitionDuration > 0)
+          container.transition().duration(transitionDuration).call(chart)
+        else
+          container.call(chart)
+      };
       chart.container = this;
 
       //set state.disabled
@@ -8403,12 +8410,14 @@ nv.models.multiBarChart = function() {
   };
 
   chart.height = function(_) {
+
     if (!arguments.length) return height;
     height = _;
     return chart;
   };
 
   chart.color = function(_) {
+
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     legend.color(color);
@@ -8453,6 +8462,7 @@ nv.models.multiBarChart = function() {
   };
 
   chart.rotateLabels = function(_) {
+    nv.deprecated();
     if (!arguments.length) return rotateLabels;
     rotateLabels = _;
     return chart;
