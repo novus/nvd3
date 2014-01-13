@@ -740,7 +740,11 @@ nv.models.cumulativeLineChart = function() {
       if (!line.values) {
          return line;
       }
-      var v = lines.y()(line.values[idx], idx);
+      var indexValue = line.values[idx];
+      if (indexValue == null) {
+        return line;
+      }
+      var v = lines.y()(indexValue, idx);
 
       //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
       if (v < -.95 && !noErrorCheck) {
