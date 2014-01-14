@@ -1005,6 +1005,82 @@ nv.utils.NaNtoZero = function(n) {
     return n;
 };
 
+
+nv.utils.renderWatch = function(renderStack, callback) {
+  console.log('renderwatch');
+  renderStack.forEach(function(model, i) {
+    model.dispatch.on('renderEnd', function(arg){
+      nv.log('render end:', arg);
+      model._rendered = true;
+      if (renderStack.every(function(model){ return model._rendered; }))
+      {
+        renderStack.forEach(function(model){ model._rendered = false; });
+        callback();
+      }
+    });
+  });
+}
+
+nv.utils.renderWatch = function(dispatch, duration) {
+  if (!(this instanceof nv.utils.renderWatch))
+    return new nv.utils.renderWatch(dispatch, duration);
+  var _duration = duration || 250;
+  var renderStack = [];
+  var self = this;
+  this.addModels = function(model) {
+    model.__rendered = false;
+    model.dispatch.on('renderEnd', function(arg){
+      console.log('render end:', arg);
+      model.__rendered = true;
+      self.renderEnd();
+    });
+    if (renderStack.indexOf(model) < 0)
+      renderStack.push(model);
+    return this;
+  }
+
+  this.reset = function() {
+    renderStack = [];
+  }
+
+  this.transition = function(selection, args, duration) {
+    args = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
+    duration = args.length > 1 ? args.pop() : 250;
+    
+    selection.__rendered = false;
+    if (renderStack.indexOf(selection) < 0)
+      renderStack.push(selection);
+    if (duration === 0)
+      return selection.__rendered = true;
+    else
+    {
+      selection.__rendered = selection.length ? false : true;
+      var n = 0;
+      var endFn = function(d, i) {
+        if (--n === 0)
+          return selection.__rendered = true;
+        return false;
+      }
+      return selection
+        .transition()
+        .duration(duration)
+        .each(function(){ ++n; })
+        .each('end', function(d, i){
+          if (endFn(d, i)) self.renderEnd.apply(this, args);
+        });
+    }
+  }
+
+  this.renderEnd = function() {
+    if (_duration === 0 || renderStack.every( function(d){ return d.__rendered; } ))
+    {
+      renderStack.forEach( function(d){ d.__rendered = false; });
+      dispatch.renderEnd.apply(this, arguments);
+    }
+  }
+
+}
+
 /*
 Snippet of code you can insert into each nv.models.* to give you the ability to
 do things like:
@@ -1017,6 +1093,7 @@ To enable in the chart:
 chart.options = nv.utils.optionsFunc.bind(chart);
 */
 nv.utils.optionsFunc = function(args) {
+    nv.deprecated('nv.utils.optionsFunc');
     if (args) {
       d3.map(args).forEach((function(key,value) {
         if (typeof this[key] === "function") {
@@ -1025,7 +1102,9 @@ nv.utils.optionsFunc = function(args) {
       }).bind(this));
     }
     return this;
-};nv.models.axis = function() {
+};
+
+nv.models.axis = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
@@ -1047,6 +1126,12 @@ nv.utils.optionsFunc = function(args) {
     , isOrdinal = false
     , ticks = null
     , axisLabelDistance = 12 //The larger this number is, the closer the axis label is to the axis.
+    , duration = 1000
+    , dispatch = d3.dispatch('renderEnd')
+    , axisRendered = false
+    , maxMinRendered = false
+    , renderStack = []
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   axis
@@ -1066,11 +1151,41 @@ nv.utils.optionsFunc = function(args) {
 
   //============================================================
 
+  var dispatchRendered = function(){
+    if (renderStack.every(function(d){ return d._rendered; }))
+    {
+      renderStack.forEach(function(d){ d._rendered = false; });
+      dispatch.renderEnd.apply(this, arguments);
+    }
+  }
+
+  var addTransition = function(selection, arg){
+    renderStack.push(selection);
+    if (duration === 0)
+    {
+      selection._rendered = true;
+      return selection;
+    }
+    else
+    {
+      selection._rendered = false;
+      return selection
+        .transition()
+        .duration(duration)
+        .each('end', function(d, i){
+          if (i === selection[0].length - 1)
+          {
+            selection._rendered = true;
+            dispatchRendered(arg);
+          }
+        });
+    }
+  }
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var container = d3.select(this);
-
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -1090,9 +1205,7 @@ nv.utils.optionsFunc = function(args) {
 
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
-
-
-      g.transition().call(axis);
+      renderWatch.transition(g, 'axis').call(axis);
 
       scale0 = scale0 || axis.scale();
 
@@ -1129,7 +1242,7 @@ nv.utils.optionsFunc = function(args) {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, duration, null, 'min-max top')
                 .attr('transform', function(d,i) {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
@@ -1179,10 +1292,8 @@ nv.utils.optionsFunc = function(args) {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, 'min-max bottom')
                 .attr('transform', function(d,i) {
-                  //return 'translate(' + scale.range()[i] + ',0)'
-                  //return 'translate(' + scale(d) + ',0)'
                   return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
                 });
           }
@@ -1217,7 +1328,7 @@ nv.utils.optionsFunc = function(args) {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, duration, null, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -1259,7 +1370,7 @@ nv.utils.optionsFunc = function(args) {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -1330,7 +1441,13 @@ nv.utils.optionsFunc = function(args) {
       scale0 = scale.copy();
 
     });
-
+    
+    renderWatch.renderEnd('axis renderEnd; no duration');
+    // if (duration === 0)
+    // {
+    //   maxMinRendered = axisRendered = true;
+    //   dispatchRendered('axis all');
+    // }
     return chart;
   }
 
@@ -1341,6 +1458,7 @@ nv.utils.optionsFunc = function(args) {
 
   // expose chart's sub-components
   chart.axis = axis;
+  chart.dispatch = dispatch;
 
   d3.rebind(chart, axis, 'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
   d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
@@ -1424,6 +1542,13 @@ nv.utils.optionsFunc = function(args) {
     axisLabelDistance = _;
     return chart;
   };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
 
   //============================================================
 
@@ -7558,13 +7683,14 @@ nv.models.multiBar = function() {
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-    , duration = 0
+    , duration = 1000
     , xDomain
     , yDomain
     , xRange
     , yRange
     , groupSpacing = 0.1
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   //============================================================
@@ -7577,14 +7703,26 @@ nv.models.multiBar = function() {
   var x0, y0 //used to store previous scales
       ;
 
+
   //============================================================
 
 
+
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
+
+
+      // This function defines the requirements for render complete
+      var endFn = function(d, i) {
+        if (d.series === data.length - 1 && i === data[0].values.length - 1)
+          return true;
+        return false;
+      }
+      
 
       if(hideable && data.length) hideable = [{
         values: data[0].values.map(function(d) {
@@ -7698,13 +7836,12 @@ nv.models.multiBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      groups.exit()
-        .selectAll('rect.nv-bar')
-        .transition()
-        
-        .delay(function(d,i) {
-             return i * delay/ data[0].values.length;
-        })
+      
+      renderWatch
+          .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', 250)
+          .delay(function(d,i) {
+            return i * duration / data[0].values.length;
+          })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
@@ -7715,7 +7852,7 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i){ return color(d, i) });
       groups
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .75);
+          .style('fill-opacity', 0.75);
 
 
       var bars = groups.selectAll('rect.nv-bar')
@@ -7795,8 +7932,11 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
-      var barSelection = duration === 0 ? bars : bars.transition().delay(function(d,i) {
-                return i * duration / data[0].values.length;
+      var barSelection =
+          renderWatch
+            .transition(bars, 'multibar', 250)
+            .delay(function(d,i) {
+              return i * duration / data[0].values.length;
             });
       if (stacked)
           barSelection
@@ -7832,18 +7972,22 @@ nv.models.multiBar = function() {
       y0 = y.copy();
 
     });
-
+    
+    if (duration === 0) dispatch.renderEnd('multibarchart');
+    
     return chart;
   }
-
 
   //============================================================
   // Expose Public Variables
   //------------------------------------------------------------
 
-  chart.dispatch = dispatch;
+  // As a getter, returns a new instance of d3 dispatch and sets appropriate vars.
+  // As a setter, sets dispatch.
+  // Useful when same chart instance is used to render several data models.
+  // Since dispatch is instance-specific, it cannot be contained inside chart model.
 
-  chart.options = nv.utils.optionsFunc.bind(chart);
+  chart.dispatch = dispatch;
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -7968,13 +8112,6 @@ nv.models.multiBar = function() {
     return chart;
   };
 
-  chart.delay = function(_) {
-    nv.deprecated('multiBar.delay');
-    if (!arguments.length) return duration;
-    duration = _;
-    return chart;
-  };
-
   chart.groupSpacing = function(_) {
     if (!arguments.length) return groupSpacing;
     groupSpacing = _;
@@ -7987,9 +8124,22 @@ nv.models.multiBar = function() {
     return chart;
   }
 
+  
 
   //============================================================
+  // Deprecated Methods
+  //------------------------------------------------------------
 
+  chart.delay = function(_) {
+    nv.deprecated('multiBar.delay');
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
+  chart.options = nv.utils.optionsFunc.bind(chart);
+
+  //============================================================
 
   return chart;
 }
@@ -8005,6 +8155,7 @@ nv.models.multiBarChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
     , controls = nv.models.legend()
+    , renderStack = [ multibar, xAxis, yAxis ]
     ;
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -8029,10 +8180,18 @@ nv.models.multiBarChart = function() {
     , state = { stacked: false }
     , defaultState = null
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
-    , transitionDuration = 250
+    , duration = 250
+    , renderWatch = nv.utils.renderWatch(dispatch)
     ;
+
+  renderWatch.addModels(multibar);
+  renderWatch.addModels(xAxis);
+  renderWatch.addModels(yAxis);
+  // nv.utils.renderWatch(renderStack, function(){
+  //   dispatch.renderEnd();
+  // });
 
   multibar
     .stacked(false)
@@ -8081,10 +8240,12 @@ nv.models.multiBarChart = function() {
                              - margin.top - margin.bottom;
 
       chart.update = function() {
-        if (transitionDuration > 0)
-          container.transition().duration(transitionDuration).call(chart)
+        if (duration === 0)
+          container.call(chart);
         else
-          container.call(chart)
+          container.transition()
+            .duration(duration)
+            .call(chart);
       };
       chart.container = this;
 
@@ -8219,7 +8380,7 @@ nv.models.multiBarChart = function() {
       var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      barsWrap.transition().call(multibar);
+      barsWrap.call(multibar);
 
       //------------------------------------------------------------
 
@@ -8235,7 +8396,7 @@ nv.models.multiBarChart = function() {
 
           g.select('.nv-x.nv-axis')
               .attr('transform', 'translate(0,' + y.range()[0] + ')');
-          g.select('.nv-x.nv-axis').transition()
+          g.select('.nv-x.nv-axis')
               .call(xAxis);
 
           var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
@@ -8289,7 +8450,7 @@ nv.models.multiBarChart = function() {
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
-          g.select('.nv-y.nv-axis').transition()
+          g.select('.nv-y.nv-axis')
               .call(yAxis);
       }
 
@@ -8379,6 +8540,7 @@ nv.models.multiBarChart = function() {
     if (tooltips) nv.tooltip.cleanup();
   });
 
+
   //============================================================
 
 
@@ -8466,7 +8628,6 @@ nv.models.multiBarChart = function() {
   };
 
   chart.rotateLabels = function(_) {
-    nv.deprecated();
     if (!arguments.length) return rotateLabels;
     rotateLabels = _;
     return chart;
@@ -8515,10 +8676,17 @@ nv.models.multiBarChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+    nv.deprecated('multiBarChart.transitionDuration');
+    if (!arguments.length) return duration;
+    duration = _;
     return chart;
   };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  }
 
   //============================================================
 

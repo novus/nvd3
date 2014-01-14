@@ -50,6 +50,9 @@ nv.addGraph({
                 .stacked(true)
                 .delay(1000)
 
+      chart.dispatch.on('renderEnd', function(){
+        console.log('Render Complete');
+      });
 
 
     var svg = d3.select('#test1 svg')

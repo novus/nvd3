@@ -21,13 +21,14 @@ nv.models.multiBar = function() {
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-    , duration = 0
+    , duration = 1000
     , xDomain
     , yDomain
     , xRange
     , yRange
     , groupSpacing = 0.1
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   //============================================================
@@ -40,14 +41,26 @@ nv.models.multiBar = function() {
   var x0, y0 //used to store previous scales
       ;
 
+
   //============================================================
 
 
+
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
+
+
+      // This function defines the requirements for render complete
+      var endFn = function(d, i) {
+        if (d.series === data.length - 1 && i === data[0].values.length - 1)
+          return true;
+        return false;
+      }
+      
 
       if(hideable && data.length) hideable = [{
         values: data[0].values.map(function(d) {
@@ -161,13 +174,12 @@ nv.models.multiBar = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      groups.exit()
-        .selectAll('rect.nv-bar')
-        .transition()
-        
-        .delay(function(d,i) {
-             return i * delay/ data[0].values.length;
-        })
+      
+      renderWatch
+          .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', 250)
+          .delay(function(d,i) {
+            return i * duration / data[0].values.length;
+          })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
@@ -178,7 +190,7 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i){ return color(d, i) });
       groups
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .75);
+          .style('fill-opacity', 0.75);
 
 
       var bars = groups.selectAll('rect.nv-bar')
@@ -258,8 +270,11 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
-      var barSelection = duration === 0 ? bars : bars.transition().delay(function(d,i) {
-                return i * duration / data[0].values.length;
+      var barSelection =
+          renderWatch
+            .transition(bars, 'multibar', 250)
+            .delay(function(d,i) {
+              return i * duration / data[0].values.length;
             });
       if (stacked)
           barSelection
@@ -295,18 +310,22 @@ nv.models.multiBar = function() {
       y0 = y.copy();
 
     });
-
+    
+    if (duration === 0) dispatch.renderEnd('multibarchart');
+    
     return chart;
   }
-
 
   //============================================================
   // Expose Public Variables
   //------------------------------------------------------------
 
-  chart.dispatch = dispatch;
+  // As a getter, returns a new instance of d3 dispatch and sets appropriate vars.
+  // As a setter, sets dispatch.
+  // Useful when same chart instance is used to render several data models.
+  // Since dispatch is instance-specific, it cannot be contained inside chart model.
 
-  chart.options = nv.utils.optionsFunc.bind(chart);
+  chart.dispatch = dispatch;
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -431,13 +450,6 @@ nv.models.multiBar = function() {
     return chart;
   };
 
-  chart.delay = function(_) {
-    nv.deprecated('multiBar.delay');
-    if (!arguments.length) return duration;
-    duration = _;
-    return chart;
-  };
-
   chart.groupSpacing = function(_) {
     if (!arguments.length) return groupSpacing;
     groupSpacing = _;
@@ -450,9 +462,22 @@ nv.models.multiBar = function() {
     return chart;
   }
 
+  
 
   //============================================================
+  // Deprecated Methods
+  //------------------------------------------------------------
 
+  chart.delay = function(_) {
+    nv.deprecated('multiBar.delay');
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
+  chart.options = nv.utils.optionsFunc.bind(chart);
+
+  //============================================================
 
   return chart;
 }

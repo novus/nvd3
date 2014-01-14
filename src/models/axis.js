@@ -20,6 +20,12 @@ nv.models.axis = function() {
     , isOrdinal = false
     , ticks = null
     , axisLabelDistance = 12 //The larger this number is, the closer the axis label is to the axis.
+    , duration = 1000
+    , dispatch = d3.dispatch('renderEnd')
+    , axisRendered = false
+    , maxMinRendered = false
+    , renderStack = []
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   axis
@@ -39,11 +45,41 @@ nv.models.axis = function() {
 
   //============================================================
 
+  var dispatchRendered = function(){
+    if (renderStack.every(function(d){ return d._rendered; }))
+    {
+      renderStack.forEach(function(d){ d._rendered = false; });
+      dispatch.renderEnd.apply(this, arguments);
+    }
+  }
+
+  var addTransition = function(selection, arg){
+    renderStack.push(selection);
+    if (duration === 0)
+    {
+      selection._rendered = true;
+      return selection;
+    }
+    else
+    {
+      selection._rendered = false;
+      return selection
+        .transition()
+        .duration(duration)
+        .each('end', function(d, i){
+          if (i === selection[0].length - 1)
+          {
+            selection._rendered = true;
+            dispatchRendered(arg);
+          }
+        });
+    }
+  }
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var container = d3.select(this);
-
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -63,9 +99,7 @@ nv.models.axis = function() {
 
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
-
-
-      g.transition().call(axis);
+      renderWatch.transition(g, 'axis').call(axis);
 
       scale0 = scale0 || axis.scale();
 
@@ -102,7 +136,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, duration, null, 'min-max top')
                 .attr('transform', function(d,i) {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
@@ -152,10 +186,8 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, 'min-max bottom')
                 .attr('transform', function(d,i) {
-                  //return 'translate(' + scale.range()[i] + ',0)'
-                  //return 'translate(' + scale(d) + ',0)'
                   return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
                 });
           }
@@ -190,7 +222,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, duration, null, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -232,7 +264,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            axisMaxMin.transition()
+            renderWatch.transition(axisMaxMin, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -303,7 +335,13 @@ nv.models.axis = function() {
       scale0 = scale.copy();
 
     });
-
+    
+    renderWatch.renderEnd('axis renderEnd; no duration');
+    // if (duration === 0)
+    // {
+    //   maxMinRendered = axisRendered = true;
+    //   dispatchRendered('axis all');
+    // }
     return chart;
   }
 
@@ -314,6 +352,7 @@ nv.models.axis = function() {
 
   // expose chart's sub-components
   chart.axis = axis;
+  chart.dispatch = dispatch;
 
   d3.rebind(chart, axis, 'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
   d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
@@ -397,6 +436,13 @@ nv.models.axis = function() {
     axisLabelDistance = _;
     return chart;
   };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
+
 
   //============================================================
 

@@ -70,7 +70,7 @@ nv.addGraph(function() {
       .barColor(d3.scale.category20().range())
       .margin({bottom: 100})
       .transitionDuration(300)
-      .delay(0)
+      .delay(1000)
       .rotateLabels(45)
       .groupSpacing(0.1)
       ;
@@ -96,6 +96,9 @@ nv.addGraph(function() {
 
     chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
+    chart.dispatch.on('renderEnd', function(){
+      console.log('Render Complete');
+    });
     return chart;
 });
 
