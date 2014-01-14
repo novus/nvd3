@@ -105,7 +105,6 @@ nv.models.discreteBarChart = function() {
 
       //------------------------------------------------------------
       // Setup Scales
-
       x = discretebar.xScale();
       y = discretebar.yScale().clamp(true);
 

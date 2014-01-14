@@ -151,3 +151,13 @@ nv.utils.optionsFunc = function(args) {
     }
     return this;
 };
+
+nv.utils.rotatedBBoxSize = function(bbox, deg) {
+  var rads = deg*Math.PI/180,
+      cos  = Math.abs(Math.cos(rads)),
+      sin  = Math.abs(Math.sin(rads));
+  return {
+    height : bbox.height * cos + bbox.width * sin,
+    width  : bbox.height * sin + bbox.width * cos
+  }
+};

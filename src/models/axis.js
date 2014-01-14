@@ -109,25 +109,55 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-          var xLabelMargin = 36;
-          var maxTextWidth = 30;
-          var xTicks = g.selectAll('g').select("text");
+          var xLabelMargin    = 0;
+          var maxTextWidth    = 30;
+          var xTicks          = g.selectAll('g').select("text");
+          var yRotationOrigin = 0;
+          var bbox;
+          var labelHeight;
+
           if (rotateLabels%360) {
             //Calculate the longest xTick width
             xTicks.each(function(d,i){
-              var width = this.getBBox().width;
-              if(width > maxTextWidth) maxTextWidth = width;
+              bbox = this.getBBox();
+              labelHeight = nv.utils.rotatedBBoxSize(bbox, rotateLabels).height;
+              if (xLabelMargin < labelHeight) {
+                xLabelMargin = labelHeight;
+              }
+              if (!yRotationOrigin) {
+                yRotationOrigin = bbox.height/2;
+              }
+              // var width =  tickBBoxes[i].width;
+              // if(width > maxTextWidth) maxTextWidth = width;
             });
             //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
-            var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
-            var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
+            
+            // var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
+            //     xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
+
             //Rotate all xTicks
             xTicks
-              .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+              .attr('transform', function(d,i,j) { 
+                // var horizAdjust = Math.sin(rotateLabels*Math.PI/180) * tickBBoxes[i].height/2;
+                // return 'translate(' + horizAdjust + ', ' + Math.abs(horizAdjust)/2 + ') rotate(' + rotateLabels + ' 0,0)' 
+                return 'rotate(' + rotateLabels + ' 0,' + yRotationOrigin + ')' 
+              })
               .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
+          } else {
+            //reset the rotation
+            xTicks
+              .attr('transform', function(d,i,j) { 
+                return 'translate(0,0) rotate(0,0,' + yRotationOrigin + ')';
+              });
           }
+
+          xLabelMargin += axis.tickPadding() + 20;
+
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+
+          //the conditional width that was here before didn't make any sense.  i always want it in the middle
+          var w = scale.range().length == 1 ? scale.rangeExtent()[1] : scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', xLabelMargin)
@@ -146,7 +176,7 @@ nv.models.axis = function() {
               .select('text')
                 .attr('dy', '.71em')
                 .attr('y', axis.tickPadding())
-                .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+                .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,' + yRotationOrigin + ')' })
                 .style('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
                 .text(function(d,i) {
                   var v = fmt(d);
@@ -165,11 +195,21 @@ nv.models.axis = function() {
 
           break;
         case 'right':
+          var yTicks = g.selectAll('g').select("text");
+          var yLabelMargin = 10;
+          yTicks.each(function(d,i){
+            var width = nv.utils.rotatedBBoxSize(this.getBBox(),rotateLabels).width;
+            if (yLabelMargin < width) {
+              yLabelMargin = width;
+            }
+          });
+          yLabelMargin += axis.tickPadding() + 16;
+
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'begin')
               .attr('transform', rotateYLabel ? 'rotate(90)' : '')
-              .attr('y', rotateYLabel ? (-Math.max(margin.right,width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', yLabelMargin) 
               .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -199,19 +239,22 @@ nv.models.axis = function() {
           }
           break;
         case 'left':
-          /*
-          //For dynamically placing the label. Can be used with dynamically-sized chart axis margins
           var yTicks = g.selectAll('g').select("text");
+          var yLabelMargin = 10;
+
           yTicks.each(function(d,i){
-            var labelPadding = this.getBBox().width + axis.tickPadding() + 16;
-            if(labelPadding > width) width = labelPadding;
+            var width = nv.utils.rotatedBBoxSize(this.getBBox(),rotateLabels).width;
+            if (yLabelMargin < width) {
+              yLabelMargin = width;
+            }
           });
-          */
+          yLabelMargin += axis.tickPadding() + 16;
+
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
-              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + axisLabelDistance) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', -yLabelMargin) 
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -301,7 +344,6 @@ nv.models.axis = function() {
 
       //store old scales for use in transitions on update
       scale0 = scale.copy();
-
     });
 
     return chart;
