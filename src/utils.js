@@ -146,21 +146,28 @@ nv.utils.renderWatch = function(renderStack, callback) {
   });
 }
 
+// This utility class watches for d3 transition ends.
+
 nv.utils.renderWatch = function(dispatch, duration) {
   if (!(this instanceof nv.utils.renderWatch))
     return new nv.utils.renderWatch(dispatch, duration);
   var _duration = duration || 250;
   var renderStack = [];
   var self = this;
-  this.addModels = function(model) {
-    model.__rendered = false;
-    model.dispatch.on('renderEnd', function(arg){
-      console.log('render end:', arg);
-      model.__rendered = true;
-      self.renderEnd();
+  this.addModels = function(models) {
+    models = [].slice.call(arguments, 0);
+    models.forEach(function(model){
+      model.__rendered = false;
+      (function(m){
+        m.dispatch.on('renderEnd', function(arg){
+          console.log('render end:', arg);
+          m.__rendered = true;
+          self.renderEnd();
+        });
+      })(model);
+      if (renderStack.indexOf(model) < 0)
+        renderStack.push(model);
     });
-    if (renderStack.indexOf(model) < 0)
-      renderStack.push(model);
     return this;
   }
 

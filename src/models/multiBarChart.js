@@ -41,9 +41,7 @@ nv.models.multiBarChart = function() {
     , renderWatch = nv.utils.renderWatch(dispatch)
     ;
 
-  renderWatch.addModels(multibar);
-  renderWatch.addModels(xAxis);
-  renderWatch.addModels(yAxis);
+  renderWatch.addModels(multibar, xAxis, yAxis);
   // nv.utils.renderWatch(renderStack, function(){
   //   dispatch.renderEnd();
   // });

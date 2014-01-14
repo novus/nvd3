@@ -1021,21 +1021,28 @@ nv.utils.renderWatch = function(renderStack, callback) {
   });
 }
 
+// This utility class watches for d3 transition ends.
+
 nv.utils.renderWatch = function(dispatch, duration) {
   if (!(this instanceof nv.utils.renderWatch))
     return new nv.utils.renderWatch(dispatch, duration);
   var _duration = duration || 250;
   var renderStack = [];
   var self = this;
-  this.addModels = function(model) {
-    model.__rendered = false;
-    model.dispatch.on('renderEnd', function(arg){
-      console.log('render end:', arg);
-      model.__rendered = true;
-      self.renderEnd();
+  this.addModels = function(models) {
+    models = [].slice.call(arguments, 0);
+    models.forEach(function(model){
+      model.__rendered = false;
+      (function(m){
+        m.dispatch.on('renderEnd', function(arg){
+          console.log('render end:', arg);
+          m.__rendered = true;
+          self.renderEnd();
+        });
+      })(model);
+      if (renderStack.indexOf(model) < 0)
+        renderStack.push(model);
     });
-    if (renderStack.indexOf(model) < 0)
-      renderStack.push(model);
     return this;
   }
 
@@ -1242,7 +1249,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, duration, null, 'min-max top')
+            renderWatch.transition(axisMaxMin, 'min-max top')
                 .attr('transform', function(d,i) {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
@@ -1328,7 +1335,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, duration, null, 'min-max right')
+            renderWatch.transition(axisMaxMin, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -8186,9 +8193,7 @@ nv.models.multiBarChart = function() {
     , renderWatch = nv.utils.renderWatch(dispatch)
     ;
 
-  renderWatch.addModels(multibar);
-  renderWatch.addModels(xAxis);
-  renderWatch.addModels(yAxis);
+  renderWatch.addModels(multibar, xAxis, yAxis);
   // nv.utils.renderWatch(renderStack, function(){
   //   dispatch.renderEnd();
   // });
