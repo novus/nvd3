@@ -136,7 +136,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, duration, null, 'min-max top')
+            renderWatch.transition(axisMaxMin, 'min-max top')
                 .attr('transform', function(d,i) {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
@@ -222,7 +222,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, duration, null, 'min-max right')
+            renderWatch.transition(axisMaxMin, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
