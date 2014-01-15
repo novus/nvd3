@@ -10,7 +10,6 @@ nv.models.multiBarChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
     , controls = nv.models.legend()
-    , renderStack = [ multibar, xAxis, yAxis ]
     ;
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -40,11 +39,6 @@ nv.models.multiBarChart = function() {
     , duration = 250
     , renderWatch = nv.utils.renderWatch(dispatch)
     ;
-
-  renderWatch.addModels(multibar, xAxis, yAxis);
-  // nv.utils.renderWatch(renderStack, function(){
-  //   dispatch.renderEnd();
-  // });
 
   multibar
     .stacked(false)
@@ -83,6 +77,8 @@ nv.models.multiBarChart = function() {
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.addModels(multibar, xAxis, yAxis);
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -373,6 +369,8 @@ nv.models.multiBarChart = function() {
 
     });
 
+    renderWatch.renderEnd('multibarchart immediate');
+
     return chart;
   }
 
@@ -530,14 +528,16 @@ nv.models.multiBarChart = function() {
 
   chart.transitionDuration = function(_) {
     nv.deprecated('multiBarChart.transitionDuration');
-    if (!arguments.length) return duration;
-    duration = _;
-    return chart;
+    return chart.duration(_);
   };
 
   chart.duration = function(_) {
     if (!arguments.length) return duration;
     duration = _;
+    multibar.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
+    renderWatch.reset(duration);
     return chart;
   }
 

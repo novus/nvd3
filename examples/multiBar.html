@@ -59,7 +59,7 @@ nv.addGraph({
       .attr('width', width)
       .attr('height', height)
       .datum(test_data);
-
+    console.log('calling chart');
     svg.transition().duration(0).call(chart);
 
     return chart;
@@ -84,6 +84,7 @@ nv.addGraph({
          .width(width)
          .height(height);
 
+      console.log('calling chart');
       d3.select('#test1 svg')
         .attr('width', width)
         .attr('height', height)

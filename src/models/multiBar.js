@@ -175,14 +175,15 @@ nv.models.multiBar = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       
-      renderWatch
-          .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', 250)
-          .delay(function(d,i) {
-            return i * duration / data[0].values.length;
-          })
+      var exitTransition = renderWatch
+          .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(250, duration))
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
+      if (exitTransition.delay)
+          exitTransition.delay(function(d,i) {
+            return i * duration / data[0].values.length;
+          });
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
@@ -270,12 +271,11 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
-      var barSelection =
-          renderWatch
-            .transition(bars, 'multibar', 250)
-            .delay(function(d,i) {
-              return i * duration / data[0].values.length;
-            });
+      var barSelection = renderWatch.transition(bars, 'multibar', Math.min(250, duration));
+      if (barSelection.delay)
+        barSelection.delay(function(d,i) {
+          return i * duration / data[0].values.length;
+        });
       if (stacked)
           barSelection
             .attr('y', function(d,i) {
@@ -311,7 +311,7 @@ nv.models.multiBar = function() {
 
     });
     
-    if (duration === 0) dispatch.renderEnd('multibarchart');
+    renderWatch.renderEnd('multibar immediate');
     
     return chart;
   }
@@ -459,6 +459,7 @@ nv.models.multiBar = function() {
   chart.duration = function(_) {
     if (!arguments.length) return duration;
     duration = _;
+    renderWatch.reset(duration);
     return chart;
   }
 
@@ -470,9 +471,7 @@ nv.models.multiBar = function() {
 
   chart.delay = function(_) {
     nv.deprecated('multiBar.delay');
-    if (!arguments.length) return duration;
-    duration = _;
-    return chart;
+    return chart.duration(_);
   };
 
   chart.options = nv.utils.optionsFunc.bind(chart);

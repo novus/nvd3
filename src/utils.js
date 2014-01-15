@@ -130,28 +130,12 @@ nv.utils.NaNtoZero = function(n) {
     return n;
 };
 
-
-nv.utils.renderWatch = function(renderStack, callback) {
-  console.log('renderwatch');
-  renderStack.forEach(function(model, i) {
-    model.dispatch.on('renderEnd', function(arg){
-      nv.log('render end:', arg);
-      model._rendered = true;
-      if (renderStack.every(function(model){ return model._rendered; }))
-      {
-        renderStack.forEach(function(model){ model._rendered = false; });
-        callback();
-      }
-    });
-  });
-}
-
 // This utility class watches for d3 transition ends.
 
 nv.utils.renderWatch = function(dispatch, duration) {
   if (!(this instanceof nv.utils.renderWatch))
     return new nv.utils.renderWatch(dispatch, duration);
-  var _duration = duration || 250;
+  var _duration = duration !== undefined ? duration : 250;
   var renderStack = [];
   var self = this;
   this.addModels = function(models) {
@@ -160,9 +144,8 @@ nv.utils.renderWatch = function(dispatch, duration) {
       model.__rendered = false;
       (function(m){
         m.dispatch.on('renderEnd', function(arg){
-          console.log('render end:', arg);
           m.__rendered = true;
-          self.renderEnd();
+          self.renderEnd('model');
         });
       })(model);
       if (renderStack.indexOf(model) < 0)
@@ -171,40 +154,44 @@ nv.utils.renderWatch = function(dispatch, duration) {
     return this;
   }
 
-  this.reset = function() {
+  this.reset = function(duration) {
+    if (duration !== undefined) _duration = duration;
     renderStack = [];
   }
 
   this.transition = function(selection, args, duration) {
     args = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
-    duration = args.length > 1 ? args.pop() : 250;
-    
+    duration = args.length > 1 ? args.pop() :
+               _duration !== undefined ? _duration :
+               250;
     selection.__rendered = false;
     if (renderStack.indexOf(selection) < 0)
       renderStack.push(selection);
     if (duration === 0)
-      return selection.__rendered = true;
+    {
+      selection.__rendered = true;
+      return selection;
+    }
     else
     {
       selection.__rendered = selection.length ? false : true;
       var n = 0;
-      var endFn = function(d, i) {
-        if (--n === 0)
-          return selection.__rendered = true;
-        return false;
-      }
       return selection
         .transition()
         .duration(duration)
         .each(function(){ ++n; })
         .each('end', function(d, i){
-          if (endFn(d, i)) self.renderEnd.apply(this, args);
+          if (--n === 0)
+          {
+            selection.__rendered = true;
+            self.renderEnd.apply(this, args);
+          }
         });
     }
   }
 
   this.renderEnd = function() {
-    if (_duration === 0 || renderStack.every( function(d){ return d.__rendered; } ))
+    if (renderStack.every( function(d){ return d.__rendered; } ))
     {
       renderStack.forEach( function(d){ d.__rendered = false; });
       dispatch.renderEnd.apply(this, arguments);

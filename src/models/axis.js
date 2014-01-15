@@ -27,7 +27,6 @@ nv.models.axis = function() {
     , renderStack = []
     , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
-
   axis
     .scale(scale)
     .orient('bottom')
@@ -336,12 +335,7 @@ nv.models.axis = function() {
 
     });
     
-    renderWatch.renderEnd('axis renderEnd; no duration');
-    // if (duration === 0)
-    // {
-    //   maxMinRendered = axisRendered = true;
-    //   dispatchRendered('axis all');
-    // }
+    renderWatch.renderEnd('axis immediate');
     return chart;
   }
 
@@ -440,6 +434,7 @@ nv.models.axis = function() {
   chart.duration = function(_) {
     if (!arguments.length) return duration;
     duration = _;
+    renderWatch.reset(duration);
     return chart;
   };
 
