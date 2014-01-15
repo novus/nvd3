@@ -37,7 +37,7 @@ nv.models.multiBarChart = function() {
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , duration = 250
-    , renderWatch = nv.utils.renderWatch(dispatch)
+    
     ;
 
   multibar
@@ -62,7 +62,8 @@ nv.models.multiBarChart = function() {
   //============================================================
   // Private Variables
   //------------------------------------------------------------
-
+  var renderWatch = nv.utils.renderWatch(dispatch);
+  
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
@@ -78,7 +79,7 @@ nv.models.multiBarChart = function() {
 
   function chart(selection) {
     renderWatch.reset();
-    renderWatch.addModels(multibar, xAxis, yAxis);
+    renderWatch.models(multibar, xAxis, yAxis);
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;

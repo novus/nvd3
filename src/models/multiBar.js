@@ -28,7 +28,6 @@ nv.models.multiBar = function() {
     , yRange
     , groupSpacing = 0.1
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
-    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   //============================================================
@@ -39,6 +38,7 @@ nv.models.multiBar = function() {
   //------------------------------------------------------------
 
   var x0, y0 //used to store previous scales
+      , renderWatch = nv.utils.renderWatch(dispatch, duration)
       ;
 
 

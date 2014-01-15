@@ -13,6 +13,8 @@ nv.models.distribution = function() {
     , color = nv.utils.defaultColor()
     , scale = d3.scale.linear()
     , domain
+    , duration = 250
+    , dispatch = d3.dispatch('renderEnd')
     ;
 
   //============================================================
@@ -23,11 +25,13 @@ nv.models.distribution = function() {
   //------------------------------------------------------------
 
   var scale0;
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableLength = width - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
           naxis = axis == 'x' ? 'y' : 'x',
@@ -68,8 +72,8 @@ nv.models.distribution = function() {
       dist.enter().append('line')
           .attr(axis + '1', function(d,i) { return scale0(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale0(getData(d,i)) })
-      distWrap.exit().selectAll('line.nv-dist' + axis)
-          .transition()
+      renderWatch.transition(distWrap.exit().selectAll('line.nv-dist' + axis), 'dist exit')
+          // .transition()
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
           .style('stroke-opacity', 0)
@@ -78,8 +82,8 @@ nv.models.distribution = function() {
           .attr('class', function(d,i) { return 'nv-dist' + axis + ' nv-dist' + axis + '-' + i })
           .attr(naxis + '1', 0)
           .attr(naxis + '2', size);
-      dist
-          .transition()
+      renderWatch.transition(dist, 'dist')
+          // .transition()
           .attr(axis + '1', function(d,i) { return scale(getData(d,i)) })
           .attr(axis + '2', function(d,i) { return scale(getData(d,i)) })
 
@@ -87,7 +91,7 @@ nv.models.distribution = function() {
       scale0 = scale.copy();
 
     });
-
+    renderWatch.renderEnd('distribution immediate');
     return chart;
   }
 
@@ -96,6 +100,7 @@ nv.models.distribution = function() {
   // Expose Public Variables
   //------------------------------------------------------------
   chart.options = nv.utils.optionsFunc.bind(chart);
+  chart.dispatch = dispatch;
   
   chart.margin = function(_) {
     if (!arguments.length) return margin;
@@ -139,6 +144,13 @@ nv.models.distribution = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
     return chart;
   };
   //============================================================

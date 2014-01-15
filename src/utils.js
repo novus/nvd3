@@ -138,7 +138,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
   var _duration = duration !== undefined ? duration : 250;
   var renderStack = [];
   var self = this;
-  this.addModels = function(models) {
+  this.models = function(models) {
     models = [].slice.call(arguments, 0);
     models.forEach(function(model){
       model.__rendered = false;
@@ -165,8 +165,10 @@ nv.utils.renderWatch = function(dispatch, duration) {
                _duration !== undefined ? _duration :
                250;
     selection.__rendered = false;
+    
     if (renderStack.indexOf(selection) < 0)
       renderStack.push(selection);
+
     if (duration === 0)
     {
       selection.__rendered = true;
@@ -174,7 +176,9 @@ nv.utils.renderWatch = function(dispatch, duration) {
     }
     else
     {
-      selection.__rendered = selection.length ? false : true;
+      selection.__rendered = selection.length === 0 ? true :
+                             selection.every( function(d){ return !d.length; }) ? true :
+                             false;
       var n = 0;
       return selection
         .transition()

@@ -20,12 +20,10 @@ nv.models.axis = function() {
     , isOrdinal = false
     , ticks = null
     , axisLabelDistance = 12 //The larger this number is, the closer the axis label is to the axis.
-    , duration = 1000
+    , duration = 250
     , dispatch = d3.dispatch('renderEnd')
     , axisRendered = false
     , maxMinRendered = false
-    , renderStack = []
-    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
   axis
     .scale(scale)
@@ -40,40 +38,11 @@ nv.models.axis = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var scale0;
+  var scale0
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
+    ;
 
   //============================================================
-
-  var dispatchRendered = function(){
-    if (renderStack.every(function(d){ return d._rendered; }))
-    {
-      renderStack.forEach(function(d){ d._rendered = false; });
-      dispatch.renderEnd.apply(this, arguments);
-    }
-  }
-
-  var addTransition = function(selection, arg){
-    renderStack.push(selection);
-    if (duration === 0)
-    {
-      selection._rendered = true;
-      return selection;
-    }
-    else
-    {
-      selection._rendered = false;
-      return selection
-        .transition()
-        .duration(duration)
-        .each('end', function(d, i){
-          if (i === selection[0].length - 1)
-          {
-            selection._rendered = true;
-            dispatchRendered(arg);
-          }
-        });
-    }
-  }
 
   function chart(selection) {
     renderWatch.reset();
