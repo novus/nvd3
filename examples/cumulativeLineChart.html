@@ -59,19 +59,22 @@ text {
 // Wrapping in nv.addGraph allows for '0 timeout render', stores rendered charts in nv.graphs, and may do more in the future... it's NOT required
 
 nv.addGraph(function() {  
-   var chart = nv.models.cumulativeLineChart()
-             .useInteractiveGuideline(true)
-             .x(function(d) { return d[0] })
-             .y(function(d) { return d[1]/100 })
-             .color(d3.scale.category10().range())
-             .average(function(d) { return d.mean/100; })
-             .transitionDuration(300)
-             .clipVoronoi(false);
+  var chart = nv.models.cumulativeLineChart()
+              .useInteractiveGuideline(true)
+              .x(function(d) { return d[0] })
+              .y(function(d) { return d[1]/100 })
+              .color(d3.scale.category10().range())
+              .average(function(d) { return d.mean/100; })
+              .duration(300)
+              .clipVoronoi(false);
+  chart.dispatch.on('renderEnd', function() {
+    console.log('render complete: cumulative line with guide line');
+  });
 
-   chart.xAxis
-      .tickFormat(function(d) {
-          return d3.time.format('%m/%d/%y')(new Date(d))
-        });
+  chart.xAxis
+    .tickFormat(function(d) {
+      return d3.time.format('%m/%d/%y')(new Date(d))
+    });
 
   chart.yAxis
       .tickFormat(d3.format(',.1%'));
@@ -97,7 +100,12 @@ nv.addGraph(function() {
              .y(function(d) { return d[1]/100 })
              .color(d3.scale.category10().range())
              .average(function(d) { return d.mean/100; })
+             .duration(300)
              .clipVoronoi(false);
+
+  chart.dispatch.on('renderEnd', function() {
+    console.log('render complete: cumulative line without guide line');
+  });
 
    chart.xAxis
       .tickFormat(function(d) {

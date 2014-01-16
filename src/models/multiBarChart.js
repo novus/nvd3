@@ -79,7 +79,10 @@ nv.models.multiBarChart = function() {
 
   function chart(selection) {
     renderWatch.reset();
-    renderWatch.models(multibar, xAxis, yAxis);
+    renderWatch.models(multibar);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -294,7 +297,7 @@ nv.models.multiBarChart = function() {
       }
 
 
-      if (showYAxis) {      
+      if (showYAxis) {     
           yAxis
             .scale(y)
             .ticks( availableHeight / 36 )

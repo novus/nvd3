@@ -102,7 +102,12 @@ nv.models.scatterChart = function() {
 
   function chart(selection) {
     renderWatch.reset();
-    renderWatch.models(scatter, xAxis, yAxis, distX, distY);
+    renderWatch.models(scatter);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+    if (showDistX) renderWatch.models(distX);
+    if (showDistY) renderWatch.models(distY);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -626,6 +631,11 @@ nv.models.scatterChart = function() {
     if (!arguments.length) return duration;
     duration = _;
     renderWatch.reset(duration);
+    scatter.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
+    distX.duration(duration);
+    distY.duration(duration);
     return chart;
   }
   chart.transitionDuration = function(_) {

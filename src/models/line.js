@@ -89,7 +89,7 @@ nv.models.line = function() {
       var scatterWrap = wrap.select('.nv-scatterWrap');
           //.datum(data); // Data automatically trickles down from the wrap
 
-      scatterWrap.transition().call(scatter);
+      scatterWrap.call(scatter);
 
 
 
@@ -107,7 +107,6 @@ nv.models.line = function() {
 
 
 
-
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
@@ -121,7 +120,7 @@ nv.models.line = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i)});
-      renderWatch.transition(groups)
+      renderWatch.transition(groups, 'line: groups')
           // .transition()
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
@@ -145,7 +144,7 @@ nv.models.line = function() {
       groups.exit().selectAll('path.nv-area')
            .remove();
 
-      renderWatch.transition(areaPaths)
+      renderWatch.transition(areaPaths, 'line: areaPaths')
           // .transition()
           .attr('d', function(d) {
             return d3.svg.area()
@@ -172,7 +171,7 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
           );
 
-      renderWatch.transition(linePaths)
+      renderWatch.transition(linePaths, 'line: linePaths')
           // .transition()
           .attr('d',
             d3.svg.line()
@@ -280,6 +279,7 @@ nv.models.line = function() {
     if (!arguments.length) return duration;
     duration = _;
     renderWatch.reset(duration);
+    scatter.duration(duration);
     return chart;
   };
 

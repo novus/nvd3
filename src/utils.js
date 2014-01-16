@@ -132,6 +132,13 @@ nv.utils.NaNtoZero = function(n) {
 
 // This utility class watches for d3 transition ends.
 
+(function(){
+  d3.selection.prototype.testing = function(){
+    console.log('new extension')
+    console.log(this);
+  }
+})();
+
 nv.utils.renderWatch = function(dispatch, duration) {
   if (!(this instanceof nv.utils.renderWatch))
     return new nv.utils.renderWatch(dispatch, duration);
@@ -144,6 +151,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
       model.__rendered = false;
       (function(m){
         m.dispatch.on('renderEnd', function(arg){
+          // nv.log('nv.utils renderEnd', arg);
           m.__rendered = true;
           self.renderEnd('model');
         });
