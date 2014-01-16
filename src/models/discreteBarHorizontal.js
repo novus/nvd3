@@ -1,4 +1,4 @@
-//TODO: consider deprecating by adding necessary features to multiBar model
+
 nv.models.discreteBarHorizontal = function() {
   "use strict";
   //============================================================
@@ -349,4 +349,4 @@ nv.models.discreteBarHorizontal = function() {
 
 
   return chart;
-}
+};

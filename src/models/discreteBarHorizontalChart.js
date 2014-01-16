@@ -346,4 +346,4 @@ nv.models.discreteBarHorizontalChart = function() {
 
 
   return chart;
-}
+};

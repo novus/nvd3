@@ -22,6 +22,8 @@ module.exports = function(grunt) {
                      'src/models/cumulativeLineChart.js',
                      'src/models/discreteBar.js',
                      'src/models/discreteBarChart.js',
+                     'src/models/discreteBarHorizontal.js',
+                     'src/models/discreteBarHorizontalChart.js',
                      'src/models/distribution.js',
                      'src/models/historicalBar.js',
                      'src/models/historicalBarChart.js',
