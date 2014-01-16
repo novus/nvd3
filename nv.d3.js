@@ -1007,6 +1007,13 @@ nv.utils.NaNtoZero = function(n) {
 
 // This utility class watches for d3 transition ends.
 
+(function(){
+  d3.selection.prototype.watchTransition = function(renderWatch){
+    var args = [this].concat([].slice.call(arguments, 1));
+    return renderWatch.transition.apply(renderWatch, args);
+  }
+})();
+
 nv.utils.renderWatch = function(dispatch, duration) {
   if (!(this instanceof nv.utils.renderWatch))
     return new nv.utils.renderWatch(dispatch, duration);
@@ -1048,6 +1055,8 @@ nv.utils.renderWatch = function(dispatch, duration) {
     if (duration === 0)
     {
       selection.__rendered = true;
+      selection.delay = function(){console.warn('`delay` not specified for selection.'); return this;}
+      selection.duration = function(){console.warn('`duration` not specified for selection.'); return this;}
       return selection;
     }
     else
@@ -1172,7 +1181,7 @@ nv.models.axis = function() {
 
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
-      renderWatch.transition(g, 'axis').call(axis);
+      g.watchTransition(renderWatch, 'axis').call(axis);
 
       scale0 = scale0 || axis.scale();
 
@@ -1209,7 +1218,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max top')
+            axisMaxMin.watchTransition(renderWatch, 'min-max top')
                 .attr('transform', function(d,i) {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
@@ -1259,7 +1268,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max bottom')
+            axisMaxMin.watchTransition(renderWatch, 'min-max bottom')
                 .attr('transform', function(d,i) {
                   return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
                 });
@@ -1295,7 +1304,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max right')
+            axisMaxMin.watchTransition(renderWatch, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -1337,7 +1346,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max right')
+            axisMaxMin.watchTransition(renderWatch, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -7967,11 +7976,11 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
-      var barSelection = renderWatch.transition(bars, 'multibar', Math.min(250, duration));
-      if (barSelection.delay)
-        barSelection.delay(function(d,i) {
-          return i * duration / data[0].values.length;
-        });
+      var barSelection =
+          bars.watchTransition(renderWatch, 'multibar', Math.min(250, duration))
+          .delay(function(d,i) {
+            return i * duration / data[0].values.length;
+          });
       if (stacked)
           barSelection
             .attr('y', function(d,i) {

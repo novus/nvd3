@@ -120,8 +120,7 @@ nv.models.line = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i)});
-      renderWatch.transition(groups, 'line: groups')
-          // .transition()
+      groups.watchTransition(renderWatch, 'line: groups')
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -144,8 +143,7 @@ nv.models.line = function() {
       groups.exit().selectAll('path.nv-area')
            .remove();
 
-      renderWatch.transition(areaPaths, 'line: areaPaths')
-          // .transition()
+      areaPaths.watchTransition(renderWatch, 'line: areaPaths')
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -171,8 +169,7 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
           );
 
-      renderWatch.transition(linePaths, 'line: linePaths')
-          // .transition()
+      linePaths.watchTransition(renderWatch, 'line: linePaths')
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)

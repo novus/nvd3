@@ -406,7 +406,7 @@ nv.models.cumulativeLineChart = function() {
 
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        d3.transition(g.select('.nv-x.nv-axis'))
+        g.select('.nv-x.nv-axis')
             .call(xAxis);
       }
 
@@ -417,7 +417,7 @@ nv.models.cumulativeLineChart = function() {
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
-        d3.transition(g.select('.nv-y.nv-axis'))
+        g.select('.nv-y.nv-axis')
             .call(yAxis);
       }
       //------------------------------------------------------------

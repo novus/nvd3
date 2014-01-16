@@ -346,9 +346,7 @@ nv.models.scatter = function() {
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
-      renderWatch.transition(groups, 'scatter: groups')
-      // groups
-      //     .transition()
+      groups.watchTransition(renderWatch, 'scatter: groups')
           .style('fill', function(d,i) { return color(d, i) })
           .style('stroke', function(d,i) { return color(d, i) })
           .style('stroke-opacity', 1)
@@ -365,8 +363,8 @@ nv.models.scatter = function() {
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
-        renderWatch.transition(groups.exit().selectAll('path.nv-point'), 'scatter exit')
-        // groups.exit().selectAll('path.nv-point').transition()
+        groups.exit().selectAll('path.nv-point')
+            .watchTransition(renderWatch, 'scatter exit')
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .remove();
@@ -377,8 +375,8 @@ nv.models.scatter = function() {
             .classed('hover',false)
             ;
         });
-        renderWatch.transition(points, 'scatter points')
-        // points.transition()
+        points
+            .watchTransition(renderWatch, 'scatter points')
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
@@ -399,9 +397,8 @@ nv.models.scatter = function() {
                 .size(function(d,i) { return z(getSize(d,i)) })
             );
         points.exit().remove();
-        renderWatch.transition(groups.exit().selectAll('path.nv-point'), 'scatter exit')
-        // groups.exit().selectAll('path.nv-point')
-        //     .transition()
+        groups.exit().selectAll('path.nv-point')
+            .watchTransition(renderWatch, 'scatter exit')
             .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
             })
@@ -413,8 +410,8 @@ nv.models.scatter = function() {
             .classed('hover',false)
             ;
         });
-        renderWatch.transition(points, 'scatter points')
-        // points.transition()
+        points
+            .watchTransition(renderWatch, 'scatter points')
             .attr('transform', function(d,i) {
               //nv.log(d,i,getX(d,i), x(getX(d,i)));
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'

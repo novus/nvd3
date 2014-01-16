@@ -67,7 +67,7 @@ nv.models.axis = function() {
 
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
-      renderWatch.transition(g, 'axis').call(axis);
+      g.watchTransition(renderWatch, 'axis').call(axis);
 
       scale0 = scale0 || axis.scale();
 
@@ -104,7 +104,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max top')
+            axisMaxMin.watchTransition(renderWatch, 'min-max top')
                 .attr('transform', function(d,i) {
                   return 'translate(' + scale.range()[i] + ',0)'
                 });
@@ -154,7 +154,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max bottom')
+            axisMaxMin.watchTransition(renderWatch, 'min-max bottom')
                 .attr('transform', function(d,i) {
                   return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
                 });
@@ -190,7 +190,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max right')
+            axisMaxMin.watchTransition(renderWatch, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })
@@ -232,7 +232,7 @@ nv.models.axis = function() {
                   var v = fmt(d);
                   return ('' + v).match('NaN') ? '' : v;
                 });
-            renderWatch.transition(axisMaxMin, 'min-max right')
+            axisMaxMin.watchTransition(renderWatch, 'min-max right')
                 .attr('transform', function(d,i) {
                   return 'translate(0,' + scale.range()[i] + ')'
                 })

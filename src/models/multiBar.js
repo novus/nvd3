@@ -271,11 +271,11 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
-      var barSelection = renderWatch.transition(bars, 'multibar', Math.min(250, duration));
-      if (barSelection.delay)
-        barSelection.delay(function(d,i) {
-          return i * duration / data[0].values.length;
-        });
+      var barSelection =
+          bars.watchTransition(renderWatch, 'multibar', Math.min(250, duration))
+          .delay(function(d,i) {
+            return i * duration / data[0].values.length;
+          });
       if (stacked)
           barSelection
             .attr('y', function(d,i) {
