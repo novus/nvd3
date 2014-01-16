@@ -80,7 +80,7 @@ nv.models.axis = function() {
       switch (axis.orient()) {
         case 'top':
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+          var w = scale.rangeExtent ? scale.rangeExtent()[1] : scale.range()[scale.range().length-1]-scale.range()[0];
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', 0)
@@ -143,7 +143,10 @@ nv.models.axis = function() {
                 return 'rotate(' + rotateLabels + ' 0,' + yRotationOrigin + ')' 
               })
               .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
+
+              xLabelMargin -=7;  //its usually too tall
           } else {
+            xLabelMargin += 10;
             //reset the rotation
             xTicks
               .attr('transform', function(d,i,j) { 
@@ -156,7 +159,7 @@ nv.models.axis = function() {
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
 
           //the conditional width that was here before didn't make any sense.  i always want it in the middle
-          var w = scale.range().length == 1 ? scale.rangeExtent()[1] : scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+          var w = scale.rangeExtent ? scale.rangeExtent()[1] : scale.range()[scale.range().length-1]-scale.range()[0];
 
           axisLabel
               .attr('text-anchor', 'middle')
@@ -249,13 +252,16 @@ nv.models.axis = function() {
             }
           });
           yLabelMargin += axis.tickPadding() + 16;
-
+          
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
+
+          var h = scale.rangeExtent ? scale.rangeExtent()[1] : Math.abs(scale.range()[scale.range().length-1]-scale.range()[0]);
+
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
               .attr('y', -yLabelMargin) 
-              .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
+              .attr('x', rotateYLabel ? -h/2 : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                            .data(scale.domain());

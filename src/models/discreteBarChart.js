@@ -95,6 +95,8 @@ nv.models.discreteBarChart = function() {
           .attr('y', margin.top + availableHeight / 2)
           .text(function(d) { return d });
 
+        //remove potentially existing old chart data, it shouldn't be shown if we have no data.
+        container.selectAll('.nv-wrap').remove();
         return chart;
       } else {
         container.selectAll('.nv-noData').remove();
