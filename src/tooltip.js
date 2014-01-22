@@ -70,13 +70,15 @@ window.nv.tooltip.* also has various helper methods.
 
             if (d == null) return '';
 
-            var html = "<table><thead><tr><td colspan='3'><strong class='x-value'>" + headerFormatter(d.value) + "</strong></td></tr></thead><tbody>";
+            var html = '';
+            var maxValues = 1;
             if (d.series instanceof Array) {
                 d.series.forEach(function(item, i) {
                     html += "<tr>";
                     html += "<td class='legend-color-guide'><div style='background-color: " + item.color + ";'></div></td>";
                     html += "<td class='key'>" + item.key + ":</td>";
                     if (item.value instanceof Array) {
+                        maxValues = Math.max(maxValues, item.value.length);
                         item.value.forEach(function(value, j) {
                             html += "<td class='value'>" + valueFormatter(value,i) + "</td>"; 
                         });
@@ -87,6 +89,9 @@ window.nv.tooltip.* also has various helper methods.
                 });
             }
             html += "</tbody></table>";
+            html = "<table><thead><tr><td colspan='" + (maxValues + 2) +
+                    "'><strong class='x-value'>" + headerFormatter(d.value) + "</strong></td></tr></thead><tbody>" +
+                    html;
             return html;
         };
 
