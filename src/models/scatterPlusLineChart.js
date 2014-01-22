@@ -68,7 +68,9 @@ nv.models.scatterPlusLineChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var x0, y0;
+  var x0, y0
+    , renderWatch = nv.utils.renderWatch(dispatch, transitionDuration)
+    ;
 
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
@@ -98,6 +100,8 @@ nv.models.scatterPlusLineChart = function() {
 
 
   function chart(selection) {
+    renderWatch.reset();
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -139,7 +143,9 @@ nv.models.scatterPlusLineChart = function() {
           .attr('x', margin.left + availableWidth / 2)
           .attr('y', margin.top + availableHeight / 2)
           .text(function(d) { return d });
-
+        
+        renderWatch.renderEnd('scatter immediate');
+        
         return chart;
       } else {
         container.selectAll('.nv-noData').remove();
@@ -342,6 +348,8 @@ nv.models.scatterPlusLineChart = function() {
         });
       }
 
+      // At this point, everything has been selected and bound... I think
+
 
       function updateFisheye() {
         if (pauseFisheye) {
@@ -445,9 +453,9 @@ nv.models.scatterPlusLineChart = function() {
 
     });
 
+    renderWatch.renderEnd('scatter with line immediate');
     return chart;
   }
-
 
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
