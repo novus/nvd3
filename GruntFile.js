@@ -82,7 +82,8 @@ module.exports = function(grunt) {
         copy: {
           css: {
             files: [
-              { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
+              { src: 'src/nv.d3.css', dest: 'nv.d3.css' },
+              { src: 'src/nv.d3.css', dest: 'nv.d3.less' }
             ]
           }
         },

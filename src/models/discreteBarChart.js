@@ -214,7 +214,6 @@ nv.models.discreteBarChart = function() {
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
-
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
       });

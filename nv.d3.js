@@ -3874,7 +3874,6 @@ nv.models.discreteBarChart = function() {
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
-
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
       });
@@ -4407,8 +4406,8 @@ nv.models.discreteBarHorizontalChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(discretebarHorizontal.x()(e.point, e.pointIndex)),
-        y = yAxis.tickFormat()(discretebarHorizontal.y()(e.point, e.pointIndex)),
+        x = xAxis.tickFormat()(discretebarhorizontal.x()(e.point, e.pointIndex)),
+        y = yAxis.tickFormat()(discretebarhorizontal.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
@@ -4463,9 +4462,9 @@ nv.models.discreteBarHorizontalChart = function() {
       //------------------------------------------------------------
       // Setup Scales
 
-      x = discretebarHorizontal.xScale();
+      x = discretebarhorizontal.xScale();
       //what the hell does clamp true do?
-      y = discretebarHorizontal.yScale().clamp(true);
+      y = discretebarhorizontal.yScale().clamp(true);
 
       //------------------------------------------------------------
 
@@ -4498,7 +4497,7 @@ nv.models.discreteBarHorizontalChart = function() {
       //------------------------------------------------------------
       // Main Chart Component(s)
 
-      discretebarHorizontal
+      discretebarhorizontal
         .width(availableWidth)
         .height(availableHeight);
 
@@ -4506,17 +4505,17 @@ nv.models.discreteBarHorizontalChart = function() {
       var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      barsWrap.transition().call(discretebarHorizontal);
+      barsWrap.transition().call(discretebarhorizontal);
 
       //------------------------------------------------------------
 
 
 
       defsEnter.append('clipPath')
-          .attr('id', 'nv-x-label-clip-' + discretebarHorizontal.id())
+          .attr('id', 'nv-x-label-clip-' + discretebarhorizontal.id())
         .append('rect');
 
-      g.select('#nv-x-label-clip-' + discretebarHorizontal.id() + ' rect')
+      g.select('#nv-x-label-clip-' + discretebarhorizontal.id() + ' rect')
           .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
           .attr('height', 16)
           .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
@@ -4532,7 +4531,7 @@ nv.models.discreteBarHorizontalChart = function() {
             .tickSize(-availableWidth, 0);
 
           // g.select('.nv-x.nv-axis')
-          //     .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebarHorizontal.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
+          //     .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebarhorizontal.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
           //d3.transition(g.select('.nv-x.nv-axis'))
           g.select('.nv-x.nv-axis').transition()
               .call(xAxis);
@@ -4591,12 +4590,12 @@ nv.models.discreteBarHorizontalChart = function() {
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
 
-  discretebarHorizontal.dispatch.on('elementMouseover.tooltip', function(e) {
+  discretebarhorizontal.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
   });
 
-  discretebarHorizontal.dispatch.on('elementMouseout.tooltip', function(e) {
+  discretebarhorizontal.dispatch.on('elementMouseout.tooltip', function(e) {
     dispatch.tooltipHide(e);
   });
 
@@ -4613,11 +4612,11 @@ nv.models.discreteBarHorizontalChart = function() {
 
   // expose chart's sub-components
   chart.dispatch = dispatch;
-  chart.discretebarHorizontal = discretebarHorizontal;
+  chart.discretebarhorizontal = discretebarhorizontal;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
 
-  d3.rebind(chart, discretebarHorizontal, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
+  d3.rebind(chart, discretebarhorizontal, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
   
@@ -4645,7 +4644,7 @@ nv.models.discreteBarHorizontalChart = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-    discretebarHorizontal.color(color);
+    discretebarhorizontal.color(color);
     return chart;
   };
 
@@ -11618,6 +11617,7 @@ nv.models.pieChart = function() {
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
+
 
   pie.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
