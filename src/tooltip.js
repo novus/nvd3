@@ -76,7 +76,14 @@ window.nv.tooltip.* also has various helper methods.
                     html += "<tr>";
                     html += "<td class='legend-color-guide'><div style='background-color: " + item.color + ";'></div></td>";
                     html += "<td class='key'>" + item.key + ":</td>";
-                    html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
+                    if (item.value instanceof Array) {
+                        item.value.forEach(function(value, j) {
+                            html += "<td class='value'>" + valueFormatter(value,i) + "</td>"; 
+                        });
+                        html += '</tr>';
+                    } else {
+                        html += "<td class='value'>" + valueFormatter(item.value,i) + "</td></tr>"; 
+                    }
                 });
             }
             html += "</tbody></table>";
