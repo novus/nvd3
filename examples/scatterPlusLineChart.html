@@ -69,6 +69,10 @@ nv.addGraph(function() {
                 .transitionDuration(300)
                 .color(d3.scale.category10().range());
 
+  chart.dispatch.on('renderEnd', function(){
+    console.log('render complete');
+  });
+
   chart.xAxis.tickFormat(d3.format('.02f'))
   chart.yAxis.tickFormat(d3.format('.02f'))
 
