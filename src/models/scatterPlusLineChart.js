@@ -38,7 +38,7 @@ nv.models.scatterPlusLineChart = function() {
     , defaultState = null
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , noData       = "No Data Available."
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   scatter
@@ -69,7 +69,7 @@ nv.models.scatterPlusLineChart = function() {
   //------------------------------------------------------------
 
   var x0, y0
-    , renderWatch = nv.utils.renderWatch(dispatch, transitionDuration)
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   var showTooltip = function(e, offsetElement) {
@@ -101,6 +101,11 @@ nv.models.scatterPlusLineChart = function() {
 
   function chart(selection) {
     renderWatch.reset();
+    renderWatch.models(scatter);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+    if (showDistX) renderWatch.models(distX);
+    if (showDistY) renderWatch.models(distY);
 
     selection.each(function(data) {
       var container = d3.select(this),
@@ -111,7 +116,12 @@ nv.models.scatterPlusLineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+      chart.update = function() {
+        if (duration === 0)
+          container.call(chart);
+        else
+          container.transition().duration(transitionDuration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled
@@ -260,7 +270,7 @@ nv.models.scatterPlusLineChart = function() {
                        .style('stroke-opacity', 0);
 
       regLine
-          .transition()
+          .watchTransition(renderWatch, 'scatterPlusLineChart: regline')
           .attr('x1', x.range()[0])
           .attr('x2', x.range()[1])
           .attr('y1', function(d,i) {return y(x.domain()[0] * d.slope + d.intercept) })
@@ -616,8 +626,13 @@ nv.models.scatterPlusLineChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+    nv.deprecated('scatterPlusLineChart.transitionDuration')
+    return chart.duration(_);
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
     return chart;
   };
 
