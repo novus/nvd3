@@ -58,10 +58,12 @@ nv.models.discreteBarChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch, transitionDuration);
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -222,6 +224,7 @@ nv.models.discreteBarChart = function() {
 
 
     });
+    renderWatch.renderEnd('discreteBar chart immediate');
 
     return chart;
   }
