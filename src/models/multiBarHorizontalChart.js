@@ -31,7 +31,7 @@ nv.models.multiBarHorizontalChart = function() {
     , state = { stacked: stacked }
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
     ;
