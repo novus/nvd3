@@ -354,6 +354,7 @@ nv.models.scatterChart = function() {
         y.distortion(fisheye).focus(mouse[1]);
 
         g.select('.nv-scatterWrap')
+            .datum(data.filter(function(d) { return !d.disabled }))
             .call(scatter);
 
         if (showXAxis)
