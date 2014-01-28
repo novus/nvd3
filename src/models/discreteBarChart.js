@@ -224,8 +224,8 @@ nv.models.discreteBarChart = function() {
 
 
     });
-    renderWatch.renderEnd('discreteBar chart immediate');
 
+    renderWatch.renderEnd('discreteBar chart immediate');
     return chart;
   }
 

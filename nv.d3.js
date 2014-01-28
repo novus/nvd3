@@ -3956,8 +3956,8 @@ nv.models.discreteBarChart = function() {
 
 
     });
-    renderWatch.renderEnd('discreteBar chart immediate');
 
+    renderWatch.renderEnd('discreteBar chart immediate');
     return chart;
   }
 
@@ -9256,9 +9256,10 @@ nv.models.multiBarHorizontalChart = function() {
   };
 
   //============================================================
-
+  var renderWatch = nv.utils.renderWatch(dispatch, transitionDuration);
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -9505,9 +9506,8 @@ nv.models.multiBarHorizontalChart = function() {
       });
       //============================================================
 
-
     });
-
+    renderWatch.renderEnd('multibar horizontal chart immediate');
     return chart;
   }
 
