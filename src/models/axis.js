@@ -43,8 +43,6 @@ nv.models.axis = function() {
   function chart(selection) {
     selection.each(function(data) {
       var container = d3.select(this);
-
-
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
@@ -345,7 +343,8 @@ nv.models.axis = function() {
       //highlight zero line ... Maybe should not be an option and should just be in CSS?
       if (highlightZero)
         g.selectAll('.tick')
-          .filter(function(d) { return !parseFloat(Math.round(d.__data__*100000)/1000000) && (d.__data__ !== undefined) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
+          // we should use d and not d.__data__ because filter already filters things BY DATA, and d IS the data
+          .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) && (d !== undefined) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
       //store old scales for use in transitions on update

@@ -161,3 +161,10 @@ nv.utils.rotatedBBoxSize = function(bbox, deg) {
     width  : bbox.height * sin + bbox.width * cos
   }
 };
+
+nv.utils.collisionBBox = function(r1, r2) {
+  return !(r2.left > r1.left   + r1.width
+      ||   r2.left + r2.width  < r1.left
+      ||   r2.top  > r1.top    + r1.height
+      ||   r2.top  + r2.height < r1.top);
+};
