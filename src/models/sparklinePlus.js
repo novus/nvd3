@@ -36,7 +36,7 @@ nv.models.sparklinePlus = function() {
 
       
 
-      chart.update = function() { chart(selection) };
+      chart.update = function() { container.transition().call(chart); };
       chart.container = this;
 
 
