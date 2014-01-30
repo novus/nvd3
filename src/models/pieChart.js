@@ -12,6 +12,7 @@ nv.models.pieChart = function() {
     , width = null
     , height = null
     , showLegend = true
+    , legendOnRight = false
     , color = nv.utils.defaultColor()
     , tooltips = true
     , tooltip = function(key, y, e, graph) {
@@ -48,7 +49,6 @@ nv.models.pieChart = function() {
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
-
       var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
@@ -114,17 +114,35 @@ nv.models.pieChart = function() {
 
       if (showLegend) {
         legend
-          .width( availableWidth )
+          // .height( availableHeight )
           .key(pie.x());
+
+        //i always need the width unadjusted for the margin that i change
+        //if i dont add margin.right, the legend is going to get a smaller width next time around
+        //because im increasing margin.right below.  this will throw off the calculations for 
+        //right positioning because we won't know how width the container is
+        legend
+          .width( availableWidth + margin.right ) 
+          .height( availableHeight );
 
         wrap.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
-        if ( margin.top != legend.height()) {
-          margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+        if (legendOnRight) {
+          //legend on right
+          if ( margin.right != legend.legendWidth()) {
+            margin.right = legend.legendWidth();
+            availableWidth = (width || parseInt(container.style('width')) || 600)
+                               - margin.right - margin.left;
+          }
+        } else {
+          //legend on top
+          if ( margin.top != legend.height()) {
+            margin.top = legend.height();
+            availableHeight = (height || parseInt(container.style('height')) || 400)
+                               - margin.top - margin.bottom;
+          }  
         }
 
         wrap.select('.nv-legendWrap')
@@ -240,6 +258,12 @@ nv.models.pieChart = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.legendOnRight = function(_) {
+    if (!arguments.length) return legendOnRight;
+    legendOnRight = _;
     return chart;
   };
 

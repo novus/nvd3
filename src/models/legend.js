@@ -5,7 +5,10 @@ nv.models.legend = function() {
   //------------------------------------------------------------
 
   var margin = {top: 5, right: 0, bottom: 5, left: 0}
+    , maxWidth = Infinity
     , width = 400
+    , legendWidth = 0
+    , legendHeight = 0
     , height = 20
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
@@ -21,7 +24,7 @@ nv.models.legend = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
+      var availableWidth = (maxWidth != Infinity ? maxWidth : width) - margin.left - margin.right,
           container = d3.select(this);
 
 
@@ -121,8 +124,8 @@ nv.models.legend = function() {
             });
 
         var seriesPerRow = 0;
-        var legendWidth = 0;
         var columnWidths = [];
+        legendWidth = 0;
 
         while ( legendWidth < availableWidth && seriesPerRow < seriesWidths.length) {
           columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
@@ -131,7 +134,7 @@ nv.models.legend = function() {
         if (seriesPerRow === 0) seriesPerRow = 1; //minimum of one series per row
 
 
-        while ( legendWidth > availableWidth && seriesPerRow > 1 ) {
+        while ( (legendWidth > availableWidth || legendWidth > maxWidth)  && seriesPerRow > 1 ) {
           columnWidths = [];
           seriesPerRow--;
 
@@ -220,6 +223,18 @@ nv.models.legend = function() {
   chart.width = function(_) {
     if (!arguments.length) return width;
     width = _;
+    return chart;
+  };
+
+  chart.legendWidth = function(_) {
+    if (!arguments.length) return legendWidth;
+    legendWidth = _;
+    return chart;
+  };
+
+  chart.maxWidth = function(_) {
+    if (!arguments.length) return maxWidth;
+    maxWidth = _;
     return chart;
   };
 

@@ -228,7 +228,8 @@ svg .title {
 
 .nvd3 .nv-axis line {
   fill: none;
-  stroke: #e5e5e5;
+  stroke: #000;
+  stroke-opacity: .25;
   shape-rendering: crispEdges;
 }
 
