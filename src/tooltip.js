@@ -411,7 +411,7 @@ window.nv.tooltip.* also has various helper methods.
             };
 
             if (gravity instanceof Function)
-              _gravity = gravity(pos, [height, width]);
+              _gravity = gravity(pos, [height, width], container);
             else
               _gravity = gravity || 's';
 
