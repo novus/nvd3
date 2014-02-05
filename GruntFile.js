@@ -74,6 +74,26 @@ module.exports = function(grunt) {
             js: {
                 files: ["src/**/*.js"],
                 tasks: ['concat']
+            },
+            less: {
+                files: ["src/**/*.less"],
+                tasks: ['less']
+            }
+        },
+        less: {
+            dev: {
+                src:  './src/nv.d3.less',
+                dest: './src/nv.d3.css'
+            },
+            production: {
+                options: {
+                    cleancss: true,
+                    compress: true,
+                    yuicompress: true,
+                    report: 'min'
+                },
+                src:  './src/nv.d3.less',
+                dest: './nv.d3.min.css'
             }
         },
         copy: {
@@ -81,13 +101,6 @@ module.exports = function(grunt) {
             files: [
               { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
             ]
-          }
-        },
-        cssmin: {
-          dist: {
-            files: {
-              'nv.d3.min.css' : ['nv.d3.css']
-            }
           }
         }
     });
@@ -97,10 +110,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
-    grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-contrib-less');
 
-    grunt.registerTask('default', ['concat', 'copy']);
-    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
+    grunt.registerTask('default', ['concat', 'less', 'copy']);
+    grunt.registerTask('production', ['concat', 'uglify', 'less', 'copy']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
 };
