@@ -128,6 +128,7 @@ nv.models.scatterPlusLineChart = function() {
       // Display noData message if there's nothing to show.
 
       if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.selectAll('g.nv-wrap.nv-scatterChart').remove();
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
