@@ -1,4 +1,4 @@
-# NVD3 - v1.1.15-beta
+# NVD3 - v1.1.15-beta [![dependency Status](https://david-dm.org/novus/nvd3/status.png?theme=shields.io)](https://david-dm.org/novus/nvd3#info=dependencies) [![devDependency Status](https://david-dm.org/novus/nvd3/dev-status.png?theme=shields.io)](https://david-dm.org/novus/nvd3#info=devDependencies) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 ## Release notes for version 1.1.15 beta
 * Various fixes across the board
 
