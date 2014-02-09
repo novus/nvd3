@@ -12,10 +12,16 @@ nv.models.lineChart = function() {
     , interactiveLayer = nv.interactiveGuideline()
     ;
 
-  var margin = {top: 30, right: 20, bottom: 50, left: 60}
+  var canvas
+    , options = {
+      margin: {
+        top: 30,
+        right: 20,
+        bottom: 50,
+        left: 60
+      }
+    }
     , color = nv.utils.defaultColor()
-    , width = null
-    , height = null
     , showLegend = true
     , showXAxis = true
     , showYAxis = true
@@ -65,21 +71,15 @@ nv.models.lineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this),
-          that = this;
-
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                             - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
-
+      canvas = new Canvas(this, options);
+      var container = canvas.svg;
+      var that = this;
 
       chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
-
 
       if (!defaultState) {
         var key;
@@ -104,8 +104,8 @@ nv.models.lineChart = function() {
           .style('text-anchor', 'middle');
 
         noDataText
-          .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
+          .attr('x', canvas.size.width / 2)
+          .attr('y', canvas.size.height / 2)
           .text(function(d) { return d });
 
         return chart;
@@ -140,35 +140,37 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'nv-interactive');
 
       g.select("rect")
-        .attr("width",availableWidth)
-        .attr("height",(availableHeight > 0) ? availableHeight : 0);
+        .attr({
+          width: canvas.available.width,
+          height : (canvas.available.height > 0) ? canvas.available.height : 0
+        });
+
       //------------------------------------------------------------
       // Legend
 
       if (showLegend) {
-        legend.width(availableWidth);
+        legend.width(canvas.size.width);
 
         g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
-        if ( margin.top != legend.height()) {
-          margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+        if ( canvas.margin.top != legend.height()) {
+          canvas.margin.top = legend.height();
+          canvas.available.height = canvas.size.height - canvas.margin.topbottom;
         }
 
         wrap.select('.nv-legendWrap')
-            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
       }
 
       //------------------------------------------------------------
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       if (rightAlignYAxis) {
           g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + availableWidth + ",0)");
+              .attr("transform", "translate(" + canvas.available.width + ",0)");
       }
 
       //------------------------------------------------------------
@@ -179,9 +181,12 @@ nv.models.lineChart = function() {
       //Set up interactive layer
       if (useInteractiveGuideline) {
         interactiveLayer
-           .width(availableWidth)
-           .height(availableHeight)
-           .margin({left:margin.left, top:margin.top})
+           .width(canvas.available.width)
+           .height(canvas.available.height)
+           .margin({
+              left: canvas.margin.left,
+              top: canvas.margin.top
+            })
            .svgContainer(container)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
@@ -189,8 +194,8 @@ nv.models.lineChart = function() {
 
 
       lines
-        .width(availableWidth)
-        .height(availableHeight)
+        .width(canvas.available.width)
+        .height(canvas.available.height)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
@@ -210,8 +215,8 @@ nv.models.lineChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
-          .tickSize(-availableHeight, 0);
+          .ticks( canvas.available.width / 100 )
+          .tickSize(-canvas.available.height, 0);
 
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
@@ -223,15 +228,13 @@ nv.models.lineChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
-          .tickSize( -availableWidth, 0);
+          .ticks( canvas.available.height / 36 )
+          .tickSize( -canvas.available.width, 0);
 
         g.select('.nv-y.nv-axis')
             .transition()
             .call(yAxis);
       }
-      //------------------------------------------------------------
-
 
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
@@ -362,11 +365,11 @@ nv.models.lineChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return options.margin;
+    options.margin.top    = typeof _.top    != 'undefined' ? _.top    : options.margin.top;
+    options.margin.right  = typeof _.right  != 'undefined' ? _.right  : options.margin.right;
+    options.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : options.margin.bottom;
+    options.margin.left   = typeof _.left   != 'undefined' ? _.left   : options.margin.left;
     return chart;
   };
 
