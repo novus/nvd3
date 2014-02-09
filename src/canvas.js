@@ -45,3 +45,24 @@ Canvas = function(root, options){
 
     return canvas;
 };
+
+Canvas.noData = function(canvas, data){
+  if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+    var noDataText = canvas.svg.selectAll('.nv-noData').data([noData]);
+
+    noDataText.enter().append('text')
+      .attr('class', 'nvd3 nv-noData')
+      .attr('dy', '-.7em')
+      .style('text-anchor', 'middle');
+
+    noDataText
+      .attr('x', canvas.size.width / 2)
+      .attr('y', canvas.size.height / 2)
+      .text(function(d) { return d });
+
+    return true;
+  } else {
+    canvas.svg.selectAll('.nv-noData').remove();
+    return false;
+  }
+};
