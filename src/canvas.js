@@ -1,13 +1,11 @@
-Canvas = function(root, options){
-    var svg = svg = d3.select(root)
+Canvas = function(options){
 
-    options || (options = {});
-    options.size || (options.size = {});
-    options.margin || (options.margin = {});
-    options.scale || (options.scale = {});
-    options.domain || (options.domain = {});
+    this.options = options || {};
+    this.options.size || (this.options.size = {});
+    this.options.margin || (this.options.margin = {});
+    this.options.noData = options.noData || 'No Data Available.'
 
-    margin = {
+    var margin = this.margin = {
         top: options.margin.top || 20,
         right: options.margin.top || 20,
         bottom: options.margin.top || 30,
@@ -20,35 +18,31 @@ Canvas = function(root, options){
     Object.defineProperty(margin, 'topbottom', {
         get: function(){ return margin.top + margin.bottom; }
     });
+};
 
-    width = (options.size.width || parseInt(svg.style('width')) || 960);
-    height = (options.size.height || parseInt(svg.style('height')) || 500);
+Canvas.prototype.setRoot = function(root) {
+    this.svg = d3.select(root);
+    width = (this.options.size.width || parseInt(this.svg.style('width')) || 960);
+    height = (this.options.size.height || parseInt(this.svg.style('height')) || 500);
 
-    svg.attr({
+    this.svg.attr({
         width: width,
         height: height
     });
 
-    var canvas = {
-        options: options,
-        margin: margin,
-        size: {
-            width: width,
-            height: height
-        },
-        available: {
-            width: width - margin.leftright,
-            height: height - margin.topbottom
-        },
-        svg: svg
-    }
-
-    return canvas;
+    this.size = {
+        width: width,
+        height: height
+    };
+    this.available = {
+        width: width - this.margin.leftright,
+        height: height - this.margin.topbottom
+    };
 };
 
-Canvas.noData = function(canvas, data){
+Canvas.prototype.noData = function(data){
   if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-    var noDataText = canvas.svg.selectAll('.nv-noData').data([noData]);
+    var noDataText = this.svg.selectAll('.nv-noData').data([this.options.noData]);
 
     noDataText.enter().append('text')
       .attr('class', 'nvd3 nv-noData')
@@ -56,13 +50,13 @@ Canvas.noData = function(canvas, data){
       .style('text-anchor', 'middle');
 
     noDataText
-      .attr('x', canvas.size.width / 2)
-      .attr('y', canvas.size.height / 2)
+      .attr('x', this.size.width / 2)
+      .attr('y', this.size.height / 2)
       .text(function(d) { return d });
 
     return true;
   } else {
-    canvas.svg.selectAll('.nv-noData').remove();
+    this.svg.selectAll('.nv-noData').remove();
     return false;
   }
 };

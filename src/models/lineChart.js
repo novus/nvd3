@@ -12,15 +12,14 @@ nv.models.lineChart = function() {
     , interactiveLayer = nv.interactiveGuideline()
     ;
 
-  var canvas
-    , options = {
+  var canvas = new Canvas({
       margin: {
         top: 30,
         right: 20,
         bottom: 50,
         left: 60
       }
-    }
+    })
     , color = nv.utils.defaultColor()
     , showLegend = true
     , showXAxis = true
@@ -36,7 +35,6 @@ nv.models.lineChart = function() {
     , y
     , state = {}
     , defaultState = null
-    , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , transitionDuration = 250
     ;
@@ -71,11 +69,15 @@ nv.models.lineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      canvas = new Canvas(this, options);
-      var container = canvas.svg;
+      canvas.setRoot(this);
       var that = this;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() {
+        canvas.svg
+          .transition()
+          .duration(transitionDuration)
+          .call(chart)
+      };
       chart.container = this;
 
       //set state.disabled
@@ -95,7 +97,7 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
 
-      if (Canvas.noData(canvas)){
+      if (canvas.noData(data)){
         return chart;
       }
 
@@ -114,7 +116,7 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-lineChart').data([data]);
+      var wrap = canvas.svg.selectAll('g.nv-wrap.nv-lineChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineChart').append('g');
       var g = wrap.select('g');
 
@@ -173,7 +175,7 @@ nv.models.lineChart = function() {
               left: canvas.margin.left,
               top: canvas.margin.top
             })
-           .svgContainer(container)
+           .svgContainer(canvas.svg)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
       }
@@ -265,7 +267,10 @@ nv.models.lineChart = function() {
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
-                  .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                  .position({
+                    left: pointXLocation + canvas.margin.left,
+                    top: e.mouseY + canvas.margin.top
+                  })
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
                   .valueFormatter(function(d,i) {
@@ -351,11 +356,11 @@ nv.models.lineChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return options.margin;
-    options.margin.top    = typeof _.top    != 'undefined' ? _.top    : options.margin.top;
-    options.margin.right  = typeof _.right  != 'undefined' ? _.right  : options.margin.right;
-    options.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : options.margin.bottom;
-    options.margin.left   = typeof _.left   != 'undefined' ? _.left   : options.margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
