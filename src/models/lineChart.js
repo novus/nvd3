@@ -11,7 +11,7 @@ nv.models.lineChart = function() {
     , interactiveLayer = nv.interactiveGuideline()
     ;
 
-  var canvas = new Canvas({
+  var canvas = new Chart({
       margin: {
         top: 30,
         right: 20,

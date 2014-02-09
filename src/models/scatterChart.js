@@ -13,7 +13,7 @@ nv.models.scatterChart = function() {
     ;
 
   var
-    canvas = new Canvas({
+    canvas = new Chart({
       chartClass: 'scatterChart',
       wrapClass: 'scatterWrap',
       margin: {top: 30, right: 20, bottom: 50, left: 75}

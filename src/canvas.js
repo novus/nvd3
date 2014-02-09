@@ -1,5 +1,4 @@
-Canvas = function(options){
-
+function Canvas(options){
     this.options = options || {};
     this.options.size || (this.options.size = {});
     this.options.margin || (this.options.margin = {});
@@ -73,41 +72,48 @@ Canvas.prototype.wrapChart = function(data, gs) {
     gs || (gs = []);
     var chartClass = 'nv-' + this.options.chartClass;
     var wrapClass = 'nv-' + this.options.wrapClass;
-    this.wrap = this.svg.selectAll('g.nv-wrap.' + chartClass).data([data]);
-    this.gEnter = this.wrap.
-        enter()
-        .append('g')
-        .attr({
-            class: 'nvd3 nv-wrap ' + chartClass
-        })
-        .append('g');
 
+    this.wrap = this.svg.selectAll('g.nv-wrap.' + chartClass).data([data]);
+    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nvd3 nv-wrap ' + chartClass })
+    this.defsEnter = this.wrapEnter.append('defs');
+    this.gEnter = this.wrapEnter.append('g');
     this.g = this.wrap.select('g');
 
-    this.gEnter.append("rect").style("opacity",0);
-
-    gs = ['nv-x nv-axis', 'nv-y nv-axis', 'nv-legendWrap', wrapClass].concat(gs)
-
-    var i = gs.length;
-    while(i) {
-        this.gEnter.append('g').attr('class', gs[--i]);
-    }
-
-    this.g.select("rect")
-    .attr({
-      width: this.available.width,
-      height: this.available.height
+    // this.gEnter.append("rect").style("opacity",0);
+    // this.g.select("rect")
+    // .attr({
+    //   width: this.available.width,
+    //   height: this.available.height
+    // });
+    var this_ = this;
+    [wrapClass].concat(gs).forEach(function(g){
+        this_.gEnter.append('g').attr('class', g);
     });
 
-    // The legend can change the available height.
-    this.buildLegend(data);
-
-    //------------------------------------------------------------
 
     this.wrap.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
 };
 
-Canvas.prototype.buildLegend = function(data) {
+function Chart(options){
+    Canvas.call(this, options);
+}
+Chart.prototype = Object.create(Canvas.prototype);
+
+Chart.prototype.wrapChart = function(data, gs) {
+    var wrapPoints = [
+        'nv-x nv-axis',
+        'nv-y nv-axis',
+        'nv-legendWrap'
+    ].concat(gs);
+    Canvas.prototype.wrapChart.call(this, data, wrapPoints);
+
+
+    this.buildLegend(data);
+    // The legend can change the available height.
+    this.wrap.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+};
+
+Chart.prototype.buildLegend = function(data) {
     if (this.options.showLegend) {
         this.legend.width(this.size.width);
 
