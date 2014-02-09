@@ -18,7 +18,8 @@ nv.models.lineChart = function() {
         right: 20,
         bottom: 50,
         left: 60
-      }
+      },
+      chartClass: 'lineChart'
     })
     , color = nv.utils.defaultColor()
     , showLegend = true
@@ -116,22 +117,7 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = canvas.svg.selectAll('g.nv-wrap.nv-lineChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineChart').append('g');
-      var g = wrap.select('g');
-
-      gEnter.append("rect").style("opacity",0);
-      gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
-      gEnter.append('g').attr('class', 'nv-linesWrap');
-      gEnter.append('g').attr('class', 'nv-legendWrap');
-      gEnter.append('g').attr('class', 'nv-interactive');
-
-      g.select("rect")
-        .attr({
-          width: canvas.available.width,
-          height : (canvas.available.height > 0) ? canvas.available.height : 0
-        });
+      canvas.wrapChart(data);
 
       //------------------------------------------------------------
       // Legend
@@ -139,7 +125,7 @@ nv.models.lineChart = function() {
       if (showLegend) {
         legend.width(canvas.size.width);
 
-        g.select('.nv-legendWrap')
+        canvas.g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
@@ -148,16 +134,16 @@ nv.models.lineChart = function() {
           canvas.available.height = canvas.size.height - canvas.margin.topbottom;
         }
 
-        wrap.select('.nv-legendWrap')
+        canvas.wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
       }
 
       //------------------------------------------------------------
 
-      wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
+      canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       if (rightAlignYAxis) {
-          g.select(".nv-y.nv-axis")
+          canvas.g.select(".nv-y.nv-axis")
               .attr("transform", "translate(" + canvas.available.width + ",0)");
       }
 
@@ -177,7 +163,7 @@ nv.models.lineChart = function() {
             })
            .svgContainer(canvas.svg)
            .xScale(x);
-        wrap.select(".nv-interactive").call(interactiveLayer);
+        canvas.wrap.select(".nv-interactive").call(interactiveLayer);
       }
 
 
@@ -189,7 +175,7 @@ nv.models.lineChart = function() {
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
-      var linesWrap = g.select('.nv-linesWrap')
+      var linesWrap = canvas.g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
       linesWrap.transition().call(lines);
@@ -206,9 +192,9 @@ nv.models.lineChart = function() {
           .ticks( canvas.available.width / 100 )
           .tickSize(-canvas.available.height, 0);
 
-        g.select('.nv-x.nv-axis')
+        canvas.g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        g.select('.nv-x.nv-axis')
+        canvas.g.select('.nv-x.nv-axis')
             .transition()
             .call(xAxis);
       }
@@ -219,7 +205,7 @@ nv.models.lineChart = function() {
           .ticks( canvas.available.height / 36 )
           .tickSize( -canvas.available.width, 0);
 
-        g.select('.nv-y.nv-axis')
+        canvas.g.select('.nv-y.nv-axis')
             .transition()
             .call(yAxis);
       }

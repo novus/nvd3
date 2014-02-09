@@ -35,8 +35,8 @@ Canvas.prototype.setRoot = function(root) {
         height: height
     };
     this.available = {
-        width: width - this.margin.leftright,
-        height: height - this.margin.topbottom
+        width: Math.max(width - this.margin.leftright, 0),
+        height: Math.max(height - this.margin.topbottom, 0)
     };
 };
 
@@ -59,4 +59,31 @@ Canvas.prototype.noData = function(data){
     this.svg.selectAll('.nv-noData').remove();
     return false;
   }
+};
+
+Canvas.prototype.wrapChart = function(data) {
+    var chartClass = 'nv-' + this.options.chartClass;
+    this.wrap = this.svg.selectAll('g.nv-wrap.' + chartClass).data([data]);
+    var gEnter = this.wrap.
+        enter()
+        .append('g')
+        .attr({
+            class: 'nvd3 nv-wrap ' + chartClass
+        })
+        .append('g');
+
+    this.g = this.wrap.select('g');
+
+    gEnter.append("rect").style("opacity",0);
+    gEnter.append('g').attr('class', 'nv-x nv-axis');
+    gEnter.append('g').attr('class', 'nv-y nv-axis');
+    gEnter.append('g').attr('class', 'nv-linesWrap');
+    gEnter.append('g').attr('class', 'nv-legendWrap');
+    gEnter.append('g').attr('class', 'nv-interactive');
+
+    this.g.select("rect")
+    .attr({
+      width: this.available.width,
+      height: this.available.height
+    });
 };
