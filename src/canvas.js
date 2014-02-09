@@ -3,7 +3,10 @@ Canvas = function(options){
     this.options = options || {};
     this.options.size || (this.options.size = {});
     this.options.margin || (this.options.margin = {});
-    this.options.noData = options.noData || 'No Data Available.'
+    this.options.noData = options.noData || 'No Data Available.';
+    (typeof this.options.showLegend !== 'undefined') || (this.options.showLegend = true);
+
+    this.legend = nv.models.legend();
 
     var margin = this.margin = {
         top: options.margin.top || 20,
@@ -34,10 +37,15 @@ Canvas.prototype.setRoot = function(root) {
         width: width,
         height: height
     };
-    this.available = {
-        width: Math.max(width - this.margin.leftright, 0),
-        height: Math.max(height - this.margin.topbottom, 0)
-    };
+
+    var margin = this.margin;
+    var available = this.available = {};
+    Object.defineProperty(available, 'width', {
+        get: function(){ return Math.max(width - margin.leftright, 0); }
+    });
+    Object.defineProperty(available, 'height', {
+        get: function(){ return Math.max(height - margin.topbottom, 0); }
+    });
 };
 
 Canvas.prototype.noData = function(data){
@@ -86,4 +94,26 @@ Canvas.prototype.wrapChart = function(data) {
       width: this.available.width,
       height: this.available.height
     });
+
+    // The legend can change the available height.
+    this.buildLegend(data);
+
+    //------------------------------------------------------------
+
+    this.wrap.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+};
+
+Canvas.prototype.buildLegend = function(data) {
+    if (this.options.showLegend) {
+        this.legend.width(this.size.width);
+
+        this.g.select('.nv-legendWrap')
+            .datum(data)
+            .call(this.legend);
+
+        this.margin.top = this.legend.height();
+
+        this.wrap.select('.nv-legendWrap')
+          .attr('transform', 'translate(0,' + (-this.margin.top) +')')
+    }
 };

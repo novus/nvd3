@@ -8,7 +8,6 @@ nv.models.lineChart = function() {
   var lines = nv.models.line()
     , xAxis = nv.models.axis()
     , yAxis = nv.models.axis()
-    , legend = nv.models.legend()
     , interactiveLayer = nv.interactiveGuideline()
     ;
 
@@ -22,7 +21,6 @@ nv.models.lineChart = function() {
       chartClass: 'lineChart'
     })
     , color = nv.utils.defaultColor()
-    , showLegend = true
     , showXAxis = true
     , showYAxis = true
     , rightAlignYAxis = false
@@ -119,28 +117,6 @@ nv.models.lineChart = function() {
 
       canvas.wrapChart(data);
 
-      //------------------------------------------------------------
-      // Legend
-
-      if (showLegend) {
-        legend.width(canvas.size.width);
-
-        canvas.g.select('.nv-legendWrap')
-            .datum(data)
-            .call(legend);
-
-        if ( canvas.margin.top != legend.height()) {
-          canvas.margin.top = legend.height();
-          canvas.available.height = canvas.size.height - canvas.margin.topbottom;
-        }
-
-        canvas.wrap.select('.nv-legendWrap')
-            .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
-      }
-
-      //------------------------------------------------------------
-
-      canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       if (rightAlignYAxis) {
           canvas.g.select(".nv-y.nv-axis")
@@ -214,7 +190,7 @@ nv.models.lineChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) {
+      canvas.legend.dispatch.on('stateChange', function(newState) {
           state = newState;
           dispatch.stateChange(state);
           chart.update();
@@ -331,7 +307,7 @@ nv.models.lineChart = function() {
   // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.lines = lines;
-  chart.legend = legend;
+  chart.legend = canvas.legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
@@ -365,7 +341,7 @@ nv.models.lineChart = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-    legend.color(color);
+    canvas.legend.color(color);
     return chart;
   };
 
