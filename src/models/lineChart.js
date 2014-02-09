@@ -18,7 +18,8 @@ nv.models.lineChart = function() {
         bottom: 50,
         left: 60
       },
-      chartClass: 'lineChart'
+      chartClass: 'lineChart',
+      wrapClass: 'linesWrap'
     })
     , color = nv.utils.defaultColor()
     , showXAxis = true
@@ -115,7 +116,7 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
+      canvas.wrapChart(data, ['nv-interactive']);
 
 
       if (rightAlignYAxis) {
