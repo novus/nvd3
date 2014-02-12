@@ -5398,6 +5398,7 @@ nv.models.lineChart = function() {
     , rightAlignYAxis = false
     , useInteractiveGuideline = false
     , tooltips = true
+    , tooltipXAxisFormatter = null
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
@@ -5647,8 +5648,8 @@ nv.models.lineChart = function() {
             if (indexToHighlight !== null)
               allData[indexToHighlight].highlight = true;
           }
-
-          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          var tooltipXAxisFormat = tooltipXAxisFormatter || xAxis.tickFormat()
+          var xValue = tooltipXAxisFormat(chart.x()(singlePoint,pointIndex));
           interactiveLayer.tooltip
                   .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                   .chartContainer(that.parentNode)
@@ -5802,6 +5803,12 @@ nv.models.lineChart = function() {
     if (!arguments.length) return tooltips;
     tooltips = _;
     return chart;
+  };
+
+  chart.tooltipXAxisFormatter = function (_) {
+      if (!arguments.length) return tooltipXAxisFormatter;
+      tooltipXAxisFormatter = _;
+      return chart;
   };
 
   chart.tooltipContent = function(_) {
