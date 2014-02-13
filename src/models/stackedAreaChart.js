@@ -34,7 +34,7 @@ nv.models.stackedAreaChart = function() {
     , state = { style: stacked.style() }
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     , controlWidth = 250
     , cData = ['Stacked','Stream','Expanded']
     , controlLabels = {}
@@ -56,6 +56,7 @@ nv.models.stackedAreaChart = function() {
   //============================================================
   // Private Variables
   //------------------------------------------------------------
+  var renderWatch = nv.utils.renderWatch(dispatch);
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -71,6 +72,7 @@ nv.models.stackedAreaChart = function() {
 
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -444,7 +446,7 @@ nv.models.stackedAreaChart = function() {
 
     });
 
-
+    renderWatch.renderEnd('stacked Area chart immediate');
     return chart;
   }
 
