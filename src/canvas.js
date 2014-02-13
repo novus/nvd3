@@ -48,7 +48,7 @@ Canvas.prototype.setRoot = function(root) {
 };
 
 Canvas.prototype.noData = function(data){
-  if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+  if (!data || data.length === 0 || data.filter(function(d) { return d.values && d.values.length > 0 }).length === 0) {
     var noDataText = this.svg.selectAll('.nv-noData').data([this.options.noData]);
 
     noDataText.enter().append('text')
