@@ -48,7 +48,15 @@ Canvas.prototype.setRoot = function(root) {
 };
 
 Canvas.prototype.noData = function(data){
-  if (!data || data.length === 0 || data.filter(function(d) { return d.values && d.values.length > 0 }).length === 0) {
+  if (data &&
+        data.length > 0 &&
+        data.filter(function(d) {
+            return !d.values || d.values.length > 0
+        }).length > 0)
+  {
+    this.svg.selectAll('.nv-noData').remove();
+    return false;
+  } else {
     var noDataText = this.svg.selectAll('.nv-noData').data([this.options.noData]);
 
     noDataText.enter().append('text')
@@ -62,9 +70,6 @@ Canvas.prototype.noData = function(data){
       .text(function(d) { return d });
 
     return true;
-  } else {
-    this.svg.selectAll('.nv-noData').remove();
-    return false;
   }
 };
 

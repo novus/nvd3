@@ -67,7 +67,9 @@ nv.models.pieChart = function() {
         }
       }
 
-      canvas.noData(data);
+      if(canvas.noData(data)){
+        return;
+      }
       canvas.wrapChart(data);
 
       //------------------------------------------------------------
