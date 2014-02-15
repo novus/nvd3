@@ -4,9 +4,12 @@ nv.models.pie = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}
-    , width = 500
-    , height = 500
+  var 
+    canvas = new Canvas({
+      margin: {top: 0, right: 0, bottom: 0, left: 0}
+      , width: 500
+      , height: 500
+    })
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
     , getDescription = function(d) { return d.description }
@@ -31,33 +34,19 @@ nv.models.pie = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
-          radius = Math.min(availableWidth, availableHeight) / 2,
-          arcRadius = radius-(radius / 5),
-          container = d3.select(this);
+      canvas.setRoot(this);
 
+      var radius = Math.min(canvas.available.width, canvas.available.height) / 2,
+          arcRadius = radius-(radius / 5);
 
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      //var wrap = container.selectAll('.nv-wrap.nv-pie').data([data]);
-      var wrap = container.selectAll('.nv-wrap.nv-pie').data(data);
-      var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g');
-
-      gEnter.append('g').attr('class', 'nv-pie');
-      gEnter.append('g').attr('class', 'nv-pieLabels');
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-      g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
-      g.select('.nv-pieLabels').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+      canvas.wrapChart(data, ['nv-pie', 'nv-pie-labels']);
+      canvas.g.select('.nv-pie').attr('transform', 'translate(' + canvas.available.width / 2 + ',' + canvas.available.height / 2 + ')');
+      canvas.g.select('.nv-pieLabels').attr('transform', 'translate(' + canvas.available.width / 2 + ',' + canvas.available.height / 2 + ')');
 
       //------------------------------------------------------------
 
 
-      container
+      canvas.svg
           .on('click', function(d,i) {
               dispatch.chartClick({
                   data: d,
@@ -80,10 +69,10 @@ nv.models.pie = function() {
           .sort(null)
           .value(function(d) { return d.disabled ? 0 : getY(d) });
 
-      var slices = wrap.select('.nv-pie').selectAll('.nv-slice')
+      var slices = canvas.wrap.select('.nv-pie').selectAll('.nv-slice')
           .data(pie);
 
-      var pieLabels = wrap.select('.nv-pieLabels').selectAll('.nv-label')
+      var pieLabels = canvas.wrap.select('.nv-pieLabels').selectAll('.nv-label')
           .data(pie);
 
       slices.exit().remove();
@@ -281,23 +270,23 @@ nv.models.pie = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
