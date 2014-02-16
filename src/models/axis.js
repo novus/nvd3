@@ -68,6 +68,7 @@ nv.models.axis = function() {
       // scale.range is 1. Difficult to tell.
       var xPosition = scale.range()[0];
     }
+    return xPosition;
   }
 
   function chart(selection) {
