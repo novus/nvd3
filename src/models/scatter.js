@@ -160,17 +160,14 @@ nv.models.scatter = function() {
         var vertices = d3.merge(data.map(function(group, groupIndex) {
             return group.values
               .map(function(point, pointIndex) {
-                // *Adding noise to make duplicates very unlikely
                 // *Injecting series and point index for reference
-                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                */
                 var pX = getX(point,pointIndex);
                 var pY = getY(point,pointIndex);
 
-                return [x(pX)+ Math.random() * 1e-7,
-                        y(pY)+ Math.random() * 1e-7,
+                return [x(pX),
+                        y(pY),
                         groupIndex,
-                        pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
+                        pointIndex, point];
               })
               .filter(function(pointArray, pointIndex) {
                 return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
