@@ -11,6 +11,8 @@ nv.models.legend = function() {
     , color = nv.utils.defaultColor()
     , align = true
     , rightAlign = true
+    , labelPadding = 18
+    , symbolRadius = 5
     , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
     , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
@@ -85,7 +87,7 @@ nv.models.legend = function() {
       seriesEnter.append('circle')
           .style('stroke-width', 2)
           .attr('class','nv-legend-symbol')
-          .attr('r', 5);
+          .attr('r', symbolRadius);
       seriesEnter.append('text')
           .attr('text-anchor', 'start')
           .attr('class','nv-legend-text')
@@ -117,7 +119,7 @@ nv.models.legend = function() {
                 nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
               }
 
-              seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
+              seriesWidths.push(nodeTextLength + labelPadding + (2*symbolRadius));
             });
 
         var seriesPerRow = 0;
@@ -250,6 +252,18 @@ nv.models.legend = function() {
   chart.rightAlign = function(_) {
     if (!arguments.length) return rightAlign;
     rightAlign = _;
+    return chart;
+  };
+
+  chart.labelPadding = function(_) {
+    if (!arguments.length) return labelPadding;
+    labelPadding = _;
+    return chart;
+  };
+
+  chart.symbolRadius = function(_) {
+    if (!arguments.length) return symbolRadius;
+    symbolRadius = _;
     return chart;
   };
 
