@@ -32,6 +32,9 @@ nv.addGraph({
                 .height(height)
                 .margin({top: 20, right: 20, bottom: 20, left: 20})
 
+    chart.dispatch.on('renderEnd', function(){
+      console.log('render complete');
+    });
 
     d3.select('#test1')
       .attr('width', width)

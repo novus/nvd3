@@ -36,9 +36,10 @@ nv.models.scatterChart = function() {
     , tooltip      = null
     , state = {}
     , defaultState = null
-    , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , noData       = "No Data Available."
     , transitionDuration = 250
+    , duration = 250
     ;
 
   scatter
@@ -70,6 +71,7 @@ nv.models.scatterChart = function() {
   //------------------------------------------------------------
 
   var x0, y0;
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
@@ -99,6 +101,13 @@ nv.models.scatterChart = function() {
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(scatter);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+    if (showDistX) renderWatch.models(distX);
+    if (showDistY) renderWatch.models(distY);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -108,7 +117,12 @@ nv.models.scatterChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+      chart.update = function() {
+        if (duration === 0)
+          container.call(chart);
+        else
+          container.transition().duration(duration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled
@@ -239,7 +253,6 @@ nv.models.scatterChart = function() {
 
       if (yPadding !== 0)
         scatter.yDomain(null);
-
       wrap.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
           .call(scatter);
@@ -440,7 +453,7 @@ nv.models.scatterChart = function() {
 
 
     });
-
+    renderWatch.renderEnd('scatterChart immediate');
     return chart;
   }
 
@@ -614,11 +627,20 @@ nv.models.scatterChart = function() {
     noData = _;
     return chart;
   };
-
-  chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    scatter.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
+    distX.duration(duration);
+    distY.duration(duration);
     return chart;
+  }
+  chart.transitionDuration = function(_) {
+    nv.deprecated('scatterChart.transitionDuration');
+    return chart.duration(_);
   };
 
   //============================================================

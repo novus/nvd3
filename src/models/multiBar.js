@@ -21,13 +21,13 @@ nv.models.multiBar = function() {
     , hideable = false
     , barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-    , delay = 1200
+    , duration = 1000
     , xDomain
     , yDomain
     , xRange
     , yRange
     , groupSpacing = 0.1
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     ;
 
   //============================================================
@@ -38,16 +38,29 @@ nv.models.multiBar = function() {
   //------------------------------------------------------------
 
   var x0, y0 //used to store previous scales
+      , renderWatch = nv.utils.renderWatch(dispatch, duration)
       ;
+
 
   //============================================================
 
 
+
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
+
+
+      // This function defines the requirements for render complete
+      var endFn = function(d, i) {
+        if (d.series === data.length - 1 && i === data[0].values.length - 1)
+          return true;
+        return false;
+      }
+      
 
       if(hideable && data.length) hideable = [{
         values: data[0].values.map(function(d) {
@@ -156,31 +169,29 @@ nv.models.multiBar = function() {
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-
-
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d,i) { return i });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      groups.exit()
-        .transition()
-        .selectAll('rect.nv-bar')
-        .delay(function(d,i) {
-             return i * delay/ data[0].values.length;
-        })
+      
+      var exitTransition = renderWatch
+          .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(250, duration))
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
           .remove();
+      if (exitTransition.delay)
+          exitTransition.delay(function(d,i) {
+            return i * duration / data[0].values.length;
+          });
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i) });
       groups
-          .transition()
           .style('stroke-opacity', 1)
-          .style('fill-opacity', .75);
+          .style('fill-opacity', 0.75);
 
 
       var bars = groups.selectAll('rect.nv-bar')
@@ -251,7 +262,6 @@ nv.models.multiBar = function() {
           });
       bars
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
-          .transition()
           .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
 
       if (barColor) {
@@ -261,63 +271,61 @@ nv.models.multiBar = function() {
           .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
       }
 
-
+      var barSelection =
+          bars.watchTransition(renderWatch, 'multibar', Math.min(250, duration))
+          .delay(function(d,i) {
+            return i * duration / data[0].values.length;
+          });
       if (stacked)
-          bars.transition()
-            .delay(function(d,i) {
-
-                  return i * delay / data[0].values.length;
-            })
+          barSelection
             .attr('y', function(d,i) {
-
               return y((stacked ? d.y1 : 0));
             })
             .attr('height', function(d,i) {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
             .attr('x', function(d,i) {
-                  return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+              return stacked ? 0 : (d.series * x.rangeBand() / data.length )
             })
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
-          bars.transition()
-            .delay(function(d,i) {
-                return i * delay/ data[0].values.length;
-            })
+          barSelection
             .attr('x', function(d,i) {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
             .attr('y', function(d,i) {
-                return getY(d,i) < 0 ?
-                        y(0) :
-                        y(0) - y(getY(d,i)) < 1 ?
-                          y(0) - 1 :
-                        y(getY(d,i)) || 0;
+              return getY(d,i) < 0 ?
+                      y(0) :
+                      y(0) - y(getY(d,i)) < 1 ?
+                        y(0) - 1 :
+                      y(getY(d,i)) || 0;
             })
             .attr('height', function(d,i) {
-                return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+              return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
             });
-
-
 
       //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
 
     });
-
+    
+    renderWatch.renderEnd('multibar immediate');
+    
     return chart;
   }
-
 
   //============================================================
   // Expose Public Variables
   //------------------------------------------------------------
 
-  chart.dispatch = dispatch;
+  // As a getter, returns a new instance of d3 dispatch and sets appropriate vars.
+  // As a setter, sets dispatch.
+  // Useful when same chart instance is used to render several data models.
+  // Since dispatch is instance-specific, it cannot be contained inside chart model.
 
-  chart.options = nv.utils.optionsFunc.bind(chart);
+  chart.dispatch = dispatch;
 
   chart.x = function(_) {
     if (!arguments.length) return getX;
@@ -442,20 +450,33 @@ nv.models.multiBar = function() {
     return chart;
   };
 
-  chart.delay = function(_) {
-    if (!arguments.length) return delay;
-    delay = _;
-    return chart;
-  };
-
   chart.groupSpacing = function(_) {
     if (!arguments.length) return groupSpacing;
     groupSpacing = _;
     return chart;
   };
 
-  //============================================================
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    return chart;
+  }
 
+  
+
+  //============================================================
+  // Deprecated Methods
+  //------------------------------------------------------------
+
+  chart.delay = function(_) {
+    nv.deprecated('multiBar.delay');
+    return chart.duration(_);
+  };
+
+  chart.options = nv.utils.optionsFunc.bind(chart);
+
+  //============================================================
 
   return chart;
 }

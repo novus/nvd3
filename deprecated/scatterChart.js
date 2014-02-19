@@ -46,6 +46,7 @@ nv.models.scatterChart = function() {
     //nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's');
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch);
 
   function chart(selection) {
     selection.each(function(data) {

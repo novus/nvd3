@@ -130,6 +130,90 @@ nv.utils.NaNtoZero = function(n) {
     return n;
 };
 
+// This utility class watches for d3 transition ends.
+
+(function(){
+  d3.selection.prototype.watchTransition = function(renderWatch){
+    var args = [this].concat([].slice.call(arguments, 1));
+    return renderWatch.transition.apply(renderWatch, args);
+  }
+})();
+
+nv.utils.renderWatch = function(dispatch, duration) {
+  if (!(this instanceof nv.utils.renderWatch))
+    return new nv.utils.renderWatch(dispatch, duration);
+  var _duration = duration !== undefined ? duration : 250;
+  var renderStack = [];
+  var self = this;
+  this.models = function(models) {
+    models = [].slice.call(arguments, 0);
+    models.forEach(function(model){
+      model.__rendered = false;
+      (function(m){
+        m.dispatch.on('renderEnd', function(arg){
+          // nv.log('nv.utils renderEnd', arg);
+          m.__rendered = true;
+          self.renderEnd('model');
+        });
+      })(model);
+      if (renderStack.indexOf(model) < 0)
+        renderStack.push(model);
+    });
+    return this;
+  }
+
+  this.reset = function(duration) {
+    if (duration !== undefined) _duration = duration;
+    renderStack = [];
+  }
+
+  this.transition = function(selection, args, duration) {
+    args = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
+    duration = args.length > 1 ? args.pop() :
+               _duration !== undefined ? _duration :
+               250;
+    selection.__rendered = false;
+    
+    if (renderStack.indexOf(selection) < 0)
+      renderStack.push(selection);
+
+    if (duration === 0)
+    {
+      selection.__rendered = true;
+      selection.delay = function(){console.warn('`delay` not specified for selection.'); return this;}
+      selection.duration = function(){console.warn('`duration` not specified for selection.'); return this;}
+      return selection;
+    }
+    else
+    {
+      selection.__rendered = selection.length === 0 ? true :
+                             selection.every( function(d){ return !d.length; }) ? true :
+                             false;
+      var n = 0;
+      return selection
+        .transition()
+        .duration(duration)
+        .each(function(){ ++n; })
+        .each('end', function(d, i){
+          if (--n === 0)
+          {
+            selection.__rendered = true;
+            self.renderEnd.apply(this, args);
+          }
+        });
+    }
+  }
+
+  this.renderEnd = function() {
+    if (renderStack.every( function(d){ return d.__rendered; } ))
+    {
+      renderStack.forEach( function(d){ d.__rendered = false; });
+      dispatch.renderEnd.apply(this, arguments);
+    }
+  }
+
+}
+
 /*
 Snippet of code you can insert into each nv.models.* to give you the ability to
 do things like:
@@ -142,6 +226,7 @@ To enable in the chart:
 chart.options = nv.utils.optionsFunc.bind(chart);
 */
 nv.utils.optionsFunc = function(args) {
+    nv.deprecated('nv.utils.optionsFunc');
     if (args) {
       d3.map(args).forEach((function(key,value) {
         if (typeof this[key] === "function") {
@@ -151,3 +236,4 @@ nv.utils.optionsFunc = function(args) {
     }
     return this;
 };
+
