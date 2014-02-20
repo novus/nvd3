@@ -12,6 +12,7 @@ nv.models.pieChart = function() {
     , width = null
     , height = null
     , showLegend = true
+    , legendPosition = 'top'
     , color = nv.utils.defaultColor()
     , tooltips = true
     , tooltip = function(key, y, e, graph) {
@@ -122,14 +123,17 @@ nv.models.pieChart = function() {
             .datum(data)
             .call(legend);
 
-        if ( margin.top != legend.height()) {
-          margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
-        }
+        var legendHeight = legend.height();
+        if(legendPosition === 'top' || legendPosition === 'bottom')
+          margin[legendPosition] = legendHeight;
+
+        availableHeight = (height || parseInt(container.style('height')) || 400)
+                           - margin.top - margin.bottom;
+
+        var legendYPos = (legendPosition === 'top') ? -legendHeight : availableHeight;
 
         wrap.select('.nv-legendWrap')
-            .attr('transform', 'translate(0,' + (-margin.top) +')');
+            .attr('transform', 'translate(0,' + (legendYPos ) +')');
       }
 
       //------------------------------------------------------------
@@ -255,6 +259,12 @@ nv.models.pieChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    return chart;
+  };
+
+  chart.legendPosition = function(_) {
+    if (!arguments.length) return legendPosition;
+    legendPosition = _;
     return chart;
   };
 
