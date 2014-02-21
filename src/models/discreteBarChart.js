@@ -27,7 +27,7 @@ nv.models.discreteBarChart = function() {
     , y
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate','renderEnd')
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   xAxis
@@ -58,12 +58,16 @@ nv.models.discreteBarChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
-  var renderWatch = nv.utils.renderWatch(dispatch, transitionDuration);
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
   //============================================================
 
 
   function chart(selection) {
     renderWatch.reset();
+    renderWatch.models(discretebar);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -76,7 +80,7 @@ nv.models.discreteBarChart = function() {
 
       chart.update = function() {
         dispatch.beforeUpdate();
-        container.transition().duration(transitionDuration).call(chart);
+        container.transition().duration(duration).call(chart);
       };
       chart.container = this;
 
@@ -177,9 +181,8 @@ nv.models.discreteBarChart = function() {
 
           g.select('.nv-x.nv-axis')
               .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
-          //d3.transition(g.select('.nv-x.nv-axis'))
-          g.select('.nv-x.nv-axis').transition()
-              .call(xAxis);
+
+          g.select('.nv-x.nv-axis').call(xAxis);
 
 
           var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
@@ -197,8 +200,7 @@ nv.models.discreteBarChart = function() {
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
-          g.select('.nv-y.nv-axis').transition()
-              .call(yAxis);
+          g.select('.nv-y.nv-axis').call(yAxis);
       }
 
       // Zero line
@@ -335,8 +337,17 @@ nv.models.discreteBarChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+    nv.deprecated('discreteBar.transitionDuration');
+    return chart.duration(_);
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    discretebar.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
     return chart;
   };
 

@@ -70,7 +70,7 @@ nv.models.lineChart = function() {
     renderWatch.models(lines);
     if (showXAxis) renderWatch.models(xAxis);
     if (showYAxis) renderWatch.models(yAxis);
-    
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -329,7 +329,7 @@ nv.models.lineChart = function() {
       //============================================================
 
     });
-    
+
     renderWatch.renderEnd('lineChart immediate');
     return chart;
   }
@@ -478,7 +478,7 @@ nv.models.lineChart = function() {
     xAxis.duration(duration);
     yAxis.duration(duration);
     return chart;
-  }
+  };
 
   //============================================================
 
