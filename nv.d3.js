@@ -8815,7 +8815,8 @@ nv.models.multiBarHorizontal = function() {
     , yDomain
     , xRange
     , yRange
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , duration = 250
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout','renderEnd')
     ;
 
   //============================================================
@@ -8825,13 +8826,15 @@ nv.models.multiBarHorizontal = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var x0, y0 //used to store previous scales
-      ;
+  var x0, y0; //used to store previous scales
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
+
 
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -8926,7 +8929,7 @@ nv.models.multiBarHorizontal = function() {
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
-      groups.exit().transition()
+      groups.exit().watchTransition(renderWatch, 'multibarhorizontal: exit groups')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
@@ -8935,7 +8938,7 @@ nv.models.multiBarHorizontal = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i) });
-      groups.transition()
+      groups.watchTransition(renderWatch, 'multibarhorizontal: groups')
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -9013,7 +9016,7 @@ nv.models.multiBarHorizontal = function() {
             .attr('y', x.rangeBand() / (data.length * 2))
             .attr('dy', '.32em')
             .text(function(d,i) { return valueFormat(getY(d,i)) })
-        bars.transition()
+        bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
           .select('text')
             .attr('x', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
       } else {
@@ -9027,7 +9030,7 @@ nv.models.multiBarHorizontal = function() {
             .attr('y', x.rangeBand() / (data.length * 2))
             .attr('dy', '.32em')
             .text(function(d,i) { return getX(d,i) });
-        bars.transition()
+        bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
           .select('text.nv-bar-label')
             .attr('x', function(d,i) { return getY(d,i) < 0 ? y(0) - y(getY(d,i)) + 4 : -4 });
       }
@@ -9046,7 +9049,7 @@ nv.models.multiBarHorizontal = function() {
       }
 
       if (stacked)
-        bars.transition()
+        bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
             .attr('transform', function(d,i) {
               return 'translate(' + y(d.y1) + ',' + x(getX(d,i)) + ')'
             })
@@ -9056,7 +9059,7 @@ nv.models.multiBarHorizontal = function() {
             })
             .attr('height', x.rangeBand() );
       else
-        bars.transition()
+        bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
             .attr('transform', function(d,i) {
               //TODO: stacked must be all positive or all negative, not both?
               return 'translate(' +
@@ -9080,6 +9083,7 @@ nv.models.multiBarHorizontal = function() {
 
     });
 
+    renderWatch.renderEnd('multibarHorizontal immediate');
     return chart;
   }
 
@@ -9228,6 +9232,13 @@ nv.models.multiBarHorizontal = function() {
     return chart;
   };
 
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    return chart;
+  };
+
   //============================================================
 
 
@@ -9268,7 +9279,7 @@ nv.models.multiBarHorizontalChart = function() {
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   multibar
@@ -9305,10 +9316,14 @@ nv.models.multiBarHorizontalChart = function() {
   };
 
   //============================================================
-  var renderWatch = nv.utils.renderWatch(dispatch, transitionDuration);
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
   function chart(selection) {
     renderWatch.reset();
+    renderWatch.models(multibar);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -9318,7 +9333,7 @@ nv.models.multiBarHorizontalChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() { container.transition().duration(duration).call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -9465,8 +9480,7 @@ nv.models.multiBarHorizontalChart = function() {
             .ticks( availableHeight / 24 )
             .tickSize(-availableWidth, 0);
 
-          g.select('.nv-x.nv-axis').transition()
-              .call(xAxis);
+          g.select('.nv-x.nv-axis').call(xAxis);
 
           var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
 
@@ -9482,8 +9496,7 @@ nv.models.multiBarHorizontalChart = function() {
 
           g.select('.nv-y.nv-axis')
               .attr('transform', 'translate(0,' + availableHeight + ')');
-          g.select('.nv-y.nv-axis').transition()
-              .call(yAxis);
+          g.select('.nv-y.nv-axis').call(yAxis);
       }
 
       // Zero line
@@ -9685,8 +9698,17 @@ nv.models.multiBarHorizontalChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+    nv.deprecated('multiBarHorizontalChart.transitionDuration');
+    return chart.duration(_);
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    multibar.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
     return chart;
   };
   //============================================================
