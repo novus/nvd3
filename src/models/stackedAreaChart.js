@@ -38,7 +38,7 @@ nv.models.stackedAreaChart = function() {
     , controlWidth = 250
     , cData = ['Stacked','Stream','Expanded']
     , controlLabels = {}
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   xAxis
@@ -73,6 +73,10 @@ nv.models.stackedAreaChart = function() {
 
   function chart(selection) {
     renderWatch.reset();
+    renderWatch.models(stacked);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -82,7 +86,7 @@ nv.models.stackedAreaChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+      chart.update = function() { container.transition().duration(duration).call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -604,9 +608,8 @@ nv.models.stackedAreaChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
-    return chart;
+    nv.deprecated('lineChart.transitionDuration');
+    return chart.duration(_);
   };
 
   chart.controlsData = function(_) {
@@ -628,6 +631,16 @@ nv.models.stackedAreaChart = function() {
     if (!arguments.length) return yAxisTickFormat;
     yAxisTickFormat = _;
     return yAxis;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    stacked.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
+    return chart;
   };
 
 

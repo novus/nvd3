@@ -13740,7 +13740,8 @@ nv.models.stackedArea = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , scatter = nv.models.scatter()
-    , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout')
+    , duration = 250
+    , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout','renderEnd')
     ;
 
   scatter
@@ -13761,9 +13762,12 @@ nv.models.stackedArea = function() {
    ************************************/
 
   //============================================================
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(scatter);
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -13909,7 +13913,7 @@ nv.models.stackedArea = function() {
             return d.color || color(d, d.seriesIndex)
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
-      path.transition()
+      path.watchTransition(renderWatch,'stackedArea path')
           .attr('d', function(d,i) {
             return area(d.values,i)
           });
@@ -13954,7 +13958,7 @@ nv.models.stackedArea = function() {
 
     });
 
-
+    renderWatch.renderEnd('stackedArea immediate');
     return chart;
   }
 
@@ -14081,6 +14085,15 @@ nv.models.stackedArea = function() {
 	    interpolate = _;
 	    return chart;
   };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    scatter.duration(duration);
+    return chart;
+  };
+
   //============================================================
 
 
@@ -14126,7 +14139,7 @@ nv.models.stackedAreaChart = function() {
     , controlWidth = 250
     , cData = ['Stacked','Stream','Expanded']
     , controlLabels = {}
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   xAxis
@@ -14161,6 +14174,10 @@ nv.models.stackedAreaChart = function() {
 
   function chart(selection) {
     renderWatch.reset();
+    renderWatch.models(stacked);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -14170,7 +14187,7 @@ nv.models.stackedAreaChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+      chart.update = function() { container.transition().duration(duration).call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -14692,9 +14709,8 @@ nv.models.stackedAreaChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
-    return chart;
+    nv.deprecated('lineChart.transitionDuration');
+    return chart.duration(_);
   };
 
   chart.controlsData = function(_) {
@@ -14716,6 +14732,16 @@ nv.models.stackedAreaChart = function() {
     if (!arguments.length) return yAxisTickFormat;
     yAxisTickFormat = _;
     return yAxis;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    stacked.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
+    return chart;
   };
 
 
