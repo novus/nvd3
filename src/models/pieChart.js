@@ -21,6 +21,7 @@ nv.models.pieChart = function() {
     , state = {}
     , defaultState = null
     , noData = "No Data Available."
+    , duration = 250
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     ;
 
@@ -47,6 +48,8 @@ nv.models.pieChart = function() {
 
   function chart(selection) {
     renderWatch.reset();
+    renderWatch.models(pie);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -285,6 +288,14 @@ nv.models.pieChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    pie.duration(duration);
     return chart;
   };
 
