@@ -1027,7 +1027,13 @@ nv.utils.rotatedBBoxSize = function(bbox, deg) {
     width  : bbox.height * sin + bbox.width * cos
   }
 };
-nv.models.axis = function() {
+
+nv.utils.collisionBBox = function(r1, r2) {
+  return !(r2.left > r1.left   + r1.width
+      ||   r2.left + r2.width  < r1.left
+      ||   r2.top  > r1.top    + r1.height
+      ||   r2.top  + r2.height < r1.top);
+};nv.models.axis = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
@@ -1072,8 +1078,6 @@ nv.models.axis = function() {
   function chart(selection) {
     selection.each(function(data) {
       var container = d3.select(this);
-
-
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
@@ -1374,7 +1378,8 @@ nv.models.axis = function() {
       //highlight zero line ... Maybe should not be an option and should just be in CSS?
       if (highlightZero)
         g.selectAll('.tick')
-          .filter(function(d) { return !parseFloat(Math.round(d.__data__*100000)/1000000) && (d.__data__ !== undefined) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
+          // we should use d and not d.__data__ because filter already filters things BY DATA, and d IS the data
+          .filter(function(d) { return !parseFloat(Math.round(d*100000)/1000000) && (d !== undefined) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
       //store old scales for use in transitions on update
@@ -5616,7 +5621,10 @@ nv.models.indentedTree = function() {
   //------------------------------------------------------------
 
   var margin = {top: 5, right: 0, bottom: 5, left: 0}
+    , maxWidth = Infinity
     , width = 400
+    , legendWidth = 0
+    , legendHeight = 0
     , height = 20
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
@@ -5632,7 +5640,7 @@ nv.models.indentedTree = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
+      var availableWidth = (maxWidth != Infinity ? maxWidth : width) - margin.left - margin.right,
           container = d3.select(this);
 
 
@@ -5732,8 +5740,8 @@ nv.models.indentedTree = function() {
             });
 
         var seriesPerRow = 0;
-        var legendWidth = 0;
         var columnWidths = [];
+        legendWidth = 0;
 
         while ( legendWidth < availableWidth && seriesPerRow < seriesWidths.length) {
           columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
@@ -5742,7 +5750,7 @@ nv.models.indentedTree = function() {
         if (seriesPerRow === 0) seriesPerRow = 1; //minimum of one series per row
 
 
-        while ( legendWidth > availableWidth && seriesPerRow > 1 ) {
+        while ( (legendWidth > availableWidth || legendWidth > maxWidth)  && seriesPerRow > 1 ) {
           columnWidths = [];
           seriesPerRow--;
 
@@ -5831,6 +5839,18 @@ nv.models.indentedTree = function() {
   chart.width = function(_) {
     if (!arguments.length) return width;
     width = _;
+    return chart;
+  };
+
+  chart.legendWidth = function(_) {
+    if (!arguments.length) return legendWidth;
+    legendWidth = _;
+    return chart;
+  };
+
+  chart.maxWidth = function(_) {
+    if (!arguments.length) return maxWidth;
+    maxWidth = _;
     return chart;
   };
 
@@ -11206,7 +11226,7 @@ nv.models.pie = function() {
                     .attr("ry", 3);
 
                 group.append('text')
-                    .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
+                    .style('text-anchor', function(d,i,j) { return labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle'}) //center the text on it's origin or begin/end if orthogonal aligned
                     .style('fill', '#000')
 
             });
@@ -11249,7 +11269,7 @@ nv.models.pie = function() {
                     }
                 });
           pieLabels.select(".nv-label text")
-                .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
+                .style('text-anchor', function(d,i,j) { return labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle' }) //center the text on it's origin or begin/end if orthogonal aligned
                 .text(function(d, i) {
                   var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
                   var labelTypes = {
@@ -11441,6 +11461,7 @@ nv.models.pieChart = function() {
     , width = null
     , height = null
     , showLegend = true
+    , legendOnRight = false
     , color = nv.utils.defaultColor()
     , tooltips = true
     , tooltip = function(key, y, e, graph) {
@@ -11477,7 +11498,6 @@ nv.models.pieChart = function() {
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
-
       var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
@@ -11543,17 +11563,35 @@ nv.models.pieChart = function() {
 
       if (showLegend) {
         legend
-          .width( availableWidth )
+          // .height( availableHeight )
           .key(pie.x());
+
+        //i always need the width unadjusted for the margin that i change
+        //if i dont add margin.right, the legend is going to get a smaller width next time around
+        //because im increasing margin.right below.  this will throw off the calculations for 
+        //right positioning because we won't know how width the container is
+        legend
+          .width( availableWidth + margin.right ) 
+          .height( availableHeight );
 
         wrap.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
-        if ( margin.top != legend.height()) {
-          margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+        if (legendOnRight) {
+          //legend on right
+          if ( margin.right != legend.legendWidth()) {
+            margin.right = legend.legendWidth();
+            availableWidth = (width || parseInt(container.style('width')) || 600)
+                               - margin.right - margin.left;
+          }
+        } else {
+          //legend on top
+          if ( margin.top != legend.height()) {
+            margin.top = legend.height();
+            availableHeight = (height || parseInt(container.style('height')) || 400)
+                               - margin.top - margin.bottom;
+          }  
         }
 
         wrap.select('.nv-legendWrap')
@@ -11669,6 +11707,12 @@ nv.models.pieChart = function() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return chart;
+  };
+
+  chart.legendOnRight = function(_) {
+    if (!arguments.length) return legendOnRight;
+    legendOnRight = _;
     return chart;
   };
 

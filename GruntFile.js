@@ -77,6 +77,10 @@ module.exports = function(grunt) {
             js: {
                 files: ["src/**/*.js"],
                 tasks: ['concat']
+            },
+            css: {
+                files: ["nv.d3.css"],
+                tasks: ['cssmin']
             }
         },
         copy: {
@@ -103,7 +107,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
 
-    grunt.registerTask('default', ['concat', 'copy','watch']);
+    grunt.registerTask('default', ['concat', 'cssmin', 'copy','watch']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
