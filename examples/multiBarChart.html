@@ -69,24 +69,34 @@ nv.addGraph(function() {
     chart = nv.models.multiBarChart()
       .barColor(d3.scale.category20().range())
       .margin({bottom: 100})
-      .transitionDuration(300)
-      .delay(0)
+      .duration(300)
       .rotateLabels(45)
       .groupSpacing(0.1)
       ;
 
     chart.multibar
-      .hideable(true);
+      .hideable(true)
+      // .duration(4000)
+      ;
+
 
     chart.reduceXTicks(false).staggerLabels(true);
 
     chart.xAxis
         .axisLabel("Current Index")
         .showMaxMin(true)
-        .tickFormat(d3.format(',.6f'));
+        .tickFormat(d3.format(',.6f'))
+        ;
+
 
     chart.yAxis
-        .tickFormat(d3.format(',.1f'));
+        .tickFormat(d3.format(',.1f'))
+        // .duration(2000)
+        ;
+
+    chart.dispatch.on('renderEnd', function(){
+      console.log('Render Complete');
+    });
 
     d3.select('#chart1 svg')
         .datum(negative_test_data)
@@ -96,9 +106,18 @@ nv.addGraph(function() {
 
     chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
+    
     return chart;
 });
 
+// setTimeout(function(){
+//   negative_test_data.forEach(function(d){
+//     d.values.forEach(function(e){
+//       e.y = 10;
+//     });
+//   });
+//   chart.update();
+// }, 2000);
 
 
 

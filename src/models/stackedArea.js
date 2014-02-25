@@ -20,7 +20,8 @@ nv.models.stackedArea = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , scatter = nv.models.scatter()
-    , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout')
+    , duration = 250
+    , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout','renderEnd')
     ;
 
   scatter
@@ -41,9 +42,12 @@ nv.models.stackedArea = function() {
    ************************************/
 
   //============================================================
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(scatter);
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -189,7 +193,7 @@ nv.models.stackedArea = function() {
             return d.color || color(d, d.seriesIndex)
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
-      path.transition()
+      path.watchTransition(renderWatch,'stackedArea path')
           .attr('d', function(d,i) {
             return area(d.values,i)
           });
@@ -234,7 +238,7 @@ nv.models.stackedArea = function() {
 
     });
 
-
+    renderWatch.renderEnd('stackedArea immediate');
     return chart;
   }
 
@@ -361,6 +365,15 @@ nv.models.stackedArea = function() {
 	    interpolate = _;
 	    return chart;
   };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    scatter.duration(duration);
+    return chart;
+  };
+
   //============================================================
 
 

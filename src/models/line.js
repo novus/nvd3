@@ -20,6 +20,8 @@ nv.models.line = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , interpolate = "linear" // controls the line interpolation
+    , duration = 250
+    , dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     ;
 
   scatter
@@ -35,12 +37,15 @@ nv.models.line = function() {
   //------------------------------------------------------------
 
   var x0, y0 //used to store previous scales
-      ;
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
+    ;
 
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(scatter);
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -84,7 +89,7 @@ nv.models.line = function() {
       var scatterWrap = wrap.select('.nv-scatterWrap');
           //.datum(data); // Data automatically trickles down from the wrap
 
-      scatterWrap.transition().call(scatter);
+      scatterWrap.call(scatter);
 
 
 
@@ -102,7 +107,6 @@ nv.models.line = function() {
 
 
 
-
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
@@ -116,8 +120,7 @@ nv.models.line = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i)});
-      groups
-          .transition()
+      groups.watchTransition(renderWatch, 'line: groups')
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -140,8 +143,7 @@ nv.models.line = function() {
       groups.exit().selectAll('path.nv-area')
            .remove();
 
-      areaPaths
-          .transition()
+      areaPaths.watchTransition(renderWatch, 'line: areaPaths')
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -167,8 +169,7 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
           );
 
-      linePaths
-          .transition()
+      linePaths.watchTransition(renderWatch, 'line: linePaths')
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -184,7 +185,7 @@ nv.models.line = function() {
       y0 = y.copy();
 
     });
-
+    renderWatch.renderEnd('line immediate');
     return chart;
   }
 
@@ -193,8 +194,12 @@ nv.models.line = function() {
   // Expose Public Variables
   //------------------------------------------------------------
 
-  chart.dispatch = scatter.dispatch;
+  chart.dispatch = dispatch;
   chart.scatter = scatter;
+  // Pass through events
+  scatter.dispatch.on('elementClick', function(){ dispatch.elementClick.apply(this, arguments); })
+  scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); })
+  scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); })
 
   d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
     'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData','highlightPoint','clearHighlights');
@@ -264,6 +269,14 @@ nv.models.line = function() {
   chart.isArea = function(_) {
     if (!arguments.length) return isArea;
     isArea = d3.functor(_);
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    scatter.duration(duration);
     return chart;
   };
 

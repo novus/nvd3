@@ -21,7 +21,8 @@ nv.models.pieChart = function() {
     , state = {}
     , defaultState = null
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , duration = 250
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     ;
 
   //============================================================
@@ -41,10 +42,14 @@ nv.models.pieChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch);
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(pie);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -185,6 +190,7 @@ nv.models.pieChart = function() {
 
     });
 
+    renderWatch.renderEnd('pieChart immediate');
     return chart;
   }
 
@@ -219,7 +225,7 @@ nv.models.pieChart = function() {
 
   d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -282,6 +288,14 @@ nv.models.pieChart = function() {
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    pie.duration(duration);
     return chart;
   };
 

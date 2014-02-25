@@ -31,8 +31,8 @@ nv.models.lineChart = function() {
     , state = {}
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
-    , transitionDuration = 250
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
+    , duration = 250
     ;
 
   xAxis
@@ -60,10 +60,17 @@ nv.models.lineChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
+
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(lines);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -74,7 +81,12 @@ nv.models.lineChart = function() {
                              - margin.top - margin.bottom;
 
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() {
+        if (duration === 0)
+          container.call(chart);
+        else
+          container.transition().duration(duration).call(chart)
+      };
       chart.container = this;
 
       //set state.disabled
@@ -199,7 +211,7 @@ nv.models.lineChart = function() {
       var linesWrap = g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
 
-      linesWrap.transition().call(lines);
+      linesWrap.call(lines);
 
       //------------------------------------------------------------
 
@@ -216,7 +228,6 @@ nv.models.lineChart = function() {
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
         g.select('.nv-x.nv-axis')
-            .transition()
             .call(xAxis);
       }
 
@@ -227,7 +238,6 @@ nv.models.lineChart = function() {
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
-            .transition()
             .call(yAxis);
       }
       //------------------------------------------------------------
@@ -320,6 +330,7 @@ nv.models.lineChart = function() {
 
     });
 
+    renderWatch.renderEnd('lineChart immediate');
     return chart;
   }
 
@@ -455,8 +466,17 @@ nv.models.lineChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+    nv.deprecated('lineChart.transitionDuration');
+    return chart.duration(_);
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    lines.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
     return chart;
   };
 

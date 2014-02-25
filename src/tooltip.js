@@ -337,7 +337,11 @@ window.nv.tooltip.* also has various helper methods.
         container.style.left = 0;
         container.style.top = 0;
         container.style.opacity = 0;
-        container.innerHTML = content;
+        // Content can also be dom element
+        if (typeof content !== 'string')
+            container.appendChild(content);
+        else
+            container.innerHTML = content;
         body.appendChild(container);
         
         //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.

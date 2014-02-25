@@ -48,14 +48,19 @@ nv.addGraph({
                 .width(width)
                 .height(height)
                 .stacked(true)
+                .delay(0)
+
+      chart.dispatch.on('renderEnd', function(){
+        console.log('Render Complete');
+      });
 
 
     var svg = d3.select('#test1 svg')
       .attr('width', width)
       .attr('height', height)
       .datum(test_data);
-
-    svg.transition().duration(500).call(chart);
+    console.log('calling chart');
+    svg.transition().duration(0).call(chart);
 
     return chart;
   },
@@ -79,10 +84,11 @@ nv.addGraph({
          .width(width)
          .height(height);
 
+      console.log('calling chart');
       d3.select('#test1 svg')
         .attr('width', width)
         .attr('height', height)
-        transition().duration(500)
+        transition().duration(0)
         .call(graph);
 
       };

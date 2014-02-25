@@ -62,19 +62,24 @@ nv.addGraph(function() {
     x: function(d,i) { return i},
     showXAxis: true,
     showYAxis: true,
-    transitionDuration: 250
+    transitionDuration: 300,
+    useInteractiveGuideline: true
   })
   ;
 
   // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
   chart.xAxis
     .axisLabel("Time (s)")
-    .tickFormat(d3.format(',.1f'));
+    .tickFormat(d3.format(',.1f'))
+    ;
 
   chart.yAxis
     .axisLabel('Voltage (v)')
     .tickFormat(d3.format(',.2f'))
     ;
+  chart.dispatch.on('renderEnd', function(){
+    console.log('render complete');
+  });
 
   d3.select('#chart1 svg')
     .datum(sinAndCos())

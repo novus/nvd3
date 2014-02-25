@@ -21,8 +21,9 @@ nv.models.discreteBar = function() {
     , yDomain
     , xRange
     , yRange
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout','renderEnd')
     , rectClass = 'discreteBar'
+    , duration = 250
     ;
 
   //============================================================
@@ -33,11 +34,13 @@ nv.models.discreteBar = function() {
   //------------------------------------------------------------
 
   var x0, y0;
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -103,7 +106,7 @@ nv.models.discreteBar = function() {
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6);
       groups.exit()
-          .transition()
+          .watchTransition(renderWatch, 'discreteBar: exit groups')
           .style('stroke-opacity', 1e-6)
           .style('fill-opacity', 1e-6)
           .remove();
@@ -111,7 +114,7 @@ nv.models.discreteBar = function() {
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
       groups
-          .transition()
+          .watchTransition(renderWatch, 'discreteBar: groups')
           .style('stroke-opacity', 1)
           .style('fill-opacity', .75);
 
@@ -185,7 +188,7 @@ nv.models.discreteBar = function() {
 
         bars.select('text')
           .text(function(d,i) { return valueFormat(getY(d,i)) })
-          .transition()
+          .watchTransition(renderWatch, 'discreteBar: bars text')
           .attr('x', x.rangeBand() * .9 / 2)
           .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
 
@@ -200,9 +203,9 @@ nv.models.discreteBar = function() {
           .style('stroke', function(d,i) { return d.color || color(d,i) })
         .select('rect')
           .attr('class', rectClass)
-          .transition()
+          .watchTransition(renderWatch, 'discreteBar: bars rect')
           .attr('width', x.rangeBand() * .9 / data.length);
-      bars.transition()
+      bars.watchTransition(renderWatch, 'discreteBar: bars')
         //.delay(function(d,i) { return i * 1200 / data[0].values.length })
           .attr('transform', function(d,i) {
             var left = x(getX(d,i)) + x.rangeBand() * .05,
@@ -226,6 +229,7 @@ nv.models.discreteBar = function() {
 
     });
 
+    renderWatch.renderEnd('discreteBar immediate');
     return chart;
   }
 
@@ -340,6 +344,13 @@ nv.models.discreteBar = function() {
   chart.rectClass= function(_) {
     if (!arguments.length) return rectClass;
     rectClass = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
     return chart;
   };
   //============================================================
