@@ -42,7 +42,7 @@ nv.models.axis = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this);
+      var  container = d3.select(this).classed({'nvd3-svg':true});
 
 
       //------------------------------------------------------------

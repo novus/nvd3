@@ -9,6 +9,7 @@ _site
 *.swp
 *~
 *.log
+.idea
 
 
 # Private Test Data #

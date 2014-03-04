@@ -49,7 +49,7 @@ nv.models.bulletChart = function() {
 
   function chart(selection) {
     selection.each(function(d, i) {
-      var container = d3.select(this);
+      var  container = d3.select(this).classed({'nvd3-svg':true});
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,

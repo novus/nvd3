@@ -73,7 +73,7 @@ nv.models.cumulativeLineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this).classed('nv-chart-' + id, true),
+      var  container = d3.select(this).classed({'nvd3-svg':true}).classed('nv-chart-' + id, true),
           that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)

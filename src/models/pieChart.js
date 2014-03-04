@@ -46,7 +46,7 @@ nv.models.pieChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this),
+      var  container = d3.select(this).classed({'nvd3-svg':true}),
           that = this;
 
       var availableWidth = (width || parseInt(container.style('width')) || 960)

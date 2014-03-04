@@ -31,7 +31,7 @@ nv.models.distribution = function() {
     selection.each(function(data) {
       var availableLength = width - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
           naxis = axis == 'x' ? 'y' : 'x',
-          container = d3.select(this);
+           container = d3.select(this).classed({'nvd3-svg':true});
 
 
       //------------------------------------------------------------

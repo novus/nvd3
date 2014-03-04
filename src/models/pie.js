@@ -35,7 +35,7 @@ nv.models.pie = function() {
           availableHeight = height - margin.top - margin.bottom,
           radius = Math.min(availableWidth, availableHeight) / 2,
           arcRadius = radius-(radius / 5),
-          container = d3.select(this);
+           container = d3.select(this).classed({'nvd3-svg':true});
 
 
       //------------------------------------------------------------

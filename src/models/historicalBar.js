@@ -33,7 +33,7 @@ nv.models.historicalBar = function() {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
-          container = d3.select(this);
+           container = d3.select(this).classed({'nvd3-svg':true});
 
 
       //------------------------------------------------------------

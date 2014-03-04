@@ -22,7 +22,7 @@ nv.models.legend = function() {
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
-          container = d3.select(this);
+           container = d3.select(this).classed({'nvd3-svg':true});
 
 
       //------------------------------------------------------------

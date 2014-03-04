@@ -28,7 +28,7 @@ nv.models.indentedTree = function() {
   function chart(selection) {
     selection.each(function(data) {
       var depth = 1,
-          container = d3.select(this);
+           container = d3.select(this).classed({'nvd3-svg':true});
 
       var tree = d3.layout.tree()
           .children(function(d) { return d.values })
