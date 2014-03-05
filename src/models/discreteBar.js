@@ -5,7 +5,12 @@ nv.models.discreteBar = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+  var
+    canvas = new Canvas({
+        width : 960
+        , height: 500
+    })
+    , margin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 960
     , height = 500
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
@@ -39,10 +44,9 @@ nv.models.discreteBar = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
+      var availableWidth = canvas.width - margin.left - margin.right,
+          availableHeight = canvas.height - margin.top - margin.bottom,
           container = d3.select(this);
-
 
       //add series index to each data point for reference
       data.forEach(function(series, i) {
@@ -260,14 +264,14 @@ nv.models.discreteBar = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.width;
+      canvas.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.height;
+      canvas.height = _;
     return chart;
   };
 
@@ -346,4 +350,4 @@ nv.models.discreteBar = function() {
 
 
   return chart;
-}
+};
