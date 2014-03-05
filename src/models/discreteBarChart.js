@@ -10,7 +10,9 @@ nv.models.discreteBarChart = function() {
     , yAxis = nv.models.axis()
     ;
 
-  var margin = {top: 15, right: 10, bottom: 50, left: 60}
+  var canvas = new Canvas({
+        margin: {top: 15, right: 10, bottom: 50, left: 60}
+      })    
     , width = null
     , height = null
     , color = nv.utils.getColor()
@@ -67,9 +69,9 @@ nv.models.discreteBarChart = function() {
           that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                             - margin.left - margin.right,
+                             - canvas.margin.left - canvas.margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+                             - canvas.margin.top - canvas.margin.bottom;
 
 
       chart.update = function() { 
@@ -91,8 +93,8 @@ nv.models.discreteBarChart = function() {
           .style('text-anchor', 'middle');
 
         noDataText
-          .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
+          .attr('x', canvas.margin.left + availableWidth / 2)
+          .attr('y', canvas.margin.top + availableHeight / 2)
           .text(function(d) { return d });
 
         return chart;
@@ -127,7 +129,7 @@ nv.models.discreteBarChart = function() {
         
       gEnter.append('g').attr('class', 'nv-barsWrap');
 
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      g.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       if (rightAlignYAxis) {
           g.select(".nv-y.nv-axis")
@@ -231,7 +233,7 @@ nv.models.discreteBarChart = function() {
   //------------------------------------------------------------
 
   discretebar.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
     dispatch.tooltipShow(e);
   });
 
@@ -261,11 +263,11 @@ nv.models.discreteBarChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
   
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 

@@ -7,12 +7,10 @@ nv.models.discreteBar = function() {
 
   var
     canvas = new Canvas({
-        width : 960
+        margin : {top: 0, right: 0, bottom: 0, left: 0}
+        , width : 960
         , height: 500
     })
-    , margin = {top: 0, right: 0, bottom: 0, left: 0}
-    , width = 960
-    , height = 500
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , x = d3.scale.ordinal()
     , y = d3.scale.linear()
@@ -44,8 +42,8 @@ nv.models.discreteBar = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = canvas.width - margin.left - margin.right,
-          availableHeight = canvas.height - margin.top - margin.bottom,
+      var availableWidth = canvas.width - canvas.margin.left - canvas.margin.right,
+          availableHeight = canvas.height - canvas.margin.top - canvas.margin.bottom,
           container = d3.select(this);
 
       //add series index to each data point for reference
@@ -94,7 +92,7 @@ nv.models.discreteBar = function() {
 
       gEnter.append('g').attr('class', 'nv-groups');
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       //------------------------------------------------------------
 
@@ -256,10 +254,10 @@ nv.models.discreteBar = function() {
 
   chart.margin = function(_) {
     if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
