@@ -10,6 +10,7 @@ nv.models.discreteBar = function() {
         margin : {top: 0, right: 0, bottom: 0, left: 0}
         , width : 960
         , height: 500
+        , chartClass: 'discretebar'
     })
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , x = d3.scale.ordinal()
@@ -44,6 +45,8 @@ nv.models.discreteBar = function() {
     selection.each(function(data) {
 
       canvas.setRoot(this);
+      canvas.wrapChart(data);
+      canvas.gEnter.append('g').attr('class', 'nv-groups');
 
       var availableWidth = canvas.width - canvas.margin.left - canvas.margin.right,
           availableHeight = canvas.height - canvas.margin.top - canvas.margin.bottom;
@@ -67,11 +70,10 @@ nv.models.discreteBar = function() {
               })
             });
 
-      x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
+      x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
           .rangeBands(xRange || [0, availableWidth], .1);
 
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)));
-
+      y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)));
 
       // If showValues, pad the Y axis range to account for label height
       if (showValues) y.range(yRange || [availableHeight - (y.domain()[0] < 0 ? 12 : 0), y.domain()[1] > 0 ? 12 : 0]);
@@ -83,25 +85,8 @@ nv.models.discreteBar = function() {
 
       //------------------------------------------------------------
 
-
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      var wrap = canvas.svg.selectAll('g.nv-wrap.nv-discretebar').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discretebar');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g');
-
-      gEnter.append('g').attr('class', 'nv-groups');
-
-      wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
-
-      //------------------------------------------------------------
-
-
-
       //TODO: by definition, the discrete bar should not have multiple groups, will modify/remove later
-      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
+      var groups = canvas.wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)

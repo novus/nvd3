@@ -12,6 +12,8 @@ nv.models.discreteBarChart = function() {
 
   var canvas = new Canvas({
         margin: {top: 15, right: 10, bottom: 50, left: 60}
+          , chartClass: 'discreteBarWithAxes'
+          , wrapClass: 'barsWrap'
       })    
     , width = null
     , height = null
@@ -67,6 +69,15 @@ nv.models.discreteBarChart = function() {
     selection.each(function(data) {
         
       canvas.setRoot(this);
+      canvas.wrapChart(data);
+      canvas.gEnter.insert('g', '.nv-'+canvas.options.wrapClass).attr('class', 'nv-x nv-axis');
+      canvas.gEnter.insert('g', '.nv-'+canvas.options.wrapClass).attr('class', 'nv-y nv-axis')
+          .append('g').attr('class', 'nv-zeroLine')
+          .append('line');
+
+      if (rightAlignYAxis)
+          canvas.g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
         
       var that = this;
 
@@ -75,12 +86,10 @@ nv.models.discreteBarChart = function() {
           availableHeight = (height || parseInt(canvas.svg.style('height')) || 400)
                              - canvas.margin.top - canvas.margin.bottom;
 
-
       chart.update = function() { 
         dispatch.beforeUpdate(); 
         canvas.svg.transition().duration(transitionDuration).call(chart); 
       };
-      chart.container = this;
 
       if(canvas.noData(data)){
           return;
@@ -96,31 +105,6 @@ nv.models.discreteBarChart = function() {
 
 
       //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      var wrap = canvas.svg.selectAll('g.nv-wrap.nv-discreteBarWithAxes').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discreteBarWithAxes').append('g');
-      var defsEnter = gEnter.append('defs');
-      var g = wrap.select('g');
-
-      gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis')
-            .append('g').attr('class', 'nv-zeroLine')
-            .append('line');
-        
-      gEnter.append('g').attr('class', 'nv-barsWrap');
-
-      g.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
-
-      if (rightAlignYAxis) {
-          g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + availableWidth + ",0)");
-      }
-
-      //------------------------------------------------------------
-
-
-      //------------------------------------------------------------
       // Main Chart Component(s)
 
       discretebar
@@ -128,8 +112,8 @@ nv.models.discreteBarChart = function() {
         .height(availableHeight);
 
 
-      var barsWrap = g.select('.nv-barsWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+      var barsWrap = canvas.g.select('.nv-barsWrap')
+          .datum(data.filter(function(d) { return !d.disabled }));
 
       barsWrap.transition().call(discretebar);
 
@@ -137,11 +121,11 @@ nv.models.discreteBarChart = function() {
 
 
 
-      defsEnter.append('clipPath')
+        canvas.defsEnter.append('clipPath')
           .attr('id', 'nv-x-label-clip-' + discretebar.id())
         .append('rect');
 
-      g.select('#nv-x-label-clip-' + discretebar.id() + ' rect')
+        canvas.g.select('#nv-x-label-clip-' + discretebar.id() + ' rect')
           .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
           .attr('height', 16)
           .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
@@ -156,14 +140,14 @@ nv.models.discreteBarChart = function() {
             .ticks( availableWidth / 100 )
             .tickSize(-availableHeight, 0);
 
-          g.select('.nv-x.nv-axis')
+          canvas.g.select('.nv-x.nv-axis')
               .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
           //d3.transition(g.select('.nv-x.nv-axis'))
-          g.select('.nv-x.nv-axis').transition()
+          canvas.g.select('.nv-x.nv-axis').transition()
               .call(xAxis);
 
 
-          var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+          var xTicks = canvas.g.select('.nv-x.nv-axis').selectAll('g');
 
           if (staggerLabels) {
             xTicks
@@ -178,12 +162,12 @@ nv.models.discreteBarChart = function() {
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
-          g.select('.nv-y.nv-axis').transition()
+          canvas.g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
       }
 
       // Zero line
-      g.select(".nv-zeroLine line")
+        canvas.g.select(".nv-zeroLine line")
         .attr("x1",0)
         .attr("x2",availableWidth)
         .attr("y1", y(0))
