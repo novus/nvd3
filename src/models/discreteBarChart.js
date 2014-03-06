@@ -15,8 +15,6 @@ nv.models.discreteBarChart = function() {
           , chartClass: 'discreteBarWithAxes'
           , wrapClass: 'barsWrap'
       })    
-    , width = null
-    , height = null
     , color = nv.utils.getColor()
     , showXAxis = true
     , showYAxis = true
@@ -103,8 +101,7 @@ nv.models.discreteBarChart = function() {
           .datum(data.filter(function(d) { return !d.disabled }))
           .transition()
           .call( discretebar.width(availableWidth).height(availableHeight) );
-
-      //------------------------------------------------------------
+        //------------------------------------------------------------
 
         canvas.defsEnter.append('clipPath')
           .attr('id', 'nv-x-label-clip-' + discretebar.id())
@@ -219,14 +216,14 @@ nv.models.discreteBarChart = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.width;
+    canvas.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.height;
+      canvas.height = _;
     return chart;
   };
 

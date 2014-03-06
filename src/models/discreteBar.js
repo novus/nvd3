@@ -40,7 +40,6 @@ nv.models.discreteBar = function() {
 
   //============================================================
 
-
   function chart(selection) {
     selection.each(function(data) {
         
@@ -51,8 +50,8 @@ nv.models.discreteBar = function() {
       canvas.wrapChart(data);
       canvas.gEnter.append('g').attr('class', 'nv-groups');
 
-      var availableWidth = canvas.width - canvas.margin.left - canvas.margin.right,
-          availableHeight = canvas.height - canvas.margin.top - canvas.margin.bottom;
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
       //add series index to each data point for reference
       data.forEach(function(series, i) {
@@ -225,14 +224,14 @@ nv.models.discreteBar = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.width;
-      canvas.width = _;
+    if (!arguments.length) return canvas.options.size.width;
+      canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.height;
-      canvas.height = _;
+    if (!arguments.length) return canvas.options.size.height;
+      canvas.options.size.height = _;
     return chart;
   };
 
