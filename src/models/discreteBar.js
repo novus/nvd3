@@ -42,9 +42,11 @@ nv.models.discreteBar = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+
+      canvas.setRoot(this);
+
       var availableWidth = canvas.width - canvas.margin.left - canvas.margin.right,
-          availableHeight = canvas.height - canvas.margin.top - canvas.margin.bottom,
-          container = d3.select(this);
+          availableHeight = canvas.height - canvas.margin.top - canvas.margin.bottom;
 
       //add series index to each data point for reference
       data.forEach(function(series, i) {
@@ -85,7 +87,7 @@ nv.models.discreteBar = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-discretebar').data([data]);
+      var wrap = canvas.svg.selectAll('g.nv-wrap.nv-discretebar').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discretebar');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
@@ -125,7 +127,7 @@ nv.models.discreteBar = function() {
 
 
       var barsEnter = bars.enter().append('g')
-          .attr('transform', function(d,i,j) {
+          .attr('transform', function(d,i) {
               return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05 ) + ', ' + y(0) + ')'
           })
           .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
@@ -178,7 +180,7 @@ nv.models.discreteBar = function() {
 
       barsEnter.append('rect')
           .attr('height', 0)
-          .attr('width', x.rangeBand() * .9 / data.length )
+          .attr('width', x.rangeBand() * .9 / data.length );
 
       if (showValues) {
         barsEnter.append('text')

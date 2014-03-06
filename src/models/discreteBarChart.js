@@ -65,18 +65,20 @@ nv.models.discreteBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this),
-          that = this;
+        
+      canvas.setRoot(this);
+        
+      var that = this;
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+      var availableWidth = (width  || parseInt(canvas.svg.style('width')) || 960)
                              - canvas.margin.left - canvas.margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
+          availableHeight = (height || parseInt(canvas.svg.style('height')) || 400)
                              - canvas.margin.top - canvas.margin.bottom;
 
 
       chart.update = function() { 
         dispatch.beforeUpdate(); 
-        container.transition().duration(transitionDuration).call(chart); 
+        canvas.svg.transition().duration(transitionDuration).call(chart); 
       };
       chart.container = this;
 
@@ -85,7 +87,7 @@ nv.models.discreteBarChart = function() {
       // Display No Data message if there's nothing to show.
 
       if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-        var noDataText = container.selectAll('.nv-noData').data([noData]);
+        var noDataText = canvas.svg.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
           .attr('class', 'nvd3 nv-noData')
@@ -99,7 +101,7 @@ nv.models.discreteBarChart = function() {
 
         return chart;
       } else {
-        container.selectAll('.nv-noData').remove();
+        canvas.svg.selectAll('.nv-noData').remove();
       }
 
       //------------------------------------------------------------
@@ -117,7 +119,7 @@ nv.models.discreteBarChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-discreteBarWithAxes').data([data]);
+      var wrap = canvas.svg.selectAll('g.nv-wrap.nv-discreteBarWithAxes').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-discreteBarWithAxes').append('g');
       var defsEnter = gEnter.append('defs');
       var g = wrap.select('g');
@@ -343,4 +345,4 @@ nv.models.discreteBarChart = function() {
 
 
   return chart;
-}
+};
