@@ -7,8 +7,7 @@ nv.models.discreteBarChart = function() {
 
   var discretebar = nv.models.discreteBar()
     , xAxis = nv.models.axis()
-    , yAxis = nv.models.axis()
-    ;
+    , yAxis = nv.models.axis();
 
   var canvas = new Canvas({
         margin: {top: 15, right: 10, bottom: 50, left: 60}
@@ -58,41 +57,35 @@ nv.models.discreteBarChart = function() {
 
   //============================================================
 
-
   function chart(selection) {
     selection.each(function(data) {
 
-      var that = this;
-
       canvas.setRoot(this);
+      if (canvas.noData(data)) return;
       canvas.wrapChart(data);
       canvas.gEnter.insert('g', '.nv-'+canvas.options.wrapClass).attr('class', 'nv-x nv-axis');
       canvas.gEnter.insert('g', '.nv-'+canvas.options.wrapClass).attr('class', 'nv-y nv-axis')
-          .append('g').attr('class', 'nv-zeroLine')
+          .append('g')
+          .attr('class', 'nv-zeroLine')
           .append('line');
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+      var availableWidth = canvas.available.width
+        , availableHeight = canvas.available.height
+        , that = this
+        , xTicksPadding = [5, 17]
+        , xTicks = availableWidth / 100
+        , yTicks = availableHeight / 36;
 
-    if (rightAlignYAxis)
-          canvas.g.select(".nv-y.nv-axis").attr("transform", "translate(" + availableWidth + ",0)");
+      if (rightAlignYAxis)
+        canvas.g.select(".nv-y.nv-axis").attr("transform", "translate(" + availableWidth + ",0)");
 
       chart.update = function() { 
         dispatch.beforeUpdate(); 
         canvas.svg.transition().duration(transitionDuration).call(chart); 
       };
 
-      if (canvas.noData(data))
-          return;     
-
-      //------------------------------------------------------------
-      // Setup Scales
-
       x = discretebar.xScale();
       y = discretebar.yScale().clamp(true);
-
-      //------------------------------------------------------------
-
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -118,7 +111,7 @@ nv.models.discreteBarChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableWidth / 100 )
+            .ticks( xTicks )
             .tickSize( -availableHeight, 0 );
 
           canvas.g.select('.nv-x.nv-axis')
@@ -126,19 +119,19 @@ nv.models.discreteBarChart = function() {
               .transition()
               .call(xAxis);
 
-          var xTicks = canvas.g.select('.nv-x.nv-axis').selectAll('g');
-
+          // xTicks
           if (staggerLabels) {
-            xTicks
+              canvas.g.select('.nv-x.nv-axis')
+                .selectAll('g')
                 .selectAll('text')
-                .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
+                .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? xTicksPadding[0] : xTicksPadding[1]) + ')' })
           }
       }
 
       if (showYAxis) {
           yAxis
             .scale(y)
-            .ticks( availableHeight / 36 )
+            .ticks( yTicks )
             .tickSize( -availableWidth, 0);
 
           canvas.g.select('.nv-y.nv-axis')
@@ -147,7 +140,7 @@ nv.models.discreteBarChart = function() {
       }
 
       // Zero line
-        canvas.g.select(".nv-zeroLine line")
+      canvas.g.select(".nv-zeroLine line")
         .attr("x1",0)
         .attr("x2", availableWidth)
         .attr("y1", y(0))
