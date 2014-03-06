@@ -82,30 +82,9 @@ nv.models.discreteBarChart = function() {
       };
       chart.container = this;
 
-
-      //------------------------------------------------------------
-      // Display No Data message if there's nothing to show.
-
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-        var noDataText = canvas.svg.selectAll('.nv-noData').data([noData]);
-
-        noDataText.enter().append('text')
-          .attr('class', 'nvd3 nv-noData')
-          .attr('dy', '-.7em')
-          .style('text-anchor', 'middle');
-
-        noDataText
-          .attr('x', canvas.margin.left + availableWidth / 2)
-          .attr('y', canvas.margin.top + availableHeight / 2)
-          .text(function(d) { return d });
-
-        return chart;
-      } else {
-        canvas.svg.selectAll('.nv-noData').remove();
+      if(canvas.noData(data)){
+          return;
       }
-
-      //------------------------------------------------------------
-
 
       //------------------------------------------------------------
       // Setup Scales
