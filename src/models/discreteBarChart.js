@@ -23,13 +23,12 @@ nv.models.discreteBarChart = function() {
     , rightAlignYAxis = false
     , staggerLabels = false
     , tooltips = true
-    , tooltip = function(key, x, y, e, graph) {
+    , tooltip = function(key, x, y) {
         return '<h3>' + x + '</h3>' +
                '<p>' +  y + '</p>'
       }
     , x
     , y
-    , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
     , transitionDuration = 250
     ;
@@ -38,12 +37,10 @@ nv.models.discreteBarChart = function() {
     .orient('bottom')
     .highlightZero(false)
     .showMaxMin(false)
-    .tickFormat(function(d) { return d })
-    ;
+    .tickFormat(function(d) { return d });
   yAxis
     .orient((rightAlignYAxis) ? 'right' : 'left')
-    .tickFormat(d3.format(',.1f'))
-    ;
+    .tickFormat(d3.format(',.1f'));
 
   //============================================================
 
@@ -57,8 +54,7 @@ nv.models.discreteBarChart = function() {
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(discretebar.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(discretebar.y()(e.point, e.pointIndex)),
-        content = tooltip(e.series.key, x, y, e, chart);
-
+        content = tooltip(e.series.key, x, y);
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
@@ -67,7 +63,9 @@ nv.models.discreteBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-        
+
+      var that = this;
+
       canvas.setRoot(this);
       canvas.wrapChart(data);
       canvas.gEnter.insert('g', '.nv-'+canvas.options.wrapClass).attr('class', 'nv-x nv-axis');
@@ -75,25 +73,19 @@ nv.models.discreteBarChart = function() {
           .append('g').attr('class', 'nv-zeroLine')
           .append('line');
 
-      if (rightAlignYAxis)
-          canvas.g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + availableWidth + ",0)");
-        
-      var that = this;
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
-      var availableWidth = (width  || parseInt(canvas.svg.style('width')) || 960)
-                             - canvas.margin.left - canvas.margin.right,
-          availableHeight = (height || parseInt(canvas.svg.style('height')) || 400)
-                             - canvas.margin.top - canvas.margin.bottom;
+    if (rightAlignYAxis)
+          canvas.g.select(".nv-y.nv-axis").attr("transform", "translate(" + availableWidth + ",0)");
 
       chart.update = function() { 
         dispatch.beforeUpdate(); 
         canvas.svg.transition().duration(transitionDuration).call(chart); 
       };
 
-      if(canvas.noData(data)){
-          return;
-      }
+      if (canvas.noData(data))
+          return;     
 
       //------------------------------------------------------------
       // Setup Scales
@@ -107,29 +99,21 @@ nv.models.discreteBarChart = function() {
       //------------------------------------------------------------
       // Main Chart Component(s)
 
-      discretebar
-        .width(availableWidth)
-        .height(availableHeight);
-
-
       var barsWrap = canvas.g.select('.nv-barsWrap')
-          .datum(data.filter(function(d) { return !d.disabled }));
-
-      barsWrap.transition().call(discretebar);
+          .datum(data.filter(function(d) { return !d.disabled }))
+          .transition()
+          .call( discretebar.width(availableWidth).height(availableHeight) );
 
       //------------------------------------------------------------
 
-
-
         canvas.defsEnter.append('clipPath')
           .attr('id', 'nv-x-label-clip-' + discretebar.id())
-        .append('rect');
+          .append('rect');
 
         canvas.g.select('#nv-x-label-clip-' + discretebar.id() + ' rect')
           .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
           .attr('height', 16)
           .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
-
 
       //------------------------------------------------------------
       // Setup Axes
@@ -138,14 +122,12 @@ nv.models.discreteBarChart = function() {
           xAxis
             .scale(x)
             .ticks( availableWidth / 100 )
-            .tickSize(-availableHeight, 0);
+            .tickSize( -availableHeight, 0 );
 
           canvas.g.select('.nv-x.nv-axis')
-              .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
-          //d3.transition(g.select('.nv-x.nv-axis'))
-          canvas.g.select('.nv-x.nv-axis').transition()
+              .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')')
+              .transition()
               .call(xAxis);
-
 
           var xTicks = canvas.g.select('.nv-x.nv-axis').selectAll('g');
 
@@ -162,17 +144,17 @@ nv.models.discreteBarChart = function() {
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
-          canvas.g.select('.nv-y.nv-axis').transition()
+          canvas.g.select('.nv-y.nv-axis')
+              .transition()
               .call(yAxis);
       }
 
       // Zero line
         canvas.g.select(".nv-zeroLine line")
         .attr("x1",0)
-        .attr("x2",availableWidth)
+        .attr("x2", availableWidth)
         .attr("y1", y(0))
-        .attr("y2", y(0))
-        ;
+        .attr("y2", y(0));
 
       //------------------------------------------------------------
 
@@ -293,8 +275,8 @@ nv.models.discreteBarChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
+    if (!arguments.length) return canvas.noData;
+    canvas.noData = _;
     return chart;
   };
 
