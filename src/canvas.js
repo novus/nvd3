@@ -7,11 +7,16 @@ function Canvas(options){
 
     this.legend = nv.models.legend();
 
+    function setMargin(value, defaultValue){
+        // Prevent overriding zero margins
+        return (value === (undefined || null) ) ? defaultValue : value ;
+    }
+
     var margin = this.margin = {
-        top: options.margin.top || 20,
-        right: options.margin.top || 20,
-        bottom: options.margin.top || 30,
-        left: options.margin.top || 40
+        top     : setMargin(options.margin.top, 20),
+        right   : setMargin(options.margin.right, 20),
+        bottom  : setMargin(options.margin.bottom, 30),
+        left    : setMargin(options.margin.left, 40)
     };
 
     Object.defineProperty(margin, 'leftright', {
@@ -20,7 +25,7 @@ function Canvas(options){
     Object.defineProperty(margin, 'topbottom', {
         get: function(){ return margin.top + margin.bottom; }
     });
-};
+}
 
 Canvas.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
