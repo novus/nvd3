@@ -8,7 +8,9 @@ nv.models.line = function() {
   var  scatter = nv.models.scatter()
     ;
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}
+  var canvas = new Canvas({
+        margin: {top: 0, right: 0, bottom: 0, left: 0}
+      })
     , width = 960
     , height = 500
     , color = nv.utils.defaultColor() // a function that returns a color
@@ -42,8 +44,8 @@ nv.models.line = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
+      var availableWidth = width - canvas.margin.left - canvas.margin.right,
+          availableHeight = height - canvas.margin.top - canvas.margin.bottom,
           container = d3.select(this);
 
       //------------------------------------------------------------
@@ -65,28 +67,23 @@ nv.models.line = function() {
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-groups');
       gEnter.append('g').attr('class', 'nv-scatterWrap');
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       //------------------------------------------------------------
 
-
-
-
       scatter
         .width(availableWidth)
-        .height(availableHeight)
+        .height(availableHeight);
 
       var scatterWrap = wrap.select('.nv-scatterWrap');
           //.datum(data); // Data automatically trickles down from the wrap
 
       scatterWrap.transition().call(scatter);
-
-
 
       defsEnter.append('clipPath')
           .attr('id', 'nv-edge-clip-' + scatter.id())
@@ -99,9 +96,6 @@ nv.models.line = function() {
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
       scatterWrap
           .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
-
-
-
 
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
@@ -120,8 +114,6 @@ nv.models.line = function() {
           .transition()
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
-
-
 
       var areaPaths = groups.selectAll('path.nv-area')
           .data(function(d) { return isArea(d) ? [d] : [] }); // this is done differently than lines because I need to check if series is an area
@@ -202,11 +194,11 @@ nv.models.line = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+      canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+      canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+      canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+      canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
