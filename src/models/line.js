@@ -10,6 +10,7 @@ nv.models.line = function() {
 
   var canvas = new Canvas({
         margin: {top: 0, right: 0, bottom: 0, left: 0}
+          , chartClass: 'line'
       })
     , width = 960
     , height = 500
@@ -44,9 +45,11 @@ nv.models.line = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - canvas.margin.left - canvas.margin.right,
-          availableHeight = height - canvas.margin.top - canvas.margin.bottom,
-          container = d3.select(this);
+
+      canvas.setRoot( this );
+
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
       //------------------------------------------------------------
       // Setup Scales
@@ -63,16 +66,9 @@ nv.models.line = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
-      var defsEnter = wrapEnter.append('defs');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g');
-
-      gEnter.append('g').attr('class', 'nv-groups');
-      gEnter.append('g').attr('class', 'nv-scatterWrap');
-
-      wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
+      canvas.wrapChart(data);
+      canvas.gEnter.append('g').attr('class', 'nv-groups');
+      canvas.gEnter.append('g').attr('class', 'nv-scatterWrap');
 
       //------------------------------------------------------------
 
@@ -80,24 +76,24 @@ nv.models.line = function() {
         .width(availableWidth)
         .height(availableHeight);
 
-      var scatterWrap = wrap.select('.nv-scatterWrap');
+      var scatterWrap = canvas.wrap.select('.nv-scatterWrap');
           //.datum(data); // Data automatically trickles down from the wrap
 
       scatterWrap.transition().call(scatter);
 
-      defsEnter.append('clipPath')
-          .attr('id', 'nv-edge-clip-' + scatter.id())
+      canvas.defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + scatter.id())
         .append('rect');
 
-      wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', (availableHeight > 0) ? availableHeight : 0);
+      canvas.wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
+        .attr('width', availableWidth)
+        .attr('height', (availableHeight > 0) ? availableHeight : 0);
 
-      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
+      canvas.g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
       scatterWrap
           .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
 
-      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
+      var groups = canvas.wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -125,7 +121,7 @@ nv.models.line = function() {
                 .defined(defined)
                 .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
-                .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
+                .y1(function() { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
@@ -140,7 +136,7 @@ nv.models.line = function() {
                 .defined(defined)
                 .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-                .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
+                .y1(function() { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
@@ -203,14 +199,14 @@ nv.models.line = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+      canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+      canvas.options.size.height = _;
     return chart;
   };
 
@@ -261,6 +257,5 @@ nv.models.line = function() {
 
   //============================================================
 
-
   return chart;
-}
+};

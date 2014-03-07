@@ -27,7 +27,7 @@ nv.models.lineChart = function() {
     , rightAlignYAxis = false
     , useInteractiveGuideline = false
     , tooltips = true
-    , tooltip = function(key, x, y, e, graph) {
+    , tooltip = function(key, x, y) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       }
@@ -41,11 +41,9 @@ nv.models.lineChart = function() {
 
   xAxis
     .orient('bottom')
-    .tickPadding(7)
-    ;
+    .tickPadding(7);
   yAxis
-    .orient((rightAlignYAxis) ? 'right' : 'left')
-    ;
+    .orient((rightAlignYAxis) ? 'right' : 'left');
 
   //============================================================
 
@@ -59,7 +57,7 @@ nv.models.lineChart = function() {
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
-        content = tooltip(e.series.key, x, y, e, chart);
+        content = tooltip(e.series.key, x, y);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
@@ -69,8 +67,11 @@ nv.models.lineChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+        
       canvas.setRoot(this);
-      var that = this;
+      var that = this,
+          availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
       chart.update = function() {
         canvas.svg
@@ -97,9 +98,8 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
 
-      if (canvas.noData(data)){
-        return chart;
-      }
+      if (canvas.noData(data))
+        return chart;     
 
       //------------------------------------------------------------
 
@@ -118,42 +118,38 @@ nv.models.lineChart = function() {
 
       canvas.wrapChart(data, ['nv-interactive']);
 
-
-      if (rightAlignYAxis) {
+      if (rightAlignYAxis) 
           canvas.g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + canvas.available.width + ",0)");
-      }
+              .attr("transform", "translate(" + availableWidth + ",0)");      
 
       //------------------------------------------------------------
       // Main Chart Component(s)
-
 
       //------------------------------------------------------------
       //Set up interactive layer
       if (useInteractiveGuideline) {
         interactiveLayer
-           .width(canvas.available.width)
-           .height(canvas.available.height)
-           .margin({
-              left: canvas.margin.left,
-              top: canvas.margin.top
-            })
-           .svgContainer(canvas.svg)
-           .xScale(x);
+          .width(availableWidth)
+          .height(availableHeight)
+          .margin({
+             left: canvas.margin.left,
+             top: canvas.margin.top
+           })
+          .svgContainer(canvas.svg)
+          .xScale(x);
         canvas.wrap.select(".nv-interactive").call(interactiveLayer);
       }
 
-
       lines
-        .width(canvas.available.width)
-        .height(canvas.available.height)
+        .width(availableWidth)
+        .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled }));
-
+        })
+        .filter(function(d,i) { return !data[i].disabled }));
 
       var linesWrap = canvas.g.select('.nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(data.filter(function(d) { return !d.disabled }));
 
       linesWrap.transition().call(lines);
 
@@ -166,25 +162,23 @@ nv.models.lineChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( canvas.available.width / 100 )
-          .tickSize(-canvas.available.height, 0);
-
+          .ticks( availableWidth / 100 )
+          .tickSize(-availableHeight, 0);
         canvas.g.select('.nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+          .attr('transform', 'translate(0,' + y.range()[0] + ')');
         canvas.g.select('.nv-x.nv-axis')
-            .transition()
-            .call(xAxis);
+          .transition()
+          .call(xAxis);
       }
 
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( canvas.available.height / 36 )
-          .tickSize( -canvas.available.width, 0);
-
+          .ticks( availableHeight / 36 )
+          .tickSize( -availableWidth, 0);
         canvas.g.select('.nv-y.nv-axis')
-            .transition()
-            .call(yAxis);
+          .transition()
+          .call(yAxis);
       }
 
       //============================================================
@@ -228,29 +222,26 @@ nv.models.lineChart = function() {
               allData[indexToHighlight].highlight = true;
           }
 
-          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint, pointIndex));
           interactiveLayer.tooltip
-                  .position({
-                    left: pointXLocation + canvas.margin.left,
-                    top: e.mouseY + canvas.margin.top
-                  })
-                  .chartContainer(that.parentNode)
-                  .enabled(tooltips)
-                  .valueFormatter(function(d,i) {
-                     return yAxis.tickFormat()(d);
-                  })
-                  .data(
-                      {
-                        value: xValue,
-                        series: allData
-                      }
-                  )();
+            .position({
+              left: pointXLocation + canvas.margin.left,
+              top: e.mouseY + canvas.margin.top
+            })
+            .chartContainer(that.parentNode)
+            .enabled(tooltips)
+            .valueFormatter(function(d) {
+             return yAxis.tickFormat()(d);
+            })
+            .data({
+              value: xValue,
+              series: allData
+            })();
 
           interactiveLayer.renderGuideLine(pointXLocation);
-
       });
 
-      interactiveLayer.dispatch.on("elementMouseout",function(e) {
+      interactiveLayer.dispatch.on("elementMouseout",function() {
           dispatch.tooltipHide();
           lines.clearHighlights();
       });
@@ -259,17 +250,13 @@ nv.models.lineChart = function() {
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
-
       dispatch.on('changeState', function(e) {
-
         if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
           data.forEach(function(series,i) {
             series.disabled = e.disabled[i];
           });
-
           state.disabled = e.disabled;
         }
-
         chart.update();
       });
 
@@ -328,14 +315,14 @@ nv.models.lineChart = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+      canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+      canvas.options.size.height = _;
     return chart;
   };
 
@@ -419,6 +406,5 @@ nv.models.lineChart = function() {
 
   //============================================================
 
-
   return chart;
-}
+};
