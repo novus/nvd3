@@ -13,7 +13,9 @@ nv.models.linePlusBarChart = function() {
     , legend = nv.models.legend()
     ;
 
-  var margin = {top: 30, right: 60, bottom: 50, left: 60}
+  var canvas = new Canvas({
+        margin : {top: 30, right: 60, bottom: 50, left: 60}
+      })
     , width = null
     , height = null
     , getX = function(d) { return d.x }
@@ -30,7 +32,6 @@ nv.models.linePlusBarChart = function() {
     , y2
     , state = {}
     , defaultState = null
-    , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     ;
 
@@ -81,12 +82,11 @@ nv.models.linePlusBarChart = function() {
           that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                             - margin.left - margin.right,
+                             - canvas.margin.left - canvas.margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+                             - canvas.margin.top - canvas.margin.bottom;
 
       chart.update = function() { container.transition().call(chart); };
-      // chart.container = this;
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
@@ -114,8 +114,8 @@ nv.models.linePlusBarChart = function() {
           .style('text-anchor', 'middle');
 
         noDataText
-          .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
+          .attr('x', canvas.margin.left + availableWidth / 2)
+          .attr('y', canvas.margin.top + availableHeight / 2)
           .text(function(d) { return d });
 
         return chart;
@@ -171,20 +171,20 @@ nv.models.linePlusBarChart = function() {
             }))
           .call(legend);
 
-        if ( margin.top != legend.height()) {
-          margin.top = legend.height();
+        if ( canvas.margin.top != legend.height()) {
+            canvas.margin.top = legend.height();
           availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+                             - canvas.margin.top - canvas.margin.bottom;
         }
 
         g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-canvas.margin.top) +')');
       }
 
       //------------------------------------------------------------
 
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
 
       //------------------------------------------------------------
@@ -303,7 +303,7 @@ nv.models.linePlusBarChart = function() {
   //------------------------------------------------------------
 
   lines.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
     dispatch.tooltipShow(e);
   });
 
@@ -312,7 +312,7 @@ nv.models.linePlusBarChart = function() {
   });
 
   bars.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
     dispatch.tooltipShow(e);
   });
 
@@ -363,11 +363,11 @@ nv.models.linePlusBarChart = function() {
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
