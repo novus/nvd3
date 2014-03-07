@@ -13,10 +13,10 @@ nv.models.lineChart = function() {
 
   var canvas = new Chart({
       margin: {
-        top: 30,
-        right: 20,
-        bottom: 50,
-        left: 60
+        top     : 30,
+        right   : 20,
+        bottom  : 50,
+        left    : 60
       },
       chartClass: 'lineChart',
       wrapClass: 'linesWrap'
@@ -66,9 +66,11 @@ nv.models.lineChart = function() {
 
 
   function chart(selection) {
+
     selection.each(function(data) {
         
       canvas.setRoot(this);
+
       var that = this,
           availableWidth = canvas.available.width,
           availableHeight = canvas.available.height;
@@ -79,7 +81,6 @@ nv.models.lineChart = function() {
           .duration(transitionDuration)
           .call(chart)
       };
-      chart.container = this;
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
@@ -149,9 +150,9 @@ nv.models.lineChart = function() {
         .filter(function(d,i) { return !data[i].disabled }));
 
       var linesWrap = canvas.g.select('.nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled }));
-
-      linesWrap.transition().call(lines);
+        .datum(data.filter(function(d) { return !d.disabled }))
+        .transition()
+        .call(lines);
 
       //------------------------------------------------------------
 
@@ -165,8 +166,7 @@ nv.models.lineChart = function() {
           .ticks( availableWidth / 100 )
           .tickSize(-availableHeight, 0);
         canvas.g.select('.nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        canvas.g.select('.nv-x.nv-axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')')
           .transition()
           .call(xAxis);
       }
@@ -246,19 +246,17 @@ nv.models.lineChart = function() {
           lines.clearHighlights();
       });
 
-      dispatch.on('tooltipShow', function(e) {
-        if (tooltips) showTooltip(e, that.parentNode);
-      });
-
-      dispatch.on('changeState', function(e) {
-        if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
-          data.forEach(function(series,i) {
-            series.disabled = e.disabled[i];
-          });
-          state.disabled = e.disabled;
-        }
-        chart.update();
-      });
+      dispatch
+        .on('tooltipShow', function(e) { if (tooltips) showTooltip(e, that.parentNode) })
+        .on('changeState', function(e) {
+          if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
+            data.forEach(function(series,i) {
+              series.disabled = e.disabled[i];
+            });
+            state.disabled = e.disabled;
+          }
+          chart.update();
+        });
 
       //============================================================
 
@@ -272,14 +270,14 @@ nv.models.lineChart = function() {
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
 
-  lines.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
-    dispatch.tooltipShow(e);
-  });
-
-  lines.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
-  });
+  lines.dispatch
+    .on('elementMouseover.tooltip', function(e) {
+      e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
+      dispatch.tooltipShow(e);
+    })
+    .on('elementMouseout.tooltip', function(e) {
+      dispatch.tooltipHide(e);
+    });
 
   dispatch.on('tooltipHide', function() {
     if (tooltips) nv.tooltip.cleanup();
@@ -330,12 +328,6 @@ nv.models.lineChart = function() {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     canvas.legend.color(color);
-    return chart;
-  };
-
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
     return chart;
   };
 
@@ -393,8 +385,8 @@ nv.models.lineChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
+    if (!arguments.length) return canvas.noData;
+    canvas.noData = _;
     return chart;
   };
 

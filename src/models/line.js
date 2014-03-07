@@ -12,8 +12,6 @@ nv.models.line = function() {
         margin: {top: 0, right: 0, bottom: 0, left: 0}
           , chartClass: 'line'
       })
-    , width = 960
-    , height = 500
     , color = nv.utils.defaultColor() // a function that returns a color
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
     , getY = function(d) { return d.y } // accessor to get the y value from a data point
@@ -41,7 +39,6 @@ nv.models.line = function() {
       ;
 
   //============================================================
-
 
   function chart(selection) {
     selection.each(function(data) {
@@ -141,12 +138,10 @@ nv.models.line = function() {
                 .apply(this, [d.values])
           });
 
-
-
-      var linePaths = groups.selectAll('path.nv-line')
+      var linePaths = groups.selectAll('path.nv-'+canvas.options.chartClass)
           .data(function(d) { return [d.values] });
       linePaths.enter().append('path')
-          .attr('class', 'nv-line')
+          .attr('class', 'nv-'+canvas.options.chartClass)
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -165,8 +160,6 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
           );
 
-
-
       //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
@@ -175,7 +168,6 @@ nv.models.line = function() {
 
     return chart;
   }
-
 
   //============================================================
   // Expose Public Variables
@@ -191,22 +183,22 @@ nv.models.line = function() {
 
   chart.margin = function(_) {
     if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
-      canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
-      canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
-      canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
   chart.width = function(_) {
     if (!arguments.length) return canvas.options.size.width;
-      canvas.options.size.width = _;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
     if (!arguments.length) return canvas.options.size.height;
-      canvas.options.size.height = _;
+    canvas.options.size.height = _;
     return chart;
   };
 
