@@ -68,7 +68,7 @@ nv.models.lineChart = function() {
   function chart(selection) {
 
     selection.each(function(data) {
-        
+
       canvas.setRoot(this);
 
       var that = this,
@@ -100,7 +100,7 @@ nv.models.lineChart = function() {
       // Display noData message if there's nothing to show.
 
       if (canvas.noData(data))
-        return chart;     
+        return chart;
 
       //------------------------------------------------------------
 
@@ -119,9 +119,9 @@ nv.models.lineChart = function() {
 
       canvas.wrapChart(data, ['nv-interactive']);
 
-      if (rightAlignYAxis) 
+      if (rightAlignYAxis)
           canvas.g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + availableWidth + ",0)");      
+              .attr("transform", "translate(" + availableWidth + ",0)");
 
       //------------------------------------------------------------
       // Main Chart Component(s)
