@@ -8,9 +8,10 @@ nv.models.line = function() {
   var  scatter = nv.models.scatter()
     ;
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}
-    , width = 960
-    , height = 500
+  var canvas = new Canvas({
+        margin: {top: 0, right: 0, bottom: 0, left: 0}
+          , chartClass: 'line'
+      })
     , color = nv.utils.defaultColor() // a function that returns a color
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
     , getY = function(d) { return d.y } // accessor to get the y value from a data point
@@ -39,12 +40,13 @@ nv.models.line = function() {
 
   //============================================================
 
-
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
-          container = d3.select(this);
+
+      canvas.setRoot( this );
+
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
       //------------------------------------------------------------
       // Setup Scales
@@ -61,49 +63,34 @@ nv.models.line = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-line').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
-      var defsEnter = wrapEnter.append('defs');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
-
-      gEnter.append('g').attr('class', 'nv-groups');
-      gEnter.append('g').attr('class', 'nv-scatterWrap');
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      canvas.wrapChart(data);
+      canvas.gEnter.append('g').attr('class', 'nv-groups');
+      canvas.gEnter.append('g').attr('class', 'nv-scatterWrap');
 
       //------------------------------------------------------------
 
-
-
-
       scatter
         .width(availableWidth)
-        .height(availableHeight)
+        .height(availableHeight);
 
-      var scatterWrap = wrap.select('.nv-scatterWrap');
+      var scatterWrap = canvas.wrap.select('.nv-scatterWrap');
           //.datum(data); // Data automatically trickles down from the wrap
 
       scatterWrap.transition().call(scatter);
 
-
-
-      defsEnter.append('clipPath')
-          .attr('id', 'nv-edge-clip-' + scatter.id())
+      canvas.defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + scatter.id())
         .append('rect');
 
-      wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', (availableHeight > 0) ? availableHeight : 0);
+      canvas.wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
+        .attr('width', availableWidth)
+        .attr('height', (availableHeight > 0) ? availableHeight : 0);
 
-      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
+      canvas.g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
       scatterWrap
           .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
 
-
-
-
-      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
+      var groups = canvas.wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -121,8 +108,6 @@ nv.models.line = function() {
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
-
-
       var areaPaths = groups.selectAll('path.nv-area')
           .data(function(d) { return isArea(d) ? [d] : [] }); // this is done differently than lines because I need to check if series is an area
       areaPaths.enter().append('path')
@@ -133,7 +118,7 @@ nv.models.line = function() {
                 .defined(defined)
                 .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
-                .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
+                .y1(function() { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
@@ -148,17 +133,15 @@ nv.models.line = function() {
                 .defined(defined)
                 .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-                .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
+                .y1(function() { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(this, [d.values])
           });
 
-
-
-      var linePaths = groups.selectAll('path.nv-line')
+      var linePaths = groups.selectAll('path.nv-'+canvas.options.chartClass)
           .data(function(d) { return [d.values] });
       linePaths.enter().append('path')
-          .attr('class', 'nv-line')
+          .attr('class', 'nv-'+canvas.options.chartClass)
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -177,8 +160,6 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
           );
 
-
-
       //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
@@ -187,7 +168,6 @@ nv.models.line = function() {
 
     return chart;
   }
-
 
   //============================================================
   // Expose Public Variables
@@ -202,23 +182,23 @@ nv.models.line = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
@@ -269,6 +249,5 @@ nv.models.line = function() {
 
   //============================================================
 
-
   return chart;
-}
+};
