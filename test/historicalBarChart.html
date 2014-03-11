@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<body>
+<div style='position:relative;'>
+    <div class='chart half' id='test1'>
+        <h2>Non-Zero Data</h2>
+        <svg></svg>
+    </div>
+    <div class='chart half' id='test2'>
+        <h2>Non-Zero Data 2</h2>
+        <svg></svg>
+    </div>
+    <div class='chart half' id='test3'>
+        <h2>Zero Data</h2>
+        <svg></svg>
+    </div>
+</div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+
+<script src="testScript.js"></script>
+<script>
+
+    function dataSin() {
+        var sin = [];
+
+        for (var i = 0; i < 100; i++) {
+            sin.push({x: i, y: Math.sin(i/5)});
+        }
+
+        return [
+            {
+                values: sin,
+                key: "Sine Wave",
+                color: "#ff7f0e"
+            }
+        ];
+    }
+    function linear() {
+        var array = [];
+
+        for (var i = 0; i < 100; i++) {
+            array.push({x: i, y: i});
+        }
+
+        return [
+            {
+                values: array,
+                key: "Linear",
+                color: "#ff7f0e"
+            }
+        ];
+    }
+    var testData = dataSin()
+        , testData2 = linear()
+        , testDataZeros = [{
+            values: Array.apply(null, new Array(5)).map(Number.prototype.valueOf,0),
+            key: 'Zeros',
+            color: '#ff7f0e'
+        }];
+
+
+    var chart;
+
+    function renderChart( elementId, data ){
+        nv.addGraph(function() {
+            chart = nv.models.historicalBarChart();
+            chart
+                    .margin({left: 100, bottom: 100})
+                    .x(function(d,i) { return i })
+                    .transitionDuration(250);
+
+            chart.xAxis
+                    .axisLabel("Time (s)")
+                    .tickFormat(d3.format(',.1f'));
+
+            chart.yAxis
+                    .axisLabel('Voltage (v)')
+                    .tickFormat(d3.format(',.2f'));
+
+            chart.showXAxis(true);
+
+            d3.select('#'+elementId+' svg')
+                    .datum(data)
+                    .transition().duration(0)
+                    .call(chart);
+
+            nv.utils.windowResize(chart.update);
+
+            chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
+            return chart;
+        });
+    }
+
+    renderChart('test1', testData);
+    renderChart('test2', testData2);
+    renderChart('test3', testDataZeros);
+
+</script>
