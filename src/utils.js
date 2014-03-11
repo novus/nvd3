@@ -151,3 +151,10 @@ nv.utils.optionsFunc = function(args) {
     }
     return this;
 };
+
+/* Return a value if the value is defined and not null.
+* Return defaultValue if the value is undefined or null.
+*/
+nv.utils.valueOrDefault = function(value, defaultValue){
+    return (value === (undefined || null) ) ? defaultValue : value ;
+};
