@@ -1,5 +1,5 @@
 
-nv.models.lineChart = function() {
+nv.models.lineChartFisheye = function() {
   "use strict";
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       color = nv.utils.defaultColor(),
