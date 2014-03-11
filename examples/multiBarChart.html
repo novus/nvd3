@@ -34,12 +34,6 @@ text {
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/multiBar.js"></script>
-<script src="../src/models/multiBarChart.js"></script>
 <script src="stream_layers.js"></script>
 <script>
 
@@ -56,12 +50,12 @@ console.log('td',test_data);
 var negative_test_data = new d3.range(0,3).map(function(d,i) { return {
   key: 'Stream' + i,
   values: new d3.range(0,11).map( function(f,j) {
-    return { 
+    return {
              y: 10 + Math.random()*100 * (Math.floor(Math.random()*100)%2 ? 1 : -1),
              x: j
            }
   })
-  };  
+  };
 });
 
 var chart;

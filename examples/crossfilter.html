@@ -39,25 +39,18 @@ svg {
 <script src="../lib/d3.v3.js"></script>
 <script src="../lib/crossfilter.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/lineWithFocusChart.js"></script>
 <script src="stream_layers.js"></script>
 <script>
 
 extend = function(destination, source) {
     for (var property in source) {
-    if (property in destination) { 
-      if ( typeof source[property] === "object" && 
+    if (property in destination) {
+      if ( typeof source[property] === "object" &&
         typeof destination[property] === "object") {
           destination[property] = extend(destination[property], source[property]);
       } else {
-        continue; 
-      } 
+        continue;
+      }
     } else {
       destination[property] = source[property];
     };
@@ -78,24 +71,24 @@ nv.addGraph(function() {
   chart.y2Axis
       .tickFormat(d3.format(',.2f'));
 
-  var dimension = testCrossfilterData().data; 
+  var dimension = testCrossfilterData().data;
 
-   var data = normalizeData(dimension.top(Infinity), 
+   var data = normalizeData(dimension.top(Infinity),
         [
-        { 
+        {
           name: 'Stream #1',
           key: 'stream1'
         },
-        { 
+        {
           name: 'Stream #2',
           key: 'stream2'
         },
-        { 
+        {
           name: 'Stream #3',
           key: 'stream3'
         }
-        ], 'x');  
-    
+        ], 'x');
+
   d3.select('#chart svg')
       .datum(data)
     .transition().duration(500)
@@ -110,14 +103,14 @@ function normalizeData(data, series, xAxis)
   {
     var sort = crossfilter.quicksort.by(function(d) { return d[xAxis]; });
     var sorted = sort(data, 0, data.length);
-    
+
     var result = [];
 
     series.forEach(function(serie, index)
     {
       result.push({key: serie.name, values: [], color: serie.color});
     });
-    
+
     data.forEach(function(data, dataIndex)
     {
       series.forEach(function(serie, serieIndex)
@@ -125,30 +118,30 @@ function normalizeData(data, series, xAxis)
         result[serieIndex].values.push({x: data[xAxis],  y: data[serie.key]});
       });
     });
-    
+
     return result;
   };
 
 function testCrossfilterData() {
   var data = crossfilter(testData());
-  
-  try 
+
+  try
   {
     data.data = data.dimension(function(d) { return d.y; });
-  } catch (e) 
+  } catch (e)
   {
     console.log(e.stack);
   }
-  
+
   return data;
 }
 
 function testData() {
-  
+
   var data1 = [];
   var data2 = [];
   var data3 = [];
-  
+
   stream_layers(3,128,.1).map(function(layer, index) {
     layer.forEach(function(item, i) {
     var object = { x: item.x };
@@ -156,10 +149,10 @@ function testData() {
     eval('data' + (index + 1)).push(object);
   });
   });
-  
+
   var data = extend(data1, data2);
   var result = extend(data, data3);
-  
+
   return result;
 }
 

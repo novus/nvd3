@@ -132,9 +132,9 @@
 <script src="../src/interactiveLayer.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/lineChart.js"></script>
+<script src="../src/models/scatter/scatter.js"></script>
+<script src="../src/models/line/line.js"></script>
+<script src="../src/models/line/lineChart.js"></script>
 <script src="testScript.js"></script>
 <script>
 
@@ -143,7 +143,7 @@ d3.select("body").on("keydown",function() {
      alert("keydowned");
   }
 });
-//------------ CHART 1 
+//------------ CHART 1
 defaultChartConfig("chart1", dummyStocks(),true, true, {forceY:false});
 
 //-------------- CHART 2  --- Chart without the interactive guideline.
@@ -201,17 +201,17 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
     chart = nv.models.lineChart().useInteractiveGuideline(guideline);
 
     chart
-        .x(function(d,i) { 
+        .x(function(d,i) {
           return d.x;
         });
 
-    if (auxOptions.width) 
+    if (auxOptions.width)
       chart.width(auxOptions.width);
 
     if (auxOptions.height)
       chart.height(auxOptions.height);
 
-    if (auxOptions.forceY) 
+    if (auxOptions.forceY)
       chart.forceY([0]);
 
     var formatter;

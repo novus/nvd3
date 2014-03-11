@@ -22,9 +22,6 @@ text {
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/models/stackedArea.js"></script>
 <script>
 
 
@@ -36,7 +33,7 @@ nv.addGraph({
         //color = d3.interpolateRgb("#aad", "#556");
 
     var data = stream_layers(n,m).map(function(data, i) {
-      return { 
+      return {
         key: 'Stream' + i,
         values: data
       };

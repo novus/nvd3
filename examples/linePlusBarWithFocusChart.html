@@ -34,14 +34,7 @@ text {
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/historicalBar.js"></script>
-<script src="../src/models/linePlusBarWithFocusChart.js"></script>
+<script src="../lib/fisheye.js"></script>
 <script>
 
 
@@ -100,19 +93,19 @@ nv.addGraph(function() {
       var dx = testdata[0].values[d] && testdata[0].values[d].x || 0;
       return d3.time.format('%x')(new Date(dx))
     });
-    
+
     chart.y1Axis
         .tickFormat(d3.format(',f'));
 
     chart.y3Axis
         .tickFormat(d3.format(',f'));
-        
+
     chart.y2Axis
         .tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
 
     chart.y4Axis
         .tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
-        
+
     chart.bars.forceY([0]);
     chart.bars2.forceY([0]);
     //chart.lines.forceY([0]);

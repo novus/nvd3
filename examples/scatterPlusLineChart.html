@@ -47,15 +47,8 @@ div {
 </div>
 
 <script src="../lib/d3.v3.js"></script>
-<script src="../lib/fisheye.js"></script>
 <script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/distribution.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/scatterPlusLineChart.js"></script>
+<script src="../lib/fisheye.js"></script>
 <script>
 
 
@@ -99,9 +92,9 @@ function randomData(groups, points) { //# groups,# points per group
 
     for (j = 0; j < points; j++) {
       data[i].values.push({
-        x: random(), 
-        y: random(), 
-        size: Math.random(), 
+        x: random(),
+        y: random(),
+        size: Math.random(),
         shape: shapes[j % 6]
       });
     }
