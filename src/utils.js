@@ -1,4 +1,3 @@
-
 nv.utils.windowSize = function() {
     // Sane defaults
     var size = {width: 640, height: 480};
@@ -156,5 +155,5 @@ nv.utils.optionsFunc = function(args) {
 * Return defaultValue if the value is undefined or null.
 */
 nv.utils.valueOrDefault = function(value, defaultValue){
-    return (value === (undefined || null) ) ? defaultValue : value ;
+    return ( value === undefined || value === null ) ? defaultValue : value ;
 };
