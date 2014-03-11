@@ -36,10 +36,15 @@
     Chart with 0 data points
     <svg></svg>
   </div>
+  <div class='chart third' id="chart8">
+    Simple multiBar
+    <svg></svg>
+  </div>
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
+<script src="../src/canvas.js"></script>
 <script src="../src/utils.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
@@ -72,8 +77,6 @@ function dataFactory(seriesNum, perSeries) {
   });
 
 }
-
-
 
 defaultChartConfig("chart1", negative_test_data, {
   barColor: d3.scale.category20().range(),
@@ -142,7 +145,20 @@ function defaultChartConfig(containerId, data, chartOptions) {
   });
 }
 
+function simpleMultiBar(containerId, data, chartOptions) {
+    nv.addGraph(function() {
+        var chart;
+        chart = nv.models.multiBar()
+                .margin({bottom: 100})
+                .options(chartOptions);
+        d3.select('#' + containerId + ' svg')
+                .datum(data)
+                .call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+}
 
-
+simpleMultiBar("chart8", dataFactory(1,10), {delay: 0});
 
 </script>
