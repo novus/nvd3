@@ -1,0 +1,18 @@
+--- src/models/line/lineWithFisheye.js	2014-03-11 14:36:32.000000000 -0400
++++ ../nvd3/src/models/lineWithFisheye.js	2013-12-06 15:56:22.000000000 -0500
+@@ -1,5 +1,5 @@
+ 
+-nv.models.lineFisheye = function() {
++nv.models.line = function() {
+   "use strict";
+   //Default Settings
+   var margin = {top: 0, right: 0, bottom: 0, left: 0},
+@@ -132,7 +132,7 @@
+   d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+ 
+   chart.options = nv.utils.optionsFunc.bind(chart);
+-
++  
+   chart.margin = function(_) {
+     if (!arguments.length) return margin;
+     margin = _;

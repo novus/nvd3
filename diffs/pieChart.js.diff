@@ -1,0 +1,190 @@
+--- src/models/pie/pieChart.js	2014-03-11 14:36:32.000000000 -0400
++++ ../nvd3/src/models/pieChart.js	2014-03-10 19:22:16.000000000 -0400
+@@ -8,11 +8,10 @@
+     , legend = nv.models.legend()
+     ;
+ 
+-  var canvas = new Chart({
+-      margin: {top: 30, right: 20, bottom: 20, left: 20},
+-      chartClass: 'pieChart',
+-      wrapClass: 'pieWrap'
+-    })
++  var margin = {top: 30, right: 20, bottom: 20, left: 20}
++    , width = null
++    , height = null
++    , showLegend = true
+     , color = nv.utils.defaultColor()
+     , tooltips = true
+     , tooltip = function(key, y, e, graph) {
+@@ -21,7 +20,8 @@
+       }
+     , state = {}
+     , defaultState = null
+-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
++    , noData = "No Data Available."
++    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
+     ;
+ 
+   //============================================================
+@@ -41,14 +41,20 @@
+     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+   };
+ 
++  var renderWatch = nv.utils.renderWatch(dispatch);
+   //============================================================
+ 
+ 
+   function chart(selection) {
++    renderWatch.reset();
+     selection.each(function(data) {
+-      var that = this;
++      var container = d3.select(this),
++          that = this;
+ 
+-      canvas.setRoot(this);
++      var availableWidth = (width || parseInt(container.style('width')) || 960)
++                             - margin.left - margin.right,
++          availableHeight = (height || parseInt(container.style('height')) || 400)
++                             - margin.top - margin.bottom;
+ 
+       chart.update = function() { container.transition().call(chart); };
+       chart.container = this;
+@@ -67,21 +73,81 @@
+         }
+       }
+ 
+-      if(canvas.noData(data)){
+-        return;
++      //------------------------------------------------------------
++      // Display No Data message if there's nothing to show.
++
++      if (!data || !data.length) {
++        var noDataText = container.selectAll('.nv-noData').data([noData]);
++
++        noDataText.enter().append('text')
++          .attr('class', 'nvd3 nv-noData')
++          .attr('dy', '-.7em')
++          .style('text-anchor', 'middle');
++
++        noDataText
++          .attr('x', margin.left + availableWidth / 2)
++          .attr('y', margin.top + availableHeight / 2)
++          .text(function(d) { return d });
++
++        return chart;
++      } else {
++        container.selectAll('.nv-noData').remove();
++      }
++
++      //------------------------------------------------------------
++
++
++      //------------------------------------------------------------
++      // Setup containers and skeleton of chart
++
++      var wrap = container.selectAll('g.nv-wrap.nv-pieChart').data([data]);
++      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-pieChart').append('g');
++      var g = wrap.select('g');
++
++      gEnter.append('g').attr('class', 'nv-pieWrap');
++      gEnter.append('g').attr('class', 'nv-legendWrap');
++
++      //------------------------------------------------------------
++
++
++      //------------------------------------------------------------
++      // Legend
++
++      if (showLegend) {
++        legend
++          .width( availableWidth )
++          .key(pie.x());
++
++        wrap.select('.nv-legendWrap')
++            .datum(data)
++            .call(legend);
++
++        if ( margin.top != legend.height()) {
++          margin.top = legend.height();
++          availableHeight = (height || parseInt(container.style('height')) || 400)
++                             - margin.top - margin.bottom;
++        }
++
++        wrap.select('.nv-legendWrap')
++            .attr('transform', 'translate(0,' + (-margin.top) +')');
+       }
+-      canvas.wrapChart(data);
++
++      //------------------------------------------------------------
++
++
++      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
++
+ 
+       //------------------------------------------------------------
+       // Main Chart Component(s)
+ 
+       pie
+-        .width(canvas.available.width)
+-        .height(canvas.available.height);
++        .width(availableWidth)
++        .height(availableHeight);
+ 
+ 
+-      var pieWrap = canvas.g.select('.nv-pieWrap')
+-          .datum(data);
++      var pieWrap = g.select('.nv-pieWrap')
++          .datum([data]);
+ 
+       d3.transition(pieWrap).call(pie);
+ 
+@@ -121,6 +187,7 @@
+ 
+     });
+ 
++    renderWatch.renderEnd('pieChart immediate');
+     return chart;
+   }
+ 
+@@ -129,7 +196,7 @@
+   //------------------------------------------------------------
+ 
+   pie.dispatch.on('elementMouseover.tooltip', function(e) {
+-    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
++    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+     dispatch.tooltipShow(e);
+   });
+ 
+@@ -157,23 +224,23 @@
+   chart.options = nv.utils.optionsFunc.bind(chart);
+ 
+   chart.margin = function(_) {
+-    if (!arguments.length) return canvas.margin;
+-    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+-    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+-    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+-    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
++    if (!arguments.length) return margin;
++    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
++    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
++    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
++    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+     return chart;
+   };
+ 
+   chart.width = function(_) {
+-    if (!arguments.length) return canvas.width;
+-    canvas.width = _;
++    if (!arguments.length) return width;
++    width = _;
+     return chart;
+   };
+ 
+   chart.height = function(_) {
+-    if (!arguments.length) return canvas.height;
+-    canvas.height = _;
++    if (!arguments.length) return height;
++    height = _;
+     return chart;
+   };
+ 

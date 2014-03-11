@@ -1,0 +1,82 @@
+--- src/models/bullet/bulletChart.js	2014-03-11 14:36:32.000000000 -0400
++++ ../nvd3/src/models/bulletChart.js	2013-12-06 15:56:22.000000000 -0500
+@@ -105,6 +105,7 @@
+ 
+       //------------------------------------------------------------
+ 
++
+       // Compute the new x-scale.
+       var x1 = d3.scale.linear()
+           .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+@@ -118,9 +119,29 @@
+       // Stash the new scale.
+       this.__chart__ = x1;
+ 
++      /*
++      // Derive width-scales from the x-scales.
++      var w0 = bulletWidth(x0),
++          w1 = bulletWidth(x1);
++
++      function bulletWidth(x) {
++        var x0 = x(0);
++        return function(d) {
++          return Math.abs(x(d) - x(0));
++        };
++      }
++
++      function bulletTranslate(x) {
++        return function(d) {
++          return 'translate(' + x(d) + ',0)';
++        };
++      }
++      */
++
+       var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
+           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
+ 
++
+       var title = gEnter.select('.nv-titles').append('g')
+           .attr('text-anchor', 'end')
+           .attr('transform', 'translate(-6,' + (height - margin.top - margin.bottom) / 2 + ')');
+@@ -133,6 +154,8 @@
+           .attr('dy', '1em')
+           .text(function(d) { return d.subtitle; });
+ 
++
++
+       bullet
+         .width(availableWidth)
+         .height(availableHeight)
+@@ -168,6 +191,7 @@
+           .attr('y', availableHeight * 7 / 6)
+           .text(format);
+ 
++
+       // Transition the updating ticks to the new scale, x1.
+       var tickUpdate = d3.transition(tick)
+           .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
+@@ -186,6 +210,7 @@
+           .style('opacity', 1e-6)
+           .remove();
+ 
++
+       //============================================================
+       // Event Handling/Dispatching (in chart's scope)
+       //------------------------------------------------------------
+@@ -196,6 +221,7 @@
+       });
+ 
+       //============================================================
++
+     });
+ 
+     d3.timer.flush();
+@@ -233,7 +259,7 @@
+   d3.rebind(chart, bullet, 'color');
+ 
+   chart.options = nv.utils.optionsFunc.bind(chart);
+-
++  
+   // left, right, top, bottom
+   chart.orient = function(x) {
+     if (!arguments.length) return orient;

@@ -1,0 +1,143 @@
+--- src/models/bar/multi/multiBarChart.js	2014-03-11 14:36:32.000000000 -0400
++++ ../nvd3/src/models/multiBarChart.js	2014-03-10 19:22:16.000000000 -0400
+@@ -34,9 +34,10 @@
+     , state = { stacked: false }
+     , defaultState = null
+     , noData = "No Data Available."
+-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
++    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
+     , controlWidth = function() { return showControls ? 180 : 0 }
+-    , transitionDuration = 250
++    , duration = 250
++    
+     ;
+ 
+   multibar
+@@ -61,7 +62,8 @@
+   //============================================================
+   // Private Variables
+   //------------------------------------------------------------
+-
++  var renderWatch = nv.utils.renderWatch(dispatch);
++  
+   var showTooltip = function(e, offsetElement) {
+     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+         top = e.pos[1] + ( offsetElement.offsetTop || 0),
+@@ -76,6 +78,11 @@
+ 
+ 
+   function chart(selection) {
++    renderWatch.reset();
++    renderWatch.models(multibar);
++    if (showXAxis) renderWatch.models(xAxis);
++    if (showYAxis) renderWatch.models(yAxis);
++
+     selection.each(function(data) {
+       var container = d3.select(this),
+           that = this;
+@@ -85,7 +92,14 @@
+           availableHeight = (height || parseInt(container.style('height')) || 400)
+                              - margin.top - margin.bottom;
+ 
+-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
++      chart.update = function() {
++        if (duration === 0)
++          container.call(chart);
++        else
++          container.transition()
++            .duration(duration)
++            .call(chart);
++      };
+       chart.container = this;
+ 
+       //set state.disabled
+@@ -219,7 +233,7 @@
+       var barsWrap = g.select('.nv-barsWrap')
+           .datum(data.filter(function(d) { return !d.disabled }))
+ 
+-      barsWrap.transition().call(multibar);
++      barsWrap.call(multibar);
+ 
+       //------------------------------------------------------------
+ 
+@@ -235,7 +249,7 @@
+ 
+           g.select('.nv-x.nv-axis')
+               .attr('transform', 'translate(0,' + y.range()[0] + ')');
+-          g.select('.nv-x.nv-axis').transition()
++          g.select('.nv-x.nv-axis')
+               .call(xAxis);
+ 
+           var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
+@@ -283,13 +297,13 @@
+       }
+ 
+ 
+-      if (showYAxis) {      
++      if (showYAxis) {     
+           yAxis
+             .scale(y)
+             .ticks( availableHeight / 36 )
+             .tickSize( -availableWidth, 0);
+ 
+-          g.select('.nv-y.nv-axis').transition()
++          g.select('.nv-y.nv-axis')
+               .call(yAxis);
+       }
+ 
+@@ -359,6 +373,8 @@
+ 
+     });
+ 
++    renderWatch.renderEnd('multibarchart immediate');
++
+     return chart;
+   }
+ 
+@@ -379,6 +395,7 @@
+     if (tooltips) nv.tooltip.cleanup();
+   });
+ 
++
+   //============================================================
+ 
+ 
+@@ -414,12 +431,14 @@
+   };
+ 
+   chart.height = function(_) {
++
+     if (!arguments.length) return height;
+     height = _;
+     return chart;
+   };
+ 
+   chart.color = function(_) {
++
+     if (!arguments.length) return color;
+     color = nv.utils.getColor(_);
+     legend.color(color);
+@@ -512,11 +531,20 @@
+   };
+ 
+   chart.transitionDuration = function(_) {
+-    if (!arguments.length) return transitionDuration;
+-    transitionDuration = _;
+-    return chart;
++    nv.deprecated('multiBarChart.transitionDuration');
++    return chart.duration(_);
+   };
+ 
++  chart.duration = function(_) {
++    if (!arguments.length) return duration;
++    duration = _;
++    multibar.duration(duration);
++    xAxis.duration(duration);
++    yAxis.duration(duration);
++    renderWatch.reset(duration);
++    return chart;
++  }
++
+   //============================================================
+ 
+ 

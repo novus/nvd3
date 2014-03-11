@@ -1,0 +1,15 @@
+--- src/tooltip.js	2014-03-10 19:24:11.000000000 -0400
++++ ../nvd3/src/tooltip.js	2014-03-10 19:22:16.000000000 -0400
+@@ -337,7 +337,11 @@
+         container.style.left = 0;
+         container.style.top = 0;
+         container.style.opacity = 0;
+-        container.innerHTML = content;
++        // Content can also be dom element
++        if (typeof content !== 'string')
++            container.appendChild(content);
++        else
++            container.innerHTML = content;
+         body.appendChild(container);
+         
+         //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
