@@ -1,4 +1,3 @@
-
 nv.models.historicalBarChart = function() {
   "use strict";
   //============================================================
@@ -11,17 +10,15 @@ nv.models.historicalBarChart = function() {
     , legend = nv.models.legend()
     ;
 
-
-  var margin = {top: 30, right: 90, bottom: 50, left: 90}
+  var canvas = new Canvas({
+      margin: {top: 30, right: 90, bottom: 50, left: 90}
+    })      
     , color = nv.utils.defaultColor()
-    , width = null
-    , height = null
-    , showLegend = false
     , showXAxis = true
     , showYAxis = true
     , rightAlignYAxis = false
     , tooltips = true
-    , tooltip = function(key, x, y, e, graph) {
+    , tooltip = function(key, x, y) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       }
@@ -29,7 +26,6 @@ nv.models.historicalBarChart = function() {
     , y
     , state = {}
     , defaultState = null
-    , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , transitionDuration = 250
     ;
@@ -67,7 +63,7 @@ nv.models.historicalBarChart = function() {
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
-        content = tooltip(e.series.key, x, y, e, chart);
+        content = tooltip(e.series.key, x, y);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
@@ -77,16 +73,16 @@ nv.models.historicalBarChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var container = d3.select(this),
-          that = this;
+      var that = this;
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                             - margin.left - margin.right,
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+      canvas.setRoot(this);
+      if (canvas.noData(data))
+        return chart;
 
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
+      chart.update = function() { canvas.svg.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
       //set state.disabled
@@ -104,30 +100,6 @@ nv.models.historicalBarChart = function() {
       }
 
       //------------------------------------------------------------
-      // Display noData message if there's nothing to show.
-
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-        var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-        noDataText.enter().append('text')
-          .attr('class', 'nvd3 nv-noData')
-          .attr('dy', '-.7em')
-          .style('text-anchor', 'middle');
-
-        noDataText
-          .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
-          .text(function(d) { return d });
-
-        return chart;
-      } else {
-        container.selectAll('.nv-noData').remove();
-      }
-
-      //------------------------------------------------------------
-
-
-      //------------------------------------------------------------
       // Setup Scales
 
       x = bars.xScale();
@@ -139,14 +111,12 @@ nv.models.historicalBarChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-historicalBarChart').data([data]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-historicalBarChart').append('g');
-      var g = wrap.select('g');
 
-      gEnter.append('g').attr('class', 'nv-x nv-axis');
-      gEnter.append('g').attr('class', 'nv-y nv-axis');
-      gEnter.append('g').attr('class', 'nv-barsWrap');
-      gEnter.append('g').attr('class', 'nv-legendWrap');
+      canvas.wrapChart(data);
+      canvas.gEnter.append('g').attr('class', 'nv-x nv-axis');
+      canvas.gEnter.append('g').attr('class', 'nv-y nv-axis');
+      canvas.gEnter.append('g').attr('class', 'nv-barsWrap');
+      canvas.gEnter.append('g').attr('class', 'nv-legendWrap');
 
       //------------------------------------------------------------
 
@@ -154,32 +124,30 @@ nv.models.historicalBarChart = function() {
       //------------------------------------------------------------
       // Legend
 
-      if (showLegend) {
+      if (canvas.showLegend) {
         legend.width(availableWidth);
 
         g.select('.nv-legendWrap')
-            .datum(data)
-            .call(legend);
+          .datum(data)
+          .call(legend);
 
-        if ( margin.top != legend.height()) {
-          margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+        if ( canvas.margin.top != legend.height()) {
+          canvas.margin.top = legend.height();
+          availableHeight = (height || parseInt(canvas.svg.style('height')) || 400) - canvas.margin.top - canvas.margin.bottom;
         }
 
-        wrap.select('.nv-legendWrap')
-            .attr('transform', 'translate(0,' + (-margin.top) +')')
+        canvas.wrap.select('.nv-legendWrap')
+          .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
       }
 
       //------------------------------------------------------------
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       if (rightAlignYAxis) {
         g.select(".nv-y.nv-axis")
-            .attr("transform", "translate(" + availableWidth + ",0)");
+          .attr("transform", "translate(" + availableWidth + ",0)");
       }
-
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -191,54 +159,46 @@ nv.models.historicalBarChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
-
-      var barsWrap = g.select('.nv-barsWrap')
+      var barsWrap = canvas.g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
-
-      barsWrap.transition().call(bars);
+          .transition()
+          .call(bars);
 
       //------------------------------------------------------------
-
 
       //------------------------------------------------------------
       // Setup Axes
 
       if (showXAxis) {
-        xAxis
-          .scale(x)
+        xAxis.scale(x)
           .tickSize(-availableHeight, 0);
-
-        g.select('.nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + y.range()[0] + ')');
-        g.select('.nv-x.nv-axis')
-            .transition()
-            .call(xAxis);
+        canvas.g.select('.nv-x.nv-axis')
+          .attr('transform', 'translate(0,' + y.range()[0] + ')')
+          .transition()
+          .call(xAxis);
       }
 
       if (showYAxis) {
-        yAxis
-          .scale(y)
+        yAxis.scale(y)
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
-
-        g.select('.nv-y.nv-axis')
+        canvas.g.select('.nv-y.nv-axis')
           .transition()
-            .call(yAxis);
+          .call(yAxis);
       }
       //------------------------------------------------------------
-
 
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('legendClick', function(d,i) {
+      legend.dispatch.on('legendClick', function(d) {
         d.disabled = !d.disabled;
 
         if (!data.filter(function(d) { return !d.disabled }).length) {
           data.map(function(d) {
             d.disabled = false;
-            wrap.selectAll('.nv-series').classed('disabled', false);
+            canvas.wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
           });
         }
@@ -265,7 +225,6 @@ nv.models.historicalBarChart = function() {
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
-
       dispatch.on('changeState', function(e) {
 
         if (typeof e.disabled !== 'undefined') {
@@ -286,13 +245,12 @@ nv.models.historicalBarChart = function() {
     return chart;
   }
 
-
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
 
   bars.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
     dispatch.tooltipShow(e);
   });
 
@@ -305,7 +263,6 @@ nv.models.historicalBarChart = function() {
   });
 
   //============================================================
-
 
   //============================================================
   // Expose Public Variables
@@ -324,23 +281,23 @@ nv.models.historicalBarChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
@@ -352,8 +309,8 @@ nv.models.historicalBarChart = function() {
   };
 
   chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
+    if (!arguments.length) return canvas.showLegend;
+    canvas.showLegend = _;
     return chart;
   };
 
@@ -401,8 +358,8 @@ nv.models.historicalBarChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
+    if (!arguments.length) return canvas.noData;
+    canvas.noData = _;
     return chart;
   };
 
@@ -414,6 +371,5 @@ nv.models.historicalBarChart = function() {
 
   //============================================================
 
-
   return chart;
-}
+};
