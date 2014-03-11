@@ -11,19 +11,15 @@ nv.models.legend = function() {
     , color = nv.utils.defaultColor()
     , align = true
     , rightAlign = true
-    , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
     , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
-    , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
+    , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout')
     ;
 
   //============================================================
-
-
   function chart(selection) {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           container = d3.select(this);
-
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -47,40 +43,33 @@ nv.models.legend = function() {
             dispatch.legendMouseout(d,i);
           })
           .on('click', function(d,i) {
-            dispatch.legendClick(d,i);
-            if (updateState) {
-               if (radioButtonMode) {
-                   //Radio button mode: set every series to disabled,
-                   //  and enable the clicked series.
-                   data.forEach(function(series) { series.disabled = true});
-                   d.disabled = false;
-               }
-               else {
-                   d.disabled = !d.disabled;
-                   if (data.every(function(series) { return series.disabled})) {
-                       //the default behavior of NVD3 legends is, if every single series
-                       // is disabled, turn all series' back on.
-                       data.forEach(function(series) { series.disabled = false});
-                   }
-               }
-               dispatch.stateChange({
-                  disabled: data.map(function(d) { return !!d.disabled })
-               });
+
+            // Radio button mode: set every series to disabled,
+            // and enable the clicked series.
+            if (radioButtonMode) {
+                data.forEach(function(series) { series.disabled = true });
+                d.disabled = false;
             }
+            // If every single series is disabled, turn all series' back on.
+            else {
+                d.disabled = !d.disabled;
+                if (data.every(function(series) { return series.disabled}))
+                    data.forEach(function(series) { series.disabled = false});
+            }
+
+            dispatch.legendClick(d,i);
+
           })
           .on('dblclick', function(d,i) {
-            dispatch.legendDblclick(d,i);
-            if (updateState) {
-                //the default behavior of NVD3 legends, when double clicking one,
-                // is to set all other series' to false, and make the double clicked series enabled.
-                data.forEach(function(series) {
-                   series.disabled = true;
-                });
-                d.disabled = false;
-                dispatch.stateChange({
-                    disabled: data.map(function(d) { return !!d.disabled })
-                });
-            }
+            // When double clicking one, all other series' are set to false,
+            // and make the double clicked series enabled.
+            data.forEach(function(series) {
+               series.disabled = true;
+            });
+            d.disabled = false;
+
+            dispatch.legendClick(d,i);
+
           });
       seriesEnter.append('circle')
           .style('stroke-width', 2)
@@ -250,12 +239,6 @@ nv.models.legend = function() {
   chart.rightAlign = function(_) {
     if (!arguments.length) return rightAlign;
     rightAlign = _;
-    return chart;
-  };
-
-  chart.updateState = function(_) {
-    if (!arguments.length) return updateState;
-    updateState = _;
     return chart;
   };
 
