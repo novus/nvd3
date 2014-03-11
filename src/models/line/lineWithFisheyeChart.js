@@ -3,14 +3,14 @@ nv.models.lineChart = function() {
   "use strict";
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
       color = nv.utils.defaultColor(),
-      width = null, 
+      width = null,
       height = null,
       showLegend = true,
       showControls = true,
       fisheye = 0,
       pauseFisheye = false,
       tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+      tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
       },
@@ -20,7 +20,7 @@ nv.models.lineChart = function() {
 
   var x = d3.fisheye.scale(d3.scale.linear).distortion(0);
 
-  var lines = nv.models.line().xScale(x),
+  var lines = nv.models.lineFisheye().xScale(x),
       //x = lines.xScale(),
       y = lines.yScale(),
       xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5),
@@ -190,7 +190,7 @@ nv.models.lineChart = function() {
       }
 
 
-      controls.dispatch.on('legendClick', function(d,i) { 
+      controls.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
 
         fisheye = d.disabled ? 0 : 5;
@@ -213,7 +213,7 @@ nv.models.lineChart = function() {
       });
 
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
         chart.update();
       });
 
@@ -242,7 +242,7 @@ nv.models.lineChart = function() {
   d3.rebind(chart, lines, 'defined', 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin = _;

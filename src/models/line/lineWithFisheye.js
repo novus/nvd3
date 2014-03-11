@@ -1,5 +1,5 @@
 
-nv.models.line = function() {
+nv.models.lineFisheye = function() {
   "use strict";
   //Default Settings
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
@@ -132,7 +132,7 @@ nv.models.line = function() {
   d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin = _;

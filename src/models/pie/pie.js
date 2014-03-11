@@ -4,11 +4,13 @@ nv.models.pie = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var 
+  var
     canvas = new Canvas({
       margin: {top: 0, right: 0, bottom: 0, left: 0}
       , width: 500
       , height: 500
+      , chartClass: 'pie'
+      , wrapClass: 'pie'
     })
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
@@ -39,7 +41,8 @@ nv.models.pie = function() {
       var radius = Math.min(canvas.available.width, canvas.available.height) / 2,
           arcRadius = radius-(radius / 5);
 
-      canvas.wrapChart(data, ['nv-pie', 'nv-pie-labels']);
+      debugger
+      canvas.wrapChart(data, ['nv-pie-labels']);
       canvas.g.select('.nv-pie').attr('transform', 'translate(' + canvas.available.width / 2 + ',' + canvas.available.height / 2 + ')');
       canvas.g.select('.nv-pieLabels').attr('transform', 'translate(' + canvas.available.width / 2 + ',' + canvas.available.height / 2 + ')');
 
@@ -56,9 +59,7 @@ nv.models.pie = function() {
               });
           });
 
-
-      var arc = d3.svg.arc()
-                  .outerRadius(arcRadius);
+      var arc = d3.svg.arc().outerRadius(arcRadius);
 
       if (startAngle) arc.startAngle(startAngle)
       if (endAngle) arc.endAngle(endAngle);
@@ -67,7 +68,9 @@ nv.models.pie = function() {
       // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
           .sort(null)
-          .value(function(d) { return d.disabled ? 0 : getY(d) });
+          .value(function(d) {
+            return d.disabled ? 0 : getY(d)
+          });
 
       var slices = canvas.wrap.select('.nv-pie').selectAll('.nv-slice')
           .data(pie);

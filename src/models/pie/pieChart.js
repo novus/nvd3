@@ -81,7 +81,7 @@ nv.models.pieChart = function() {
 
 
       var pieWrap = canvas.g.select('.nv-pieWrap')
-          .datum([data]);
+          .datum(data);
 
       d3.transition(pieWrap).call(pie);
 
@@ -155,7 +155,7 @@ nv.models.pieChart = function() {
 
   d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return canvas.margin;
     canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
