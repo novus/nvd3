@@ -32,13 +32,13 @@ nv.models.scatterPlusLineChart = function() {
     , tooltips     = true
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    , tooltip      = function(key, x, y, date) { return '<h3>' + key + '</h3>' 
+    , tooltip      = function(key, x, y, date) { return '<h3>' + key + '</h3>'
                                                       + '<p>' + date + '</p>' }
     , state = {}
     , defaultState = null
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , noData       = "No Data Available."
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   scatter
@@ -59,7 +59,7 @@ nv.models.scatterPlusLineChart = function() {
   distY
     .axis('y')
     ;
-  
+
   controls.updateState(false);
   //============================================================
 
@@ -68,7 +68,9 @@ nv.models.scatterPlusLineChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var x0, y0;
+  var x0, y0
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
+    ;
 
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
@@ -98,6 +100,13 @@ nv.models.scatterPlusLineChart = function() {
 
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(scatter);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+    if (showDistX) renderWatch.models(distX);
+    if (showDistY) renderWatch.models(distY);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -107,7 +116,12 @@ nv.models.scatterPlusLineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-      chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
+      chart.update = function() {
+        if (duration === 0)
+          container.call(chart);
+        else
+          container.transition().duration(duration).call(chart);
+      };
       chart.container = this;
 
       //set state.disabled
@@ -139,7 +153,9 @@ nv.models.scatterPlusLineChart = function() {
           .attr('x', margin.left + availableWidth / 2)
           .attr('y', margin.top + availableHeight / 2)
           .text(function(d) { return d });
-
+        
+        renderWatch.renderEnd('scatter immediate');
+        
         return chart;
       } else {
         container.selectAll('.nv-noData').remove();
@@ -245,7 +261,7 @@ nv.models.scatterPlusLineChart = function() {
 
       var regWrap = wrap.select('.nv-regressionLinesWrap').selectAll('.nv-regLines')
                       .data(function(d) {return d });
-      
+
       regWrap.enter().append('g').attr('class', 'nv-regLines');
 
       var regLine = regWrap.selectAll('.nv-regLine').data(function(d){return [d]});
@@ -254,14 +270,14 @@ nv.models.scatterPlusLineChart = function() {
                        .style('stroke-opacity', 0);
 
       regLine
-          .transition()
+          .watchTransition(renderWatch, 'scatterPlusLineChart: regline')
           .attr('x1', x.range()[0])
           .attr('x2', x.range()[1])
           .attr('y1', function(d,i) {return y(x.domain()[0] * d.slope + d.intercept) })
           .attr('y2', function(d,i) { return y(x.domain()[1] * d.slope + d.intercept) })
           .style('stroke', function(d,i,j) { return color(d,j) })
           .style('stroke-opacity', function(d,i) {
-            return (d.disabled || typeof d.slope === 'undefined' || typeof d.intercept === 'undefined') ? 0 : 1 
+            return (d.disabled || typeof d.slope === 'undefined' || typeof d.intercept === 'undefined') ? 0 : 1
           });
 
       //------------------------------------------------------------
@@ -342,6 +358,8 @@ nv.models.scatterPlusLineChart = function() {
         });
       }
 
+      // At this point, everything has been selected and bound... I think
+
 
       function updateFisheye() {
         if (pauseFisheye) {
@@ -364,7 +382,7 @@ nv.models.scatterPlusLineChart = function() {
 
         if (showYAxis)
           g.select('.nv-y.nv-axis').call(yAxis);
-        
+
         g.select('.nv-distributionX')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
@@ -400,7 +418,7 @@ nv.models.scatterPlusLineChart = function() {
         chart.update();
       });
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
         state = newState;
         dispatch.stateChange(state);
         chart.update();
@@ -445,9 +463,9 @@ nv.models.scatterPlusLineChart = function() {
 
     });
 
+    renderWatch.renderEnd('scatter with line immediate');
     return chart;
   }
-
 
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
@@ -485,7 +503,7 @@ nv.models.scatterPlusLineChart = function() {
   d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -608,8 +626,13 @@ nv.models.scatterPlusLineChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+    nv.deprecated('scatterPlusLineChart.transitionDuration')
+    return chart.duration(_);
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
     return chart;
   };
 

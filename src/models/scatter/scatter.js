@@ -36,8 +36,9 @@ nv.models.scatter = function() {
     , sizeDomain   = null // Override point size domain
     , sizeRange    = null
     , singlePoint  = false
-    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
+    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     , useVoronoi   = true
+    , duration     = 250
     ;
 
   //============================================================
@@ -50,12 +51,14 @@ nv.models.scatter = function() {
   var x0, y0, z0 // used to store previous scales
     , timeoutID
     , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -333,7 +336,6 @@ nv.models.scatter = function() {
       }
 
       needsUpdate = true;
-
       var groups = wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
@@ -344,8 +346,7 @@ nv.models.scatter = function() {
       groups
           .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
           .classed('hover', function(d) { return d.hover });
-      groups
-          .transition()
+      groups.watchTransition(renderWatch, 'scatter: groups')
           .style('fill', function(d,i) { return color(d, i) })
           .style('stroke', function(d,i) { return color(d, i) })
           .style('stroke-opacity', 1)
@@ -353,7 +354,6 @@ nv.models.scatter = function() {
 
 
       if (onlyCircles) {
-
         var points = groups.selectAll('circle.nv-point')
             .data(function(d) { return d.values }, pointKey);
         points.enter().append('circle')
@@ -363,7 +363,8 @@ nv.models.scatter = function() {
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
         points.exit().remove();
-        groups.exit().selectAll('path.nv-point').transition()
+        groups.exit().selectAll('path.nv-point')
+            .watchTransition(renderWatch, 'scatter exit')
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .remove();
@@ -374,7 +375,8 @@ nv.models.scatter = function() {
             .classed('hover',false)
             ;
         });
-        points.transition()
+        points
+            .watchTransition(renderWatch, 'scatter points')
             .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
             .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
             .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
@@ -396,7 +398,7 @@ nv.models.scatter = function() {
             );
         points.exit().remove();
         groups.exit().selectAll('path.nv-point')
-            .transition()
+            .watchTransition(renderWatch, 'scatter exit')
             .attr('transform', function(d,i) {
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
             })
@@ -408,7 +410,8 @@ nv.models.scatter = function() {
             .classed('hover',false)
             ;
         });
-        points.transition()
+        points
+            .watchTransition(renderWatch, 'scatter points')
             .attr('transform', function(d,i) {
               //nv.log(d,i,getX(d,i), x(getX(d,i)));
               return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
@@ -432,7 +435,7 @@ nv.models.scatter = function() {
       z0 = z.copy();
 
     });
-
+    renderWatch.renderEnd('scatter immediate');
     return chart;
   }
 
@@ -664,6 +667,13 @@ nv.models.scatter = function() {
   chart.singlePoint = function(_) {
     if (!arguments.length) return singlePoint;
     singlePoint = _;
+    return chart;
+  };
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
     return chart;
   };
 

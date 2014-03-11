@@ -31,7 +31,7 @@ nv.models.multiBarHorizontalChart = function() {
     , state = { stacked: stacked }
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
     ;
@@ -70,9 +70,10 @@ nv.models.multiBarHorizontalChart = function() {
   };
 
   //============================================================
-
+  var renderWatch = nv.utils.renderWatch(dispatch, transitionDuration);
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -319,9 +320,8 @@ nv.models.multiBarHorizontalChart = function() {
       });
       //============================================================
 
-
     });
-
+    renderWatch.renderEnd('multibar horizontal chart immediate');
     return chart;
   }
 

@@ -8,7 +8,7 @@
 @@ -129,6 +130,90 @@
      return n;
  };
- 
+
 +// This utility class watches for d3 transition ends.
 +
 +(function(){
@@ -52,7 +52,7 @@
 +               _duration !== undefined ? _duration :
 +               250;
 +    selection.__rendered = false;
-+    
++
 +    if (renderStack.indexOf(selection) < 0)
 +      renderStack.push(selection);
 +
@@ -104,14 +104,3 @@
      if (args) {
        d3.map(args).forEach((function(key,value) {
          if (typeof this[key] === "function") {
-@@ -151,9 +237,3 @@
-     return this;
- };
- 
--/* Return a value if the value is defined and not null.
--* Return defaultValue if the value is undefined or null.
--*/
--nv.utils.valueOrDefault = function(value, defaultValue){
--    return ( value === undefined || value === null ) ? defaultValue : value ;
--};
-\ No newline at end of file
