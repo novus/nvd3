@@ -7,16 +7,11 @@ function Canvas(options){
 
     this.legend = nv.models.legend();
 
-    function setMargin(value, defaultValue){
-        // Prevent overriding zero margins
-        return (value === (undefined || null) ) ? defaultValue : value ;
-    }
-
     var margin = this.margin = {
-        top     : setMargin(options.margin.top, 20),
-        right   : setMargin(options.margin.right, 20),
-        bottom  : setMargin(options.margin.bottom, 30),
-        left    : setMargin(options.margin.left, 40)
+        top     : nv.utils.valueOrDefault(options.margin.top, 20),
+        right   : nv.utils.valueOrDefault(options.margin.right, 20),
+        bottom  : nv.utils.valueOrDefault(options.margin.bottom, 30),
+        left    : nv.utils.valueOrDefault(options.margin.left, 40)
     };
 
     Object.defineProperty(margin, 'leftright', {
