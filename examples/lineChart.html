@@ -43,6 +43,10 @@ svg {
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../lib/fisheye.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/canvas.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/line/line.js"></script>
 <script>
 // Wrapping in nv.addGraph allows for '0 timeout render', stores rendered charts in nv.graphs, and may do more in the future... it's NOT required
 var chart;
@@ -57,6 +61,10 @@ nv.addGraph(function() {
     transitionDuration: 250
   })
   ;
+
+  chart.dispatch.on('renderEnd', function(){
+        console.log('rendered');
+    });
 
   // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
   chart.xAxis

@@ -17,7 +17,7 @@ body {
 <script src="../nv.d3.js"></script>
 <script src="../src/utils.js"></script>
 <script src="../src/models/legend.js"></script>
-<script src="../src/models/scatter.js"></script>
+<script src="../src/models/scatter/scatter.js"></script>
 <script>
 
 
@@ -34,6 +34,9 @@ nv.addGraph({
                 .size(function(d) { return d.z })
                 .useVoronoi(false)
                 //.interactive(false)
+      chart.dispatch.on('renderEnd', function(){
+        console.log('rendered');
+      });
 
 
     d3.select('#test1')
