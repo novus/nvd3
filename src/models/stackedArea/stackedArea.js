@@ -20,13 +20,16 @@ nv.models.stackedArea = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , scatter = nv.models.scatter()
-    , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout')
+    , duration = 250
+    , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout', 'renderEnd')
     ;
 
   scatter
     .size(2.2) // default size
     .sizeDomain([2.2,2.2]) // all the same size by default
     ;
+
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
   /************************************
    * offset:
@@ -42,8 +45,10 @@ nv.models.stackedArea = function() {
 
   //============================================================
 
-
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(scatter);
+
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -189,12 +194,10 @@ nv.models.stackedArea = function() {
             return d.color || color(d, d.seriesIndex)
           })
           .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
-      path.transition()
+      path.watchTransition(renderWatch,'stackedArea path')
           .attr('d', function(d,i) {
             return area(d.values,i)
           });
-
-
 
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
@@ -234,7 +237,7 @@ nv.models.stackedArea = function() {
 
     });
 
-
+    renderWatch.renderEnd('stackedArea immediate');
     return chart;
   }
 
@@ -357,12 +360,17 @@ nv.models.stackedArea = function() {
   };
 
   chart.interpolate = function(_) {
-	    if (!arguments.length) return interpolate;
-	    interpolate = _;
-	    return chart;
+    if (!arguments.length) return interpolate;
+    interpolate = _;
+    return chart;
   };
-  //============================================================
 
-
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    scatter.duration(duration);
+    return chart;
+  };
   return chart;
 }

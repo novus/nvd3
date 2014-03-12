@@ -34,11 +34,11 @@ nv.models.stackedAreaChart = function() {
     , state = { style: stacked.style() }
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , controlWidth = 250
     , cData = ['Stacked','Stream','Expanded']
     , controlLabels = {}
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   xAxis
@@ -67,10 +67,15 @@ nv.models.stackedAreaChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
   //============================================================
 
-
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(stacked);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
+
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
@@ -444,7 +449,7 @@ nv.models.stackedAreaChart = function() {
 
     });
 
-
+    renderWatch.renderEnd('stacked Area chart immediate');
     return chart;
   }
 
@@ -628,8 +633,15 @@ nv.models.stackedAreaChart = function() {
     return yAxis;
   };
 
-
-  //============================================================
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    // stacked.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
+    return chart;
+  };
 
   return chart;
 }

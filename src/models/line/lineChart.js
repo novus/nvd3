@@ -36,7 +36,7 @@ nv.models.lineChart = function() {
     , state = {}
     , defaultState = null
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
-    , transitionDuration = 250
+    , duration = 250
     ;
 
   xAxis
@@ -64,8 +64,12 @@ nv.models.lineChart = function() {
 
   //============================================================
 
-
+  var renderWatch = nv.utils.renderWatch(dispatch, duration);
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(lines);
+    if (showXAxis) renderWatch.models(xAxis);
+    if (showYAxis) renderWatch.models(yAxis);
 
     selection.each(function(data) {
 
@@ -262,9 +266,9 @@ nv.models.lineChart = function() {
 
     });
 
+    renderWatch.renderEnd('lineChart immediate');
     return chart;
   }
-
 
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
@@ -390,13 +394,14 @@ nv.models.lineChart = function() {
     return chart;
   };
 
-  chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    lines.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
     return chart;
   };
-
-  //============================================================
-
   return chart;
 };
