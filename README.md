@@ -58,7 +58,7 @@ fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
     make clean # Delete nv.d3.*js and nv.d3.*css
 
 
-*Without UglifyJS of CSSMin, you won't get the minified versions when running make.**
+*Without UglifyJS or CSSMin, you won't get the minified versions when running make.**
 
 ### Using Grunt
 
