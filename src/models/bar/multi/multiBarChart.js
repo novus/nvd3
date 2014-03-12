@@ -93,9 +93,9 @@ nv.models.multiBarChart = function() {
 
       chart.update = function() {
         if (duration === 0)
-          container.call(chart);
+          canvas.svg.call(chart);
         else
-          container.transition()
+          canvas.svg.transition()
             .duration(duration)
             .call(chart);
       };
@@ -162,6 +162,9 @@ nv.models.multiBarChart = function() {
         canvas.g.select('.nv-legendWrap')
           .attr('transform', 'translate(' + controlWidth() + ',' + (-canvas.margin.top) +')');
       }
+
+      //------------------------------------------------------------
+
 
       //------------------------------------------------------------
       // Controls
@@ -273,7 +276,6 @@ nv.models.multiBarChart = function() {
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
-
           canvas.g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
       }
@@ -366,7 +368,6 @@ nv.models.multiBarChart = function() {
     if (tooltips) nv.tooltip.cleanup();
   });
 
-
   //============================================================
 
 
@@ -408,7 +409,6 @@ nv.models.multiBarChart = function() {
   };
 
   chart.color = function(_) {
-
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     legend.color(color);
@@ -493,7 +493,7 @@ nv.models.multiBarChart = function() {
     defaultState = _;
     return chart;
   };
-
+  
   chart.noData = function(_) {
     if (!arguments.length) return canvas.noData;
     canvas.noData = _;
@@ -513,7 +513,7 @@ nv.models.multiBarChart = function() {
     yAxis.duration(duration);
     renderWatch.reset(duration);
     return chart;
-  }
+  };
 
   //============================================================
 

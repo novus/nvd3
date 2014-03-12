@@ -41,7 +41,6 @@ nv.models.multiBar = function() {
       , renderWatch = nv.utils.renderWatch(dispatch, duration)
       ;
 
-
   //============================================================
 
   function chart(selection) {
@@ -60,7 +59,6 @@ nv.models.multiBar = function() {
           return true;
         return false;
       }
-
 
       if(hideable && data.length) hideable = [{
         values: data[0].values.map(function(d) {
@@ -94,11 +92,10 @@ nv.models.multiBar = function() {
           data.map(function(d) {
             var f = d.values[i];
             f.size = Math.abs(f.y);
-            if (f.y<0)  {
+            if ( f.y < 0 )  {
               f.y1 = negBase;
               negBase = negBase - f.size;
-            } else
-            {
+            } else {
               f.y1 = f.size + posBase;
               posBase = posBase + f.size;
             }
@@ -117,11 +114,11 @@ nv.models.multiBar = function() {
             });
 
       x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-          .rangeBands(xRange || [0, availableWidth], groupSpacing);
+        .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
       //y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
       y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
-          .range(yRange || [availableHeight, 0]);
+        .range(yRange || [availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
       if (x.domain()[0] === x.domain()[1])
@@ -188,9 +185,7 @@ nv.models.multiBar = function() {
 
       var barsEnter = bars.enter().append('rect')
           .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
-          .attr('x', function(d,i,j) {
-              return stacked ? 0 : (j * x.rangeBand() / data.length )
-          })
+          .attr('x', function(d,i,j) { return stacked ? 0 : (j * x.rangeBand() / data.length ) })
           .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
           .attr('height', 0)
           .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
@@ -254,19 +249,19 @@ nv.models.multiBar = function() {
           });
       if (stacked)
           barSelection
-            .attr('y', function(d,i) {
+            .attr('y', function(d) {
               return y((stacked ? d.y1 : 0));
             })
-            .attr('height', function(d,i) {
+            .attr('height', function(d) {
               return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
             })
-            .attr('x', function(d,i) {
+            .attr('x', function(d) {
               return stacked ? 0 : (d.series * x.rangeBand() / data.length )
             })
             .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
       else
           barSelection
-            .attr('x', function(d,i) {
+            .attr('x', function(d) {
               return d.series * x.rangeBand() / data.length
             })
             .attr('width', x.rangeBand() / data.length)
@@ -437,9 +432,7 @@ nv.models.multiBar = function() {
     duration = _;
     renderWatch.reset(duration);
     return chart;
-  }
-
-
+  };
 
   //============================================================
   // Deprecated Methods
