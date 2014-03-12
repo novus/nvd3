@@ -82,7 +82,7 @@ nv.models.lineChart = function() {
       chart.update = function() {
         canvas.svg
           .transition()
-          .duration(transitionDuration)
+          .duration(duration)
           .call(chart)
       };
 

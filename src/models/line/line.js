@@ -175,8 +175,14 @@ nv.models.line = function() {
   // Expose Public Variables
   //------------------------------------------------------------
 
-  chart.dispatch = scatter.dispatch;
+  chart.dispatch = dispatch;
   chart.scatter = scatter;
+  // Pass through scatter dispatch events,
+  // required for renderWatch to dispatch properly
+  scatter.dispatch.on('elementClick', function(){ dispatch.elementClick.apply(this, arguments); })
+  scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); })
+  scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); })
+
 
   d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
     'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData','highlightPoint','clearHighlights');
