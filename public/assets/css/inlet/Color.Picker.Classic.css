@@ -1,0 +1,75 @@
+#ColorPicker {
+	border: 1px solid rgba(0,0,0,0.5);
+	border-radius: 6px;
+	background: #0d0d0d;
+	background: -webkit-gradient(linear, left top, left bottom, from(#333), color-stop(0.1, #111), to(#000000));
+	box-shadow: 2px 2px 5px 2px rgba(0,0,0,0.35);
+	text-shadow: 1px 1px 1px #000;
+	color:#AAA;
+	cursor:default;
+	display:block;
+	font-family:'arial',helvetica,sans-serif;
+	font-size:20px;
+	padding:7px 8px 20px;
+	position:absolute;
+	top: 100px;
+	left: 700px;
+	width:229px;
+	z-index:100;
+}
+#ColorPicker br {
+	clear:both;
+	margin:0;
+	padding:0;
+}
+#ColorPicker input.hexInput:hover,
+#ColorPicker input.hexInput:focus {
+	color: #FFD000
+}
+#ColorPicker input.hexInput {
+	-webkit-transition-property: color;
+	-webkit-transition-duration: .5s;
+	background: none;
+	border: 0;
+	margin: 0;
+	font-family:courier,monospace;
+	font-size:20px;
+	position: relative;
+	top: -2px;
+	float:left;
+	color:#fff;
+	cursor: text;
+}
+#ColorPicker div.hexBox {
+	border: 1px solid rgba(255,255,255,0.5);
+	border-radius: 2px;
+	background:#FFF;
+	float:left;
+	font-size:1px;
+	height:20px;
+	margin: 0 5px 0 2px;
+	width:20px;
+	cursor: pointer;
+}
+#ColorPicker div.hexBox div {
+	width: inherit;
+	height: inherit;
+}
+#ColorPicker div.hexClose {
+	-webkit-transition-property: color, text-shadow;
+	-webkit-transition-duration: .5s;
+	position: relative;
+	top: -1px;
+	left: -1px;
+	color:#FFF;
+	cursor:pointer;
+	float:right;
+	padding: 0 5px;
+	margin:0 4px 3px;
+	user-select:none;
+	-webkit-user-select: none;
+}
+#ColorPicker div.hexClose:hover {
+	text-shadow: 0 0 20px #fff;
+	color:#FF1100;
+}

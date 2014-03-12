@@ -1,0 +1,20 @@
+---
+layout: example
+title: HTML Indented Tree
+---
+
+
+          <h2 id='html_indented_tree'>HTML Indented Tree</h2>
+<div id='chart' style='width:600px'>
+</div><script src='indentedtree.js' type='text/javascript'> </script>
+<h3 id='source_code'>Source Code</h3>
+
+<pre class='prettyprint linenums'>
+</pre>
+
+<script type='text/javascript'>
+  d3.text("indentedtree.js","text/plain",function(err,text) {
+      d3.select("pre.prettyprint").text(text);
+      prettyPrint();
+  });
+</script>

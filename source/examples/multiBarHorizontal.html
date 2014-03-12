@@ -1,0 +1,22 @@
+---
+layout: example
+title: Horizontal Multi-Bar Chart
+---
+
+
+          <h2 id='horizontal_multibar_chart'>Horizontal Multi-Bar Chart</h2>
+<div id='chart1'>
+  <svg style='height:500px'> </svg>
+</div><script src='multiBarHorizontal.js' type='text/javascript'> </script>
+<h3 id='source_code'>Source Code</h3>
+
+Example data: <a href="multiBarHorizontalData.json">JSON file</a>
+<pre class='prettyprint linenums'>
+</pre>
+
+<script type='text/javascript'>
+  d3.text("multiBarHorizontal.js","text/plain",function(err,text) {
+      d3.select("pre.prettyprint").text(text);
+      prettyPrint();
+  });
+</script>

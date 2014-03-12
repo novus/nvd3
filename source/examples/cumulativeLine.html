@@ -1,0 +1,21 @@
+---
+layout: example
+title: Cumulative Line Chart
+---
+<h2 id='cumulative_line_chart'>Cumulative Line Chart</h2>
+
+<div id='chart'>
+  <svg style='height:500px'> </svg>
+</div><script src='cumulativeLine.js' type='text/javascript'> </script>
+<h3 id='source_code'>Source Code</h3>
+
+Example data: <a href="cumulativeLineData.json">JSON file</a>
+<pre class='prettyprint linenums'>
+</pre>
+
+<script type='text/javascript'>
+  d3.text("cumulativeLine.js","text/plain",function(err,text) {
+      d3.select("pre.prettyprint").text(text);
+      prettyPrint();
+  });
+</script>

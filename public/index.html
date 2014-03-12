@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>NVD3</title>
+  <meta name="author" content="Novus Partners">
+
+  
+  <meta name="description" content="NVD3 Re-usable charts for d3.js This project is an attempt to build re-usable charts and chart components for d3.js without taking away the power &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nvd3.org">
+  <link href="/favicon.png" rel="icon">
+  <!-- <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css"> -->
+  <link href="/atom.xml" rel="alternate" title="NVD3" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+    <link href="/assets/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .statement_para {
+          font-size: 14pt;
+          line-height: 120%;
+          width: 60%;
+          text-align: justify;
+          text-justify: distribute;
+          margin: 10px auto;
+          margin-bottom: 30px;
+      }
+
+    </style>
+    <link href="/assets/css/common.css" rel="stylesheet">
+    <link href="/assets/css/nv.d3.css" rel="stylesheet">
+
+    <script src="/assets/js/lib/bootstrap.min.js"></script>
+<script src="/assets/lib/d3.v3.js"></script>
+<script src="/assets/js/nv.d3.js"></script>
+
+<script src="/assets/js/data/stream_layers.js"></script>
+<script src="/assets/js/page/index.js"></script>
+
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-33058059-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+    <nav role="navigation">    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/index.html">NVD3.js</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="/index.html"><i class="icon-white icon-home"></i> Home</a></li>
+              <li><a href="/examples/index.html"><i class="icon-white icon-picture"></i> Examples</a></li>
+              <li><a href="/livecode/index.html"><i class="icon-white icon-play-circle"></i> Live Code</a></li>
+              <li><a href="http://github.com/novus/nvd3"><i class="icon-white icon-list-alt"></i> Source</a></li>
+              <li><a href="/blog/archives/"><i class="icon-white icon-book"></i> Blog</a></li>
+            </ul>
+            <ul class="nav pull-right">
+              <li><p class="navbar-text"><i class="icon-white icon-download"></i> Downloads:</p></li>
+              <li>
+                <div class="btn-group">
+                  <a class="btn btn-small btn-primary" href="https://github.com/novus/nvd3/zipball/master">ZIP</a>
+                  <a class="btn btn-small btn-primary" href="https://github.com/novus/nvd3/tarball/master">TAR.GZ</a>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+</nav>
+
+    <div class="container with-3d-shadow with-transitions">
+              <div class="row">
+        <div class="span6">
+          <div class="page-header">
+            <h1>NVD3 <small>Re-usable charts for <a href="http://d3js.org">d3.js</a></small></h1>
+          </div>
+         <p class="lead">This project is an attempt to build re-usable charts and chart components for <a href="http://d3js.org">d3.js</a> without taking away the power that <a href="http://d3js.org">d3.js</a> gives you. This is a very young collection of components, with the goal of keeping these components very customizeable, staying away from your standard cookie cutter solutions.</p>
+          <p><a class="btn btn-primary btn-large" href="ghpages/examples.html">View more examples &raquo;</a></p>
+          <p><a class="btn btn-primary btn-large" href="https://github.com/novus/nvd3">GitHub Repo</a></p>
+        </div>
+        <div class="span6">
+          <svg id="mainExample" style="height:360px"></svg>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="span4">
+          <svg id="exampleOne" style="height:240px"></svg>
+        </div>
+        <div class="span4">
+          <svg id="exampleTwo" style="height:240px"></svg>
+        </div>
+        <div class="span4">
+          <svg id="exampleThree" style="height:240px"></svg>
+        </div>
+      </div>
+
+      <hr>
+
+      <h2>Getting Started</h2>
+      <div class='row'>
+        <div class='span4'>
+          <p class='lead'>
+              Download <a href="http://d3js.org/">d3.v3.js</a>. This is the only required library for NVD3.
+            </p>
+            <p class='lead'>
+              Download the latest nv.d3.js (version 1.1 beta).
+                Get the <a href="https://raw.github.com/novus/nvd3/master/nv.d3.js">development</a> version, or
+                minified <a href="https://raw.github.com/novus/nvd3/master/nv.d3.min.js">production</a> version.
+          </p>
+          <p class='lead'>
+             Don&#8217;t forget the <a href="https://raw.github.com/novus/nvd3/master/src/nv.d3.css">NVD3 css file</a>!
+          </p>
+        </div>
+        <div class='span4'>
+            <p class='lead'>
+            Checkout our <a href="ghpages/examples.html">examples gallery</a> for how to code your first chart.
+            <br/>
+            Our examples should provide you with enough code to start making beautiful charts.
+            <br/><br/>
+            <a href="http://www.google.com/chrome">Google Chrome</a> is our best supported browser.
+             NVD3 also works in Firefox, Opera, Safari and Internet Explorer 10.
+            </p>
+        </div>
+
+        <div class='span4'>
+            <p class='lead'>
+                Any questions or bug reports? Visit our <a href="https://github.com/novus/nvd3">GitHub</a> page.
+            </p>
+        </div>
+      </div>
+
+      <h2>About NVD3</h2>
+      <p class='lead'>
+          NVD3 is currently maintained by a team of frontend software engineers at <a href="https://www.novus.com/">Novus Partners</a>.
+          Our charting technology is used to provide powerful analytics to our clients in the financial industry.
+          <br/><br/>
+          NVD3&#8217;s codebase is heavily inspired by the work of Mike Bostock. In particular, his article <a href="http://bost.ocks.org/mike/chart/">&#8220;Towards Reusable Charts&#8221;</a> serves as our guide.
+      </p>
+
+
+        <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - <a href="http://www.novus.com">Novus Partners</a> -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+    </div>
+</body>
+</html>

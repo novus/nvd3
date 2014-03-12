@@ -1,0 +1,32 @@
+---
+layout: example
+title: Pie Chart
+---
+
+          <h2 id='pie_chart'>Pie Chart</h2>
+<div id='chart' class='span4'>
+  Regular pie chart
+  <svg style='height:500px;width:400px'> </svg>
+</div>
+<div id='chart2' class='span4'>
+  Donut chart
+  <svg style='height:500px;width:400px'> </svg>
+</div><script src='pie.js' type='text/javascript'> </script>
+
+<h3>Related examples: <br/>
+  <a href="http://bl.ocks.org/mbostock/3887235">http://bl.ocks.org/mbostock/3887235</a><br/>
+  <a href="http://bl.ocks.org/mbostock/3887193">http://bl.ocks.org/mbostock/3887193</a></h3>
+
+<h3 id='source_code'>Source Code</h3>
+
+<strong>Note:</strong> pie chart data format differs from other charts. Data is only a single dimensinal array. Follow the example.
+
+<pre class='prettyprint linenums'>
+</pre>
+
+<script type='text/javascript'>
+  d3.text("pie.js","text/plain",function(err,text) {
+      d3.select("pre.prettyprint").text(text);
+      prettyPrint();
+  });
+</script>

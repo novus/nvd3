@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[NVD3]]></title>
+  <link href="http://nvd3.org/atom.xml" rel="self"/>
+  <link href="http://nvd3.org/"/>
+  <updated>2014-03-12T18:02:21-04:00</updated>
+  <id>http://nvd3.org/</id>
+  <author>
+    <name><![CDATA[Novus Partners]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[The Future of NVD3 - March, 2014]]></title>
+    <link href="http://nvd3.org/blog/2014/03/state-of-nvd3/"/>
+    <updated>2014-03-12T17:44:38-04:00</updated>
+    <id>http://nvd3.org/blog/2014/03/state-of-nvd3</id>
+    <content type="html"><![CDATA[<p>When I joined Novus last November, I&rsquo;d spent some time playing with three.js visualizations, but hadn&rsquo;t really looked at that d3 thing. Of course, as a financial technology firm, 2d charts and graph visualizations are all we do. So I learned d3, and this little nvd3 home-grown thing. I knew there was a community out there &ndash; at least, I&rsquo;d come across random tweets mentioning it, but I really hadn&rsquo;t dug in. Then I had to make some changes. Before you know it, I&rsquo;m waist deep in refactoring what for all intents and purposes was an internal prototyped tech demo that&rsquo;s become a great project on Github! Yet we&rsquo;ve been, to the community&rsquo;s detriment, busy at Novus.</p>
+
+<p>Yes, we knew the PR and issue counts were rising, but we&rsquo;re heads down on some internal projects, and no one really pushed or prodded us about nvd3. My colleagues robinfhu, twolfnovus, and fshao816 were fixing bugs, adding some features we needed, and generally making it look like NVD3 was still making progress. Turns out, just because no one in the community is yelling, doesn&rsquo;t mean there aren&rsquo;t problems! After getting a foreceful tweet from John Shulz (@JFSIII), I asked around my colleagues and realized we had, in fact, been getting quite a few quiet pokes and prods. The growing issue count is obviously frustrating to people trying to use the library, but the growing PR count shows people are still very much trying to create a successful, sustainable project in spite of Novus&#8217; lack of recent feedback &ndash; we clearly cannot leave our heads in the sand and just hope that what we need happens to be what you need.</p>
+
+<p>The good news &ndash; we&rsquo;re reprioritizing, moving NVD3 way up in our list of UI focus at Novus. The bad news &ndash; NVD3 is still at number two, behind a massive internal rewrite we&rsquo;ve been doing since Decemeber of 2013, due to complete in the next couple months. The ugly news &ndash; NVD3 needs a major refactor. As I mentioned, it really is a large tech demo, with large swaths of copy-paste code, duplicated logic, and complete lack of overall architecture. The testing is piecemeal, spotty, and manual. The build, though is super fast. Basically, we want to refactor this into something that makes a lot more sense, and follows much better coding principles (seperate some concerns, DRY out the wet parts, wrap it in a test harness). We have started this work, and are using it internally &ndash; you can track it in <a href="https://github.com/novus/nvd3/pull/442">this pull request</a>.</p>
+
+<p>Beyond this code work, we need to expand the way we accept community feedback. We would like to find trusted collaborators to empower with access to the novus/nvd3 repository. If you are interested, please email me &ndash; dsouther (at )novus( dot)com.</p>
+
+<p>Over the next few weeks, we&rsquo;ll have a better understanding of the balance between internal projects and NVD3 itself. In short, look for three things in the coming couple months.</p>
+
+<ul>
+<li>Refactor NVD3 to a maintainable codebase.</li>
+<li>Clear the Issues and PR Backlog.</li>
+<li>Add nvGrid, a powerful grid / table component.</li>
+</ul>
+
+
+<p>This is where we&rsquo;re at today, and we have some good improvements that we want to put in place between now and June. Keep your dial tuned!</p>
+
+<p><em>Yours,</em></p>
+
+<p><strong>David Souther</strong></p>
+
+<p><em>Software Architect &ndash; Novus Partners</em></p>
+]]></content>
+  </entry>
+  
+</feed>

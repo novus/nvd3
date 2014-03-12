@@ -1,0 +1,32 @@
+---
+layout: example
+title: Simple Line Chart
+---
+
+          <h2 id='simple_line_chart'>Simple Line Chart</h2>
+<div id='chart'>
+  <svg style='height:500px'> </svg>
+</div>
+<script src='line.js' type='text/javascript'> </script>
+
+<h3>Features</h3>
+<ul>
+  <li>Ability to combine as many line series' as you want.</li>
+  <li>Tooltip which shows all visible series data.</li>
+  <li>Line transitions that happen when turning on/off series, and when resizing chart.</li>
+  <li>Can specify whether a series should be an area chart.</li>
+</ul>
+
+<h3>Related example: <a href="http://bl.ocks.org/mbostock/3883245">http://bl.ocks.org/mbostock/3883245</a></h3>
+
+<h3 id='source_code'>Getting Started</h3>
+
+<pre class='prettyprint linenums'>
+</pre>
+
+<script type='text/javascript'>
+  d3.text("line.js","text/plain",function(err,text) {
+      d3.select("pre.prettyprint").text(text);
+      prettyPrint();
+  });
+</script>
