@@ -290,6 +290,12 @@ Chart.prototype.buildLegend = function(data) {
           .attr('transform', 'translate(0,' + (-this.margin.top) +')')
     }
 };
+
+Chart.prototype.showLegend = function(_) {
+    if(!arguments.length) return this.options.showLegend;
+    this.options.showLegend = _;
+    return this;
+}
 /* Utility class to handle creation of an interactive layer.
 This places a rectangle on top of the chart. When you mouse move over it, it sends a dispatch
 containing the X-coordinate. It can also render a vertical line where the mouse is located.
@@ -9035,7 +9041,7 @@ nv.models.lineChart = function() {
   chart.interactiveLayer = interactiveLayer;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
-    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
+    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate', 'showLegend');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -12923,12 +12929,6 @@ nv.models.pieChart = function() {
     return chart;
   };
 
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
-    return chart;
-  };
-
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
@@ -12959,8 +12959,10 @@ nv.models.pieChart = function() {
     return chart;
   };
 
-  //============================================================
-
+  var _sl = Chart.prototype.showLegend;
+  chart.showLegend = function(_){
+    return _sl.call(chart, _);
+  }
 
   return chart;
 }
@@ -13838,7 +13840,7 @@ nv.models.scatterChart = function() {
 
       //Only need to update the scatter again if x/yPadding changed the domain.
       if (yPadding !== 0 || xPadding !== 0) {
-        wrap.select('.nv-scatterWrap')
+        canvas.wrap.select('.nv-scatterWrap')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(scatter);
       }

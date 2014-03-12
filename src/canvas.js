@@ -132,3 +132,9 @@ Chart.prototype.buildLegend = function(data) {
           .attr('transform', 'translate(0,' + (-this.margin.top) +')')
     }
 };
+
+Chart.prototype.showLegend = function(_) {
+    if(!arguments.length) return this.options.showLegend;
+    this.options.showLegend = _;
+    return this;
+}

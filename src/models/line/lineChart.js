@@ -299,7 +299,7 @@ nv.models.lineChart = function() {
   chart.interactiveLayer = interactiveLayer;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
-    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
+    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate', 'showLegend');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
 

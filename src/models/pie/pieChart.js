@@ -189,12 +189,6 @@ nv.models.pieChart = function() {
     return chart;
   };
 
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
-    return chart;
-  };
-
   chart.tooltips = function(_) {
     if (!arguments.length) return tooltips;
     tooltips = _;
@@ -225,8 +219,10 @@ nv.models.pieChart = function() {
     return chart;
   };
 
-  //============================================================
-
+  var _sl = Chart.prototype.showLegend;
+  chart.showLegend = function(_){
+    return _sl.call(chart, _);
+  }
 
   return chart;
 }

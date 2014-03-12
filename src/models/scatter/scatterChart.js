@@ -188,7 +188,7 @@ nv.models.scatterChart = function() {
 
       //Only need to update the scatter again if x/yPadding changed the domain.
       if (yPadding !== 0 || xPadding !== 0) {
-        wrap.select('.nv-scatterWrap')
+        canvas.wrap.select('.nv-scatterWrap')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(scatter);
       }

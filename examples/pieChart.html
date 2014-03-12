@@ -69,7 +69,9 @@ nv.addGraph(function() {
         .y(function(d) { return d.y })
         .color(d3.scale.category10().range())
         .width(width)
-        .height(height);
+        .height(height)
+        .showLegend(true)
+        ;
 
       d3.select("#test1")
           .datum(testdata)
