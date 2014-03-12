@@ -4577,6 +4577,7 @@ nv.models.multiBarHorizontal = function() {
     , yDomain
     , xRange
     , yRange
+    , duration
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     ;
 
@@ -4588,7 +4589,7 @@ nv.models.multiBarHorizontal = function() {
   //------------------------------------------------------------
 
   var x0, y0 //used to store previous scales
-    , renderWatch = nv.utils.renderWatch(dispatch, transitionDuration)
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
   //============================================================
@@ -4993,8 +4994,11 @@ nv.models.multiBarHorizontal = function() {
     return chart;
   };
 
-  //============================================================
-
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    return chart;
+  };
 
   return chart;
 }
