@@ -59,12 +59,10 @@ nv.models.axis = function() {
 
       //------------------------------------------------------------
 
-
       if (ticks !== null)
         axis.ticks(ticks);
       else if (axis.orient() == 'top' || axis.orient() == 'bottom')
         axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
-
 
       //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
       g.watchTransition(renderWatch, 'axis').call(axis);
@@ -292,7 +290,6 @@ nv.models.axis = function() {
             });
       }
 
-
       //highlight zero line ... Maybe should not be an option and should just be in CSS?
       if (highlightZero)
         g.selectAll('.tick')
@@ -301,13 +298,11 @@ nv.models.axis = function() {
 
       //store old scales for use in transitions on update
       scale0 = scale.copy();
-
     });
-    
+
     renderWatch.renderEnd('axis immediate');
     return chart;
   }
-
 
   //============================================================
   // Expose Public Variables
@@ -406,10 +401,6 @@ nv.models.axis = function() {
     renderWatch.reset(duration);
     return chart;
   };
-
-
-  //============================================================
-
 
   return chart;
 }

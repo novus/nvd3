@@ -1,4 +1,3 @@
-// COMMENT
 nv.models.line = function() {
   "use strict";
   //============================================================
@@ -21,6 +20,8 @@ nv.models.line = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , interpolate = "linear" // controls the line interpolation
+    , duration = 250
+    , dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     ;
 
   scatter
@@ -36,11 +37,14 @@ nv.models.line = function() {
   //------------------------------------------------------------
 
   var x0, y0 //used to store previous scales
-      ;
+    , renderWatch = nv.utils.renderWatch(dispatch, duration)
+    ;
 
   //============================================================
 
   function chart(selection) {
+    renderWatch.reset();
+    renderWatch.models(scatter);
     selection.each(function(data) {
 
       canvas.setRoot( this );
@@ -103,8 +107,7 @@ nv.models.line = function() {
           .classed('hover', function(d) { return d.hover })
           .style('fill', function(d,i){ return color(d, i) })
           .style('stroke', function(d,i){ return color(d, i)});
-      groups
-          .transition()
+      groups.watchTransition(renderWatch, 'line: groups')
           .style('stroke-opacity', 1)
           .style('fill-opacity', .5);
 
@@ -125,8 +128,7 @@ nv.models.line = function() {
       groups.exit().selectAll('path.nv-area')
            .remove();
 
-      areaPaths
-          .transition()
+      areaPaths.watchTransition(renderWatch, 'line: areaPaths')
           .attr('d', function(d) {
             return d3.svg.area()
                 .interpolate(interpolate)
@@ -150,8 +152,7 @@ nv.models.line = function() {
               .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
           );
 
-      linePaths
-          .transition()
+      linePaths.watchTransition(renderWatch, 'line: linePaths')
           .attr('d',
             d3.svg.line()
               .interpolate(interpolate)
@@ -166,6 +167,7 @@ nv.models.line = function() {
 
     });
 
+    renderWatch.renderEnd('line immediate');
     return chart;
   }
 
@@ -247,7 +249,13 @@ nv.models.line = function() {
     return chart;
   };
 
-  //============================================================
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    scatter.duration(duration);
+    return chart;
+  };
 
   return chart;
 };

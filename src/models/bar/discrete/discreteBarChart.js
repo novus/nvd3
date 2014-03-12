@@ -7,13 +7,14 @@ nv.models.discreteBarChart = function() {
 
   var discretebar = nv.models.discreteBar()
     , xAxis = nv.models.axis()
-    , yAxis = nv.models.axis();
+    , yAxis = nv.models.axis()
+    ;
 
   var canvas = new Canvas({
         margin: {top: 15, right: 10, bottom: 50, left: 60}
           , chartClass: 'discreteBarWithAxes'
           , wrapClass: 'barsWrap'
-      })    
+      })
     , color = nv.utils.getColor()
     , showXAxis = true
     , showYAxis = true
@@ -26,7 +27,7 @@ nv.models.discreteBarChart = function() {
       }
     , x
     , y
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate', 'renderEnd')
     , transitionDuration = 250
     ;
 
@@ -34,10 +35,12 @@ nv.models.discreteBarChart = function() {
     .orient('bottom')
     .highlightZero(false)
     .showMaxMin(false)
-    .tickFormat(function(d) { return d });
+    .tickFormat(function(d) { return d })
+    ;
   yAxis
     .orient((rightAlignYAxis) ? 'right' : 'left')
-    .tickFormat(d3.format(',.1f'));
+    .tickFormat(d3.format(',.1f'))
+    ;
 
   //============================================================
 
@@ -55,9 +58,11 @@ nv.models.discreteBarChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch, transitionDuration);
   //============================================================
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
 
       canvas.setRoot(this);
@@ -79,9 +84,9 @@ nv.models.discreteBarChart = function() {
       if (rightAlignYAxis)
         canvas.g.select(".nv-y.nv-axis").attr("transform", "translate(" + availableWidth + ",0)");
 
-      chart.update = function() { 
-        dispatch.beforeUpdate(); 
-        canvas.svg.transition().duration(transitionDuration).call(chart); 
+      chart.update = function() {
+        dispatch.beforeUpdate();
+        canvas.svg.transition().duration(transitionDuration).call(chart);
       };
 
       x = discretebar.xScale();
@@ -157,11 +162,9 @@ nv.models.discreteBarChart = function() {
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
-      //============================================================
-
-
     });
 
+    renderWatch.renderEnd('discreteBar chart immediate');
     return chart;
   }
 
@@ -198,7 +201,7 @@ nv.models.discreteBarChart = function() {
   d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return canvas.margin;
     canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;

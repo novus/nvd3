@@ -12,7 +12,7 @@ nv.models.historicalBarChart = function() {
 
   var canvas = new Canvas({
       margin: {top: 30, right: 90, bottom: 50, left: 90}
-    })      
+    })
     , color = nv.utils.defaultColor()
     , showXAxis = true
     , showYAxis = true
@@ -105,12 +105,6 @@ nv.models.historicalBarChart = function() {
       x = bars.xScale();
       y = bars.yScale();
 
-      //------------------------------------------------------------
-
-
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
 
       canvas.wrapChart(data);
       canvas.gEnter.append('g').attr('class', 'nv-x nv-axis');
@@ -119,15 +113,12 @@ nv.models.historicalBarChart = function() {
       canvas.gEnter.append('g').attr('class', 'nv-legendWrap');
 
       //------------------------------------------------------------
-
-
-      //------------------------------------------------------------
       // Legend
 
       if (canvas.showLegend) {
         legend.width(availableWidth);
 
-        g.select('.nv-legendWrap')
+        canvas.g.select('.nv-legendWrap')
           .datum(data)
           .call(legend);
 
@@ -145,7 +136,7 @@ nv.models.historicalBarChart = function() {
       canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
 
       if (rightAlignYAxis) {
-        g.select(".nv-y.nv-axis")
+        canvas.g.select(".nv-y.nv-axis")
           .attr("transform", "translate(" + availableWidth + ",0)");
       }
 

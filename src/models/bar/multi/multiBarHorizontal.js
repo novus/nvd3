@@ -27,7 +27,7 @@ nv.models.multiBarHorizontal = function() {
     , yDomain
     , xRange
     , yRange
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     ;
 
   //============================================================
@@ -38,12 +38,13 @@ nv.models.multiBarHorizontal = function() {
   //------------------------------------------------------------
 
   var x0, y0 //used to store previous scales
-      ;
+    , renderWatch = nv.utils.renderWatch(dispatch, transitionDuration)
+    ;
 
   //============================================================
 
-
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
@@ -292,6 +293,8 @@ nv.models.multiBarHorizontal = function() {
 
     });
 
+
+    renderWatch.renderEnd('multibar horizontal chart immediate');
     return chart;
   }
 

@@ -21,7 +21,7 @@ nv.models.pieChart = function() {
       }
     , state = {}
     , defaultState = null
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     ;
 
   //============================================================
@@ -41,10 +41,13 @@ nv.models.pieChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch);
+
   //============================================================
 
 
   function chart(selection) {
+    renderWatch.reset();
     selection.each(function(data) {
       var that = this;
 
@@ -121,6 +124,7 @@ nv.models.pieChart = function() {
 
     });
 
+    renderWatch.renderEnd('pieChart immediate');
     return chart;
   }
 

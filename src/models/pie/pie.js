@@ -41,7 +41,6 @@ nv.models.pie = function() {
       var radius = Math.min(canvas.available.width, canvas.available.height) / 2,
           arcRadius = radius-(radius / 5);
 
-      debugger
       canvas.wrapChart(data, ['nv-pie-labels']);
       canvas.g.select('.nv-pie').attr('transform', 'translate(' + canvas.available.width / 2 + ',' + canvas.available.height / 2 + ')');
       canvas.g.select('.nv-pieLabels').attr('transform', 'translate(' + canvas.available.width / 2 + ',' + canvas.available.height / 2 + ')');

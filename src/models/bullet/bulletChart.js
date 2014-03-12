@@ -141,8 +141,6 @@ nv.models.bulletChart = function() {
 
       d3.transition(bulletWrap).call(bullet);
 
-
-
       // Compute the tick format.
       var format = tickFormat || x1.tickFormat( availableWidth / 100 );
 
@@ -307,9 +305,6 @@ nv.models.bulletChart = function() {
     noData = _;
     return chart;
   };
-
-  //============================================================
-
 
   return chart;
 };
