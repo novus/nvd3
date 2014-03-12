@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<body class='with-3d-shadow with-transitions'>
+  <h3>MultiBarHorizontal & MultiBarHorizontalChart</h3>
+  <div class='chart half' id="test1">
+      Simple multiBarHorizontal
+    <svg></svg>
+  </div>
+  <div class='chart half' id="test2">
+      Simple multiBarHorizontalChart
+    <svg></svg>
+  </div>
+  <div class='chart half' id="test3">
+      Simple multiBarHorizontal Zero Data
+      <svg></svg>
+  </div>
+  <div class='chart half' id="test4">
+      Simple multiBarHorizontalChart Zero Data
+      <svg></svg>
+  </div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/canvas.js"></script>
+<script src="../src/models/bar/multi/multiBarHorizontal.js"></script>
+<script src="../src/models/bar/multi/multiBarHorizontalChart.js"></script>
+<script>
+
+
+var long_short_data = [
+    {
+        key: 'Series1',
+        color: '#d62728',
+        values: [
+            {
+                "label" : "Group A" ,
+                "value" : -1.8746444827653
+            } ,
+            {
+                "label" : "Group B" ,
+                "value" : -8.0961543492239
+            } ,
+            {
+                "label" : "Group C" ,
+                "value" : -0.57072943117674
+            } ,
+            {
+                "label" : "Group D" ,
+                "value" : -2.4174010336624
+            } ,
+            {
+                "label" : "Group E" ,
+                "value" : -0.72009071426284
+            } ,
+            {
+                "label" : "Group F" ,
+                "value" : -0.77154485523777
+            } ,
+            {
+                "label" : "Group G" ,
+                "value" : -0.90152097798131
+            } ,
+            {
+                "label" : "Group H" ,
+                "value" : -0.91445417330854
+            } ,
+            {
+                "label" : "Group I" ,
+                "value" : -0.055746319141851
+            }
+        ]
+    },
+    {
+        key: 'Series2',
+        color: '#1f77b4',
+        values: [
+            {
+                "label" : "Group A" ,
+                "value" : 25.307646510375
+            } ,
+            {
+                "label" : "Group B" ,
+                "value" : 16.756779544553
+            } ,
+            {
+                "label" : "Group C" ,
+                "value" : 18.451534877007
+            } ,
+            {
+                "label" : "Group D" ,
+                "value" : 8.6142352811805
+            } ,
+            {
+                "label" : "Group E" ,
+                "value" : 7.8082472075876
+            } ,
+            {
+                "label" : "Group F" ,
+                "value" : 5.259101026956
+            } ,
+            {
+                "label" : "Group G" ,
+                "value" : 0.30947953487127
+            } ,
+            {
+                "label" : "Group H" ,
+                "value" : 0
+            } ,
+            {
+                "label" : "Group I" ,
+                "value" : 0
+            }
+        ]
+    },
+    {
+        key: 'Series3',
+        color: '#2ca02c',
+        values: [
+            {
+                "label" : "Group A" ,
+                "value" : -25.307646510375
+            } ,
+            {
+                "label" : "Group B" ,
+                "value" : 16.756779544553
+            } ,
+            {
+                "label" : "Group C" ,
+                "value" : -18.451534877007
+            } ,
+            {
+                "label" : "Group D" ,
+                "value" : 8.6142352811805
+            } ,
+            {
+                "label" : "Group E" ,
+                "value" : -7.8082472075876
+            } ,
+            {
+                "label" : "Group F" ,
+                "value" : 5.259101026956
+            } ,
+            {
+                "label" : "Group G" ,
+                "value" : -0.30947953487127
+            } ,
+            {
+                "label" : "Group H" ,
+                "value" : 0
+            } ,
+            {
+                "label" : "Group I" ,
+                "value" : 0
+            }
+        ]
+    }
+],
+    zero_data = [];
+
+var chart;
+function multiBarHorizontal(containerId, data) {
+    chart = nv.models.multiBarHorizontal()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .margin({top: 30, right: 20, bottom: 50, left: 175})
+            .barColor(d3.scale.category20().range())
+            .stacked(true);
+    d3.select('#'+containerId+' svg')
+            .datum(data)
+            .call(chart);
+    nv.utils.windowResize(chart.update);
+    return chart;
+}
+function multiBarHorizontalChart(containerId, data) {
+    chart = nv.models.multiBarHorizontalChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .margin({top: 30, right: 20, bottom: 50, left: 175})
+            .showValues(true)
+            .tooltips(false)
+            .barColor(d3.scale.category20().range())
+            .transitionDuration(250)
+            .stacked(true)
+            .showControls(false);
+    chart.yAxis.tickFormat(d3.format(',.2f'));
+    d3.select('#'+containerId+' svg')
+            .datum(data)
+            .call(chart);
+    nv.utils.windowResize(chart.update);
+    return chart;
+}
+
+multiBarHorizontal( 'test1', long_short_data, {} );
+multiBarHorizontalChart( 'test2', long_short_data, {} );
+
+multiBarHorizontal( 'test3', zero_data, {} );
+multiBarHorizontalChart( 'test4', zero_data, {} );
+
+</script>
