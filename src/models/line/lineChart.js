@@ -35,7 +35,7 @@ nv.models.lineChart = function() {
     , y
     , state = {}
     , defaultState = null
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , transitionDuration = 250
     ;
 
