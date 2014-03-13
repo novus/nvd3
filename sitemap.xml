@@ -2,11 +2,11 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://novus.github.io/nvd3/blog/2014/03/state-of-nvd3/</loc>
-        <lastmod>2014-03-12T18:13:30-04:00</lastmod>
+        <lastmod>2014-03-13T11:50:48-04:00</lastmod>
     </url>
     <url>
         <loc>http://novus.github.io/nvd3/blog/archives/</loc>
-        <lastmod>2014-03-12T18:13:30-04:00</lastmod>
+        <lastmod>2014-03-13T11:50:48-04:00</lastmod>
     </url>
     <url>
         <loc>http://novus.github.io/nvd3/examples/bullet.html</loc>
@@ -26,7 +26,7 @@
     </url>
     <url>
         <loc>http://novus.github.io/nvd3/examples/</loc>
-        <lastmod>2014-03-12T18:13:30-04:00</lastmod>
+        <lastmod>2014-03-13T11:50:48-04:00</lastmod>
     </url>
     <url>
         <loc>http://novus.github.io/nvd3/examples/line.html</loc>
@@ -62,11 +62,11 @@
     </url>
     <url>
         <loc>http://novus.github.io/nvd3/</loc>
-        <lastmod>2014-03-12T18:13:30-04:00</lastmod>
+        <lastmod>2014-03-13T11:50:48-04:00</lastmod>
     </url>
     <url>
         <loc>http://novus.github.io/nvd3/livecode/</loc>
-        <lastmod>2014-03-12T18:13:30-04:00</lastmod>
+        <lastmod>2014-03-13T11:50:48-04:00</lastmod>
     </url>
     <url>
         <loc>http://novus.github.io/nvd3/robots.txt</loc>
