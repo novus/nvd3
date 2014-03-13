@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://novus.github.io/nvd3/sitemap.xml 
+Sitemap: http://nvd3.org//sitemap.xml 
