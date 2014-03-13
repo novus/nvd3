@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+
+    body {
+        overflow-y:scroll;
+        font-family: Arial;
+    }
+
+    text {
+        font: 12px sans-serif;
+    }
+
+</style>
+<body class='with-transitions'>
+
+<div class='chart half' id="test1">
+    <h2>simple bullet</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test2">
+    <h2>simple bulletChart</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test3">
+    <h2>simple bullet renders no data</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test4">
+    <h2>simple bulletChart renders no data</h2>
+    <svg></svg>
+</div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/canvas.js"></script>
+<script src="../src/models/bullet/bullet.js"></script>
+<script src="../src/utils.js"></script>
+<script>
+
+    var testdata = [
+                {"title":"Revenue","subtitle":"US$, in thousands","ranges":[-150,-225,-300],"measures":[-220],"markers":[-250]},
+                {"title":"Profit","subtitle":"%","ranges":[20,25,30],"measures":[21],"markers":[26]},
+                {"title":"Order Size","subtitle":"US$, average","ranges":[350,500,600],"measures":[100],"markers":[550]},
+                {"title":"New Customers","subtitle":"count","ranges":[1400,2000,2500],"measures":[1000],"markers":[1000]},
+                {"title":"Satisfaction","subtitle":"out of 5","ranges":[3.5,4.25,5],"measures":[3.2,4.7],"markers":[4.4]}
+            ],
+            testdataWithLabels = [
+                {
+                    "title"         : "Revenue",
+                    "subtitle"      : "US$, in thousands",
+                    "ranges"        : [150,225,300],
+                    "measures"      : [220],
+                    "markers"       : [250],
+                    "rangeLabels"   : ['Maximum Inventory','Average Inventory','Minimum Inventory'],
+                    "measureLabels" : ['Current Inventory'],
+                    "markerLabels"  : ['Target Inventory']
+                }
+            ];
+
+    var chart,
+        height = 50,
+        margin = {top: 0, right: 50, bottom: 0, left: 150};
+
+    function renderBullet(containerId, data) {
+        nv.addGraph(function() {
+            chart = nv.models.bullet()
+                    .height(height)
+                    .margin(margin);
+            d3.select("#"+containerId+" svg")
+                    .datum(data)
+                    .call(chart);
+            return chart;
+        });
+    }
+
+    function renderBulletChart(containerId, data) {
+        nv.addGraph(function(){
+            chart = nv.models.bulletChart()
+                    .height(height)
+                    .margin(margin);
+            d3.select("#"+containerId+" svg")
+                    .datum(data)
+                    .call(chart);
+            return chart
+        });
+    }
+
+    renderBullet("test1", testdata[0]);
+    renderBulletChart("test2", testdataWithLabels[0]);
+    renderBullet("test3", undefined);
+    renderBulletChart("test4", undefined);
+
+
+</script>

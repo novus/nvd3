@@ -8,24 +8,23 @@ nv.models.bulletChart = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var bullet = nv.models.bullet()
-    ;
+  var bullet = nv.models.bullet();
 
-  var orient = 'left' // TODO top & bottom
+  var canvas = new Canvas({
+          margin: {top: 5, right: 40, bottom: 20, left: 120},
+          chartClass: 'bulletChart'
+      })
+    , orient = 'left' // TODO top & bottom
     , reverse = false
-    , margin = {top: 5, right: 40, bottom: 20, left: 120}
     , ranges = function(d) { return d.ranges }
     , markers = function(d) { return d.markers }
     , measures = function(d) { return d.measures }
-    , width = null
-    , height = 55
     , tickFormat = null
     , tooltips = true
-    , tooltip = function(key, x, y, e, graph) {
+    , tooltip = function(key, x, y) {
         return '<h3>' + x + '</h3>' +
                '<p>' + y + '</p>'
       }
-    , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
     ;
 
@@ -39,7 +38,7 @@ nv.models.bulletChart = function() {
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
         top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
-        content = tooltip(e.key, e.label, e.value, e, chart);
+        content = tooltip(e.key, e.label, e.value);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
   };
@@ -48,60 +47,45 @@ nv.models.bulletChart = function() {
 
 
   function chart(selection) {
-    selection.each(function(d, i) {
-      var container = d3.select(this);
+    selection.each(function(data, i) {
+        
+      canvas.setRoot(this);
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                             - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height,
           that = this;
-
-
-      chart.update = function() { chart(selection) };
-      chart.container = this;
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
-
-      if (!d || !ranges.call(this, d, i)) {
-        var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-        noDataText.enter().append('text')
-          .attr('class', 'nvd3 nv-noData')
-          .attr('dy', '-.7em')
-          .style('text-anchor', 'middle');
-
-        noDataText
-          .attr('x', margin.left + availableWidth / 2)
-          .attr('y', 18 + margin.top + availableHeight / 2)
-          .text(function(d) { return d });
-
-        return chart;
-      } else {
-        container.selectAll('.nv-noData').remove();
-      }
+      // TODO: To use common noData() function from canvas
+      if (!data || !ranges.call(this, data, i)) {
+          var noDataText = canvas.svg.selectAll('.nv-noData').data([canvas.options.noData]);
+          noDataText.enter().append('text')
+              .attr('class', 'nvd3 nv-noData')
+              .attr('dy', '-.7em')
+              .style('text-anchor', 'middle');
+          noDataText
+              .attr('x', canvas.margin.left + availableWidth / 2)
+              .attr('y', 18 + canvas.margin.top + availableHeight / 2)
+              .text(function(d) { return d });
+          return chart;
+      } else
+          canvas.svg.selectAll('.nv-noData').remove();
 
       //------------------------------------------------------------
 
+      chart.update = function() { chart(selection) };
 
-
-      var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
-          markerz = markers.call(this, d, i).slice().sort(d3.descending),
-          measurez = measures.call(this, d, i).slice().sort(d3.descending);
-
+      var rangez = ranges.call(this, data, i).slice().sort(d3.descending),
+          markerz = markers.call(this, data, i).slice().sort(d3.descending),
+          measurez = measures.call(this, data, i).slice().sort(d3.descending);
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-bulletChart').data([d]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bulletChart');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g');
-
-      gEnter.append('g').attr('class', 'nv-bulletWrap');
-      gEnter.append('g').attr('class', 'nv-titles');
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      canvas.wrapChart(data);
+      canvas.gEnter.append('g').attr('class', 'nv-bulletWrap');
+      canvas.gEnter.append('g').attr('class', 'nv-titles');
 
       //------------------------------------------------------------
 
@@ -121,7 +105,7 @@ nv.models.bulletChart = function() {
       var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
-      var title = gEnter.select('.nv-titles').append('g')
+      var title = canvas.gEnter.select('.nv-titles').append('g')
           .attr('text-anchor', 'end')
           .attr('transform', 'translate(-6,' + (height - margin.top - margin.bottom) / 2 + ')');
       title.append('text')
@@ -133,11 +117,10 @@ nv.models.bulletChart = function() {
           .attr('dy', '1em')
           .text(function(d) { return d.subtitle; });
 
-      bullet
-        .width(availableWidth)
-        .height(availableHeight)
+      bullet.width(availableWidth)
+        .height(availableHeight);
 
-      var bulletWrap = g.select('.nv-bulletWrap');
+      var bulletWrap = canvas.g.select('.nv-bulletWrap');
 
       d3.transition(bulletWrap).call(bullet);
 
@@ -145,7 +128,7 @@ nv.models.bulletChart = function() {
       var format = tickFormat || x1.tickFormat( availableWidth / 100 );
 
       // Update the tick groups.
-      var tick = g.selectAll('g.nv-tick')
+      var tick = canvas.g.selectAll('g.nv-tick')
           .data(x1.ticks( availableWidth / 50 ), function(d) {
             return this.textContent || format(d);
           });
@@ -189,7 +172,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
-        e.key = d.title;
+        e.key = data.title;
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
@@ -233,58 +216,58 @@ nv.models.bulletChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   // left, right, top, bottom
-  chart.orient = function(x) {
+  chart.orient = function(_) {
     if (!arguments.length) return orient;
-    orient = x;
+    orient = _;
     reverse = orient == 'right' || orient == 'bottom';
     return chart;
   };
 
   // ranges (bad, satisfactory, good)
-  chart.ranges = function(x) {
+  chart.ranges = function(_) {
     if (!arguments.length) return ranges;
-    ranges = x;
+    ranges = _;
     return chart;
   };
 
   // markers (previous, goal)
-  chart.markers = function(x) {
+  chart.markers = function(_) {
     if (!arguments.length) return markers;
-    markers = x;
+    markers = _;
     return chart;
   };
 
   // measures (actual, forecast)
-  chart.measures = function(x) {
+  chart.measures = function(_) {
     if (!arguments.length) return measures;
-    measures = x;
+    measures = _;
     return chart;
   };
 
-  chart.width = function(x) {
-    if (!arguments.length) return width;
-    width = x;
+  chart.width = function(_) {
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
-  chart.height = function(x) {
-    if (!arguments.length) return height;
-    height = x;
+  chart.height = function(_) {
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
-  chart.tickFormat = function(x) {
+  chart.tickFormat = function(_) {
     if (!arguments.length) return tickFormat;
-    tickFormat = x;
+    tickFormat = _;
     return chart;
   };
 
@@ -301,8 +284,8 @@ nv.models.bulletChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
+    if (!arguments.length) return canvas.noData;
+    canvas.noData = _;
     return chart;
   };
 
