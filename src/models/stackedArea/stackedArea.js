@@ -5,9 +5,11 @@ nv.models.stackedArea = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 0, right: 0, bottom: 0, left: 0}
-    , width = 960
-    , height = 500
+  var canvas = new Canvas({
+          margin: {top: 0, right: 0, bottom: 0, left: 0}
+          , chartClass: 'stackedarea'
+          , wrapClass: 'areaWrap'
+      })
     , color = nv.utils.defaultColor() // a function that computes the color
     , id = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
     , getX = function(d) { return d.x } // accessor to get the x value from a data point
@@ -46,13 +48,16 @@ nv.models.stackedArea = function() {
   //============================================================
 
   function chart(selection) {
+
     renderWatch.reset();
     renderWatch.models(scatter);
 
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
-          container = d3.select(this);
+
+      canvas.setRoot(this);
+
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
       //------------------------------------------------------------
       // Setup Scales
@@ -96,19 +101,10 @@ nv.models.stackedArea = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-stackedarea').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
-      var defsEnter = wrapEnter.append('defs');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g');
-
-      gEnter.append('g').attr('class', 'nv-areaWrap');
-      gEnter.append('g').attr('class', 'nv-scatterWrap');
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      canvas.wrapChart(data);
+      canvas.gEnter.append('g').attr('class', 'nv-scatterWrap');
 
       //------------------------------------------------------------
-
 
       scatter
         .width(availableWidth)
@@ -116,99 +112,86 @@ nv.models.stackedArea = function() {
         .x(getX)
         .y(function(d) { return d.display.y + d.display.y0 })
         .forceY([0])
-        .color(data.map(function(d,i) {
+        .color(data.map(function(d) {
           return d.color || color(d, d.seriesIndex);
         }));
 
-
-      var scatterWrap = g.select('.nv-scatterWrap')
-          .datum(data);
+      var scatterWrap = canvas.g.select('.nv-scatterWrap')
+        .datum(data);
 
       scatterWrap.call(scatter);
 
-      defsEnter.append('clipPath')
-          .attr('id', 'nv-edge-clip-' + id)
+      canvas.defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
-      wrap.select('#nv-edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
+      canvas.wrap.select('#nv-edge-clip-' + id + ' rect')
+        .attr('width', availableWidth)
+        .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+      canvas.g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
       var area = d3.svg.area()
-          .x(function(d,i)  { return x(getX(d,i)) })
-          .y0(function(d) {
-              return y(d.display.y0)
-          })
-          .y1(function(d) {
-              return y(d.display.y + d.display.y0)
-          })
-          .interpolate(interpolate);
+        .x(function(d)  { return x(getX(d)) })
+        .y0(function(d) { return y(d.display.y0) })
+        .y1(function(d) { return y(d.display.y + d.display.y0) })
+        .interpolate(interpolate);
 
       var zeroArea = d3.svg.area()
-          .x(function(d,i)  { return x(getX(d,i)) })
+          .x(function(d)  { return x(getX(d)) })
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y0) });
 
-
-      var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
+      var path = canvas.g.select('.nv-areaWrap').selectAll('path.nv-area')
           .data(function(d) { return d });
 
-      path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
-          .attr('d', function(d,i){
-            return zeroArea(d.values, d.seriesIndex);
-          })
-          .on('mouseover', function(d,i) {
+      var _mouseEventObject = function(d){
+        return {
+          point : d,
+          series: d.key,
+          pos   : [d3.event.pageX, d3.event.pageY],
+          seriesIndex: d.seriesIndex
+        }
+      };
+      path.enter().append('path')
+          .attr('class', function(d,i) { return 'nv-area nv-area-' + i })
+          .attr('d', function(d){ return zeroArea(d.values, d.seriesIndex) })
+          .on('mouseover', function(d) {
             d3.select(this).classed('hover', true);
-            dispatch.areaMouseover({
-              point: d,
-              series: d.key,
-              pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: d.seriesIndex
-            });
+            dispatch.areaMouseover( _mouseEventObject(d) );
           })
-          .on('mouseout', function(d,i) {
+          .on('mouseout', function(d) {
             d3.select(this).classed('hover', false);
-            dispatch.areaMouseout({
-              point: d,
-              series: d.key,
-              pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: d.seriesIndex
-            });
+            dispatch.areaMouseout( _mouseEventObject(d) );
           })
-          .on('click', function(d,i) {
+          .on('click', function(d) {
             d3.select(this).classed('hover', false);
-            dispatch.areaClick({
-              point: d,
-              series: d.key,
-              pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: d.seriesIndex
-            });
-          })
+            dispatch.areaClick( _mouseEventObject(d) );
+          });
 
       path.exit().remove();
 
-      path
-          .style('fill', function(d,i){
-            return d.color || color(d, d.seriesIndex)
-          })
-          .style('stroke', function(d,i){ return d.color || color(d, d.seriesIndex) });
+      path.style('fill', function(d){ return d.color || color(d, d.seriesIndex) })
+          .style('stroke', function(d){ return d.color || color(d, d.seriesIndex) });
       path.watchTransition(renderWatch,'stackedArea path')
-          .attr('d', function(d,i) {
-            return area(d.values,i)
-          });
+          .attr('d', function(d,i) { return area(d.values,i) });
 
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      scatter.dispatch.on('elementMouseover.area', function(e) {
-        g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', true);
-      });
-      scatter.dispatch.on('elementMouseout.area', function(e) {
-        g.select('.nv-chart-' + id + ' .nv-area-' + e.seriesIndex).classed('hover', false);
-      });
+      var _mouseEventSelector = function(e){
+          return '.nv-chart-' + id + ' .nv-area-' + e.seriesIndex
+      };
+      scatter.dispatch
+        .on('elementMouseover.area', function(e) {
+          canvas.g.select( _mouseEventSelector(e) )
+            .classed('hover', true);
+        })
+        .on('elementMouseout.area', function(e) {
+          canvas.g.select( _mouseEventSelector(e) )
+            .classed('hover', false);
+        });
 
       //============================================================
       //Special offset functions
@@ -216,10 +199,8 @@ nv.models.stackedArea = function() {
           var n = stackData.length,    //How many series
           m = stackData[0].length,     //how many points per series
           k = 1 / n,
-           i,
-           j,
-           o,
-           y0 = [];
+          y0 = [],
+          i, j, o;
 
           for (j = 0; j < m; ++j) { //Looping through all points
             for (i = 0, o = 0; i < dataRaw.length; i++)  //looping through series'
@@ -241,21 +222,21 @@ nv.models.stackedArea = function() {
     return chart;
   }
 
-
   //============================================================
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
 
-  scatter.dispatch.on('elementClick.area', function(e) {
-    dispatch.areaClick(e);
-  })
-  scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-        dispatch.tooltipShow(e);
-  });
-  scatter.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-  });
+  scatter.dispatch
+    .on('elementClick.area', function(e) {
+        dispatch.areaClick(e);
+    })
+    .on('elementMouseover.tooltip', function(e) {
+      e.pos = [e.pos[0] + canvas.margin.left, e.pos[1] + canvas.margin.top];
+      dispatch.tooltipShow(e);
+    })
+    .on('elementMouseout.tooltip', function(e) {
+      dispatch.tooltipHide(e);
+    });
 
   //============================================================
 
@@ -281,26 +262,26 @@ nv.models.stackedArea = function() {
     if (!arguments.length) return getY;
     getY = d3.functor(_);
     return chart;
-  }
+  };
 
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
@@ -372,5 +353,6 @@ nv.models.stackedArea = function() {
     scatter.duration(duration);
     return chart;
   };
+
   return chart;
-}
+};

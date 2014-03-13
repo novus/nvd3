@@ -11,27 +11,55 @@
       <a href="stackedAreaChartTest.html">Stacked Area</a>
       <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
   </div>
-  <div class='chart full' id='chart1'>Full chart example with new tooltip and guideline<button>Select chart</button><svg></svg></div>
-  <div class='chart half with-transitions' id='chart2'>Chart with old tooltips (with-transitions)<button>Select chart</button><svg></svg></div>
-  <div class='chart half' id='chart3'>Chart with single point<button>Select chart</button><svg></svg></div>
-  <div class='chart half' id='chart4'>Chart with two points<button>Select chart</button><svg></svg></div>
-  <div class='chart half' id='chart5'>Chart with 'holes'<button>Select chart</button><svg></svg></div>
-  <div class='chart half' id='chart6'>Total random points<button>Select chart</button><svg></svg></div>
-  <div class='chart half' id='chart7'>Less than four points, old tooltips<button>Select chart</button><svg></svg></div>
-  <div class='chart half' id='chart8'>No data<svg></svg></div>
-  <div class='chart half' id='chart9'>Data is all negative<svg></svg></div>
+  <div class='chart full' id='chart1'>
+      Full chart example with new tooltip and guideline<button>Select chart</button>
+      <svg></svg>
+  </div>
+  <div class='chart half with-transitions' id='chart2'>
+      Chart with old tooltips (with-transitions)<button>Select chart</button>
+      <svg></svg>
+  </div>
+  <div class='chart half' id='chart3'>
+      Chart with single point<button>Select chart</button>
+      <svg></svg>
+  </div>
+  <div class='chart half' id='chart4'>
+      Chart with two points
+      <button>Select chart</button>
+      <svg></svg>
+  </div>
+  <div class='chart half' id='chart5'>
+      Chart with 'holes'<button>Select chart</button>
+      <svg></svg>
+  </div>
+  <div class='chart half' id='chart6'>
+      Total random points<button>Select chart</button>
+      <svg></svg>
+  </div>
+  <div class='chart half' id='chart7'>
+      Less than four points, old tooltips<button>Select chart</button>
+      <svg></svg>
+  </div>
+  <div class='chart half' id='chart8'>
+      No data
+      <svg></svg>
+  </div>
+  <div class='chart half' id='chart9'>
+      Data is all negative
+      <svg></svg>
+  </div>
 
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
+<script src="../src/canvas.js"></script>
 <script src="../src/utils.js"></script>
-<script src="../src/models/axis.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/interactiveLayer.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/stackedArea.js"></script>
-<script src="../src/models/stackedAreaChart.js"></script>
+<script src="../src/models/scatter/scatter.js"></script>
+<script src="../src/models/stackedArea/stackedArea.js"></script>
+<script src="../src/models/stackedArea/stackedAreaChart.js"></script>
 <script src="testScript.js"></script>
 <script>
 
@@ -254,7 +282,7 @@ function nPoints() {
 //observe that Consumer Discretionary and Consumer Staples have
 //been flipped in the second chart
 var colors = d3.scale.category20();
-var keyColor = function(d, i) {return colors(d.key)};
+var keyColor = function(d) {return colors(d.key)};
 
 function defaultChartConfig(container, data, useGuideline) {
   if (useGuideline === undefined) useGuideline = true;
