@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+
+    body {
+        overflow-y:scroll;
+        font-family: Arial;
+    }
+
+    text {
+        font: 12px sans-serif;
+    }
+
+</style>
+<body class='with-transitions'>
+
+<div class='chart full' id="test1">
+    <h2>simple lineWithFocusChart</h2>
+    <svg></svg>
+</div>
+<div class='chart full' id="test2">
+    <br/>
+    <h2>simple lineWithFocusChart, no data</h2>
+    <svg></svg>
+</div>
+
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/canvas.js"></script>
+<script src="../src/models/line/lineWithFisheye.js"></script>
+<script src="../src/models/line/lineWithFisheyeChart.js"></script>
+<script>
+
+    /* Inspired by Lee Byron's test data generator. */
+    function stream_layers(n, m, o) {
+        if (arguments.length < 3) o = 0;
+        function bump(a) {
+            var x = 1 / (.1 + Math.random()),
+                    y = 2 * Math.random() - .5,
+                    z = 10 / (.1 + Math.random());
+            for (var i = 0; i < m; i++) {
+                var w = (i / m - y) * z;
+                a[i] += x * Math.exp(-w * w);
+            }
+        }
+        return d3.range(n).map(function() {
+            var a = [], i;
+            for (i = 0; i < m; i++) a[i] = o + o * Math.random();
+            for (i = 0; i < 5; i++) bump(a);
+            return a.map(stream_index);
+        });
+    }
+
+    /* Another layer generator using gamma distributions. */
+    function stream_waves(n, m) {
+        return d3.range(n).map(function(i) {
+            return d3.range(m).map(function(j) {
+                var x = 20 * j / m - i / 3;
+                return 2 * x * Math.exp(-.5 * x);
+            }).map(stream_index);
+        });
+    }
+
+    function stream_index(d, i) {
+        return {x: i, y: Math.max(0, d)};
+    }
+
+    var chart,
+        testdata = function sinAndCos() {
+            return stream_layers(3,128,.1).map(function(data, i) {
+                return { key: 'Stream' + i, values: data };
+            });
+        }();
+
+    function lineWithFocusChart(containerId, data) {
+        nv.addGraph(function() {
+            chart = nv.models.lineWithFocusChart();
+            d3.select('#'+containerId+' svg')
+              .datum(data)
+              .call(chart);
+            nv.utils.windowResize(chart.update);
+            return chart;
+        });
+    }
+
+    lineWithFocusChart("test1", testdata);
+    lineWithFocusChart("test2", []);
+
+</script>
