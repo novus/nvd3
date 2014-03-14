@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+
+    body {
+        overflow-y:scroll;
+        font-family: Arial;
+    }
+
+    text {
+        font: 12px sans-serif;
+    }
+
+</style>
+<body class='with-transitions'>
+
+<div class='chart half' id="test1">
+    <h2>simple lineWithFisheye</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test2">
+    <h2>simple lineWithFisheyeChart</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test3">
+    <h2>simple lineWithFisheye, no data</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test4">
+    <h2>simple lineWithFisheyeChart, no data</h2>
+    <svg></svg>
+</div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/canvas.js"></script>
+<script src="../src/models/line/lineWithFisheye.js"></script>
+<script src="../src/models/line/lineWithFisheyeChart.js"></script>
+<script>
+
+    var chart,
+        testdata = function sinAndCos() {
+            var sin = [], cos = [];
+            for (var i = 0; i < 200; i++) {
+                sin.push({x: i, y: Math.sin(i/2)});
+                cos.push({x: i, y: .5 * Math.cos(i)});
+            }
+            return [
+                { values: sin, key: "Sine Wave", color: "#ff7f0e" },
+                { values: cos, key: "Cosine Wave", color: "#2ca02c" }
+            ];
+        }();
+
+    function lineWithFisheye(containerId, data) {
+        nv.addGraph(function() {
+            chart = nv.models.lineFisheye();
+            d3.select('#'+containerId+' svg')
+              .datum(data)
+              .call(chart);
+            nv.utils.windowResize(chart.update);
+            return chart;
+
+        });
+    }
+
+    function lineWithFisheyeChart(containerId, data) {
+        nv.addGraph(function(){
+            chart = nv.models.lineChart();
+            chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+                    .tickFormat(d3.format(',r'));
+            chart.yAxis
+                    .axisLabel('Voltage (v)')
+                    .tickFormat(d3.format(',.2f'));
+            d3.select('#'+containerId+' svg')
+                    .datum(data)
+                    .transition().duration(500)
+                    .call(chart);
+            nv.utils.windowResize(chart.update);
+            return chart;
+        });
+    }
+
+    lineWithFisheye("test1", testdata);
+    lineWithFisheyeChart("test2", testdata);
+    lineWithFisheye("test3", []);
+    lineWithFisheyeChart("test4", []);
+
+</script>
