@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+
+    body {
+        overflow-y:scroll;
+        font-family: Arial;
+    }
+
+    text {
+        font: 12px sans-serif;
+    }
+
+</style>
+<body class='with-transitions'>
+
+<div class='chart half' id="test1">
+    <h2>simple sparkline</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test2">
+    <h2>simple sparklinePlus</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test3">
+    <h2>sparkline, no data</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test4">
+    <h2>sparklinePlus, no data</h2>
+    <svg></svg>
+</div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/canvas.js"></script>
+<script src="../src/models/sparkline/sparkline.js"></script>
+<script src="../src/models/sparkline/sparklinePlus.js"></script>
+<script>
+
+    var chart,
+            margin = { top: 50, right: 50, bottom: 50, left: 50 };
+    var testdataSin = function sine() {
+                var sin = [];
+                for (var i = 0; i < 100; i++) {
+                    sin.push({x: i, y: Math.sin(i/10)});
+                }
+                return sin;
+            }();
+
+    function renderSparkline(containerId, data) {
+        nv.addGraph({
+            generate: function() {
+                chart = nv.models.sparkline()
+                        .margin(margin);
+                d3.select("#"+containerId+" svg")
+                        .datum(data)
+                        .call(chart);
+                return chart;
+            }
+        });
+    }
+
+    function renderSparklinePlus(containerId, data) {
+        nv.addGraph(function(){
+            chart = nv.models.sparklinePlus()
+                    .margin(margin)
+                    .x(function(d,i) { return i })
+                    .xTickFormat(function(d) { return d3.time.format('%x')(new Date(data[d].x)) });
+            d3.select("#"+containerId+" svg")
+                    .datum(data)
+                    .transition().duration(250)
+                    .call(chart);
+            return chart
+        });
+    }
+
+    renderSparkline("test1", testdataSin);
+    renderSparklinePlus("test2", testdataSin);
+    renderSparkline("test3", []);
+    renderSparklinePlus("test4", []);
+
+</script>
