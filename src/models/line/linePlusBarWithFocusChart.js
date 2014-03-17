@@ -24,7 +24,7 @@ nv.models.linePlusBarWithFocusChart = function() {
           , wrapClass: ''
       })
     , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
-    , height2 = 100
+    , finderHeight = 100
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
     , color = nv.utils.defaultColor()
@@ -104,8 +104,8 @@ nv.models.linePlusBarWithFocusChart = function() {
 
       var that = this
         , availableWidth = canvas.available.width
-        , availableHeight1 = canvas.available.height - height2
-        , availableHeight2 = height2 - margin2.top - margin2.bottom;
+        , availableHeight1 = canvas.available.height - finderHeight
+        , availableHeight2 = finderHeight - margin2.top - margin2.bottom;
 
       chart.update = function() { canvas.svg.transition().duration(transitionDuration).call(chart); };
 
@@ -186,7 +186,7 @@ nv.models.linePlusBarWithFocusChart = function() {
         if ( canvas.margin.top != legend.height()) {
           canvas.margin.top = legend.height();
           availableHeight1 = (canvas.options.height || parseInt(canvas.svg.style('height')) || 400)
-                             - canvas.margin.top - canvas.margin.bottom - height2;
+                             - canvas.margin.top - canvas.margin.bottom - finderHeight;
         }
 
         canvas.g.select('.nv-legendWrap')
@@ -598,6 +598,12 @@ nv.models.linePlusBarWithFocusChart = function() {
   chart.brushExtent = function(_) {
     if (!arguments.length) return brushExtent;
     brushExtent = _;
+    return chart;
+  };
+
+  chart.finderHeight = function(_){
+    if (!arguments.length) return finderHeight;
+    finderHeight = _;
     return chart;
   };
 
