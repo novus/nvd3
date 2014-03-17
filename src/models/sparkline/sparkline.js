@@ -5,9 +5,12 @@ nv.models.sparkline = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var margin = {top: 2, right: 0, bottom: 2, left: 0}
-    , width = 400
-    , height = 32
+  var canvas = new Canvas({
+        margin: {top: 2, right: 0, bottom: 2, left: 0}
+        , width : 400
+        , height : 32
+        , chartClass: 'sparkline'
+      })
     , animate = true
     , x = d3.scale.linear()
     , y = d3.scale.linear()
@@ -25,73 +28,59 @@ nv.models.sparkline = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
-          container = d3.select(this);
 
+      canvas.setRoot(this);
+      canvas.wrapChart(data);
+
+      var availableWidth = canvas.available.width,
+          availableHeight = canvas.available.height;
 
       //------------------------------------------------------------
       // Setup Scales
 
-      x   .domain(xDomain || d3.extent(data, getX ))
-          .range(xRange || [0, availableWidth]);
+      x.domain(xDomain || d3.extent(data, getX ))
+        .range(xRange || [0, availableWidth]);
 
-      y   .domain(yDomain || d3.extent(data, getY ))
-          .range(yRange || [availableHeight, 0]);
-
-      //------------------------------------------------------------
-
-
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      var wrap = container.selectAll('g.nv-wrap.nv-sparkline').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sparkline');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g');
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+      y.domain(yDomain || d3.extent(data, getY ))
+        .range(yRange || [availableHeight, 0]);
 
       //------------------------------------------------------------
 
-
-      var paths = wrap.selectAll('path')
+      var paths = canvas.wrap.selectAll('path')
           .data(function(d) { return [d] });
       paths.enter().append('path');
       paths.exit().remove();
       paths
-          .style('stroke', function(d,i) { return d.color || color(d, i) })
-          .attr('d', d3.svg.line()
-            .x(function(d,i) { return x(getX(d,i)) })
-            .y(function(d,i) { return y(getY(d,i)) })
-          );
-
+        .style('stroke', function(d,i) { return d.color || color(d, i) })
+        .attr('d', d3.svg.line()
+          .x(function(d,i) { return x(getX(d,i)) })
+          .y(function(d,i) { return y(getY(d,i)) })
+        );
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = wrap.selectAll('circle.nv-point')
-          .data(function(data) {
-              var yValues = data.map(function(d, i) { return getY(d,i); });
-              function pointIndex(index) {
-                  if (index != -1) {
-	              var result = data[index];
-                      result.pointIndex = index;
-                      return result;
-                  } else {
-                      return null;
-                  }
-              }
-              var maxPoint = pointIndex(yValues.lastIndexOf(y.domain()[1])),
-                  minPoint = pointIndex(yValues.indexOf(y.domain()[0])),
-                  currentPoint = pointIndex(yValues.length - 1);
-              return [minPoint, maxPoint, currentPoint].filter(function (d) {return d != null;});
-          });
+      var points = canvas.wrap.selectAll('circle.nv-point')
+        .data(function(data) {
+          var yValues = data.map(function(d, i) { return getY(d,i); });
+          function pointIndex(index) {
+            if (index != -1) {
+	        var result = data[index];
+                result.pointIndex = index;
+                return result;
+            } else
+                return null;
+          }
+          var maxPoint = pointIndex(yValues.lastIndexOf(y.domain()[1])),
+              minPoint = pointIndex(yValues.indexOf(y.domain()[0])),
+              currentPoint = pointIndex(yValues.length - 1);
+          return [minPoint, maxPoint, currentPoint].filter(function (d) {return d != null;});
+        });
       points.enter().append('circle');
       points.exit().remove();
       points
-          .attr('cx', function(d,i) { return x(getX(d,d.pointIndex)) })
-          .attr('cy', function(d,i) { return y(getY(d,d.pointIndex)) })
-          .attr('r', 2)
-          .attr('class', function(d,i) {
+        .attr('cx', function(d) { return x(getX(d,d.pointIndex)) })
+        .attr('cy', function(d) { return y(getY(d,d.pointIndex)) })
+        .attr('r', 2)
+        .attr('class', function(d) {
             return getX(d, d.pointIndex) == x.domain()[1] ? 'nv-point nv-currentValue' :
                    getY(d, d.pointIndex) == y.domain()[0] ? 'nv-point nv-minValue' : 'nv-point nv-maxValue'
           });
@@ -107,23 +96,23 @@ nv.models.sparkline = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
   
   chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    if (!arguments.length) return canvas.margin;
+    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
+    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
+    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
+    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
@@ -189,6 +178,5 @@ nv.models.sparkline = function() {
 
   //============================================================
 
-
   return chart;
-}
+};
