@@ -148,7 +148,7 @@ nv.models.pie = function() {
           if (donutLabelsOutside) { labelsArc = d3.svg.arc().outerRadius(arc.outerRadius()); }
 
           pieLabels.enter().append("g").classed("nv-label",true)
-            .each(function(d,i) {
+            .each(function(d) {
                 var group = d3.select(this);
 
                 group
@@ -221,7 +221,7 @@ nv.models.pie = function() {
                 });
           pieLabels.select(".nv-label text")
                 .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
-                .text(function(d, i) {
+                .text(function(d) {
                   var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
                   var labelTypes = {
                     "key" : getX(d.data),
@@ -273,10 +273,10 @@ nv.models.pie = function() {
 
   chart.margin = function(_) {
     if (!arguments.length) return canvas.margin;
-    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
-    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
-    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
-    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
+      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
+      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
+      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
+      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
     return chart;
   };
 
@@ -292,7 +292,7 @@ nv.models.pie = function() {
     return chart;
   };
 
-  chart.values = function(_) {
+  chart.values = function() {
     nv.log("pie.values() is no longer supported.");
     return chart;
   };
@@ -397,4 +397,4 @@ nv.models.pie = function() {
 
 
   return chart;
-}
+};
