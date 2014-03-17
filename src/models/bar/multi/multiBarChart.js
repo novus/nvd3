@@ -495,8 +495,8 @@ nv.models.multiBarChart = function() {
   };
   
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.noData;
-    canvas.noData = _;
+    if (!arguments.length) return canvas.options.noData;
+    canvas.options.noData = _;
     return chart;
   };
 

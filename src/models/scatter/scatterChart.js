@@ -25,7 +25,6 @@ nv.models.scatterChart = function() {
     , yPadding     = 0
     , showDistX    = false
     , showDistY    = false
-    , showLegend   = true
     , showXAxis    = true
     , showYAxis    = true
     , rightAlignYAxis = false
@@ -420,14 +419,14 @@ nv.models.scatterChart = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
@@ -459,8 +458,8 @@ nv.models.scatterChart = function() {
   };
 
   chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
+    if (!arguments.length) return canvas.options.showLegend;
+    canvas.options.showLegend = _;
     return chart;
   };
 
@@ -539,8 +538,8 @@ nv.models.scatterChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
+    if (!arguments.length) return canvas.options.noData;
+    canvas.options.noData = _;
     return chart;
   };
 
@@ -551,7 +550,6 @@ nv.models.scatterChart = function() {
   };
 
   //============================================================
-
 
   return chart;
 };

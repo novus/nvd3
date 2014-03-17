@@ -169,14 +169,14 @@ nv.models.pieChart = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.width;
-    canvas.width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.height;
-    canvas.height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
@@ -213,15 +213,15 @@ nv.models.pieChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
+    if (!arguments.length) return canvas.options.noData;
+    canvas.options.noData = _;
     return chart;
   };
 
   var _sl = Chart.prototype.showLegend;
   chart.showLegend = function(_){
     return _sl.call(chart, _);
-  }
+  };
 
   return chart;
-}
+};
