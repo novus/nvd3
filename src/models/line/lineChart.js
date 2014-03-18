@@ -309,10 +309,10 @@ nv.models.lineChart = function() {
 
   chart.margin = function(_) {
     if (!arguments.length) return canvas.margin;
-    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
-    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
-    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
-    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
+      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
+      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
+      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
+      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
     return chart;
   };
 
@@ -389,8 +389,8 @@ nv.models.lineChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.noData;
-    canvas.noData = _;
+    if (!arguments.length) return canvas.options.noData;
+    canvas.options.noData = _;
     return chart;
   };
 

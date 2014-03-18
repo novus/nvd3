@@ -15,7 +15,7 @@ nv.models.pieChart = function() {
     })
     , color = nv.utils.defaultColor()
     , tooltips = true
-    , tooltip = function(key, y, e, graph) {
+    , tooltip = function(key, y) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + '</p>'
       }
@@ -36,7 +36,7 @@ nv.models.pieChart = function() {
     var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
         top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
         y = pie.valueFormat()(pie.y()(e.point)),
-        content = tooltip(tooltipLabel, y, e, chart);
+        content = tooltip(tooltipLabel, y);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
@@ -49,7 +49,6 @@ nv.models.pieChart = function() {
   function chart(selection) {
     renderWatch.reset();
     selection.each(function(data) {
-      var that = this;
 
       canvas.setRoot(this);
 
@@ -162,22 +161,22 @@ nv.models.pieChart = function() {
 
   chart.margin = function(_) {
     if (!arguments.length) return canvas.margin;
-    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
-    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
-    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
-    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
+      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
+      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
+      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
+      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.width;
-    canvas.width = _;
+    if (!arguments.length) return canvas.options.size.width;
+    canvas.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.height;
-    canvas.height = _;
+    if (!arguments.length) return canvas.options.size.height;
+    canvas.options.size.height = _;
     return chart;
   };
 
@@ -214,15 +213,15 @@ nv.models.pieChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
+    if (!arguments.length) return canvas.options.noData;
+    canvas.options.noData = _;
     return chart;
   };
 
   var _sl = Chart.prototype.showLegend;
   chart.showLegend = function(_){
     return _sl.call(chart, _);
-  }
+  };
 
   return chart;
-}
+};

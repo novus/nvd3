@@ -37,7 +37,7 @@ nv.utils.windowResize = function(fun){
     if (typeof oldresize == 'function') oldresize(e);
     fun(e);
   }
-}
+};
 
 // Backwards compatible way to implement more d3-like coloring of graphs.
 // If passed an array, wrap it in a function which implements the old default
@@ -50,13 +50,13 @@ nv.utils.getColor = function(color) {
     else
         return color;
         //can't really help it if someone passes rubbish as color
-}
+};
 
 // Default color chooser uses the index of an object as before.
 nv.utils.defaultColor = function() {
     var colors = d3.scale.category20().range();
     return function(d, i) { return d.color || colors[i % colors.length] };
-}
+};
 
 
 // Returns a color function that takes the result of 'getKey' for each series and
@@ -67,7 +67,7 @@ nv.utils.customTheme = function(dictionary, getKey, defaultColors) {
 
   var defIndex = defaultColors.length; //current default color (going in reverse)
 
-  return function(series, index) {
+  return function(series) {
     var key = getKey(series);
 
     if (!defIndex) defIndex = defaultColors.length; //used all the default colors, start over
@@ -77,7 +77,7 @@ nv.utils.customTheme = function(dictionary, getKey, defaultColors) {
     else
       return defaultColors[--defIndex]; // no match in dictionary, use default color
   }
-}
+};
 
 
 
@@ -102,7 +102,7 @@ nv.utils.pjax = function(links, content) {
   d3.select(window).on("popstate", function() {
     if (d3.event.state) load(d3.event.state);
   });
-}
+};
 
 /* For situations where we want to approximate the width in pixels for an SVG:text element.
 Most common instance is when the element is in a display:none; container.
@@ -125,8 +125,8 @@ nv.utils.NaNtoZero = function(n) {
     if (typeof n !== 'number'
         || isNaN(n)
         || n === null
-        || n === Infinity) return 0;
-
+        || n === Infinity)
+        return 0;
     return n;
 };
 
@@ -150,7 +150,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
     models.forEach(function(model){
       model.__rendered = false;
       (function(m){
-        m.dispatch.on('renderEnd', function(arg){
+        m.dispatch.on('renderEnd', function(){
           // nv.log('nv.utils renderEnd', arg);
           m.__rendered = true;
           self.renderEnd('model');
@@ -160,12 +160,12 @@ nv.utils.renderWatch = function(dispatch, duration) {
         renderStack.push(model);
     });
     return this;
-  }
+  };
 
   this.reset = function(duration) {
     if (duration !== undefined) _duration = duration;
     renderStack = [];
-  }
+  };
 
   this.transition = function(selection, args, duration) {
     args = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
@@ -180,12 +180,10 @@ nv.utils.renderWatch = function(dispatch, duration) {
     if (duration === 0)
     {
       selection.__rendered = true;
-      selection.delay = function(){console.warn('`delay` not specified for selection.'); return this;}
-      selection.duration = function(){console.warn('`duration` not specified for selection.'); return this;}
+      selection.delay = function(){console.warn('`delay` not specified for selection.'); return this;};
+      selection.duration = function(){console.warn('`duration` not specified for selection.'); return this;};
       return selection;
-    }
-    else
-    {
+    } else {
       selection.__rendered = selection.length === 0 ? true :
                              selection.every( function(d){ return !d.length; }) ? true :
                              false;
@@ -194,15 +192,14 @@ nv.utils.renderWatch = function(dispatch, duration) {
         .transition()
         .duration(duration)
         .each(function(){ ++n; })
-        .each('end', function(d, i){
-          if (--n === 0)
-          {
+        .each('end', function(){
+          if (--n === 0) {
             selection.__rendered = true;
             self.renderEnd.apply(this, args);
           }
         });
     }
-  }
+  };
 
   this.renderEnd = function() {
     if (renderStack.every( function(d){ return d.__rendered; } ))
@@ -211,8 +208,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
       dispatch.renderEnd.apply(this, arguments);
     }
   }
-
-}
+};
 
 /*
 Snippet of code you can insert into each nv.models.* to give you the ability to
@@ -242,4 +238,12 @@ nv.utils.optionsFunc = function(args) {
 */
 nv.utils.valueOrDefault = function(value, defaultValue){
     return ( value === undefined || value === null ) ? defaultValue : value ;
+};
+
+nv.utils.setMargins = function(target, source){
+    console.log(this);
+/*    target.top    = nv.utils.valueOrDefault(source.top, target.top);
+    target.right  = nv.utils.valueOrDefault(source.right, target.right);
+    target.bottom = nv.utils.valueOrDefault(source.bottom, target.bottom);
+    target.left   = nv.utils.valueOrDefault(source.left, target.left);*/
 };

@@ -55,10 +55,8 @@ nv.models.multiBar = function() {
 
       // This function defines the requirements for render complete
       var endFn = function(d, i) {
-        if (d.series === data.length - 1 && i === data[0].values.length - 1)
-          return true;
-        return false;
-      }
+        return d.series === data.length - 1 && i === data[0].values.length - 1;
+      };
 
       if(hideable && data.length) hideable = [{
         values: data[0].values.map(function(d) {
@@ -312,10 +310,10 @@ nv.models.multiBar = function() {
 
   chart.margin = function(_) {
     if (!arguments.length) return canvas.margin;
-    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
-    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
-    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
-    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
+      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
+      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
+      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
+      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
     return chart;
   };
 
