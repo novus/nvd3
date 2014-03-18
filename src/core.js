@@ -1,6 +1,4 @@
-
 var nv = window.nv || {};
-
 
 nv.version = '1.1.15b';
 nv.dev = true //set false when in production
@@ -47,11 +45,11 @@ if (!Function.prototype.bind) {
 //  Development render timers - disabled if dev = false
 
 if (nv.dev) {
-  nv.dispatch.on('render_start', function(e) {
+  nv.dispatch.on('render_start', function() {
     nv.logs.startTime = +new Date();
   });
 
-  nv.dispatch.on('render_end', function(e) {
+  nv.dispatch.on('render_end', function() {
     nv.logs.endTime = +new Date();
     nv.logs.totalTime = nv.logs.endTime - nv.logs.startTime;
     nv.log('total', nv.logs.totalTime); // used for development, to keep track of graph generation times
@@ -67,7 +65,7 @@ if (nv.dev) {
 // causes a TypeError to be thrown.
 nv.log = function() {
   if (nv.dev && console.log && console.log.apply)
-    console.log.apply(console, arguments)
+    console.log.apply(console, arguments);
   else if (nv.dev && typeof console.log == "function" && Function.prototype.bind) {
     var log = Function.prototype.bind.call(console.log, console);
     log.apply(console, arguments);
@@ -78,7 +76,7 @@ nv.log = function() {
 nv.deprecated = function(name) {
   if (nv.dev && console && console.warn)
     console.warn('`' + name + '` has been deprecated.');
-}
+};
 
 
 nv.render = function render(step) {

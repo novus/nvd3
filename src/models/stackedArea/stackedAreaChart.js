@@ -138,7 +138,7 @@ nv.models.stackedAreaChart = function() {
 
         if ( canvas.margin.top != legend.height()) {
           canvas.margin.top = legend.height();
-          availableHeight = (height || parseInt(canvas.svg.style('height')) || 400) - canvas.margin.top - canvas.margin.bottom;
+          availableHeight = (canvas.options.size.height || parseInt(canvas.svg.style('height')) || 400) - canvas.margin.top - canvas.margin.bottom;
         }
 
         canvas.g.select('.nv-legendWrap')

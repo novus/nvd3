@@ -24,8 +24,8 @@ function Canvas(options){
 
 Canvas.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
-    width = (this.options.size.width || parseInt(this.svg.style('width')) || 960);
-    height = (this.options.size.height || parseInt(this.svg.style('height')) || 500);
+    var width = (this.options.size.width || parseInt(this.svg.style('width')) || 960)
+        , height = (this.options.size.height || parseInt(this.svg.style('height')) || 500);
 
     this.svg.attr({
         width: width,
@@ -79,7 +79,7 @@ Canvas.prototype.wrapChart = function(data, gs) {
     var wrapClass = 'nv-' + this.options.wrapClass;
 
     this.wrap = this.svg.selectAll('g.nv-wrap.' + chartClass).data([data]);
-    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nvd3 nv-wrap ' + chartClass })
+    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nvd3 nv-wrap ' + chartClass });
     this.defsEnter = this.wrapEnter.append('defs');
     this.gEnter = this.wrapEnter.append('g');
     this.g = this.wrap.select('g');
@@ -94,7 +94,6 @@ Canvas.prototype.wrapChart = function(data, gs) {
     [wrapClass].concat(gs).forEach(function(g){
         this_.gEnter.append('g').attr('class', g);
     });
-
 
     this.wrap.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
 };
@@ -111,7 +110,6 @@ Chart.prototype.wrapChart = function(data, gs) {
         'nv-legendWrap'
     ].concat(gs);
     Canvas.prototype.wrapChart.call(this, data, wrapPoints);
-
 
     this.buildLegend(data);
     // The legend can change the available height.
@@ -137,4 +135,4 @@ Chart.prototype.showLegend = function(_) {
     if(!arguments.length) return this.options.showLegend;
     this.options.showLegend = _;
     return this;
-}
+};

@@ -8,9 +8,9 @@ It also has 'pointXValue', which is the conversion of mouseX to the x-axis scale
 */
 nv.interactiveGuideline = function() {
 	"use strict";
-	var tooltip = nv.models.tooltip();
+	var tooltip = nv.models.tooltip()
 	//Public settings
-	var width = null
+	, width = null
 	, height = null
     //Please pass in the bounding chart's top and left margins
     //This is important for calculating the correct mouseX/Y positions.
@@ -28,128 +28,127 @@ nv.interactiveGuideline = function() {
 	var isMSIE = navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
 	;
 
-
 	function layer(selection) {
 		selection.each(function(data) {
-				var container = d3.select(this);
-				
-				var availableWidth = (width || 960), availableHeight = (height || 400);
 
-				var wrap = container.selectAll("g.nv-wrap.nv-interactiveLineLayer").data([data]);
-				var wrapEnter = wrap.enter()
-								.append("g").attr("class", " nv-wrap nv-interactiveLineLayer");
-								
-				
-				wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
-				
-				if (!svgContainer) {
-					return;
-				}
+            var container = d3.select(this);
 
-                function mouseHandler() {
-                      var d3mouse = d3.mouse(this);
-                      var mouseX = d3mouse[0];
-                      var mouseY = d3mouse[1];
-                      var subtractMargin = true;
-                      var mouseOutAnyReason = false;
-                      if (isMSIE) {
-                         /*
-                            D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
-                            d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
-                            over a rect in IE 10.
-                            However, d3.event.offsetX/Y also returns the mouse coordinates
-                            relative to the triggering <rect>. So we use offsetX/Y on IE.  
-                         */
-                         mouseX = d3.event.offsetX;
-                         mouseY = d3.event.offsetY;
+            var availableWidth = (width || 960), availableHeight = (height || 400);
 
-                         /*
-                            On IE, if you attach a mouse event listener to the <svg> container,
-                            it will actually trigger it for all the child elements (like <path>, <circle>, etc).
-                            When this happens on IE, the offsetX/Y is set to where ever the child element
-                            is located.
-                            As a result, we do NOT need to subtract margins to figure out the mouse X/Y
-                            position under this scenario. Removing the line below *will* cause 
-                            the interactive layer to not work right on IE.
-                         */
-                         if(d3.event.target.tagName !== "svg")
-                            subtractMargin = false;
+            var wrap = container.selectAll("g.nv-wrap.nv-interactiveLineLayer").data([data]);
+            var wrapEnter = wrap.enter()
+                .append("g").attr("class", " nv-wrap nv-interactiveLineLayer");
 
-                         if (d3.event.target.className.baseVal.match("nv-legend"))
-                         	mouseOutAnyReason = true;
-                          
-                      }
+            wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
 
-                      if(subtractMargin) {
-                         mouseX -= margin.left;
-                         mouseY -= margin.top;
-                      }
+            if (!svgContainer) {
+                return;
+            }
 
-                      /* If mouseX/Y is outside of the chart's bounds,
-                      trigger a mouseOut event.
-                      */
-                      if (mouseX < 0 || mouseY < 0 
-                        || mouseX > availableWidth || mouseY > availableHeight
-                        || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
-                        || mouseOutAnyReason
-                        ) 
-                      {
-                      		if (isMSIE) {
-                      			if (d3.event.relatedTarget 
-                      				&& d3.event.relatedTarget.ownerSVGElement === undefined
-                      				&& d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass)) {
-                      				return;
-                      			}
-                      		}
-                            dispatch.elementMouseout({
-                               mouseX: mouseX,
-                               mouseY: mouseY
-                            });
-                            layer.renderGuideLine(null); //hide the guideline
-                            return;
-                      }
-                      
-                      var pointXValue = xScale.invert(mouseX);
-                      dispatch.elementMousemove({
-                            mouseX: mouseX,
-                            mouseY: mouseY,
-                            pointXValue: pointXValue
-                      });
+            function mouseHandler() {
+                var d3mouse = d3.mouse(this);
+                var mouseX = d3mouse[0];
+                var mouseY = d3mouse[1];
+                var subtractMargin = true;
+                var mouseOutAnyReason = false;
+                if (isMSIE) {
+                    /*
+                     D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
+                     d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
+                     over a rect in IE 10.
+                     However, d3.event.offsetX/Y also returns the mouse coordinates
+                     relative to the triggering <rect>. So we use offsetX/Y on IE.
+                     */
+                    mouseX = d3.event.offsetX;
+                    mouseY = d3.event.offsetY;
 
-                      //If user double clicks the layer, fire a elementDblclick dispatch.
-                      if (d3.event.type === "dblclick") {
-                        dispatch.elementDblclick({
-                            mouseX: mouseX,
-                            mouseY: mouseY,
-                            pointXValue: pointXValue
-                        });
-                      }
+                    /*
+                     On IE, if you attach a mouse event listener to the <svg> container,
+                     it will actually trigger it for all the child elements (like <path>, <circle>, etc).
+                     When this happens on IE, the offsetX/Y is set to where ever the child element
+                     is located.
+                     As a result, we do NOT need to subtract margins to figure out the mouse X/Y
+                     position under this scenario. Removing the line below *will* cause
+                     the interactive layer to not work right on IE.
+                     */
+                    if(d3.event.target.tagName !== "svg")
+                        subtractMargin = false;
+
+                    if (d3.event.target.className.baseVal.match("nv-legend"))
+                        mouseOutAnyReason = true;
+
                 }
 
-				svgContainer
-				      .on("mousemove",mouseHandler, true)
-				      .on("mouseout" ,mouseHandler,true)
-                      .on("dblclick" ,mouseHandler)
-				      ;
+                if(subtractMargin) {
+                    mouseX -= margin.left;
+                    mouseY -= margin.top;
+                }
 
-				 //Draws a vertical guideline at the given X postion.
-				layer.renderGuideLine = function(x) {
-				 	if (!showGuideLine) return;
-				 	var line = wrap.select(".nv-interactiveGuideLine")
-				 	      .selectAll("line")
-				 	      .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
+                /* If mouseX/Y is outside of the chart's bounds,
+                 trigger a mouseOut event.
+                 */
+                if (mouseX < 0 || mouseY < 0
+                    || mouseX > availableWidth || mouseY > availableHeight
+                    || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
+                    || mouseOutAnyReason
+                    )
+                {
+                    if (isMSIE) {
+                        if (d3.event.relatedTarget
+                            && d3.event.relatedTarget.ownerSVGElement === undefined
+                            && d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass)) {
+                            return;
+                        }
+                    }
+                    dispatch.elementMouseout({
+                        mouseX: mouseX,
+                        mouseY: mouseY
+                    });
+                    layer.renderGuideLine(null); //hide the guideline
+                    return;
+                }
 
-				 	line.enter()
-				 		.append("line")
-				 		.attr("class", "nv-guideline")
-				 		.attr("x1", function(d) { return d;})
-				 		.attr("x2", function(d) { return d;})
-				 		.attr("y1", availableHeight)
-				 		.attr("y2",0)
-				 		;
-				 	line.exit().remove();
+                var pointXValue = xScale.invert(mouseX);
+                dispatch.elementMousemove({
+                    mouseX: mouseX,
+                    mouseY: mouseY,
+                    pointXValue: pointXValue
+                });
 
-				}
+                //If user double clicks the layer, fire a elementDblclick dispatch.
+                if (d3.event.type === "dblclick") {
+                    dispatch.elementDblclick({
+                        mouseX: mouseX,
+                        mouseY: mouseY,
+                        pointXValue: pointXValue
+                    });
+                }
+            }
+
+            svgContainer
+                .on("mousemove",mouseHandler, true)
+                .on("mouseout" ,mouseHandler,true)
+                .on("dblclick" ,mouseHandler)
+            ;
+
+            //Draws a vertical guideline at the given X postion.
+            layer.renderGuideLine = function(x) {
+                if (!showGuideLine) return;
+                var line = wrap.select(".nv-interactiveGuideLine")
+                    .selectAll("line")
+                    .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
+
+                line.enter()
+                    .append("line")
+                    .attr("class", "nv-guideline")
+                    .attr("x1", function(d) { return d;})
+                    .attr("x2", function(d) { return d;})
+                    .attr("y1", availableHeight)
+                    .attr("y2",0)
+                ;
+                line.exit().remove();
+
+            }
 		});
 	}
 
@@ -193,7 +192,6 @@ nv.interactiveGuideline = function() {
 		return layer;
 	};
 
-
 	return layer;
 };
 
@@ -211,25 +209,26 @@ Has the following known issues:
    * Won't work if there are duplicate x coordinate values.
 */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
-	  "use strict";
-      if (! values instanceof Array) return null;
-      if (typeof xAccessor !== 'function') xAccessor = function(d,i) { return d.x;}
+    "use strict";
+    if (! values instanceof Array) return null;
+    if (typeof xAccessor !== 'function')
+        xAccessor = function(d) { return d.x };
 
-      var bisect = d3.bisector(xAccessor).left;
-      var index = d3.max([0, bisect(values,searchVal) - 1]);
-      var currentValue = xAccessor(values[index], index);
-      if (typeof currentValue === 'undefined') currentValue = index;
+    var bisect = d3.bisector(xAccessor).left;
+    var index = d3.max([0, bisect(values,searchVal) - 1]);
+    var currentValue = xAccessor(values[index], index);
+    if (typeof currentValue === 'undefined') currentValue = index;
 
-      if (currentValue === searchVal) return index;  //found exact match
+    if (currentValue === searchVal) return index;  //found exact match
 
-      var nextIndex = d3.min([index+1, values.length - 1]);
-      var nextValue = xAccessor(values[nextIndex], nextIndex);
-      if (typeof nextValue === 'undefined') nextValue = nextIndex;
+    var nextIndex = d3.min([index+1, values.length - 1]);
+    var nextValue = xAccessor(values[nextIndex], nextIndex);
+    if (typeof nextValue === 'undefined') nextValue = nextIndex;
 
-      if (Math.abs(nextValue - searchVal) >= Math.abs(currentValue - searchVal))
-          return index;
-      else
-          return nextIndex
+    if (Math.abs(nextValue - searchVal) >= Math.abs(currentValue - searchVal))
+        return index;
+    else
+        return nextIndex
 };
 
 /*
@@ -238,14 +237,14 @@ Only returns an index if searchVal is within some "threshold".
 Otherwise, returns null.
 */
 nv.nearestValueIndex = function (values, searchVal, threshold) {
-      "use strict";
-      var yDistMax = Infinity, indexToHighlight = null;
-      values.forEach(function(d,i) {
-         var delta = Math.abs(searchVal - d);
-         if ( delta <= yDistMax && delta < threshold) {
+    "use strict";
+    var yDistMax = Infinity, indexToHighlight = null;
+    values.forEach(function(d,i) {
+        var delta = Math.abs(searchVal - d);
+        if ( delta <= yDistMax && delta < threshold) {
             yDistMax = delta;
             indexToHighlight = i;
-         }
-      });
-      return indexToHighlight;
+        }
+    });
+    return indexToHighlight;
 };

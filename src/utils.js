@@ -239,11 +239,3 @@ nv.utils.optionsFunc = function(args) {
 nv.utils.valueOrDefault = function(value, defaultValue){
     return ( value === undefined || value === null ) ? defaultValue : value ;
 };
-
-nv.utils.setMargins = function(target, source){
-    console.log(this);
-/*    target.top    = nv.utils.valueOrDefault(source.top, target.top);
-    target.right  = nv.utils.valueOrDefault(source.right, target.right);
-    target.bottom = nv.utils.valueOrDefault(source.bottom, target.bottom);
-    target.left   = nv.utils.valueOrDefault(source.left, target.left);*/
-};
