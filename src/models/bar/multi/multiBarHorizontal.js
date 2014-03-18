@@ -6,6 +6,8 @@ nv.models.multiBarHorizontal = function() {
 
   var canvas = new Canvas({
         margin: {top: 0, right: 0, bottom: 0, left: 0}
+        , width: 960
+        , height: 500
         , chartClass: 'multibarHorizontal'
       })
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
