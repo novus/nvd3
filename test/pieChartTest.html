@@ -119,8 +119,8 @@ function defaultChart(containerId, data, labelType) {
           .x(function(d) { return d.key })
           .y(function(d) { return d.y })
           .color(d3.scale.category10().range())
-          .width(width)
-          .height(height)
+          // .width(width)
+          // .height(height)
           .labelType(labelType)
           ;
 
@@ -160,6 +160,7 @@ nv.addGraph(function() {
           .attr('height', height)
           .call(chart);
     nv.utils.windowResize(chart.update);
+
     return chart;
 });
 

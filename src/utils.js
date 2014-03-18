@@ -180,8 +180,8 @@ nv.utils.renderWatch = function(dispatch, duration) {
     if (duration === 0)
     {
       selection.__rendered = true;
-      selection.delay = function(){console.warn('`delay` not specified for selection.'); return this;};
-      selection.duration = function(){console.warn('`duration` not specified for selection.'); return this;};
+      selection.delay = function(){/*console.warn('`delay` not specified for selection.');*/ return this;};
+      selection.duration = function(){/*console.warn('`duration` not specified for selection.');*/ return this;};
       return selection;
     } else {
       selection.__rendered = selection.length === 0 ? true :
