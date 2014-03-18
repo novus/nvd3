@@ -5,8 +5,10 @@ nv.models.multiBar = function() {
   //------------------------------------------------------------
 
   var canvas = new Canvas({
-          margin : {top: 0, right: 0, bottom: 0, left: 0},
-          chartClass: 'multibar'
+          margin : {top: 0, right: 0, bottom: 0, left: 0}
+          , width: 960
+          , height: 500
+          , chartClass: 'multibar'
       })
     , x = d3.scale.ordinal()
     , y = d3.scale.linear()

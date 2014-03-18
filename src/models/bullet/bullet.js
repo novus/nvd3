@@ -1,4 +1,3 @@
-
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
@@ -11,6 +10,8 @@ nv.models.bullet = function() {
 
   var canvas = new Canvas({
           margin: {top: 0, right: 0, bottom: 0, left: 0}
+          , width: 380
+          , height: 30
           , chartClass: 'bullet'
       })
     , orient = 'left' // TODO top & bottom
