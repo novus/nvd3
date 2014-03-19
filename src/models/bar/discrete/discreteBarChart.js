@@ -1,286 +1,219 @@
+function DiscreteBarChart(options){
 
-nv.models.discreteBarChart = function() {
-  "use strict";
-  //============================================================
-  // Public Variables with Default Settings
-  //------------------------------------------------------------
-
-  var discretebar = nv.models.discreteBar()
-    , xAxis = nv.models.axis()
-    , yAxis = nv.models.axis()
-    ;
-
-  var canvas = new Canvas({
+    options = nv.utils.valueOrDefault(options, {
         margin: {top: 15, right: 10, bottom: 50, left: 60}
-          , chartClass: 'discreteBarWithAxes'
-          , wrapClass: 'barsWrap'
-      })
-    , color = nv.utils.getColor()
-    , showXAxis = true
-    , showYAxis = true
-    , rightAlignYAxis = false
-    , staggerLabels = false
-    , tooltips = true
-    , tooltip = function(key, x, y) {
-        return '<h3>' + x + '</h3>' +
-               '<p>' +  y + '</p>'
-      }
-    , x
-    , y
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate', 'renderEnd')
-    , transitionDuration = 250
-    ;
+        , chartClass: 'discreteBarWithAxes'
+        , wrapClass: 'barsWrap'
+    });
 
-  xAxis
-    .orient('bottom')
-    .highlightZero(false)
-    .showMaxMin(false)
-    .tickFormat(function(d) { return d })
-    ;
-  yAxis
-    .orient((rightAlignYAxis) ? 'right' : 'left')
-    .tickFormat(d3.format(',.1f'))
-    ;
+    Chart.call(this, options);
 
-  //============================================================
+    this.discreteBar = nv.models.discreteBar();
+    this.yAxis = nv.models.axis();
+    this.xAxis = nv.models.axis();
 
+    this.x = undefined;
+    this.y = undefined;
+    this.state = {};
+    this.defaultState = null;
+    this.showXAxis = true;
+    this.showYAxis = true;
+    this.rightAlignYAxis = false;
+    this.staggerLabels = false;
+    this.tooltips = true;
+    this.transitionDuration = 250;
+}
 
-  //============================================================
-  // Private Variables
-  //------------------------------------------------------------
+DiscreteBarChart.prototype = Object.create(Chart.prototype);
 
-  var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(discretebar.x()(e.point, e.pointIndex)),
-        y = yAxis.tickFormat()(discretebar.y()(e.point, e.pointIndex)),
-        content = tooltip(e.series.key, x, y);
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-  };
+DiscreteBarChart.prototype.wrapChart = function(data){
+    if(this.noData(data))
+        return;
 
-  var renderWatch = nv.utils.renderWatch(dispatch, transitionDuration);
-  //============================================================
+    Chart.prototype.wrapChart.call(this, data);
 
-  function chart(selection) {
-    renderWatch.reset();
-    selection.each(function(data) {
-
-      canvas.setRoot(this);
-      if (canvas.noData(data)) return;
-      canvas.wrapChart(data);
-      canvas.gEnter.insert('g', '.nv-'+canvas.options.wrapClass).attr('class', 'nv-x nv-axis');
-      canvas.gEnter.insert('g', '.nv-'+canvas.options.wrapClass).attr('class', 'nv-y nv-axis')
-          .append('g')
-          .attr('class', 'nv-zeroLine')
-          .append('line');
-
-      var availableWidth = canvas.available.width
-        , availableHeight = canvas.available.height
-        , that = this
+    var rightAlignYAxis = this.rightAlignYAxis
+        , availableWidth = this.available.width
+        , availableHeight = this.available.height
         , xTicksPadding = [5, 17]
         , xTicks = availableWidth / 100
-        , yTicks = availableHeight / 36;
+        , yTicks = availableHeight / 36
+        ;
 
-      if (rightAlignYAxis)
-        canvas.g.select(".nv-y.nv-axis").attr("transform", "translate(" + availableWidth + ",0)");
+    this.xAxis
+        .orient('bottom')
+        .highlightZero(false)
+        .showMaxMin(false)
+        .tickFormat(function(d) { return d });
+    this.yAxis
+        .orient(rightAlignYAxis ? 'right' : 'left')
+        .tickFormat(d3.format(',.1f'));
 
-      chart.update = function() {
-        dispatch.beforeUpdate();
-        canvas.svg.transition().duration(transitionDuration).call(chart);
-      };
+    this.discreteBar.width(availableWidth).height(availableHeight);
+    this.x = this.discreteBar.xScale();
+    this.y = this.discreteBar.yScale().clamp(true);
 
-      x = discretebar.xScale();
-      y = discretebar.yScale().clamp(true);
+    this.gEnter.insert('g', '.nv-'+this.options.wrapClass).attr('class', 'nv-x nv-axis');
+    this.gEnter.insert('g', '.nv-'+this.options.wrapClass).attr('class', 'nv-y nv-axis')
+        .append('g')
+        .attr('class', 'nv-zeroLine')
+        .append('line');
 
-      //------------------------------------------------------------
-      // Main Chart Component(s)
+    if (rightAlignYAxis)
+        this.g.select(".nv-y.nv-axis").attr("transform", "translate(" + availableWidth + ",0)");
 
-      var barsWrap = canvas.g.select('.nv-barsWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
-          .transition()
-          .call( discretebar.width(availableWidth).height(availableHeight) );
-        //------------------------------------------------------------
+    //------------------------------------------------------------
+    // Main Chart Component(s)
 
-        canvas.defsEnter.append('clipPath')
-          .attr('id', 'nv-x-label-clip-' + discretebar.id())
-          .append('rect');
+    var barsWrap = this.g.select('.nv-barsWrap')
+        .datum(data.filter(function(d) { return !d.disabled }))
+        .transition()
+        .call( this.discreteBar.width(availableWidth).height(availableHeight) );
+    //------------------------------------------------------------
 
-        canvas.g.select('#nv-x-label-clip-' + discretebar.id() + ' rect')
-          .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
-          .attr('height', 16)
-          .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
+    this.defsEnter.append('clipPath')
+        .attr('id', 'nv-x-label-clip-' + this.discreteBar.id())
+        .append('rect');
 
-      //------------------------------------------------------------
-      // Setup Axes
+    this.g.select('#nv-x-label-clip-' + this.discreteBar.id() + ' rect')
+        .attr('width', this.x.rangeBand() * (this.staggerLabels ? 2 : 1))
+        .attr('height', 16)
+        .attr('x', -this.x.rangeBand() / (this.staggerLabels ? 1 : 2 ));
 
-      if (showXAxis) {
-          xAxis
-            .scale(x)
+    //------------------------------------------------------------
+    // Setup Axes
+
+    if (this.showXAxis) {
+        this.xAxis
+            .scale( this.x )
             .ticks( xTicks )
             .tickSize( -availableHeight, 0 );
 
-          canvas.g.select('.nv-x.nv-axis')
-              .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')')
-              .transition()
-              .call(xAxis);
+        this.g.select('.nv-x.nv-axis')
+            .attr('transform', 'translate(0,' + (this.y.range()[0] + ((this.discreteBar.showValues() && this.y.domain()[0] < 0) ? 16 : 0)) + ')')
+            .transition()
+            .call(this.xAxis);
 
-          // xTicks
-          if (staggerLabels) {
-              canvas.g.select('.nv-x.nv-axis')
+        // xTicks
+        if (this.staggerLabels) {
+            this.g.select('.nv-x.nv-axis')
                 .selectAll('g')
                 .selectAll('text')
                 .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? xTicksPadding[0] : xTicksPadding[1]) + ')' })
-          }
-      }
+        }
+    }
 
-      if (showYAxis) {
-          yAxis
-            .scale(y)
+    if (this.showYAxis) {
+        this.yAxis
+            .scale( this.y )
             .ticks( yTicks )
             .tickSize( -availableWidth, 0);
 
-          canvas.g.select('.nv-y.nv-axis')
-              .transition()
-              .call(yAxis);
-      }
+        this.g.select('.nv-y.nv-axis')
+            .transition()
+            .call(this.yAxis);
+    }
 
-      // Zero line
-      canvas.g.select(".nv-zeroLine line")
+    // Zero line
+    this.g.select(".nv-zeroLine line")
         .attr("x1",0)
         .attr("x2", availableWidth)
-        .attr("y1", y(0))
-        .attr("y2", y(0));
+        .attr("y1", this.y(0))
+        .attr("y2", this.y(0));
 
-      //------------------------------------------------------------
+    var discreteBarWrap = this.g.select('.nv-barsWrap').datum(data);
+    d3.transition(discreteBarWrap).call(this.discreteBar);
 
+};
 
-      //============================================================
-      // Event Handling/Dispatching (in chart's scope)
-      //------------------------------------------------------------
+DiscreteBarChart.prototype.staggerLabels = function(_){
+    if (!arguments.length) return this.staggerLabels;
+    this.staggerLabels = _;
+    return this;
+};
 
-      dispatch.on('tooltipShow', function(e) {
-        if (tooltips) showTooltip(e, that.parentNode);
-      });
+DiscreteBarChart.prototype.transitionDuration = function(_) {
+    if (!arguments.length) return this.transitionDuration;
+    this.transitionDuration = _;
+    return this;
+};
 
-    });
+DiscreteBarChart.prototype.onDispatches = function(){
+    Chart.prototype.onDispatches.call(this);
+    this.discreteBar.dispatch.on('elementMouseout.tooltip', function(e) {
+        this.dispatch.tooltipHide(e);
+    }.bind(this));
 
-    renderWatch.renderEnd('discreteBar chart immediate');
+    this.discreteBar.dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  this.margin.left, e.pos[1] + this.margin.top];
+        this.dispatch.tooltipShow(e);
+    }.bind(this));
+};
+
+DiscreteBarChart.prototype.showTooltip = function(e) {
+    var offsetElement = this.svg[0][0].parentNode,
+        left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = this.xAxis.tickFormat()(this.discreteBar.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.discreteBar.y()(e.point, e.pointIndex)),
+        content = this.tooltip(e.series.key, x, y);
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+};
+
+nv.models.discreteBarChart = function() {
+    "use strict";
+
+    var discreteBarChart = new DiscreteBarChart();
+
+    function chart(selection) {
+        discreteBarChart.render(selection);
+        return chart;
+    }
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+    chart.legend = discreteBarChart.legend;
+    chart.dispatch = discreteBarChart.dispatch;
+    chart.discreteBar = discreteBarChart.discreteBar;
+    chart.xAxis = discreteBarChart.xAxis;
+    chart.yAxis = discreteBarChart.yAxis;
+
+    d3.rebind(chart, discreteBarChart.discreteBar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    [
+        'margin',
+        'width',
+        'height',
+        'color',
+        'tooltips',
+        'tooltipContent',
+        'showLegend',
+        'showXAxis',
+        'showYAxis',
+        'rightAlignYAxis',
+        'staggerLabels',
+        'noData',
+        'transitionDuration',
+        'state'
+    ]
+        .forEach(function(method){
+            chart[method] = function(arg1){
+                var ret = null;
+                switch (arguments.length) {
+                    case 0:
+                        ret = DiscreteBarChart.prototype[method].call(discreteBarChart);
+                        break;
+                    case 1:
+                        ret = DiscreteBarChart.prototype[method].call(discreteBarChart, arg1);
+                        break;
+                    default:
+                        ret = DiscreteBarChart.prototype[method].apply(discreteBarChart, arguments)
+                }
+                return ret === discreteBarChart ? chart : ret;
+            };
+        });
+
     return chart;
-  }
-
-  //============================================================
-  // Event Handling/Dispatching (out of chart's scope)
-  //------------------------------------------------------------
-
-  discretebar.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
-    dispatch.tooltipShow(e);
-  });
-
-  discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
-  });
-
-  dispatch.on('tooltipHide', function() {
-    if (tooltips) nv.tooltip.cleanup();
-  });
-
-  //============================================================
-
-
-  //============================================================
-  // Expose Public Variables
-  //------------------------------------------------------------
-
-  // expose chart's sub-components
-  chart.dispatch = dispatch;
-  chart.discretebar = discretebar;
-  chart.xAxis = xAxis;
-  chart.yAxis = yAxis;
-
-  d3.rebind(chart, discretebar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat');
-
-  chart.options = nv.utils.optionsFunc.bind(chart);
-
-  chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-    canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-    canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-    canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-    canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return canvas.width;
-    canvas.width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return canvas.height;
-      canvas.height = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = nv.utils.getColor(_);
-    discretebar.color(color);
-    return chart;
-  };
-
-  chart.showXAxis = function(_) {
-    if (!arguments.length) return showXAxis;
-    showXAxis = _;
-    return chart;
-  };
-
-  chart.showYAxis = function(_) {
-    if (!arguments.length) return showYAxis;
-    showYAxis = _;
-    return chart;
-  };
-
-  chart.rightAlignYAxis = function(_) {
-    if(!arguments.length) return rightAlignYAxis;
-    rightAlignYAxis = _;
-    yAxis.orient( (_) ? 'right' : 'left');
-    return chart;
-  };
-
-  chart.staggerLabels = function(_) {
-    if (!arguments.length) return staggerLabels;
-    staggerLabels = _;
-    return chart;
-  };
-
-  chart.tooltips = function(_) {
-    if (!arguments.length) return tooltips;
-    tooltips = _;
-    return chart;
-  };
-
-  chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
-    return chart;
-  };
-
-  chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
-    return chart;
-  };
-
-  chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
-    return chart;
-  };
-
-  //============================================================
-
-
-  return chart;
 };
