@@ -2,6 +2,7 @@
 layout: post
 title: nvd3 issues triage
 date: 2014-03-19 10:42:43 -0400
+author: joesepi <sepi@joesepi.com>
 comments: true
 categories:
 ---
@@ -37,22 +38,21 @@ Below is how we will break out the issues, with some overlap from above:
 - **Improvement**: Request feature tests and implementation and/or triage accordingly
 - **Feature**: Triage the request and work with requester to break up the work into small, deliverable pieces and find a shepherd for the feature deliverable
 
-Triage levels:
+#### Triage levels
 - **Duplicate**: closed immediately; with link to other issue
 - **Support**: closed immediately; Attempt a short answer/explanation, suggest Stack Overflow for a deeper exploration
 - **Fix**: Small task, Shouldn't take more than half a day.
 - **Improvement**: Smaller tasks; Easily completable with a couple days' solid work.
 - **Feature**: Larger tasks; Takes at least a week, probably needs serious planning before development.
 
-Additional tags:
+#### Additional tags
 - **Intro**: Represents a good entry point to some part of the project
-- **Octopages**: documentation
+- **Octopages**: Documentation
 - **Out of date**: ticket is more than 3 months old and is not automatically mergeable
 - **Won't fix**: discretionary; thank you but does not align with project direction or aesthetics
 
 We have added these as labels to Github and have been applying them to the backlog of issues and requests.
 
 As I mentioned, we hope to not only work with the community more in the future but also to bring some trusted developers into the fold to help us evolve nvd3 forward into the future.
-
 
 Thanks.
