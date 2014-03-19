@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>The Future of NVD3 - March, 2014 - NVD3</title>
+  <title>Nvd3 Issues Triage - NVD3</title>
   <meta name="author" content="Novus Partners">
 
   
-  <meta name="description" content="When I joined Novus last November, I&rsquo;d spent some time playing with three.js visualizations, but hadn&rsquo;t really looked at that d3 thing. &hellip;">
+  <meta name="description" content="Novus is committed to its open source projects and committed to the community that has grown around these projects. In an effort to tame the recent &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://nvd3.org//blog/2014/03/state-of-nvd3">
+  <link rel="canonical" href="http://nvd3.org//blog/2014/03/nvd3-issues-triage">
   <link href="/favicon.png" rel="icon">
   <!-- <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css"> -->
   <link href="/atom.xml" rel="alternate" title="NVD3" type="application/atom+xml">
@@ -113,7 +113,7 @@
   
   <header>
     
-      <h1 class="entry-title">The Future of NVD3 - March, 2014</h1>
+      <h1 class="entry-title">Nvd3 Issues Triage</h1>
     
     
       <p class="meta">
@@ -129,37 +129,78 @@
   
 
 
-<time datetime="2014-03-12T17:44:38-04:00" pubdate data-updated="true">Mar 12<span>th</span>, 2014</time>
+<time datetime="2014-03-19T10:42:43-04:00" pubdate data-updated="true">Mar 19<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>When I joined Novus last November, I&rsquo;d spent some time playing with three.js visualizations, but hadn&rsquo;t really looked at that d3 thing. Of course, as a financial technology firm, 2d charts and graph visualizations are all we do. So I learned d3, and this little nvd3 home-grown thing. I knew there was a community out there &ndash; at least, I&rsquo;d come across random tweets mentioning it, but I really hadn&rsquo;t dug in. Then I had to make some changes. Before you know it, I&rsquo;m waist deep in refactoring what for all intents and purposes was an internal prototyped tech demo that&rsquo;s become a great project on Github! Yet we&rsquo;ve been, to the community&rsquo;s detriment, busy at Novus.</p>
+<div class="entry-content"><p>Novus is committed to its open source projects and committed to the community that has grown around these projects. In an effort to tame the recent build-up of issues and pull requests, we would like to outline our appraoch to tackling this accumulation in the short term as well as how we will continue to manage the project&rsquo;s growth in the future.</p>
 
-<p>Yes, we knew the PR and issue counts were rising, but we&rsquo;re heads down on some internal projects, and no one really pushed or prodded us about nvd3. My colleagues robinfhu, twolfnovus, and fshao816 were fixing bugs, adding some features we needed, and generally making it look like NVD3 was still making progress. Turns out, just because no one in the community is yelling, doesn&rsquo;t mean there aren&rsquo;t problems! After getting a foreceful tweet from John Schulz (@JFSIII), I asked around my colleagues and realized we had, in fact, been getting quite a few quiet pokes and prods. The growing issue count is obviously frustrating to people trying to use the library, but the growing PR count shows people are still very much trying to create a successful, sustainable project in spite of Novus&#8217; lack of recent feedback &ndash; we clearly cannot leave our heads in the sand and just hope that what we need happens to be what you need.</p>
+<hr />
 
-<p>The good news &ndash; we&rsquo;re reprioritizing, moving NVD3 way up in our list of UI focus at Novus. The bad news &ndash; NVD3 is still at number two, behind a massive internal rewrite we&rsquo;ve been doing since Decemeber of 2013, due to complete in the next couple months. The ugly news &ndash; NVD3 needs a major refactor. As I mentioned, it really is a large tech demo, with large swaths of copy-paste code, duplicated logic, and complete lack of overall architecture. The testing is piecemeal, spotty, and manual. The build, though is super fast. Basically, we want to refactor this into something that makes a lot more sense, and follows much better coding principles (seperate some concerns, DRY out the wet parts, wrap it in a test harness). We have started this work, and are using it internally &ndash; you can track it in <a href="https://github.com/novus/nvd3/pull/442">this pull request</a>.</p>
+<h3>Short term</h3>
 
-<p>Beyond this code work, we need to expand the way we accept community feedback. We would like to find trusted collaborators to empower with access to the novus/nvd3 repository. If you are interested, please email me &ndash; dsouther (at )novus( dot)com.</p>
-
-<p>Over the next few weeks, we&rsquo;ll have a better understanding of the balance between internal projects and NVD3 itself. In short, look for three things in the coming couple months.</p>
+<p>Our first priority is to tame the pile of issues and PRs that have recently accumulated. To do so, we will categorize them accordingly:</p>
 
 <ul>
-<li>Refactor NVD3 to a maintainable codebase.</li>
-<li>Clear the Issues and PR Backlog.</li>
-<li>Add nvGrid, a powerful grid / table component.</li>
+<li><strong>Out of Date</strong>
+For out of date issues and pull requests, we will close the stale request with a brief explanation.</li>
+<li><strong>Support</strong>
+When an issue falls under the Support banner, we will provide a short answer that we hope is helpful. We may also suggest posting the issue to Stack Overflow to discuss the issue further.</li>
+<li><strong>Bug in Refactor</strong>
+When the issue is a repeatable bug, we will work with the commenter to fix the matter and hope to resolve the issue without much delay.</li>
+<li><strong>Feature Enhancement</strong> (Small improvements in existing, refactored code)
+[work with commenter to add improvement in refactored code]</li>
+<li><strong>New Features</strong> (Large improvements, eg new chart types)
+Our expectation with new features will be to move them to the roadmap and prioritize them accordingly.</li>
 </ul>
 
 
-<p>This is where we&rsquo;re at today, and we have some good improvements that we want to put in place between now and June. Keep your dial tuned!</p>
+<p>With this approach, we expect to be able to address what needs to be done immediately and prioritize everything else.</p>
 
-<p><em>Yours,</em></p>
+<hr />
 
-<p><strong>David Souther</strong></p>
+<h3>Long term</h3>
 
-<p><em>Software Architect &ndash; Novus Partners</em></p>
+<p>In the long term, we would like to take a more holistic approach that can allow us to not only shrink the amount of issues and PRs, but also to potentially expand the group that would help us manicure this garden.</p>
+
+<p>Below is how we will break out the issues, with some overlap from above:</p>
+
+<ul>
+<li><strong>Bug</strong>: Request steps to repeat the issue and triage accordingly</li>
+<li><strong>Improvement</strong>: Request feature tests and implementation and/or triage accordingly</li>
+<li><strong>Feature</strong>: Triage the request and work with requester to break up the work into small, deliverable pieces and find a shepherd for the feature deliverable</li>
+</ul>
+
+
+<h4>Triage levels</h4>
+
+<ul>
+<li><strong>Duplicate</strong>: closed immediately; with link to other issue</li>
+<li><strong>Support</strong>: closed immediately; Attempt a short answer/explanation, suggest Stack Overflow for a deeper exploration</li>
+<li><strong>Fix</strong>: Small task, Shouldn&rsquo;t take more than half a day.</li>
+<li><strong>Improvement</strong>: Smaller tasks; Easily completable with a couple days&#8217; solid work.</li>
+<li><strong>Feature</strong>: Larger tasks; Takes at least a week, probably needs serious planning before development.</li>
+</ul>
+
+
+<h4>Additional tags</h4>
+
+<ul>
+<li><strong>Intro</strong>: Represents a good entry point to some part of the project</li>
+<li><strong>Octopages</strong>: Documentation</li>
+<li><strong>Out of date</strong>: ticket is more than 3 months old and is not automatically mergeable</li>
+<li><strong>Won&rsquo;t fix</strong>: discretionary; thank you but does not align with project direction or aesthetics</li>
+</ul>
+
+
+<p>We have added these as labels to Github and have been applying them to the backlog of issues and requests.</p>
+
+<p>As I mentioned, we hope to not only work with the community more in the future but also to bring some trusted developers into the fold to help us evolve nvd3 forward into the future.</p>
+
+<p>Thanks.</p>
 </div>
 
 
@@ -168,7 +209,7 @@
       
   
 
-<span class="byline author vcard">Posted by <span class="fn">Novus Partners</span></span>
+<span class="byline author vcard">Posted by <span class="fn">joesepi <sepi@joesepi.com></span></span>
 
       
 
@@ -182,7 +223,7 @@
   
 
 
-<time datetime="2014-03-12T17:44:38-04:00" pubdate data-updated="true">Mar 12<span>th</span>, 2014</time>
+<time datetime="2014-03-19T10:42:43-04:00" pubdate data-updated="true">Mar 19<span>th</span>, 2014</time>
       
 
 
@@ -190,7 +231,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org//blog/2014/03/state-of-nvd3/" data-via="" data-counturl="http://nvd3.org//blog/2014/03/state-of-nvd3/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org//blog/2014/03/nvd3-issues-triage/" data-via="" data-counturl="http://nvd3.org//blog/2014/03/nvd3-issues-triage/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -201,8 +242,8 @@
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/blog/2014/03/state-of-nvd3/" title="Previous Post: The Future of NVD3 - March, 2014">&laquo; The Future of NVD3 - March, 2014</a>
       
-        <a class="basic-alignment right" href="/blog/2014/03/nvd3-issues-triage/" title="Next Post: nvd3 issues triage">nvd3 issues triage &raquo;</a>
       
     </p>
   </footer>

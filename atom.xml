@@ -4,7 +4,7 @@
   <title><![CDATA[NVD3]]></title>
   <link href="http://nvd3.org//atom.xml" rel="self"/>
   <link href="http://nvd3.org//"/>
-  <updated>2014-03-13T14:21:37-04:00</updated>
+  <updated>2014-03-19T10:58:55-04:00</updated>
   <id>http://nvd3.org//</id>
   <author>
     <name><![CDATA[Novus Partners]]></name>
@@ -12,6 +12,79 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Nvd3 Issues Triage]]></title>
+    <link href="http://nvd3.org//blog/2014/03/nvd3-issues-triage/"/>
+    <updated>2014-03-19T10:42:43-04:00</updated>
+    <id>http://nvd3.org//blog/2014/03/nvd3-issues-triage</id>
+    <content type="html"><![CDATA[<p>Novus is committed to its open source projects and committed to the community that has grown around these projects. In an effort to tame the recent build-up of issues and pull requests, we would like to outline our appraoch to tackling this accumulation in the short term as well as how we will continue to manage the project&rsquo;s growth in the future.</p>
+
+<hr />
+
+<h3>Short term</h3>
+
+<p>Our first priority is to tame the pile of issues and PRs that have recently accumulated. To do so, we will categorize them accordingly:</p>
+
+<ul>
+<li><strong>Out of Date</strong>
+For out of date issues and pull requests, we will close the stale request with a brief explanation.</li>
+<li><strong>Support</strong>
+When an issue falls under the Support banner, we will provide a short answer that we hope is helpful. We may also suggest posting the issue to Stack Overflow to discuss the issue further.</li>
+<li><strong>Bug in Refactor</strong>
+When the issue is a repeatable bug, we will work with the commenter to fix the matter and hope to resolve the issue without much delay.</li>
+<li><strong>Feature Enhancement</strong> (Small improvements in existing, refactored code)
+[work with commenter to add improvement in refactored code]</li>
+<li><strong>New Features</strong> (Large improvements, eg new chart types)
+Our expectation with new features will be to move them to the roadmap and prioritize them accordingly.</li>
+</ul>
+
+
+<p>With this approach, we expect to be able to address what needs to be done immediately and prioritize everything else.</p>
+
+<hr />
+
+<h3>Long term</h3>
+
+<p>In the long term, we would like to take a more holistic approach that can allow us to not only shrink the amount of issues and PRs, but also to potentially expand the group that would help us manicure this garden.</p>
+
+<p>Below is how we will break out the issues, with some overlap from above:</p>
+
+<ul>
+<li><strong>Bug</strong>: Request steps to repeat the issue and triage accordingly</li>
+<li><strong>Improvement</strong>: Request feature tests and implementation and/or triage accordingly</li>
+<li><strong>Feature</strong>: Triage the request and work with requester to break up the work into small, deliverable pieces and find a shepherd for the feature deliverable</li>
+</ul>
+
+
+<h4>Triage levels</h4>
+
+<ul>
+<li><strong>Duplicate</strong>: closed immediately; with link to other issue</li>
+<li><strong>Support</strong>: closed immediately; Attempt a short answer/explanation, suggest Stack Overflow for a deeper exploration</li>
+<li><strong>Fix</strong>: Small task, Shouldn&rsquo;t take more than half a day.</li>
+<li><strong>Improvement</strong>: Smaller tasks; Easily completable with a couple days&#8217; solid work.</li>
+<li><strong>Feature</strong>: Larger tasks; Takes at least a week, probably needs serious planning before development.</li>
+</ul>
+
+
+<h4>Additional tags</h4>
+
+<ul>
+<li><strong>Intro</strong>: Represents a good entry point to some part of the project</li>
+<li><strong>Octopages</strong>: Documentation</li>
+<li><strong>Out of date</strong>: ticket is more than 3 months old and is not automatically mergeable</li>
+<li><strong>Won&rsquo;t fix</strong>: discretionary; thank you but does not align with project direction or aesthetics</li>
+</ul>
+
+
+<p>We have added these as labels to Github and have been applying them to the backlog of issues and requests.</p>
+
+<p>As I mentioned, we hope to not only work with the community more in the future but also to bring some trusted developers into the fold to help us evolve nvd3 forward into the future.</p>
+
+<p>Thanks.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[The Future of NVD3 - March, 2014]]></title>
