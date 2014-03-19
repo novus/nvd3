@@ -1,3 +1,8 @@
+/**
+ * A "canvas" represents an instance of some object that will be managed
+ * with nvd3, tied to a DOM node. It should have an expected heigh and
+ * width, some margins, and a few dispatch events.
+ */
 function Canvas(options, dispatch){
     this.options = options || {};
     this.options.size || (this.options.size = {});
@@ -24,6 +29,9 @@ function Canvas(options, dispatch){
     this.renderWatch = nv.utils.renderWatch(this.dispatch);
 }
 
+/**
+ * The magic happens in the render.
+ */
 Canvas.prototype.render = function(selection) {
     if(arguments.length === 1) {
         this.selection = selection;
@@ -33,6 +41,9 @@ Canvas.prototype.render = function(selection) {
 
     this.renderWatch.reset();
     this.selection.each(function(data) {
+        // d3_selection_each iterates over the items in
+        // the selection, passing it as the `this` context.
+        // use setRoot to re-invert the object.
         canvas_.setRoot(this);
         canvas_.wrapChart(data);
 
@@ -52,10 +63,17 @@ Canvas.prototype.render = function(selection) {
     this.renderWatch.renderEnd('' + this.name || 'canvas' + ' immediate');
 };
 
+/**
+ * Call the render function, let it use the last known selection.
+ */
 Canvas.prototype.update = function(){
     this.render();
 };
 
+/**
+ * Given an element, set it as the root of this chart. Configure
+ * appropriate sizing info, etc.
+ */
 Canvas.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
     var width = (this.options.size.width || parseInt(this.svg.style('width')) || 960)
@@ -81,6 +99,9 @@ Canvas.prototype.setRoot = function(root) {
     });
 };
 
+/**
+ * Utility to check if data is available.
+ */
 Canvas.prototype.hasData = function(data){
     function hasValues(d){
         return !d.values || d.values.length > 0
@@ -88,6 +109,9 @@ Canvas.prototype.hasData = function(data){
     return data && data.length > 0 && data.filter(hasValues).length > 0
 };
 
+/**
+ * Render a "noData" message.
+ */
 Canvas.prototype.noData = function(data){
     if ( this.hasData(data) ) {
         this.svg.selectAll('.nv-noData').remove();
@@ -109,6 +133,9 @@ Canvas.prototype.noData = function(data){
     }
 };
 
+/**
+ * Create several wrap layers to work with in the chart.
+ */
 Canvas.prototype.wrapChart = function(data, gs) {
     gs || (gs = []);
     var chartClass = 'nv-' + this.options.chartClass;
@@ -151,7 +178,11 @@ Canvas.prototype.height = function(_){
 
 
 
-
+/**
+ * A Chart is a composite Canvas structure.
+ *
+ * It has legends, axes, some possible sub charts, etc.
+ */
 function Chart(options, dispatch){
     options.tooltip = nv.utils.valueOrDefault(
         options.tooltip,
@@ -174,6 +205,9 @@ function Chart(options, dispatch){
 }
 Chart.prototype = Object.create(Canvas.prototype);
 
+/**
+ * Apply the chart-specific wrap classes.
+ */
 Chart.prototype.wrapChart = function(data, gs) {
     var wrapPoints = [
         'nv-x nv-axis',
@@ -220,6 +254,12 @@ Chart.prototype.buildLegend = function(data) {
     }
 };
 
+Chart.prototype.showLegend = function(_) {
+    if(!arguments.length) return this.options.showLegend;
+    this.options.showLegend = _;
+    return this;
+};
+
 Chart.prototype.onDispatches = function(){
     this.legend.dispatch.on('stateChange', function(newState) {
       state = newState;
@@ -235,12 +275,6 @@ Chart.prototype.onDispatches = function(){
     this.dispatch.on('tooltipHide', function() {
       if (this.options.tooltips) nv.tooltip.cleanup();
     }.bind(this));
-};
-
-Chart.prototype.showLegend = function(_) {
-    if(!arguments.length) return this.options.showLegend;
-    this.options.showLegend = _;
-    return this;
 };
 
 Chart.prototype.tooltip = function(_) {

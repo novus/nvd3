@@ -1,3 +1,6 @@
+/**
+ * A Pie Chart draws a percentage data set, in a circular display.
+ */
 function PieChart(options){
     options = nv.utils.valueOrDefault(options, {
         margin: {top: 30, right: 20, bottom: 20, left: 20},
@@ -13,7 +16,14 @@ function PieChart(options){
     this.defaultState = null;
 }
 
+/**
+ * PieChart extends Chart
+ */
 PieChart.prototype = Object.create(Chart.prototype);
+
+/**
+ * @override Chart::wrapChart
+ */
 PieChart.prototype.wrapChart = function(data){
     if(this.noData(data)){ return; }
 
@@ -27,6 +37,12 @@ PieChart.prototype.wrapChart = function(data){
     d3.transition(pieWrap).call(this.pie);
 }
 
+/**
+ * Set up listeners for dispatches fired on the underlying
+ * pie graph.
+ *
+ * @override PieChart::onDispatches
+ */
 PieChart.prototype.onDispatches = function(){
     Chart.prototype.onDispatches.call(this);
 
@@ -40,6 +56,9 @@ PieChart.prototype.onDispatches = function(){
     }.bind(this));
 }
 
+/**
+ * Set the underlying color, on both the chart, and the composites.
+ */
 PieChart.prototype.color = function(_){
     if (!arguments.length) return this.color;
     this.color = nv.utils.getColor(_);
@@ -48,6 +67,9 @@ PieChart.prototype.color = function(_){
     return this;
 };
 
+/**
+ * Calculate where to show the tooltip on a pie chart.
+ */
 PieChart.prototype.showTooltip = function(e, offsetElement) {
     var tooltipLabel = this.pie.description()(e.point) || this.pie.x()(e.point)
     var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
@@ -58,6 +80,9 @@ PieChart.prototype.showTooltip = function(e, offsetElement) {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
 };
 
+/**
+ * The PieChart model retuns a function wrapping an instance of a PieChart.
+ */
 nv.models.pieChart = function() {
   "use strict";
 
@@ -68,11 +93,6 @@ nv.models.pieChart = function() {
     return chart;
   }
 
-  // d3.select('#pies').data(set).call(nv.models.pieChart().setter(val))
-
-  //============================================================
-  // Expose Public Variables
-  //------------------------------------------------------------
   chart.legend = pieChart.legend;
   chart.dispatch = pieChart.dispatch;
   chart.pie = pieChart.pie;
