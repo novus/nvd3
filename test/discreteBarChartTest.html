@@ -136,15 +136,20 @@
                 }
             ];
 
-    function defaultChart(containerId, data, labelType) {
+    var width = 300,
+            height = 400;
+
+    function defaultChart(containerId, data) {
         nv.addGraph(function() {
             var chart = nv.models.discreteBarChart()
+                    //.width(width)
+                    .height(height)
                     .x(function(d) { return d.label })
                     .y(function(d) { return d.value })
                     .staggerLabels(true)
-                    .tooltips(false)
                     .showValues(true)
-                    .transitionDuration(250);
+                    .transitionDuration(250)
+                    ;
 
             d3.select('#'+containerId+' svg')
                     .datum(data)
