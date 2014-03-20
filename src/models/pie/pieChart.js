@@ -115,6 +115,8 @@ nv.models.pieChart = function() {
   ].forEach(function(method){
     chart[method] = function(arg1){
       var ret = null;
+      // Minor perf win for the 0, 1 arg versions
+      // http://jsperf.com/test-call-vs-apply/34
       switch (arguments.length) {
         case 0:
            ret = PieChart.prototype[method].call(pieChart); break;
