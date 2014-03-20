@@ -59,6 +59,14 @@ module.exports = function(grunt) {
               'nv.d3.min.css' : ['nv.d3.css']
             }
           }
+        },
+        mochaTest: {
+          nvd3: {
+            options: {
+              reporter: 'spec'
+            },
+            src: ['test/runner/loadAll.coffee']
+          }
         }
     });
 
@@ -68,6 +76,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-mocha-test');
+    grunt.loadNpmTasks('grunt-selenium-launcher');
+
+    grunt.registerTask('test', ['selenium-launch', 'mochaTest:nvd3'])
 
     grunt.registerTask('default', ['concat', 'copy']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
