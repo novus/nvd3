@@ -7,7 +7,7 @@ function PieChart(options){
     });
 
     options.chartClass = 'pieChart';
-    options.wrapClass = 'pieWrap';
+    options.wrapClass = 'pieChartWrap';
 
     Chart.call(this, options);
     this.pie = nv.models.pie();
@@ -33,9 +33,9 @@ PieChart.prototype.wrapChart = function(data){
       .width(this.available.width)
       .height(this.available.height);
 
-    var pieWrap = this.g.select('.nv-pieWrap').datum(data);
-    d3.transition(pieWrap).call(this.pie);
-}
+    var pieChartWrap = this.g.select('.nv-pieChartWrap').datum(data);
+    d3.transition(pieChartWrap).call(this.pie);
+};
 
 /**
  * Set up listeners for dispatches fired on the underlying
@@ -119,7 +119,7 @@ nv.models.pieChart = function() {
       // http://jsperf.com/test-call-vs-apply/34
       switch (arguments.length) {
         case 0:
-           ret = PieChart.prototype[method].call(pieChart); break;
+          ret = PieChart.prototype[method].call(pieChart); break;
         case 1:
           ret = PieChart.prototype[method].call(pieChart, arg1); break;
         default:
