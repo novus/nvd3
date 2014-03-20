@@ -17,7 +17,7 @@ describe "NVD3 Tests", ->
     files = glob.sync('test/*.html')
     it "Loads and Runs", (done)->
         flows = files.map (file)->
-            url = "http://localhost:8000/test/#{file.match(/.*\/([^\/]+)/)[1]}"
+            url = "http://localhost:8808/test/#{file.match(/.*\/([^\/]+)/)[1]}"
             webdriver.promise.createFlow ->
                 driver.get(url).then ->
                     console.log "Finished #{url}"

@@ -67,6 +67,17 @@ module.exports = function(grunt) {
             },
             src: ['test/runner/loadAll.coffee']
           }
+        },
+        connect: {
+          options: {
+            port: 8808
+          },
+          test: {},
+          serve: {
+            options: {
+              keepalive: true
+            }
+          }
         }
     });
 
@@ -76,10 +87,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-selenium-launcher');
 
-    grunt.registerTask('test', ['selenium-launch', 'mochaTest:nvd3'])
+    grunt.registerTask('test', ['connect:test', 'selenium-launch', 'mochaTest:nvd3'])
 
     grunt.registerTask('default', ['concat', 'copy']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
