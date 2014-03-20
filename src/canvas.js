@@ -202,6 +202,7 @@ function Chart(options, dispatch){
     Canvas.call(this, options, dispatch);
 
     this.legend = nv.models.legend();
+    this.state = nv.utils.valueOrDefault(this.state, {});
 }
 Chart.prototype = Object.create(Canvas.prototype);
 
