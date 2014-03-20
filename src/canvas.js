@@ -33,41 +33,41 @@ function Canvas(options, dispatch){
  * The magic happens in the render.
  */
 Canvas.prototype.render = function(selection) {
-    if(arguments.length === 1) {
-        this.selection = selection;
-    }
-
     var canvas_ = this;
-
     this.renderWatch.reset();
-    this.selection.each(function(data) {
+
+    selection.each(function(data) {
         // d3_selection_each iterates over the items in
         // the selection, passing it as the `this` context.
         // use setRoot to re-invert the object.
         canvas_.setRoot(this);
         canvas_.wrapChart(data);
-
-        canvas_.dispatch.on('changeState', function(e) {
-            if (typeof e.disabled !== 'undefined') {
-                data.forEach(function(series,i) {
-                    series.disabled = e.disabled[i];
-                });
-
-              state.disabled = e.disabled;
-            }
-
-            canvas_.render(selection);
-        });
     });
 
     this.renderWatch.renderEnd('' + this.name || 'canvas' + ' immediate');
 };
 
+Canvas.prototype.onDispatches = function(){
+    this.dispatch.on('changeState', function(e) {
+        if (typeof e.disabled !== 'undefined') {
+            data.forEach(function(series,i) {
+                series.disabled = e.disabled[i];
+            });
+
+          state.disabled = e.disabled;
+        }
+
+        this.update();
+    }.bind(this));
+}
+
 /**
  * Call the render function, let it use the last known selection.
  */
 Canvas.prototype.update = function(){
-    this.render();
+    this.svg.call(function(selection){
+        this.render(selection);
+    }.bind(this));
 };
 
 /**
@@ -262,11 +262,11 @@ Chart.prototype.showLegend = function(_) {
 };
 
 Chart.prototype.onDispatches = function(){
+    Canvas.prototype.onDispatches.call(this);
     this.legend.dispatch.on('stateChange', function(newState) {
       state = newState;
       this.dispatch.stateChange(state);
-      //  TODO
-      this.render();
+      this.update();
     }.bind(this));
 
     this.dispatch.on('tooltipShow', function(e) {
