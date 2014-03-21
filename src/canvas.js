@@ -154,7 +154,7 @@ Canvas.prototype.wrapChart = function(data, gs) {
     //   height: this.available.height
     // });
     var this_ = this;
-    [wrapClass].concat(gs).forEach(function(g){
+    gs.concat([wrapClass]).forEach(function(g){
         this_.gEnter.append('g').attr('class', g);
     });
 
