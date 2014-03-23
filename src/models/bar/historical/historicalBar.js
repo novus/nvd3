@@ -5,7 +5,7 @@ nv.models.historicalBar = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var canvas= new Canvas({
+  var Layer= new Layer({
         margin: {top: 0, right: 0, bottom: 0, left: 0}
         , width: 960
         , height: 500
@@ -34,10 +34,10 @@ nv.models.historicalBar = function() {
   function chart(selection) {
     selection.each(function(data) {
 
-      canvas.setRoot(this);
+      Layer.setRoot(this);
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+      var availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       //------------------------------------------------------------
       // Setup Scales
@@ -70,13 +70,13 @@ nv.models.historicalBar = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data[0].values);
-      canvas.gEnter.append('g').attr('class', 'nv-bars');
-      canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
+      Layer.wrapChart(data[0].values);
+      Layer.gEnter.append('g').attr('class', 'nv-bars');
+      Layer.wrap.attr('transform', 'translate(' + Layer.margin.left + ',' + Layer.margin.top + ')');
 
       //------------------------------------------------------------
 
-      canvas.svg.on('click', function(d,i) {
+      Layer.svg.on('click', function(d,i) {
         dispatch.chartClick({
             data: d,
             index: i,
@@ -85,17 +85,17 @@ nv.models.historicalBar = function() {
         });
       });
 
-      canvas.defsEnter.append('clipPath')
+      Layer.defsEnter.append('clipPath')
         .attr('id', 'nv-chart-clip-path-' + id)
         .append('rect');
 
-      canvas.wrap.select('#nv-chart-clip-path-' + id + ' rect')
+      Layer.wrap.select('#nv-chart-clip-path-' + id + ' rect')
         .attr('width', availableWidth)
         .attr('height', availableHeight);
 
-      canvas.g.attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
+      Layer.g.attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
-      var bars = canvas.wrap.select('.nv-bars')
+      var bars = Layer.wrap.select('.nv-bars')
         .selectAll('.nv-bar')
         .data(function(d) { return d }, function(d,i) {return getX(d,i)});
 
@@ -182,13 +182,13 @@ nv.models.historicalBar = function() {
 
   //Create methods to allow outside functions to highlight a specific bar.
   chart.highlightPoint = function(pointIndex, isHoverOver) {
-    d3.select(".nv-"+canvas.options.chartClass+"-" + id)
+    d3.select(".nv-"+Layer.options.chartClass+"-" + id)
       .select(".nv-bars .nv-bar-0-" + pointIndex)
       .classed("hover", isHoverOver);
   };
 
   chart.clearHighlights = function() {
-    d3.select(".nv-"+canvas.options.chartClass+"-" + id)
+    d3.select(".nv-"+Layer.options.chartClass+"-" + id)
       .select(".nv-bars .nv-bar.hover")
       .classed("hover", false);
   };
@@ -199,7 +199,7 @@ nv.models.historicalBar = function() {
   chart.dispatch = dispatch;
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
@@ -213,23 +213,23 @@ nv.models.historicalBar = function() {
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 

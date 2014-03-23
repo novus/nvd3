@@ -6,7 +6,7 @@ nv.models.discreteBar = function() {
   //------------------------------------------------------------
 
   var
-    canvas = new Canvas({
+    Layer = new Layer({
         margin : {top: 0, right: 0, bottom: 0, left: 0}
         , width : 960
         , height: 500
@@ -42,16 +42,16 @@ nv.models.discreteBar = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-        
+
       var dataLength = data.length,
           barClass = 'nv-bar';
-        
-      canvas.setRoot(this);
-      canvas.wrapChart(data);
-      canvas.gEnter.append('g').attr('class', 'nv-groups');
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+      Layer.setRoot(this);
+      Layer.wrapChart(data);
+      Layer.gEnter.append('g').attr('class', 'nv-groups');
+
+      var availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       //add series index to each data point for reference
       data.forEach(function(series, i) {
@@ -90,7 +90,7 @@ nv.models.discreteBar = function() {
 
       //TODO: by definition, the discrete bar should not have multiple groups, will modify/remove later
       var _opacity = 1e-6;
-      var groups = canvas.wrap.select('.nv-groups').selectAll('.nv-group')
+      var groups = Layer.wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d) { return d.key });
       groups.enter().append('g')
           .style('stroke-opacity', _opacity)
@@ -215,23 +215,23 @@ nv.models.discreteBar = function() {
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-    canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-    canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-    canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-    canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+    Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+    Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+    Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+    Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-      canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+      Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-      canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+      Layer.options.size.height = _;
     return chart;
   };
 

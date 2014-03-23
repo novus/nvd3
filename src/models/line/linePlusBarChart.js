@@ -13,7 +13,7 @@ nv.models.linePlusBarChart = function() {
     , legend = nv.models.legend()
     ;
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
         margin : {top: 30, right: 60, bottom: 50, left: 60},
         chartClass: 'linePlusBar'
       })
@@ -75,16 +75,16 @@ nv.models.linePlusBarChart = function() {
 
     selection.each(function(data) {
 
-      canvas.setRoot(this);
-      if (canvas.noData(data))
+      Layer.setRoot(this);
+      if (Layer.noData(data))
           return chart;
 
       var that = this,
-          availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+          availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       chart.update = function() {
-          canvas.svg.transition().call(chart);
+          Layer.svg.transition().call(chart);
       };
 
       //set state.disabled
@@ -121,14 +121,14 @@ nv.models.linePlusBarChart = function() {
 /*      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-linePlusBar').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
       var g = wrap.select('g');*/
-      canvas.wrapChart(data);
+      Layer.wrapChart(data);
 
-      canvas.gEnter.append('g').attr('class', 'nv-x nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-y1 nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-y2 nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-barsWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-linesWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-legendWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-x nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-y2 nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-barsWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-linesWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-legendWrap');
 
       //------------------------------------------------------------
 
@@ -136,10 +136,10 @@ nv.models.linePlusBarChart = function() {
       //------------------------------------------------------------
       // Legend
 
-      if (canvas.options.showLegend) {
+      if (Layer.options.showLegend) {
         legend.width( availableWidth / 2 );
 
-        canvas.g.select('.nv-legendWrap')
+        Layer.g.select('.nv-legendWrap')
             .datum(data.map(function(series) {
               series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
               series.key = series.originalKey + (series.bar ? ' (left axis)' : ' (right axis)');
@@ -147,18 +147,18 @@ nv.models.linePlusBarChart = function() {
             }))
           .call(legend);
 
-        if ( canvas.margin.top != legend.height()) {
-            canvas.margin.top = legend.height();
-            availableHeight = (height || parseInt(canvas.svg.style('height')) || 400)
-                             - canvas.margin.top - canvas.margin.bottom;
+        if ( Layer.margin.top != legend.height()) {
+            Layer.margin.top = legend.height();
+            availableHeight = (height || parseInt(Layer.svg.style('height')) || 400)
+                             - Layer.margin.top - Layer.margin.bottom;
         }
-        canvas.g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-canvas.margin.top) +')');
+        Layer.g.select('.nv-legendWrap')
+            .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-Layer.margin.top) +')');
       }
 
       //------------------------------------------------------------
 
-      canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
+      Layer.wrap.attr('transform', 'translate(' + Layer.margin.left + ',' + Layer.margin.top + ')');
 
       //------------------------------------------------------------
       // Main Chart Component(s)
@@ -177,10 +177,10 @@ nv.models.linePlusBarChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
-      var barsWrap = canvas.g.select('.nv-barsWrap')
+      var barsWrap = Layer.g.select('.nv-barsWrap')
           .datum(dataBars.length ? dataBars : [{values:[]}]);
 
-      var linesWrap = canvas.g.select('.nv-linesWrap')
+      var linesWrap = Layer.g.select('.nv-linesWrap')
           .datum(dataLines[0] && !dataLines[0].disabled ? dataLines : [{values:[]}] );
           //.datum(!dataLines[0].disabled ? dataLines : [{values:dataLines[0].values.map(function(d) { return [d[0], null] }) }] );
 
@@ -198,9 +198,9 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-      canvas.g.select('.nv-x.nv-axis')
+      Layer.g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y1.range()[0] + ')');
-      d3.transition(canvas.g.select('.nv-x.nv-axis'))
+      d3.transition(Layer.g.select('.nv-x.nv-axis'))
           .call(xAxis);
 
       y1Axis
@@ -208,7 +208,7 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
-      d3.transition(canvas.g.select('.nv-y1.nv-axis'))
+      d3.transition(Layer.g.select('.nv-y1.nv-axis'))
           .style('opacity', dataBars.length ? 1 : 0)
           .call(y1Axis);
 
@@ -217,12 +217,12 @@ nv.models.linePlusBarChart = function() {
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
-      canvas.g.select('.nv-y2.nv-axis')
+      Layer.g.select('.nv-y2.nv-axis')
           .style('opacity', dataLines.length ? 1 : 0)
           .attr('transform', 'translate(' + availableWidth + ',0)');
           //.attr('transform', 'translate(' + x.range()[1] + ',0)');
 
-      d3.transition(canvas.g.select('.nv-y2.nv-axis'))
+      d3.transition(Layer.g.select('.nv-y2.nv-axis'))
           .call(y2Axis);
 
       //------------------------------------------------------------
@@ -232,7 +232,7 @@ nv.models.linePlusBarChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
         state = newState;
         dispatch.stateChange(state);
         chart.update();
@@ -267,7 +267,7 @@ nv.models.linePlusBarChart = function() {
 
   lines
     .dispatch.on('elementMouseover.tooltip', function(e) {
-      e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
+      e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
       dispatch.tooltipShow(e);
     })
     .on('elementMouseout.tooltip', function(e) {
@@ -276,7 +276,7 @@ nv.models.linePlusBarChart = function() {
 
   bars
     .dispatch.on('elementMouseover.tooltip', function(e) {
-      e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
+      e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
       dispatch.tooltipShow(e);
     })
     .on('elementMouseout.tooltip', function(e) {
@@ -308,7 +308,7 @@ nv.models.linePlusBarChart = function() {
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
@@ -326,23 +326,23 @@ nv.models.linePlusBarChart = function() {
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.width;
-    canvas.options.width = _;
+    if (!arguments.length) return Layer.options.width;
+    Layer.options.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.height;
-      canvas.options.height = _;
+    if (!arguments.length) return Layer.options.height;
+      Layer.options.height = _;
     return chart;
   };
 
@@ -354,8 +354,8 @@ nv.models.linePlusBarChart = function() {
   };
 
   chart.showLegend = function(_) {
-    if (!arguments.length) return canvas.options.showLegend;
-      canvas.options.showLegend = _;
+    if (!arguments.length) return Layer.options.showLegend;
+      Layer.options.showLegend = _;
     return chart;
   };
 
@@ -384,8 +384,8 @@ nv.models.linePlusBarChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
+    if (!arguments.length) return Layer.options.noData;
+    Layer.options.noData = _;
     return chart;
   };
 

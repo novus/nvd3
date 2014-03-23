@@ -11,7 +11,7 @@ nv.models.multiBarChart = function() {
     , controls = nv.models.legend()
     ;
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
         margin : {top: 30, right: 20, bottom: 50, left: 60}
           , chartClass: 'multiBarWithLegend'
           , wrapClass: ''
@@ -83,19 +83,19 @@ nv.models.multiBarChart = function() {
 
     selection.each(function(data) {
 
-      canvas.setRoot(this);
-      if (canvas.noData(data))
+      Layer.setRoot(this);
+      if (Layer.noData(data))
           return chart;
 
       var that = this,
-          availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+          availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       chart.update = function() {
         if (duration === 0)
-          canvas.svg.call(chart);
+          Layer.svg.call(chart);
         else
-          canvas.svg.transition()
+          Layer.svg.transition()
             .duration(duration)
             .call(chart);
       };
@@ -127,13 +127,13 @@ nv.models.multiBarChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
+      Layer.wrapChart(data);
 
-      canvas.gEnter.append('g').attr('class', 'nv-x nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-y nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-barsWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-legendWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-controlsWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-x nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-y nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-barsWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-legendWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-controlsWrap');
 
       //------------------------------------------------------------
 
@@ -141,7 +141,7 @@ nv.models.multiBarChart = function() {
       //------------------------------------------------------------
       // Legend
 
-      if (canvas.options.showLegend) {
+      if (Layer.options.showLegend) {
         legend.width(availableWidth - controlWidth());
 
         if (multibar.barColor())
@@ -149,18 +149,18 @@ nv.models.multiBarChart = function() {
             series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
           });
 
-        canvas.g.select('.nv-legendWrap')
+        Layer.g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
-        if ( canvas.margin.top != legend.height()) {
-          canvas.margin.top = legend.height();
-          availableHeight = (height || parseInt(canvas.svg.style('height')) || 400)
-                             - canvas.margin.top - canvas.margin.bottom;
+        if ( Layer.margin.top != legend.height()) {
+          Layer.margin.top = legend.height();
+          availableHeight = (height || parseInt(Layer.svg.style('height')) || 400)
+                             - Layer.margin.top - Layer.margin.bottom;
         }
 
-        canvas.g.select('.nv-legendWrap')
-          .attr('transform', 'translate(' + controlWidth() + ',' + (-canvas.margin.top) +')');
+        Layer.g.select('.nv-legendWrap')
+          .attr('transform', 'translate(' + controlWidth() + ',' + (-Layer.margin.top) +')');
       }
 
       //------------------------------------------------------------
@@ -176,19 +176,19 @@ nv.models.multiBarChart = function() {
         ];
 
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
-        canvas.g.select('.nv-controlsWrap')
+        Layer.g.select('.nv-controlsWrap')
             .datum(controlsData)
-            .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
+            .attr('transform', 'translate(0,' + (-Layer.margin.top) +')')
             .call(controls);
       }
 
       //------------------------------------------------------------
 
 
-      canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
+      Layer.wrap.attr('transform', 'translate(' + Layer.margin.left + ',' + Layer.margin.top + ')');
 
       if (rightAlignYAxis) {
-        canvas.g.select(".nv-y.nv-axis")
+        Layer.g.select(".nv-y.nv-axis")
           .attr("transform", "translate(" + availableWidth + ",0)");
       }
 
@@ -204,7 +204,7 @@ nv.models.multiBarChart = function() {
         }).filter(function(d,i) { return !data[i].disabled }));
 
 
-      var barsWrap = canvas.g.select('.nv-barsWrap')
+      var barsWrap = Layer.g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }));
 
       barsWrap.call(multibar);
@@ -221,12 +221,12 @@ nv.models.multiBarChart = function() {
             .ticks( availableWidth / 100 )
             .tickSize(-availableHeight, 0);
 
-          canvas.g.select('.nv-x.nv-axis')
+          Layer.g.select('.nv-x.nv-axis')
               .attr('transform', 'translate(0,' + y.range()[0] + ')');
-          canvas.g.select('.nv-x.nv-axis').transition()
+          Layer.g.select('.nv-x.nv-axis').transition()
               .call(xAxis);
 
-          var xTicks = canvas.g.select('.nv-x.nv-axis > g').selectAll('g');
+          var xTicks = Layer.g.select('.nv-x.nv-axis > g').selectAll('g');
 
           xTicks
               .selectAll('line, text')
@@ -246,7 +246,7 @@ nv.models.multiBarChart = function() {
                   });
 
               var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
-              canvas.g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
+              Layer.g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
                 .attr("transform", function(d,i) {
                     return getTranslate(0, (i === 0 || totalInBetweenTicks % 2 !== 0) ? staggerDown : staggerUp);
                 });
@@ -266,7 +266,7 @@ nv.models.multiBarChart = function() {
               .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
               .style('text-anchor', rotateLabels > 0 ? 'start' : 'end');
 
-          canvas.g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
+          Layer.g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
             .style('opacity', 1);
       }
 
@@ -276,7 +276,7 @@ nv.models.multiBarChart = function() {
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
-          canvas.g.select('.nv-y.nv-axis').transition()
+          Layer.g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
       }
 
@@ -357,7 +357,7 @@ nv.models.multiBarChart = function() {
   //------------------------------------------------------------
 
   multibar.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
+    e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
     dispatch.tooltipShow(e);
   });
 
@@ -388,23 +388,23 @@ nv.models.multiBarChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-      canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+      Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-      canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+      Layer.options.size.height = _;
     return chart;
   };
 
@@ -422,8 +422,8 @@ nv.models.multiBarChart = function() {
   };
 
   chart.showLegend = function(_) {
-    if (!arguments.length) return canvas.options.showLegend;
-    canvas.options.showLegend = _;
+    if (!arguments.length) return Layer.options.showLegend;
+    Layer.options.showLegend = _;
     return chart;
   };
 
@@ -493,10 +493,10 @@ nv.models.multiBarChart = function() {
     defaultState = _;
     return chart;
   };
-  
+
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
+    if (!arguments.length) return Layer.options.noData;
+    Layer.options.noData = _;
     return chart;
   };
 

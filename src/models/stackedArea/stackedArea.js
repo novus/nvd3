@@ -5,7 +5,7 @@ nv.models.stackedArea = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
           margin: {top: 0, right: 0, bottom: 0, left: 0}
           , chartClass: 'stackedarea'
           , wrapClass: 'areaWrap'
@@ -54,10 +54,10 @@ nv.models.stackedArea = function() {
 
     selection.each(function(data) {
 
-      canvas.setRoot(this);
+      Layer.setRoot(this);
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+      var availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       //------------------------------------------------------------
       // Setup Scales
@@ -101,8 +101,8 @@ nv.models.stackedArea = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
-      canvas.gEnter.append('g').attr('class', 'nv-scatterWrap');
+      Layer.wrapChart(data);
+      Layer.gEnter.append('g').attr('class', 'nv-scatterWrap');
 
       //------------------------------------------------------------
 
@@ -116,20 +116,20 @@ nv.models.stackedArea = function() {
           return d.color || color(d, d.seriesIndex);
         }));
 
-      var scatterWrap = canvas.g.select('.nv-scatterWrap')
+      var scatterWrap = Layer.g.select('.nv-scatterWrap')
         .datum(data);
 
       scatterWrap.call(scatter);
 
-      canvas.defsEnter.append('clipPath')
+      Layer.defsEnter.append('clipPath')
         .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
-      canvas.wrap.select('#nv-edge-clip-' + id + ' rect')
+      Layer.wrap.select('#nv-edge-clip-' + id + ' rect')
         .attr('width', availableWidth)
         .attr('height', availableHeight);
 
-      canvas.g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+      Layer.g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
       var area = d3.svg.area()
         .x(function(d)  { return x(getX(d)) })
@@ -142,7 +142,7 @@ nv.models.stackedArea = function() {
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y0) });
 
-      var path = canvas.g.select('.nv-areaWrap').selectAll('path.nv-area')
+      var path = Layer.g.select('.nv-areaWrap').selectAll('path.nv-area')
           .data(function(d) { return d });
 
       var _mouseEventObject = function(d){
@@ -185,11 +185,11 @@ nv.models.stackedArea = function() {
       };
       scatter.dispatch
         .on('elementMouseover.area', function(e) {
-          canvas.g.select( _mouseEventSelector(e) )
+          Layer.g.select( _mouseEventSelector(e) )
             .classed('hover', true);
         })
         .on('elementMouseout.area', function(e) {
-          canvas.g.select( _mouseEventSelector(e) )
+          Layer.g.select( _mouseEventSelector(e) )
             .classed('hover', false);
         });
 
@@ -231,7 +231,7 @@ nv.models.stackedArea = function() {
         dispatch.areaClick(e);
     })
     .on('elementMouseover.tooltip', function(e) {
-      e.pos = [e.pos[0] + canvas.margin.left, e.pos[1] + canvas.margin.top];
+      e.pos = [e.pos[0] + Layer.margin.left, e.pos[1] + Layer.margin.top];
       dispatch.tooltipShow(e);
     })
     .on('elementMouseout.tooltip', function(e) {
@@ -265,23 +265,23 @@ nv.models.stackedArea = function() {
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 

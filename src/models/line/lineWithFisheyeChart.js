@@ -4,8 +4,8 @@ nv.models.lineChartFisheye = function() {
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
-    
-  var canvas = new Canvas({
+
+  var Layer = new Layer({
         margin: {top: 30, right: 20, bottom: 50, left: 60}
         , chartClass: 'lineChart'
       })
@@ -43,49 +43,49 @@ nv.models.lineChartFisheye = function() {
 
   function chart(selection) {
     selection.each(function(data) {
-        
-      canvas.setRoot(this);
-      if (canvas.noData(data))
-        return chart;
-        
-      var that = this
-          , availableWidth = canvas.available.width
-          , availableHeight = canvas.available.height;
 
-      chart.update = function() { canvas.svg.transition().call(chart) };
+      Layer.setRoot(this);
+      if (Layer.noData(data))
+        return chart;
+
+      var that = this
+          , availableWidth = Layer.available.width
+          , availableHeight = Layer.available.height;
+
+      chart.update = function() { Layer.svg.transition().call(chart) };
       chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
 
-      canvas.wrapChart(data);
+      Layer.wrapChart(data);
 
-      canvas.gEnter.append('rect')
+      Layer.gEnter.append('rect')
           .attr('class', 'nvd3 nv-background')
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-        canvas.gEnter.append('g').attr('class', 'nv-x nv-axis');
-        canvas.gEnter.append('g').attr('class', 'nv-y nv-axis');
-        canvas.gEnter.append('g').attr('class', 'nv-linesWrap');
-        canvas.gEnter.append('g').attr('class', 'nv-legendWrap');
-        canvas.gEnter.append('g').attr('class', 'nv-controlsWrap');
-        canvas.gEnter.append('g').attr('class', 'nv-controlsWrap');
+        Layer.gEnter.append('g').attr('class', 'nv-x nv-axis');
+        Layer.gEnter.append('g').attr('class', 'nv-y nv-axis');
+        Layer.gEnter.append('g').attr('class', 'nv-linesWrap');
+        Layer.gEnter.append('g').attr('class', 'nv-legendWrap');
+        Layer.gEnter.append('g').attr('class', 'nv-controlsWrap');
+        Layer.gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-      var g = canvas.wrap.select('g');
+      var g = Layer.wrap.select('g');
 
-      if (canvas.options.showLegend) {
+      if (Layer.options.showLegend) {
         legend.width(availableWidth);
         g.select('.nv-legendWrap').datum(data).call(legend);
-        if ( canvas.margin.top != legend.height()) {
-          canvas.margin.top = legend.height();
-          availableHeight = (canvas.options.size.height || parseInt(canvas.svg.style('height')) || 400)
-                             - canvas.margin.top - canvas.margin.bottom;
+        if ( Layer.margin.top != legend.height()) {
+          Layer.margin.top = legend.height();
+          availableHeight = (Layer.options.size.height || parseInt(Layer.svg.style('height')) || 400)
+                             - Layer.margin.top - Layer.margin.bottom;
         }
-        g.select('.nv-legendWrap').attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
+        g.select('.nv-legendWrap').attr('transform', 'translate(0,' + (-Layer.margin.top) +')')
       }
       if (showControls) {
         controls.width(180).color(['#444']);
         g.select('.nv-controlsWrap')
             .datum(controlsData)
-            .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
+            .attr('transform', 'translate(0,' + (-Layer.margin.top) +')')
             .call(controls);
       }
       lines
@@ -154,7 +154,7 @@ nv.models.lineChartFisheye = function() {
           chart.update();
         })
         .on('elementMouseover.tooltip', function(e) {
-          e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
+          e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
           dispatch.tooltipShow(e);
         });
       if (tooltips)
@@ -179,23 +179,23 @@ nv.models.lineChartFisheye = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 
@@ -207,8 +207,8 @@ nv.models.lineChartFisheye = function() {
   };
 
   chart.showLegend = function(_) {
-    if (!arguments.length) return canvas.options.showLegend;
-    canvas.options.showLegend = _;
+    if (!arguments.length) return Layer.options.showLegend;
+    Layer.options.showLegend = _;
     return chart;
   };
 
@@ -225,8 +225,8 @@ nv.models.lineChartFisheye = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
+    if (!arguments.length) return Layer.options.noData;
+    Layer.options.noData = _;
     return chart;
   };
 

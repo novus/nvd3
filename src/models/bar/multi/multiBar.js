@@ -4,7 +4,7 @@ nv.models.multiBar = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
           margin : {top: 0, right: 0, bottom: 0, left: 0}
           , width: 960
           , height: 500
@@ -49,10 +49,10 @@ nv.models.multiBar = function() {
     renderWatch.reset();
     selection.each(function(data) {
 
-      canvas.setRoot(this);
+      Layer.setRoot(this);
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+      var availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
 
       // This function defines the requirements for render complete
@@ -139,21 +139,21 @@ nv.models.multiBar = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
-      canvas.gEnter.append('g').attr('class', 'nv-groups');
+      Layer.wrapChart(data);
+      Layer.gEnter.append('g').attr('class', 'nv-groups');
 
       //------------------------------------------------------------
 
-      canvas.defsEnter.append('clipPath')
+      Layer.defsEnter.append('clipPath')
         .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
-      canvas.wrap.select('#nv-edge-clip-' + id + ' rect')
+      Layer.wrap.select('#nv-edge-clip-' + id + ' rect')
         .attr('width', availableWidth)
         .attr('height', availableHeight);
 
-      canvas.g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+      Layer.g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-      var groups = canvas.wrap.select('.nv-groups').selectAll('.nv-group')
+      var groups = Layer.wrap.select('.nv-groups').selectAll('.nv-group')
           .data(function(d) { return d }, function(d,i) { return i });
       groups.enter().append('g')
           .style('stroke-opacity', 1e-6)
@@ -311,23 +311,23 @@ nv.models.multiBar = function() {
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-      canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+      Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-      canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+      Layer.options.size.height = _;
     return chart;
   };
 

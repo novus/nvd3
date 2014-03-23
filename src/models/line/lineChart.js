@@ -11,7 +11,7 @@ nv.models.lineChart = function() {
     , interactiveLayer = nv.interactiveGuideline()
     ;
 
-  var canvas = new Chart({
+  var Layer = new Chart({
       margin: {
         top     : 30,
         right   : 20,
@@ -73,14 +73,14 @@ nv.models.lineChart = function() {
 
     selection.each(function(data) {
 
-      canvas.setRoot(this);
+      Layer.setRoot(this);
 
       var that = this,
-          availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+          availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       chart.update = function() {
-        canvas.svg
+        Layer.svg
           .transition()
           .duration(duration)
           .call(chart)
@@ -103,7 +103,7 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Display noData message if there's nothing to show.
 
-      if (canvas.noData(data))
+      if (Layer.noData(data))
         return chart;
 
       //------------------------------------------------------------
@@ -121,10 +121,10 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data, ['nv-interactive']);
+      Layer.wrapChart(data, ['nv-interactive']);
 
       if (rightAlignYAxis)
-          canvas.g.select(".nv-y.nv-axis")
+          Layer.g.select(".nv-y.nv-axis")
               .attr("transform", "translate(" + availableWidth + ",0)");
 
       //------------------------------------------------------------
@@ -137,12 +137,12 @@ nv.models.lineChart = function() {
           .width(availableWidth)
           .height(availableHeight)
           .margin({
-             left: canvas.margin.left,
-             top: canvas.margin.top
+             left: Layer.margin.left,
+             top: Layer.margin.top
            })
-          .svgContainer(canvas.svg)
+          .svgContainer(Layer.svg)
           .xScale(x);
-        canvas.wrap.select(".nv-interactive").call(interactiveLayer);
+        Layer.wrap.select(".nv-interactive").call(interactiveLayer);
       }
 
       lines
@@ -153,7 +153,7 @@ nv.models.lineChart = function() {
         })
         .filter(function(d,i) { return !data[i].disabled }));
 
-      var linesWrap = canvas.g.select('.nv-linesWrap')
+      var linesWrap = Layer.g.select('.nv-linesWrap')
         .datum(data.filter(function(d) { return !d.disabled }))
         .transition()
         .call(lines);
@@ -169,7 +169,7 @@ nv.models.lineChart = function() {
           .scale(x)
           .ticks( availableWidth / 100 )
           .tickSize(-availableHeight, 0);
-        canvas.g.select('.nv-x.nv-axis')
+        Layer.g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + y.range()[0] + ')')
           .transition()
           .call(xAxis);
@@ -180,7 +180,7 @@ nv.models.lineChart = function() {
           .scale(y)
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
-        canvas.g.select('.nv-y.nv-axis')
+        Layer.g.select('.nv-y.nv-axis')
           .transition()
           .call(yAxis);
       }
@@ -189,7 +189,7 @@ nv.models.lineChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      canvas.legend.dispatch.on('stateChange', function(newState) {
+      Layer.legend.dispatch.on('stateChange', function(newState) {
           state = newState;
           dispatch.stateChange(state);
           chart.update();
@@ -229,8 +229,8 @@ nv.models.lineChart = function() {
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint, pointIndex));
           interactiveLayer.tooltip
             .position({
-              left: pointXLocation + canvas.margin.left,
-              top: e.mouseY + canvas.margin.top
+              left: pointXLocation + Layer.margin.left,
+              top: e.mouseY + Layer.margin.top
             })
             .chartContainer(that.parentNode)
             .enabled(tooltips)
@@ -276,7 +276,7 @@ nv.models.lineChart = function() {
 
   lines.dispatch
     .on('elementMouseover.tooltip', function(e) {
-      e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
+      e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
       dispatch.tooltipShow(e);
     })
     .on('elementMouseout.tooltip', function(e) {
@@ -297,7 +297,7 @@ nv.models.lineChart = function() {
   // expose chart's sub-components
   chart.dispatch = dispatch;
   chart.lines = lines;
-  chart.legend = canvas.legend;
+  chart.legend = Layer.legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
@@ -308,30 +308,30 @@ nv.models.lineChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-      canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+      Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-      canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+      Layer.options.size.height = _;
     return chart;
   };
 
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-    canvas.legend.color(color);
+    Layer.legend.color(color);
     return chart;
   };
 
@@ -389,8 +389,8 @@ nv.models.lineChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
+    if (!arguments.length) return Layer.options.noData;
+    Layer.options.noData = _;
     return chart;
   };
 

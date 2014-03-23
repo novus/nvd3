@@ -5,7 +5,7 @@ nv.models.sparkline = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
         margin: {top: 2, right: 0, bottom: 2, left: 0}
         , width : 400
         , height : 32
@@ -29,11 +29,11 @@ nv.models.sparkline = function() {
   function chart(selection) {
     selection.each(function(data) {
 
-      canvas.setRoot(this);
-      canvas.wrapChart(data);
+      Layer.setRoot(this);
+      Layer.wrapChart(data);
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+      var availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       //------------------------------------------------------------
       // Setup Scales
@@ -46,7 +46,7 @@ nv.models.sparkline = function() {
 
       //------------------------------------------------------------
 
-      var paths = canvas.wrap.selectAll('path')
+      var paths = Layer.wrap.selectAll('path')
           .data(function(d) { return [d] });
       paths.enter().append('path');
       paths.exit().remove();
@@ -58,7 +58,7 @@ nv.models.sparkline = function() {
         );
 
       // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
-      var points = canvas.wrap.selectAll('circle.nv-point')
+      var points = Layer.wrap.selectAll('circle.nv-point')
         .data(function(data) {
           var yValues = data.map(function(d, i) { return getY(d,i); });
           function pointIndex(index) {
@@ -94,25 +94,25 @@ nv.models.sparkline = function() {
   // Expose Public Variables
   //------------------------------------------------------------
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-    canvas.margin.top    = typeof _.top    != 'undefined' ? _.top    : canvas.margin.top;
-    canvas.margin.right  = typeof _.right  != 'undefined' ? _.right  : canvas.margin.right;
-    canvas.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : canvas.margin.bottom;
-    canvas.margin.left   = typeof _.left   != 'undefined' ? _.left   : canvas.margin.left;
+    if (!arguments.length) return Layer.margin;
+    Layer.margin.top    = typeof _.top    != 'undefined' ? _.top    : Layer.margin.top;
+    Layer.margin.right  = typeof _.right  != 'undefined' ? _.right  : Layer.margin.right;
+    Layer.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : Layer.margin.bottom;
+    Layer.margin.left   = typeof _.left   != 'undefined' ? _.left   : Layer.margin.left;
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 

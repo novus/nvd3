@@ -8,7 +8,7 @@ nv.models.bullet = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
           margin: {top: 0, right: 0, bottom: 0, left: 0}
           , width: 380
           , height: 30
@@ -34,14 +34,14 @@ nv.models.bullet = function() {
   function chart(selection) {
     selection.each(function(data, i) {
 
-      canvas.setRoot(this);
+      Layer.setRoot(this);
 
-      // return if no data, TODO: to use common noData() function from canvas
+      // return if no data, TODO: to use common noData() function from Layer
       if ( !data || typeof  data == 'undefined' || data == null )
         return chart;
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+      var availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
 
       var rangez = ranges.call(this, data, i).slice().sort(d3.descending),
           markerz = markers.call(this, data, i).slice().sort(d3.descending),
@@ -73,12 +73,12 @@ nv.models.bullet = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
-      canvas.gEnter.append('rect').attr('class', 'nv-range nv-rangeMax');
-      canvas.gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
-      canvas.gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
-      canvas.gEnter.append('rect').attr('class', 'nv-measure');
-      canvas.gEnter.append('path').attr('class', 'nv-markerTriangle');
+      Layer.wrapChart(data);
+      Layer.gEnter.append('rect').attr('class', 'nv-range nv-rangeMax');
+      Layer.gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
+      Layer.gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
+      Layer.gEnter.append('rect').attr('class', 'nv-measure');
+      Layer.gEnter.append('path').attr('class', 'nv-markerTriangle');
 
       //------------------------------------------------------------
 
@@ -87,19 +87,19 @@ nv.models.bullet = function() {
       var xp0 = function(d) { return d < 0 ? x0(d) : x0(0) },
           xp1 = function(d) { return d < 0 ? x1(d) : x1(0) };
 
-      canvas.g.select('rect.nv-rangeMax')
+      Layer.g.select('rect.nv-rangeMax')
         .attr('height', availableHeight)
         .attr('width', w1(rangeMax > 0 ? rangeMax : rangeMin))
         .attr('x', xp1(rangeMax > 0 ? rangeMax : rangeMin))
         .datum(rangeMax > 0 ? rangeMax : rangeMin);
 
-      canvas.g.select('rect.nv-rangeAvg')
+      Layer.g.select('rect.nv-rangeAvg')
         .attr('height', availableHeight)
         .attr('width', w1(rangeAvg))
         .attr('x', xp1(rangeAvg))
         .datum(rangeAvg);
 
-      canvas.g.select('rect.nv-rangeMin')
+      Layer.g.select('rect.nv-rangeMin')
         .attr('height', availableHeight)
         .attr('width', w1(rangeMax))
         .attr('x', xp1(rangeMax))
@@ -107,7 +107,7 @@ nv.models.bullet = function() {
         .attr('x', xp1(rangeMax > 0 ? rangeMin : rangeMax))
         .datum(rangeMax > 0 ? rangeMin : rangeMax);
 
-      canvas.g.select('rect.nv-measure')
+      Layer.g.select('rect.nv-measure')
         .style('fill', color)
         .attr('height', availableHeight / 3)
         .attr('y', availableHeight / 3)
@@ -129,7 +129,7 @@ nv.models.bullet = function() {
 
       var h3 =  availableHeight / 6;
       if (markerz[0]) {
-        canvas.g.selectAll('path.nv-markerTriangle')
+        Layer.g.selectAll('path.nv-markerTriangle')
             .attr('transform', function() { return 'translate(' + x1(markerz[0]) + ',' + (availableHeight / 2) + ')' })
             .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
             .on('mouseover', function() {
@@ -146,9 +146,9 @@ nv.models.bullet = function() {
               })
             });
       } else
-        canvas.g.selectAll('path.nv-markerTriangle').remove();
+        Layer.g.selectAll('path.nv-markerTriangle').remove();
 
-      canvas.wrap.selectAll('.nv-range')
+      Layer.wrap.selectAll('.nv-range')
         .on('mouseover', function(d,i) {
           var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
           dispatch.elementMouseover({
@@ -213,23 +213,23 @@ nv.models.bullet = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 

@@ -13,7 +13,7 @@ nv.models.cumulativeLineChart = function() {
     , interactiveLayer = nv.interactiveGuideline()
     ;
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
         margin: {top: 30, right: 30, bottom: 50, left: 60}
         , chartClass: 'cumulativeLine'
       })
@@ -80,21 +80,21 @@ nv.models.cumulativeLineChart = function() {
     if (showYAxis) renderWatch.models(yAxis);
     selection.each(function(data) {
 
-      canvas.setRoot(this);
+      Layer.setRoot(this);
       d3.select(this).classed('nv-chart-' + id, true);
-      if (canvas.noData(data))
+      if (Layer.noData(data))
         return chart;
 
       var that = this,
-          availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height;
+          availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height;
       chart.container = this;
 
       chart.update = function() {
         if (duration === 0)
-          canvas.svg.call(chart);
+          Layer.svg.call(chart);
         else
-          canvas.svg.transition().duration(duration).call(chart)
+          Layer.svg.transition().duration(duration).call(chart)
       };
 
       //set state.disabled
@@ -174,34 +174,34 @@ nv.models.cumulativeLineChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
-      canvas.gEnter.append('g').attr('class', 'nv-interactive');
-      canvas.gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events","none");
-      canvas.gEnter.append('g').attr('class', 'nv-y nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-background');
-      canvas.gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events", (useInteractiveGuideline) ? "none" : "all");
-      canvas.gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events","none");
-      canvas.gEnter.append('g').attr('class', 'nv-legendWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-controlsWrap');
+      Layer.wrapChart(data);
+      Layer.gEnter.append('g').attr('class', 'nv-interactive');
+      Layer.gEnter.append('g').attr('class', 'nv-x nv-axis').style("pointer-events","none");
+      Layer.gEnter.append('g').attr('class', 'nv-y nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-background');
+      Layer.gEnter.append('g').attr('class', 'nv-linesWrap').style("pointer-events", (useInteractiveGuideline) ? "none" : "all");
+      Layer.gEnter.append('g').attr('class', 'nv-avgLinesWrap').style("pointer-events","none");
+      Layer.gEnter.append('g').attr('class', 'nv-legendWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-controlsWrap');
 
       //------------------------------------------------------------
       // Legend
 
-      if (canvas.options.showLegend) {
+      if (Layer.options.showLegend) {
         legend.width(availableWidth);
 
-        canvas.g.select('.nv-legendWrap')
+        Layer.g.select('.nv-legendWrap')
             .datum(data)
             .call(legend);
 
-        if ( canvas.margin.top != legend.height()) {
-          canvas.margin.top = legend.height();
-          availableHeight = (height || parseInt(canvas.svg.style('height')) || 400)
-                             - canvas.margin.top - canvas.margin.bottom;
+        if ( Layer.margin.top != legend.height()) {
+          Layer.margin.top = legend.height();
+          availableHeight = (height || parseInt(Layer.svg.style('height')) || 400)
+                             - Layer.margin.top - Layer.margin.bottom;
         }
 
-        canvas.g.select('.nv-legendWrap')
-            .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
+        Layer.g.select('.nv-legendWrap')
+            .attr('transform', 'translate(0,' + (-Layer.margin.top) +')')
       }
 
       //------------------------------------------------------------
@@ -221,24 +221,24 @@ nv.models.cumulativeLineChart = function() {
             .margin({top: 5, right: 0, bottom: 5, left: 20})
             ;
 
-        canvas.g.select('.nv-controlsWrap')
+        Layer.g.select('.nv-controlsWrap')
             .datum(controlsData)
-            .attr('transform', 'translate(0,' + (-canvas.margin.top) +')')
+            .attr('transform', 'translate(0,' + (-Layer.margin.top) +')')
             .call(controls);
       }
 
       //------------------------------------------------------------
 
       if (rightAlignYAxis)
-          canvas.g.select(".nv-y.nv-axis")
+          Layer.g.select(".nv-y.nv-axis")
               .attr("transform", "translate(" + availableWidth + ",0)");
 
       // Show error if series goes below 100%
       var tempDisabled = data.filter(function(d) { return d.tempDisabled });
 
-      canvas.wrap.select('.tempDisabled').remove(); //clean-up and prevent duplicates
+      Layer.wrap.select('.tempDisabled').remove(); //clean-up and prevent duplicates
       if (tempDisabled.length) {
-        canvas.wrap.append('text').attr('class', 'tempDisabled')
+        Layer.wrap.append('text').attr('class', 'tempDisabled')
           .attr('x', availableWidth / 2)
           .attr('y', '-.71em')
           .style('text-anchor', 'end')
@@ -254,16 +254,16 @@ nv.models.cumulativeLineChart = function() {
         interactiveLayer
           .width(availableWidth)
           .height(availableHeight)
-          .margin({left:canvas.margin.left,top:canvas.margin.top})
-          .svgContainer(canvas.svg)
+          .margin({left:Layer.margin.left,top:Layer.margin.top})
+          .svgContainer(Layer.svg)
           .xScale(x);
-        canvas.wrap.select(".nv-interactive").call(interactiveLayer);
+        Layer.wrap.select(".nv-interactive").call(interactiveLayer);
       }
 
-      canvas.gEnter.select('.nv-background')
+      Layer.gEnter.select('.nv-background')
         .append('rect');
 
-      canvas.g.select('.nv-background rect')
+      Layer.g.select('.nv-background rect')
         .attr('width', availableWidth)
         .attr('height', availableHeight);
 
@@ -278,7 +278,7 @@ nv.models.cumulativeLineChart = function() {
                   .filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled; })
           );
 
-      var linesWrap = canvas.g.select('.nv-linesWrap')
+      var linesWrap = Layer.g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return  !d.disabled && !d.tempDisabled }));
 
       //d3.transition(linesWrap).call(lines);
@@ -295,7 +295,7 @@ nv.models.cumulativeLineChart = function() {
         return !d.disabled && !!average(d);
       });
 
-      var avgLines = canvas.g.select(".nv-avgLinesWrap").selectAll("line")
+      var avgLines = Layer.g.select(".nv-avgLinesWrap").selectAll("line")
               .data(avgLineData, function(d) { return d.key; });
 
       var getAvgLineY = function(d) {
@@ -360,7 +360,7 @@ nv.models.cumulativeLineChart = function() {
           .ticks( Math.min(data[0].values.length,availableWidth/70) )
           .tickSize(-availableHeight, 0);
 
-        canvas.g.select('.nv-x.nv-axis')
+        Layer.g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .call(xAxis);
       }
@@ -371,7 +371,7 @@ nv.models.cumulativeLineChart = function() {
           .ticks( availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
-        canvas.g.select('.nv-y.nv-axis')
+        Layer.g.select('.nv-y.nv-axis')
           .call(yAxis);
       }
       //------------------------------------------------------------
@@ -393,7 +393,7 @@ nv.models.cumulativeLineChart = function() {
         chart.duration(oldDuration);
       }
 
-      canvas.g.select('.nv-background rect')
+      Layer.g.select('.nv-background rect')
         .on('click', function() {
           index.x = d3.mouse(this)[0];
           index.i = Math.round(dx.invert(index.x));
@@ -460,7 +460,7 @@ nv.models.cumulativeLineChart = function() {
 
           var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
           interactiveLayer.tooltip
-              .position({left: pointXLocation + canvas.margin.left, top: e.mouseY + canvas.margin.top})
+              .position({left: pointXLocation + Layer.margin.left, top: e.mouseY + Layer.margin.top})
               .chartContainer(that.parentNode)
               .enabled(tooltips)
               .valueFormatter(function(d) {
@@ -514,7 +514,7 @@ nv.models.cumulativeLineChart = function() {
 
   lines.dispatch
     .on('elementMouseover.tooltip', function(e) {
-      e.pos = [e.pos[0] +  canvas.margin.left, e.pos[1] + canvas.margin.top];
+      e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
       dispatch.tooltipShow(e);
     }).on('elementMouseout.tooltip', function(e) {
       dispatch.tooltipHide(e);
@@ -543,23 +543,23 @@ nv.models.cumulativeLineChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 
@@ -593,8 +593,8 @@ nv.models.cumulativeLineChart = function() {
   };
 
   chart.showLegend = function(_) {
-    if (!arguments.length) return canvas.options.showLegend;
-    canvas.options.showLegend = _;
+    if (!arguments.length) return Layer.options.showLegend;
+    Layer.options.showLegend = _;
     return chart;
   };
 
@@ -642,8 +642,8 @@ nv.models.cumulativeLineChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
+    if (!arguments.length) return Layer.options.noData;
+    Layer.options.noData = _;
     return chart;
   };
 

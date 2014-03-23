@@ -10,7 +10,7 @@ nv.models.bulletChart = function() {
 
   var bullet = nv.models.bullet();
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
           margin: {top: 5, right: 40, bottom: 20, left: 120},
           chartClass: 'bulletChart'
       })
@@ -48,29 +48,29 @@ nv.models.bulletChart = function() {
 
   function chart(selection) {
     selection.each(function(data, i) {
-        
-      canvas.setRoot(this);
 
-      var availableWidth = canvas.available.width,
-          availableHeight = canvas.available.height,
+      Layer.setRoot(this);
+
+      var availableWidth = Layer.available.width,
+          availableHeight = Layer.available.height,
           that = this;
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
-      // TODO: To use common noData() function from canvas
+      // TODO: To use common noData() function from Layer
       if (!data || !ranges.call(this, data, i)) {
-          var noDataText = canvas.svg.selectAll('.nv-noData').data([canvas.options.noData]);
+          var noDataText = Layer.svg.selectAll('.nv-noData').data([Layer.options.noData]);
           noDataText.enter().append('text')
               .attr('class', 'nvd3 nv-noData')
               .attr('dy', '-.7em')
               .style('text-anchor', 'middle');
           noDataText
-              .attr('x', canvas.margin.left + availableWidth / 2)
-              .attr('y', 18 + canvas.margin.top + availableHeight / 2)
+              .attr('x', Layer.margin.left + availableWidth / 2)
+              .attr('y', 18 + Layer.margin.top + availableHeight / 2)
               .text(function(d) { return d });
           return chart;
       } else
-          canvas.svg.selectAll('.nv-noData').remove();
+          Layer.svg.selectAll('.nv-noData').remove();
 
       //------------------------------------------------------------
 
@@ -83,9 +83,9 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
-      canvas.gEnter.append('g').attr('class', 'nv-bulletWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-titles');
+      Layer.wrapChart(data);
+      Layer.gEnter.append('g').attr('class', 'nv-bulletWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-titles');
 
       //------------------------------------------------------------
 
@@ -105,7 +105,7 @@ nv.models.bulletChart = function() {
       var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
           w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
-      var title = canvas.gEnter.select('.nv-titles').append('g')
+      var title = Layer.gEnter.select('.nv-titles').append('g')
           .attr('text-anchor', 'end')
           .attr('transform', 'translate(-6,' + (height - margin.top - margin.bottom) / 2 + ')');
       title.append('text')
@@ -120,7 +120,7 @@ nv.models.bulletChart = function() {
       bullet.width(availableWidth)
         .height(availableHeight);
 
-      var bulletWrap = canvas.g.select('.nv-bulletWrap');
+      var bulletWrap = Layer.g.select('.nv-bulletWrap');
 
       d3.transition(bulletWrap).call(bullet);
 
@@ -128,7 +128,7 @@ nv.models.bulletChart = function() {
       var format = tickFormat || x1.tickFormat( availableWidth / 100 );
 
       // Update the tick groups.
-      var tick = canvas.g.selectAll('g.nv-tick')
+      var tick = Layer.g.selectAll('g.nv-tick')
           .data(x1.ticks( availableWidth / 50 ), function(d) {
             return this.textContent || format(d);
           });
@@ -245,23 +245,23 @@ nv.models.bulletChart = function() {
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
@@ -284,8 +284,8 @@ nv.models.bulletChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
+    if (!arguments.length) return Layer.options.noData;
+    Layer.options.noData = _;
     return chart;
   };
 

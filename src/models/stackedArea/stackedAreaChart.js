@@ -13,7 +13,7 @@ nv.models.stackedAreaChart = function() {
     , interactiveLayer = nv.interactiveGuideline()
     ;
 
-  var canvas = new Canvas({
+  var Layer = new Layer({
           margin: {top: 30, right: 25, bottom: 50, left: 60}
           , chartClass: 'stackedAreaChart'
           , wrapClass: 'stackedAreaChartWrap'
@@ -71,23 +71,23 @@ nv.models.stackedAreaChart = function() {
   //============================================================
 
   function chart(selection) {
-      
+
     renderWatch.reset();
     renderWatch.models(stacked);
     if (showXAxis) renderWatch.models(xAxis);
     if (showYAxis) renderWatch.models(yAxis);
 
     selection.each(function(data) {
-        
-      canvas.setRoot(this);
-      if (canvas.noData(data))
+
+      Layer.setRoot(this);
+      if (Layer.noData(data))
         return chart;
 
       var that = this,
-        availableWidth = canvas.available.width,
-        availableHeight = canvas.available.height;
+        availableWidth = Layer.available.width,
+        availableHeight = Layer.available.height;
 
-      chart.update = function() { canvas.svg.transition().duration(duration).call(chart); };
+      chart.update = function() { Layer.svg.transition().duration(duration).call(chart); };
       chart.container = this;
 
       //set state.disabled
@@ -113,36 +113,36 @@ nv.models.stackedAreaChart = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      canvas.wrapChart(data);
+      Layer.wrapChart(data);
 
-      canvas.gEnter.append("rect").style("opacity",0);
-      canvas.gEnter.append('g').attr('class', 'nv-x nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-y nv-axis');
-      canvas.gEnter.append('g').attr('class', 'nv-stackedWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-legendWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-controlsWrap');
-      canvas.gEnter.append('g').attr('class', 'nv-interactive');
-      canvas.g.select("rect").attr("width", availableWidth).attr("height", availableHeight);
+      Layer.gEnter.append("rect").style("opacity",0);
+      Layer.gEnter.append('g').attr('class', 'nv-x nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-y nv-axis');
+      Layer.gEnter.append('g').attr('class', 'nv-stackedWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-legendWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-controlsWrap');
+      Layer.gEnter.append('g').attr('class', 'nv-interactive');
+      Layer.g.select("rect").attr("width", availableWidth).attr("height", availableHeight);
 
       //------------------------------------------------------------
       // Legend
 
-      if (canvas.options.showLegend) {
+      if (Layer.options.showLegend) {
         var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
 
         legend.width(legendWidth);
 
-        canvas.g.select('.nv-legendWrap')
+        Layer.g.select('.nv-legendWrap')
           .datum(data)
           .call(legend);
 
-        if ( canvas.margin.top != legend.height()) {
-          canvas.margin.top = legend.height();
-          availableHeight = (canvas.options.size.height || parseInt(canvas.svg.style('height')) || 400) - canvas.margin.top - canvas.margin.bottom;
+        if ( Layer.margin.top != legend.height()) {
+          Layer.margin.top = legend.height();
+          availableHeight = (Layer.options.size.height || parseInt(Layer.svg.style('height')) || 400) - Layer.margin.top - Layer.margin.bottom;
         }
 
-        canvas.g.select('.nv-legendWrap')
-          .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-canvas.margin.top) +')');
+        Layer.g.select('.nv-legendWrap')
+          .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-Layer.margin.top) +')');
       }
 
       //------------------------------------------------------------
@@ -186,26 +186,26 @@ nv.models.stackedAreaChart = function() {
           .width( controlWidth )
           .color(['#444', '#444', '#444']);
 
-        canvas.g.select('.nv-controlsWrap')
+        Layer.g.select('.nv-controlsWrap')
           .datum(controlsData)
           .call(controls);
 
-        if ( canvas.margin.top != Math.max(controls.height(), legend.height()) ) {
-          canvas.margin.top = Math.max(controls.height(), legend.height());
-          availableHeight = (height || parseInt(canvas.svg.style('height')) || 400)
-                             - canvas.margin.top - canvas.margin.bottom;
+        if ( Layer.margin.top != Math.max(controls.height(), legend.height()) ) {
+          Layer.margin.top = Math.max(controls.height(), legend.height());
+          availableHeight = (height || parseInt(Layer.svg.style('height')) || 400)
+                             - Layer.margin.top - Layer.margin.bottom;
         }
 
-        canvas.g.select('.nv-controlsWrap')
-          .attr('transform', 'translate(0,' + (-canvas.margin.top) +')');
+        Layer.g.select('.nv-controlsWrap')
+          .attr('transform', 'translate(0,' + (-Layer.margin.top) +')');
       }
 
       //------------------------------------------------------------
 
-      canvas.wrap.attr('transform', 'translate(' + canvas.margin.left + ',' + canvas.margin.top + ')');
+      Layer.wrap.attr('transform', 'translate(' + Layer.margin.left + ',' + Layer.margin.top + ')');
 
       if (rightAlignYAxis) {
-        canvas.g.select(".nv-y.nv-axis")
+        Layer.g.select(".nv-y.nv-axis")
           .attr("transform", "translate(" + availableWidth + ",0)");
       }
 
@@ -218,17 +218,17 @@ nv.models.stackedAreaChart = function() {
         interactiveLayer
            .width(availableWidth)
            .height(availableHeight)
-           .margin({left: canvas.margin.left, top: canvas.margin.top})
-           .svgContainer(canvas.svg)
+           .margin({left: Layer.margin.left, top: Layer.margin.top})
+           .svgContainer(Layer.svg)
            .xScale(x);
-        canvas.wrap.select(".nv-interactive").call(interactiveLayer);
+        Layer.wrap.select(".nv-interactive").call(interactiveLayer);
       }
 
       stacked
         .width(availableWidth)
         .height(availableHeight);
 
-      var stackedWrap = canvas.g.select('.nv-stackedWrap')
+      var stackedWrap = Layer.g.select('.nv-stackedWrap')
           .datum(data);
 
       stackedWrap.transition().call(stacked);
@@ -244,7 +244,7 @@ nv.models.stackedAreaChart = function() {
           .ticks( availableWidth / 100 )
           .tickSize( -availableHeight, 0);
 
-        canvas.g.select('.nv-x.nv-axis')
+        Layer.g.select('.nv-x.nv-axis')
           .attr('transform', 'translate(0,' + availableHeight + ')')
           .transition().duration(0)
           .call(xAxis);
@@ -259,7 +259,7 @@ nv.models.stackedAreaChart = function() {
                 (stacked.style() == 'expand' || stacked.style() == 'stack_percent') ? d3.format('%') : yAxisTickFormat
             );
 
-        canvas.g.select('.nv-y.nv-axis')
+        Layer.g.select('.nv-y.nv-axis')
           .transition().duration(0)
           .call(yAxis);
       }
@@ -350,7 +350,7 @@ nv.models.stackedAreaChart = function() {
                function(d) {return d3.format(".1%")(d);} :
                function(d) {return yAxis.tickFormat()(d); };
           interactiveLayer.tooltip
-                  .position({left: pointXLocation + canvas.margin.left, top: e.mouseY + canvas.margin.top})
+                  .position({left: pointXLocation + Layer.margin.left, top: e.mouseY + Layer.margin.top})
                   .chartContainer(that.parentNode)
                   .enabled(tooltips)
                   .valueFormatter(valueFormatter)
@@ -406,7 +406,7 @@ nv.models.stackedAreaChart = function() {
       }
       */
 
-      e.pos = [e.pos[0] + canvas.margin.left, e.pos[1] + canvas.margin.top];
+      e.pos = [e.pos[0] + Layer.margin.left, e.pos[1] + Layer.margin.top];
       dispatch.tooltipShow(e);
     })
     .on('tooltipHide', function(e) {
@@ -438,23 +438,23 @@ nv.models.stackedAreaChart = function() {
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {
-    if (!arguments.length) return canvas.margin;
-      canvas.margin.top    = nv.utils.valueOrDefault(_.top, canvas.margin.top);
-      canvas.margin.right  = nv.utils.valueOrDefault(_.right, canvas.margin.right);
-      canvas.margin.bottom = nv.utils.valueOrDefault(_.bottom, canvas.margin.bottom);
-      canvas.margin.left   = nv.utils.valueOrDefault(_.left, canvas.margin.left);
+    if (!arguments.length) return Layer.margin;
+      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
+      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
+      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
+      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
     return chart;
   };
 
   chart.width = function(_) {
-    if (!arguments.length) return canvas.options.size.width;
-    canvas.options.size.width = _;
+    if (!arguments.length) return Layer.options.size.width;
+    Layer.options.size.width = _;
     return chart;
   };
 
   chart.height = function(_) {
-    if (!arguments.length) return canvas.options.size.height;
-    canvas.options.size.height = _;
+    if (!arguments.length) return Layer.options.size.height;
+    Layer.options.size.height = _;
     return chart;
   };
 
@@ -473,8 +473,8 @@ nv.models.stackedAreaChart = function() {
   };
 
   chart.showLegend = function(_) {
-    if (!arguments.length) return canvas.options.showLegend;
-    canvas.options.showLegend = _;
+    if (!arguments.length) return Layer.options.showLegend;
+    Layer.options.showLegend = _;
     return chart;
   };
 
@@ -538,8 +538,8 @@ nv.models.stackedAreaChart = function() {
   };
 
   chart.noData = function(_) {
-    if (!arguments.length) return canvas.options.noData;
-    canvas.options.noData = _;
+    if (!arguments.length) return Layer.options.noData;
+    Layer.options.noData = _;
     return chart;
   };
 
