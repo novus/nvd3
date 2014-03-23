@@ -161,7 +161,7 @@ Layer.prototype.wrap = function(data, gs) {
     //   width: this.available.width,
     //   height: this.available.height
     // });
-    [wrapClass].concat(gs).forEach(function(g){
+    gs.concat([wrapClass]).forEach(function(g){
         this.gEnter.append('g').attr('class', g);
     }, this);
 
