@@ -2,33 +2,26 @@
  * A Pie Chart draws a percentage data set, in a circular display.
  */
 function PieChart(options){
-    options = nv.utils.valueOrDefault(options, {
+    options = nv.utils.extend({}, options, {
         margin: {top: 30, right: 20, bottom: 20, left: 20},
+        chartClass: 'pieChart',
+        wrapClass: 'pieChartWrap'
     });
 
-    options.chartClass = 'pieChart';
-    options.wrapClass = 'pieChartWrap';
-
     Chart.call(this, options);
-    this.pie = nv.models.pie();
-
-    this.state = {};
-    this.defaultState = null;
+    this.pie = this.getPie();
+    this.pie.showLabels(false);
 }
+nv.utils.create(PieChart, Chart, {});
+
+PieChart.prototype.getPie = function(){
+    return nv.models.pie();
+};
 
 /**
- * PieChart extends Chart
+ * @override Layer::draw
  */
-PieChart.prototype = Object.create(Chart.prototype);
-
-/**
- * @override Chart::wrapChart
- */
-PieChart.prototype.wrapChart = function(data){
-    if(this.noData(data)){ return; }
-
-    Chart.prototype.wrapChart.call(this, data);
-
+PieChart.prototype.draw = function(data){
     this.pie
       .width(this.available.width)
       .height(this.available.height);
@@ -43,15 +36,15 @@ PieChart.prototype.wrapChart = function(data){
  *
  * @override PieChart::onDispatches
  */
-PieChart.prototype.onDispatches = function(){
-    Chart.prototype.onDispatches.call(this);
+PieChart.prototype.attachEvents = function(){
+    Chart.prototype.attachEvents.call(this);
 
     this.pie.dispatch.on('elementMouseout.tooltip', function(e) {
       this.dispatch.tooltipHide(e);
     }.bind(this));
 
     this.pie.dispatch.on('elementMouseover.tooltip', function(e) {
-      e.pos = [e.pos[0] +  this.margin.left, e.pos[1] + this.margin.top];
+      e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
       this.dispatch.tooltipShow(e);
     }.bind(this));
 }

@@ -1,20 +1,30 @@
+LayerPrivates = {
+    size: {},
+    margin: {
+        top: 20,
+        right: 20,
+        bottom: 30,
+        left: 40
+    },
+    noData: 'No Data Available',
+    showLabels: true,
+    x: function(d){return d.x;},
+    y: function(d){return d.y;},
+    color: nv.utils.defaultColor(),
+    description: function(d) { return d.description },
+    id: 0
+}
+
 /**
- * A "canvas" represents an instance of some object that will be managed
+ * A "Layer" represents an instance of some object that will be managed
  * with nvd3, tied to a DOM node. It should have an expected heigh and
  * width, some margins, and a few dispatch events.
  */
-function Canvas(options, dispatch){
-    this.options = options || {};
-    this.options.size || (this.options.size = {});
-    this.options.margin || (this.options.margin = {});
-    this.options.noData = options.noData || 'No Data Available.';
+function Layer(options, dispatch){
+    this.options = nv.utils.extend({}, options, LayerPrivates);
+    this.options.id = Math.floor(Math.random() * 10000); // TODO Replace
 
-    var margin = this.margin = {
-        top     : nv.utils.valueOrDefault(options.margin.top, 20),
-        right   : nv.utils.valueOrDefault(options.margin.right, 20),
-        bottom  : nv.utils.valueOrDefault(options.margin.bottom, 30),
-        left    : nv.utils.valueOrDefault(options.margin.left, 40)
-    };
+    var margin = this.options.margin;
 
     Object.defineProperty(margin, 'leftright', {
         get: function(){ return margin.left + margin.right; }
@@ -28,43 +38,39 @@ function Canvas(options, dispatch){
     this.dispatch = d3.dispatch.apply(null, dispatch);
     this.renderWatch = nv.utils.renderWatch(this.dispatch);
 }
+nv.utils.create(Layer, Object, LayerPrivates);
 
 /**
  * The magic happens in the render.
  */
-Canvas.prototype.render = function(selection) {
-    var canvas_ = this;
+Layer.prototype.render = function(selection) {
+    var Layer_ = this;
     this.renderWatch.reset();
 
     selection.each(function(data) {
         // d3_selection_each iterates over the items in
         // the selection, passing it as the `this` context.
         // use setRoot to re-invert the object.
-        canvas_.setRoot(this);
-        canvas_.wrapChart(data);
+        Layer_.renderElement(this, data);
     });
 
-    this.renderWatch.renderEnd('' + this.name || 'canvas' + ' immediate');
+    this.renderWatch.renderEnd('' + this.name || 'Layer' + ' immediate');
 };
 
-Canvas.prototype.onDispatches = function(){
-    this.dispatch.on('changeState', function(e) {
-        if (typeof e.disabled !== 'undefined') {
-            data.forEach(function(series,i) {
-                series.disabled = e.disabled[i];
-            });
-
-          state.disabled = e.disabled;
-        }
-
-        this.update();
-    }.bind(this));
+Layer.prototype.renderElement = function(element, data){
+    this.setRoot(element);
+    this.wrap(data);
+    if(this.noData(data)){
+        return;
+    }
+    this.draw(data);
+    this.attachEvents();
 }
 
 /**
- * Call the render function, let it use the last known selection.
+ * Call the render function, using the last selection.
  */
-Canvas.prototype.update = function(){
+Layer.prototype.update = function(){
     this.svg.call(function(selection){
         this.render(selection);
     }.bind(this));
@@ -74,7 +80,7 @@ Canvas.prototype.update = function(){
  * Given an element, set it as the root of this chart. Configure
  * appropriate sizing info, etc.
  */
-Canvas.prototype.setRoot = function(root) {
+Layer.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
     var width = (this.options.size.width || parseInt(this.svg.style('width')) || 960)
         , height = (this.options.size.height || parseInt(this.svg.style('height')) || 500);
@@ -84,25 +90,27 @@ Canvas.prototype.setRoot = function(root) {
         height: height
     });
 
-    this.size = {
-        width: width,
-        height: height
-    };
+    this.options.size.width = width;
+    this.options.size.height = height;
 
-    var margin = this.margin;
+    var margin = this.margin();
     var available = this.available = {};
     Object.defineProperty(available, 'width', {
-        get: function(){ return Math.max(width - margin.leftright, 0); }
+        get: function(){
+            return Math.max(width - margin.leftright, 0);
+        }
     });
     Object.defineProperty(available, 'height', {
-        get: function(){ return Math.max(height - margin.topbottom, 0); }
+        get: function(){
+            return Math.max(height - margin.topbottom, 0);
+        }
     });
 };
 
 /**
  * Utility to check if data is available.
  */
-Canvas.prototype.hasData = function(data){
+Layer.prototype.hasData = function(data){
     function hasValues(d){
         return !d.values || d.values.length > 0
     }
@@ -112,7 +120,7 @@ Canvas.prototype.hasData = function(data){
 /**
  * Render a "noData" message.
  */
-Canvas.prototype.noData = function(data){
+Layer.prototype.noData = function(data){
     if ( this.hasData(data) ) {
         this.svg.selectAll('.nv-noData').remove();
         return false;
@@ -136,7 +144,7 @@ Canvas.prototype.noData = function(data){
 /**
  * Create several wrap layers to work with in the chart.
  */
-Canvas.prototype.wrapChart = function(data, gs) {
+Layer.prototype.wrap = function(data, gs) {
     gs || (gs = []);
     var chartClass = 'nv-' + this.options.chartClass;
     var wrapClass = 'nv-' + this.options.wrapClass;
@@ -153,21 +161,36 @@ Canvas.prototype.wrapChart = function(data, gs) {
     //   width: this.available.width,
     //   height: this.available.height
     // });
-    var this_ = this;
     [wrapClass].concat(gs).forEach(function(g){
-        this_.gEnter.append('g').attr('class', g);
-    });
+        this.gEnter.append('g').attr('class', g);
+    }, this);
 
-    this.wrap.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+    this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
 };
 
-Canvas.prototype.width = function(_){
+Layer.prototype.draw = function(){};
+
+Layer.prototype.attachEvents = function(){
+    this.dispatch.on('changeState', function(e) {
+        if (typeof e.disabled !== 'undefined') {
+            data.forEach(function(series,i) {
+                series.disabled = e.disabled[i];
+            });
+
+          state.disabled = e.disabled;
+        }
+
+        this.update();
+    }.bind(this));
+}
+
+Layer.prototype.width = function(_){
     if (!arguments.length) return this.size.width;
     this.options.size.width = _;
     return this;
 }
 
-Canvas.prototype.height = function(_){
+Layer.prototype.height = function(_){
     if (!arguments.length) return this.size.height;
     this.options.size.height = _;
     return this;
@@ -179,7 +202,7 @@ Canvas.prototype.height = function(_){
 
 
 /**
- * A Chart is a composite Canvas structure.
+ * A Chart is a composite Layer structure.
  *
  * It has legends, axes, some possible sub charts, etc.
  */
@@ -199,29 +222,27 @@ function Chart(options, dispatch){
         dispatch = dispatch.concat(['tooltipShow', 'tooltipHide']);
     }
 
-    Canvas.call(this, options, dispatch);
+    Layer.call(this, options, dispatch);
 
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
 }
-Chart.prototype = Object.create(Canvas.prototype);
+nv.utils.create(Chart,  Layer);
 
 /**
  * Apply the chart-specific wrap classes.
  */
-Chart.prototype.wrapChart = function(data, gs) {
+Chart.prototype.wrap = function(data, gs) {
     var wrapPoints = [
         'nv-x nv-axis',
         'nv-y nv-axis',
         'nv-legendWrap'
     ].concat(gs);
-    Canvas.prototype.wrapChart.call(this, data, wrapPoints);
+    Layer.prototype.wrap.call(this, data, wrapPoints);
 
     this.buildLegend(data);
     // The legend can change the available height.
     this.wrap.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
-
-    this.onDispatches();
 };
 
 Chart.prototype.prepareLegend = function(data){
@@ -261,8 +282,8 @@ Chart.prototype.showLegend = function(_) {
     return this;
 };
 
-Chart.prototype.onDispatches = function(){
-    Canvas.prototype.onDispatches.call(this);
+Chart.prototype.attachEvents = function(){
+    Layer.prototype.attachEvents.call(this);
     this.legend.dispatch.on('stateChange', function(newState) {
       state = newState;
       this.dispatch.stateChange(state);

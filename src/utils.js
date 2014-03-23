@@ -239,3 +239,54 @@ nv.utils.optionsFunc = function(args) {
 nv.utils.valueOrDefault = function(value, defaultValue){
     return ( value === undefined || value === null ) ? defaultValue : value ;
 };
+
+nv.utils.rebindp = function(dest, source, proto, args){
+    [].slice.call(arguments, 3).forEach(function(method){
+        dest[method] = function(arg1){
+            var ret = null;
+            // Minor perf win for the 0, 1 arg versions
+            // http://jsperf.com/test-call-vs-apply/34
+            switch (arguments.length) {
+              case 0:
+                  ret = proto[method].call(source); break;
+              case 1:
+                  ret = proto[method].call(source, arg1); break;
+              default:
+                  ret = proto[method].apply(source, arguments)
+            }
+            return ret === source ? dest : ret;
+        };
+    });
+}
+
+nv.utils.create = function(ctor, parent, privates){
+    ctor.prototype = Object.create(parent.prototype);
+    ctor.prototype.constructor = ctor;
+    for(var key in privates){
+        (function(key){
+            ctor.prototype[key] = function(_){
+                if(arguments.length === 0) return this.options[key];
+                this.options[key] = _;
+                return this;
+            }
+        }(key))
+    }
+}
+
+nv.utils.extend = function(base) {
+  if (base) {
+    var extras = [].slice.call(arguments, 1);
+    extras.forEach(function(extra) {
+      for (var key in extra) {
+        if (typeof base[key] === 'object' && typeof extra[key] === 'object') {
+          // recurse
+          nv.utils.extend(base[key], extra[key]);
+        } else {
+          base[key] = extra[key];
+        }
+      }
+    }, this);
+  }
+
+  return base;
+};
