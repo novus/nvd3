@@ -40,7 +40,6 @@ nv.models.cumulativeLineChart = function() {
     , transitionDuration = 250
     , duration = 250
     , noErrorCheck = false  //if set to TRUE, will bypass an error check in the indexify function.
-    , indexifyYGetter = null
     ;
 
   xAxis
@@ -758,6 +757,7 @@ nv.models.cumulativeLineChart = function() {
   // Functions
   //------------------------------------------------------------
 
+  var indexifyYGetter = null;
   /* Normalize the data according to an index point. */
   function indexify(idx, data) {
     if (!indexifyYGetter) indexifyYGetter = lines.y();
