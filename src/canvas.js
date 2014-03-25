@@ -13,11 +13,11 @@ LayerPrivates = {
     color: nv.utils.defaultColor(),
     description: function(d) { return d.description },
     id: 0
-}
+};
 
 /**
  * A "Layer" represents an instance of some object that will be managed
- * with nvd3, tied to a DOM node. It should have an expected heigh and
+ * with nvd3, tied to a DOM node. It should have an expected height and
  * width, some margins, and a few dispatch events.
  */
 function Layer(options, dispatch){
@@ -59,20 +59,26 @@ Layer.prototype.render = function(selection) {
 
 Layer.prototype.renderElement = function(element, data){
     this.setRoot(element);
-    this.wrap(data);
+    this.wrap_(data);
     if(this.noData(data)){
         return;
     }
     this.draw(data);
     this.attachEvents();
-}
+};
 
 /**
  * Call the render function, using the last selection.
  */
 Layer.prototype.update = function(){
     this.svg.call(function(selection){
-        this.render(selection);
+        var Layer_ = this;
+        this.renderWatch.reset();
+        selection.each(function(data) {
+            Layer_.wrap_(data);
+            Layer_.draw(data);
+        });
+        this.renderWatch.renderEnd('' + this.name || 'Layer' + ' immediate');
     }.bind(this));
 };
 
@@ -82,8 +88,8 @@ Layer.prototype.update = function(){
  */
 Layer.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
-    var width = (this.options.size.width || parseInt(this.svg.style('width')) || 960)
-        , height = (this.options.size.height || parseInt(this.svg.style('height')) || 500);
+    var width = (this.size().width || parseInt(this.svg.style('width')) || 960)
+        , height = (this.size().height || parseInt(this.svg.style('height')) || 500);
 
     this.svg.attr({
         width: width,
@@ -95,6 +101,7 @@ Layer.prototype.setRoot = function(root) {
 
     var margin = this.margin();
     var available = this.available = {};
+
     Object.defineProperty(available, 'width', {
         get: function(){
             return Math.max(width - margin.leftright, 0);
@@ -133,8 +140,8 @@ Layer.prototype.noData = function(data){
             .style('text-anchor', 'middle');
 
         noDataText
-            .attr('x', this.size.width / 2)
-            .attr('y', this.size.height / 2)
+            .attr('x', this.size().width / 2)
+            .attr('y', this.size().height / 2)
             .text(function(d) { return d });
 
         return true;
@@ -144,7 +151,7 @@ Layer.prototype.noData = function(data){
 /**
  * Create several wrap layers to work with in the chart.
  */
-Layer.prototype.wrap = function(data, gs) {
+Layer.prototype.wrap_ = function(data, gs) {
     gs || (gs = []);
     var chartClass = 'nv-' + this.options.chartClass;
     var wrapClass = 'nv-' + this.options.wrapClass;
@@ -182,24 +189,19 @@ Layer.prototype.attachEvents = function(){
 
         this.update();
     }.bind(this));
-}
+};
 
 Layer.prototype.width = function(_){
-    if (!arguments.length) return this.size.width;
+    if (!arguments.length) return this.size().width;
     this.options.size.width = _;
-    return this;
-}
-
-Layer.prototype.height = function(_){
-    if (!arguments.length) return this.size.height;
-    this.options.size.height = _;
     return this;
 };
 
-
-
-
-
+Layer.prototype.height = function(_){
+    if (!arguments.length) return this.size().height;
+    this.options.size.height = _;
+    return this;
+};
 
 /**
  * A Chart is a composite Layer structure.
@@ -227,22 +229,23 @@ function Chart(options, dispatch){
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
 }
+
 nv.utils.create(Chart,  Layer);
 
 /**
  * Apply the chart-specific wrap classes.
  */
-Chart.prototype.wrap = function(data, gs) {
+Chart.prototype.wrap_ = function(data, gs) {
     var wrapPoints = [
         'nv-x nv-axis',
         'nv-y nv-axis',
         'nv-legendWrap'
     ].concat(gs);
-    Layer.prototype.wrap.call(this, data, wrapPoints);
+    Layer.prototype.wrap_.call(this, data, wrapPoints);
 
     this.buildLegend(data);
     // The legend can change the available height.
-    this.wrap.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+    this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
 };
 
 Chart.prototype.prepareLegend = function(data){
@@ -258,12 +261,12 @@ Chart.prototype.prepareLegend = function(data){
                 this.defaultState[key] = this.state[key];
         }
     }
-}
+};
 
 Chart.prototype.buildLegend = function(data) {
     this.prepareLegend(data);
     if (this.options.showLegend) {
-        this.legend.width(this.size.width);
+        this.legend.width(this.size().width);
 
         this.g.select('.nv-legendWrap')
             .datum(data)
@@ -272,7 +275,7 @@ Chart.prototype.buildLegend = function(data) {
         this.margin.top = this.legend.height();
 
         this.wrap.select('.nv-legendWrap')
-          .attr('transform', 'translate(0,' + (-this.margin.top) +')')
+          .attr('transform', 'translate(0,' + (-this.margin().top) +')')
     }
 };
 
@@ -287,7 +290,6 @@ Chart.prototype.attachEvents = function(){
     this.legend.dispatch.on('stateChange', function(newState) {
       state = newState;
       this.dispatch.stateChange(state);
-      this.update();
     }.bind(this));
 
     this.dispatch.on('tooltipShow', function(e) {
@@ -297,6 +299,10 @@ Chart.prototype.attachEvents = function(){
     this.dispatch.on('tooltipHide', function() {
       if (this.options.tooltips) nv.tooltip.cleanup();
     }.bind(this));
+
+    this.dispatch.on('stateChange', function(state){
+        this.update();
+    }.bind(this))
 };
 
 Chart.prototype.tooltip = function(_) {
