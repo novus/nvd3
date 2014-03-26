@@ -44,40 +44,39 @@ nv.models.legend = function() {
             dispatch.legendMouseout(d,i);
           })
           .on('click', function(d,i) {
-            dispatch.legendClick(d,i);
             if (updateState) {
-               if (radioButtonMode) {
-                   //Radio button mode: set every series to disabled,
-                   //  and enable the clicked series.
-                   data.forEach(function(series) { series.disabled = true});
-                   d.disabled = false;
-               }
-               else {
-                   d.disabled = !d.disabled;
-                   if (data.every(function(series) { return series.disabled})) {
-                       //the default behavior of NVD3 legends is, if every single series
-                       // is disabled, turn all series' back on.
-                       data.forEach(function(series) { series.disabled = false});
-                   }
-               }
-               dispatch.stateChange({
-                  disabled: data.map(function(d) { return !!d.disabled })
-               });
+               // Radio button mode: set every series to disabled,
+              // and enable the clicked series.
+              if (radioButtonMode) {
+                data.forEach(function(series) { series.disabled = true });
+                d.disabled = false;
+              }
+              // If every single series is disabled, turn all series' back on.
+              else {
+                d.disabled = !d.disabled;
+                if (data.every(function(series) { return series.disabled}))
+                  data.forEach(function(series) { series.disabled = false});
+              }
+              dispatch.stateChange({
+                disabled: data.map(function(d) { return !!d.disabled })
+              });
             }
+            dispatch.legendClick(d,i);
           })
           .on('dblclick', function(d,i) {
-            dispatch.legendDblclick(d,i);
+
             if (updateState) {
-                //the default behavior of NVD3 legends, when double clicking one,
-                // is to set all other series' to false, and make the double clicked series enabled.
-                data.forEach(function(series) {
-                   series.disabled = true;
-                });
-                d.disabled = false;
-                dispatch.stateChange({
-                    disabled: data.map(function(d) { return !!d.disabled })
-                });
+              // When double clicking one, all other series' are set to false,
+              // and make the double clicked series enabled.
+              data.forEach(function(series) {
+                series.disabled = true;
+              });
+              d.disabled = false;
+              dispatch.stateChange({
+                disabled: data.map(function(d) { return !!d.disabled })
+              });
             }
+            dispatch.legendDblclick(d,i);
           });
 
       seriesEnter.append('circle')

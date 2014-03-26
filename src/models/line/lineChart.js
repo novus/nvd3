@@ -303,7 +303,7 @@ nv.models.lineChart = function() {
   chart.interactiveLayer = interactiveLayer;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
-    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate', 'showLegend');
+    , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -392,6 +392,17 @@ nv.models.lineChart = function() {
     if (!arguments.length) return Layer.options.noData;
     Layer.options.noData = _;
     return chart;
+  };
+
+  chart.showLegend = function(_) {
+    if (!arguments.length) return canvas.showLegend.call(canvas);
+    canvas.showLegend.call(canvas, _);
+    return chart;
+  };
+
+  chart.transitionDuration = function(_) {
+    nv.deprecated('lineChart.transitionDuration');
+    return chart.duration(_);
   };
 
   chart.duration = function(_) {

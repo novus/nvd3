@@ -460,6 +460,8 @@ nv.models.scatterChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return Layer.options.showLegend;
     Layer.options.showLegend = _;
+/*    if (!arguments.length) return canvas.showLegend.call(canvas);
+    canvas.showLegend.call(canvas, _);*/
     return chart;
   };
 
@@ -543,9 +545,22 @@ nv.models.scatterChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.transitionDuration = function(_) {
-    if (!arguments.length) return transitionDuration;
-    transitionDuration = _;
+    nv.deprecated('scatterChart.transitionDuration');
+    return chart.duration(_);
+  };
+  // END DEPRECATED
+
+  chart.duration = function(_) {
+    if (!arguments.length) return duration;
+    duration = _;
+    renderWatch.reset(duration);
+    scatter.duration(duration);
+    xAxis.duration(duration);
+    yAxis.duration(duration);
+    distX.duration(duration);
+    distY.duration(duration);
     return chart;
   };
 

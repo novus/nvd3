@@ -34,7 +34,7 @@ nv.addGraph({
                 .height(height)
                 .margin({top: 20, right: 20, bottom: 20, left: 20})
 
-
+    window.chart = chart;
     chart.dispatch.on('renderEnd', function(){
         console.log('rendered');
     });
