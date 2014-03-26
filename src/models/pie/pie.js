@@ -1,6 +1,6 @@
 PiePrivates = {
-    startAngle: 0.0,
-    endAngle: 2 * Math.PI,
+    startAngle: 0,
+    endAngle: 0,
     pieLabelsOutside: true,
     labelType: "key",
     labelThreshold: 0.02, //if slice percentage is under this, don't show label
@@ -42,13 +42,14 @@ Pie.prototype.arcRadius = function(){
  * @override Chart::wrap_
  */
 Pie.prototype.wrap_ = function (data) {
-    var available = this.available, dispatch = this.dispatch;
+    var available = this.available,
+        dispatch = this.dispatch;
     Layer.prototype.wrap_.call(this, data, ['nv-pieLabels']);
 
     this.wrap.attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
     //this.g.select('.nv-pieLabels').attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
 
-    var id = this.id;
+    var id = this.id();
     this.svg.on('click', function (d, i) {
         dispatch.chartClick({
             data: d,
@@ -94,7 +95,7 @@ Pie.prototype.wrap_ = function (data) {
         .attr('d', arc);
         // .attrTween('d', arcTween);
 
-    if (this.showLabels) {
+    if (this.showLabels()) {
         this.doLabels(data, arc, pieLayout);
     }
 
@@ -127,7 +128,7 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
     pieLabels.exit().remove();
 
 
-    if (this.pieLabelsOutside) {
+    if (this.pieLabelsOutside()) {
         labelsArc = arc;
     }
 
