@@ -117,24 +117,21 @@ function thirtySeries() {
 
 function defaultChart(containerId, data, labelType) {
   nv.addGraph(function() {
-      var width = 500,
-          height = 500;
-
       var chart = nv.models.pieChart()
           .x(function(d) { return d.key })
           .y(function(d) { return d.y })
           .color(d3.scale.category10().range())
-          // .width(width)
-          // .height(height)
+          .width(500)
+          .height(500)
+          .showLabels(true)
           .labelType(labelType)
-          ;
+        ;
 
         d3.select("#" + containerId + " svg")
-            .datum(data)
+          .datum(data)
           .transition().duration(1200)
-            .attr('width', width)
-            .attr('height', height)
-            .call(chart);
+          .call(chart)
+        ;
 
       nv.utils.windowResize(chart.update);
       return chart;
@@ -168,16 +165,19 @@ nv.addGraph(function() {
     return chart;
 });
 
-defaultChart("test1", testdata);
-// defaultChart("test3", thirtySeries());
-// defaultChart("test4",[]);
-// defaultChart("test5",[{key: "Zero series", y: 0}, {key: "Zero series 2", y: 0}]);
-// defaultChart("test6", [
-//       {key: "Undefined", y: undefined},
-//       {key: "Nan", y: NaN},
-//       {key: "null", y: null},
-//       {key: "zero", y: 0}
-//   ])
+defaultChart("test1", testdata, 'value');
+defaultChart("test3", thirtySeries());
+defaultChart("test4",[]);
+defaultChart("test5",[
+    {key: "Zero series", y: 0},
+    {key: "Zero series 2", y: 0}
+]);
+defaultChart("test6", [
+    {key: "Undefined", y: undefined},
+    {key: "Nan", y: NaN},
+    {key: "null", y: null},
+    {key: "zero", y: 0}
+]);
+defaultChart("test7", testdata, "percent");
 
-// defaultChart("test7",testdata, "percent");
 </script>

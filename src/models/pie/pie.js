@@ -6,7 +6,8 @@ PiePrivates = {
     labelThreshold: 0.02, //if slice percentage is under this, don't show label
     labelSunbeamLayout: false,
     valueFormat: d3.format(',.2f')
-}
+};
+
 /**
  * A Pie Chart draws a percentage data set, in a circular display.
  */
@@ -24,38 +25,32 @@ function Pie(options) {
         wrapClass: 'pieWrap'
     });
 
-    var dispatchArray = [
-        'chartClick',
-        'elementClick',
-        'elementDblClick',
-        'elementMouseover',
-        'elementMouseout'
-    ];
+    var dispatchArray = [ 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout' ];
     Chart.call(this, options, dispatchArray);
 }
 nv.utils.create(Pie, Layer, PiePrivates);
 
 Pie.prototype.radius = function(){
     return Math.min(this.available.width, this.available.height) / 2;
-}
+};
 
 Pie.prototype.arcRadius = function(){
     return this.radius() - (this.radius() / 5);
-}
+};
 
 /**
- * @override Chart::wrap
+ * @override Chart::wrap_
  */
-Pie.prototype.wrap = function (data) {
+Pie.prototype.wrap_ = function (data) {
     var available = this.available, dispatch = this.dispatch;
-    Layer.prototype.wrap.call(this, data, ['nv-pieLabels']);
+    Layer.prototype.wrap_.call(this, data, ['nv-pieLabels']);
 
     this.wrap.attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
-    this.g.select('.nv-pieLabels').attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
+    //this.g.select('.nv-pieLabels').attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
 
     var id = this.id;
     this.svg.on('click', function (d, i) {
-        this.dispatch.chartClick({
+        dispatch.chartClick({
             data: d,
             index: i,
             pos: d3.event,
@@ -89,12 +84,14 @@ Pie.prototype.wrap = function (data) {
 
     var paths = ae.append('path')
         .each(function (d) {
+            if (isNaN(d.startAngle)) d.startAngle = 0;
+            if (isNaN(d.endAngle)) d.endAngle = 0;
             this._current = d;
         }.bind(this));
 
     slices.select('path')
         .transition()
-        .attr('d', arc)
+        .attr('d', arc);
         // .attrTween('d', arcTween);
 
     if (this.showLabels) {
@@ -140,29 +137,26 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
     // }
 
     var pieSelf = this;
-    pieLabels.enter()
-        .append("g")
-        .classed("nv-label", true)
-        .each(function (d) {
+    pieLabels
+        .enter().append("g")
+        .classed("nv-label",true)
+        .each(function(d) {
             var group = d3.select(this);
-            group.attr('transform', function (d) {
-                if (this.labelSunbeamLayout) {
+            group.attr('transform', function(d) {
+                if (pieSelf.labelSunbeamLayout()) {
                     d.outerRadius = pieSelf.arcRadius() + 10; // Set Outer Coordinate
                     d.innerRadius = pieSelf.arcRadius() + 15; // Set Inner Coordinate
-                    var rotateAngle = (d.startAngle + d.endAngle) /
-                        2 * (180 / Math.PI);
-                    if ((d.startAngle + d.endAngle) / 2 < Math.PI) {
+                    var rotateAngle = (d.startAngle + d.endAngle) / 2 * (180 / Math.PI);
+                    if ((d.startAngle+d.endAngle)/2 < Math.PI) {
                         rotateAngle -= 90;
                     } else {
                         rotateAngle += 90;
                     }
-                    return 'translate(' + labelsArc.centroid(d) +
-                        ') rotate(' + rotateAngle + ')';
+                    return 'translate(' + labelsArc.centroid(d) + ') rotate(' + rotateAngle + ')';
                 } else {
                     d.outerRadius = pieSelf.radius() + 10; // Set Outer Coordinate
                     d.innerRadius = pieSelf.radius() + 15; // Set Inner Coordinate
-                    return 'translate(' + labelsArc.centroid(d) +
-                        ')'
+                    return 'translate(' + labelsArc.centroid(d) + ')'
                 }
             });
 
@@ -173,10 +167,10 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
                 .attr("ry", 3);
 
             group.append('text')
-                .style('text-anchor', this.labelSunbeamLayout ? ((d.startAngle +
-                        d.endAngle) / 2 < Math.PI ? 'start' : 'end') :
-                    'middle') //center the text on it's origin or begin/end if orthogonal aligned
-            .style('fill', '#000')
+                .style('text-anchor', pieSelf.labelSunbeamLayout()
+                    ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end')
+                    : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
+                .style('fill', '#000')
 
         });
 
@@ -187,20 +181,19 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
         return Math.floor(coordinates[0] / avgWidth) * avgWidth + ',' +
             Math.floor(coordinates[1] / avgHeight) * avgHeight;
     };
+
     pieLabels.transition()
-        .attr('transform', function (d) {
-            if (this.labelSunbeamLayout) {
+        .attr('transform', function(d) {
+            if (pieSelf.labelSunbeamLayout()) {
                 d.outerRadius = pieSelf.arcRadius() + 10; // Set Outer Coordinate
                 d.innerRadius = pieSelf.arcRadius() + 15; // Set Inner Coordinate
-                var rotateAngle = (d.startAngle + d.endAngle) / 2 * (
-                    180 / Math.PI);
-                if ((d.startAngle + d.endAngle) / 2 < Math.PI) {
+                var rotateAngle = (d.startAngle + d.endAngle) / 2 * (180 / Math.PI);
+                if ((d.startAngle+d.endAngle)/2 < Math.PI) {
                     rotateAngle -= 90;
                 } else {
                     rotateAngle += 90;
                 }
-                return 'translate(' + labelsArc.centroid(d) +
-                    ') rotate(' + rotateAngle + ')';
+                return 'translate(' + labelsArc.centroid(d) + ') rotate(' + rotateAngle + ')';
             } else {
                 d.outerRadius = pieSelf.radius() + 10; // Set Outer Coordinate
                 d.innerRadius = pieSelf.radius() + 15; // Set Inner Coordinate
@@ -210,32 +203,31 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
                  Each label location is hashed, and if a hash collision occurs, we assume an overlap.
                  Adjust the label's y-position to remove the overlap.
                  */
-                var center = labelsArc.centroid(d);
-                var hashKey = createHashKey(center);
+                var center = labelsArc.centroid(d),
+                    hashKey = createHashKey(center);
                 if (labelLocationHash[hashKey]) {
                     center[1] -= avgHeight;
                 }
                 labelLocationHash[createHashKey(center)] = true;
                 return 'translate(' + center + ')'
             }
-        }.bind(this));
+        });
     pieLabels.select(".nv-label text")
-    .style('text-anchor', function(d){
-        this.labelSunbeamLayout ?
-            ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') :
-            'middle' //center the text on it's origin or begin/end if orthogonal aligned
-    }.bind(this))
-    .text(function (d) {
-        var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
-        var labelTypes = {
-            "key": this.x()(d.data),
-            "value": this.y()(d.data),
-            "percent": d3.format('%')(percent)
-        };
-        return (d.value && percent > this.labelThreshold) ? labelTypes[
-            this.labelType] : '';
-    }.bind(this));
-}
+        .style('text-anchor', function(d){
+            return pieSelf.labelSunbeamLayout()
+                ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end')
+                : 'middle'; //center the text on it's origin or begin/end if orthogonal aligned
+        })
+        .text(function(d) {
+            var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
+            var labelTypes = {
+                "key"    : pieSelf.x()(d.data),
+                "value"  : pieSelf.y()(d.data),
+                "percent": d3.format('%')(percent)
+            };
+            return (d.value && percent > pieSelf.labelThreshold()) ? labelTypes[pieSelf.labelType()] : '';
+        });
+};
 
 Pie.prototype.mouseData = function(d, i){
     return {
@@ -246,7 +238,7 @@ Pie.prototype.mouseData = function(d, i){
         pos: [d3.event.pageX, d3.event.pageY],
         id: this.id()
     }
-}
+};
 
 Pie.prototype.attachEvents = function(){
     var self_ = this;
@@ -267,15 +259,14 @@ Pie.prototype.attachEvents = function(){
             this.dispatch.elementDblClick(this.mouseData(d, i));
             d3.event.stopPropagation();
         }.bind(this));
-}
+};
 
 Pie.prototype.getArc = function(){
     var arc = d3.svg.arc().outerRadius(this.arcRadius());
     if (this.startAngle()) arc.startAngle(this.startAngle());
     if (this.endAngle()) arc.endAngle(this.endAngle());
-
     return arc;
-}
+};
 
 /**
  * The Pie model returns a function wrapping an instance of a Pie.
