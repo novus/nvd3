@@ -207,6 +207,8 @@ nv.models.scatterPlusLineChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -221,6 +223,8 @@ nv.models.scatterPlusLineChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -279,6 +283,8 @@ nv.models.scatterPlusLineChart = function() {
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -289,6 +295,8 @@ nv.models.scatterPlusLineChart = function() {
 
         g.select('.nv-y.nv-axis')
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
 
@@ -306,6 +314,8 @@ nv.models.scatterPlusLineChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
+      } else {
+      	g.select('.nv-distributionX').remove();
       }
 
       if (showDistY) {
@@ -322,6 +332,8 @@ nv.models.scatterPlusLineChart = function() {
             .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
+      } else {
+      	g.select('.nv-distributionY').remove();
       }
 
       //------------------------------------------------------------
@@ -525,30 +537,35 @@ nv.models.scatterPlusLineChart = function() {
   chart.showDistY = function(_) {
     if (!arguments.length) return showDistY;
     showDistY = _;
+    chart.update();
     return chart;
   };
 
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 

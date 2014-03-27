@@ -126,6 +126,8 @@ nv.models.multiChart = function() {
 
         g.select('.legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
 
@@ -432,6 +434,7 @@ nv.models.multiChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 

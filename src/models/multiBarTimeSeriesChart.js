@@ -145,6 +145,8 @@ nv.models.multiBarTimeSeriesChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -164,6 +166,8 @@ nv.models.multiBarTimeSeriesChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -352,12 +356,14 @@ nv.models.multiBarTimeSeriesChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 

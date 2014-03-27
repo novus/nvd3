@@ -160,6 +160,8 @@ nv.models.lineChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -185,6 +187,8 @@ nv.models.lineChart = function() {
            .svgContainer(container)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+      } else {
+      	wrap.select('.nv-interactive').remove();
       }
 
 
@@ -218,6 +222,8 @@ nv.models.lineChart = function() {
         g.select('.nv-x.nv-axis')
             .transition()
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -229,6 +235,8 @@ nv.models.lineChart = function() {
         g.select('.nv-y.nv-axis')
             .transition()
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
       //------------------------------------------------------------
 
@@ -392,18 +400,21 @@ nv.models.lineChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -421,6 +432,7 @@ nv.models.lineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
+    chart.update();
     return chart;
   };
 

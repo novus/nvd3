@@ -166,6 +166,8 @@ nv.models.stackedAreaChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -226,6 +228,8 @@ nv.models.stackedAreaChart = function() {
 
         g.select('.nv-controlsWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -251,6 +255,8 @@ nv.models.stackedAreaChart = function() {
            .svgContainer(container)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+      } else {
+      	wrap.select('.nv-interactive').remove();
       }
 
       stacked
@@ -280,6 +286,8 @@ nv.models.stackedAreaChart = function() {
         g.select('.nv-x.nv-axis')
           .transition().duration(0)
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -293,6 +301,8 @@ nv.models.stackedAreaChart = function() {
         g.select('.nv-y.nv-axis')
           .transition().duration(0)
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
       //------------------------------------------------------------
@@ -527,24 +537,28 @@ nv.models.stackedAreaChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -562,6 +576,7 @@ nv.models.stackedAreaChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
+    chart.update();
     return chart;
   };
 
