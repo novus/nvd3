@@ -35,27 +35,24 @@ Pie.prototype.arcRadius = function(){
 /**
  * @override Layer::draw
  */
-Pie.prototype.wrap_ = function (data) {
-    var available = this.available,
-        dispatch = this.dispatch;
-    Layer.prototype.wrap_.call(this, data, ['nv-pieLabels']);
+Pie.prototype.wrapper = function (data) {
+    Layer.prototype.wrapper.call(this, data, ['nv-pieLabels']);
 
-    this.gEnter.append('g').attr('class', 'nv-pieLabels');
+    this.wrap.attr('transform', 'translate(' + this.available.width / 2 + ',' + this.available.height / 2 + ')');
+}
 
-    this.wrap.attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
-    //this.g.select('.nv-pieLabels').attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
-
-    var id = this.id();
-    this.svg.on('click', function (d, i) {
-        dispatch.chartClick({
-            data: d,
-            index: i,
-            pos: d3.event,
-            id: id
-        });
-    });
-
+Pie.prototype.draw = function(data){
     var arc = this.getArc();
+    var arcTween = function(a) {
+        a.endAngle = isNaN(a.endAngle) ? 0 : a.endAngle;
+        a.startAngle = isNaN(a.startAngle) ? 0 : a.startAngle;
+        a.innerRadius = nv.utils.valueOrDefault(a.innerRadius, 0);
+        var i = d3.interpolate(this._current, a);
+        this._current = i(0);
+        return function (t) {
+            return arc(i(t));
+        };
+    }.bind(this);
 
     // Setup the Pie chart and choose the data element
     var pieLayout = d3.layout.pie()
@@ -64,79 +61,48 @@ Pie.prototype.wrap_ = function (data) {
             return d.disabled ? 0 : this.y()(d)
         }.bind(this));
 
-    var slices = this.wrap.selectAll('.nv-slice')
-        .data(pieLayout);
+    var slices = this.g.selectAll('.nv-slice').data(pieLayout);
 
     slices.exit().remove();
 
-    var ae = this.ae = slices.enter().append('g');
-
-    slices
-        .attr('fill', function (d, i) {
-            return this.color()(d, i);
-        }.bind(this))
-        .attr('stroke', function (d, i) {
-            return this.color()(d, i);
-        }.bind(this));
-
-    var paths = ae.append('path')
+    this.paths = slices.enter().append('path');
+    this.paths
         .each(function (d) {
             if (isNaN(d.startAngle)) d.startAngle = 0;
             if (isNaN(d.endAngle)) d.endAngle = 0;
             this._current = d;
-        }.bind(this));
-
-    slices.select('path')
+        }.bind(this))
+        .attr({
+            fill: function (d, i) {
+                return this.color()(d, i);
+            }.bind(this),
+            stroke: function (d, i) {
+                return this.color()(d, i);
+            }.bind(this)
+        })
         .transition()
-        .attr('d', arc);
-        // .attrTween('d', arcTween);
+        .attr('d', arc)
+        .attrTween('d', arcTween)
+        ;
 
     if (this.showLabels()) {
         this.doLabels(data, arc, pieLayout);
     }
-
-    // Computes the angle of an arc, converting from radians to degrees.
-    function angle(d) {
-        var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
-        return a > 90 ? a - 180 : a;
-    }
-
-    var self = this;
-    function arcTween(a) {
-        a.endAngle = isNaN(a.endAngle) ? 0 : a.endAngle;
-        a.startAngle = isNaN(a.startAngle) ? 0 : a.startAngle;
-        a.innerRadius = nv.utils.valueOrDefault(a.innerRadius, 0);
-        var i = d3.interpolate(self._current, a);
-        self._current = i(0);
-        return function (t) {
-            return arc(i(t));
-        };
-    }
 };
 
 Pie.prototype.doLabels = function(data, arc, pieLayout){
-    // This does the normal label
-    var labelsArc = d3.svg.arc().innerRadius(0);
-
     var pieLabels = this.wrap.select('.nv-pieLabels')
         .selectAll('.nv-label')
         .data(pieLayout);
     pieLabels.exit().remove();
 
-
-    if (this.pieLabelsOutside()) {
-        labelsArc = arc;
-    }
-
-    // if (this.donutLabelsOutside) {
-    //     labelsArc = d3.svg.arc()
-    //         .outerRadius(arc.outerRadius());
-    // }
+    // This does the normal label, or just use the arc if outside.
+    var labelsArc = this.pieLabelsOutside() ? arc : d3.svg.arc().innerRadius(0);
 
     var pieSelf = this;
     pieLabels
         .enter().append("g")
-        .classed("nv-label",true)
+        .classed("nv-label", true)
         .each(function(d) {
             var group = d3.select(this);
             group.attr('transform', function(d) {
@@ -238,8 +204,17 @@ Pie.prototype.mouseData = function(d, i){
 };
 
 Pie.prototype.attachEvents = function(){
+    this.svg.on('click', function (d, i) {
+        this.dispatch.chartClick({
+            data: d,
+            index: i,
+            pos: d3.event,
+            id: this.id()
+        });
+    }.bind(this));
+
     var self_ = this;
-    this.ae.attr('class', 'nv-slice')
+    this.paths.attr('class', 'nv-slice')
         .on('mouseover', function (d, i) {
             d3.select(this).classed('hover', true);
             self_.dispatch.elementMouseover(self_.mouseData(d, i));

@@ -41,7 +41,8 @@ function Layer(options, dispatch){
 nv.utils.create(Layer, Object, LayerPrivates);
 
 /**
- * The magic happens in the render.
+ * Given a selection, iterate every element and build the chart with the
+ * current configuration in that element.
  */
 Layer.prototype.render = function(selection) {
     var Layer_ = this;
@@ -50,16 +51,19 @@ Layer.prototype.render = function(selection) {
     selection.each(function(data) {
         // d3_selection_each iterates over the items in
         // the selection, passing it as the `this` context.
-        // use setRoot to re-invert the object.
+        // use setRoot in renderElement to re-invert the object.
         Layer_.renderElement(this, data);
     });
 
-    this.renderWatch.renderEnd('' + this.name || 'Layer' + ' immediate');
+    this.renderWatch.renderEnd('' + this.name || 'Layer immediate');
 };
 
+/**
+ * Render a single element.
+ */
 Layer.prototype.renderElement = function(element, data){
     this.setRoot(element);
-    this.wrap_(data);
+    this.wrapper(data);
     if(this.noData(data)){
         return;
     }
@@ -72,13 +76,7 @@ Layer.prototype.renderElement = function(element, data){
  */
 Layer.prototype.update = function(){
     this.svg.call(function(selection){
-        var Layer_ = this;
-        this.renderWatch.reset();
-        selection.each(function(data) {
-            Layer_.wrap_(data);
-            Layer_.draw(data);
-        });
-        this.renderWatch.renderEnd('' + this.name || 'Layer' + ' immediate');
+        this.render(selection);
     }.bind(this));
 };
 
@@ -88,28 +86,24 @@ Layer.prototype.update = function(){
  */
 Layer.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
-    var width = (this.size().width || parseInt(this.svg.style('width')) || 960)
-        , height = (this.size().height || parseInt(this.svg.style('height')) || 500);
+    this.options.size = {
+        width: (this.size().width || parseInt(this.svg.style('width')) || 960),
+        height: (this.size().height || parseInt(this.svg.style('height')) || 500)
+    }
 
-    this.svg.attr({
-        width: width,
-        height: height
-    });
-
-    this.options.size.width = width;
-    this.options.size.height = height;
+    this.svg.attr(this.options.size);
 
     var margin = this.margin();
+    var size = this.options.size;
     var available = this.available = {};
-
     Object.defineProperty(available, 'width', {
         get: function(){
-            return Math.max(width - margin.leftright, 0);
+            return Math.max(size.width - margin.leftright, 0);
         }
     });
     Object.defineProperty(available, 'height', {
         get: function(){
-            return Math.max(height - margin.topbottom, 0);
+            return Math.max(size.height - margin.topbottom, 0);
         }
     });
 };
@@ -151,23 +145,17 @@ Layer.prototype.noData = function(data){
 /**
  * Create several wrap layers to work with in the chart.
  */
-Layer.prototype.wrap_ = function(data, gs) {
+Layer.prototype.wrapper = function(data, gs) {
     gs || (gs = []);
     var chartClass = 'nv-' + this.options.chartClass;
     var wrapClass = 'nv-' + this.options.wrapClass;
 
-    this.wrap = this.svg.selectAll('g.nv-wrap.' + chartClass).data([data]);
-    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nvd3 nv-wrap ' + chartClass });
+    this.wrap = this.svg.selectAll('g.nv-wrap.' + wrapClass).data([data]);
+    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nv-wrap ' + chartClass });
     this.defsEnter = this.wrapEnter.append('defs');
     this.gEnter = this.wrapEnter.append('g');
     this.g = this.wrap.select('g');
 
-    // this.gEnter.append("rect").style("opacity",0);
-    // this.g.select("rect")
-    // .attr({
-    //   width: this.available.width,
-    //   height: this.available.height
-    // });
     gs.concat([wrapClass]).forEach(function(g){
         this.gEnter.append('g').attr('class', g);
     }, this);
@@ -229,19 +217,18 @@ function Chart(options, dispatch){
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
 }
-
-nv.utils.create(Chart,  Layer);
+nv.utils.create(Chart, Layer);
 
 /**
  * Apply the chart-specific wrap classes.
  */
-Chart.prototype.wrap_ = function(data, gs) {
+Chart.prototype.wrapper = function(data, gs) {
     var wrapPoints = [
         'nv-x nv-axis',
         'nv-y nv-axis',
         'nv-legendWrap'
-    ].concat(gs);
-    Layer.prototype.wrap_.call(this, data, wrapPoints);
+    ].concat(gs || []);
+    Layer.prototype.wrapper.call(this, data, wrapPoints);
 
     this.buildLegend(data);
     // The legend can change the available height.

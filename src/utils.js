@@ -240,6 +240,13 @@ nv.utils.valueOrDefault = function(value, defaultValue){
     return ( value === undefined || value === null ) ? defaultValue : value ;
 };
 
+/**
+ * Like d3's rebind, but taking function prototype considerations into account.
+ *
+ * Attaches a method on `dest` for each function name in `args` that will call
+ * the `proto` method of that name with `source` as the `this` context, and pass
+ * any arguments thru. It returns either the return value, or `dest` for chaining.
+ */
 nv.utils.rebindp = function(dest, source, proto, args){
     [].slice.call(arguments, 3).forEach(function(method){
         dest[method] = function(arg1){
@@ -259,6 +266,10 @@ nv.utils.rebindp = function(dest, source, proto, args){
     });
 }
 
+/**
+ * Fancy extension on Object.create, that additionally creates a getter/setter
+ * function for several properties in `privates`, working off `this.options`.
+ */
 nv.utils.create = function(ctor, parent, privates){
     ctor.prototype = Object.create(parent.prototype);
     ctor.prototype.constructor = ctor;
@@ -273,6 +284,9 @@ nv.utils.create = function(ctor, parent, privates){
     }
 }
 
+/**
+ * Copy properties right to left, returning base.
+ */
 nv.utils.extend = function(base) {
   if (base) {
     var extras = [].slice.call(arguments, 1);
