@@ -124,6 +124,8 @@ nv.models.lineChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
 
@@ -271,6 +273,7 @@ nv.models.lineChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 

@@ -179,6 +179,8 @@ nv.models.linePlusBarChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -393,6 +395,7 @@ nv.models.linePlusBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 

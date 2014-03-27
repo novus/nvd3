@@ -2710,6 +2710,8 @@ nv.models.cumulativeLineChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -2734,6 +2736,8 @@ nv.models.cumulativeLineChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -2771,6 +2775,8 @@ nv.models.cumulativeLineChart = function() {
           .svgContainer(container)
           .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+      } else {
+      	g.select('.nv-interactive').remove();
       }
 
       gEnter.select('.nv-background')
@@ -2878,6 +2884,8 @@ nv.models.cumulativeLineChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
         d3.transition(g.select('.nv-x.nv-axis'))
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
 
@@ -2889,6 +2897,8 @@ nv.models.cumulativeLineChart = function() {
 
         d3.transition(g.select('.nv-y.nv-axis'))
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
       //------------------------------------------------------------
 
@@ -3123,6 +3133,7 @@ nv.models.cumulativeLineChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
@@ -3133,6 +3144,7 @@ nv.models.cumulativeLineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
+    chart.update();
     return chart;
   };
 
@@ -3145,12 +3157,14 @@ nv.models.cumulativeLineChart = function() {
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -3790,6 +3804,8 @@ nv.models.discreteBarChart = function() {
                 .selectAll('text')
                 .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
           }
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -3800,6 +3816,8 @@ nv.models.discreteBarChart = function() {
 
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
+      } else {
+      	g.select('nv-y.nv-axis').remove();
       }
 
       // Zero line
@@ -3894,12 +3912,14 @@ nv.models.discreteBarChart = function() {
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -4264,6 +4284,8 @@ nv.models.historicalBarChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -4308,6 +4330,8 @@ nv.models.historicalBarChart = function() {
         g.select('.nv-x.nv-axis')
             .transition()
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -4319,6 +4343,8 @@ nv.models.historicalBarChart = function() {
         g.select('.nv-y.nv-axis')
           .transition()
             .call(yAxis);
+      } else {
+      	g.select('nv-y.nv-axis').remove();
       }
       //------------------------------------------------------------
 
@@ -4449,18 +4475,21 @@ nv.models.historicalBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -5556,6 +5585,8 @@ nv.models.lineChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -5581,6 +5612,8 @@ nv.models.lineChart = function() {
            .svgContainer(container)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+      } else {
+      	wrap.select('.nv-interactive').remove();
       }
 
 
@@ -5614,6 +5647,8 @@ nv.models.lineChart = function() {
         g.select('.nv-x.nv-axis')
             .transition()
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -5625,6 +5660,8 @@ nv.models.lineChart = function() {
         g.select('.nv-y.nv-axis')
             .transition()
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
       //------------------------------------------------------------
 
@@ -5788,18 +5825,21 @@ nv.models.lineChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -5817,6 +5857,7 @@ nv.models.lineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
+    chart.update();
     return chart;
   };
 
@@ -6042,6 +6083,8 @@ nv.models.linePlusBarChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -6256,6 +6299,7 @@ nv.models.linePlusBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
@@ -6464,6 +6508,8 @@ nv.models.lineWithFocusChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -6808,6 +6854,7 @@ nv.models.lineWithFocusChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
@@ -7095,6 +7142,8 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -7493,6 +7542,7 @@ nv.models.linePlusBarWithFocusChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
@@ -8162,6 +8212,8 @@ nv.models.multiBarChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -8181,6 +8233,8 @@ nv.models.multiBarChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -8269,6 +8323,8 @@ nv.models.multiBarChart = function() {
           
           g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
               .style('opacity', 1);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
 
@@ -8280,6 +8336,8 @@ nv.models.multiBarChart = function() {
 
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
 
@@ -8418,24 +8476,28 @@ nv.models.multiBarChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -9133,6 +9195,8 @@ nv.models.multiBarHorizontalChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -9152,6 +9216,8 @@ nv.models.multiBarHorizontalChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -9196,6 +9262,8 @@ nv.models.multiBarHorizontalChart = function() {
 
           xTicks
               .selectAll('line, text');
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -9208,6 +9276,8 @@ nv.models.multiBarHorizontalChart = function() {
               .attr('transform', 'translate(0,' + availableHeight + ')');
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
       // Zero line
@@ -9352,24 +9422,28 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -9547,6 +9621,8 @@ nv.models.multiChart = function() {
 
         g.select('.legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
 
@@ -9853,6 +9929,7 @@ nv.models.multiChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
@@ -10492,6 +10569,8 @@ nv.models.pie = function() {
                   };
                   return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                 });
+        } else {
+        	wrap.select('.nv-pieLabels').remove();
         }
 
 
@@ -11826,6 +11905,8 @@ nv.models.scatterChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth - legendWidth) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -11840,6 +11921,8 @@ nv.models.scatterChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -11905,6 +11988,8 @@ nv.models.scatterChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .call(xAxis);
 
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -11915,6 +12000,8 @@ nv.models.scatterChart = function() {
 
         g.select('.nv-y.nv-axis')
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
 
@@ -11932,6 +12019,8 @@ nv.models.scatterChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
+      } else {
+      	g.select('.nv-distributionX').remove();
       }
 
       if (showDistY) {
@@ -11949,6 +12038,8 @@ nv.models.scatterChart = function() {
               'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
+      } else {
+      	g.select('.nv-distributionY').remove();
       }
 
       //------------------------------------------------------------
@@ -12142,36 +12233,42 @@ nv.models.scatterChart = function() {
   chart.showDistX = function(_) {
     if (!arguments.length) return showDistX;
     showDistX = _;
+    chart.update();
     return chart;
   };
 
   chart.showDistY = function(_) {
     if (!arguments.length) return showDistY;
     showDistY = _;
+    chart.update();
     return chart;
   };
 
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -12463,6 +12560,8 @@ nv.models.scatterPlusLineChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -12477,6 +12576,8 @@ nv.models.scatterPlusLineChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -12535,6 +12636,8 @@ nv.models.scatterPlusLineChart = function() {
         g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -12545,6 +12648,8 @@ nv.models.scatterPlusLineChart = function() {
 
         g.select('.nv-y.nv-axis')
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
 
@@ -12562,6 +12667,8 @@ nv.models.scatterPlusLineChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
+      } else {
+      	g.select('.nv-distributionX').remove();
       }
 
       if (showDistY) {
@@ -12578,6 +12685,8 @@ nv.models.scatterPlusLineChart = function() {
             .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
+      } else {
+      	g.select('.nv-distributionY').remove();
       }
 
       //------------------------------------------------------------
@@ -12781,30 +12890,35 @@ nv.models.scatterPlusLineChart = function() {
   chart.showDistY = function(_) {
     if (!arguments.length) return showDistY;
     showDistY = _;
+    chart.update();
     return chart;
   };
 
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -13899,6 +14013,8 @@ nv.models.stackedAreaChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -13959,6 +14075,8 @@ nv.models.stackedAreaChart = function() {
 
         g.select('.nv-controlsWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -13984,6 +14102,8 @@ nv.models.stackedAreaChart = function() {
            .svgContainer(container)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+      } else {
+      	wrap.select('.nv-interactive').remove();
       }
 
       stacked
@@ -14013,6 +14133,8 @@ nv.models.stackedAreaChart = function() {
         g.select('.nv-x.nv-axis')
           .transition().duration(0)
             .call(xAxis);
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -14026,6 +14148,8 @@ nv.models.stackedAreaChart = function() {
         g.select('.nv-y.nv-axis')
           .transition().duration(0)
             .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
       //------------------------------------------------------------
@@ -14260,24 +14384,28 @@ nv.models.stackedAreaChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
@@ -14295,6 +14423,7 @@ nv.models.stackedAreaChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
+    chart.update();
     return chart;
   };
 

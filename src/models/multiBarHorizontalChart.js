@@ -173,6 +173,8 @@ nv.models.multiBarHorizontalChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
+      } else {
+      	g.select('.nv-legendWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -192,6 +194,8 @@ nv.models.multiBarHorizontalChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+      } else {
+      	g.select('.nv-controlsWrap').remove();
       }
 
       //------------------------------------------------------------
@@ -236,6 +240,8 @@ nv.models.multiBarHorizontalChart = function() {
 
           xTicks
               .selectAll('line, text');
+      } else {
+      	g.select('.nv-x.nv-axis').remove();
       }
 
       if (showYAxis) {
@@ -248,6 +254,8 @@ nv.models.multiBarHorizontalChart = function() {
               .attr('transform', 'translate(0,' + availableHeight + ')');
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
+      } else {
+      	g.select('.nv-y.nv-axis').remove();
       }
 
       // Zero line
@@ -392,24 +400,28 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    chart.update();
     return chart;
   };
 
