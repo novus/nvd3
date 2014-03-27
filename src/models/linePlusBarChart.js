@@ -179,8 +179,9 @@ nv.models.linePlusBarChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+        g.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------

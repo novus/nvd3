@@ -187,8 +187,9 @@ nv.models.discreteBarChart = function() {
                 .selectAll('text')
                 .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
           }
+        g.select('.nv-x.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-x.nv-axis').remove();
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
       if (showYAxis) {
@@ -199,8 +200,9 @@ nv.models.discreteBarChart = function() {
 
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
       } else {
-      	g.select('nv-y.nv-axis').remove();
+        g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
 
       // Zero line

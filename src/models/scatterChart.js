@@ -198,8 +198,9 @@ nv.models.scatterChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth - legendWidth) + ',' + (-margin.top) +')');
+        wrap.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	wrap.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -214,8 +215,9 @@ nv.models.scatterChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+        g.select('.nv-controlsWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-controlsWrap').remove();
+      	g.select('.nv-controlsWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -281,8 +283,9 @@ nv.models.scatterChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .call(xAxis);
 
+        g.select('.nv-x.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-x.nv-axis').remove();
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
       if (showYAxis) {
@@ -293,8 +296,9 @@ nv.models.scatterChart = function() {
 
         g.select('.nv-y.nv-axis')
             .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-y.nv-axis').remove();
+      	g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
 
 
@@ -312,8 +316,9 @@ nv.models.scatterChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distX);
+        g.select('.nv-distributionX').style('visibility','visible');
       } else {
-      	g.select('.nv-distributionX').remove();
+      	g.select('.nv-distributionX').style('visibility','hidden');
       }
 
       if (showDistY) {
@@ -331,8 +336,9 @@ nv.models.scatterChart = function() {
               'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(distY);
+        g.select('.nv-distributionY').style('visibility','visible');
       } else {
-      	g.select('.nv-distributionY').remove();
+      	g.select('.nv-distributionY').style('visibility','hidden');
       }
 
       //------------------------------------------------------------

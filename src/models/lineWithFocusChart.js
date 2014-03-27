@@ -168,8 +168,9 @@ nv.models.lineWithFocusChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+        g.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------

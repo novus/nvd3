@@ -166,8 +166,9 @@ nv.models.stackedAreaChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
+        g.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -228,8 +229,9 @@ nv.models.stackedAreaChart = function() {
 
         g.select('.nv-controlsWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')');
+        g.select('.nv-controlsWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-controlsWrap').remove();
+      	g.select('.nv-controlsWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -255,8 +257,9 @@ nv.models.stackedAreaChart = function() {
            .svgContainer(container)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+        wrap.select('.nv-interactive').style('visibility','visible');
       } else {
-      	wrap.select('.nv-interactive').remove();
+      	wrap.select('.nv-interactive').style('visibility','hidden');;
       }
 
       stacked
@@ -286,8 +289,9 @@ nv.models.stackedAreaChart = function() {
         g.select('.nv-x.nv-axis')
           .transition().duration(0)
             .call(xAxis);
+        g.select('.nv-x.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-x.nv-axis').remove();
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
       if (showYAxis) {
@@ -301,8 +305,9 @@ nv.models.stackedAreaChart = function() {
         g.select('.nv-y.nv-axis')
           .transition().duration(0)
             .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-y.nv-axis').remove();
+      	g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
 
       //------------------------------------------------------------

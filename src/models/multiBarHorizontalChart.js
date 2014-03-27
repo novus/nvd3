@@ -173,8 +173,9 @@ nv.models.multiBarHorizontalChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
+        g.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -194,8 +195,9 @@ nv.models.multiBarHorizontalChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+        g.select('.nv-controlsWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-controlsWrap').remove();
+      	g.select('.nv-controlsWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -240,8 +242,9 @@ nv.models.multiBarHorizontalChart = function() {
 
           xTicks
               .selectAll('line, text');
+        g.select('.nv-x.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-x.nv-axis').remove();
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
       if (showYAxis) {
@@ -254,8 +257,9 @@ nv.models.multiBarHorizontalChart = function() {
               .attr('transform', 'translate(0,' + availableHeight + ')');
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-y.nv-axis').remove();
+      	g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
 
       // Zero line

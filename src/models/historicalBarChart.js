@@ -169,8 +169,9 @@ nv.models.historicalBarChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+        g.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -215,8 +216,9 @@ nv.models.historicalBarChart = function() {
         g.select('.nv-x.nv-axis')
             .transition()
             .call(xAxis);
+        g.select('.nv-x.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-x.nv-axis').remove();
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
       if (showYAxis) {
@@ -228,8 +230,9 @@ nv.models.historicalBarChart = function() {
         g.select('.nv-y.nv-axis')
           .transition()
             .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
       } else {
-      	g.select('nv-y.nv-axis').remove();
+        g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
       //------------------------------------------------------------
 

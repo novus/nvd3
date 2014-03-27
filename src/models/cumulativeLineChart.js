@@ -228,8 +228,9 @@ nv.models.cumulativeLineChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+        g.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -254,8 +255,9 @@ nv.models.cumulativeLineChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+        g.select('.nv-controlsWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-controlsWrap').remove();
+      	g.select('.nv-controlsWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -293,8 +295,9 @@ nv.models.cumulativeLineChart = function() {
           .svgContainer(container)
           .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+        wrap.select('.nv-interactive').style('visibility','visible');
       } else {
-      	g.select('.nv-interactive').remove();
+      	wrap.select('.nv-interactive').style('visibility','hidden');
       }
 
       gEnter.select('.nv-background')
@@ -402,8 +405,9 @@ nv.models.cumulativeLineChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
         d3.transition(g.select('.nv-x.nv-axis'))
             .call(xAxis);
+        g.select('.nv-x.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-x.nv-axis').remove();
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
 
@@ -415,8 +419,9 @@ nv.models.cumulativeLineChart = function() {
 
         d3.transition(g.select('.nv-y.nv-axis'))
             .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
       } else {
-      	g.select('.nv-y.nv-axis').remove();
+      	g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
       //------------------------------------------------------------
 
