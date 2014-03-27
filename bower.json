@@ -18,7 +18,7 @@
   ],
   "license": "Apache License, v2.0",
   "dependencies": {
-    "d3": "~3.3.13"
+    "d3": "~3.4.1"
   },
   "ignore" : [
     "**/.*",
