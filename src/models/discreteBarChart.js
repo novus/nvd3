@@ -295,14 +295,14 @@ nv.models.discreteBarChart = function() {
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 

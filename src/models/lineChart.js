@@ -160,8 +160,9 @@ nv.models.lineChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+      	wrap.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	wrap.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -400,21 +401,21 @@ nv.models.lineChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -432,7 +433,7 @@ nv.models.lineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 

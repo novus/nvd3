@@ -356,14 +356,14 @@ nv.models.multiBarTimeSeriesChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 

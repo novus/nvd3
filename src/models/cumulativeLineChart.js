@@ -651,7 +651,7 @@ nv.models.cumulativeLineChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -662,27 +662,28 @@ nv.models.cumulativeLineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 

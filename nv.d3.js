@@ -3133,7 +3133,7 @@ nv.models.cumulativeLineChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -3144,27 +3144,28 @@ nv.models.cumulativeLineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -3912,14 +3913,14 @@ nv.models.discreteBarChart = function() {
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -4475,21 +4476,21 @@ nv.models.historicalBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -5585,8 +5586,9 @@ nv.models.lineChart = function() {
 
         wrap.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+      	wrap.select('.nv-legendWrap').style('visibility','visible');
       } else {
-      	g.select('.nv-legendWrap').remove();
+      	wrap.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -5825,21 +5827,21 @@ nv.models.lineChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -5857,7 +5859,7 @@ nv.models.lineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -5902,7 +5904,6 @@ nv.models.lineChart = function() {
 
   return chart;
 }
-
 nv.models.linePlusBarChart = function() {
   "use strict";
   //============================================================
@@ -6299,7 +6300,7 @@ nv.models.linePlusBarChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -6854,7 +6855,7 @@ nv.models.lineWithFocusChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -7542,7 +7543,7 @@ nv.models.linePlusBarWithFocusChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -8476,28 +8477,28 @@ nv.models.multiBarChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -9422,28 +9423,28 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -9929,7 +9930,7 @@ nv.models.multiChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -12233,42 +12234,42 @@ nv.models.scatterChart = function() {
   chart.showDistX = function(_) {
     if (!arguments.length) return showDistX;
     showDistX = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showDistY = function(_) {
     if (!arguments.length) return showDistY;
     showDistY = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -12884,41 +12885,42 @@ nv.models.scatterPlusLineChart = function() {
   chart.showDistX = function(_) {
     if (!arguments.length) return showDistX;
     showDistX = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showDistY = function(_) {
     if (!arguments.length) return showDistY;
     showDistY = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -14384,28 +14386,28 @@ nv.models.stackedAreaChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -14423,7 +14425,7 @@ nv.models.stackedAreaChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
-    chart.update();
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
