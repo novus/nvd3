@@ -1,4 +1,4 @@
-PiePrivates = {
+var PiePrivates = {
     startAngle: 0,
     endAngle: 0,
     pieLabelsOutside: true,
@@ -13,20 +13,14 @@ PiePrivates = {
  */
 function Pie(options) {
     options = nv.utils.extend({}, options, PiePrivates, {
-        margin: {
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0
-        },
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
         width: 500,
         height: 500,
         chartClass: 'pie',
         wrapClass: 'pieWrap'
     });
 
-    var dispatchArray = [ 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout' ];
-    Chart.call(this, options, dispatchArray);
+    Layer.call(this, options, [ 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout' ]);
 }
 nv.utils.create(Pie, Layer, PiePrivates);
 
@@ -39,12 +33,14 @@ Pie.prototype.arcRadius = function(){
 };
 
 /**
- * @override Chart::wrap_
+ * @override Layer::draw
  */
 Pie.prototype.wrap_ = function (data) {
     var available = this.available,
         dispatch = this.dispatch;
     Layer.prototype.wrap_.call(this, data, ['nv-pieLabels']);
+
+    this.gEnter.append('g').attr('class', 'nv-pieLabels');
 
     this.wrap.attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
     //this.g.select('.nv-pieLabels').attr('transform', 'translate(' + available.width / 2 + ',' + available.height / 2 + ')');
@@ -284,7 +280,10 @@ nv.models.pie = function () {
 
     chart.dispatch = pie.dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
-    nv.utils.rebindp(chart, pie, Pie.prototype, 'margin', 'width', 'height', 'x', 'y', 'description', 'showLabels', 'labelSunbeamLayout', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'startAngle', 'endAngle', 'id', 'color', 'labelThreshold', 'valueFormat');
+
+    nv.utils.rebindp(chart, pie, Pie.prototype, 'margin', 'width', 'height', 'x', 'y', 'description', 'showLabels',
+        'labelSunbeamLayout', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio',
+        'startAngle', 'endAngle', 'id', 'color', 'labelThreshold', 'valueFormat');
 
     return chart;
 };
