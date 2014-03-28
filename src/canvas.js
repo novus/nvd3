@@ -98,12 +98,12 @@ Layer.prototype.setRoot = function(root) {
     var available = this.available = {};
     Object.defineProperty(available, 'width', {
         get: function(){
-            return Math.max(size.width - (margin.left + margin.right), 0);
+            return Math.max(size.width - (margin.leftright), 0);
         }
     });
     Object.defineProperty(available, 'height', {
         get: function(){
-            return Math.max(size.height - (margin.top + margin.bottom), 0);
+            return Math.max(size.height - (margin.topbottom), 0);
         }
     });
 };
@@ -190,6 +190,16 @@ Layer.prototype.height = function(_){
     this.options.size.height = _;
     return this;
 };
+
+Layer.prototype.margin = function(_){
+    if (!arguments.length) return this.options.margin;
+    var om = this.options.margin;
+    om.top = nv.utils.valueOrDefault(_.bottom, om.top);
+    om.bottom = nv.utils.valueOrDefault(_.bottom, om.bottom);
+    om.left = nv.utils.valueOrDefault(_.left, om.left);
+    om.right = nv.utils.valueOrDefault(_.right, om.right);
+    return this;
+}
 
 /**
  * A Chart is a composite Layer structure.
