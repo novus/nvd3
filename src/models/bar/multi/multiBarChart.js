@@ -9,11 +9,9 @@ var MultiBarChartPrivates = {
     , rotateLabels: 0
     , rightAlignYAxis: false
     , duration_ : 250
-    , color_ : nv.utils.defaultColor()
-    , tooltip: function(key, x, y) {
-        return '<h3>' + key + '</h3>' +
-            '<p>' +  y + ' on ' + x + '</p>'
-    }
+    , color : nv.utils.defaultColor()
+    , controlsData : []
+    , tooltips: true
 
 };
 
@@ -35,12 +33,16 @@ function MultiBarChart(options){
     this.yAxis = this.getAxis();
     this.legend = this.getLegend();
     this.controls = this.getLegend();
+    this.state = this.getStatesManager();
 
     this.controlWidth = function() { return this.showControls() ? 180 : 0};
 
-    this.state = this.getStatesManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
     this.renderWatch = nv.utils.renderWatch(this.dispatch);
+    this.controlsData([
+        { key: 'Grouped', disabled: this.stacked() },
+        { key: 'Stacked', disabled: !this.stacked() }
+    ]);
 
     var that = this;
     this.stateGetter = function (data) {
@@ -83,33 +85,37 @@ MultiBarChart.prototype.getLegend = function(){
 };
 
 /**
+ * @override Layer::wrapper
+ */
+MultiBarChart.prototype.wrapper = function (data) {
+    this.renderWatch.reset();
+    if (this.showXAxis()) this.renderWatch.models(this.xAxis);
+    if (this.showYAxis()) this.renderWatch.models(this.yAxis);
+    this.renderWatch.models(this.multibar);
+    Layer.prototype.wrapper.call(this, data, ['nv-controlsWrap', 'nv-x nv-axis', 'nv-y nv-axis']);
+};
+
+/**
  * @override Layer::draw
  */
 MultiBarChart.prototype.draw = function(data){
 
-    this.gEnter.append('g').attr('class', 'nv-controlsWrap');
+    var barsWrap = this.g.select('.nv-barsWrap').datum(data.filter(function(d) { return !d.disabled }));
+    d3.transition(barsWrap).call(this.multibar);
 
-    var x = this.multibar.xScale(),
-        y = this.multibar.yScale(),
-        that = this,
+    this.xScale = this.multibar.xScale;
+    this.yScale = this.multibar.yScale;
+
+    var that = this,
         availableWidth = this.available.width,
         availableHeight = this.available.height;
 
-    this.xAxis
-        .orient('bottom')
-        .tickPadding(7)
-        .highlightZero(true)
-        .showMaxMin(false)
-        .tickFormat(function(d) { return d });
-    this.yAxis
-        .orient(this.rightAlignYAxis() ? 'right' : 'left')
-        .tickFormat(d3.format(',.1f'));
-    this.controls.updateState(false); // DEPRECATED
+    console.log(availableWidth);
+    this.multibar
+        .width(availableWidth)
+        .height(availableHeight);
 
-    this.renderWatch.reset();
-    this.renderWatch.models(this.multibar);
-    if (this.showXAxis) this.renderWatch.models(this.xAxis);
-    if (this.showYAxis) this.renderWatch.models(this.yAxis);
+    this.controls.updateState(false); // DEPRECATED
 
     this.update = function() {
         if (this.duration_ === 0)
@@ -129,17 +135,13 @@ MultiBarChart.prototype.draw = function(data){
     this.state.disabled = data.map(function(d) { return !!d.disabled });
 
     if (this.showControls()) {
-        var controlsData = [
-            { key: 'Grouped', disabled: this.stacked() },
-            { key: 'Stacked', disabled: !this.stacked() }
-        ];
 
         this.controls
             .width(this.controlWidth())
             .color(['#444', '#444', '#444']);
         this.g.select('.nv-controlsWrap')
-            .datum(controlsData)
-            .attr('transform', 'translate(0,' + (-this.margin.top) +')')
+            .datum(this.controlsData())
+            .attr('transform', 'translate(0,' + (-this.margin().top) +')')
             .call(this.controls);
     }
 
@@ -150,12 +152,17 @@ MultiBarChart.prototype.draw = function(data){
 
     if (this.showXAxis()) {
         this.xAxis
-            .scale(x)
+            .orient('bottom')
+            .tickPadding(7)
+            .highlightZero(true)
+            .showMaxMin(false)
+            .tickFormat(function(d) { return d })
+            .scale(this.xScale())
             .ticks( availableWidth / 100 )
             .tickSize(-availableHeight, 0);
 
         this.g.select('.nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + y.range()[0] + ')');
+            .attr('transform', 'translate(0,' + this.yScale().range()[0] + ')');
         this.g.select('.nv-x.nv-axis').transition()
             .call(this.xAxis);
 
@@ -175,7 +182,7 @@ MultiBarChart.prototype.draw = function(data){
             xTicks
                 .selectAll("text")
                 .attr('transform', function(d,i,j) {
-                    return  getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
+                    return getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
                 });
 
             var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
@@ -203,7 +210,9 @@ MultiBarChart.prototype.draw = function(data){
 
     if (this.showYAxis()) {
         this.yAxis
-            .scale(y)
+            .orient(this.rightAlignYAxis() ? 'right' : 'left')
+            .tickFormat(d3.format(',.1f'))
+            .scale(this.yScale())
             .ticks( availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
@@ -211,8 +220,6 @@ MultiBarChart.prototype.draw = function(data){
             .call(this.yAxis);
     }
 
-    var barsWrap = this.g.select('.nv-barsWrap').datum(data.filter(function(d) { return !d.disabled }));
-    d3.transition(barsWrap).call(this.multibar);
 };
 
 /**
@@ -227,7 +234,7 @@ MultiBarChart.prototype.attachEvents = function(){
     this.multibar.dispatch
         .on('elementMouseover.tooltip', function(e) {
             e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
-            that.dispatch.tooltipShow(e);
+            this.dispatch.tooltipShow(e);
         }.bind(this))
         .on('elementMouseout.tooltip', function(e) {
             this.dispatch.tooltipHide(e);
@@ -239,10 +246,12 @@ MultiBarChart.prototype.attachEvents = function(){
 
     this.controls.dispatch.on('legendClick', function(d) {
         if (!d.disabled) return;
-        this.controlsData = this.controlsData.map(function(s) {
-            s.disabled = true;
-            return s;
-        });
+        this.controlsData(
+            this.controlsData().map(function(s) {
+                s.disabled = true;
+                return s;
+            })
+        );
         d.disabled = false;
 
         switch (d.key) {
@@ -265,7 +274,7 @@ MultiBarChart.prototype.attachEvents = function(){
     }.bind(this));
 
     this.dispatch.on('tooltipShow', function(e) {
-        if (this.tooltips) this.showTooltip(e, this.parentNode)
+        if (this.tooltips()) this.showTooltip(e, this.g[0].parentNode)
     }.bind(this));
 
     // DEPRECATED
@@ -291,10 +300,10 @@ MultiBarChart.prototype.attachEvents = function(){
  * Set the underlying color, on both the chart, and the composites.
  */
 MultiBarChart.prototype.color = function(_){
-    if (!arguments.length) return this.color_;
-    this.color_ = nv.utils.getColor(_);
-    this.legend.color(this.color);
-    this.multibar.color(this.color);
+    if (!arguments.length) return this.color();
+    this.color = nv.utils.getColor(_);
+    this.legend.color(this.color());
+    this.multibar.color(this.color());
     return this;
 };
 

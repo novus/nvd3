@@ -1,6 +1,6 @@
 var MultiBarPrivates = {
-    xScale : d3.scale.linear()
-    , yScale : d3.scale.linear()
+    xScale: d3.scale.ordinal()
+    , yScale: d3.scale.linear()
     , disabled: []
     , xDomain: null
     , yDomain: null
@@ -27,23 +27,24 @@ function MultiBar(options){
         chartClass: 'multibar'
     });
 
-    this.x = d3.scale.ordinal();
-    this.y = d3.scale.ordinal();
-    this.x0 = 0; //used to store previous scales
-    this.y0 = 0; //used to store previous scales
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration_);
-
     Layer.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd']);
+
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration_());
 }
 
 nv.utils.create(MultiBar, Layer, MultiBarPrivates);
 
 /**
+ * @override Layer::wrapper
+ */
+MultiBar.prototype.wrapper = function(data){
+    Layer.prototype.wrapper.call(this, data, ['nv-groups']);
+};
+
+/**
  * @override Layer::draw
  */
 MultiBar.prototype.draw = function(data){
-
-    this.gEnter.append('g').attr('class', 'nv-groups');
 
     var that = this,
         availableWidth = this.available.width,
@@ -69,7 +70,7 @@ MultiBar.prototype.draw = function(data){
         data = d3.layout.stack()
             .offset(this.stackOffset())
             .values(function(d){ return d.values })
-            .y(this.y)(!data.length && this.hideable ? this.hideable : data);
+            .y(this.yScale())(!data.length && this.hideable ? this.hideable : data);
 
     //add series index to each data point for reference
     data.forEach(function(series, i) {
@@ -103,35 +104,43 @@ MultiBar.prototype.draw = function(data){
     var seriesData = (this.xDomain() && this.yDomain()) ? [] : // if we know xDomain and yDomain, no need to calculate
         data.map(function(d) {
             return d.values.map(function(d) {
-                return { x: that.x(d), y: that.x(d), y0: d.y0, y1: d.y1 }
+                return { x: that.x()(d), y: that.y()(d), y0: d.y0, y1: d.y1 }
             })
         });
 
-    this.x.domain(this.xDomain() || d3.merge(seriesData).map(function(d) { return d.x }))
-        .rangeBands(this.xRange() || [0, availableWidth], this.groupSpacing());
 
-    this.y.domain(
+    this.xScale()
+        .domain(this.xDomain() || d3.merge(seriesData).map(that.x()) )
+        .rangeBands( (this.xRange() || [0, availableWidth]), this.groupSpacing());
+
+    //console.log( this.xRange() || [0, availableWidth] );
+
+    this.yScale().domain(
             this.yDomain() || d3.extent(
                 d3.merge(seriesData)
-                    .map(function(d) { return that.stacked() ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y} )
+                    .map(function(d) {
+                        return that.stacked() ?
+                            that.y()(d) > 0 ? d.y1 : d.y1 + that.y()(d) :
+                            that.y()(d)}
+                )
                     .concat(this.forceY())
             )
         )
         .range(this.yRange() || [availableHeight, 0]);
 
     // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
-    if (this.x.domain[0] === this.x.domain[1])
-        this.x.domain[0] ?
-            this.x.domain([this.x.domain[0] - this.x.domain[0] * 0.01, this.x.domain[1] + this.x.domain[1] * 0.01])
-            : this.x.domain([-1,1]);
+    if (this.xScale().domain()[0] === this.xScale().domain()[1])
+        this.xScale().domain()[0] ?
+            this.xScale().domain([this.xScale().domain()[0] - this.xScale().domain()[0] * 0.01, this.xScale().domain()[1] + this.xScale().domain()[1] * 0.01])
+            : this.xScale().domain([-1,1]);
 
-    if (this.y.domain[0] === this.y.domain[1])
-        this.y.domain[0] ?
-            this.y.domain([this.y.domain[0] + this.y.domain[0] * 0.01, this.y.domain[1] - this.y.domain[1] * 0.01])
-            : this.y.domain([-1,1]);
+    if (this.yScale().domain()[0] === this.yScale().domain()[1])
+        this.yScale().domain()[0] ?
+            this.yScale().domain([this.yScale().domain()[0] + this.yScale().domain()[0] * 0.01, this.yScale().domain()[1] - this.yScale().domain()[1] * 0.01])
+            : this.yScale().domain([-1,1]);
 
-    this.x0 = this.x0 || this.x;
-    this.y0 = this.y0 || this.y;
+    this.x0 = this.x0 || this.xScale;
+    this.y0 = this.y0 || this.yScale;
 
     //------------------------------------------------------------
 
@@ -151,13 +160,13 @@ MultiBar.prototype.draw = function(data){
         .style('fill-opacity', 1e-6);
 
     var exitTransition = this.renderWatch
-        .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(250, this.duration_))
-        .attr('y', function(d) { return that.stacked() ? that.y0(d.y0) : that.y0(0)})
+        .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(250, this.duration_()))
+        .attr('y', function(d) { return that.stacked() ? that.y0()(d.y0) : that.y0()(0)})
         .attr('height', 0)
         .remove();
     if (exitTransition.delay)
         exitTransition.delay(function(d,i) {
-            return i * that.duration_ / data[0].values.length;
+            return i * that.duration_() / data[0].values.length;
         });
 
     groups
@@ -178,24 +187,25 @@ MultiBar.prototype.draw = function(data){
 
     var barsEnter = bars.enter().append('rect')
         .attr('class', function(d) {
-            return that.y(d) < 0 ? 'nv-bar negative' : 'nv-bar positive'
+            return that.y()(d) < 0 ? 'nv-bar negative' : 'nv-bar positive'
         })
         .attr('x', function(d,i,j) {
-            return that.stacked() ? 0 : (j * that.x.rangeBand() / data.length )
+            return that.stacked() ? 0 : (j * that.xScale().rangeBand() / data.length )
         })
         .attr('y', function(d) {
-            return that.y0(that.stacked() ? d.y0 : 0)
+            return that.y0()(that.stacked() ? d.y0 : 0)
         })
         .attr('height', 0)
-        .attr('width', this.x.rangeBand() / (this.stacked() ? 1 : data.length) )
-        .attr('transform', function(d) { return 'translate(' + that.x(d) + ',0)';});
+        .attr('width', this.xScale().rangeBand() / (this.stacked() ? 1 : data.length) )
+        .attr('transform', function(d) { return 'translate(' + that.xScale()(that.x()(d)) + ',0)';});
+
 
     function _onMouseEventObject(d,i){
         return {
-            value     : that.y(d),
+            value     : that.y()(d),
             point     : d,
             series    : data[d.series],
-            pos       : [that.x(that.x(d)) + (that.x.rangeBand() * (that.stacked() ? data.length / 2 : d.series + .5) / data.length), that.y(that.y(d) + (that.stacked() ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
+            pos       : [that.xScale()(that.x()(d)) + (that.xScale().rangeBand() * (that.stacked() ? data.length / 2 : d.series + .5) / data.length), that.yScale()(that.y()(d) + (that.stacked() ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
             pointIndex: i,
             seriesIndex: d.series,
             e         : d3.event
@@ -221,9 +231,9 @@ MultiBar.prototype.draw = function(data){
             d3.event.stopPropagation();
         });
     bars
-        .attr('class', function(d) { return that.y(d) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
+        .attr('class', function(d) { return that.y()(d) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
         .transition()
-        .attr('transform', function(d) { return 'translate(' + that.x(that.x(d)) + ',0)'; });
+        .attr('transform', function(d) { return 'translate(' + that.xScale()(that.x()(d)) + ',0)'; });
 
     function _colorBar (d,i,j) {
         return d3.rgb(that.barColor()(d,i))
@@ -241,43 +251,49 @@ MultiBar.prototype.draw = function(data){
             .style('fill', _colorBar)
             .style('stroke', _colorBar);
     }*/
+
+
     var barSelection =
-        bars.watchTransition(this.renderWatch, 'multibar', Math.min(250, this.duration_))
+        bars.watchTransition(this.renderWatch, 'multibar', Math.min(250, this.duration_()))
             .delay(function(d,i) {
-                return i * that.duration_ / data[0].values.length;
+                return i * that.duration_() / data[0].values.length;
             });
     if (this.stacked())
         barSelection
-            .attr('y', function(d) { return that.y(that.stacked() ? d.y1 : 0) })
-            .attr('height', function(d) { return Math.max(Math.abs(that.y(d.y + (that.stacked() ? d.y0 : 0)) - that.y(that.stacked() ? d.y0 : 0)),1) })
-            .attr('x', function(d) { return that.stacked() ? 0 : (d.series * that.x.rangeBand() / data.length ) })
-            .attr('width', this.x.rangeBand() / (this.stacked() ? 1 : data.length) );
+            .attr('y', function(d) {
+                return that.y()(that.stacked() ? d.y1 : 0)
+            })
+            .attr('height', function(d){
+                return Math.max(Math.abs(that.yScale()(d.y + (that.stacked() ? d.y0 : 0)) - that.yScale()((that.stacked() ? d.y0 : 0))),1);
+            })
+            .attr('x', function(d) { return that.stacked() ? 0 : (d.series * that.xScale().rangeBand() / data.length ) })
+            .attr('width', this.xScale().rangeBand() / (this.stacked() ? 1 : data.length) );
     else
         barSelection
-            .attr('x', function(d) { return d.series * that.x.rangeBand() / data.length })
-            .attr('width', this.x.rangeBand() / data.length)
+            .attr('x', function(d) { return d.series * that.xScale().rangeBand() / data.length })
+            .attr('width', this.xScale().rangeBand() / data.length)
             .attr('y', function(d) {
-                return that.y(d) < 0 ?
-                    that.y(0) :
-                    that.y(0) - that.y(that.y(d)) < 1 ?
-                        that.y(0) - 1 :
-                        that.y(that.y(d)) || 0;
+                return that.yScale()(d) < 0 ?
+                    that.yScale()(0) :
+                    that.yScale()(0) - that.yScale()(that.y()(d)) < 1 ?
+                        that.yScale()(0) - 1 :
+                        that.yScale()(that.y()(d)) || 0;
             })
-            .attr('height', function(d) {
-                return Math.max(Math.abs(that.y(that.y(d)) - that.y(0)),1) || 0;
+            .attr('height', function(d, i) {
+                return Math.max(Math.abs(that.yScale()(that.y()(d,i)) - that.yScale()(0)),1) || 0;
             });
 
     //store old scales for use in transitions on update
-    this.x0 = this.x.copy;
-    this.y0 = this.y.copy;
+    this.x0 = this.xScale().copy;
+    this.y0 = this.yScale().copy;
 
     this.renderWatch.renderEnd('multibar immediate');
 };
 
 MultiBar.prototype.duration = function(_) {
-    if (!arguments.length) return this.duration_;
-    this.duration_ = _;
-    this.renderWatch.reset(this.duration_);
+    if (!arguments.length) return this.duration_();
+    this.duration_(_);
+    this.renderWatch.reset(this.duration_());
     return this;
 };
 
