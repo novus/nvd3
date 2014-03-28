@@ -168,6 +168,9 @@ nv.models.lineWithFocusChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+        g.select('.nv-legendWrap').style('visibility','visible');
+      } else {
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -512,6 +515,7 @@ nv.models.lineWithFocusChart = function() {
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 

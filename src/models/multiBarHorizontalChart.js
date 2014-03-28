@@ -173,6 +173,9 @@ nv.models.multiBarHorizontalChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
+        g.select('.nv-legendWrap').style('visibility','visible');
+      } else {
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -192,6 +195,9 @@ nv.models.multiBarHorizontalChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+        g.select('.nv-controlsWrap').style('visibility','visible');
+      } else {
+      	g.select('.nv-controlsWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -236,6 +242,9 @@ nv.models.multiBarHorizontalChart = function() {
 
           xTicks
               .selectAll('line, text');
+        g.select('.nv-x.nv-axis').style('visibility','visible');
+      } else {
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
       if (showYAxis) {
@@ -248,6 +257,9 @@ nv.models.multiBarHorizontalChart = function() {
               .attr('transform', 'translate(0,' + availableHeight + ')');
           g.select('.nv-y.nv-axis').transition()
               .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
+      } else {
+      	g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
 
       // Zero line
@@ -392,24 +404,28 @@ nv.models.multiBarHorizontalChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 

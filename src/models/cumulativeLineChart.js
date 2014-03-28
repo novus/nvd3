@@ -228,6 +228,9 @@ nv.models.cumulativeLineChart = function() {
 
         g.select('.nv-legendWrap')
             .attr('transform', 'translate(0,' + (-margin.top) +')')
+        g.select('.nv-legendWrap').style('visibility','visible');
+      } else {
+      	g.select('.nv-legendWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -252,6 +255,9 @@ nv.models.cumulativeLineChart = function() {
             .datum(controlsData)
             .attr('transform', 'translate(0,' + (-margin.top) +')')
             .call(controls);
+        g.select('.nv-controlsWrap').style('visibility','visible');
+      } else {
+      	g.select('.nv-controlsWrap').style('visibility','hidden');
       }
 
       //------------------------------------------------------------
@@ -289,6 +295,9 @@ nv.models.cumulativeLineChart = function() {
           .svgContainer(container)
           .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+        wrap.select('.nv-interactive').style('visibility','visible');
+      } else {
+      	wrap.select('.nv-interactive').style('visibility','hidden');
       }
 
       gEnter.select('.nv-background')
@@ -396,6 +405,9 @@ nv.models.cumulativeLineChart = function() {
             .attr('transform', 'translate(0,' + y.range()[0] + ')');
         d3.transition(g.select('.nv-x.nv-axis'))
             .call(xAxis);
+        g.select('.nv-x.nv-axis').style('visibility','visible');
+      } else {
+      	g.select('.nv-x.nv-axis').style('visibility','hidden');
       }
 
 
@@ -407,6 +419,9 @@ nv.models.cumulativeLineChart = function() {
 
         d3.transition(g.select('.nv-y.nv-axis'))
             .call(yAxis);
+        g.select('.nv-y.nv-axis').style('visibility','visible');
+      } else {
+      	g.select('.nv-y.nv-axis').style('visibility','hidden');
       }
       //------------------------------------------------------------
 
@@ -641,6 +656,7 @@ nv.models.cumulativeLineChart = function() {
   chart.showControls = function(_) {
     if (!arguments.length) return showControls;
     showControls = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
@@ -651,24 +667,28 @@ nv.models.cumulativeLineChart = function() {
        chart.interactive(false);
        chart.useVoronoi(false);
     }
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     showLegend = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
     showXAxis = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 
   chart.showYAxis = function(_) {
     if (!arguments.length) return showYAxis;
     showYAxis = _;
+    if(typeof chart.update === 'function') chart.update();
     return chart;
   };
 

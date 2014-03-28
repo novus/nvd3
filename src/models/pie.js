@@ -239,6 +239,8 @@ nv.models.pie = function() {
                   };
                   return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                 });
+        } else {
+        	wrap.select('.nv-pieLabels').remove();
         }
 
 
