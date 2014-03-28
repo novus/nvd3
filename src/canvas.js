@@ -98,12 +98,12 @@ Layer.prototype.setRoot = function(root) {
     var available = this.available = {};
     Object.defineProperty(available, 'width', {
         get: function(){
-            return Math.max(size.width - margin.leftright, 0);
+            return Math.max(size.width - (margin.left + margin.right), 0);
         }
     });
     Object.defineProperty(available, 'height', {
         get: function(){
-            return Math.max(size.height - margin.topbottom, 0);
+            return Math.max(size.height - (margin.top + margin.bottom), 0);
         }
     });
 };
@@ -151,7 +151,7 @@ Layer.prototype.wrapper = function(data, gs) {
     var wrapClass = 'nv-' + this.options.wrapClass;
 
     this.wrap = this.svg.selectAll('g.nv-wrap.' + wrapClass).data([data]);
-    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nv-wrap ' + chartClass });
+    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nvd3 nv-wrap ' + chartClass });
     this.defsEnter = this.wrapEnter.append('defs');
     this.gEnter = this.wrapEnter.append('g');
     this.g = this.wrap.select('g');
