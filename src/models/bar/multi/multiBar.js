@@ -55,8 +55,10 @@ MultiBar.prototype.draw = function(data){
         return d.series === data.length - 1 && i === data[0].values.length - 1;
     };
 
+    var hideable = [];
+
     if(this.hideable() && data.length)
-        this.hideable = [{
+        hideable = [{
             values: data[0].values.map(function(d) {
                     return {
                         x: d.x,
@@ -70,7 +72,7 @@ MultiBar.prototype.draw = function(data){
         data = d3.layout.stack()
             .offset(this.stackOffset())
             .values(function(d){ return d.values })
-            .y(this.yScale())(!data.length && this.hideable ? this.hideable : data);
+            .y(this.yScale())(!data.length && hideable ? hideable : data);
 
     //add series index to each data point for reference
     data.forEach(function(series, i) {

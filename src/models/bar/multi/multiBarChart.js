@@ -100,20 +100,22 @@ MultiBarChart.prototype.wrapper = function (data) {
  */
 MultiBarChart.prototype.draw = function(data){
 
+    var that = this,
+        availableWidth = this.available.width,
+        availableHeight = this.available.height;
+
+    this.multibar
+        .stacked(this.stacked())
+        .disabled(data.map(function(series) { return series.disabled }))
+        .width(availableWidth)
+        .height(availableHeight)
+        .margin({ top: 0, right: 0, bottom: 0, left: 0 });
+
     var barsWrap = this.g.select('.nv-barsWrap').datum(data.filter(function(d) { return !d.disabled }));
     d3.transition(barsWrap).call(this.multibar);
 
     this.xScale = this.multibar.xScale;
     this.yScale = this.multibar.yScale;
-
-    var that = this,
-        availableWidth = this.available.width,
-        availableHeight = this.available.height;
-
-    console.log(availableWidth);
-    this.multibar
-        .width(availableWidth)
-        .height(availableHeight);
 
     this.controls.updateState(false); // DEPRECATED
 
@@ -274,7 +276,7 @@ MultiBarChart.prototype.attachEvents = function(){
     }.bind(this));
 
     this.dispatch.on('tooltipShow', function(e) {
-        if (this.tooltips()) this.showTooltip(e, this.g[0].parentNode)
+        if (this.tooltips()) this.showTooltip(e, this.svg[0][0].parentNode)
     }.bind(this));
 
     // DEPRECATED
