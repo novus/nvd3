@@ -14,6 +14,7 @@ var MultiBarPrivates = {
     , _duration: 1000
     , forceY: [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , id: 0
+    , _barColor: null
 };
 
 /**
@@ -237,7 +238,7 @@ MultiBar.prototype.draw = function(data){
         .attr('transform', function(d) { return 'translate(' + that.xScale()(that.x()(d)) + ',0)'; });
 
     function _colorBar (d,i,j) {
-        return d3.rgb(that.barColor(d,i))
+        return d3.rgb(that._barColor()(d,i))
             .darker(
                 that.disabled().map(function(d,i) { return i })
                     .filter(function(d,i){ return !that.disabled[i]})[j]
@@ -245,7 +246,7 @@ MultiBar.prototype.draw = function(data){
             .toString()
     }
 
-    if (this.barColor) {
+    if (this._barColor()) {
         if (!this.disabled())
             this.disabled(data.map(function() { return true }));
         bars
@@ -304,8 +305,8 @@ MultiBar.prototype.delay = function(_) {
 };
 
 MultiBar.prototype.barColor = function(_) {
-    if (!arguments.length) return this.barColor;
-    this.barColor = nv.utils.getColor(_);
+    if (!arguments.length) return this._barColor();
+    this._barColor(nv.utils.getColor(_));
     return this;
 };
 
