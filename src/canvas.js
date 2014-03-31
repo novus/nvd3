@@ -75,6 +75,7 @@ Layer.prototype.renderElement = function(element, data){
  * Call the render function, using the last selection.
  */
 Layer.prototype.update = function(){
+    this.wrap.remove();
     this.svg.call(function(selection){
         this.render(selection);
     }.bind(this));
