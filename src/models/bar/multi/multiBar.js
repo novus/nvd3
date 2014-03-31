@@ -11,7 +11,7 @@ var MultiBarPrivates = {
     , stackOffset: 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
     , hideable: false
     , groupSpacing: 0.1
-    , duration_: 1000
+    , _duration: 1000
     , forceY: [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , id: 0
 };
@@ -29,7 +29,7 @@ function MultiBar(options){
 
     Layer.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd']);
 
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration_());
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this._duration());
 }
 
 nv.utils.create(MultiBar, Layer, MultiBarPrivates);
@@ -72,7 +72,8 @@ MultiBar.prototype.draw = function(data){
         data = d3.layout.stack()
             .offset(this.stackOffset())
             .values(function(d){ return d.values })
-            .y(this.yScale())(!data.length && hideable ? hideable : data);
+            .y(this.y())
+            (!data.length && hideable ? hideable : data);
 
     //add series index to each data point for reference
     data.forEach(function(series, i) {
@@ -114,8 +115,6 @@ MultiBar.prototype.draw = function(data){
     this.xScale()
         .domain(this.xDomain() || d3.merge(seriesData).map(that.x()) )
         .rangeBands( (this.xRange() || [0, availableWidth]), this.groupSpacing());
-
-    //console.log( this.xRange() || [0, availableWidth] );
 
     this.yScale().domain(
             this.yDomain() || d3.extent(
@@ -162,13 +161,13 @@ MultiBar.prototype.draw = function(data){
         .style('fill-opacity', 1e-6);
 
     var exitTransition = this.renderWatch
-        .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(250, this.duration_()))
+        .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(250, this._duration()))
         .attr('y', function(d) { return that.stacked() ? that.y0()(d.y0) : that.y0()(0)})
         .attr('height', 0)
         .remove();
     if (exitTransition.delay)
         exitTransition.delay(function(d,i) {
-            return i * that.duration_() / data[0].values.length;
+            return i * that._duration() / data[0].values.length;
         });
 
     groups
@@ -182,7 +181,7 @@ MultiBar.prototype.draw = function(data){
 
     var bars = groups.selectAll('rect.nv-bar')
         .data(function(d) {
-            return (that.hideable && !data.length) ? that.hideable.values : d.values
+            return (hideable && !data.length) ? hideable.values : d.values
         });
 
     bars.exit().remove();
@@ -238,7 +237,7 @@ MultiBar.prototype.draw = function(data){
         .attr('transform', function(d) { return 'translate(' + that.xScale()(that.x()(d)) + ',0)'; });
 
     function _colorBar (d,i,j) {
-        return d3.rgb(that.barColor()(d,i))
+        return d3.rgb(that.barColor(d,i))
             .darker(
                 that.disabled().map(function(d,i) { return i })
                     .filter(function(d,i){ return !that.disabled[i]})[j]
@@ -246,19 +245,19 @@ MultiBar.prototype.draw = function(data){
             .toString()
     }
 
-    /*if (this.barColor) {
+    if (this.barColor) {
         if (!this.disabled())
-            this.disabled = data.map(function() { return true });
+            this.disabled(data.map(function() { return true }));
         bars
             .style('fill', _colorBar)
             .style('stroke', _colorBar);
-    }*/
+    }
 
 
     var barSelection =
-        bars.watchTransition(this.renderWatch, 'multibar', Math.min(250, this.duration_()))
+        bars.watchTransition(this.renderWatch, 'multibar', Math.min(250, this._duration()))
             .delay(function(d,i) {
-                return i * that.duration_() / data[0].values.length;
+                return i * that._duration() / data[0].values.length;
             });
     if (this.stacked())
         barSelection
@@ -293,9 +292,9 @@ MultiBar.prototype.draw = function(data){
 };
 
 MultiBar.prototype.duration = function(_) {
-    if (!arguments.length) return this.duration_();
-    this.duration_(_);
-    this.renderWatch.reset(this.duration_());
+    if (!arguments.length) return this._duration();
+    this._duration(_);
+    this.renderWatch.reset(this._duration());
     return this;
 };
 
