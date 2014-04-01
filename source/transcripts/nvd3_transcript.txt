@@ -1,0 +1,51 @@
+[10:26:44] [connected at Mon Mar 17 10:26:44 2014]
+[10:26:50] [I have joined #nvd3]
+[10:26:59] <davidsouther1> twistedbot: hello
+[10:26:59] <twistedbot> davidsouther1: I am a log bot
+[10:27:09] davidsouther1 is now known as southerd
+[10:28:57] [disconnected at Mon Mar 17 10:28:57 2014]
+[10:29:01] [connected at Mon Mar 17 10:29:01 2014]
+[10:29:07] [I have joined #nvd3]
+[10:29:31] transcriptbot is now known as Guest35483
+[10:33:01] <southerd> Guest35483: Hello
+[10:33:25] <southerd> Guest35483: hello
+[10:33:39] [disconnected at Mon Mar 17 10:33:39 2014]
+[10:33:45] [connected at Mon Mar 17 10:33:45 2014]
+[10:34:42] [disconnected at Mon Mar 17 10:34:42 2014]
+[10:34:42] [connected at Mon Mar 17 10:34:42 2014]
+[10:35:14] [disconnected at Mon Mar 17 10:35:14 2014]
+[10:35:17] [connected at Mon Mar 17 10:35:17 2014]
+[10:35:39] [disconnected at Mon Mar 17 10:35:39 2014]
+[10:35:41] [connected at Mon Mar 17 10:35:41 2014]
+[10:35:50] [I have joined #nvd3]
+[10:36:15] <southerd> nvd3_sten: hello
+[10:36:15] <nvd3_sten> southerd: I am a log bot
+[10:37:32] <robinhu> sup Log Bot.
+[10:43:16] <joesepi> Hello Log Bot.
+[13:01:26] [disconnected at Mon Mar 17 13:01:26 2014]
+[13:01:26] [connected at Mon Mar 17 13:01:26 2014]
+[13:01:39] [I have joined #nvd3]
+[13:23:38] <JFSIII> Hello, Log Bot and others
+[13:28:47] <davidsouther> Woot.
+[13:28:53] <davidsouther> I should replace it with something smarter
+[13:29:21] <davidsouther> hubot, probably
+[14:03:02] [disconnected at Mon Mar 17 14:03:02 2014]
+[14:03:02] [connected at Mon Mar 17 14:03:02 2014]
+[14:03:18] [I have joined #nvd3]
+[14:03:52] davidsouther is now known as southerd
+[14:07:01] [disconnected at Mon Mar 17 14:07:01 2014]
+[14:07:01] [connected at Mon Mar 17 14:07:01 2014]
+[14:07:07] [I have joined #nvd3]
+[14:10:33] <southerd> JFSIII: joesepi is typing up some triage guidelines for moving forward with cleaning out the Github backlog
+[14:11:05] <southerd> At the same time, I'm typing up some notes on the refactor going on in the (poorly named) "Canvas" branch
+[14:11:11] <JFSIII> OK, great
+[14:12:31] <JFSIII> I must confess I didn't get around to making notes on the code. This weekend, I spent my free hours moving my work project from grunt to a simple node.js build script
+[14:13:04] <JFSIII> but I'm pretty familiar with the code. I've been using it (and reading / patching models) for 9+ months.
+[14:21:46] <southerd> Yeah, at this point the "Canvas" refactor is just pulling out the most commonly repeated bits of code
+[14:22:10] <southerd> Specifically, margins & inserting the wrap-classed DOM nodes.
+[14:24:41] <southerd> With that, we should also have tests for all the charts, and find a way to automate them (rather than start a static server in the root folder and click through `tests/`
+[14:25:51] <southerd> I'd also like to see us move away from the getter/setter mechanism - I'd almost go so far as to call it an anti pattern, but it's so integral to the way d3 handles object state that might not be possible
+[14:26:31] <southerd> And finally, I want to see a more composite approach to creating complex charts
+[16:39:53] <southerd> hey there, novusTyler
+[16:40:15] <novusTyler> hi
+[17:10:32] [disconnected at Mon Mar 17 17:10:32 2014]
