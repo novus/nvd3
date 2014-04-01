@@ -1,6 +1,3 @@
-/**
- 'state', 'defaultState', 'noData', 'transitionDuration'
- */
 var MultiBarHorizontalChartPrivates = {
     color : null
     , showLegend: true
@@ -37,6 +34,7 @@ function MultiBarHorizontalChart(options){
     this.state = { stacked: this.stacked() };
 
     this._color = nv.utils.defaultColor();
+
     this.legend = nv.models.legend()
         .height(30);
     this.controls = nv.models.legend()
@@ -45,16 +43,6 @@ function MultiBarHorizontalChart(options){
     this.controlWidth = function() {
         return that.showControls() ? 180 : 0
     };
-    
-    this.showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = that.xAxis.tickFormat()(that.multibarHorizontal.x()(e.point, e.pointIndex)),
-            y = that.yAxis.tickFormat()(that.multibarHorizontal.y()(e.point, e.pointIndex)),
-            content = that.tooltip()(e.series.key, x, y);
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
-    };
-
     this.multibarHorizontal
         .stacked( this.stacked() );
     this.xAxis
@@ -66,12 +54,48 @@ function MultiBarHorizontalChart(options){
     this.yAxis
         .orient('bottom')
         .tickFormat(d3.format(',.1f'));
+
+    this.state = this.getStateManager();
+    this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
+    
+    this.showTooltip = function(e, offsetElement) {
+        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+            top = e.pos[1] + ( offsetElement.offsetTop || 0),
+            x = that.xAxis.tickFormat()(that.multibarHorizontal.x()(e.point, e.pointIndex)),
+            y = that.yAxis.tickFormat()(that.multibarHorizontal.y()(e.point, e.pointIndex)),
+            content = that.tooltip()(e.series.key, x, y);
+        nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
+    };
+
+    this.stateGetter = function(data) {
+        return function(){
+            return {
+                active: data.map(function(d) { return !d.disabled }),
+                stacked: that.stacked()
+            }
+        }
+    };
+    this.stateSetter = function(data) {
+        return function(state) {
+            if (state.stacked !== undefined)
+                that.stacked(state.stacked);
+            if (state.active !== undefined)
+                data.forEach(function(series,i) {
+                    series.disabled = !state.active[i];
+                });
+        }
+    };
+
 }
 
 nv.utils.create(MultiBarHorizontalChart, Chart, MultiBarHorizontalChartPrivates);
 
 MultiBarHorizontalChart.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data, ['nv-x nv-axis', 'nv-y nv-axis', 'nv-zeroLine', 'nv-controlsWrap']);
+    this.state
+        .setter(this.stateSetter(data), this.update)
+        .getter(this.stateGetter(data))
+        .update();
 };
 
 MultiBarHorizontalChart.prototype.getLegend = function(){
@@ -80,6 +104,10 @@ MultiBarHorizontalChart.prototype.getLegend = function(){
 
 MultiBarHorizontalChart.prototype.getAxis = function(){
     return nv.models.axis();
+};
+
+MultiBarHorizontalChart.prototype.getStateManager = function(){
+    return nv.utils.state();
 };
 
 MultiBarHorizontalChart.prototype.draw = function(data){
@@ -205,13 +233,17 @@ MultiBarHorizontalChart.prototype.attachEvents = function(){
                 this.multibarHorizontal.stacked(true);
                 break;
         }
+        // DEPRECATED
         this.state.stacked = this.multibarHorizontal.stacked();
         this.dispatch.stateChange(this.state);
+        // END DEPRECATED
+
         this.update();
     }.bind(this));
 
-    // Update chart from a state object passed to event handler
     this.dispatch
+        // DEPRECATED
+        // Update chart from a state object passed to event handler
         .on('changeState', function(e) {
             if (typeof e.disabled !== 'undefined') {
                 data.forEach(function(series,i) { series.disabled = e.disabled[i] });
@@ -223,6 +255,7 @@ MultiBarHorizontalChart.prototype.attachEvents = function(){
             }
             this.update();
         }.bind(this))
+        // END DEPRECATED
         .on('tooltipShow', function(e) {
             if (this.tooltips())
                 this.showTooltip(e, this.svg[0][0].parentNode);
