@@ -9,7 +9,6 @@ var MultiBarChartPrivates = {
     , rotateLabels: 0
     , rightAlignYAxis: false
     , color : null
-    , controlsData : []
     , tooltips: true
 };
 
@@ -37,11 +36,9 @@ function MultiBarChart(options){
 
     this.state = this.getStatesManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
+
     this.controlWidth = function() { return this.showControls() ? 180 : 0};
-    this.controlsData([
-        { key: 'Grouped', disabled: this.stacked() },
-        { key: 'Stacked', disabled: !this.stacked() }
-    ]);
+    this.controlsData = [];
 
     var that = this;
     this.stateGetter = function (data) {
@@ -61,7 +58,9 @@ function MultiBarChart(options){
                     series.disabled = !state.active[i];
                 });
         }
-    }
+    };
+
+    this.controls.updateState(false); // DEPRECATED
 
 }
 
@@ -117,8 +116,6 @@ MultiBarChart.prototype.draw = function(data){
     this.xScale = this.multibar.xScale;
     this.yScale = this.multibar.yScale;
 
-    this.controls.updateState(false); // DEPRECATED
-
     this.state
         .setter(this.stateSetter(data), this.update)
         .getter(this.stateGetter(data))
@@ -129,11 +126,15 @@ MultiBarChart.prototype.draw = function(data){
 
     if (this.showControls()) {
 
+        this.controlsData = [
+            { key: 'Grouped', disabled: this.stacked() },
+            { key: 'Stacked', disabled: !this.stacked() }
+        ];
         this.controls
             .width(this.controlWidth())
             .color(['#444', '#444', '#444']);
         this.g.select('.nv-controlsWrap')
-            .datum(this.controlsData())
+            .datum(this.controlsData)
             .attr('transform', 'translate(0,' + (-this.margin().top) +')')
             .call(this.controls);
     }
@@ -239,12 +240,11 @@ MultiBarChart.prototype.attachEvents = function(){
 
     this.controls.dispatch.on('legendClick', function(d) {
         if (!d.disabled) return;
-        this.controlsData(
-            this.controlsData().map(function(s) {
+        this.controlsData =
+            this.controlsData.map(function(s) {
                 s.disabled = true;
                 return s;
-            })
-        );
+            });
         d.disabled = false;
 
         switch (d.key) {
@@ -332,9 +332,6 @@ MultiBarChart.prototype.state = function(_) {
     this.state = _;
     return this;
 };
-/*for (var key in state) {
- chart.state[key] = state[key];
- }*/
 // END DEPRECATED
 
 /**
@@ -359,6 +356,9 @@ nv.models.multiBarChart = function() {
     // DO NOT DELETE. This is currently overridden below
     // until deprecated portions are removed.
     chart.state = multiBarChart.state;
+    for (var key in multiBarChart.state) {
+        chart.state[key] = multiBarChart.state[key];
+    }
 
     d3.rebind(chart, multiBarChart.multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
         'clipEdge', 'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing');
