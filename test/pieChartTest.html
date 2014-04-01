@@ -43,6 +43,11 @@ text {
   <svg></svg>
 </div>
 
+<div class='chart third' id='test8'>
+  <h2>Pie chart with percent label and sunbeam layout</h2>
+  <svg></svg>
+</div>
+
 <div class='chart third' id="test4">
   <h2>Empty array passed in</h2>
   <svg></svg>
@@ -62,7 +67,8 @@ text {
 
 <script src="../src/core.js"></script>
 <script src="../src/utils.js"></script>
-<script src="../src/canvas.js"></script>
+<script src="../src/layer.js"></script>
+<script src="../src/chart.js"></script>
 <script src="../src/tooltip.js"></script>
 
 <script src="../src/models/legend.js"></script>
@@ -115,7 +121,7 @@ function thirtySeries() {
   return data;
 }
 
-function defaultChart(containerId, data, labelType) {
+function defaultChart(containerId, data, labelType, sunbeam) {
   nv.addGraph(function() {
       var chart = nv.models.pieChart()
           .x(function(d) { return d.key })
@@ -125,6 +131,7 @@ function defaultChart(containerId, data, labelType) {
           .height(500)
           .showLabels(true)
           .labelType(labelType)
+          .labelSunbeamLayout(sunbeam || false)
         ;
 
         d3.select("#" + containerId + " svg")
@@ -179,5 +186,6 @@ defaultChart("test6", [
     {key: "zero", y: 0}
 ]);
 defaultChart("test7", testdata, "percent");
+defaultChart("test8", testdata, "percent", true);
 
 </script>
