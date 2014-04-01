@@ -8,11 +8,9 @@ var MultiBarChartPrivates = {
     , staggerLabels: false
     , rotateLabels: 0
     , rightAlignYAxis: false
-    , duration_ : 250
-    , color : nv.utils.defaultColor()
+    , color : null
     , controlsData : []
     , tooltips: true
-
 };
 
 /**
@@ -33,12 +31,13 @@ function MultiBarChart(options){
     this.yAxis = this.getAxis();
     this.legend = this.getLegend();
     this.controls = this.getLegend();
+
+    this._duration = 250;
+    this._color = nv.utils.defaultColor();
+
     this.state = this.getStatesManager();
-
-    this.controlWidth = function() { return this.showControls() ? 180 : 0};
-
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
-    this.renderWatch = nv.utils.renderWatch(this.dispatch);
+    this.controlWidth = function() { return this.showControls() ? 180 : 0};
     this.controlsData([
         { key: 'Grouped', disabled: this.stacked() },
         { key: 'Stacked', disabled: !this.stacked() }
@@ -49,14 +48,14 @@ function MultiBarChart(options){
         return function(){
             return {
                 active: data.map(function(d) { return !d.disabled }),
-                stacked: that.stacked
+                stacked: that.stacked()
             }
         }
     };
     this.stateSetter = function(data) {
         return function(state) {
             if (state.stacked !== undefined)
-                that.stacked = state.stacked;
+                that.stacked(state.stacked);
             if (state.active !== undefined)
                 data.forEach(function(series,i) {
                     series.disabled = !state.active[i];
@@ -88,11 +87,12 @@ MultiBarChart.prototype.getLegend = function(){
  * @override Layer::wrapper
  */
 MultiBarChart.prototype.wrapper = function (data) {
+    Layer.prototype.wrapper.call(this, data, ['nv-controlsWrap', 'nv-x nv-axis', 'nv-y nv-axis']);
+    this.renderWatch = nv.utils.renderWatch(this.dispatch);
     this.renderWatch.reset();
     if (this.showXAxis()) this.renderWatch.models(this.xAxis);
     if (this.showYAxis()) this.renderWatch.models(this.yAxis);
     this.renderWatch.models(this.multibar);
-    Layer.prototype.wrapper.call(this, data, ['nv-controlsWrap', 'nv-x nv-axis', 'nv-y nv-axis']);
 };
 
 /**
@@ -100,31 +100,24 @@ MultiBarChart.prototype.wrapper = function (data) {
  */
 MultiBarChart.prototype.draw = function(data){
 
+    var that = this,
+        availableWidth = this.available.width,
+        availableHeight = this.available.height;
+
+    this.multibar
+        .stacked(this.stacked())
+        .disabled(data.map(function(series) { return series.disabled }))
+        .width(availableWidth)
+        .height(availableHeight)
+        .margin({ top: 0, right: 0, bottom: 0, left: 0 });
+
     var barsWrap = this.g.select('.nv-barsWrap').datum(data.filter(function(d) { return !d.disabled }));
     d3.transition(barsWrap).call(this.multibar);
 
     this.xScale = this.multibar.xScale;
     this.yScale = this.multibar.yScale;
 
-    var that = this,
-        availableWidth = this.available.width,
-        availableHeight = this.available.height;
-
-    console.log(availableWidth);
-    this.multibar
-        .width(availableWidth)
-        .height(availableHeight);
-
     this.controls.updateState(false); // DEPRECATED
-
-    this.update = function() {
-        if (this.duration_ === 0)
-            this.svg.call(this);
-        else
-            this.svg.transition()
-                .duration(this.duration_)
-                .call(this);
-    };
 
     this.state
         .setter(this.stateSetter(data), this.update)
@@ -256,11 +249,11 @@ MultiBarChart.prototype.attachEvents = function(){
 
         switch (d.key) {
             case 'Grouped':
-                this.stacked = false;
+                this.stacked(false);
                 this.multibar.stacked(false);
                 break;
             case 'Stacked':
-                this.stacked = true;
+                this.stacked(true);
                 this.multibar.stacked(true);
                 break;
         }
@@ -274,7 +267,7 @@ MultiBarChart.prototype.attachEvents = function(){
     }.bind(this));
 
     this.dispatch.on('tooltipShow', function(e) {
-        if (this.tooltips()) this.showTooltip(e, this.g[0].parentNode)
+        if (this.tooltips()) this.showTooltip(e, this.svg[0][0].parentNode)
     }.bind(this));
 
     // DEPRECATED
@@ -289,7 +282,7 @@ MultiBarChart.prototype.attachEvents = function(){
         if (typeof e.stacked !== 'undefined') {
             this.multibar.stacked(e.stacked);
             this.state.stacked = e.stacked;
-            this.stacked = e.stacked;
+            this.stacked(e.stacked);
         }
         this.update();
     }.bind(this));
@@ -300,10 +293,10 @@ MultiBarChart.prototype.attachEvents = function(){
  * Set the underlying color, on both the chart, and the composites.
  */
 MultiBarChart.prototype.color = function(_){
-    if (!arguments.length) return this.color();
-    this.color = nv.utils.getColor(_);
-    this.legend.color(this.color());
-    this.multibar.color(this.color());
+    if (!arguments.length) return this._color;
+    this._color = nv.utils.getColor(_);
+    this.legend.color(this._color);
+    this.multibar.color(this._color);
     return this;
 };
 
@@ -323,12 +316,12 @@ MultiBarChart.prototype.transitionDuration = function(_) {
 };
 
 MultiBarChart.prototype.duration = function(_) {
-    if (!arguments.length) return this.duration_;
-    this.duration_ = _;
-    this.multibar.duration(this.duration_);
-    this.xAxis.duration(this.duration_);
-    this.yAxis.duration(this.duration_);
-    this.renderWatch.reset(this.duration_);
+    if (!arguments.length) return this._duration;
+    this._duration = _;
+    this.multibar.duration(this._duration);
+    this.xAxis.duration(this._duration);
+    this.yAxis.duration(this._duration);
+    this.renderWatch.reset(this._duration);
     return this;
 };
 
@@ -374,7 +367,7 @@ nv.models.multiBarChart = function() {
 
     nv.utils.rebindp(chart, multiBarChart, MultiBarChart.prototype, 'margin', 'width', 'height', 'color', 'showControls',
         'showLegend', 'showXAxis', 'showYAxis', 'rightAlignYAxis', 'reduceXTicks', 'rotateLabels', 'staggerLabels',
-        'tooltip', 'tooltips', 'defaultState', 'noData', 'transitionDuration', 'duration', 'noData',
+        'tooltip', 'tooltips', 'defaultState', 'noData', 'transitionDuration', 'duration',
         'state'/*deprecated*/);
 
     return chart;
