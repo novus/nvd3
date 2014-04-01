@@ -2,6 +2,8 @@
 layout: post
 title: The Future of NVD3 - March, 2014
 date: 2014-03-12 17:44:38 -0400
+author: David Souther
+email: davidsouther@gmail.com
 comments: true
 categories:
 ---

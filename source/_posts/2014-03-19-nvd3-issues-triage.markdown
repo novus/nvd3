@@ -2,7 +2,8 @@
 layout: post
 title: nvd3 issues triage
 date: 2014-03-19 10:42:43 -0400
-author: joesepi <sepi@joesepi.com>
+author: joesepi
+email: sepi@joesepi.com
 comments: true
 categories:
 ---
