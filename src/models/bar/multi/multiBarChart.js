@@ -8,11 +8,9 @@ var MultiBarChartPrivates = {
     , staggerLabels: false
     , rotateLabels: 0
     , rightAlignYAxis: false
-    , _duration : 250
-    , color : nv.utils.defaultColor()
+    , color : null
     , controlsData : []
     , tooltips: true
-
 };
 
 /**
@@ -33,11 +31,13 @@ function MultiBarChart(options){
     this.yAxis = this.getAxis();
     this.legend = this.getLegend();
     this.controls = this.getLegend();
+
+    this._duration = 250;
+    this._color = nv.utils.defaultColor();
+
     this.state = this.getStatesManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
-
     this.controlWidth = function() { return this.showControls() ? 180 : 0};
-
     this.controlsData([
         { key: 'Grouped', disabled: this.stacked() },
         { key: 'Stacked', disabled: !this.stacked() }
@@ -293,10 +293,10 @@ MultiBarChart.prototype.attachEvents = function(){
  * Set the underlying color, on both the chart, and the composites.
  */
 MultiBarChart.prototype.color = function(_){
-    if (!arguments.length) return this._color();
+    if (!arguments.length) return this._color;
     this._color = nv.utils.getColor(_);
-    this.legend.color(this._color());
-    this.multibar.color(this._color());
+    this.legend.color(this._color);
+    this.multibar.color(this._color);
     return this;
 };
 
@@ -316,12 +316,12 @@ MultiBarChart.prototype.transitionDuration = function(_) {
 };
 
 MultiBarChart.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
-    this.multibar.duration(this._duration());
-    this.xAxis.duration(this._duration());
-    this.yAxis.duration(this._duration());
-    this.renderWatch.reset(this._duration());
+    if (!arguments.length) return this._duration;
+    this._duration = _;
+    this.multibar.duration(this._duration);
+    this.xAxis.duration(this._duration);
+    this.yAxis.duration(this._duration);
+    this.renderWatch.reset(this._duration);
     return this;
 };
 
