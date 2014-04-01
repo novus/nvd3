@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Examples - NVD3</title>
+  <title>Architecture - NVD3</title>
   <meta name="author" content="Novus Partners">
 
   
-  <meta name="description" content="Complete Charts Simple Line Scatter / Bubble Stacked / Stream / Expanded Area Discrete Bar Grouped / Stacked Multi-Bar Horizontal Grouped Bar Line &hellip;">
+  <meta name="description" content="The first iteration of NVD3 dealt with complexity by copypasta code. This refactor aims to replace that copypasta with a sensible, object oriented &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://nvd3.org/nvd3/examples">
+  <link rel="canonical" href="http://nvd3.org/nvd3/blog/2014/03/architecture">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -134,143 +134,99 @@
 </nav>
 
     <div class="container with-3d-shadow with-transitions">
-              <!-- Main hero unit for a primary marketing message or call to action -->
-      <div class="row">
-        <div class="span3">
-        <div class="well">
-            <ul class="nav nav-list">
-              <li class="nav-header">
-                Complete Charts
-              </li>
-              <li>
-                <a href="line.html">Simple Line</a>
-              </li>
-              <li>
-                <a href="scatter.html">Scatter / Bubble</a>
-              </li>
-              <li>
-                <a href="stackedArea.html">Stacked / Stream / Expanded Area</a>
-              </li>
-              <li>
-                <a href="discreteBar.html">Discrete Bar</a>
-              </li>
-              <li>
-                <a href="multiBar.html">Grouped / Stacked Multi-Bar</a>
-              </li>
-              <li>
-                <a href="multiBarHorizontal.html">Horizontal Grouped Bar</a>
-              </li>
-              <li>
-                <a href="linePlusBar.html">Line and Bar Combo</a>
-              </li>
-              <li>
-                <a href="cumulativeLine.html">Cumulative Line</a>
-              </li>
-              <li>
-                <a href="lineWithFocus.html">Line with View Finder</a>
-              </li>
-              <li>
-                <a href="pie.html">Pie Chart</a>
-              </li>
-              <li>
-                <a href="bullet.html">Bullet Chart</a>
-              </li>
-              <li>
-                <a href="indentedtree.html">HTML Indented Tree</a>
-              </li>
-            </ul>
-          </div>
+        <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Architecture</h1>
+    
+    
+      <p class="meta">
+        
 
-        </div>
 
-        <div class="span9">
-                      <div class='alert alert-info'>
-For the most <strong>up to date list of examples</strong>, please <strong>clone the
-<a href='https://github.com/novus/nvd3'>Github Repository</a></strong>.
-</div><ul class='thumbnails'>
 
-  <li class='span3'>
-    <a href='line.html' class='thumbnail'>
-      <img src='./img/line.png' />
-    </a>
-  </li>
 
-  <li class='span3'>
-    <a href='scatter.html' class='thumbnail'>
-      <img src='./img/scatter.png' />
-    </a>
-  </li>
 
-  <li class='span3'>
-    <a href='stackedArea.html' class='thumbnail'>
-      <img src='./img/stackedarea.png' />
-    </a>
-  </li>
 
-  <li class='span3'>
-    <a href='discreteBar.html' class='thumbnail'>
-      <img src='./img/discretebar.png' />
-    </a>
-  </li>
 
-  <li class='span3'>
-    <a href='multiBar.html' class='thumbnail'>
-      <img src='./img/stackedbar.png' />
-    </a>
-  </li>
 
-  <li class='span3'>
-    <a href='multiBarHorizontal.html' class='thumbnail'>
-      <img src='./img/horizontalbar.png' />
-    </a>
-  </li>
+  
 
-  <li class='span3'>
-    <a href='linePlusBar.html' class='thumbnail'>
-      <img src='./img/lineplusbar.png' />
-    </a>
-  </li>
 
-  <li class='span3'>
-    <a href='cumulativeLine.html' class='thumbnail'>
-      <img src='./img/cumulativeline.png' />
-    </a>
-  </li>
+<time datetime="2014-03-31T20:10:20-04:00" pubdate data-updated="true">Mar 31<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
 
-  <li class='span3'>
-    <a href='lineWithFocus.html' class='thumbnail'>
-      <img src='./img/linewithfocus.png' />
-    </a>
-  </li>
 
-  <li class='span3'>
-    <a href='pie.html' class='thumbnail'>
-      <img src='./img/pie.png' />
-    </a>
-  </li>
+<div class="entry-content"><p>The first iteration of NVD3 dealt with complexity by copypasta code. This refactor aims to replace that copypasta with a sensible, object oriented design. Looking closely at the NVD3 codebase, there are some concepts that are easily abstractable. The first of these is the Layer &ndash; a thing to perform some DOM drawing on. The Layer manages the fundamental aspects of drawing a chart, especially the <a href="">drawing lifecycle</a>. On top of a Layer are the several visualization pieces, like <a href="">Pie</a> and <a href="">Line</a>, as well as the concept of a [Chart]. A chart is a composite object, managing the underlying visualization(s), the axes, the legend, and other common features.</p>
 
-  <li class='span3'>
-    <a href='bullet.html' class='thumbnail'>
-      <img src='./img/bullet.png' />
-    </a>
-  </li>
+<h2>Extension Mechanism</h2>
 
-  <li class='span3'>
-    <a href='indentedtree.html' class='thumbnail'>
-      <img src='./img/htmlindentedtree.png' />
-    </a>
-  </li>
+<p>Because NVD3 targets modern web browsers, we use a variation of the <code>Object.create</code> pattern. An NVD3 constructor has a superclass, and a collection of private internal properties. This collection is stored in <code>Layer.options</code>, but allows getters and setters to be created automatically. Restricting external access to the <code>options</code> object allows significant flexibility in overriding specific chart functionalities.</p>
 
-</ul>
+<p>To ease development, we&rsquo;ve introduced an <code>nv.utils.create(ctor, parent, privates)</code> (<a href="">code</a>). This takes two constructor functions, links the prototype of the <code>ctor</code> to the <code>parent</code>, and creates a getter/setter method on the ctor prototype for each of the keys in <code>privates</code>. From this point, after instantiating the ctor class, all private internal data will be stored in its <code>options</code> key, while all access should come through the combined getter/setter methods. Client code can then override the default behavior by assigning a different function to ctor prorotype. Calling super methods should happen using <code>Function.prototype.apply()</code>.</p>
 
-        <h3>Have a question or bug? File an issue on our <a href="https://github.com/novus/nvd3">GitHub site.</a></h3>
-        </div>
+<p>Because the nv model functions return a callable function, we have also introduced <code>nv.utils.rebindp</code> (<a href="">code</a>), which behaves similarly to <code>d3.rebind</code>, but calls functions on the source prototype, rather than the source itself.</p>
 
-        </div>
-      </div>
+<h2>Object Composition</h2>
 
-      <hr>
+<p>Beyond extending and subclassing, Object Composition provides an excellent approach for achieving custom behaviors in similar charts. The Pie Chart labels have a <code>labelLayout</code> (<a href="">code</a>) property, which takes an object that knows the rules for laying out labels in a pie chart. Using Object Composition for specialized activities within the inheritance pattern will go a long ways towards creating extensible, maintainable, testable code.</p>
+</div>
 
+
+  <footer>
+    <p class="meta">
+      
+  
+
+
+<span class="byline author vcard">Posted by <span class="fn"><a href="mailto:davidsouther@gmail.com">David Souther</a></span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-31T20:10:20-04:00" pubdate data-updated="true">Mar 31<span>st</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org/nvd3/blog/2014/03/architecture/" data-via="" data-counturl="http://nvd3.org/nvd3/blog/2014/03/architecture/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/03/nvd3-issues-triage/" title="Previous Post: nvd3 issues triage">&laquo; nvd3 issues triage</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/03/nvd3-chart-drawing-lifecycle/" title="Next Post: NVD3 Chart Drawing Lifecycle">NVD3 Chart Drawing Lifecycle &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
 
 
         <footer role="contentinfo"><p>

@@ -1,0 +1,405 @@
+
+<!-- <!DOCTYPE html> -->
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>NVD3 Chart Drawing Lifecycle - NVD3</title>
+  <meta name="author" content="Novus Partners">
+
+  
+  <meta name="description" content="Externally, the flow of an NVD3 application remains consistent. A user of the library will call the appropriate nv.models method, which will return a &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
+  <link href="/atom.xml" rel="alternate" title="NVD3" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+    <link href="/assets/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 43px;
+      }
+      .statement_para {
+          font-size: 14pt;
+          line-height: 120%;
+          width: 60%;
+          text-align: justify;
+          text-justify: distribute;
+          margin: 10px auto;
+          margin-bottom: 30px;
+      }
+
+      .row {
+        margin 1%;
+      }
+
+      article {
+        padding: 0 1%;
+        font-size: 18px;
+        line-height: 1.5em;
+      }
+
+      body > .container {
+        width: 941px;
+      }
+
+      @media(min-width: 1200px){
+        body > .container {
+          width: 1171px;
+        }
+      }
+
+      @media (max-width: 979px) and (min-width: 768px) {
+        body > .container {
+          width: 725px;
+        }
+      }
+
+    </style>
+    <link href="/assets/css/common.css" rel="stylesheet">
+    <link href="/assets/css/nv.d3.css" rel="stylesheet">
+
+    <script src="/assets/js/lib/bootstrap.min.js"></script>
+<script src="/assets/lib/d3.v3.js"></script>
+<script src="/assets/js/nv.d3.js"></script>
+
+<script src="/assets/js/data/stream_layers.js"></script>
+<script src="/assets/js/page/index.js"></script>
+
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-33058059-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+    <nav role="navigation">    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/index.html">NVD3.js</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="/index.html"><i class="icon-white icon-home"></i> Home</a></li>
+              <li><a href="/examples/index.html"><i class="icon-white icon-picture"></i> Examples</a></li>
+              <li><a href="/livecode/index.html"><i class="icon-white icon-play-circle"></i> Live Code</a></li>
+              <li><a href="http://github.com/novus/nvd3"><i class="icon-white icon-list-alt"></i> Source</a></li>
+              <li><a href="/blog/archives/"><i class="icon-white icon-book"></i> Blog</a></li>
+            </ul>
+            <ul class="nav pull-right">
+              <li><p class="navbar-text"><i class="icon-white icon-download"></i> Downloads:</p></li>
+              <li>
+                <div class="btn-group">
+                  <a class="btn btn-small btn-primary" href="https://github.com/novus/nvd3/zipball/master">ZIP</a>
+                  <a class="btn btn-small btn-primary" href="https://github.com/novus/nvd3/tarball/master">TAR.GZ</a>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+</nav>
+
+    <div class="container with-3d-shadow with-transitions">
+        <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">NVD3 Chart Drawing Lifecycle</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-31T20:10:20-04:00" pubdate data-updated="true">Mar 31<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Externally, the flow of an NVD3 application remains consistent. A user of the library will call the appropriate <code>nv.models</code> method, which will return a chart method that has getters and setters bound, and can be used as the argument to <code>d3.selection().call()</code>. Internally, the massive closure-bound scoping solutions are being replaced with a chart model object, an instance of a constructor function that can be configured as needed, and that can be extended to create new behaviors. The superclass of the chart model objects, <code>Layer</code>, also manages drawing the visualization through its lifecycle.</p>
+
+<h2>Lifecycle Methodology</h2>
+
+<p>Drawing a chart begins with a call to the chart model. This is a function that has a reference to a chart model object, that can be prototypically extended to add and compose behaviors of a chart. The chart model object itself extends from either Chart or Layer &ndash; though Chart itself extends from Layer. Layer is the root of the object hierarchy, and is an object that manages information about a viewing layer. Typically, this will be an SVG <code>&lt;g&gt;</code>, though could as easily be a <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code>. A Layer has <code>height</code>, <code>width</code>, <code>margin</code>s, available height and width (total height / width minus margins).</p>
+
+<p>A Layer and its subclasses act as a template. A layer would be instantiated once, configured, and passed a selection to render on. The nv.models functions instantiate a corresponding Layer subclass, pass method calls to the underlying instance, and provide an interface to use with <code>d3.selection.call()</code>. This can be short-circuited by instantiating a Layer subclass and passing a selection to its render method directly.</p>
+
+<p>The Layer goes through a lifecycle on each render call. Each of the methods here should be overridden and called by a subclass to extend and provide an appropriate behavior. These methods are largely extractions of copypasta already present in the NVD3 codebase.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">render</span><span class="p">(</span><span class="nx">selection</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">setRoot</span><span class="p">(</span><span class="nx">domNode</span><span class="p">)</span> <span class="c1">// With a DOM element, determine the correct sizing constraints.</span>
+</span><span class='line'>    <span class="nx">wrapper</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="p">[</span><span class="nx">classList</span><span class="p">])</span> <span class="c1">// Attach hooks onto the DOM element for future manipulation.</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">buildLegend</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">buildAxes</span>
+</span><span class='line'>    <span class="nx">noData</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// A chance to short-circuit the heavy chart drawing by displaying a &quot;No Data&quot; message.</span>
+</span><span class='line'>        <span class="nx">hasData</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// Determine if the data is usable for drawing.</span>
+</span><span class='line'>    <span class="nx">draw</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// Perform the actual drawing code,</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">writeLegend</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// The Chart also manages legends and axes.</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">plotAxes</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">attachEvents</span><span class="p">()</span> <span class="c1">// Hook up to any dispatches</span>
+</span><span class='line'><span class="nx">update</span><span class="p">()</span> <span class="c1">// Call the render method using the last selection.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>render(<em>selection</em>)</h3>
+
+<p>This takes some d3 selection, and iterates the selection applying the chart&rsquo;s drawing mechanism and settings to each element of the selection (usually only one). This method should probably not be overridden.</p>
+
+<h3>setRoot(<em>domNode</em>)</h3>
+
+<p>This performs the basic calculations for sizing a Layer in its container. When this is called, it will use the parent&rsquo;s inner sizes to determine its size, so if the parent has not expanded, it may result in odd behaviors. Another method that probably won&rsquo;t need to be overridden.</p>
+
+<h3>wrapper(<em>data, [classList]</em>)</h3>
+
+<p>The wrapper function attaches a variety of class hooks into the DOM for the layer. These hooks are used throughout the chart&rsquo;s code, and some are attached specially to the Layer instance.</p>
+
+<table>
+<thead>
+<tr>
+<th> Property </th>
+<th> Class </th>
+<th> Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Layer</strong> </td>
+<td>       </td>
+<td></td>
+</tr>
+<tr>
+<td>wrap      </td>
+<td><code>'nv-wrap ' + wrapClass</code> </td>
+<td> A <code>&lt;g&gt;</code> selection bound to the <code>data</code> for the chart.</td>
+</tr>
+<tr>
+<td>wrapEnter </td>
+<td><code>'nvd3 nv-wrap ' + chartClass</code> </td>
+<td> The [entered][d3_enter] selection of <code>wrap</code>.</td>
+</tr>
+<tr>
+<td>defsEnter </td>
+<td>       </td>
+<td> A convenient place to hook SVG Defs (filters, etc).</td>
+</tr>
+<tr>
+<td>gEnter    </td>
+<td>       </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code>.</td>
+</tr>
+<tr>
+<td><strong>Chart</strong> </td>
+<td>       </td>
+<td></td>
+</tr>
+<tr>
+<td>axis.x    </td>
+<td> <code>'nv-x nv-axis'</code> </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code> that is reserved for the x axis.</td>
+</tr>
+<tr>
+<td>axis.y    </td>
+<td> <code>'nv-y nv-axis'</code> </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code> that is reserved for the y axis.</td>
+</tr>
+<tr>
+<td>legend    </td>
+<td> <code>'nv-legendWrap'</code> </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code> that is reserved for the legend.</td>
+</tr>
+<tr>
+<td><strong>Other</strong> </td>
+<td>       </td>
+<td></td>
+</tr>
+<tr>
+<td>          </td>
+<td> <code>classList[n]</code> </td>
+<td> One of several <code>&lt;g&gt;</code> children of <code>wrap</code> that provide convenient hook points for extended classes.</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>To access any of the classed <code>&lt;g&gt;</code> layers, select that class on the wrap object &ndash; <code>this.wrap.select('classPoint')</code>.</p>
+
+<h4>Chart::buildLegend()</h4>
+
+<p>Perform any additional Legend DOM preparations.</p>
+
+<h4>Chart::buildAxes()</h4>
+
+<p>Perform any additional Axes DOM preparations.</p>
+
+<h3>noData(<em>data</em>)</h3>
+
+<p>Short-circuit convenience method to show a &ldquo;No Data Available&rdquo; message in the chart.</p>
+
+<h4>hasData(<em>data</em>)</h4>
+
+<p>Convenience method to determine if the data object is sufficient for the chart. This could be overwridden.</p>
+
+<h3>draw(<em>data</em>)</h3>
+
+<p>The magic! This method MUST be overridden on Layer to do anything useful, and should use the hooks created in <code>wrapper</code> to create the visualization. For a complete example, see <code>Pie::Draw</code>(<a href="">code</a>)</p>
+
+<h4>Chart::writeLegend(<em>data</em>)</h4>
+
+<p>Create the legend for the Chart.</p>
+
+<h4>Chart::plotAxes(<em>data</em>)</h4>
+
+<p>Create the axes for the chart.</p>
+
+<h3>attachEvents()</h3>
+
+<p>Utility hook to attach events on create components and the dispatch. This should be overwridden, but be sure to call the super method, as often the visualization being extended will have events it needs to attach to.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+
+<span class="byline author vcard">Posted by <span class="fn"><a href="mailto:davidsouther@gmail.com">David Souther</a></span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-31T20:10:20-04:00" pubdate data-updated="true">Mar 31<span>st</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle/" data-via="" data-counturl="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/03/architecture/" title="Previous Post: Architecture">&laquo; Architecture</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+
+        <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - <a href="http://www.novus.com">Novus Partners</a> -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+    </div>
+</body>
+</html>

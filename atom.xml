@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[NVD3]]></title>
-  <link href="http://nvd3.org//atom.xml" rel="self"/>
-  <link href="http://nvd3.org//"/>
-  <updated>2014-03-19T10:58:55-04:00</updated>
-  <id>http://nvd3.org//</id>
+  <link href="http://nvd3.org/nvd3/atom.xml" rel="self"/>
+  <link href="http://nvd3.org/nvd3/"/>
+  <updated>2014-04-01T13:18:14-04:00</updated>
+  <id>http://nvd3.org/nvd3/</id>
   <author>
     <name><![CDATA[Novus Partners]]></name>
     
@@ -14,10 +14,189 @@
 
   
   <entry>
+    <title type="html"><![CDATA[NVD3 Chart Drawing Lifecycle]]></title>
+    <link href="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle/"/>
+    <updated>2014-03-31T20:10:20-04:00</updated>
+    <id>http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle</id>
+    <content type="html"><![CDATA[<p>Externally, the flow of an NVD3 application remains consistent. A user of the library will call the appropriate <code>nv.models</code> method, which will return a chart method that has getters and setters bound, and can be used as the argument to <code>d3.selection().call()</code>. Internally, the massive closure-bound scoping solutions are being replaced with a chart model object, an instance of a constructor function that can be configured as needed, and that can be extended to create new behaviors. The superclass of the chart model objects, <code>Layer</code>, also manages drawing the visualization through its lifecycle.</p>
+
+<h2>Lifecycle Methodology</h2>
+
+<p>Drawing a chart begins with a call to the chart model. This is a function that has a reference to a chart model object, that can be prototypically extended to add and compose behaviors of a chart. The chart model object itself extends from either Chart or Layer &ndash; though Chart itself extends from Layer. Layer is the root of the object hierarchy, and is an object that manages information about a viewing layer. Typically, this will be an SVG <code>&lt;g&gt;</code>, though could as easily be a <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code>. A Layer has <code>height</code>, <code>width</code>, <code>margin</code>s, available height and width (total height / width minus margins).</p>
+
+<p>A Layer and its subclasses act as a template. A layer would be instantiated once, configured, and passed a selection to render on. The nv.models functions instantiate a corresponding Layer subclass, pass method calls to the underlying instance, and provide an interface to use with <code>d3.selection.call()</code>. This can be short-circuited by instantiating a Layer subclass and passing a selection to its render method directly.</p>
+
+<p>The Layer goes through a lifecycle on each render call. Each of the methods here should be overridden and called by a subclass to extend and provide an appropriate behavior. These methods are largely extractions of copypasta already present in the NVD3 codebase.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">render</span><span class="p">(</span><span class="nx">selection</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">setRoot</span><span class="p">(</span><span class="nx">domNode</span><span class="p">)</span> <span class="c1">// With a DOM element, determine the correct sizing constraints.</span>
+</span><span class='line'>    <span class="nx">wrapper</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="p">[</span><span class="nx">classList</span><span class="p">])</span> <span class="c1">// Attach hooks onto the DOM element for future manipulation.</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">buildLegend</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">buildAxes</span>
+</span><span class='line'>    <span class="nx">noData</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// A chance to short-circuit the heavy chart drawing by displaying a &quot;No Data&quot; message.</span>
+</span><span class='line'>        <span class="nx">hasData</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// Determine if the data is usable for drawing.</span>
+</span><span class='line'>    <span class="nx">draw</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// Perform the actual drawing code,</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">writeLegend</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">// The Chart also manages legends and axes.</span>
+</span><span class='line'>        <span class="nx">Chart</span><span class="err">#</span><span class="nx">plotAxes</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">attachEvents</span><span class="p">()</span> <span class="c1">// Hook up to any dispatches</span>
+</span><span class='line'><span class="nx">update</span><span class="p">()</span> <span class="c1">// Call the render method using the last selection.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>render(<em>selection</em>)</h3>
+
+<p>This takes some d3 selection, and iterates the selection applying the chart&rsquo;s drawing mechanism and settings to each element of the selection (usually only one). This method should probably not be overridden.</p>
+
+<h3>setRoot(<em>domNode</em>)</h3>
+
+<p>This performs the basic calculations for sizing a Layer in its container. When this is called, it will use the parent&rsquo;s inner sizes to determine its size, so if the parent has not expanded, it may result in odd behaviors. Another method that probably won&rsquo;t need to be overridden.</p>
+
+<h3>wrapper(<em>data, [classList]</em>)</h3>
+
+<p>The wrapper function attaches a variety of class hooks into the DOM for the layer. These hooks are used throughout the chart&rsquo;s code, and some are attached specially to the Layer instance.</p>
+
+<table>
+<thead>
+<tr>
+<th> Property </th>
+<th> Class </th>
+<th> Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Layer</strong> </td>
+<td>       </td>
+<td></td>
+</tr>
+<tr>
+<td>wrap      </td>
+<td><code>'nv-wrap ' + wrapClass</code> </td>
+<td> A <code>&lt;g&gt;</code> selection bound to the <code>data</code> for the chart.</td>
+</tr>
+<tr>
+<td>wrapEnter </td>
+<td><code>'nvd3 nv-wrap ' + chartClass</code> </td>
+<td> The [entered][d3_enter] selection of <code>wrap</code>.</td>
+</tr>
+<tr>
+<td>defsEnter </td>
+<td>       </td>
+<td> A convenient place to hook SVG Defs (filters, etc).</td>
+</tr>
+<tr>
+<td>gEnter    </td>
+<td>       </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code>.</td>
+</tr>
+<tr>
+<td><strong>Chart</strong> </td>
+<td>       </td>
+<td></td>
+</tr>
+<tr>
+<td>axis.x    </td>
+<td> <code>'nv-x nv-axis'</code> </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code> that is reserved for the x axis.</td>
+</tr>
+<tr>
+<td>axis.y    </td>
+<td> <code>'nv-y nv-axis'</code> </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code> that is reserved for the y axis.</td>
+</tr>
+<tr>
+<td>legend    </td>
+<td> <code>'nv-legendWrap'</code> </td>
+<td> A <code>&lt;g&gt;</code> child of <code>wrap</code> that is reserved for the legend.</td>
+</tr>
+<tr>
+<td><strong>Other</strong> </td>
+<td>       </td>
+<td></td>
+</tr>
+<tr>
+<td>          </td>
+<td> <code>classList[n]</code> </td>
+<td> One of several <code>&lt;g&gt;</code> children of <code>wrap</code> that provide convenient hook points for extended classes.</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>To access any of the classed <code>&lt;g&gt;</code> layers, select that class on the wrap object &ndash; <code>this.wrap.select('classPoint')</code>.</p>
+
+<h4>Chart::buildLegend()</h4>
+
+<p>Perform any additional Legend DOM preparations.</p>
+
+<h4>Chart::buildAxes()</h4>
+
+<p>Perform any additional Axes DOM preparations.</p>
+
+<h3>noData(<em>data</em>)</h3>
+
+<p>Short-circuit convenience method to show a &ldquo;No Data Available&rdquo; message in the chart.</p>
+
+<h4>hasData(<em>data</em>)</h4>
+
+<p>Convenience method to determine if the data object is sufficient for the chart. This could be overwridden.</p>
+
+<h3>draw(<em>data</em>)</h3>
+
+<p>The magic! This method MUST be overridden on Layer to do anything useful, and should use the hooks created in <code>wrapper</code> to create the visualization. For a complete example, see <code>Pie::Draw</code>(<a href="">code</a>)</p>
+
+<h4>Chart::writeLegend(<em>data</em>)</h4>
+
+<p>Create the legend for the Chart.</p>
+
+<h4>Chart::plotAxes(<em>data</em>)</h4>
+
+<p>Create the axes for the chart.</p>
+
+<h3>attachEvents()</h3>
+
+<p>Utility hook to attach events on create components and the dispatch. This should be overwridden, but be sure to call the super method, as often the visualization being extended will have events it needs to attach to.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Architecture]]></title>
+    <link href="http://nvd3.org/nvd3/blog/2014/03/architecture/"/>
+    <updated>2014-03-31T20:10:20-04:00</updated>
+    <id>http://nvd3.org/nvd3/blog/2014/03/architecture</id>
+    <content type="html"><![CDATA[<p>The first iteration of NVD3 dealt with complexity by copypasta code. This refactor aims to replace that copypasta with a sensible, object oriented design. Looking closely at the NVD3 codebase, there are some concepts that are easily abstractable. The first of these is the Layer &ndash; a thing to perform some DOM drawing on. The Layer manages the fundamental aspects of drawing a chart, especially the <a href="">drawing lifecycle</a>. On top of a Layer are the several visualization pieces, like <a href="">Pie</a> and <a href="">Line</a>, as well as the concept of a [Chart]. A chart is a composite object, managing the underlying visualization(s), the axes, the legend, and other common features.</p>
+
+<h2>Extension Mechanism</h2>
+
+<p>Because NVD3 targets modern web browsers, we use a variation of the <code>Object.create</code> pattern. An NVD3 constructor has a superclass, and a collection of private internal properties. This collection is stored in <code>Layer.options</code>, but allows getters and setters to be created automatically. Restricting external access to the <code>options</code> object allows significant flexibility in overriding specific chart functionalities.</p>
+
+<p>To ease development, we&rsquo;ve introduced an <code>nv.utils.create(ctor, parent, privates)</code> (<a href="">code</a>). This takes two constructor functions, links the prototype of the <code>ctor</code> to the <code>parent</code>, and creates a getter/setter method on the ctor prototype for each of the keys in <code>privates</code>. From this point, after instantiating the ctor class, all private internal data will be stored in its <code>options</code> key, while all access should come through the combined getter/setter methods. Client code can then override the default behavior by assigning a different function to ctor prorotype. Calling super methods should happen using <code>Function.prototype.apply()</code>.</p>
+
+<p>Because the nv model functions return a callable function, we have also introduced <code>nv.utils.rebindp</code> (<a href="">code</a>), which behaves similarly to <code>d3.rebind</code>, but calls functions on the source prototype, rather than the source itself.</p>
+
+<h2>Object Composition</h2>
+
+<p>Beyond extending and subclassing, Object Composition provides an excellent approach for achieving custom behaviors in similar charts. The Pie Chart labels have a <code>labelLayout</code> (<a href="">code</a>) property, which takes an object that knows the rules for laying out labels in a pie chart. Using Object Composition for specialized activities within the inheritance pattern will go a long ways towards creating extensible, maintainable, testable code.</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Nvd3 Issues Triage]]></title>
-    <link href="http://nvd3.org//blog/2014/03/nvd3-issues-triage/"/>
+    <link href="http://nvd3.org/nvd3/blog/2014/03/nvd3-issues-triage/"/>
     <updated>2014-03-19T10:42:43-04:00</updated>
-    <id>http://nvd3.org//blog/2014/03/nvd3-issues-triage</id>
+    <id>http://nvd3.org/nvd3/blog/2014/03/nvd3-issues-triage</id>
     <content type="html"><![CDATA[<p>Novus is committed to its open source projects and committed to the community that has grown around these projects. In an effort to tame the recent build-up of issues and pull requests, we would like to outline our appraoch to tackling this accumulation in the short term as well as how we will continue to manage the project&rsquo;s growth in the future.</p>
 
 <hr />
@@ -88,9 +267,9 @@ Our expectation with new features will be to move them to the roadmap and priori
   
   <entry>
     <title type="html"><![CDATA[The Future of NVD3 - March, 2014]]></title>
-    <link href="http://nvd3.org//blog/2014/03/state-of-nvd3/"/>
+    <link href="http://nvd3.org/nvd3/blog/2014/03/state-of-nvd3/"/>
     <updated>2014-03-12T17:44:38-04:00</updated>
-    <id>http://nvd3.org//blog/2014/03/state-of-nvd3</id>
+    <id>http://nvd3.org/nvd3/blog/2014/03/state-of-nvd3</id>
     <content type="html"><![CDATA[<p>When I joined Novus last November, I&rsquo;d spent some time playing with three.js visualizations, but hadn&rsquo;t really looked at that d3 thing. Of course, as a financial technology firm, 2d charts and graph visualizations are all we do. So I learned d3, and this little nvd3 home-grown thing. I knew there was a community out there &ndash; at least, I&rsquo;d come across random tweets mentioning it, but I really hadn&rsquo;t dug in. Then I had to make some changes. Before you know it, I&rsquo;m waist deep in refactoring what for all intents and purposes was an internal prototyped tech demo that&rsquo;s become a great project on Github! Yet we&rsquo;ve been, to the community&rsquo;s detriment, busy at Novus.</p>
 
 <p>Yes, we knew the PR and issue counts were rising, but we&rsquo;re heads down on some internal projects, and no one really pushed or prodded us about nvd3. My colleagues robinfhu, twolfnovus, and fshao816 were fixing bugs, adding some features we needed, and generally making it look like NVD3 was still making progress. Turns out, just because no one in the community is yelling, doesn&rsquo;t mean there aren&rsquo;t problems! After getting a foreceful tweet from John Schulz (@JFSIII), I asked around my colleagues and realized we had, in fact, been getting quite a few quiet pokes and prods. The growing issue count is obviously frustrating to people trying to use the library, but the growing PR count shows people are still very much trying to create a successful, sustainable project in spite of Novus&#8217; lack of recent feedback &ndash; we clearly cannot leave our heads in the sand and just hope that what we need happens to be what you need.</p>

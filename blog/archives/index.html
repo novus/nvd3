@@ -1,5 +1,5 @@
 
-<!DOCTYPE html>
+<!-- <!DOCTYPE html> -->
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
@@ -9,9 +9,10 @@
   <meta name="author" content="Novus Partners">
 
   
-  <meta name="description" content="Blog Archive 2014 Nvd3 Issues Triage
-Mar 19 2014 The Future of NVD3 - March, 2014
-Mar 12 2014 Recent Posts Nvd3 Issues Triage The Future of NVD3 - &hellip;">
+  <meta name="description" content="Blog Archive 2014 NVD3 Chart Drawing Lifecycle
+Mar 31 2014 Architecture
+Mar 31 2014 Nvd3 Issues Triage
+Mar 19 2014 The Future of NVD3 - March, 2014 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,9 +21,10 @@ Mar 12 2014 Recent Posts Nvd3 Issues Triage The Future of NVD3 - &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://nvd3.org//blog/archives">
+  <link rel="canonical" href="http://nvd3.org/nvd3/blog/archives">
   <link href="/favicon.png" rel="icon">
-  <!-- <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css"> -->
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
   <link href="/atom.xml" rel="alternate" title="NVD3" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -35,8 +37,7 @@ Mar 12 2014 Recent Posts Nvd3 Issues Triage The Future of NVD3 - &hellip;">
     <link href="/assets/css/bootstrap.css" rel="stylesheet">
     <style type="text/css">
       body {
-        padding-top: 60px;
-        padding-bottom: 40px;
+        padding-top: 43px;
       }
       .statement_para {
           font-size: 14pt;
@@ -46,6 +47,32 @@ Mar 12 2014 Recent Posts Nvd3 Issues Triage The Future of NVD3 - &hellip;">
           text-justify: distribute;
           margin: 10px auto;
           margin-bottom: 30px;
+      }
+
+      .row {
+        margin 1%;
+      }
+
+      article {
+        padding: 0 1%;
+        font-size: 18px;
+        line-height: 1.5em;
+      }
+
+      body > .container {
+        width: 941px;
+      }
+
+      @media(min-width: 1200px){
+        body > .container {
+          width: 1171px;
+        }
+      }
+
+      @media (max-width: 979px) and (min-width: 768px) {
+        body > .container {
+          width: 725px;
+        }
       }
 
     </style>
@@ -127,6 +154,26 @@ Mar 12 2014 Recent Posts Nvd3 Issues Triage The Future of NVD3 - &hellip;">
 
 <article>
   
+<h1><a href="/blog/2014/03/nvd3-chart-drawing-lifecycle/">NVD3 Chart Drawing Lifecycle</a></h1>
+<time datetime="2014-03-31T20:10:20-04:00" pubdate><span class='month'>Mar</span> <span class='day'>31</span> <span class='year'>2014</span></time>
+
+
+</article>
+
+
+
+<article>
+  
+<h1><a href="/blog/2014/03/architecture/">Architecture</a></h1>
+<time datetime="2014-03-31T20:10:20-04:00" pubdate><span class='month'>Mar</span> <span class='day'>31</span> <span class='year'>2014</span></time>
+
+
+</article>
+
+
+
+<article>
+  
 <h1><a href="/blog/2014/03/nvd3-issues-triage/">Nvd3 Issues Triage</a></h1>
 <time datetime="2014-03-19T10:42:43-04:00" pubdate><span class='month'>Mar</span> <span class='day'>19</span> <span class='year'>2014</span></time>
 
@@ -155,6 +202,14 @@ Mar 12 2014 Recent Posts Nvd3 Issues Triage The Future of NVD3 - &hellip;">
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/03/nvd3-chart-drawing-lifecycle/">NVD3 Chart Drawing Lifecycle</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/architecture/">Architecture</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/03/nvd3-issues-triage/">Nvd3 Issues Triage</a>

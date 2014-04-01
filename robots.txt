@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://nvd3.org//sitemap.xml 
+Sitemap: http://nvd3.org/nvd3/sitemap.xml 

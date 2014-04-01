@@ -1,5 +1,5 @@
 
-<!DOCTYPE html>
+<!-- <!DOCTYPE html> -->
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
@@ -18,9 +18,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://nvd3.org//examples/pie.html">
+  <link rel="canonical" href="http://nvd3.org/nvd3/examples/pie.html">
   <link href="/favicon.png" rel="icon">
-  <!-- <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css"> -->
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
   <link href="/atom.xml" rel="alternate" title="NVD3" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -33,8 +34,7 @@
     <link href="/assets/css/bootstrap.css" rel="stylesheet">
     <style type="text/css">
       body {
-        padding-top: 60px;
-        padding-bottom: 40px;
+        padding-top: 43px;
       }
       .statement_para {
           font-size: 14pt;
@@ -44,6 +44,32 @@
           text-justify: distribute;
           margin: 10px auto;
           margin-bottom: 30px;
+      }
+
+      .row {
+        margin 1%;
+      }
+
+      article {
+        padding: 0 1%;
+        font-size: 18px;
+        line-height: 1.5em;
+      }
+
+      body > .container {
+        width: 941px;
+      }
+
+      @media(min-width: 1200px){
+        body > .container {
+          width: 1171px;
+        }
+      }
+
+      @media (max-width: 979px) and (min-width: 768px) {
+        body > .container {
+          width: 725px;
+        }
       }
 
     </style>
