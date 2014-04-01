@@ -5,4 +5,5 @@
 {% else %}
   {% assign author = site.author %}
 {% endif %}
-{% if author %}<span class="byline author vcard">Posted by <span class="fn">{{ author }}</span></span>{% endif %}
+{% assign email = page.email %}
+{% if author %}<span class="byline author vcard">Posted by <span class="fn">{% if email %}<a href="mailto:{{ email }}">{% endif %}{{ author }}{%if email %}</a>{% endif %}</span></span>{% endif %}
