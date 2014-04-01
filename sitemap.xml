@@ -1,87 +1,87 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://nvd3.org/nvd3/blog/2014/03/state-of-nvd3/</loc>
+        <loc>http://nvd3.org//blog/2014/03/state-of-nvd3/</loc>
         <lastmod>2014-04-01T10:33:16-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/blog/2014/03/nvd3-issues-triage/</loc>
+        <loc>http://nvd3.org//blog/2014/03/nvd3-issues-triage/</loc>
         <lastmod>2014-04-01T10:33:25-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/blog/2014/03/architecture/</loc>
-        <lastmod>2014-04-01T12:04:38-04:00</lastmod>
+        <loc>http://nvd3.org//blog/2014/03/architecture/</loc>
+        <lastmod>2014-04-01T13:28:14-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle/</loc>
-        <lastmod>2014-04-01T12:54:17-04:00</lastmod>
+        <loc>http://nvd3.org//blog/2014/03/nvd3-chart-drawing-lifecycle/</loc>
+        <lastmod>2014-04-01T13:28:12-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/blog/archives/</loc>
-        <lastmod>2014-04-01T12:54:17-04:00</lastmod>
+        <loc>http://nvd3.org//blog/archives/</loc>
+        <lastmod>2014-04-01T13:28:14-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/bullet.html</loc>
+        <loc>http://nvd3.org//examples/bullet.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/cumulativeLine.html</loc>
+        <loc>http://nvd3.org//examples/cumulativeLine.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/discreteBar.html</loc>
+        <loc>http://nvd3.org//examples/discreteBar.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/indentedtree.html</loc>
+        <loc>http://nvd3.org//examples/indentedtree.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/</loc>
-        <lastmod>2014-04-01T12:54:17-04:00</lastmod>
+        <loc>http://nvd3.org//examples/</loc>
+        <lastmod>2014-04-01T13:28:14-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/line.html</loc>
+        <loc>http://nvd3.org//examples/line.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/linePlusBar.html</loc>
+        <loc>http://nvd3.org//examples/linePlusBar.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/lineWithFocus.html</loc>
+        <loc>http://nvd3.org//examples/lineWithFocus.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/multiBar.html</loc>
+        <loc>http://nvd3.org//examples/multiBar.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/multiBarHorizontal.html</loc>
+        <loc>http://nvd3.org//examples/multiBarHorizontal.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/pie.html</loc>
+        <loc>http://nvd3.org//examples/pie.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/scatter.html</loc>
+        <loc>http://nvd3.org//examples/scatter.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/examples/stackedArea.html</loc>
+        <loc>http://nvd3.org//examples/stackedArea.html</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/</loc>
-        <lastmod>2014-04-01T12:54:17-04:00</lastmod>
+        <loc>http://nvd3.org//</loc>
+        <lastmod>2014-04-01T13:28:14-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/livecode/</loc>
-        <lastmod>2014-04-01T12:54:17-04:00</lastmod>
+        <loc>http://nvd3.org//livecode/</loc>
+        <lastmod>2014-04-01T13:28:14-04:00</lastmod>
     </url>
     <url>
-        <loc>http://nvd3.org/nvd3/robots.txt</loc>
+        <loc>http://nvd3.org//robots.txt</loc>
         <lastmod>2014-03-17T10:25:34-04:00</lastmod>
     </url>
 </urlset>

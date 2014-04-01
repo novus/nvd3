@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[NVD3]]></title>
-  <link href="http://nvd3.org/nvd3/atom.xml" rel="self"/>
-  <link href="http://nvd3.org/nvd3/"/>
-  <updated>2014-04-01T13:18:14-04:00</updated>
-  <id>http://nvd3.org/nvd3/</id>
+  <link href="http://nvd3.org//atom.xml" rel="self"/>
+  <link href="http://nvd3.org//"/>
+  <updated>2014-04-01T13:28:21-04:00</updated>
+  <id>http://nvd3.org//</id>
   <author>
     <name><![CDATA[Novus Partners]]></name>
     
@@ -15,14 +15,14 @@
   
   <entry>
     <title type="html"><![CDATA[NVD3 Chart Drawing Lifecycle]]></title>
-    <link href="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle/"/>
+    <link href="http://nvd3.org//blog/2014/03/nvd3-chart-drawing-lifecycle/"/>
     <updated>2014-03-31T20:10:20-04:00</updated>
-    <id>http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle</id>
+    <id>http://nvd3.org//blog/2014/03/nvd3-chart-drawing-lifecycle</id>
     <content type="html"><![CDATA[<p>Externally, the flow of an NVD3 application remains consistent. A user of the library will call the appropriate <code>nv.models</code> method, which will return a chart method that has getters and setters bound, and can be used as the argument to <code>d3.selection().call()</code>. Internally, the massive closure-bound scoping solutions are being replaced with a chart model object, an instance of a constructor function that can be configured as needed, and that can be extended to create new behaviors. The superclass of the chart model objects, <code>Layer</code>, also manages drawing the visualization through its lifecycle.</p>
 
 <h2>Lifecycle Methodology</h2>
 
-<p>Drawing a chart begins with a call to the chart model. This is a function that has a reference to a chart model object, that can be prototypically extended to add and compose behaviors of a chart. The chart model object itself extends from either Chart or Layer &ndash; though Chart itself extends from Layer. Layer is the root of the object hierarchy, and is an object that manages information about a viewing layer. Typically, this will be an SVG <code>&lt;g&gt;</code>, though could as easily be a <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code>. A Layer has <code>height</code>, <code>width</code>, <code>margin</code>s, available height and width (total height / width minus margins).</p>
+<p>Drawing a chart begins with a call to the chart model. This is a function that has a reference to a chart model object, that can be prototypically extended to add and compose behaviors of a chart. The chart model object itself extends from either Chart or Layer &ndash; though Chart itself extends from Layer. Layer is the root of the object hierarchy, and is an object that manages information about a viewing layer. Typically, this will be an SVG <code>&lt;g&gt;</code>, though could as easily be a <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code>. A Layer has <code>size.height</code>, <code>size.width</code>, <code>margins</code>, available height and width (total height / width minus margins).</p>
 
 <p>A Layer and its subclasses act as a template. A layer would be instantiated once, configured, and passed a selection to render on. The nv.models functions instantiate a corresponding Layer subclass, pass method calls to the underlying instance, and provide an interface to use with <code>d3.selection.call()</code>. This can be short-circuited by instantiating a Layer subclass and passing a selection to its render method directly.</p>
 
@@ -155,7 +155,7 @@
 
 <h3>draw(<em>data</em>)</h3>
 
-<p>The magic! This method MUST be overridden on Layer to do anything useful, and should use the hooks created in <code>wrapper</code> to create the visualization. For a complete example, see <code>Pie::Draw</code>(<a href="">code</a>)</p>
+<p>The magic! This method MUST be overridden on Layer to do anything useful, and should use the hooks created in <code>wrapper</code> to create the visualization. For a complete example, see <code>Pie::Draw</code>(<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/pie/pie.js#L70-L113">code</a>)</p>
 
 <h4>Chart::writeLegend(<em>data</em>)</h4>
 
@@ -168,35 +168,41 @@
 <h3>attachEvents()</h3>
 
 <p>Utility hook to attach events on create components and the dispatch. This should be overwridden, but be sure to call the super method, as often the visualization being extended will have events it needs to attach to.</p>
+
+<h2>Rewrite</h2>
+
+<p>This lifecycle is what seems to work very well for the nvd3 approach, and for the broader reusable d3 charting concept. As we move forward with refactoring NVD3 to this style, we will strive to be as backwards compatible as possible &ndash; if a chart used to work and breaks, that is a bug in the refactor! Please, let us know. Otherwise, stay tuned!</p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Architecture]]></title>
-    <link href="http://nvd3.org/nvd3/blog/2014/03/architecture/"/>
+    <link href="http://nvd3.org//blog/2014/03/architecture/"/>
     <updated>2014-03-31T20:10:20-04:00</updated>
-    <id>http://nvd3.org/nvd3/blog/2014/03/architecture</id>
-    <content type="html"><![CDATA[<p>The first iteration of NVD3 dealt with complexity by copypasta code. This refactor aims to replace that copypasta with a sensible, object oriented design. Looking closely at the NVD3 codebase, there are some concepts that are easily abstractable. The first of these is the Layer &ndash; a thing to perform some DOM drawing on. The Layer manages the fundamental aspects of drawing a chart, especially the <a href="">drawing lifecycle</a>. On top of a Layer are the several visualization pieces, like <a href="">Pie</a> and <a href="">Line</a>, as well as the concept of a [Chart]. A chart is a composite object, managing the underlying visualization(s), the axes, the legend, and other common features.</p>
+    <id>http://nvd3.org//blog/2014/03/architecture</id>
+    <content type="html"><![CDATA[<p>The first iteration of NVD3 dealt with complexity by copypasta code. This refactor aims to replace that copypasta with a sensible, object oriented design. Looking closely at the NVD3 codebase, there are some concepts that are easily abstractable. The first of these is the Layer &ndash; a thing to perform some DOM drawing on. The Layer manages the fundamental aspects of drawing a chart, especially the <a href="http://nvd3.org/blog/2014/03/nvd3-chart-drawing-lifecycle/">drawing lifecycle</a>. On top of a Layer are the several visualization pieces, like <a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/pie/">Pie</a> and <a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/line/">Line</a>, as well as the concept of a [Chart]. A chart is a composite object, managing the underlying visualization(s), the axes, the legend, and other common features.</p>
 
 <h2>Extension Mechanism</h2>
 
 <p>Because NVD3 targets modern web browsers, we use a variation of the <code>Object.create</code> pattern. An NVD3 constructor has a superclass, and a collection of private internal properties. This collection is stored in <code>Layer.options</code>, but allows getters and setters to be created automatically. Restricting external access to the <code>options</code> object allows significant flexibility in overriding specific chart functionalities.</p>
 
-<p>To ease development, we&rsquo;ve introduced an <code>nv.utils.create(ctor, parent, privates)</code> (<a href="">code</a>). This takes two constructor functions, links the prototype of the <code>ctor</code> to the <code>parent</code>, and creates a getter/setter method on the ctor prototype for each of the keys in <code>privates</code>. From this point, after instantiating the ctor class, all private internal data will be stored in its <code>options</code> key, while all access should come through the combined getter/setter methods. Client code can then override the default behavior by assigning a different function to ctor prorotype. Calling super methods should happen using <code>Function.prototype.apply()</code>.</p>
+<p>To ease development, we&rsquo;ve introduced an <code>nv.utils.create(ctor, parent, privates)</code> (<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/utils.js#L327-L343">code</a>). This takes two constructor functions, links the prototype of the <code>ctor</code> to the <code>parent</code>, and creates a getter/setter method on the ctor prototype for each of the keys in <code>privates</code>. From this point, after instantiating the ctor class, all private internal data will be stored in its <code>options</code> key, while all access should come through the combined getter/setter methods. Client code can then override the default behavior by assigning a different function to ctor prorotype. Calling super methods should happen using <code>Function.prototype.apply()</code>.</p>
 
-<p>Because the nv model functions return a callable function, we have also introduced <code>nv.utils.rebindp</code> (<a href="">code</a>), which behaves similarly to <code>d3.rebind</code>, but calls functions on the source prototype, rather than the source itself.</p>
+<p>Because the nv model functions return a callable function, we have also introduced <code>nv.utils.rebindp</code> (<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/utils.js#L301-L325">code</a>), which behaves similarly to <code>d3.rebind</code>, but calls functions on the source prototype, rather than the source itself.</p>
 
 <h2>Object Composition</h2>
 
-<p>Beyond extending and subclassing, Object Composition provides an excellent approach for achieving custom behaviors in similar charts. The Pie Chart labels have a <code>labelLayout</code> (<a href="">code</a>) property, which takes an object that knows the rules for laying out labels in a pie chart. Using Object Composition for specialized activities within the inheritance pattern will go a long ways towards creating extensible, maintainable, testable code.</p>
+<p>Beyond extending and subclassing, Object Composition provides an excellent approach for achieving custom behaviors in similar charts. The Pie Chart labels have a <code>labelLayout</code> (<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/pie/pie.js#L1-L24">code</a>) property, which takes an object that knows the rules for laying out labels in a pie chart. Using Object Composition for specialized activities within the inheritance pattern will go a long ways towards creating extensible, maintainable, testable code.</p>
+
+<p>Using these few primitives, we can build a very successful system. This new architecture should make NVD3 a solid library for charting requirements far into the future of front end development.</p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Nvd3 Issues Triage]]></title>
-    <link href="http://nvd3.org/nvd3/blog/2014/03/nvd3-issues-triage/"/>
+    <link href="http://nvd3.org//blog/2014/03/nvd3-issues-triage/"/>
     <updated>2014-03-19T10:42:43-04:00</updated>
-    <id>http://nvd3.org/nvd3/blog/2014/03/nvd3-issues-triage</id>
+    <id>http://nvd3.org//blog/2014/03/nvd3-issues-triage</id>
     <content type="html"><![CDATA[<p>Novus is committed to its open source projects and committed to the community that has grown around these projects. In an effort to tame the recent build-up of issues and pull requests, we would like to outline our appraoch to tackling this accumulation in the short term as well as how we will continue to manage the project&rsquo;s growth in the future.</p>
 
 <hr />
@@ -267,9 +273,9 @@ Our expectation with new features will be to move them to the roadmap and priori
   
   <entry>
     <title type="html"><![CDATA[The Future of NVD3 - March, 2014]]></title>
-    <link href="http://nvd3.org/nvd3/blog/2014/03/state-of-nvd3/"/>
+    <link href="http://nvd3.org//blog/2014/03/state-of-nvd3/"/>
     <updated>2014-03-12T17:44:38-04:00</updated>
-    <id>http://nvd3.org/nvd3/blog/2014/03/state-of-nvd3</id>
+    <id>http://nvd3.org//blog/2014/03/state-of-nvd3</id>
     <content type="html"><![CDATA[<p>When I joined Novus last November, I&rsquo;d spent some time playing with three.js visualizations, but hadn&rsquo;t really looked at that d3 thing. Of course, as a financial technology firm, 2d charts and graph visualizations are all we do. So I learned d3, and this little nvd3 home-grown thing. I knew there was a community out there &ndash; at least, I&rsquo;d come across random tweets mentioning it, but I really hadn&rsquo;t dug in. Then I had to make some changes. Before you know it, I&rsquo;m waist deep in refactoring what for all intents and purposes was an internal prototyped tech demo that&rsquo;s become a great project on Github! Yet we&rsquo;ve been, to the community&rsquo;s detriment, busy at Novus.</p>
 
 <p>Yes, we knew the PR and issue counts were rising, but we&rsquo;re heads down on some internal projects, and no one really pushed or prodded us about nvd3. My colleagues robinfhu, twolfnovus, and fshao816 were fixing bugs, adding some features we needed, and generally making it look like NVD3 was still making progress. Turns out, just because no one in the community is yelling, doesn&rsquo;t mean there aren&rsquo;t problems! After getting a foreceful tweet from John Schulz (@JFSIII), I asked around my colleagues and realized we had, in fact, been getting quite a few quiet pokes and prods. The growing issue count is obviously frustrating to people trying to use the library, but the growing PR count shows people are still very much trying to create a successful, sustainable project in spite of Novus&#8217; lack of recent feedback &ndash; we clearly cannot leave our heads in the sand and just hope that what we need happens to be what you need.</p>

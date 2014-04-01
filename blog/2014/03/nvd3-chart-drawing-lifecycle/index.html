@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle">
+  <link rel="canonical" href="http://nvd3.org//blog/2014/03/nvd3-chart-drawing-lifecycle">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -166,7 +166,7 @@
 
 <h2>Lifecycle Methodology</h2>
 
-<p>Drawing a chart begins with a call to the chart model. This is a function that has a reference to a chart model object, that can be prototypically extended to add and compose behaviors of a chart. The chart model object itself extends from either Chart or Layer &ndash; though Chart itself extends from Layer. Layer is the root of the object hierarchy, and is an object that manages information about a viewing layer. Typically, this will be an SVG <code>&lt;g&gt;</code>, though could as easily be a <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code>. A Layer has <code>height</code>, <code>width</code>, <code>margin</code>s, available height and width (total height / width minus margins).</p>
+<p>Drawing a chart begins with a call to the chart model. This is a function that has a reference to a chart model object, that can be prototypically extended to add and compose behaviors of a chart. The chart model object itself extends from either Chart or Layer &ndash; though Chart itself extends from Layer. Layer is the root of the object hierarchy, and is an object that manages information about a viewing layer. Typically, this will be an SVG <code>&lt;g&gt;</code>, though could as easily be a <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code>. A Layer has <code>size.height</code>, <code>size.width</code>, <code>margins</code>, available height and width (total height / width minus margins).</p>
 
 <p>A Layer and its subclasses act as a template. A layer would be instantiated once, configured, and passed a selection to render on. The nv.models functions instantiate a corresponding Layer subclass, pass method calls to the underlying instance, and provide an interface to use with <code>d3.selection.call()</code>. This can be short-circuited by instantiating a Layer subclass and passing a selection to its render method directly.</p>
 
@@ -299,7 +299,7 @@
 
 <h3>draw(<em>data</em>)</h3>
 
-<p>The magic! This method MUST be overridden on Layer to do anything useful, and should use the hooks created in <code>wrapper</code> to create the visualization. For a complete example, see <code>Pie::Draw</code>(<a href="">code</a>)</p>
+<p>The magic! This method MUST be overridden on Layer to do anything useful, and should use the hooks created in <code>wrapper</code> to create the visualization. For a complete example, see <code>Pie::Draw</code>(<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/pie/pie.js#L70-L113">code</a>)</p>
 
 <h4>Chart::writeLegend(<em>data</em>)</h4>
 
@@ -312,6 +312,10 @@
 <h3>attachEvents()</h3>
 
 <p>Utility hook to attach events on create components and the dispatch. This should be overwridden, but be sure to call the super method, as often the visualization being extended will have events it needs to attach to.</p>
+
+<h2>Rewrite</h2>
+
+<p>This lifecycle is what seems to work very well for the nvd3 approach, and for the broader reusable d3 charting concept. As we move forward with refactoring NVD3 to this style, we will strive to be as backwards compatible as possible &ndash; if a chart used to work and breaks, that is a bug in the refactor! Please, let us know. Otherwise, stay tuned!</p>
 </div>
 
 
@@ -343,7 +347,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle/" data-via="" data-counturl="http://nvd3.org/nvd3/blog/2014/03/nvd3-chart-drawing-lifecycle/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org//blog/2014/03/nvd3-chart-drawing-lifecycle/" data-via="" data-counturl="http://nvd3.org//blog/2014/03/nvd3-chart-drawing-lifecycle/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>

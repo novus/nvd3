@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://nvd3.org/nvd3/blog/2014/03/architecture">
+  <link rel="canonical" href="http://nvd3.org//blog/2014/03/architecture">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -162,19 +162,21 @@
   </header>
 
 
-<div class="entry-content"><p>The first iteration of NVD3 dealt with complexity by copypasta code. This refactor aims to replace that copypasta with a sensible, object oriented design. Looking closely at the NVD3 codebase, there are some concepts that are easily abstractable. The first of these is the Layer &ndash; a thing to perform some DOM drawing on. The Layer manages the fundamental aspects of drawing a chart, especially the <a href="">drawing lifecycle</a>. On top of a Layer are the several visualization pieces, like <a href="">Pie</a> and <a href="">Line</a>, as well as the concept of a [Chart]. A chart is a composite object, managing the underlying visualization(s), the axes, the legend, and other common features.</p>
+<div class="entry-content"><p>The first iteration of NVD3 dealt with complexity by copypasta code. This refactor aims to replace that copypasta with a sensible, object oriented design. Looking closely at the NVD3 codebase, there are some concepts that are easily abstractable. The first of these is the Layer &ndash; a thing to perform some DOM drawing on. The Layer manages the fundamental aspects of drawing a chart, especially the <a href="http://nvd3.org/blog/2014/03/nvd3-chart-drawing-lifecycle/">drawing lifecycle</a>. On top of a Layer are the several visualization pieces, like <a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/pie/">Pie</a> and <a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/line/">Line</a>, as well as the concept of a [Chart]. A chart is a composite object, managing the underlying visualization(s), the axes, the legend, and other common features.</p>
 
 <h2>Extension Mechanism</h2>
 
 <p>Because NVD3 targets modern web browsers, we use a variation of the <code>Object.create</code> pattern. An NVD3 constructor has a superclass, and a collection of private internal properties. This collection is stored in <code>Layer.options</code>, but allows getters and setters to be created automatically. Restricting external access to the <code>options</code> object allows significant flexibility in overriding specific chart functionalities.</p>
 
-<p>To ease development, we&rsquo;ve introduced an <code>nv.utils.create(ctor, parent, privates)</code> (<a href="">code</a>). This takes two constructor functions, links the prototype of the <code>ctor</code> to the <code>parent</code>, and creates a getter/setter method on the ctor prototype for each of the keys in <code>privates</code>. From this point, after instantiating the ctor class, all private internal data will be stored in its <code>options</code> key, while all access should come through the combined getter/setter methods. Client code can then override the default behavior by assigning a different function to ctor prorotype. Calling super methods should happen using <code>Function.prototype.apply()</code>.</p>
+<p>To ease development, we&rsquo;ve introduced an <code>nv.utils.create(ctor, parent, privates)</code> (<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/utils.js#L327-L343">code</a>). This takes two constructor functions, links the prototype of the <code>ctor</code> to the <code>parent</code>, and creates a getter/setter method on the ctor prototype for each of the keys in <code>privates</code>. From this point, after instantiating the ctor class, all private internal data will be stored in its <code>options</code> key, while all access should come through the combined getter/setter methods. Client code can then override the default behavior by assigning a different function to ctor prorotype. Calling super methods should happen using <code>Function.prototype.apply()</code>.</p>
 
-<p>Because the nv model functions return a callable function, we have also introduced <code>nv.utils.rebindp</code> (<a href="">code</a>), which behaves similarly to <code>d3.rebind</code>, but calls functions on the source prototype, rather than the source itself.</p>
+<p>Because the nv model functions return a callable function, we have also introduced <code>nv.utils.rebindp</code> (<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/utils.js#L301-L325">code</a>), which behaves similarly to <code>d3.rebind</code>, but calls functions on the source prototype, rather than the source itself.</p>
 
 <h2>Object Composition</h2>
 
-<p>Beyond extending and subclassing, Object Composition provides an excellent approach for achieving custom behaviors in similar charts. The Pie Chart labels have a <code>labelLayout</code> (<a href="">code</a>) property, which takes an object that knows the rules for laying out labels in a pie chart. Using Object Composition for specialized activities within the inheritance pattern will go a long ways towards creating extensible, maintainable, testable code.</p>
+<p>Beyond extending and subclassing, Object Composition provides an excellent approach for achieving custom behaviors in similar charts. The Pie Chart labels have a <code>labelLayout</code> (<a href="https://github.com/DavidSouther/nvd3/blob/canvas/src/models/pie/pie.js#L1-L24">code</a>) property, which takes an object that knows the rules for laying out labels in a pie chart. Using Object Composition for specialized activities within the inheritance pattern will go a long ways towards creating extensible, maintainable, testable code.</p>
+
+<p>Using these few primitives, we can build a very successful system. This new architecture should make NVD3 a solid library for charting requirements far into the future of front end development.</p>
 </div>
 
 
@@ -206,7 +208,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org/nvd3/blog/2014/03/architecture/" data-via="" data-counturl="http://nvd3.org/nvd3/blog/2014/03/architecture/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nvd3.org//blog/2014/03/architecture/" data-via="" data-counturl="http://nvd3.org//blog/2014/03/architecture/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
