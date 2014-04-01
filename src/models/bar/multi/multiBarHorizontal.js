@@ -2,9 +2,7 @@ var MultiBarHorizontalPrivates = {
     xScale: d3.scale.ordinal()
     , yScale: d3.scale.linear()
     , forceY : [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-    , color : nv.utils.defaultColor()
-    , _color: null
-    , _barColor : null // adding the ability to set the color for each rather than the whole group
+    , color : null
     , disabled : null// used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked : false
     , showValues : false
@@ -33,6 +31,8 @@ function MultiBarHorizontal(options){
         , wrapClass: ''
     });
 
+    this._barColor = nv.utils.defaultColor(); // adding the ability to set the color for each rather than the whole group
+    this._color = nv.utils.defaultColor();
     Chart.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd']);
 }
 
@@ -42,9 +42,7 @@ nv.utils.create(MultiBarHorizontal, Chart, MultiBarHorizontalPrivates);
  * @override Layer::wrapper
  */
 MultiBarHorizontal.prototype.wrapper = function (data) {
-    var renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     Layer.prototype.wrapper.call(this, data, ['nv-groups']);
-    renderWatch.reset();
 };
 
 /**
@@ -202,7 +200,7 @@ MultiBarHorizontal.prototype.draw = function(data){
     if (this.showValues() && !this.stacked()) {
         bars.select('text')
             .attr('text-anchor', function(d,i) { return that.y()(d,i) < 0 ? 'end' : 'start' })
-            .attr('y', x.rangeBand() / (data.length * 2))
+            .attr('y', this.xScale().rangeBand() / (data.length * 2))
             .attr('dy', '.32em')
             .text(function(d,i) { return that.valueFormat()(that.y()(d,i)) });
         bars.transition()
@@ -215,7 +213,7 @@ MultiBarHorizontal.prototype.draw = function(data){
         barsEnter.append('text').classed('nv-bar-label',true);
         bars.select('text.nv-bar-label')
             .attr('text-anchor', function(d,i) { return that.y()(d,i) < 0 ? 'start' : 'end' })
-            .attr('y', x.rangeBand() / (data.length * 2))
+            .attr('y', this.xScale().rangeBand() / (data.length * 2))
             .attr('dy', '.32em')
             .text(function(d,i) { return that.x()(d,i) });
         bars.transition()
@@ -227,12 +225,12 @@ MultiBarHorizontal.prototype.draw = function(data){
 
     bars.attr('class', function(d,i) { return that.y()(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'});
 
-    if (this._barColor()) {
+    if (this._barColor) {
         if (!this.disabled())
             this.disabled(data.map(function() { return true }));
         var _colorBars = function(d,i,j) {
             return d3
-                .rgb(that._barColor()(d,i))
+                .rgb(that._barColor(d,i))
                 .darker(that.disabled().map(function(d,i) { return i }).filter(function(d,i){ return !that.disabled()[i] })[j] )
                 .toString()
         };
@@ -251,7 +249,7 @@ MultiBarHorizontal.prototype.draw = function(data){
             .attr('transform', function(d,i) {
                 //TODO: stacked must be all positive or all negative, not both?
                 return 'translate(' +
-                    (that.y()(d,i) < 0 ? that.yScale()(that.y()(d,i)) : y(0))
+                    (that.y()(d,i) < 0 ? that.yScale()(that.y()(d,i)) : that.yScale()(0))
                     + ',' +
                     (d.series * that.xScale().rangeBand() / data.length
                         +
@@ -269,14 +267,14 @@ MultiBarHorizontal.prototype.draw = function(data){
 };
 
 MultiBarHorizontal.prototype.barColor = function(_) {
-    if (!arguments.length) return this._barColor();
-    this._barColor(nv.utils.getColor(_));
+    if (!arguments.length) return this._barColor;
+    this._barColor = nv.utils.getColor(_);
     return this;
 };
 
 MultiBarHorizontal.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
+    if (!arguments.length) return this._color;
+    this._color = nv.utils.getColor(_);
     return this;
 };
 
@@ -290,8 +288,8 @@ nv.models.multiBarHorizontal = function() {
         return chart;
     }
 
-    this.dispatch = chart.dispatch;
-    this.options = nv.utils.optionsFunc.bind(chart);
+    chart.dispatch = multiBarHorizontal.dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, multiBarHorizontal, MultiBarHorizontal.prototype,
         'x', 'y', 'margin', 'width', 'height', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceY',
