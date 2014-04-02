@@ -91,7 +91,7 @@ nv.models.pieChart = function() {
   chart.dispatch = pieChart.dispatch;
   chart.pie = pieChart.pie;
 
-  d3.rebind(chart, pieChart.pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
+  d3.rebind(chart, pieChart.pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold', 'labelSunbeamLayout', 'labelLayout');
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   nv.utils.rebindp(chart, pieChart, PieChart.prototype, 'margin', 'width', 'height', 'color', 'tooltips', 'tooltipContent', 'showLegend', 'duration', 'noData', 'state');
