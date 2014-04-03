@@ -1,9 +1,21 @@
+var ChartPrivates = {
+      showXAxis : true
+    , xAxis: nv.models.axis()
+    , reduceXTicks : true
+    , showYAxis : true
+    , yAxis: nv.models.axis()
+    , staggerLabels: false
+    , rotateLabels: 0
+    , rightAlignYAxis: false
+}
+
 /**
  * A Chart is a composite Layer structure.
  *
  * It has legends, axes, some possible sub charts, etc.
  */
 function Chart(options, dispatch){
+    options = nv.utils.extend({}, options, ChartPrivates);
     options.tooltip = nv.utils.valueOrDefault(
         options.tooltip,
         function tooltip(key, y) {
@@ -24,7 +36,7 @@ function Chart(options, dispatch){
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
 }
-nv.utils.create(Chart, Layer);
+nv.utils.create(Chart, Layer, ChartPrivates);
 
 /**
  * Apply the chart-specific wrap classes.
@@ -36,6 +48,11 @@ Chart.prototype.wrapper = function(data, gs) {
         'nv-legendWrap'
     ].concat(gs || []);
     Layer.prototype.wrapper.call(this, data, wrapPoints);
+
+    this.axis = {
+        x: this.wrap.select('.nv-x.nv-axis'),
+        y: this.wrap.select('.nv-x.nv-axis')
+    };
 
     this.buildLegend(data);
     // The legend can change the available height.
@@ -78,6 +95,83 @@ Chart.prototype.showLegend = function(_) {
     this.options.showLegend = _;
     return this;
 };
+
+Chart.prototype.draw = function(data){
+    this.plotAxes(data);
+}
+
+Chart.prototype.plotAxes = function(data){
+    if (this.rightAlignYAxis()) {
+        this.axis.y.attr("transform", "translate(" + this.available.width + ", 0)");
+    }
+
+    if (this.showXAxis()) {
+        this.xAxis()
+            .orient('bottom')
+            .tickPadding(7)
+            .highlightZero(true)
+            .showMaxMin(false)
+            .tickFormat(function(d) { return d })
+            .scale(this.xScale())
+            .ticks( this.available.width / 100 )
+            .tickSize(-this.available.height, 0);
+
+        this.axis.x
+            .transition()
+            .call(this.xAxis());
+
+        var xTicks = this.g.select('.nv-x.nv-axis > g').selectAll('g');
+
+        xTicks
+            .selectAll('line, text')
+            .style('opacity', 1);
+
+        if (this.staggerLabels()) {
+            var getTranslate = function(x,y) {
+                return "translate(" + x + "," + y + ")";
+            };
+
+            var staggerUp = 5, staggerDown = 17;  //pixels to stagger by
+            // Issue #140
+            xTicks
+                .selectAll("text")
+                .attr('transform', function(d,i,j) {
+                    return getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
+                });
+
+            var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
+            this.g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
+                .attr("transform", function(d,i) {
+                    return getTranslate(0, (i === 0 || totalInBetweenTicks % 2 !== 0) ? staggerDown : staggerUp);
+                });
+        }
+
+        if (this.reduceXTicks())
+            xTicks
+                .filter(function(d,i) { return i % Math.ceil(data[0].values.length / (this.available.width / 100)) !== 0 }.bind(this))
+                .selectAll('text, line')
+                .style('opacity', 0);
+
+        if(this.rotateLabels())
+            xTicks
+                .selectAll('.tick text')
+                .attr('transform', 'rotate(' + that.rotateLabels() + ' 0,0)')
+                .style('text-anchor', that.rotateLabels() > 0 ? 'start' : 'end');
+
+        this.axis.x.selectAll('g.nv-axisMaxMin text').style('opacity', 1);
+    }
+
+    if (this.showYAxis()) {
+        this.yAxis()
+            .orient(this.rightAlignYAxis() ? 'right' : 'left')
+            .tickFormat(d3.format(',.1f'))
+            .scale(this.yScale())
+            .ticks( this.available.height / 36 )
+            .tickSize( -this.available.width, 0);
+
+        this.axis.y.transition().call(this.yAxis());
+    }
+}
 
 Chart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
