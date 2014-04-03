@@ -187,12 +187,14 @@ LineChart.prototype.draw = function(data){
     }
 
     this.line
+        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .width(availableWidth)
         .height(availableHeight)
-        .color(data.map(function(d,i) {
-            return d.color || that._color(d, i);
-        })
-            .filter(function(d,i) { return !data[i].disabled }));
+        .color(
+            data
+                .map( function(d,i){return d.color || that._color(d, i)} )
+                .filter( function(d,i) { return !data[i].disabled } )
+        );
 
     var linesWrap = this.g.select('.nv-linesWrap')
         .datum(data.filter(function(d) { return !d.disabled }))

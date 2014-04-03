@@ -4,12 +4,9 @@ var LinePrivates = {
     , interpolate : "linear" // controls the line interpolation
     , xScale: null
     , yScale: null
-    , x: null
-    , y: null
     , x0: null
     , y0: null
     , duration: 250
-    , id: null
 };
 
 /**
@@ -53,11 +50,8 @@ Line.prototype.draw = function(data){
     var scatterWrap = this.wrap.select('.nv-scatterWrap');
     scatterWrap.transition().call(this.scatter);
 
-    this.x(this.scatter.x());
-    this.y(this.scatter.y());
     this.yScale(this.scatter.yScale());
     this.xScale(this.scatter.xScale());
-
     this.x0(this.x0() || this.xScale());
     this.y0(this.y0() || this.yScale());
 
