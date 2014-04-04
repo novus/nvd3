@@ -16,15 +16,15 @@ function LinePlusBarChart(options){
         , chartClass: 'linePlusBar'
     });
 
-    this.lines = nv.models.line();
-    this.bars = nv.models.historicalBar();
+    this.line = nv.models.line();
+    this.bar = nv.models.historicalBar();
     this.y1Axis = nv.models.axis();
     this.y2Axis = nv.models.axis();
 
-    this.bars
+    this.bar
         .padData(true)
     ;
-    this.lines
+    this.line
         .clipEdge(false)
         .padData(true)
     ;
@@ -42,8 +42,8 @@ function LinePlusBarChart(options){
     this.showTooltip = function(e, offsetElement) {
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
             top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.lines.x()(e.point, e.pointIndex)),
-            y = (e.series.bar ? this.y1Axis : this.y2Axis).tickFormat()(this.lines.y()(e.point, e.pointIndex)),
+            x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
+            y = (e.series.bar ? this.y1Axis : this.y2Axis).tickFormat()(this.line.y()(e.point, e.pointIndex)),
             content = this.tooltip()(e.series.key, x, y);
 
         nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
@@ -55,35 +55,16 @@ function LinePlusBarChart(options){
 nv.utils.create(LinePlusBarChart, Chart, LinePlusBarChartPrivates);
 
 LinePlusBarChart.prototype.wrapper = function(data){
-
+    Chart.prototype.wrapper.call(this, data,
+        ['nv-x nv-axis', 'nv-y1 nv-axis', 'nv-y2 nv-axis', 'nv-barsWrap', 'nv-linesWrap', 'nv-legendWrap']
+    );
 };
 
 LinePlusBarChart.prototype.draw = function(data){
-    Layer.setRoot(this);
-    if (Layer.noData(data))
-        return chart;
 
     var that = this,
         availableWidth = Layer.available.width,
         availableHeight = Layer.available.height;
-
-    chart.update = function() {
-        Layer.svg.transition().call(chart);
-    };
-
-    //set state.disabled
-    state.disabled = data.map(function(d) { return !!d.disabled });
-
-    if (!defaultState) {
-        var key;
-        defaultState = {};
-        for (key in state) {
-            if (state[key] instanceof Array)
-                defaultState[key] = state[key].slice(0);
-            else
-                defaultState[key] = state[key];
-        }
-    }
 
     //------------------------------------------------------------
     // Setup Scales
@@ -91,36 +72,16 @@ LinePlusBarChart.prototype.draw = function(data){
     var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
     var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
 
-    //x = xAxis.scale();
-    x = dataLines.filter(function(d) { return !d.disabled; }).length && dataLines.filter(function(d) { return !d.disabled; })[0].values.length ? lines.xScale() : bars.xScale();
-    //x = dataLines.filter(function(d) { return !d.disabled; }).length ? lines.xScale() : bars.xScale(); //old code before change above
-    y1 = bars.yScale();
-    y2 = lines.yScale();
-
-    //------------------------------------------------------------
-
-    //------------------------------------------------------------
-    // Setup containers and skeleton of chart
-
-    /*      var wrap = d3.select(this).selectAll('g.nv-wrap.nv-linePlusBar').data([data]);
-     var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
-     var g = wrap.select('g');*/
-    Layer.wrapChart(data);
-
-    Layer.gEnter.append('g').attr('class', 'nv-x nv-axis');
-    Layer.gEnter.append('g').attr('class', 'nv-y1 nv-axis');
-    Layer.gEnter.append('g').attr('class', 'nv-y2 nv-axis');
-    Layer.gEnter.append('g').attr('class', 'nv-barsWrap');
-    Layer.gEnter.append('g').attr('class', 'nv-linesWrap');
-    Layer.gEnter.append('g').attr('class', 'nv-legendWrap');
-
-    //------------------------------------------------------------
+    this.xScale(
+        dataLines.filter(function(d) { return !d.disabled; }).length && dataLines.filter(function(d) { return !d.disabled; })[0].values.length
+            ? this.line.xScale()
+            : this.bar.xScale()
+    );
+    this.yScale1 = this.bar.yScale();
+    this.yScale2 = this.line.yScale();
 
 
-    //------------------------------------------------------------
-    // Legend
-
-    if (Layer.options.showLegend) {
+/*    if (Layer.options.showLegend) {
         legend.width( availableWidth / 2 );
 
         Layer.g.select('.nv-legendWrap')
@@ -138,153 +99,143 @@ LinePlusBarChart.prototype.draw = function(data){
         }
         Layer.g.select('.nv-legendWrap')
             .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-Layer.margin.top) +')');
-    }
-
-    //------------------------------------------------------------
-
-    Layer.wrap.attr('transform', 'translate(' + Layer.margin.left + ',' + Layer.margin.top + ')');
+    }*/
 
     //------------------------------------------------------------
     // Main Chart Component(s)
 
-    lines
+    this.line
+        .margin({top: 0, right: 0 , bottom: 0, left: 0})
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-            return d.color || color(d, i);
+            return d.color || that.color(d);
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }));
 
-    bars
+    this.bar
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-            return d.color || color(d, i);
+            return d.color || that.color(d);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
-    var barsWrap = Layer.g.select('.nv-barsWrap')
+    var barsWrap = this.g.select('.nv-barsWrap')
         .datum(dataBars.length ? dataBars : [{values:[]}]);
 
-    var linesWrap = Layer.g.select('.nv-linesWrap')
+    var linesWrap = this.g.select('.nv-linesWrap')
         .datum(dataLines[0] && !dataLines[0].disabled ? dataLines : [{values:[]}] );
     //.datum(!dataLines[0].disabled ? dataLines : [{values:dataLines[0].values.map(function(d) { return [d[0], null] }) }] );
 
-    d3.transition(barsWrap).call(bars);
-    d3.transition(linesWrap).call(lines);
+    d3.transition(barsWrap).call(this.bar);
+    d3.transition(linesWrap).call(this.line);
 
-    //------------------------------------------------------------
-
-
-    //------------------------------------------------------------
-    // Setup Axes
-
-    xAxis
-        .scale(x)
+    this.xAxis()
+        .scale(this.xScale())
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
-    Layer.g.select('.nv-x.nv-axis')
-        .attr('transform', 'translate(0,' + y1.range()[0] + ')');
-    d3.transition(Layer.g.select('.nv-x.nv-axis'))
-        .call(xAxis);
+    this.g.select('.nv-x.nv-axis')
+        .attr('transform', 'translate(0,' + this.yScale1.range()[0] + ')');
+    d3.transition(this.g.select('.nv-x.nv-axis'))
+        .call(this.xAxis());
 
-    y1Axis
-        .scale(y1)
+    this.y1Axis()
+        .scale(this.yScale1)
         .ticks( availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
-    d3.transition(Layer.g.select('.nv-y1.nv-axis'))
+    d3.transition(this.g.select('.nv-y1.nv-axis'))
         .style('opacity', dataBars.length ? 1 : 0)
-        .call(y1Axis);
+        .call(this.y1Axis());
 
-    y2Axis
-        .scale(y2)
+    this.y2Axis()
+        .scale(this.yScale2)
         .ticks( availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
-    Layer.g.select('.nv-y2.nv-axis')
+    this.g.select('.nv-y2.nv-axis')
         .style('opacity', dataLines.length ? 1 : 0)
         .attr('transform', 'translate(' + availableWidth + ',0)');
     //.attr('transform', 'translate(' + x.range()[1] + ',0)');
 
-    d3.transition(Layer.g.select('.nv-y2.nv-axis'))
-        .call(y2Axis);
-
-    //------------------------------------------------------------
+    d3.transition(this.g.select('.nv-y2.nv-axis'))
+        .call(this.y2Axis());
 
 };
 
 LinePlusBarChart.prototype.attachEvents = function(){
-    legend.dispatch.on('stateChange', function(newState) {
-        state = newState;
-        dispatch.stateChange(state);
-        chart.update();
-    });
 
-    dispatch
+    this.dispatch
         .on('tooltipShow', function(e) {
-            if (tooltips) showTooltip(e, that.parentNode);
-        })
+            if (this.tooltips) this.showTooltip(e, this.svg[0][0].parentNode);
+        }.bind(this))
         // Update chart from a state object passed to event handler
         .on('changeState', function(e) {
             if (typeof e.disabled !== 'undefined') {
                 data.forEach(function(series,i) {
                     series.disabled = e.disabled[i];
                 });
-                state.disabled = e.disabled;
+                this.state.disabled = e.disabled;
             }
-            chart.update();
-        });
+            this.update();
+        }.bind(this))
+        .on('tooltipHide', function() {
+            if (this.tooltips) nv.tooltip.cleanup();
+        }.bind(this));
 
-    lines
+    this.legend.dispatch.on('stateChange', function(newState) {
+        this.state = newState;
+        this.dispatch.stateChange(this.state);
+        this.update();
+    }.bind(this));
+
+    this.line
         .dispatch.on('elementMouseover.tooltip', function(e) {
-            e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
-            dispatch.tooltipShow(e);
-        })
+            e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
+            this.dispatch.tooltipShow(e);
+        }.bind(this))
         .on('elementMouseout.tooltip', function(e) {
-            dispatch.tooltipHide(e);
-        });
+            this.dispatch.tooltipHide(e);
+        }.bind(this));
 
-    bars
+    this.bar
         .dispatch.on('elementMouseover.tooltip', function(e) {
-            e.pos = [e.pos[0] +  Layer.margin.left, e.pos[1] + Layer.margin.top];
-            dispatch.tooltipShow(e);
-        })
+            e.pos = [e.pos[0] + this.margin().left, e.pos[1] + this.margin().top];
+            this.dispatch.tooltipShow(e);
+        }.bind(this))
         .on('elementMouseout.tooltip', function(e) {
-            dispatch.tooltipHide(e);
-        });
+            this.dispatch.tooltipHide(e);
+        }.bind(this));
 
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
-    });
 };
 
 LinePlusBarChart.prototype.x = function(_) {
-    if (!arguments.length) return getX;
-    getX = _;
-    lines.x(_);
-    bars.x(_);
-    return chart;
+    if (!arguments.length) return this.getX;
+    this.getX = _;
+    this.line.x(_);
+    this.bar.x(_);
+    return this;
 };
 
 LinePlusBarChart.prototype.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = _;
-    lines.y(_);
-    bars.y(_);
-    return chart;
+    if (!arguments.length) return this.getY;
+    this.getY = _;
+    this.line.y(_);
+    this.bar.y(_);
+    return this;
 };
 
-chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = nv.utils.getColor(_);
-    legend.color(color);
-    return chart;
+LinePlusBarChart.prototype.color = function(_) {
+    if (!arguments.length) return this.color;
+    this.color = nv.utils.getColor(_);
+    this.legend.color(this.color);
+    return this;
 };
 
-chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
-    return chart;
+LinePlusBarChart.prototype.tooltipContent = function(_) {
+    if (!arguments.length) return this.tooltip();
+    this.tooltip(_);
+    return this;
 };
 
 nv.models.linePlusBarChart = function() {
@@ -298,12 +249,12 @@ nv.models.linePlusBarChart = function() {
     }
     chart.dispatch = linePlusBarChart.dispatch;
     chart.legend = linePlusBarChart.legend;
-    chart.lines = linePlusBarChart.lines;
-    chart.bars = linePlusBarChart.bars;
+    chart.line = linePlusBarChart.line;
+    chart.bar = linePlusBarChart.bar;
     chart.y1Axis = linePlusBarChart.y1Axis;
     chart.y2Axis = linePlusBarChart.y2Axis;
 
-    d3.rebind(chart, linePlusBarChart.lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
+    d3.rebind(chart, linePlusBarChart.line, 'defined', 'size', 'clipVoronoi', 'interpolate');
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
