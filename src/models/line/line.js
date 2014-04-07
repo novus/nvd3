@@ -51,6 +51,7 @@ Line.prototype.draw = function(data){
     scatterWrap.transition().call(this.scatter);
     this.x(this.scatter.x());
     this.y(this.scatter.y());
+    this.color(this.scatter.color());
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());
@@ -183,7 +184,7 @@ nv.models.line = function () {
     d3.rebind(chart, line.scatter,
         'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
         'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
-        'highlightPoint','clearHighlights', 'color', 'duration', 'clipEdge', 'x', 'y'
+        'highlightPoint','clearHighlights', 'duration', 'clipEdge', 'x', 'y', 'color'
     );
 
     chart.dispatch = line.dispatch;
