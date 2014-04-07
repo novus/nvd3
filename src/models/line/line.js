@@ -41,17 +41,20 @@ Line.prototype.wrapper = function(data){
 Line.prototype.draw = function(data){
     var that = this,
         availableWidth = this.available.width,
-        availableHeight = this.available.height;
+        availableHeight = this.available.height,
+        scatterWrap = this.wrap.select('.nv-scatterWrap');
 
     this.scatter
         .width(availableWidth)
         .height(availableHeight);
 
-    var scatterWrap = this.wrap.select('.nv-scatterWrap');
     scatterWrap.transition().call(this.scatter);
+    this.x(this.scatter.x());
+    this.y(this.scatter.y());
+    this.color(this.scatter.color());
 
-    this.yScale(this.scatter.yScale());
     this.xScale(this.scatter.xScale());
+    this.yScale(this.scatter.yScale());
     this.x0(this.x0() || this.xScale());
     this.y0(this.y0() || this.yScale());
 
@@ -93,8 +96,8 @@ Line.prototype.draw = function(data){
             return d3.svg.area()
                 .interpolate(that.interpolate())
                 .defined(that.defined)
-                .x(function(d) { return nv.utils.NaNtoZero(that.x0()(that.x()(d))) })
-                .y0(function(d) { return nv.utils.NaNtoZero(that.y0()(that.y()(d))) })
+                .x(function(d,i) { return nv.utils.NaNtoZero(that.x0()(that.x()(d,i))) })
+                .y0(function(d,i) { return nv.utils.NaNtoZero(that.y0()(that.y()(d,i))) })
                 .y1(function() { return that.y0()( that.yScale().domain()[0] <= 0 ? that.yScale().domain()[1] >= 0 ? 0 : that.yScale().domain()[1] : that.yScale().domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(that, [d.values])
@@ -107,8 +110,8 @@ Line.prototype.draw = function(data){
             return d3.svg.area()
                 .interpolate(that.interpolate())
                 .defined(that.defined)
-                .x(function(d) { return nv.utils.NaNtoZero(that.xScale()(that.x()(d))) })
-                .y0(function(d) { return nv.utils.NaNtoZero(that.yScale()(that.y()(d))) })
+                .x(function(d,i) { return nv.utils.NaNtoZero(that.xScale()(that.x()(d,i))) })
+                .y0(function(d,i) { return nv.utils.NaNtoZero(that.yScale()(that.y()(d,i))) })
                 .y1(function() { return that.yScale()( that.yScale().domain()[0] <= 0 ? that.yScale().domain()[1] >= 0 ? 0 : that.yScale().domain()[1] : that.yScale().domain()[0] ) })
                 //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(that, [d.values])
@@ -116,24 +119,23 @@ Line.prototype.draw = function(data){
 
     var linePaths = groups.selectAll('path.nv-'+this.options.chartClass)
         .data(function(d) { return [d.values] });
-
     linePaths.enter().append('path')
-        .attr('class', 'nv-'+this.options.chartClass)
+        .attr('class', ('nv-'+this.options.chartClass))
         .attr('d',
             d3.svg.line()
                 .interpolate(this.interpolate())
-                .defined(function(d){ return !isNaN(that.y()(d)) && (that.y()(d) !== null) })
-                .x(function(d) { return nv.utils.NaNtoZero(that.x0()(that.x()(d))) })
-                .y(function(d) { return nv.utils.NaNtoZero(that.y0()(that.y()(d))) })
+                .defined(function(d, i){ return !isNaN(that.y()(d, i)) && (that.y()(d, i) !== null) })
+                .x(function(d,i) { return nv.utils.NaNtoZero(that.x0()(that.x()(d,i))) })
+                .y(function(d,i) { return nv.utils.NaNtoZero(that.y0()(that.y()(d,i))) })
         );
 
     linePaths.watchTransition(this.renderWatch, 'line: linePaths')
         .attr('d',
             d3.svg.line()
                 .interpolate(this.interpolate())
-                .defined(function(d){ return !isNaN(that.y()(d)) && (that.y()(d) !== null) })
-                .x(function(d,i) { return nv.utils.NaNtoZero(that.xScale()(that.x()(d))) })
-                .y(function(d,i) { return nv.utils.NaNtoZero(that.yScale()(that.y()(d))) })
+                .defined(function(d,i){ return !isNaN(that.y()(d,i)) && (that.y()(d,i) !== null) })
+                .x(function(d,i) { return nv.utils.NaNtoZero(that.xScale()(that.x()(d,i))) })
+                .y(function(d,i) { return nv.utils.NaNtoZero(that.yScale()(that.y()(d,i))) })
         );
 
     //store old scales for use in transitions on update
@@ -162,8 +164,8 @@ Line.prototype.transitionDuration = function(_) {
     return this.duration(_);
 };
 
-Line.prototype.defined = function(d) {  // allows a line to be not continuous when it is not defined
-    return !isNaN(this.y()(d)) && (this.y()(d) !== null)
+Line.prototype.defined = function(d, i) {  // allows a line to be not continuous when it is not defined
+    return !isNaN(this.y()(d,i)) && (this.y()(d,i) !== null)
 };
 
 /**
@@ -182,7 +184,7 @@ nv.models.line = function () {
     d3.rebind(chart, line.scatter,
         'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
         'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
-        'highlightPoint','clearHighlights', 'color', 'duration'
+        'highlightPoint','clearHighlights', 'color', 'duration', 'clipEdge', 'x', 'y'
     );
 
     chart.dispatch = line.dispatch;
@@ -190,7 +192,7 @@ nv.models.line = function () {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, line, Line.prototype,
-        'x', 'y', 'margin', 'width', 'height', 'clipEdge', 'interpolate', 'defined', 'isArea', 'transitionDuration'
+        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'transitionDuration'
     );
 
     return chart;
