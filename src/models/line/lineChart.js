@@ -192,7 +192,7 @@ LineChart.prototype.draw = function(data){
         .height(availableHeight)
         .color(
             data
-                .map( function(d,i){return d.color || that._color(d, i)} )
+                .map( function(d,i){return d.color || that._color()(d, i)} )
                 .filter( function(d,i) { return !data[i].disabled } )
         );
 
