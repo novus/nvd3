@@ -51,7 +51,6 @@ Line.prototype.draw = function(data){
     scatterWrap.transition().call(this.scatter);
     this.x(this.scatter.x());
     this.y(this.scatter.y());
-    this.color(this.scatter.color());
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());
