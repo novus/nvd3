@@ -10,6 +10,7 @@ var HistoricalBarPrivates = {
     , xRange: null
     , yRange: null
     , interactive : true
+    , _color: nv.utils.defaultColor()
 };
 
 /**
@@ -159,7 +160,7 @@ HistoricalBar.prototype.draw = function(data){
         });
 
     bars
-        .attr('fill', function(d, i) { return that.color()(d, i); })
+        .attr('fill', function(d, i) { return that._color()(d, i); })
         .attr('class', function(d,i,j) { return (that.y()(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
         .transition()
         .attr('transform', function(d,i) { return 'translate(' + (that.xScale()(that.x()(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
@@ -178,6 +179,11 @@ HistoricalBar.prototype.draw = function(data){
         .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.max(Math.abs(that.yScale()(that.y()(d,i)) - that.yScale()(0)),1)) });
 };
 
+HistoricalBar.prototype.color = function(_){
+    if (!arguments.length) return this._color();
+    this._color(nv.utils.getColor(_));
+    return this;
+};
 /**
  * The historicalBar model returns a function wrapping an instance of a HistoricalBar.
  */
