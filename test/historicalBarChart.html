@@ -5,16 +5,28 @@
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
 <body>
 <div style='position:relative;'>
-    <div class='chart half' id='test1'>
-        <h2>Non-Zero Data</h2>
+    <div class='chart third' id='test1'>
+        <h2>Simple historicalBar, sin</h2>
         <svg></svg>
     </div>
-    <div class='chart half' id='test2'>
-        <h2>Non-Zero Data 2</h2>
+    <div class='chart third' id='test2'>
+        <h2>Simple historicalBar, linear</h2>
         <svg></svg>
     </div>
-    <div class='chart half' id='test3'>
-        <h2>Zero Data</h2>
+    <div class='chart third' id='test3'>
+        <h2>Simple historicalBar, no data</h2>
+        <svg></svg>
+    </div>
+    <div class='chart third' id='test4'>
+        <h2>Simple historicalBarChart, sin</h2>
+        <svg></svg>
+    </div>
+    <div class='chart third' id='test5'>
+        <h2>Simple historicalBarChart, linear</h2>
+        <svg></svg>
+    </div>
+    <div class='chart third' id='test6'>
+        <h2>Simple historicalBarChart, no data</h2>
         <svg></svg>
     </div>
 </div>
@@ -23,12 +35,13 @@
 
 <script src="../src/core.js"></script>
 <script src="../src/utils.js"></script>
-<script src="../src/canvas.js"></script>
+<script src="../src/layer.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/interactiveLayer.js"></script>
 
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
+<script src="../src/chart.js"></script>
 
 <script src="../src/models/bar/historical/historicalBar.js"></script>
 <script src="../src/models/bar/historical/historicalBarChart.js"></script>
@@ -75,23 +88,23 @@
         }];
 
 
-    var chart;
+    var chart = null;
 
-    function renderChart( elementId, data ){
+    function historicalBarChart( elementId, data ){
         nv.addGraph(function() {
             chart = nv.models.historicalBarChart();
 
             chart
-                    //.margin({left: 100, bottom: 100, top: 0, right: 0})
+                    .margin({left: 100, bottom: 100, top: 0, right: 0})
                     .x(function(d, i) { return i })
                     .transitionDuration(250)
                     .showLegend(false);
 
-            chart.xAxis
+            chart.xAxis()
                     .axisLabel("Time (s)")
                     .tickFormat(d3.format(',.1f'));
 
-            chart.yAxis
+            chart.yAxis()
                     .axisLabel('Voltage (v)')
                     .tickFormat(d3.format(',.2f'));
 
@@ -109,9 +122,25 @@
             return chart;
         });
     }
+    function historicalBar( elementId, data ){
+        nv.addGraph(function() {
+            chart = nv.models.historicalBar()
+                .x(function(d, i) { return i });
+            d3.select('#'+elementId+' svg')
+                    .datum(data)
+                    .transition().duration(0)
+                    .call(chart);
+            nv.utils.windowResize(chart.update);
+            return chart;
+        });
+    }
 
-    renderChart('test1', testData);
-    renderChart('test2', testData2);
-    renderChart('test3', testDataZeros);
+    historicalBar('test1', testData);
+    historicalBar('test2', testData2);
+    historicalBar('test3', testDataZeros);
+
+    historicalBarChart('test4', testData);
+    historicalBarChart('test5', testData2);
+    historicalBarChart('test6', testDataZeros);
 
 </script>
