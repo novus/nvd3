@@ -5,6 +5,10 @@ var MultiBarChartPrivates = {
     , color : null
     , tooltips: true
     , controls: nv.models.legend()
+    , _duration: 250
+    , _color: nv.utils.defaultColor()
+    , xScale: null
+    , yScale: null
 };
 
 /**
@@ -20,9 +24,6 @@ function MultiBarChart(options){
     Chart.call(this, options, ['tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd']);
 
     this.multibar = this.getMultiBar();
-
-    this._duration = 250;
-    this._color = nv.utils.defaultColor();
 
     this.state = this.getStatesManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
@@ -68,7 +69,7 @@ MultiBarChart.prototype.getMultiBar = function(){
  * @override Layer::wrapper
  */
 MultiBarChart.prototype.wrapper = function (data) {
-    Chart.prototype.wrapper.call(this, data, ['nv-controlsWrap', 'nv-x nv-axis', 'nv-y nv-axis']);
+    Chart.prototype.wrapper.call(this, data, ['nv-controlsWrap']);
     this.renderWatch = nv.utils.renderWatch(this.dispatch);
     this.renderWatch.reset();
     if (this.showXAxis()) this.renderWatch.models(this.xAxis());
@@ -95,8 +96,8 @@ MultiBarChart.prototype.draw = function(data){
     var barsWrap = this.g.select('.nv-barsWrap').datum(data.filter(function(d) { return !d.disabled }));
     d3.transition(barsWrap).call(this.multibar);
 
-    this.xScale = this.multibar.xScale;
-    this.yScale = this.multibar.yScale;
+    this.xScale( this.multibar.xScale() );
+    this.yScale( this.multibar.yScale() );
 
     this.state
         .setter(this.stateSetter(data), this.update)
@@ -201,10 +202,10 @@ MultiBarChart.prototype.attachEvents = function(){
  * Set the underlying color, on both the chart, and the composites.
  */
 MultiBarChart.prototype.color = function(_){
-    if (!arguments.length) return this._color;
-    this._color = nv.utils.getColor(_);
-    this.legend.color(this._color);
-    this.multibar.color(this._color);
+    if (!arguments.length) return this._color();
+    this._color( nv.utils.getColor(_) );
+    this.legend.color(_);
+    this.multibar.color(_);
     return this;
 };
 
@@ -224,12 +225,12 @@ MultiBarChart.prototype.transitionDuration = function(_) {
 };
 
 MultiBarChart.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration;
-    this._duration = _;
-    this.multibar.duration(this._duration);
-    this.xAxis().duration(this._duration);
-    this.yAxis().duration(this._duration);
-    this.renderWatch.reset(this._duration);
+    if (!arguments.length) return this._duration();
+    this._duration(_);
+    this.multibar.duration(_);
+    this.xAxis().duration(_);
+    this.yAxis().duration(_);
+    this.renderWatch.reset(_);
     return this;
 };
 
@@ -269,7 +270,8 @@ nv.models.multiBarChart = function() {
     }
 
     d3.rebind(chart, multiBarChart.multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
-        'clipEdge', 'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing');
+        'clipEdge', 'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing', 'xScale', 'yScale'
+    );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
