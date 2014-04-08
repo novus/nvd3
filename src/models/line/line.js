@@ -19,7 +19,7 @@ function Line(options) {
         , height: 500
         , chartClass: 'line'
     });
-    Layer.call(this, options, [ 'elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd' ]);
+    Layer.call(this, options, [ 'elementClick', 'elementMouseover', 'elementMouseout' ]);
 
     this.scatter = this.getScatter()
         .size(16) // default size
