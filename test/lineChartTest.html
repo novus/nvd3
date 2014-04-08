@@ -122,18 +122,25 @@
         <button>Select chart</button>
         <svg></svg>
       </div>
+
+      <div class='chart third' id='chart18'>
+          Simple line random data
+          <button>Select chart</button>
+          <svg></svg>
+      </div>
     </div>
 
 <script src="../lib/d3.v3.js"></script>
 
 <script src="../src/core.js"></script>
 <script src="../src/utils.js"></script>
-<script src="../src/canvas.js"></script>
+<script src="../src/layer.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/interactiveLayer.js"></script>
 
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
+<script src="../src/chart.js"></script>
 
 <script src="../src/models/scatter/scatter.js"></script>
 <script src="../src/models/line/line.js"></script>
@@ -146,22 +153,23 @@ d3.select("body").on("keydown",function() {
      alert("keydowned");
   }
 });
+
 //------------ CHART 1
 defaultChartConfig("chart1", dummyStocks(),true, true, {forceY:false});
 
 //-------------- CHART 2  --- Chart without the interactive guideline.
 nv.addGraph(function() {
   var chart;
-  chart = nv.models.lineChart().useInteractiveGuideline(false);
+  chart = nv.models.lineChart();//.useInteractiveGuideline(false);
 
   chart
       .x(function(d,i) { return d.x });
 
 
-  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+  chart.xAxis() // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
       .tickFormat(d3.format(',.1f'));
 
-  chart.yAxis
+  chart.yAxis()
       .axisLabel('Voltage (v)')
       .tickFormat(d3.format(',.4f'));
 
@@ -194,14 +202,28 @@ defaultChartConfig("chart13",hyperbole(), true, false, {width: 700, height: 400}
 defaultChartConfig("chart14",hyperbole(), false, false, {width: 700, height: 400});
 defaultChartConfig("chart15", withNaNs());
 defaultChartConfig("chart16", duplicateY(), false);
+
 defaultChartConfig("chart17", tinyPoints(), false);
+
+// simple line
+nv.addGraph(function() {
+    var chart;
+    chart = nv.models.line()
+            .x(function(d,i) { return d.x })
+            .width(400);
+    d3.select('#chart18 svg')
+            .datum(normalDist())
+            .call(chart);
+    nv.utils.windowResize(chart.update);
+    return chart;
+});
 
 function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
   if (auxOptions === undefined) auxOptions = {};
   if (guideline === undefined) guideline = true;
   nv.addGraph(function() {
     var chart;
-    chart = nv.models.lineChart().useInteractiveGuideline(guideline);
+    chart = nv.models.lineChart();//.useInteractiveGuideline(guideline);
 
     chart
         .x(function(d,i) {
@@ -229,12 +251,12 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
         formatter = d3.format(",.1f");
     }
     chart.margin({right: 40});
-    chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+    chart.xAxis() // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
         .tickFormat(
             formatter
           );
 
-    chart.yAxis
+    chart.yAxis()
         .axisLabel('Voltage (v)')
         .tickFormat(d3.format(',.2f'));
 
@@ -342,7 +364,6 @@ function normalDist() {
   {values: series1, key:"Normal 1", area:true},
   {values: series2, key:"Normal 2"}];
 }
-
 
 function allRandom() {
   var series = [];
