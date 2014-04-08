@@ -19,7 +19,7 @@ function LineChart(options){
         chartClass: 'lineChart',
         wrapClass: 'linesWrap'
     });
-    Chart.call(this, options, ['tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd']);
+    Chart.call(this, options);
 
     this.line = this.getLine();
     this.interactiveLayer = this.getInteractiveLayer();
@@ -66,60 +66,59 @@ LineChart.prototype.attachEvents = function(){
         this.update();
     }.bind(this));
 
-    this.interactiveLayer.dispatch.on('elementMousemove', function(e) {
-        this.line.clearHighlights();
-        var singlePoint, pointIndex, pointXLocation, allData = [];
-        data
-            .filter(function(series, i) {
-                series.seriesIndex = i;
-                return !series.disabled;
-            })
-            .forEach(function(series,i) {
-                pointIndex = nv.interactiveBisect(series.values, e.pointXValue, this.x());
-                this.line.highlightPoint(i, pointIndex, true);
-                var point = series.values[pointIndex];
-                if (typeof point === 'undefined') return;
-                if (typeof singlePoint === 'undefined') singlePoint = point;
-                if (typeof pointXLocation === 'undefined') pointXLocation = this.xScale()(this.x()(point,pointIndex));
-                allData.push({
-                    key: series.key,
-                    value: this.y()(point, pointIndex),
-                    color: color(series, series.seriesIndex)
+    this.interactiveLayer.dispatch
+        .on('elementMousemove', function(e) {
+            this.line.clearHighlights();
+            var singlePoint, pointIndex, pointXLocation, allData = [];
+            this.svg.call(function(selection){
+                selection.each(function(data){
+                    data.filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
+                        .forEach(function(series,i) {
+                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, this.x());
+                            this.line.highlightPoint(i, pointIndex, true);
+                            var point = series.values[pointIndex];
+                            if (typeof point === 'undefined') return;
+                            if (typeof singlePoint === 'undefined') singlePoint = point;
+                            if (typeof pointXLocation === 'undefined') pointXLocation = this.xScale()(this.x()(point,pointIndex));
+                            allData.push({
+                                key: series.key,
+                                value: this.y()(point, pointIndex),
+                                color: color(series, series.seriesIndex)
+                            });
+                        }.bind(this));
                 });
-            }.bind(this));
-        //Highlight the tooltip entry based on which point the mouse is closest to.
-        if (allData.length > 2) {
-            var yValue = this.yScale().invert(e.mouseY);
-            var domainExtent = Math.abs(this.yScale().domain()[0] - this.yScale().domain()[1]);
-            var threshold = 0.03 * domainExtent;
-            var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
-            if (indexToHighlight !== null)
-                allData[indexToHighlight].highlight = true;
-        }
+            });
+            //Highlight the tooltip entry based on which point the mouse is closest to.
+            if (allData.length > 2) {
+                var yValue = this.yScale().invert(e.mouseY);
+                var domainExtent = Math.abs(this.yScale().domain()[0] - this.yScale().domain()[1]);
+                var threshold = 0.03 * domainExtent;
+                var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+                if (indexToHighlight !== null)
+                    allData[indexToHighlight].highlight = true;
+            }
+            var xValue = this.xAxis().tickFormat()(this.x()(singlePoint, pointIndex));
+            this.interactiveLayer.tooltip
+                .position({
+                    left: pointXLocation + this.margin().left,
+                    top: e.mouseY + this.margin().top
+                })
+                .chartContainer(this.svg[0][0].parentNode)
+                .enabled(this.tooltips)
+                .valueFormatter(function(d) {
+                    return this.yAxis().tickFormat()(d);
+                }.bind(this))
+                .data({
+                    value: xValue,
+                    series: allData
+                })();
 
-        var xValue = this.xAxis().tickFormat()(this.x()(singlePoint, pointIndex));
-        this.interactiveLayer.tooltip
-            .position({
-                left: pointXLocation + this.margin().left,
-                top: e.mouseY + this.margin().top
-            })
-            .chartContainer(this.svg[0][0].parentNode)
-            .enabled(this.tooltips)
-            .valueFormatter(function(d) {
-                return this.yAxis().tickFormat()(d);
-            }.bind(this))
-            .data({
-                value: xValue,
-                series: allData
-            })();
-
-        this.interactiveLayer.renderGuideLine(pointXLocation);
-    }.bind(this));
-
-    this.interactiveLayer.dispatch.on("elementMouseout",function() {
-        this.dispatch.tooltipHide();
-        this.line.clearHighlights();
-    }.bind(this));
+            this.interactiveLayer.renderGuideLine(pointXLocation);
+        }.bind(this))
+        .on("elementMouseout",function() {
+            this.dispatch.tooltipHide();
+            this.line.clearHighlights();
+        }.bind(this));
 
     this.dispatch
         .on('tooltipShow', function(e) {
@@ -128,9 +127,14 @@ LineChart.prototype.attachEvents = function(){
         }.bind(this))
         .on('changeState', function(e) {
             if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
-                data.forEach(function(series,i) {
-                    series.disabled = e.disabled[i];
-                });
+                this.svg.call(function(selection){
+                        selection.each(function(data){
+                            data.forEach(function(series,i) {
+                                series.disabled = e.disabled[i];
+                            });
+                        });
+                    }
+                );
                 this.state.disabled = e.disabled;
             }
             this.update();
@@ -155,20 +159,6 @@ LineChart.prototype.draw = function(data){
     var that = this,
         availableWidth = this.available.width,
         availableHeight = this.available.height;
-
-    //set state.disabled
-    this.state.disabled = data.map(function(d) { return !!d.disabled });
-
-    if (!this.defaultState()) {
-        var key;
-        this.defaultState({});
-        for (key in this.state) {
-            if (this.state[key] instanceof Array)
-                this.defaultState()[key] = this.state[key].slice(0);
-            else
-                this.defaultState()[key] = this.state[key];
-        }
-    }
 
     this.xScale(this.line.xScale());
     this.yScale(this.line.yScale());
@@ -212,10 +202,10 @@ LineChart.prototype.transitionDuration = function(_) {
 LineChart.prototype.duration = function(_) {
     if (!arguments.length) return this._duration();
     this._duration(_);
-    this.renderWatch.reset(this._duration());
-    this.line.duration(this._duration());
-    this.xAxis().duration(this._duration());
-    this.yAxis().duration(this._duration());
+    this.renderWatch.reset(_);
+    this.line.duration(_);
+    this.xAxis().duration(_);
+    this.yAxis().duration(_);
     return this;
 };
 
