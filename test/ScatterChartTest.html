@@ -101,16 +101,23 @@
 
 <script src="../lib/d3.v3.js"></script>
 <!--<script src="../lib/fisheye.js"></script>-->
-<script src="../nv.d3.js"></script>
+
+<script src="../src/core.js"></script>
+<script src="../src/utils.js"></script>
 <script src="../src/canvas.js"></script>
 <script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
+<script src="../src/interactiveLayer.js"></script>
+
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
+
 <script src="../src/models/distribution.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/scatterChart.js"></script>
-<script src="../src/models/scatterPlusLineChart.js"></script>
+<script src="../src/models/scatter/scatter.js"></script>
+
+<script src="../src/models/scatter/scatterChart.js"></script>
+
+<script src="../src/models/scatter/scatterPlusLineChart.js"></script>
+
 <script src="testScript.js"></script>
 <script>
 
@@ -124,7 +131,7 @@ defaultChartTest("test7", randomData(1,2));
 defaultChartTest("test8", randomData(3,1));
 defaultChartTest("test9", [
   {key: "Group 0", values: []},
-  {key: "Group 1", values: [{x:1, y:1}]} 
+  {key: "Group 1", values: [{x:1, y:1}]}
 ]);
 
 defaultChartTest("test10", randomData(30,2));
@@ -204,9 +211,9 @@ function randomData(groups, points) { //# groups,# points per group
 
     for (j = 0; j < points; j++) {
       data[i].values.push({
-        x: random(), 
-        y: random(), 
-        size: Math.random(), 
+        x: random(),
+        y: random(),
+        size: Math.random(),
         shape: shapes[j % 6]
       });
     }
@@ -232,9 +239,9 @@ function randomDataSloped(slope,intercept) { //# groups,# points per group
 
     for (j = 0; j < points; j++) {
       data[i].values.push({
-        x: random(), 
-        y: random(), 
-        size: Math.random(), 
+        x: random(),
+        y: random(),
+        size: Math.random(),
         shape: shapes[j % 6]
       });
     }

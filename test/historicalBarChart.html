@@ -20,13 +20,16 @@
 </div>
 
 <script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
+
+<script src="../src/core.js"></script>
+<script src="../src/utils.js"></script>
 <script src="../src/canvas.js"></script>
 <script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
 <script src="../src/interactiveLayer.js"></script>
+
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
+
 <script src="../src/models/bar/historical/historicalBar.js"></script>
 <script src="../src/models/bar/historical/historicalBarChart.js"></script>
 
@@ -77,10 +80,12 @@
     function renderChart( elementId, data ){
         nv.addGraph(function() {
             chart = nv.models.historicalBarChart();
+
             chart
-                    .margin({left: 100, bottom: 100})
-                    .x(function(d,i) { return i })
-                    .transitionDuration(250);
+                    //.margin({left: 100, bottom: 100, top: 0, right: 0})
+                    .x(function(d, i) { return i })
+                    .transitionDuration(250)
+                    .showLegend(false);
 
             chart.xAxis
                     .axisLabel("Time (s)")

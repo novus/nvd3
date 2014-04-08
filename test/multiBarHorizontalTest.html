@@ -23,8 +23,17 @@
   </div>
 
 <script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/canvas.js"></script>
+
+<script src="../src/core.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/layer.js"></script>
+<script src="../src/chart.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/interactiveLayer.js"></script>
+
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+
 <script src="../src/models/bar/multi/multiBarHorizontal.js"></script>
 <script src="../src/models/bar/multi/multiBarHorizontalChart.js"></script>
 <script>
@@ -167,7 +176,7 @@ function multiBarHorizontal(containerId, data) {
             .y(function(d) { return d.value })
             .margin({top: 30, right: 20, bottom: 50, left: 175})
             .barColor(d3.scale.category20().range())
-            .stacked(true);
+            .stacked(false);
     d3.select('#'+containerId+' svg')
             .datum(data)
             .call(chart);
@@ -180,12 +189,12 @@ function multiBarHorizontalChart(containerId, data) {
             .y(function(d) { return d.value })
             .margin({top: 30, right: 20, bottom: 50, left: 175})
             .showValues(true)
-            .tooltips(false)
+            .tooltips(true)
             .barColor(d3.scale.category20().range())
             .transitionDuration(250)
             .stacked(true)
-            .showControls(false);
-    chart.yAxis.tickFormat(d3.format(',.2f'));
+            .showControls(true);
+    chart.yAxis().tickFormat(d3.format(',.2f'));
     d3.select('#'+containerId+' svg')
             .datum(data)
             .call(chart);
@@ -194,9 +203,11 @@ function multiBarHorizontalChart(containerId, data) {
 }
 
 multiBarHorizontal( 'test1', long_short_data, {} );
+
 multiBarHorizontalChart( 'test2', long_short_data, {} );
 
 multiBarHorizontal( 'test3', zero_data, {} );
+
 multiBarHorizontalChart( 'test4', zero_data, {} );
 
 </script>

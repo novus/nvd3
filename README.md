@@ -1,6 +1,6 @@
-# NVD3 - v1.1.15-beta
-## Release notes for version 1.1.15 beta
-* Various fixes across the board
+# NVD3 - v1.2.0-beta
+## Release notes for version 1.2.0 beta
+* Major internal refactoring, with no API changes.
 
 ## Overview
 A reusable chart library for d3.js.
@@ -14,8 +14,10 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 
 # Current development focus
 
-- Getting documentation up.
-- Unifying common API functions between charts.
+- Refactor to a more sane chart structure.
+  - **Composable**: Unify common API functions between charts.
+  - **Reliable**: Impose an automated testing scheme.
+  - **Extensible**:
 - Bug fixes that come up.
 
 ---
@@ -42,24 +44,6 @@ We are currently changing our branch structure so that master will be gauranteed
 
 ## Minifying your fork:
 
-### Using Make
-The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS) and [CSSMin](https://github.com/jbleuzen/node-cssmin)
-
-The easiest way to install UglifyJS and CSSMin is via npm. Run `npm install -g uglify-js cssmin`. After installing verify the setup by running `uglifyjs --version` and `cssmin --help`.
-
-Once you have the `uglifyjs` and `cssmin` commands available, running `make` from your
-fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
-
-    make # build nv.d3.js and nv.d3.css and minify
-    make nv.d3.js # Build nv.d3.js
-    make nv.d3.min.js # Minify nv.d3.js into nv.d3.min.js
-    make nv.d3.css # Build nv.d3.css
-    make nv.d3.min.css # Minify nv.d3.css into nv.d3.min.css
-    make clean # Delete nv.d3.*js and nv.d3.*css
-
-
-*Without UglifyJS of CSSMin, you won't get the minified versions when running make.**
-
 ### Using Grunt
 
 You can use grunt instead of makefile to build js file. See more about [grunt](http://gruntjs.com/).
@@ -73,12 +57,13 @@ Then, you can use these commands:
     grunt watch # watch file changes in src/, and rebuild nv.d3.js, it's very helpful when delevop NVD3
     grunt lint # run jshint on src/**/*.js
 
-**We ask that you DO NOT minify pull requests...
+**We ask that you DO NOT minify pull requests!**
 If you need to minify please build pull request in separate branch, and
 merge and minify in your master.
 
 ## Supported Browsers
 NVD3 runs best on WebKit based browsers.
+(We will remove this caveat as we begin testing on other browsers.)
 
 * **Google Chrome: latest version (preferred)**
 * **Opera 15+ (preferred)**

@@ -37,11 +37,18 @@
 </div>
 
 <script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
+<script src="../src/core.js"></script>
+<script src="../src/utils.js"></script>
 <script src="../src/canvas.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/interactiveLayer.js"></script>
+
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+
 <script src="../src/models/bar/discrete/discreteBar.js"></script>
 <script src="../src/models/bar/discrete/discreteBarChart.js"></script>
-<script src="../src/utils.js"></script>
+
 <script>
 
     function thirtySeries() {
@@ -136,15 +143,20 @@
                 }
             ];
 
-    function defaultChart(containerId, data, labelType) {
+    var width = 300,
+            height = 400;
+
+    function defaultChart(containerId, data) {
         nv.addGraph(function() {
             var chart = nv.models.discreteBarChart()
+                    //.width(width)
+                    .height(height)
                     .x(function(d) { return d.label })
                     .y(function(d) { return d.value })
                     .staggerLabels(true)
-                    .tooltips(false)
                     .showValues(true)
-                    .transitionDuration(250);
+                    .transitionDuration(250)
+                    ;
 
             d3.select('#'+containerId+' svg')
                     .datum(data)
