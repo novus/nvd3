@@ -1,295 +1,260 @@
+var BulletChartPrivates = {
+    orient : 'left' // left, right, top, bottom, TODO: top & bottom
+    , reverse : false
+    , ranges : function(d) { return d.ranges } // ranges (bad, satisfactory, good)
+    , markers : function(d) { return d.markers } // markers (previous, goal)
+    , measures : function(d) { return d.measures } // measures (actual, forecast)
+    , tickFormat : null
+    , tooltips : true
+};
 
-// Chart design based on the recommendations of Stephen Few. Implementation
-// based on the work of Clint Ivy, Jamie Love, and Jason Davies.
-// http://projects.instantcognition.com/protovis/bulletchart/
-nv.models.bulletChart = function() {
-  "use strict";
-  //============================================================
-  // Public Variables with Default Settings
-  //------------------------------------------------------------
-
-  var bullet = nv.models.bullet();
-
-  var Layer = new Layer({
-          margin: {top: 5, right: 40, bottom: 20, left: 120},
-          chartClass: 'bulletChart'
-      })
-    , orient = 'left' // TODO top & bottom
-    , reverse = false
-    , ranges = function(d) { return d.ranges }
-    , markers = function(d) { return d.markers }
-    , measures = function(d) { return d.measures }
-    , tickFormat = null
-    , tooltips = true
-    , tooltip = function(key, x, y) {
-        return '<h3>' + x + '</h3>' +
-               '<p>' + y + '</p>'
-      }
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
-    ;
-
-  //============================================================
-
-
-  //============================================================
-  // Private Variables
-  //------------------------------------------------------------
-
-  var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
-        top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
-        content = tooltip(e.key, e.label, e.value);
-
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
-  };
-
-  //============================================================
-
-
-  function chart(selection) {
-    selection.each(function(data, i) {
-
-      Layer.setRoot(this);
-
-      var availableWidth = Layer.available.width,
-          availableHeight = Layer.available.height,
-          that = this;
-
-      //------------------------------------------------------------
-      // Display No Data message if there's nothing to show.
-      // TODO: To use common noData() function from Layer
-      if (!data || !ranges.call(this, data, i)) {
-          var noDataText = Layer.svg.selectAll('.nv-noData').data([Layer.options.noData]);
-          noDataText.enter().append('text')
-              .attr('class', 'nvd3 nv-noData')
-              .attr('dy', '-.7em')
-              .style('text-anchor', 'middle');
-          noDataText
-              .attr('x', Layer.margin.left + availableWidth / 2)
-              .attr('y', 18 + Layer.margin.top + availableHeight / 2)
-              .text(function(d) { return d });
-          return chart;
-      } else
-          Layer.svg.selectAll('.nv-noData').remove();
-
-      //------------------------------------------------------------
-
-      chart.update = function() { chart(selection) };
-
-      var rangez = ranges.call(this, data, i).slice().sort(d3.descending),
-          markerz = markers.call(this, data, i).slice().sort(d3.descending),
-          measurez = measures.call(this, data, i).slice().sort(d3.descending);
-
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      Layer.wrapChart(data);
-      Layer.gEnter.append('g').attr('class', 'nv-bulletWrap');
-      Layer.gEnter.append('g').attr('class', 'nv-titles');
-
-      //------------------------------------------------------------
-
-      // Compute the new x-scale.
-      var x1 = d3.scale.linear()
-          .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
-          .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
-
-      // Retrieve the old x-scale, if this is an update.
-      var x0 = this.__chart__ || d3.scale.linear()
-          .domain([0, Infinity])
-          .range(x1.range());
-
-      // Stash the new scale.
-      this.__chart__ = x1;
-
-      var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
-          w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
-
-      var title = Layer.gEnter.select('.nv-titles').append('g')
-          .attr('text-anchor', 'end')
-          .attr('transform', 'translate(-6,' + (height - margin.top - margin.bottom) / 2 + ')');
-      title.append('text')
-          .attr('class', 'nv-title')
-          .text(function(d) { return d.title; });
-
-      title.append('text')
-          .attr('class', 'nv-subtitle')
-          .attr('dy', '1em')
-          .text(function(d) { return d.subtitle; });
-
-      bullet.width(availableWidth)
-        .height(availableHeight);
-
-      var bulletWrap = Layer.g.select('.nv-bulletWrap');
-
-      d3.transition(bulletWrap).call(bullet);
-
-      // Compute the tick format.
-      var format = tickFormat || x1.tickFormat( availableWidth / 100 );
-
-      // Update the tick groups.
-      var tick = Layer.g.selectAll('g.nv-tick')
-          .data(x1.ticks( availableWidth / 50 ), function(d) {
-            return this.textContent || format(d);
-          });
-
-      // Initialize the ticks with the old scale, x0.
-      var tickEnter = tick.enter().append('g')
-          .attr('class', 'nv-tick')
-          .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
-          .style('opacity', 1e-6);
-
-      tickEnter.append('line')
-          .attr('y1', availableHeight)
-          .attr('y2', availableHeight * 7 / 6);
-
-      tickEnter.append('text')
-          .attr('text-anchor', 'middle')
-          .attr('dy', '1em')
-          .attr('y', availableHeight * 7 / 6)
-          .text(format);
-
-      // Transition the updating ticks to the new scale, x1.
-      var tickUpdate = d3.transition(tick)
-          .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
-          .style('opacity', 1);
-
-      tickUpdate.select('line')
-          .attr('y1', availableHeight)
-          .attr('y2', availableHeight * 7 / 6);
-
-      tickUpdate.select('text')
-          .attr('y', availableHeight * 7 / 6);
-
-      // Transition the exiting ticks to the new scale, x1.
-      d3.transition(tick.exit())
-          .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
-          .style('opacity', 1e-6)
-          .remove();
-
-      //============================================================
-      // Event Handling/Dispatching (in chart's scope)
-      //------------------------------------------------------------
-
-      dispatch.on('tooltipShow', function(e) {
-        e.key = data.title;
-        if (tooltips) showTooltip(e, that.parentNode);
-      });
-
-      //============================================================
+/**
+ * A BulletChart
+ */
+function BulletChart(options){
+    options = nv.utils.extend({}, options, BulletChartPrivates, {
+        margin: {top: 5, right: 40, bottom: 20, left: 120},
+        chartClass: 'bulletChart'
+        , wrapClass : 'bulletWrap'
     });
 
-    d3.timer.flush();
+    Chart.call(this, options, ['']);
 
-    return chart;
-  }
+    this.bullet = this.getBullet();
 
+    this.showTooltip = function(e, offsetElement) {
+        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + this.margin().left,
+            top = e.pos[1] + ( offsetElement.offsetTop || 0) + this.margin().top,
+            content = this.tooltip()(e.key, e.label, e.value);
 
-  //============================================================
-  // Event Handling/Dispatching (out of chart's scope)
-  //------------------------------------------------------------
+        nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
+    }.bind(this);
+}
 
-  bullet.dispatch.on('elementMouseover.tooltip', function(e) {
-    dispatch.tooltipShow(e);
-  });
+nv.utils.create(BulletChart, Chart, BulletChartPrivates);
 
-  bullet.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
-  });
-
-  dispatch.on('tooltipHide', function() {
-    if (tooltips) nv.tooltip.cleanup();
-  });
-
-  //============================================================
-
-
-  //============================================================
-  // Expose Public Variables
-  //------------------------------------------------------------
-
-  chart.dispatch = dispatch;
-  chart.bullet = bullet;
-
-  d3.rebind(chart, bullet, 'color');
-
-  chart.options = nv.utils.optionsFunc.bind(chart);
-
-  // left, right, top, bottom
-  chart.orient = function(_) {
-    if (!arguments.length) return orient;
-    orient = _;
-    reverse = orient == 'right' || orient == 'bottom';
-    return chart;
-  };
-
-  // ranges (bad, satisfactory, good)
-  chart.ranges = function(_) {
-    if (!arguments.length) return ranges;
-    ranges = _;
-    return chart;
-  };
-
-  // markers (previous, goal)
-  chart.markers = function(_) {
-    if (!arguments.length) return markers;
-    markers = _;
-    return chart;
-  };
-
-  // measures (actual, forecast)
-  chart.measures = function(_) {
-    if (!arguments.length) return measures;
-    measures = _;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return Layer.options.size.width;
-    Layer.options.size.width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return Layer.options.size.height;
-    Layer.options.size.height = _;
-    return chart;
-  };
-
-  chart.margin = function(_) {
-    if (!arguments.length) return Layer.margin;
-      Layer.margin.top    = nv.utils.valueOrDefault(_.top, Layer.margin.top);
-      Layer.margin.right  = nv.utils.valueOrDefault(_.right, Layer.margin.right);
-      Layer.margin.bottom = nv.utils.valueOrDefault(_.bottom, Layer.margin.bottom);
-      Layer.margin.left   = nv.utils.valueOrDefault(_.left, Layer.margin.left);
-    return chart;
-  };
-
-  chart.tickFormat = function(_) {
-    if (!arguments.length) return tickFormat;
-    tickFormat = _;
-    return chart;
-  };
-
-  chart.tooltips = function(_) {
-    if (!arguments.length) return tooltips;
-    tooltips = _;
-    return chart;
-  };
-
-  chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
-    return chart;
-  };
-
-  chart.noData = function(_) {
-    if (!arguments.length) return Layer.options.noData;
-    Layer.options.noData = _;
-    return chart;
-  };
-
-  return chart;
+BulletChart.prototype.getBullet = function(){
+    return nv.models.bullet();
 };
+
+/**
+ * @override Layer::wrapper, removed building the legend
+ */
+BulletChart.prototype.wrapper = function (data) {
+    var gs = ['nv-titles'];
+    var wrapPoints = [
+        'nv-legendWrap'
+    ].concat(gs || []);
+    Layer.prototype.wrapper.call(this, data, wrapPoints);
+
+    this.axis = {
+        x: this.wrap.select('.nv-x.nv-axis'),
+        y: this.wrap.select('.nv-x.nv-axis')
+    };
+
+    // The legend can change the available height.
+    this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
+};
+
+/**
+ * override Layer::renderElement, different noData handling
+ * @param element
+ * @param data
+ */
+BulletChart.prototype.renderElement = function(element, data){
+    this.setRoot(element);
+
+    //------------------------------------------------------------
+    // Display No Data message if there's nothing to show.
+    // TODO: To use common noData() function from Layer
+    if (!data || !this.ranges().call(this, data)) {
+        var noDataText = this.svg.selectAll('.nv-noData').data([this.options.noData]);
+        noDataText.enter().append('text')
+            .attr('class', 'nvd3 nv-noData')
+            .attr('dy', '-.7em')
+            .style('text-anchor', 'middle');
+        noDataText
+            .attr('x', this.margin().left + this.available.width / 2)
+            .attr('y', 18 + this.margin().top + this.available.height / 2)
+            .text(function(d) { return d });
+        return this;
+    } else
+        this.svg.selectAll('.nv-noData').remove();
+
+    this.wrapper(data);
+    this.draw(data);
+    this.attachEvents();
+
+    return this;
+};
+
+/**
+ * @override Layer::draw
+ */
+BulletChart.prototype.draw = function(data, i){
+
+    var availableWidth = this.available.width,
+        availableHeight = this.available.height,
+        that = this;
+
+    this.update = function() {
+        that.svg.call(function(selection){
+            that(selection)
+        });
+    };
+
+    var rangez = this.ranges().call(this, data, i).slice().sort(d3.descending),
+        markerz = this.markers().call(this, data, i).slice().sort(d3.descending),
+        measurez = this.measures().call(this, data, i).slice().sort(d3.descending);
+
+    // Compute the new x-scale.
+    var x1 = d3.scale.linear()
+        .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+        .range(this.reverse() ? [availableWidth, 0] : [0, availableWidth]);
+
+    // Retrieve the old x-scale, if this is an update.
+    var x0 = this.__chart__ || d3.scale.linear()
+        .domain([0, Infinity])
+        .range(x1.range());
+
+    // Stash the new scale.
+    this.__chart__ = x1;
+
+    var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
+        w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
+
+    var title = this.gEnter.select('.nv-titles').append('g')
+        .attr('text-anchor', 'end')
+        .attr('transform', 'translate(-6,' + (this.height() - this.margin().top - this.margin().bottom) / 2 + ')');
+    title.append('text')
+        .attr('class', 'nv-title')
+        .text(function(d) { return d.title; });
+
+    title.append('text')
+        .attr('class', 'nv-subtitle')
+        .attr('dy', '1em')
+        .text(function(d) { return d.subtitle; });
+
+    this.bullet
+        .margin({top: 0, right: 0, bottom: 0, left: 0})
+        .width(availableWidth)
+        .height(availableHeight);
+
+    var bulletWrap = this.g.select('.nv-bulletWrap');
+    d3.transition(bulletWrap).call(this.bullet);
+
+    // Compute the tick format.
+    var format = this.tickFormat() || x1.tickFormat( availableWidth / 100 );
+
+    // Update the tick groups.
+    var tick = this.g.selectAll('g.nv-tick')
+        .data(x1.ticks( availableWidth / 50 ), function(d) {
+            return this.textContent || format(d);
+        });
+
+    // Initialize the ticks with the old scale, x0.
+    var tickEnter = tick.enter().append('g')
+        .attr('class', 'nv-tick')
+        .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
+        .style('opacity', 1e-6);
+
+    tickEnter.append('line')
+        .attr('y1', availableHeight)
+        .attr('y2', availableHeight * 7 / 6);
+
+    tickEnter.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '1em')
+        .attr('y', availableHeight * 7 / 6)
+        .text(format);
+
+    // Transition the updating ticks to the new scale, x1.
+    var tickUpdate = d3.transition(tick)
+        .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
+        .style('opacity', 1);
+
+    tickUpdate.select('line')
+        .attr('y1', availableHeight)
+        .attr('y2', availableHeight * 7 / 6);
+
+    tickUpdate.select('text')
+        .attr('y', availableHeight * 7 / 6);
+
+    // Transition the exiting ticks to the new scale, x1.
+    d3.transition(tick.exit())
+        .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
+        .style('opacity', 1e-6)
+        .remove();
+
+    // Chart.prototype.draw.call(this, data);
+};
+
+BulletChart.prototype.attachEvents = function(){
+
+    var that = this;
+
+    this.bullet.dispatch
+        .on('elementMouseover.tooltip', function(e) {
+            that.dispatch.tooltipShow(e);
+        })
+        .on('elementMouseout.tooltip', function(e) {
+            that.dispatch.tooltipHide(e);
+        });
+
+    this.dispatch
+        .on('tooltipHide', function() {
+            if (that.tooltips()) nv.tooltip.cleanup();
+        })
+        .on('tooltipShow', function(e) {
+            that.svg.call(function(selection){
+                selection.each(function(data){
+                    e.key = data.title;
+                    if (that.tooltips()) that.showTooltip(e, that.svg[0][0]);
+                })
+            });
+        });
+};
+
+BulletChart.prototype.orient = function(_) {
+    if (!arguments.length) return this.orient();
+    this.orient(_);
+    this.reverse( this.orient() == 'right' || this.orient() == 'bottom' );
+    return this;
+};
+BulletChart.prototype.tooltipContent = function(_) {
+    if (!arguments.length) return this.tooltip();
+    this.tooltip(_);
+    return this;
+};
+
+/**
+ * The bulletChart model returns a function wrapping an instance of a BulletChart.
+ */
+nv.models.bulletChart = function() {
+    "use strict";
+
+    var bulletChart = new BulletChart();
+
+    function chart(selection) {
+        bulletChart.render(selection);
+        return chart;
+    }
+
+    chart.dispatch = bulletChart.dispatch;
+    chart.bullet = bulletChart.bullet;
+
+    d3.rebind(chart, bulletChart.bullet, 'color');
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    nv.utils.rebindp(chart, bulletChart, BulletChart.prototype,
+        'orient', 'tooltipContent', 'ranges', 'markers', 'measures', 'width', 'height', 'margin', 'tickFormat',
+        'tooltips', 'noData'
+    );
+
+    return chart;
+};
+
+
 
 

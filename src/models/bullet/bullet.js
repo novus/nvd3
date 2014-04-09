@@ -30,14 +30,22 @@ function Bullet(options){
 
 nv.utils.create(Bullet, Layer, BulletPrivates);
 
+/**
+ * override Layer::wrapper
+ * @param data
+ */
 Bullet.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data);
 };
 
-Bullet.prototype.draw = function(data){
+/**
+ * override Layer::draw
+ * @param data
+ * @param i
+ */
+Bullet.prototype.draw = function(data, i){
 
     var that = this
-        , i = 0
         , availableWidth = this.available.width
         , availableHeight = this.available.height
         , rangez = this.ranges().call(this, data, i).slice().sort(d3.descending)
@@ -170,27 +178,13 @@ Bullet.prototype.color = function(_) {
     return this;
 };
 
+/**
+ * override Layer::noData
+ * @param data
+ * @returns {boolean}
+ */
 Bullet.prototype.noData = function(data){
-    if ( !data || typeof  data == 'undefined' || data == null )
-        return this;
-    /*if ( this.hasData(data) ) {
-        this.svg.selectAll('.nv-noData').remove();
-        return false;
-    } else {
-        var noDataText = this.svg.selectAll('.nv-noData').data([this.options.noData]);
-
-        noDataText.enter().append('text')
-            .attr('class', 'nvd3 nv-noData')
-            .attr('dy', '-.7em')
-            .style('text-anchor', 'middle');
-
-        noDataText
-            .attr('x', this.size().width / 2)
-            .attr('y', this.size().height / 2)
-            .text(function(d) { return d });
-
-        return true;
-    }*/
+    return ( !data || typeof  data == 'undefined' || data == null );
 };
 
 /**
