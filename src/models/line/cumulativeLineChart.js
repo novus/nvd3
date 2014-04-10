@@ -42,8 +42,8 @@ function CumulativeLineChart(options){
     this.showTooltip = function(e, offsetElement) {
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
             top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.line.x(e.point, e.pointIndex)),
-            y = this.yAxis().tickFormat()(this.line.y(e.point, e.pointIndex)),
+            x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
+            y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
             content = this.tooltip()(e.series.key, x, y);
 
         nv.tooltip.show([left, top], content, null, null, offsetElement);
@@ -55,7 +55,7 @@ function CumulativeLineChart(options){
             if (!line.values) return line;
             var indexValue = line.values[idx];
             if (indexValue == null) return line;
-            var v = this.line.y(indexValue, idx);
+            var v = this.line.y()(indexValue, idx);
             //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
             if (v < -.95 && !this.noErrorCheck()) {
                 //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
@@ -64,7 +64,7 @@ function CumulativeLineChart(options){
             }
             line.tempDisabled = false;
             line.values = line.values.map(function(point, pointIndex) {
-                point.display = {'y': (this.line.y(point, pointIndex) - v) / (1 + v) };
+                point.display = {'y': (this.line.y()(point, pointIndex) - v) / (1 + v) };
                 return point;
             }.bind(this));
             return line;
@@ -91,7 +91,7 @@ CumulativeLineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data,
         ['nv-interactive', 'nv-background', 'nv-avgLinesWrap', 'nv-controlsWrap']
     );
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this._duration());
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     this.renderWatch.models(this.line);
     if (this.showXAxis()) this.renderWatch.models(this.xAxis());
     if (this.showYAxis()) this.renderWatch.models(this.yAxis());
@@ -115,14 +115,14 @@ CumulativeLineChart.prototype.draw = function(data){
         that.indexLine.data([that.index()]);
         //When dragging the index line, turn off line transitions.
         // Then turn them back on when done dragging.
-        var oldDuration = that._duration();
-        that._duration(0);
+        var oldDuration = that.duration();
+        that.duration(0);
         that.update();
-        that._duration(oldDuration);
+        that.duration(oldDuration);
     };
 
     function dragStart() {
-        d3.select(that.svg).style('cursor', 'ew-resize');
+        that.svg.style('cursor', 'ew-resize');
     }
 
     function dragMove() {
@@ -132,8 +132,7 @@ CumulativeLineChart.prototype.draw = function(data){
     }
 
     function dragEnd() {
-        d3.select(that.svg)
-            .style('cursor', 'auto');
+        that.svg.style('cursor', 'auto');
         // update state and send stateChange with new index
         that.state().index = that.index().i;
         that.dispatch.stateChange(that.state());
@@ -225,7 +224,7 @@ CumulativeLineChart.prototype.draw = function(data){
 
     //------------------------------------------------------------
     //Set up interactive layer
-    if (this._useInteractiveGuideline()) {
+    if (this.useInteractiveGuideline()) {
         this.interactiveLayer
             .width(availableWidth)
             .height(availableHeight)
@@ -260,12 +259,12 @@ CumulativeLineChart.prototype.draw = function(data){
         .height(availableHeight)
         .color(
             data
-                .map(function(d,i){ return d.color || that._color()(d, i)})
+                .map(function(d,i){ return d.color || that.color()(d, i)})
                 .filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled; })
         );
 
     var linesWrap = this.g.select('.nv-linesWrap')
-        .style("pointer-events", (this._useInteractiveGuideline()) ? "none" : "all")
+        .style("pointer-events", (this.useInteractiveGuideline()) ? "none" : "all")
         .datum(data.filter(function(d) { return  !d.disabled && !d.tempDisabled }));
 
     linesWrap.call(this.line);
@@ -408,16 +407,16 @@ CumulativeLineChart.prototype.attachEvents = function(){
                             return !series.disabled;
                         })
                         .forEach(function(series,i) {
-                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that._x());
+                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
                             that.line.highlightPoint(i, pointIndex, true);
                             var point = series.values[pointIndex];
                             if (typeof point === 'undefined') return;
                             if (typeof singlePoint === 'undefined') singlePoint = point;
-                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that._x()(point,pointIndex));
+                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
                             allData.push({
                                 key: series.key,
                                 value: that.y()(point, pointIndex),
-                                color: that._color()(series,series.seriesIndex)
+                                color: that.color()(series,series.seriesIndex)
                             });
                         });
                 });
