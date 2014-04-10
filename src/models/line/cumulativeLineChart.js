@@ -19,6 +19,8 @@ var CumulativeLineChartPrivates = {
     , _rightAlignYAxis: false
     , _useInteractiveGuideline : false
     , _color : nv.utils.defaultColor()
+    , _x : null
+    , _y: null
 };
 
 function CumulativeLineChart(options){
@@ -35,20 +37,13 @@ function CumulativeLineChart(options){
     this.interactiveLayer = this.getInteractiveLayer();
     this.state = d3.functor( {index: 0, rescaleY: this.rescaleY()} );
 
-    this.xAxis()
-        .orient('bottom')
-        .tickPadding(7)
-    ;
-    this.yAxis()
-        .orient((this._rightAlignYAxis()) ? 'right' : 'left')
-    ;
     this.indexLine = null;
 
     this.showTooltip = function(e, offsetElement) {
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
             top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
-            y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
+            x = this.xAxis().tickFormat()(this.line.x(e.point, e.pointIndex)),
+            y = this.yAxis().tickFormat()(this.line.y(e.point, e.pointIndex)),
             content = this.tooltip()(e.series.key, x, y);
 
         nv.tooltip.show([left, top], content, null, null, offsetElement);
@@ -60,7 +55,7 @@ function CumulativeLineChart(options){
             if (!line.values) return line;
             var indexValue = line.values[idx];
             if (indexValue == null) return line;
-            var v = this.line.y()(indexValue, idx);
+            var v = this.line.y(indexValue, idx);
             //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
             if (v < -.95 && !this.noErrorCheck()) {
                 //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
@@ -69,12 +64,12 @@ function CumulativeLineChart(options){
             }
             line.tempDisabled = false;
             line.values = line.values.map(function(point, pointIndex) {
-                point.display = {'y': (this.line.y()(point, pointIndex) - v) / (1 + v) };
+                point.display = {'y': (this.line.y(point, pointIndex) - v) / (1 + v) };
                 return point;
             }.bind(this));
             return line;
         }.bind(this))
-    }.bind(this)
+    }.bind(this);
 
 }
 
@@ -148,6 +143,7 @@ CumulativeLineChart.prototype.draw = function(data){
     // Setup Scales
     this.xScale( this.line.xScale() );
     this.yScale( this.line.yScale() );
+    Chart.prototype.draw.call(this, data);
 
     if (!this.rescaleY()) {
         var seriesDomains = data
@@ -412,12 +408,12 @@ CumulativeLineChart.prototype.attachEvents = function(){
                             return !series.disabled;
                         })
                         .forEach(function(series,i) {
-                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
+                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that._x());
                             that.line.highlightPoint(i, pointIndex, true);
                             var point = series.values[pointIndex];
                             if (typeof point === 'undefined') return;
                             if (typeof singlePoint === 'undefined') singlePoint = point;
-                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
+                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that._x()(point,pointIndex));
                             allData.push({
                                 key: series.key,
                                 value: that.y()(point, pointIndex),
@@ -526,6 +522,20 @@ CumulativeLineChart.prototype.duration = function(_) {
     return this;
 };
 
+CumulativeLineChart.prototype.x = function(_){
+    if (!arguments.length) return this._x();
+    this._x(_);
+    this.line.x(_);
+    return this;
+};
+
+CumulativeLineChart.prototype.y = function(_){
+    if (!arguments.length) return this._y();
+    this._y(_);
+    this.line.y(_);
+    return this;
+};
+
 nv.models.cumulativeLineChart = function(){
     "use strict";
 
@@ -542,7 +552,7 @@ nv.models.cumulativeLineChart = function(){
     chart.interactiveLayer = cumulativeLineChart.interactiveLayer;
 
     d3.rebind(chart, cumulativeLineChart.line,
-        'defined', 'isArea', 'x', 'y', 'xScale', 'yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
+        'defined', 'isArea', 'xScale', 'yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
         'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi',  'id'
     );
 
@@ -551,7 +561,7 @@ nv.models.cumulativeLineChart = function(){
     nv.utils.rebindp(chart, cumulativeLineChart, CumulativeLineChart.prototype,
         'margin', 'width', 'height', 'color', 'rescaleY', 'showControls', 'useInteractiveGuideline', 'showLegend',
         'showXAxis', 'showYAxis', 'rightAlignYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'xAxis', 'yAxis'
+        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'xAxis', 'yAxis', 'x', 'y'
     );
 
     return chart;
