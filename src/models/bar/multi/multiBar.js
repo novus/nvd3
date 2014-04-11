@@ -32,7 +32,7 @@ function MultiBar(options){
 
     Layer.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout']);
 
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this._duration());
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
 nv.utils.create(MultiBar, Layer, MultiBarPrivates);
@@ -164,14 +164,14 @@ MultiBar.prototype.draw = function(data){
         .transition(
             groups.exit().selectAll('rect.nv-bar'),
             'multibarExit',
-            Math.min(250, this._duration())
+            Math.min(250, this.duration())
         )
         .attr('y', function(d) { return that.stacked() ? that.y0()(d.y0) : that.y0()(0)})
         .attr('height', 0)
         .remove();
     if (exitTransition.delay)
         exitTransition.delay(function(d,i) {
-            return i * that._duration() / data[0].values.length;
+            return i * that.duration() / data[0].values.length;
         });
 
     groups
@@ -241,7 +241,7 @@ MultiBar.prototype.draw = function(data){
         .attr('transform', function(d) { return 'translate(' + that.xScale()(that.x()(d)) + ',0)'; });
 
     function _colorBar (d,i,j) {
-        return d3.rgb(that._barColor()(d,i))
+        return d3.rgb(that.barColor()(d,i))
             .darker(
                 that.disabled().map(function(d,i) { return i })
                     .filter(function(d,i){ return !that.disabled[i]})[j]
@@ -249,7 +249,7 @@ MultiBar.prototype.draw = function(data){
             .toString()
     }
 
-    if (this._barColor()) {
+    if (this.barColor()) {
         if (!this.disabled())
             this.disabled(data.map(function() { return true }));
         bars
@@ -259,8 +259,8 @@ MultiBar.prototype.draw = function(data){
 
 
     var barSelection =
-        bars.watchTransition(this.renderWatch, 'multibar', Math.min(250, this._duration()))
-            .delay(function(d,i) { return i * that._duration() / data[0].values.length });
+        bars.watchTransition(this.renderWatch, 'multibar', Math.min(250, this.duration()))
+            .delay(function(d,i) { return i * that.duration() / data[0].values.length });
     if (this.stacked())
         barSelection
             .attr('y', function(d) {
@@ -287,14 +287,14 @@ MultiBar.prototype.draw = function(data){
             });
 
     //store old scales for use in transitions on update
-    /*this.x0( this.xScale().copy );
+/*    this.x0( this.xScale().copy );
     this.y0( this.yScale().copy );*/
 };
 
 MultiBar.prototype.duration = function(_) {
     if (!arguments.length) return this._duration();
     this._duration(_);
-    this.renderWatch.reset(this._duration());
+    this.renderWatch.reset(_);
     return this;
 };
 
@@ -328,7 +328,8 @@ nv.models.multiBar = function () {
 
     nv.utils.rebindp(chart, multiBar, MultiBar.prototype,
         'margin', 'width', 'height', 'x', 'y', 'color', 'barColor', 'description', 'showLabels',
-        'xScale', 'yScale', 'disabled', 'xDomain', 'yDomain', 'xRange', 'yRange', 'clipEdge', 'stacked', 'stackOffset', 'hideable', 'groupSpacing', 'duration', 'forceY', 'id',
+        'xScale', 'yScale', 'disabled', 'xDomain', 'yDomain', 'xRange', 'yRange', 'clipEdge', 'stacked', 'stackOffset',
+        'hideable', 'groupSpacing', 'duration', 'forceY', 'id',
         'delay'// deprecated
     );
 
