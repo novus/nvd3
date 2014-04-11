@@ -17,12 +17,12 @@
 <body class='with-transitions'>
 
 <div class='chart full' id="test1">
-    <h2>simple cululativeLineChart</h2>
+    <h2>simple cumulativeLineChart</h2>
     <svg></svg>
 </div>
 
 <div class='chart full' id="test2">
-    <h2>simple cululativeLineChart, no data</h2>
+    <h2>simple cumulativeLineChart, no data</h2>
     <svg></svg>
 </div>
 
@@ -30,12 +30,13 @@
 
 <script src="../src/core.js"></script>
 <script src="../src/utils.js"></script>
-<script src="../src/canvas.js"></script>
+<script src="../src/layer.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/interactiveLayer.js"></script>
 
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
+<script src="../src/chart.js"></script>
 
 <script src="../src/models/scatter/scatter.js"></script>
 <script src="../src/models/line/line.js"></script>
@@ -74,6 +75,7 @@
     function cumulativeLineChart(containerId, data) {
         nv.addGraph(function() {
             chart = nv.models.cumulativeLineChart()
+                    .margin({top: 50, right: 50, bottom: 50, left: 50})
                     .useInteractiveGuideline(true)
                     .x(function(d) { return d[0] })
                     .y(function(d) { return d[1]/100 })
@@ -82,12 +84,12 @@
                     .transitionDuration(300)
                     .clipVoronoi(false);
 
-            chart.xAxis
+            chart.xAxis()
                     .tickFormat(function(d) {
                         return d3.time.format('%m/%d/%y')(new Date(d))
                     });
 
-            chart.yAxis
+            chart.yAxis()
                     .tickFormat(d3.format(',.1%'));
 
             d3.select('#'+containerId+' svg')
