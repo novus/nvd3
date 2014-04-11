@@ -71,6 +71,33 @@ function CumulativeLineChart(options){
         }.bind(this))
     }.bind(this);
 
+    this.updateZero = function() {
+        this.indexLine.data([this.index()]);
+        //When dragging the index line, turn off line transitions.
+        // Then turn them back on when done dragging.
+        var oldDuration = this.duration();
+        this.duration(0);
+        this.update();
+        this.duration(oldDuration);
+    }.bind(this);
+
+    this.dragStart = function() {
+        this.svg.style('cursor', 'ew-resize');
+    }.bind(this);
+
+    this.dragMove = function() {
+        this.index().x = d3.event.x;
+        this.index().i = Math.round(this.dxScale().invert( this.index().x ));
+        this.updateZero();
+    }.bind(this);
+
+    this.dragEnd = function() {
+        this.svg.style('cursor', 'auto');
+        // update state and send stateChange with new index
+        this.state().index = this.index().i;
+        this.dispatch.stateChange(this.state());
+    }.bind(this);
+
 }
 
 nv.utils.create(CumulativeLineChart, Chart, CumulativeLineChartPrivates);
@@ -102,46 +129,16 @@ CumulativeLineChart.prototype.draw = function(data){
     this.id(this.line.id());
     this.svg.classed('nv-chart-' + this.id(), true);
 
-    var that = this,
-        availableWidth = this.available.width,
-        availableHeight = this.available.height;
-
-    var indexDrag = d3.behavior.drag()
-        .on('dragstart', dragStart)
-        .on('drag', dragMove)
-        .on('dragend', dragEnd);
-
-    this.updateZero = function() {
-        that.indexLine.data([that.index()]);
-        //When dragging the index line, turn off line transitions.
-        // Then turn them back on when done dragging.
-        var oldDuration = that.duration();
-        that.duration(0);
-        that.update();
-        that.duration(oldDuration);
-    };
-
-    function dragStart() {
-        that.svg.style('cursor', 'ew-resize');
-    }
-
-    function dragMove() {
-        that.index().x = d3.event.x;
-        that.index().i = Math.round(that.dxScale().invert( that.index().x ));
-        that.updateZero();
-    }
-
-    function dragEnd() {
-        that.svg.style('cursor', 'auto');
-        // update state and send stateChange with new index
-        that.state().index = that.index().i;
-        that.dispatch.stateChange(that.state());
-    }
-
-    //------------------------------------------------------------
-    // Setup Scales
     this.xScale( this.line.xScale() );
     this.yScale( this.line.yScale() );
+
+    var that = this
+        , availableWidth = this.available.width
+        , availableHeight = this.available.height
+        , indexDrag = d3.behavior.drag()
+        .on('dragstart', this.dragStart)
+        .on('drag', this.dragMove)
+        .on('dragend', this.dragEnd);
 
     if (!this.rescaleY()) {
         var seriesDomains = data
@@ -170,8 +167,6 @@ CumulativeLineChart.prototype.draw = function(data){
         .domain([0, data[0].values.length - 1]) //Assumes all series have same length
         .range([0, availableWidth])
         .clamp(true);
-
-    //------------------------------------------------------------
 
     var data = this.indexify(this.index().i, data);
 
@@ -205,8 +200,7 @@ CumulativeLineChart.prototype.draw = function(data){
             .text(tempDisabled.map(function(d) { return d.key }).join(', ') + ' values cannot be calculated for this time period.');
     }
 
-    //------------------------------------------------------------
-    //Set up interactive layer
+    // Set up interactive layer
     if (this.useInteractiveGuideline()) {
         this.interactiveLayer
             .width(availableWidth)
@@ -224,16 +218,6 @@ CumulativeLineChart.prototype.draw = function(data){
         .attr('width', availableWidth)
         .attr('height', availableHeight);
 
-    this.g.select('.nv-background rect')
-        .on('click', function() {
-            that.index().x = d3.mouse(this)[0];
-            that.index().i = Math.round(that.dxScale().invert(that.index().x));
-            // update state and send stateChange with new index
-            that.state().index = that.index().i;
-            that.dispatch.stateChange(that.state());
-            that.updateZero();
-        });
-
     this.line
         //.x(function(d) { return d.x })
         .margin({top: 0, right: 0, bottom: 0, left: 0})
@@ -248,7 +232,9 @@ CumulativeLineChart.prototype.draw = function(data){
 
     var linesWrap = this.g.select('.nv-linesWrap')
         .style("pointer-events", (this.useInteractiveGuideline()) ? "none" : "all")
-        .datum(data.filter(function(d) { return  !d.disabled && !d.tempDisabled }));
+        .datum(
+            data.filter(function(d) { return !d.disabled && !d.tempDisabled })
+        );
 
     linesWrap.call(this.line);
 
@@ -474,6 +460,16 @@ CumulativeLineChart.prototype.attachEvents = function(){
             if (typeof e.rescaleY !== 'undefined')
                 that.rescaleY( e.rescaleY );
             that.update();
+        });
+
+    this.g.select('.nv-background rect')
+        .on('click', function() {
+            that.index().x = d3.mouse(this)[0];
+            that.index().i = Math.round(that.dxScale().invert(that.index().x));
+            // update state and send stateChange with new index
+            that.state().index = that.index().i;
+            that.dispatch.stateChange(that.state());
+            that.updateZero();
         });
 };
 
