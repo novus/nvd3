@@ -99,7 +99,7 @@ CumulativeLineChart.prototype.wrapper = function(data){
 
 CumulativeLineChart.prototype.draw = function(data){
 
-    //this.id(this.line.id());
+    this.id(this.line.id());
     this.svg.classed('nv-chart-' + this.id(), true);
 
     var that = this,
@@ -127,7 +127,7 @@ CumulativeLineChart.prototype.draw = function(data){
 
     function dragMove() {
         that.index().x = d3.event.x;
-        that.index().i = Math.round(that.dxScale().invert(that.index().x));
+        that.index().i = Math.round(that.dxScale().invert( that.index().x ));
         that.updateZero();
     }
 
@@ -142,7 +142,6 @@ CumulativeLineChart.prototype.draw = function(data){
     // Setup Scales
     this.xScale( this.line.xScale() );
     this.yScale( this.line.yScale() );
-    Chart.prototype.draw.call(this, data);
 
     if (!this.rescaleY()) {
         var seriesDomains = data
@@ -167,30 +166,14 @@ CumulativeLineChart.prototype.draw = function(data){
     } else
         this.line.yDomain(null);
 
-    this.dxScale().domain([0, data[0].values.length - 1]) //Assumes all series have same length
+    this.dxScale()
+        .domain([0, data[0].values.length - 1]) //Assumes all series have same length
         .range([0, availableWidth])
         .clamp(true);
 
     //------------------------------------------------------------
 
     var data = this.indexify(this.index().i, data);
-
-    if (this.options.showLegend) {
-        this.legend.width(availableWidth);
-
-        this.g.select('.nv-legendWrap')
-            .datum(data)
-            .call(this.legend);
-
-        if ( this.margin().top != this.legend.height()) {
-            this.margin().top = this.legend.height();
-            availableHeight = (this.height() || parseInt(this.svg.style('height')) || 400)
-                - this.margin().top - this.margin().bottom;
-        }
-
-        this.g.select('.nv-legendWrap')
-            .attr('transform', 'translate(0,' + (-this.margin().top) +')')
-    }
 
     if (this.showControls()) {
         var controlsData = [
@@ -331,37 +314,52 @@ CumulativeLineChart.prototype.draw = function(data){
         .attr('transform', function(d) { return 'translate(' + that.dxScale()(d.i) + ',0)' })
         .attr('height', availableHeight);
 
-    if (this.showXAxis()) {
-        this.xAxis()
-            .scale(this.xScale())
-            //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
-            .ticks( Math.min(data[0].values.length,availableWidth/70) )
-            .tickSize(-availableHeight, 0);
+    this.plotAxes(data);
+};
 
-        this.g.select('.nv-x.nv-axis')
+CumulativeLineChart.prototype.plotAxes = function(data){
+
+    if (this.rightAlignYAxis()) {
+        this.wrap.select('.nv-y.nv-axis')
+            .attr("transform", "translate(" + this.available.width + ", 0)");
+    }
+
+    if (this.showXAxis()) {
+
+        this.xAxis()
+            //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
+            .ticks( Math.min(data[0].values.length, this.available.width/70) )
+            .orient('bottom')
+            .tickPadding(7)
+            .highlightZero(true)
+            .showMaxMin(false)
+            .scale(this.xScale())
+            .tickSize(-this.available.height, 0);
+
+        this.wrap.select('.nv-x.nv-axis')
             .style("pointer-events","none")
             .attr('transform', 'translate(0,' + this.yScale().range()[0] + ')')
+            .transition()
             .call(this.xAxis());
     }
 
     if (this.showYAxis()) {
-        this.yAxis()
-            .scale(this.yScale())
-            .ticks( availableHeight / 36 )
-            .tickSize( -availableWidth, 0);
 
-        this.g.select('.nv-y.nv-axis')
-            .call(this.yAxis());
+        this.yAxis()
+            .orient(this.rightAlignYAxis() ? 'right' : 'left')
+            .tickFormat(d3.format(',.1f'))
+            .scale(this.yScale())
+            .ticks( this.available.height / 36 )
+            .tickSize( -this.available.width, 0);
+
+        this.wrap.select('.nv-y.nv-axis')
+            .transition().call(this.yAxis());
     }
 };
 
 CumulativeLineChart.prototype.attachEvents = function(){
 
     var that = this;
-
-    this.dispatch.on('tooltipHide', function() {
-        if (that.tooltips()) nv.tooltip.cleanup();
-    });
 
     this.line.dispatch
         .on('elementMouseover.tooltip', function(e) {
@@ -451,6 +449,9 @@ CumulativeLineChart.prototype.attachEvents = function(){
         });
 
     this.dispatch
+        .on('tooltipHide', function() {
+            if (that.tooltips()) nv.tooltip.cleanup();
+        })
         .on('tooltipShow', function(e) {
             if (that.tooltips())
                 that.showTooltip()(e, that.svg[0][0]);
