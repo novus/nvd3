@@ -8,6 +8,7 @@ var LineChartPrivates = {
     , _color: nv.utils.defaultColor()
     , interactive: null
     , useVoronoi: null
+    , state: null
 };
 
 /**
@@ -23,7 +24,7 @@ function LineChart(options){
 
     this.line = this.getLine();
     this.interactiveLayer = this.getInteractiveLayer();
-    this.state = this.getStatesManager();
+    this.state(this.getStatesManager());
 
     this.showTooltip = function(e, offsetElement) {
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -51,7 +52,7 @@ LineChart.prototype.getStatesManager = function(){
 
 LineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data, [ 'nv-interactive' ]);
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this._duration());
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     this.renderWatch.models(this.line);
     if (this.showXAxis()) this.renderWatch.models(this.xAxis());
     if (this.showYAxis()) this.renderWatch.models(this.yAxis());
@@ -61,8 +62,8 @@ LineChart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
 
     this.legend.dispatch.on('stateChange', function(newState) {
-        this.state = newState;
-        this.dispatch.stateChange(this.state);
+        this.state(newState);
+        this.dispatch.stateChange(this.state());
         this.update();
     }.bind(this));
 
@@ -128,16 +129,18 @@ LineChart.prototype.attachEvents = function(){
         .on('changeState', function(e) {
             if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
                 this.svg.call(function(selection){
-                        selection.each(function(data){
-                            data.forEach(function(series,i) {
-                                series.disabled = e.disabled[i];
-                            });
+                    selection.each(function(data){
+                        data.forEach(function(series,i) {
+                            series.disabled = e.disabled[i];
                         });
-                    }
-                );
-                this.state.disabled = e.disabled;
+                    });
+                });
+                this.state().disabled = e.disabled;
             }
             this.update();
+        }.bind(this))
+        .on('tooltipHide', function() {
+            if (this.tooltips()) nv.tooltip.cleanup();
         }.bind(this));
 
     this.line.dispatch
@@ -148,10 +151,6 @@ LineChart.prototype.attachEvents = function(){
         .on('elementMouseout.tooltip', function(e) {
             this.dispatch.tooltipHide(e);
         }.bind(this));
-
-    this.dispatch.on('tooltipHide', function() {
-        if (this.tooltips()) nv.tooltip.cleanup();
-    }.bind(this));
 };
 
 LineChart.prototype.draw = function(data){
@@ -163,7 +162,7 @@ LineChart.prototype.draw = function(data){
     this.xScale(this.line.xScale());
     this.yScale(this.line.yScale());
 
-    if (this._useInteractiveGuideline()) {
+    if (this.useInteractiveGuideline()) {
         this.interactiveLayer
             .width(availableWidth)
             .height(availableHeight)
@@ -173,7 +172,8 @@ LineChart.prototype.draw = function(data){
             })
             .svgContainer(this.svg)
             .xScale(this.xScale());
-        this.wrap.select(".nv-interactive").call(this.interactiveLayer);
+        this.wrap.select(".nv-interactive")
+            .call(this.interactiveLayer);
     }
 
     this.line
@@ -182,7 +182,7 @@ LineChart.prototype.draw = function(data){
         .height(availableHeight)
         .color(
             data
-                .map( function(d,i){return d.color || that._color()(d, i)} )
+                .map( function(d,i){return d.color || that.color()(d, i)} )
                 .filter( function(d,i) { return !data[i].disabled } )
         );
 
@@ -211,8 +211,8 @@ LineChart.prototype.duration = function(_) {
 
 LineChart.prototype.color = function(_) {
     if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
-    this.legend.color(this._color());
+    this._color( nv.utils.getColor(_) );
+    this.legend.color( this.color() );
     return this;
 };
 

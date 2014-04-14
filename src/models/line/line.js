@@ -18,6 +18,7 @@ function Line(options) {
         , width: 960
         , height: 500
         , chartClass: 'line'
+        , wrapClass: 'scatterWrap'
     });
     Layer.call(this, options, [ 'elementClick', 'elementMouseover', 'elementMouseout' ]);
 
@@ -35,7 +36,7 @@ Line.prototype.getScatter = function(){
 };
 
 Line.prototype.wrapper = function(data){
-    Layer.prototype.wrapper.call(this, data, [ 'nv-groups', 'nv-scatterWrap' ]);
+    Layer.prototype.wrapper.call(this, data, [ 'nv-groups' ]);
 };
 
 Line.prototype.draw = function(data){
@@ -49,6 +50,7 @@ Line.prototype.draw = function(data){
         .height(availableHeight);
 
     scatterWrap.transition().call(this.scatter);
+
     this.x(this.scatter.x());
     this.y(this.scatter.y());
     this.color(this.scatter.color());
@@ -69,7 +71,9 @@ Line.prototype.draw = function(data){
     this.g.attr('clip-path', this.clipEdge() ? 'url(#nv-edge-clip-' + this.id() + ')' : '');
     scatterWrap.attr('clip-path', this.clipEdge() ? 'url(#nv-edge-clip-' + this.id() + ')' : '');
 
-    var groups = this.wrap.select('.nv-groups').selectAll('.nv-group')
+    var groups = this.wrap
+        .select('.nv-groups')
+        .selectAll('.nv-group')
         .data(function(d) { return d }, function(d) { return d.key });
 
     groups.enter().append('g')
