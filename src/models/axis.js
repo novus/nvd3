@@ -71,7 +71,8 @@ Axis.prototype.draw = function(data){
 
     switch (this.axis.orient()) {
         case 'top':
-            axisLabel.enter().append('text').attr('class', 'nv-axislabel');
+            axisLabel.enter().append('text')
+                .attr('class', 'nv-axislabel');
             w = (this.scale().range().length==2)
                 ? this.scale().range()[1]
                 : (this.scale().range()[this.scale().range().length-1]+(this.scale().range()[1]-this.scale().range()[0]));
@@ -82,7 +83,9 @@ Axis.prototype.draw = function(data){
             if (this.showMaxMin()) {
                 axisMaxMin = this.wrap.selectAll('g.nv-axisMaxMin')
                     .data(this.scale().domain());
-                axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
+                axisMaxMin.enter().append('g')
+                    .attr('class', 'nv-axisMaxMin')
+                    .append('text');
                 axisMaxMin.exit().remove();
                 axisMaxMin
                     .attr('transform', function(d,i) {
@@ -137,13 +140,15 @@ Axis.prototype.draw = function(data){
                 axisMaxMin.exit().remove();
                 axisMaxMin
                     .attr('transform', function(d,i) {
-                        return 'translate(' + (that.scale()(d) + (that.isOrdinal() ? that.scale().rangeBand() / 2 : 0)) + ',0)'
+                        return 'translate(' + (that.scale()(d) + (that.isOrdinal() ? that.scale().rangeBand() / 2: 0)) + ',0)'
                     })
                     .select('text')
                     .attr('dy', '.71em')
                     .attr('y', this.axis.tickPadding())
                     .attr('transform', function(d,i,j) { return 'rotate(' + that.rotateLabels() + ' 0,0)' })
-                    .style('text-anchor', that.rotateLabels() ? (that.rotateLabels()%360 > 0 ? 'start' : 'end') : 'middle')
+                    .style('text-anchor',
+                        that.rotateLabels() ? (that.rotateLabels()%360 > 0 ? 'start' : 'end') : 'middle'
+                    )
                     .text(function(d,i) {
                         var v = fmt(d);
                         return ('' + v).match('NaN') ? '' : v;
@@ -198,7 +203,7 @@ Axis.prototype.draw = function(data){
              yTicks.each(function(d,i){
              var labelPadding = this.getBBox().width + axis.tickPadding() + 16;
              if(labelPadding > width) width = labelPadding;
-             });
+             });                                               f
              */
             axisLabel.enter().append('text').attr('class', 'nv-axislabel');
             axisLabel
@@ -254,7 +259,6 @@ Axis.prototype.draw = function(data){
                 if (that.scale()(d) < that.scale().range()[1] + 10 || that.scale()(d) > that.scale().range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
                     if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                         d3.select(this).attr('opacity', 0);
-
                     d3.select(this).select('text').attr('opacity', 0); // Don't remove the ZERO line!!
                 }
             });
@@ -274,7 +278,7 @@ Axis.prototype.draw = function(data){
                         maxMinRange.push(that.scale()(d) - this.getBBox().width - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
                     else // i==0, min position
                         maxMinRange.push(that.scale()(d) + this.getBBox().width + 4)
-                }catch (err) {
+                } catch (err) {
                     if (i) // i== 1, max position
                         maxMinRange.push(that.scale()(d) - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
                     else // i==0, min position
@@ -307,14 +311,14 @@ Axis.prototype.draw = function(data){
 Axis.prototype.duration = function(_) {
     if (!arguments.length) return this._duration();
     this._duration(_);
-    this.renderWatch.reset(this.duration());
+    this.renderWatch.reset(_);
     return this;
 };
 
 Axis.prototype.scale = function(_) {
     if (!arguments.length) return this._scale();
     this._scale(_);
-    this.axis.scale(this._scale());
+    this.axis.scale(_);
     this.isOrdinal( typeof this._scale().rangeBands === 'function' );
     d3.rebind(this, this._scale(), 'domain', 'range', 'rangeBand', 'rangeBands');
     return this;
