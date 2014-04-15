@@ -36,8 +36,25 @@ function Axis(options){
 
 nv.utils.create(Axis, Layer, AxisPrivates);
 
+/**
+ * override Layer::wrapper, removed transform/translate
+ * @param data
+ */
 Axis.prototype.wrapper = function(data){
-    Layer.prototype.wrapper.call(this, data);
+    var gs = [];
+    var chartClass = 'nv-' + this.options.chartClass;
+    var wrapClass = 'nv-' + this.options.wrapClass;
+
+    this.wrap = this.svg.selectAll('g.nv-wrap.' + wrapClass).data([data]);
+    this.wrapEnter = this.wrap.enter().append('g').attr({class: 'nvd3 nv-wrap ' + chartClass });
+    this.defsEnter = this.wrapEnter.append('defs');
+    this.gEnter = this.wrapEnter.append('g');
+    this.g = this.wrap.select('g');
+
+    gs.concat([wrapClass]).forEach(function(g){
+        this.gEnter.append('g').attr('class', g);
+    }, this);
+
     this.renderWatch.reset();
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 };
