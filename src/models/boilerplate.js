@@ -17,21 +17,21 @@ function ChartName(options){
         , chartClass: 'chartName'
     });
 
-    Layer.call(this, options, []);
+    Chart.call(this, options, []);
 }
 
-nv.utils.create(ChartName, Layer, ChartNamePrivates);
+nv.utils.create(ChartName, Chart, ChartNamePrivates);
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 ChartName.prototype.wrapper = function(data){
-    Layer.prototype.wrapper.call(this, data, []);
+    Chart.prototype.wrapper.call(this, data, []);
 
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 ChartName.prototype.draw = function(data){
 
