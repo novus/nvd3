@@ -210,7 +210,7 @@ nv.models.lineChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
+          .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
           .tickSize(-availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -223,7 +223,7 @@ nv.models.lineChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')

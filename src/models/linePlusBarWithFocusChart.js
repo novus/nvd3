@@ -306,7 +306,7 @@ nv.models.linePlusBarWithFocusChart = function() {
       // Setup Secondary (Context) Axes
 
       x2Axis
-        .ticks( availableWidth / 100 )
+        .ticks( x2Axis.ticks() ? x2Axis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
       g.select('.nv-context .nv-x.nv-axis')
@@ -317,7 +317,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
       y3Axis
         .scale(y3)
-        .ticks( availableHeight2 / 36 )
+        .ticks( y3Axis.ticks() ? y3Axis.ticks() : availableHeight2 / 36 )
         .tickSize( -availableWidth, 0);
 
       g.select('.nv-context .nv-y1.nv-axis')
@@ -330,7 +330,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
       y4Axis
         .scale(y4)
-        .ticks( availableHeight2 / 36 )
+        .ticks( y4Axis.ticks() ? y4Axis.ticks() : availableHeight2 / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
       g.select('.nv-context .nv-y2.nv-axis')
@@ -463,7 +463,7 @@ nv.models.linePlusBarWithFocusChart = function() {
         
         xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight1, 0);
 
         xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
@@ -491,7 +491,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         y1Axis
         .scale(y1)
-        .ticks( availableHeight1 / 36 )
+        .ticks( y1Axis.ticks() ? y1Axis.ticks() : availableHeight1 / 36 )
         .tickSize(-availableWidth, 0);
 
         g.select('.nv-focus .nv-y1.nv-axis')
@@ -500,7 +500,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         y2Axis
         .scale(y2)
-        .ticks( availableHeight1 / 36 )
+        .ticks( y2Axis.ticks() ? y2Axis.ticks() : availableHeight1 / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
         g.select('.nv-focus .nv-y2.nv-axis')
