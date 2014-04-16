@@ -1,250 +1,210 @@
+var SparklinePlusPrivates = {
+    index : []
+    , paused : false
+    , xTickFormat : d3.format(',r')
+    , yTickFormat : d3.format(',.2f')
+    , showValue : true
+    , alignValue : true
+    , rightAlignValue : false
+    , xScale: null
+    , yScale: null
+};
 
-nv.models.sparklinePlus = function() {
-  "use strict";
-  //============================================================
-  // Public Variables with Default Settings
-  //------------------------------------------------------------
-
-  var sparkline = nv.models.sparkline();
-
-  var Layer = new Layer({
+/**
+ * A SparklinePlus
+ */
+function SparklinePlus(options){
+    options = nv.utils.extend({}, options, SparklinePlusPrivates, {
         margin: {top: 15, right: 100, bottom: 10, left: 50}
         , chartClass: 'sparklineplus'
-      })
-    , x
-    , y
-    , index = []
-    , paused = false
-    , xTickFormat = d3.format(',r')
-    , yTickFormat = d3.format(',.2f')
-    , showValue = true
-    , alignValue = true
-    , rightAlignValue = false
-    ;
+        // , wrapClass: ''
+    });
+    Chart.call(this, options);
 
-  //============================================================
+    this.sparkline = this.getSparkline();
+}
 
+nv.utils.create(SparklinePlus, Chart, SparklinePlusPrivates);
 
-  function chart(selection) {
-    selection.each(function(data) {
+SparklinePlus.prototype.getSparkline = function(){
+    return nv.models.sparkline();
+};
 
-      Layer.setRoot(this);
+/**
+ * @override Chart::wrapper
+ */
+SparklinePlus.prototype.wrapper = function (data) {
+    var wrapPoints = [
+        'nv-valueWrap', 'nv-sparklineWrap', 'nv-hoverArea' // nv-hoverArea should be after nv-sparklineWrap in the DOM
+    ];
+    Layer.prototype.wrapper.call(this, data, wrapPoints);
 
-      var availableWidth = Layer.available.width,
-          availableHeight = Layer.available.height;
+    this.axis = {
+        x: this.wrap.select('.nv-x.nv-axis'),
+        y: this.wrap.select('.nv-x.nv-axis')
+    };
+    this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
+};
 
-      chart.update = function() { chart(selection) };
+/**
+ * @override Chart::draw
+ */
+SparklinePlus.prototype.draw = function(data){
 
-      //------------------------------------------------------------
-      // Display No Data message if there's nothing to show.
+    var that = this
+        , availableWidth = this.available.width
+        , availableHeight = this.available.height
+        , sparklineWrap = null
+        , valueWrap = null
+        , value = null;
 
-      if (Layer.noData(data))
-        return chart;
+    var currentValue = this.sparkline.y()(data[data.length-1], data.length-1);
 
-      var currentValue = sparkline.y()(data[data.length-1], data.length-1);
+    this.xScale(this.sparkline.xScale());
+    this.yScale(this.sparkline.yScale());
 
-      //------------------------------------------------------------
-
-      //------------------------------------------------------------
-      // Setup Scales
-
-      x = sparkline.xScale();
-      y = sparkline.yScale();
-
-      //------------------------------------------------------------
-
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      Layer.wrapChart(data);
-
-      Layer.gEnter.append('g').attr('class', 'nv-sparklineWrap');
-      Layer.gEnter.append('g').attr('class', 'nv-valueWrap');
-      Layer.gEnter.append('g').attr('class', 'nv-hoverArea');
-
-      //------------------------------------------------------------
-
-      //------------------------------------------------------------
-      // Main Chart Component(s)
-
-      var sparklineWrap = Layer.g.select('.nv-sparklineWrap');
-
-      sparkline
+    this.sparkline
+        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .width(availableWidth)
         .height(availableHeight);
+    sparklineWrap = this.g.select('.nv-sparklineWrap');
 
-      sparklineWrap
-        .call(sparkline);
+    sparklineWrap
+        .call(this.sparkline);
 
-      //------------------------------------------------------------
+    valueWrap = this.g.select('.nv-valueWrap');
 
-      var valueWrap = Layer.g.select('.nv-valueWrap');
+    value = valueWrap.selectAll('.nv-currentValue')
+        .data([currentValue]);
 
-      var value = valueWrap.selectAll('.nv-currentValue')
-          .data([currentValue]);
+    value.enter().append('text').attr('class', 'nv-currentValue')
+        .attr('dx', this.rightAlignValue() ? -8 : 8)
+        .attr('dy', '.9em')
+        .style('text-anchor', this.rightAlignValue() ? 'end' : 'start');
 
-      value.enter().append('text').attr('class', 'nv-currentValue')
-          .attr('dx', rightAlignValue ? -8 : 8)
-          .attr('dy', '.9em')
-          .style('text-anchor', rightAlignValue ? 'end' : 'start');
+    value
+        .attr('x', availableWidth + (this.rightAlignValue() ? this.margin().right : 0))
+        .attr('y', this.alignValue() ? function(d) { return that.yScale()(d) } : 0)
+        .style('fill', this.color()(data[data.length-1], data.length-1))
+        .text(this.yTickFormat()(currentValue));
 
-      value
-          .attr('x', availableWidth + (rightAlignValue ? Layer.margin.right : 0))
-          .attr('y', alignValue ? function(d) { return y(d) } : 0)
-          .style('fill', sparkline.color()(data[data.length-1], data.length-1))
-          .text(yTickFormat(currentValue));
+    this.gEnter.select('.nv-hoverArea').append('rect')
+        .on('mousemove', sparklineHover)
+        .on('click', function() { that.paused(!that.paused()) })
+        .on('mouseout', function() { that.index([]); updateValueLine(); });
 
-      Layer.gEnter.select('.nv-hoverArea').append('rect')
-          .on('mousemove', sparklineHover)
-          .on('click', function() { paused = !paused })
-          .on('mouseout', function() { index = []; updateValueLine(); });
-          //.on('mouseout', function() { index = null; updateValueLine(); });
+    this.g.select('.nv-hoverArea rect')
+        .attr('transform', function() { return 'translate(' + -that.margin().left + ',' + -that.margin().top + ')' })
+        .attr('width', availableWidth + this.margin().left + this.margin().right)
+        .attr('height', availableHeight + this.margin().top);
 
-      Layer.g.select('.nv-hoverArea rect')
-          .attr('transform', function() { return 'translate(' + -Layer.margin.left + ',' + -Layer.margin.top + ')' })
-          .attr('width', availableWidth + Layer.margin.left + Layer.margin.right)
-          .attr('height', availableHeight + Layer.margin.top);
+    function updateValueLine() { //index is currently global (within the chart), may or may not keep it that way
+        if (that.paused()) return;
 
-      function updateValueLine() { //index is currently global (within the chart), may or may not keep it that way
-        if (paused) return;
-
-        var hoverValue = Layer.g.selectAll('.nv-hoverValue').data(index);
+        var hoverValue = that.g.selectAll('.nv-hoverValue').data(that.index());
 
         var hoverEnter = hoverValue.enter()
-          .append('g').attr('class', 'nv-hoverValue')
+            .append('g').attr('class', 'nv-hoverValue')
             .style('stroke-opacity', 0)
             .style('fill-opacity', 0);
 
         hoverValue.exit()
-          .transition().duration(250)
+            .transition().duration(250)
             .style('stroke-opacity', 0)
             .style('fill-opacity', 0)
             .remove();
 
         hoverValue
-            .attr('transform', function(d) { return 'translate(' + x(sparkline.x()(data[d],d)) + ',0)' })
-          .transition().duration(250)
+            .attr('transform', function(d) { return 'translate(' + that.xScale()(that.sparkline.x()(data[d],d)) + ',0)' })
+            .transition().duration(250)
             .style('stroke-opacity', 1)
             .style('fill-opacity', 1);
 
-        if (!index.length) return;
+        if (!that.index().length) return;
 
         hoverEnter.append('line')
             .attr('x1', 0)
-            .attr('y1', -Layer.margin.top)
+            .attr('y1', -that.margin().top)
             .attr('x2', 0)
             .attr('y2', availableHeight);
 
         hoverEnter.append('text').attr('class', 'nv-xValue')
             .attr('x', -6)
-            .attr('y', -Layer.margin.top)
+            .attr('y', -that.margin().top)
             .attr('text-anchor', 'end')
             .attr('dy', '.9em');
 
-        Layer.g.select('.nv-hoverValue .nv-xValue')
-            .text(xTickFormat(sparkline.x()(data[index[0]], index[0])));
+        that.g.select('.nv-hoverValue .nv-xValue')
+            .text(that.xTickFormat()(that.sparkline.x()(data[that.index()[0]], that.index()[0])));
 
         hoverEnter.append('text').attr('class', 'nv-yValue')
             .attr('x', 6)
-            .attr('y', -Layer.margin.top)
+            .attr('y', -that.margin().top)
             .attr('text-anchor', 'start')
             .attr('dy', '.9em');
 
-        Layer.g.select('.nv-hoverValue .nv-yValue')
-            .text(yTickFormat(sparkline.y()(data[index[0]], index[0])));
-      }
+        that.g.select('.nv-hoverValue .nv-yValue')
+            .text(that.yTickFormat()(that.sparkline.y()(data[that.index()[0]], that.index()[0])));
+    }
 
-      function sparklineHover() {
-        if (paused) return;
-        var pos = d3.mouse(this)[0] - Layer.margin.left;
+    function sparklineHover() {
+        if (that.paused()) return;
+        var pos = d3.mouse(this)[0] - that.margin().left;
         function getClosestIndex(data, x) {
-          var distance = Math.abs(sparkline.x()(data[0], 0) - x);
-          var closestIndex = 0;
-          for (var i = 0; i < data.length; i++){
-            if (Math.abs(sparkline.x()(data[i], i) - x) < distance) {
-              distance = Math.abs(sparkline.x()(data[i], i) - x);
-              closestIndex = i;
+            var distance = Math.abs(that.sparkline.x()(data[0], 0) - x);
+            var closestIndex = 0;
+            for (var i = 0; i < data.length; i++){
+                if (Math.abs(that.sparkline.x()(data[i], i) - x) < distance) {
+                    distance = Math.abs(that.sparkline.x()(data[i], i) - x);
+                    closestIndex = i;
+                }
             }
-          }
-          return closestIndex;
+            return closestIndex;
         }
-        index = [getClosestIndex(data, Math.round(x.invert(pos)))];
+        that.index( [getClosestIndex(data, Math.round(that.xScale().invert(pos)))] );
         updateValueLine();
-      }
-    });
+    }
+
+    //Chart.prototype.draw.call(this, data);
+};
+
+/**
+ * Set up listeners for dispatches fired on the underlying
+ * multiBar graph.
+ *
+ * @override Chart::attachEvents
+ */
+SparklinePlus.prototype.attachEvents = function(){
+    Chart.prototype.attachEvents.call(this);
+
+};
+
+/**
+ * The sparklinePlus model returns a function wrapping an instance of a SparklinePlus.
+ */
+nv.models.sparklinePlus = function() {
+    "use strict";
+
+    var sparklinePlus = new SparklinePlus();
+
+    function chart(selection) {
+        sparklinePlus.render(selection);
+        return chart;
+    }
+
+    chart.dispatch = sparklinePlus.dispatch;
+    chart.sparkline = sparklinePlus.sparkline;
+
+    d3.rebind(chart, sparklinePlus.sparkline,
+        'x', 'y', 'xScale', 'yScale', 'color'
+    );
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    nv.utils.rebindp(chart, sparklinePlus, SparklinePlus.prototype,
+        'margin', 'width', 'height', 'xTickFormat', 'yTickFormat', 'showValue', 'alignValue', 'rightAlignValue',
+        'noData'
+    );
+
     return chart;
-  }
-
-
-  //============================================================
-  // Expose Public Variables
-  //------------------------------------------------------------
-
-  // expose chart's sub-components
-  chart.sparkline = sparkline;
-
-  d3.rebind(chart, sparkline, 'x', 'y', 'xScale', 'yScale', 'color');
-
-  chart.options = nv.utils.optionsFunc.bind(chart);
-
-  chart.margin = function(_) {
-    if (!arguments.length) return Layer.margin;
-    Layer.margin.top    = typeof _.top    != 'undefined' ? _.top    : Layer.margin.top;
-    Layer.margin.right  = typeof _.right  != 'undefined' ? _.right  : Layer.margin.right;
-    Layer.margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : Layer.margin.bottom;
-    Layer.margin.left   = typeof _.left   != 'undefined' ? _.left   : Layer.margin.left;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return Layer.options.size.width;
-    Layer.options.size.width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return Layer.options.size.height;
-    Layer.options.size.height = _;
-    return chart;
-  };
-
-  chart.xTickFormat = function(_) {
-    if (!arguments.length) return xTickFormat;
-    xTickFormat = _;
-    return chart;
-  };
-
-  chart.yTickFormat = function(_) {
-    if (!arguments.length) return yTickFormat;
-    yTickFormat = _;
-    return chart;
-  };
-
-  chart.showValue = function(_) {
-    if (!arguments.length) return showValue;
-    showValue = _;
-    return chart;
-  };
-
-  chart.alignValue = function(_) {
-    if (!arguments.length) return alignValue;
-    alignValue = _;
-    return chart;
-  };
-
-  chart.rightAlignValue = function(_) {
-    if (!arguments.length) return rightAlignValue;
-    rightAlignValue = _;
-    return chart;
-  };
-
-  chart.noData = function(_) {
-    if (!arguments.length) return Layer.options.noData;
-    Layer.options.noData = _;
-    return chart;
-  };
-
-  //============================================================
-
-  return chart;
 };
