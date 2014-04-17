@@ -48,18 +48,23 @@
       Data is all negative
       <svg></svg>
   </div>
+  <div class='chart half' id='chart10'>
+      Simple StackedArea
+      <svg></svg>
+  </div>
 
 <script src="../lib/d3.v3.js"></script>
 
 <script src="../src/core.js"></script>
 <script src="../src/utils.js"></script>
-<script src="../src/canvas.js"></script>
+<script src="../src/layer.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/interactiveLayer.js"></script>
 
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
 <script src="../src/models/scatter/scatter.js"></script>
+<script src="../src/chart.js"></script>
 
 <script src="../src/models/stackedArea/stackedArea.js"></script>
 <script src="../src/models/stackedArea/stackedAreaChart.js"></script>
@@ -110,7 +115,6 @@ var histcatexplong = [
   }
 ];
 
-
 // for testing single data point
 var histcatexplong_singledatapoint = [
   {
@@ -154,7 +158,6 @@ var histcatexplong_singledatapoint = [
     "values" : [ [ 1138683600000 , 0]]
   }
 ];
-
 
 // for testing two data point s
 var histcatexplong_twodatapoint = [
@@ -287,7 +290,7 @@ function nPoints() {
 var colors = d3.scale.category20();
 var keyColor = function(d) {return colors(d.key)};
 
-function defaultChartConfig(container, data, useGuideline) {
+function StackedAreaChart(container, data, useGuideline) {
   if (useGuideline === undefined) useGuideline = true;
   nv.addGraph(function() {
     var chart;
@@ -298,10 +301,10 @@ function defaultChartConfig(container, data, useGuideline) {
                   .color(keyColor)
                     ;
 
-    chart.xAxis
+    chart.xAxis()
         .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
 
-    chart.yAxis
+    chart.yAxis()
         .tickFormat(d3.format(',.2f'));
 
     d3.select('#' + container + ' svg')
@@ -314,8 +317,23 @@ function defaultChartConfig(container, data, useGuideline) {
   });
 }
 
+function RenderStackedArea(container, data) {
+    nv.addGraph(function() {
+        var chart;
+        chart = nv.models.stackedArea()
+                .x(function(d) { return d[0] })
+                .y(function(d) { return d[1] })
+        ;
+        d3.select('#' + container + ' svg')
+                .datum(data)
+                .transition().duration(500).call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+}
+
 //Chart with old tooltip format.
-nv.addGraph(function() {
+/*nv.addGraph(function() {
   var chart = nv.models.stackedAreaChart()
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
@@ -325,29 +343,30 @@ nv.addGraph(function() {
                 .rightAlignYAxis(true)
                 ;
 
-  chart.xAxis
+  chart.xAxis()
       .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
 
-  chart.yAxis
+  chart.yAxis()
       .tickFormat(d3.format(',.2f'));
 
   d3.select('#chart2 svg')
     .datum(histcatexpshort)
       .call(chart);
 
-
-
   nv.utils.windowResize(chart.update);
 
   return chart;
 });
 
-defaultChartConfig("chart1", histcatexplong);
-defaultChartConfig("chart3", histcatexplong_singledatapoint);
-defaultChartConfig("chart4", histcatexplong_twodatapoint);
-defaultChartConfig("chart5", histcatexplong_withholes);
-defaultChartConfig("chart6", totalRandom(), false);
-defaultChartConfig("chart7", nPoints(),false);
-defaultChartConfig("chart8", []);
-defaultChartConfig("chart9", histcatexpshort,true);
+StackedAreaChart("chart1", histcatexplong);
+StackedAreaChart("chart3", histcatexplong_singledatapoint);
+StackedAreaChart("chart4", histcatexplong_twodatapoint);
+StackedAreaChart("chart5", histcatexplong_withholes);
+StackedAreaChart("chart6", totalRandom(), false);
+StackedAreaChart("chart7", nPoints(),false);
+StackedAreaChart("chart8", []);
+StackedAreaChart("chart9", histcatexpshort,true);*/
+
+RenderStackedArea("chart10", histcatexplong);
+
 </script>
