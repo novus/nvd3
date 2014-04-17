@@ -290,7 +290,7 @@ function nPoints() {
 var colors = d3.scale.category20();
 var keyColor = function(d) {return colors(d.key)};
 
-function StackedAreaChart(container, data, useGuideline) {
+function RenderStackedAreaChart(container, data, useGuideline) {
   if (useGuideline === undefined) useGuideline = true;
   nv.addGraph(function() {
     var chart;
@@ -333,7 +333,7 @@ function RenderStackedArea(container, data) {
 }
 
 //Chart with old tooltip format.
-/*nv.addGraph(function() {
+nv.addGraph(function() {
   var chart = nv.models.stackedAreaChart()
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
@@ -342,30 +342,25 @@ function RenderStackedArea(container, data) {
                 .margin({right:90})
                 .rightAlignYAxis(true)
                 ;
-
   chart.xAxis()
       .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
-
   chart.yAxis()
       .tickFormat(d3.format(',.2f'));
-
   d3.select('#chart2 svg')
     .datum(histcatexpshort)
       .call(chart);
-
   nv.utils.windowResize(chart.update);
-
   return chart;
 });
 
-StackedAreaChart("chart1", histcatexplong);
-StackedAreaChart("chart3", histcatexplong_singledatapoint);
-StackedAreaChart("chart4", histcatexplong_twodatapoint);
-StackedAreaChart("chart5", histcatexplong_withholes);
-StackedAreaChart("chart6", totalRandom(), false);
-StackedAreaChart("chart7", nPoints(),false);
-StackedAreaChart("chart8", []);
-StackedAreaChart("chart9", histcatexpshort,true);*/
+RenderStackedAreaChart("chart1", histcatexplong);
+RenderStackedAreaChart("chart3", histcatexplong_singledatapoint);
+RenderStackedAreaChart("chart4", histcatexplong_twodatapoint);
+RenderStackedAreaChart("chart5", histcatexplong_withholes);
+RenderStackedAreaChart("chart6", totalRandom(), false);
+RenderStackedAreaChart("chart7", nPoints(),false);
+RenderStackedAreaChart("chart8", []);
+RenderStackedAreaChart("chart9", histcatexpshort,true);
 
 RenderStackedArea("chart10", histcatexplong);
 

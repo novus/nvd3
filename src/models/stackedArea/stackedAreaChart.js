@@ -11,6 +11,8 @@ var StackedAreaChartPrivates = {
     , cData : ['Stacked', 'Stream', 'Expanded']
     , xScale: null
     , yScale: null
+    , interactive: null
+    , useVoronoi: null
     , _useInteractiveGuideline : false
     , _rightAlignYAxis : false
     , _controlLabels : {}
@@ -30,13 +32,36 @@ function StackedAreaChart(options){
 
     Chart.call(this, options);
 
-    this.stacked = nv.models.stackedArea() ;
-    this.controls = nv.models.legend();
-    this.interactiveLayer = nv.interactiveGuideline();
-    this.state = nv.utils.state();
+    this.stacked = this.getStackedArea();
+    this.controls = this.getLegend();
+    this.interactiveLayer = this.getInteractiveGuideline();
+    this.state = this.getStatesManager();
+
+    this.yAxis().tickFormat = function(_) {
+        if (!arguments.length) return this.yAxisTickFormat();
+        this.yAxisTickFormat(_);
+        return this.yAxis();
+    }.bind(this);
+    this.yAxis().setTickFormat = this.yAxis().tickFormat;
 }
 
 nv.utils.create(StackedAreaChart, Chart, StackedAreaChartPrivates);
+
+StackedAreaChart.prototype.getStatesManager = function(){
+    return nv.utils.state();
+};
+
+StackedAreaChart.prototype.getInteractiveGuideline = function(){
+    return nv.interactiveGuideline();
+};
+
+StackedAreaChart.prototype.getLegend = function(){
+    return nv.models.legend();
+};
+
+StackedAreaChart.prototype.getStackedArea = function(){
+    return nv.models.stackedArea();
+};
 
 /**
  * @override Chart::wrapper
@@ -45,17 +70,12 @@ StackedAreaChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data,
         ['nv-stackedWrap', 'nv-controlsWrap', 'nv-interactive']
     );
-
     this.xAxis()
         .orient('bottom')
-        .tickPadding(7)
-    ;
+        .tickPadding(7);
     this.yAxis()
-        .orient((this.rightAlignYAxis()) ? 'right' : 'left')
-    ;
-
+        .orient((this.rightAlignYAxis()) ? 'right' : 'left');
     this.controls.updateState(false);
-
     if (this.showXAxis()) this.renderWatch.models(this.xAxis());
     if (this.showYAxis()) this.renderWatch.models(this.yAxis());
 };
@@ -69,25 +89,15 @@ StackedAreaChart.prototype.draw = function(data){
         availableWidth = this.available.width,
         availableHeight = this.available.height;
 
-    //set state.disabled
-    this.state.disabled = data.map(function(d) { return !!d.disabled });
-
-    if (!this.defaultState()) {
-        var key;
-        this.defaultState({});
-        for (key in this.state) {
-            if (this.state[key] instanceof Array)
-                this.defaultState()[key] = this.state[key].slice(0);
-            else
-                this.defaultState()[key] = this.state[key];
-        }
-    }
-
-    //------------------------------------------------------------
-    // Setup Scales
+    /*this.gEnter.append("rect")
+        .style("opacity",0)
+        .attr("width", availableWidth)
+        .attr("height", availableHeight);*/
 
     this.xScale( this.stacked.xScale() );
     this.yScale( this.stacked.yScale() );
+    this.x( this.stacked.x() );
+    this.y( this.stacked.y() );
 
     if (this.showControls()) {
         var controlsData = [
@@ -152,42 +162,41 @@ StackedAreaChart.prototype.draw = function(data){
     }
 
     this.stacked
+        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .width(availableWidth)
         .height(availableHeight);
-
     var stackedWrap = this.g.select('.nv-stackedWrap')
         .datum(data);
-
     stackedWrap.transition().call(this.stacked);
 
-/*    if (showXAxis) {
-        xAxis
-            .scale(x)
+    if (this.showXAxis()) {
+        this.xAxis()
+            .scale(this.xScale())
             .ticks( availableWidth / 100 )
             .tickSize( -availableHeight, 0);
 
-        Layer.g.select('.nv-x.nv-axis')
+        this.g.select('.nv-x.nv-axis')
             .attr('transform', 'translate(0,' + availableHeight + ')')
             .transition().duration(0)
-            .call(xAxis);
+            .call(this.xAxis());
     }
 
-    if (showYAxis) {
-        yAxis
-            .scale(y)
-            .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
+    if (this.showYAxis()) {
+        this.yAxis()
+            .scale(this.yScale())
+            .ticks(this.stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
             .tickSize(-availableWidth, 0)
             .setTickFormat(
-                (stacked.style() == 'expand' || stacked.style() == 'stack_percent') ? d3.format('%') : yAxisTickFormat
+                (this.stacked.style() == 'expand' || this.stacked.style() == 'stack_percent') ? d3.format('%') : this.yAxisTickFormat()
             );
 
-        Layer.g.select('.nv-y.nv-axis')
+        this.g.select('.nv-y.nv-axis')
             .transition().duration(0)
-            .call(yAxis);
-    }*/
+            .call(this.yAxis());
+    }
 
 
-    Chart.prototype.draw.call(this, data);
+    //Chart.prototype.draw.call(this, data);
 };
 
 /**
@@ -198,6 +207,14 @@ StackedAreaChart.prototype.draw = function(data){
  */
 StackedAreaChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
+
+    var data = null;
+
+    this.svg.call(function(selection){
+        selection.each(function(d){
+            data = d;
+        })
+    });
 
     var that = this;
 
@@ -336,6 +353,7 @@ StackedAreaChart.prototype.attachEvents = function(){
     this.dispatch.on('tooltipHide', function() {
         if (that.tooltips()) nv.tooltip.cleanup();
     });
+
 };
 
 StackedAreaChart.prototype.showTooltip = function(e, offsetElement) {
@@ -419,17 +437,8 @@ nv.models.stackedAreaChart = function() {
 
     chart.dispatch = stackedAreaChart.dispatch;
     chart.stacked = stackedAreaChart.stacked;
-    //chart.legend = stackedAreaChart.legend;
     chart.controls = stackedAreaChart.controls;
     chart.interactiveLayer =  stackedAreaChart.interactiveLayer;
-
-/*    yAxis.setTickFormat = yAxis.tickFormat;
-
-    yAxis.tickFormat = function(_) {
-        if (!arguments.length) return yAxisTickFormat;
-        yAxisTickFormat = _;
-        return yAxis;
-    };*/
 
     d3.rebind(chart, stackedAreaChart.stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain',
         'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
