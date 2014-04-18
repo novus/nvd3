@@ -32,7 +32,6 @@ function StackedArea(options){
     options = nv.utils.extend({}, options, StackedAreaPrivates, {
         margin: {top: 0, right: 0, bottom: 0, left: 0}
         , chartClass: 'stackedarea'
-        , wrapClass: ''
     });
 
     Chart.call(this, options,
@@ -69,14 +68,13 @@ StackedArea.prototype.wrapper = function(data){
  */
 StackedArea.prototype.draw = function(data){
 
-    var that = this
-        , availableWidth = this.available.width
-        , availableHeight = this.available.height;
+    var that = this;
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());
 
     this.dataRaw(data);
+
     // Injecting point index into each point because d3.layout.stack().out does not give index
     data.forEach(function(aseries, i) {
         aseries.seriesIndex = i;
@@ -107,8 +105,8 @@ StackedArea.prototype.draw = function(data){
         (dataFiltered);
 
     this.scatter
-        .width(availableWidth)
-        .height(availableHeight)
+        .width(this.available.width)
+        .height(this.available.height)
         .x(this.x())
         .y(function(d) { return d.display.y + d.display.y0 })
         .forceY([0])
@@ -125,8 +123,8 @@ StackedArea.prototype.draw = function(data){
         .append('rect');
 
     this.wrap.select('#nv-edge-clip-' + this.id() + ' rect')
-        .attr('width', availableWidth)
-        .attr('height', availableHeight);
+        .attr('width', this.available.width)
+        .attr('height', this.available.height);
 
     this.g.attr('clip-path', this.clipEdge() ? 'url(#nv-edge-clip-' + this.id() + ')' : '');
 
@@ -142,7 +140,7 @@ StackedArea.prototype.draw = function(data){
         .y1(function(d) { return that.yScale()(d.display.y0) });
 
     var path = this.g.select('.nv-areaWrap').selectAll('path.nv-area')
-        .data(function(d) { return d });
+        .data(data);
 
     var _mouseEventObject = function(d){
         return {

@@ -81,18 +81,13 @@ StackedAreaChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Chart::draw
+ * @override Layer::draw
  */
 StackedAreaChart.prototype.draw = function(data){
 
     var that = this,
         availableWidth = this.available.width,
         availableHeight = this.available.height;
-
-    /*this.gEnter.append("rect")
-        .style("opacity",0)
-        .attr("width", availableWidth)
-        .attr("height", availableHeight);*/
 
     this.xScale( this.stacked.xScale() );
     this.yScale( this.stacked.yScale() );
@@ -187,7 +182,9 @@ StackedAreaChart.prototype.draw = function(data){
             .ticks(this.stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
             .tickSize(-availableWidth, 0)
             .setTickFormat(
-                (this.stacked.style() == 'expand' || this.stacked.style() == 'stack_percent') ? d3.format('%') : this.yAxisTickFormat()
+                (this.stacked.style() == 'expand' || this.stacked.style() == 'stack_percent')
+                    ? d3.format('%')
+                    : this.yAxisTickFormat()
             );
 
         this.g.select('.nv-y.nv-axis')
@@ -208,113 +205,13 @@ StackedAreaChart.prototype.draw = function(data){
 StackedAreaChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
 
-    var data = null;
+    var data = null
+        , that = this;
 
     this.svg.call(function(selection){
         selection.each(function(d){
             data = d;
         })
-    });
-
-    var that = this;
-
-    this.stacked.dispatch
-        .on('areaClick.toggle', function(e) {
-            if (data.filter(function(d) { return !d.disabled }).length === 1)
-                data.forEach(function(d) { d.disabled = false });
-            else
-                data.forEach(function(d,i) { d.disabled = (i != e.seriesIndex) });
-            that.state.disabled = data.map(function(d) { return !!d.disabled });
-            that.dispatch.stateChange(that.state);
-            that.update();
-        });
-
-    this.legend.dispatch.on('stateChange', function(newState) {
-        that.state.disabled = newState.disabled;
-        that.dispatch.stateChange(that.state);
-        that.update();
-    });
-
-    this.controls.dispatch.on('legendClick', function(d) {
-        if (!d.disabled)  return;
-        that.controlsData( that.controlsData().map(function(s) { s.disabled = true; return s }) );
-        d.disabled = false;
-        that.stacked.style(d.style);
-        that.state.style = that.stacked.style();
-        that.dispatch.stateChange(that.state);
-        that.update();
-    });
-
-    this.interactiveLayer.dispatch.on('elementMousemove', function(e) {
-        that.stacked.clearHighlights();
-        var singlePoint, pointIndex, pointXLocation, allData = [];
-        data
-            .filter(function(series, i) { series.seriesIndex = i; return !series.disabled })
-            .forEach(function(series,i) {
-                pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
-                that.stacked.highlightPoint(i, pointIndex, true);
-
-                var point = series.values[pointIndex];
-                if (typeof point === 'undefined') return;
-                if (typeof singlePoint === 'undefined') singlePoint = point;
-                if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
-
-                //If we are in 'expand' mode, use the stacked percent value instead of raw value.
-                var tooltipValue = (that.stacked.style() == 'expand') ? point.display.y : that.y()(point,pointIndex);
-                allData.push({
-                    key: series.key,
-                    value: tooltipValue,
-                    color: that.color()(series,series.seriesIndex),
-                    stackedValue: point.display
-                });
-            });
-
-        allData.reverse();
-
-        //Highlight the tooltip entry based on which stack the mouse is closest to.
-        if (allData.length > 2) {
-            var yValue = that.yScale().invert(e.mouseY);
-            var yDistMax = Infinity, indexToHighlight = null;
-            allData.forEach(function(series,i) {
-
-                //To handle situation where the stacked area chart is negative, we need to use absolute values
-                //when checking if the mouse Y value is within the stack area.
-                yValue = Math.abs(yValue);
-                var stackedY0 = Math.abs(series.stackedValue.y0);
-                var stackedY = Math.abs(series.stackedValue.y);
-                if ( yValue >= stackedY0 && yValue <= (stackedY + stackedY0)) {
-                    indexToHighlight = i;
-                    return;
-                }
-            });
-            if (indexToHighlight != null)
-                allData[indexToHighlight].highlight = true;
-        }
-
-        var xValue = that.xAxis().tickFormat()(that.x()(singlePoint,pointIndex));
-
-        //If we are in 'expand' mode, force the format to be a percentage.
-        var valueFormatter = (that.stacked.style() == 'expand') ?
-            function(d) {return d3.format(".1%")(d);} :
-            function(d) {return that.yAxis().tickFormat()(d); };
-        that.interactiveLayer.tooltip
-            .position({left: pointXLocation + that.margin().left, top: e.mouseY + that.margin().top})
-            .chartContainer(that.parentNode)
-            .enabled(that.tooltips())
-            .valueFormatter(valueFormatter)
-            .data(
-            {
-                value: xValue,
-                series: allData
-            }
-        )();
-
-        that.interactiveLayer.renderGuideLine(pointXLocation);
-    });
-
-    this.interactiveLayer.dispatch.on("elementMouseout",function() {
-        that.dispatch.tooltipHide();
-        that.stacked.clearHighlights();
     });
 
     this.dispatch
@@ -330,6 +227,99 @@ StackedAreaChart.prototype.attachEvents = function(){
             if (typeof e.style !== 'undefined')
                 that.stacked.style(e.style);
             that.update();
+        })
+        .on('tooltipHide', function() {
+            if (that.tooltips()) nv.tooltip.cleanup();
+        });
+
+    this.legend.dispatch
+        .on('stateChange', function(newState) {
+            that.state.disabled = newState.disabled;
+            that.dispatch.stateChange(that.state);
+            that.update();
+        });
+
+    this.controls.dispatch
+        .on('legendClick', function(d) {
+            if (!d.disabled)  return;
+            that.controlsData( that.controlsData().map(function(s) { s.disabled = true; return s }) );
+            d.disabled = false;
+            that.stacked.style(d.style);
+            that.state.style = that.stacked.style();
+            that.dispatch.stateChange(that.state);
+            that.update();
+        });
+
+    this.interactiveLayer.dispatch
+        .on('elementMousemove', function(e) {
+            that.stacked.clearHighlights();
+            var singlePoint, pointIndex, pointXLocation, allData = [];
+            data
+                .filter(function(series, i) { series.seriesIndex = i; return !series.disabled })
+                .forEach(function(series,i) {
+                    pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
+                    that.stacked.highlightPoint(i, pointIndex, true);
+
+                    var point = series.values[pointIndex];
+                    if (typeof point === 'undefined') return;
+                    if (typeof singlePoint === 'undefined') singlePoint = point;
+                    if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
+
+                    //If we are in 'expand' mode, use the stacked percent value instead of raw value.
+                    var tooltipValue = (that.stacked.style() == 'expand') ? point.display.y : that.y()(point,pointIndex);
+                    allData.push({
+                        key: series.key,
+                        value: tooltipValue,
+                        color: that.color()(series,series.seriesIndex),
+                        stackedValue: point.display
+                    });
+                });
+
+            allData.reverse();
+
+            //Highlight the tooltip entry based on which stack the mouse is closest to.
+            if (allData.length > 2) {
+                var yValue = that.yScale().invert(e.mouseY);
+                var yDistMax = Infinity, indexToHighlight = null;
+                allData.forEach(function(series,i) {
+
+                    //To handle situation where the stacked area chart is negative, we need to use absolute values
+                    //when checking if the mouse Y value is within the stack area.
+                    yValue = Math.abs(yValue);
+                    var stackedY0 = Math.abs(series.stackedValue.y0);
+                    var stackedY = Math.abs(series.stackedValue.y);
+                    if ( yValue >= stackedY0 && yValue <= (stackedY + stackedY0)) {
+                        indexToHighlight = i;
+                        return;
+                    }
+                });
+                if (indexToHighlight != null)
+                    allData[indexToHighlight].highlight = true;
+            }
+
+            var xValue = that.xAxis().tickFormat()(that.x()(singlePoint,pointIndex));
+
+            //If we are in 'expand' mode, force the format to be a percentage.
+            var valueFormatter = (that.stacked.style() == 'expand') ?
+                function(d) {return d3.format(".1%")(d);} :
+                function(d) {return that.yAxis().tickFormat()(d); };
+            that.interactiveLayer.tooltip
+                .position({left: pointXLocation + that.margin().left, top: e.mouseY + that.margin().top})
+                .chartContainer(that.parentNode)
+                .enabled(that.tooltips())
+                .valueFormatter(valueFormatter)
+                .data(
+                {
+                    value: xValue,
+                    series: allData
+                }
+            )();
+
+            that.interactiveLayer.renderGuideLine(pointXLocation);
+        })
+        .on("elementMouseout",function() {
+            that.dispatch.tooltipHide();
+            that.stacked.clearHighlights();
         });
 
     this.stacked.dispatch
@@ -348,12 +338,16 @@ StackedAreaChart.prototype.attachEvents = function(){
         })
         .on('tooltipHide', function(e) {
             that.dispatch.tooltipHide(e);
+        })
+        .on('areaClick.toggle', function(e) {
+            if (data.filter(function(d) { return !d.disabled }).length === 1)
+                data.forEach(function(d) { d.disabled = false });
+            else
+                data.forEach(function(d,i) { d.disabled = (i != e.seriesIndex) });
+            that.state.disabled = data.map(function(d) { return !!d.disabled });
+            that.dispatch.stateChange(that.state);
+            that.update();
         });
-
-    this.dispatch.on('tooltipHide', function() {
-        if (that.tooltips()) nv.tooltip.cleanup();
-    });
-
 };
 
 StackedAreaChart.prototype.showTooltip = function(e, offsetElement) {
