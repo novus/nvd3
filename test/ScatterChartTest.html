@@ -95,6 +95,11 @@
     <button>Select chart</button>
     <svg></svg>
   </div>
+  <div id="test17" class="chart third">
+      Simple Scatter
+      <button>Select</button>
+      <svg></svg>
+  </div>
 
 
 </div>
@@ -104,12 +109,13 @@
 
 <script src="../src/core.js"></script>
 <script src="../src/utils.js"></script>
-<script src="../src/canvas.js"></script>
+<script src="../src/layer.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/interactiveLayer.js"></script>
 
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
+<script src="../src/chart.js"></script>
 
 <script src="../src/models/distribution.js"></script>
 <script src="../src/models/scatter/scatter.js"></script>
@@ -121,33 +127,30 @@
 <script src="testScript.js"></script>
 <script>
 
-defaultChartTest("test1", randomData(4,40));
-defaultChartTest("test2", randomData(1,5), {left:0});
-defaultChartTest("test3", randomData(2,200), {right: 0});
-defaultChartTest("test4", randomData(2, 8), {top:40, right: 90, bottom: 150, left: 150});
-defaultChartTest("test5", randomData(0,0));
-defaultChartTest("test6", randomData(1,1));
-defaultChartTest("test7", randomData(1,2));
-defaultChartTest("test8", randomData(3,1));
-defaultChartTest("test9", [
+renderScatterChart("test1", randomData(4,40));
+renderScatterChart("test2", randomData(1,5), {left:0});
+renderScatterChart("test3", randomData(2,200), {right: 0});
+renderScatterChart("test4", randomData(2, 8), {top:40, right: 90, bottom: 150, left: 150});
+renderScatterChart("test5", randomData(0,0));
+renderScatterChart("test6", randomData(1,1));
+renderScatterChart("test7", randomData(1,2));
+renderScatterChart("test8", randomData(3,1));
+renderScatterChart("test9", [
   {key: "Group 0", values: []},
   {key: "Group 1", values: [{x:1, y:1}]}
 ]);
-
-defaultChartTest("test10", randomData(30,2));
-
+renderScatterChart("test10", randomData(30,2));
 scatterPlusLineTest("test11", randomDataSloped(2,0));
 scatterPlusLineTest("test12", randomDataSloped(2,10));
 scatterPlusLineTest("test13", randomDataSloped(-0.5,1));
-defaultChartTest("test14", [
+renderScatterChart("test14", [
 {key: "Duplicate Y",
      values: [
         {x: 0, y: 10}, {x:1, y:10},{x:2, y:10},{x:3, y:10}
      ]
     }
 ]);
-
-defaultChartTest("test15",[
+renderScatterChart("test15",[
    {key: "Duplicate X",
       area: true,
       values: [
@@ -158,10 +161,11 @@ defaultChartTest("test15",[
       ]
     }
 ]);
+renderScatterChart("test16",tinyPoints());
 
-defaultChartTest("test16",tinyPoints());
+renderScatter("test17", randomData(4,40));
 
-function defaultChartTest(container, data, margin) {
+function renderScatterChart(container, data, margin) {
   nv.addGraph(function() {
     var chart;
     chart = nv.models.scatterChart()
@@ -181,6 +185,20 @@ function defaultChartTest(container, data, margin) {
   });
 }
 
+function renderScatter(container, data, margin) {
+    nv.addGraph(function() {
+        var chart;
+        chart = nv.models.scatter();
+        if (margin) {
+            chart.margin(margin);
+        }
+        d3.select('#' + container + ' svg')
+                .datum(data).transition().duration(500).call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+}
+
 function scatterPlusLineTest(container, data) {
   nv.addGraph(function() {
     var chart;
@@ -196,7 +214,6 @@ function scatterPlusLineTest(container, data) {
     return chart;
   });
 }
-
 
 function randomData(groups, points) { //# groups,# points per group
   var data = [],
@@ -221,7 +238,6 @@ function randomData(groups, points) { //# groups,# points per group
 
   return data;
 }
-
 
 function randomDataSloped(slope,intercept) { //# groups,# points per group
   var data = [],
