@@ -392,7 +392,9 @@ StackedAreaChart.prototype.useInteractiveGuideline = function(_) {
     }
     return this;
 };
+
 StackedAreaChart.prototype.transitionDuration = function(_) {
+    nv.deprecated('stackedAreaChart.transitionDuration');
     return this.duration(_);
 };
 
