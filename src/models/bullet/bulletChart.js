@@ -202,11 +202,6 @@ BulletChart.prototype.orient = function(_) {
     this.reverse( this.orient() == 'right' || this.orient() == 'bottom' );
     return this;
 };
-BulletChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
-};
 
 BulletChart.prototype.showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + this.margin().left,

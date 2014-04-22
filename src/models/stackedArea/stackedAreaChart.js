@@ -392,11 +392,6 @@ StackedAreaChart.prototype.useInteractiveGuideline = function(_) {
     }
     return this;
 };
-StackedAreaChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
-};
 StackedAreaChart.prototype.transitionDuration = function(_) {
     return this.duration(_);
 };

@@ -134,12 +134,6 @@ HistoricalBarChart.prototype.showTooltip = function(e, offsetElement) {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
 };
 
-HistoricalBarChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
-};
-
 /**
  * The historicalBarChart model returns a function wrapping an instance of a HistoricalBarChart.
  */

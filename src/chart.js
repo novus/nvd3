@@ -198,3 +198,8 @@ Chart.prototype.tooltip = function(_) {
     this.options.tooltip = _;
     return this;
 };
+
+Chart.prototype.tooltipContent = function(_){
+    this.tooltip(_);
+    return this;
+};
