@@ -17,11 +17,11 @@ var ScatterChartPrivates = {
     , tooltip      : null
     , defaultState : null
     , transitionDuration : 250
-    , duration : 250
-    , color: nv.utils.defaultColor()
     , controlsData : [ { key: 'Magnify', disabled: true } ]
     , x0: null
     , y0: null
+    , _duration : 250
+    , _color: nv.utils.defaultColor()
 };
 
 /**
@@ -33,10 +33,13 @@ function ScatterChart(options){
         , chartClass: 'scatterChart'
         , wrapClass: 'scatterWrap'
     });
+    Chart.call(this, options);
 
     this.scatter = nv.models.scatter();
     this.distX = this.getDistribution();
     this.distY = this.getDistribution();
+    this.controls = this.getControls();
+    this.state = this.getStatesManager();
 
     this.xScale( d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : this.scatter.xScale() );
     this.yScale( d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : this.scatter.yScale() );
@@ -45,24 +48,29 @@ function ScatterChart(options){
         .xScale(this.xScale())
         .yScale(this.yScale())
     ;
-    this.distX()
+    this.distX
         .axis('x')
     ;
-    this.distY()
+    this.distY
         .axis('y')
     ;
 
     this.controls.updateState(false);
 
-    this.state = null;
 
-    Chart.call(this, options);
 }
 
 nv.utils.create(ScatterChart, Chart, ScatterChartPrivates);
 
+ScatterChart.prototype.getControls = function(){
+    return nv.models.legend();
+};
 ScatterChart.prototype.getDistribution = function(){
     return nv.models.distribution();
+};
+
+ScatterChart.prototype.getStatesManager = function(){
+    return nv.utils.state();
 };
 
 /**
@@ -76,8 +84,8 @@ ScatterChart.prototype.wrapper = function (data) {
     this.renderWatch.models(this.scatter);
     if (this.showXAxis()) this.renderWatch.models(this.xAxis());
     if (this.showYAxis()) this.renderWatch.models(this.yAxis());
-    if (this.showDistX()) this.renderWatch.models(this.distX());
-    if (this.showDistY()) this.renderWatch.models(this.distY());
+    if (this.showDistX()) this.renderWatch.models(this.distX);
+    if (this.showDistY()) this.renderWatch.models(this.distY);
 };
 
 /**
@@ -94,6 +102,7 @@ ScatterChart.prototype.draw = function(data){
     // Main Chart Component(s)
 
     this.scatter
+        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .width(this.available.width)
         .height(this.available.height)
         .color(data.map(function(d,i) {
@@ -132,6 +141,7 @@ ScatterChart.prototype.draw = function(data){
 
     if (this.showDistX()) {
         this.distX
+            .margin({top: 0, right: 0, bottom: 0, left: 0})
             .getData(this.scatter.x())
             .scale(this.xScale())
             .width(this.available.width)
@@ -141,13 +151,14 @@ ScatterChart.prototype.draw = function(data){
         this.gEnter.select('.nv-distWrap').append('g')
             .attr('class', 'nv-distributionX');
         this.g.select('.nv-distributionX')
-            .attr('transform', 'translate(0,' + y.range()[0] + ')')
+            .attr('transform', 'translate(0,' + this.yScale().range()[0] + ')')
             .datum(data.filter(function(d) { return !d.disabled }))
             .call(this.distX);
     }
 
     if (this.showDistY()) {
         this.distY
+            .margin({top: 0, right: 0, bottom: 0, left: 0})
             .getData(this.scatter.y())
             .scale(this.yScale())
             .width(this.available.height)
@@ -227,7 +238,7 @@ ScatterChart.prototype.attachEvents = function(){
         d3.select('.nv-chart-' + this.scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-distx-' + e.pointIndex)
             .attr('y1', 0);
         d3.select('.nv-chart-' + this.scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
-            .attr('x2', this.distY().size());
+            .attr('x2', this.distY.size());
     }.bind(this));
 
     this.dispatch.on('tooltipHide', function() {
@@ -271,7 +282,7 @@ ScatterChart.prototype.attachEvents = function(){
 
     this.dispatch.on('tooltipShow', function(e) {
         if (that.tooltips())
-            that.showTooltip()(e, that.parentNode);
+            that.showTooltip(e, that.svg[0][0]);
     });
 
     // Update chart from a state object passed to event handler
@@ -368,7 +379,7 @@ nv.models.scatterChart = function() {
     nv.utils.rebindp(chart, scatterChart, ScatterChart.prototype,
         'duration', 'tooltipContent', 'color', 'margin', 'width', 'height', 'showDistX', 'showDistY', 'showControls',
         'showLegend', 'showXAxis', 'showYAxis', 'rightAlignYAxis', 'fisheye', 'xPadding', 'yPadding', 'tooltips',
-        'tooltipXContent', 'tooltipYContent', 'state', 'defaultState', 'noData'
+        'tooltipXContent', 'tooltipYContent', 'state', 'defaultState', 'noData', 'xAxis', 'yAxis'
     );
 
     return chart;
