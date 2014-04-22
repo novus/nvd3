@@ -27,9 +27,7 @@ function DiscreteBar(options){
         , chartClass: 'discretebar'
     });
 
-    Layer.call(this, options,
-        ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout']
-    );
+    Layer.call(this, options, []);
 }
 
 nv.utils.create(DiscreteBar, Layer, DiscreteBarPrivates);

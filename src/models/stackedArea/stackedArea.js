@@ -68,7 +68,22 @@ StackedArea.prototype.wrapper = function(data){
  */
 StackedArea.prototype.draw = function(data){
 
-    var that = this;
+    var that = this
+        , dataFiltered = data.filter(function(series) {
+            return !series.disabled;
+        })
+        , scatterWrap = null
+        , area = null
+        , zeroArea = null
+        , path = null
+        , mouseEventObject = function(d){
+            return {
+                point : d,
+                series: d.key,
+                pos   : [d3.event.pageX, d3.event.pageY],
+                seriesIndex: d.seriesIndex
+            }
+        };
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());
@@ -83,10 +98,6 @@ StackedArea.prototype.draw = function(data){
             d.seriesIndex = i;
             return d;
         });
-    });
-
-    var dataFiltered = data.filter(function(series) {
-        return !series.disabled;
     });
 
     data = d3.layout.stack()
@@ -114,7 +125,7 @@ StackedArea.prototype.draw = function(data){
             return d.color || that.color()(d, d.seriesIndex);
         }));
 
-    var scatterWrap = this.g.select('.nv-scatterWrap')
+    scatterWrap = this.g.select('.nv-scatterWrap')
         .datum(data);
     scatterWrap.call(this.scatter);
 
@@ -128,42 +139,34 @@ StackedArea.prototype.draw = function(data){
 
     this.g.attr('clip-path', this.clipEdge() ? 'url(#nv-edge-clip-' + this.id() + ')' : '');
 
-    var area = d3.svg.area()
+    area = d3.svg.area()
         .x(function(d)  { return that.xScale()(that.x()(d)) })
         .y0(function(d) { return that.yScale()(d.display.y0) })
         .y1(function(d) { return that.yScale()(d.display.y + d.display.y0) })
         .interpolate(this.interpolate());
 
-    var zeroArea = d3.svg.area()
+    zeroArea = d3.svg.area()
         .x(function(d)  { return that.xScale()(that.x()(d)) })
         .y0(function(d) { return that.yScale()(d.display.y0) })
         .y1(function(d) { return that.yScale()(d.display.y0) });
 
-    var path = this.g.select('.nv-areaWrap').selectAll('path.nv-area')
+    path = this.g.select('.nv-areaWrap').selectAll('path.nv-area')
         .data(data);
 
-    var _mouseEventObject = function(d){
-        return {
-            point : d,
-            series: d.key,
-            pos   : [d3.event.pageX, d3.event.pageY],
-            seriesIndex: d.seriesIndex
-        }
-    };
     path.enter().append('path')
         .attr('class', function(d,i) { return 'nv-area nv-area-' + i })
         .attr('d', function(d){ return zeroArea(d.values, d.seriesIndex) })
         .on('mouseover', function(d) {
             d3.select(this).classed('hover', true);
-            that.dispatch.areaMouseover( _mouseEventObject(d) );
+            that.dispatch.areaMouseover( mouseEventObject(d) );
         })
         .on('mouseout', function(d) {
             d3.select(this).classed('hover', false);
-            that.dispatch.areaMouseout( _mouseEventObject(d) );
+            that.dispatch.areaMouseout( mouseEventObject(d) );
         })
         .on('click', function(d) {
             d3.select(this).classed('hover', false);
-            that.dispatch.areaClick( _mouseEventObject(d) );
+            that.dispatch.areaClick( mouseEventObject(d) );
         });
 
     path.exit().remove();

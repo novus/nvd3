@@ -34,7 +34,10 @@ function Layer(options, dispatch){
     });
 
     dispatch = nv.utils.valueOrDefault(dispatch, []);
-    dispatch = dispatch.concat(['stateChange', 'changeState', 'renderEnd']);
+    dispatch = dispatch.concat([
+        'stateChange', 'changeState', 'renderEnd',
+        'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout'
+    ]);
     this.dispatch = d3.dispatch.apply(null, dispatch);
     this.renderWatch = nv.utils.renderWatch(this.dispatch);
 }

@@ -24,20 +24,7 @@ function HistoricalBar(options){
         , chartClass: 'historicalBar'
     });
 
-    Layer.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout']);
-
-    //Create methods to allow outside functions to highlight a specific bar.
-    this.highlightPoint = function(pointIndex, isHoverOver) {
-        d3.select(".nv-"+this.options.chartClass+"-" + this.id())
-            .select(".nv-bars .nv-bar-0-" + pointIndex)
-            .classed("hover", isHoverOver);
-    };
-
-    this.clearHighlights = function() {
-        d3.select(".nv-"+this.options.chartClass+"-" + this.id())
-            .select(".nv-bars .nv-bar.hover")
-            .classed("hover", false);
-    };
+    Layer.call(this, options, []);
 }
 
 nv.utils.create(HistoricalBar, Layer, HistoricalBarPrivates);
@@ -184,6 +171,20 @@ HistoricalBar.prototype.color = function(_){
     this._color(nv.utils.getColor(_));
     return this;
 };
+
+//Create methods to allow outside functions to highlight a specific bar.
+HistoricalBar.prototype.highlightPoint = function(pointIndex, isHoverOver) {
+    d3.select(".nv-"+this.options.chartClass+"-" + this.id())
+        .select(".nv-bars .nv-bar-0-" + pointIndex)
+        .classed("hover", isHoverOver);
+};
+
+HistoricalBar.prototype.clearHighlights = function() {
+    d3.select(".nv-"+this.options.chartClass+"-" + this.id())
+        .select(".nv-bars .nv-bar.hover")
+        .classed("hover", false);
+};
+
 /**
  * The historicalBar model returns a function wrapping an instance of a HistoricalBar.
  */

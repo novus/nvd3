@@ -8,6 +8,8 @@ var BulletPrivates = {
     , measureLabels : function(d) { return d.measureLabels ? d.measureLabels : []  }
     , forceX : [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
     , tickFormat : null
+    , xScale1 : d3.scale.linear()
+    , xScale0: null
     , _color: nv.utils.getColor(['#1f77b4'])
     , _orient : 'left' // TODO top & bottom
 };
@@ -23,8 +25,9 @@ function Bullet(options){
         , chartClass: 'bullet'
     });
 
-    Layer.call(this, options, ['elementMouseover', 'elementMouseout']);
+    Layer.call(this, options, []);
 
+    this.xScale0( this.__chart__ || d3.scale.linear() );
     this.renderWatch = nv.utils.renderWatch(this.dispatch);
 }
 
@@ -36,6 +39,11 @@ nv.utils.create(Bullet, Layer, BulletPrivates);
  */
 Bullet.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data);
+    this.gEnter.append('rect').attr('class', 'nv-range nv-rangeMax');
+    this.gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
+    this.gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
+    this.gEnter.append('rect').attr('class', 'nv-measure');
+    this.gEnter.append('path').attr('class', 'nv-markerTriangle');
 };
 
 /**
@@ -53,38 +61,31 @@ Bullet.prototype.draw = function(data, i){
         , measurez = this.measures().call(this, data, i).slice().sort(d3.descending)
         , rangeLabelz = this.rangeLabels().call(this, data, i).slice()
         , markerLabelz = this.markerLabels().call(this, data, i).slice()
-        , measureLabelz = this.measureLabels().call(this, data, i).slice();
+        , measureLabelz = this.measureLabels().call(this, data, i).slice()
+        , rangeMin = d3.min(rangez) //rangez[2]
+        , rangeMax = d3.max(rangez) //rangez[0]
+        , rangeAvg = rangez[1];
 
     //------------------------------------------------------------
     // Setup Scales
 
     // Compute the new x-scale.
-    var x1 = d3.scale.linear()
+    this.xScale1()
         .domain( d3.extent(d3.merge([this.forceX(), rangez])) )
         .range(this.reverse() ? [availableWidth, 0] : [0, availableWidth]);
 
     // Retrieve the old x-scale, if this is an update.
-    var x0 = this.__chart__ || d3.scale.linear()
+    this.xScale0()
         .domain([0, Infinity])
-        .range(x1.range());
+        .range(this.xScale1().range());
 
     // Stash the new scale.
-    this.__chart__ = x1;
+    this.__chart__ = this.xScale1();
 
-    var rangeMin = d3.min(rangez), //rangez[2]
-        rangeMax = d3.max(rangez), //rangez[0]
-        rangeAvg = rangez[1];
-
-    this.gEnter.append('rect').attr('class', 'nv-range nv-rangeMax');
-    this.gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
-    this.gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
-    this.gEnter.append('rect').attr('class', 'nv-measure');
-    this.gEnter.append('path').attr('class', 'nv-markerTriangle');
-
-    var w0 = function(d) { return Math.abs(x0(d) - x0(0)) } // TODO: could optimize by precalculating x0(0) and x1(0)
-        , w1 = function(d) { return Math.abs(x1(d) - x1(0))}
-        , xp0 = function(d) { return d < 0 ? x0(d) : x0(0) }
-        , xp1 = function(d) { return d < 0 ? x1(d) : x1(0) };
+    var w0 = function(d) { return Math.abs(that.xScale0()(d) - that.xScale0()(0)) } // TODO: could optimize by precalculating x0(0) and x1(0)
+        , w1 = function(d) { return Math.abs(that.xScale1()(d) - that.xScale1()(0))}
+        , xp0 = function(d) { return d < 0 ? that.xScale0()(d) : that.xScale0()(0) }
+        , xp1 = function(d) { return d < 0 ? that.xScale1()(d) : that.xScale1()(0) };
 
     this.g.select('rect.nv-rangeMax')
         .attr('height', availableHeight)
@@ -110,13 +111,13 @@ Bullet.prototype.draw = function(data, i){
         .style('fill', this._color())
         .attr('height', availableHeight / 3)
         .attr('y', availableHeight / 3)
-        .attr('width', measurez < 0 ? x1(0) - x1(measurez[0]) : x1(measurez[0]) - x1(0))
+        .attr('width', measurez < 0 ? this.xScale1()(0) - this.xScale1()(measurez[0]) : this.xScale1()(measurez[0]) - this.xScale1()(0))
         .attr('x', xp1(measurez))
         .on('mouseover', function() {
             that.dispatch.elementMouseover({
                 value: measurez[0],
                 label: measureLabelz[0] || 'Current',
-                pos: [x1(measurez[0]), availableHeight/2]
+                pos: [that.xScale1()(measurez[0]), availableHeight/2]
             })
         })
         .on('mouseout', function() {
@@ -129,13 +130,13 @@ Bullet.prototype.draw = function(data, i){
     var h3 =  availableHeight / 6;
     if (markerz[0]) {
         this.g.selectAll('path.nv-markerTriangle')
-            .attr('transform', function() { return 'translate(' + x1(markerz[0]) + ',' + (availableHeight / 2) + ')' })
+            .attr('transform', function() { return 'translate(' + that.xScale1()(markerz[0]) + ',' + (availableHeight / 2) + ')' })
             .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
             .on('mouseover', function() {
                 that.dispatch.elementMouseover({
                     value: markerz[0],
                     label: markerLabelz[0] || 'Previous',
-                    pos: [x1(markerz[0]), availableHeight/2]
+                    pos: [that.xScale1()(markerz[0]), availableHeight/2]
                 })
             })
             .on('mouseout', function() {
@@ -153,7 +154,7 @@ Bullet.prototype.draw = function(data, i){
             that.dispatch.elementMouseover({
                 value: d,
                 label: label,
-                pos: [x1(d), availableHeight/2]
+                pos: [that.xScale1()(d), availableHeight/2]
             })
         })
         .on('mouseout', function(d,i) {
