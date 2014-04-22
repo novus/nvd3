@@ -7,7 +7,7 @@ var ChartPrivates = {
     , staggerLabels: false
     , rotateLabels: 0
     , rightAlignYAxis: false
-}
+};
 
 /**
  * A Chart is a composite Layer structure.
@@ -51,7 +51,7 @@ Chart.prototype.wrapper = function(data, gs) {
 
     this.axis = {
         x: this.wrap.select('.nv-x.nv-axis'),
-        y: this.wrap.select('.nv-x.nv-axis')
+        y: this.wrap.select('.nv-y.nv-axis')
     };
 
     this.buildLegend(data);
@@ -98,7 +98,7 @@ Chart.prototype.showLegend = function(_) {
 
 Chart.prototype.draw = function(data){
     this.plotAxes(data);
-}
+};
 
 Chart.prototype.plotAxes = function(data){
     if (this.rightAlignYAxis()) {
@@ -171,7 +171,7 @@ Chart.prototype.plotAxes = function(data){
 
         this.axis.y.transition().call(this.yAxis());
     }
-}
+};
 
 Chart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);

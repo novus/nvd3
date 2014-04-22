@@ -3,12 +3,11 @@ var LineChartPrivates = {
     , defaultState : null
     , xScale: null
     , yScale: null
+    , interactive: null
+    , useVoronoi: null
     , _duration : 250
     , _useInteractiveGuideline : false
     , _color: nv.utils.defaultColor()
-    , interactive: null
-    , useVoronoi: null
-    , state: null
 };
 
 /**
@@ -24,16 +23,7 @@ function LineChart(options){
 
     this.line = this.getLine();
     this.interactiveLayer = this.getInteractiveLayer();
-    this.state(this.getStatesManager());
-
-    this.showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
-            y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
-            content = this.tooltip()(e.series.key, x, y);
-        nv.tooltip.show([left, top], content, null, null, offsetElement);
-    }.bind(this);
+    this.state = this.getStatesManager();
 }
 
 nv.utils.create(LineChart, Chart, LineChartPrivates);
@@ -62,8 +52,8 @@ LineChart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
 
     this.legend.dispatch.on('stateChange', function(newState) {
-        this.state(newState);
-        this.dispatch.stateChange(this.state());
+        this.state = newState;
+        this.dispatch.stateChange(this.state);
         this.update();
     }.bind(this));
 
@@ -84,7 +74,7 @@ LineChart.prototype.attachEvents = function(){
                             allData.push({
                                 key: series.key,
                                 value: this.y()(point, pointIndex),
-                                color: color(series, series.seriesIndex)
+                                color: this.color(series, series.seriesIndex)
                             });
                         }.bind(this));
                 });
@@ -135,7 +125,7 @@ LineChart.prototype.attachEvents = function(){
                         });
                     });
                 });
-                this.state().disabled = e.disabled;
+                this.state.disabled = e.disabled;
             }
             this.update();
         }.bind(this))
@@ -212,7 +202,7 @@ LineChart.prototype.duration = function(_) {
 LineChart.prototype.color = function(_) {
     if (!arguments.length) return this._color();
     this._color( nv.utils.getColor(_) );
-    this.legend.color( this.color() );
+    this.legend.color( this._color() );
     return this;
 };
 
@@ -224,6 +214,15 @@ LineChart.prototype.useInteractiveGuideline = function(_) {
         this.useVoronoi(false);
     }
     return this;
+};
+
+LineChart.prototype.showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
+        y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
+        content = this.tooltip()(e.series.key, x, y);
+    nv.tooltip.show([left, top], content, null, null, offsetElement);
 };
 
 /**
@@ -243,11 +242,13 @@ nv.models.lineChart = function() {
     chart.line = lineChart.line;
     chart.legend = lineChart.legend;
     chart.interactiveLayer = lineChart.interactiveLayer;
+    chart.state = lineChart.state;
 
     d3.rebind(chart, lineChart.line,
         'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'defined', 'isArea',
         'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate'
     );
+
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, lineChart, LineChart.prototype,

@@ -10,10 +10,16 @@ function PieChart(options){
 
     Chart.call(this, options);
     this.pie = this.getPie();
+    this.state = this.getStatesManager();
+
     this.pie.showLabels(true);
 }
 
 nv.utils.create(PieChart, Chart, {});
+
+PieChart.prototype.getStatesManager = function(){
+    return nv.utils.state();
+};
 
 PieChart.prototype.getPie = function(){
     return nv.models.pie();
@@ -90,11 +96,17 @@ nv.models.pieChart = function() {
   chart.legend = pieChart.legend;
   chart.dispatch = pieChart.dispatch;
   chart.pie = pieChart.pie;
+  chart.state = pieChart.state;
 
-  d3.rebind(chart, pieChart.pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold', 'labelSunbeamLayout', 'labelLayout');
+  d3.rebind(chart, pieChart.pie,
+      'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside',
+      'labelType', 'donut', 'donutRatio', 'labelThreshold', 'labelSunbeamLayout', 'labelLayout'
+  );
   chart.options = nv.utils.optionsFunc.bind(chart);
 
-  nv.utils.rebindp(chart, pieChart, PieChart.prototype, 'margin', 'width', 'height', 'color', 'tooltips', 'tooltipContent', 'showLegend', 'duration', 'noData', 'state');
+  nv.utils.rebindp(chart, pieChart, PieChart.prototype,
+      'margin', 'width', 'height', 'color', 'tooltips', 'tooltipContent', 'showLegend', 'duration', 'noData', 'state'
+  );
 
   return chart;
 };

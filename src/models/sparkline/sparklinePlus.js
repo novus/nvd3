@@ -17,14 +17,18 @@ function SparklinePlus(options){
     options = nv.utils.extend({}, options, SparklinePlusPrivates, {
         margin: {top: 15, right: 100, bottom: 10, left: 50}
         , chartClass: 'sparklineplus'
-        // , wrapClass: ''
     });
     Chart.call(this, options);
 
     this.sparkline = this.getSparkline();
+    this.state = this.getStatesManager();
 }
 
 nv.utils.create(SparklinePlus, Chart, SparklinePlusPrivates);
+
+SparklinePlus.prototype.getStatesManager = function(){
+    return nv.utils.state();
+};
 
 SparklinePlus.prototype.getSparkline = function(){
     return nv.models.sparkline();
@@ -39,10 +43,6 @@ SparklinePlus.prototype.wrapper = function (data) {
     ];
     Layer.prototype.wrapper.call(this, data, wrapPoints);
 
-    this.axis = {
-        x: this.wrap.select('.nv-x.nv-axis'),
-        y: this.wrap.select('.nv-x.nv-axis')
-    };
     this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
 };
 
@@ -164,8 +164,6 @@ SparklinePlus.prototype.draw = function(data){
         that.index( [getClosestIndex(data, Math.round(that.xScale().invert(pos)))] );
         updateValueLine();
     }
-
-    //Chart.prototype.draw.call(this, data);
 };
 
 /**
@@ -194,6 +192,7 @@ nv.models.sparklinePlus = function() {
 
     chart.dispatch = sparklinePlus.dispatch;
     chart.sparkline = sparklinePlus.sparkline;
+    chart.state = sparklinePlus.state;
 
     d3.rebind(chart, sparklinePlus.sparkline,
         'x', 'y', 'xScale', 'yScale', 'color'
