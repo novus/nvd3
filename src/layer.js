@@ -1,14 +1,14 @@
 LayerPrivates = {
-    size: {}
+    id: 0
+    , size: {}
     , margin: { top: 20, right: 20, bottom: 30, left: 40 }
-    , noData: 'No Data Available'
     , showLabels: true
-    , x: function(d){return d.x;}
-    , y: function(d){return d.y;}
+    , noData: 'No Data Available'
+    , opacityDefault: 1e-6
     , color: nv.utils.defaultColor()
     , description: function(d) { return d.description }
-    , id: 0
-    , opacityDefault: 1e-6
+    , x: function(d){return d.x;}
+    , y: function(d){return d.y;}
 };
 
 /**
@@ -176,17 +176,16 @@ Layer.prototype.attachEvents = function(){
         })
     });
 
-    this.dispatch.on('changeState', function(e) {
-        if (typeof e.disabled !== 'undefined') {
-            data.forEach(function(series,i) {
-                series.disabled = e.disabled[i];
-            });
-
-          this.state.disabled = e.disabled;
-        }
-
-        this.update();
-    }.bind(this));
+    this.dispatch
+        .on('changeState', function(e) {
+            if (typeof e.disabled !== 'undefined') {
+                data.forEach(function(series,i) {
+                    series.disabled = e.disabled[i];
+                });
+              this.state.disabled = e.disabled;
+            }
+            this.update();
+        }.bind(this));
 };
 
 Layer.prototype.width = function(_){

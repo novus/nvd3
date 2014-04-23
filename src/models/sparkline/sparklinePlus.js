@@ -8,7 +8,6 @@ var SparklinePlusPrivates = {
     , rightAlignValue : false
     , xScale: null
     , yScale: null
-    , tooltips: true
 };
 
 /**

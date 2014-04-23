@@ -6,9 +6,7 @@ var MultiBarChartPrivates = {
     , xScale: null
     , yScale: null
     , tooltips: true
-    , _state: null
-    , _color: nv.utils.defaultColor()
-    , _duration: 250
+    , duration: 250
 };
 
 /**
@@ -194,10 +192,10 @@ MultiBarChart.prototype.attachEvents = function(){
  * Set the underlying color, on both the chart, and the composites.
  */
 MultiBarChart.prototype.color = function(_){
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    this.legend.color(_);
-    this.multibar.color(_);
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color( this.options.color );
+    this.multibar.color( this.options.color );
     return this;
 };
 
@@ -217,8 +215,8 @@ MultiBarChart.prototype.transitionDuration = function(_) {
 };
 
 MultiBarChart.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.multibar.duration(_);
     this.xAxis().duration(_);
     this.yAxis().duration(_);
@@ -229,8 +227,8 @@ MultiBarChart.prototype.duration = function(_) {
 // DEPRECATED
 MultiBarChart.prototype.state = function(_) {
     nv.deprecated('multiBarChart.state');
-    if (!arguments.length) return this._state();
-    this._state(_);
+    if (!arguments.length) return this.options.state;
+    this.options.state = _;
     return this;
 };
 // END DEPRECATED

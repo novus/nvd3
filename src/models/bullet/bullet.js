@@ -10,8 +10,8 @@ var BulletPrivates = {
     , tickFormat : null
     , xScale1 : d3.scale.linear()
     , xScale0: null
-    , _color: nv.utils.getColor(['#1f77b4'])
-    , _orient : 'left' // TODO top & bottom
+    , color: nv.utils.getColor(['#1f77b4'])
+    , orient : 'left' // TODO top & bottom
 };
 
 /**
@@ -108,7 +108,7 @@ Bullet.prototype.draw = function(data, i){
         .datum(rangeMax > 0 ? rangeMin : rangeMax);
 
     this.g.select('rect.nv-measure')
-        .style('fill', this._color())
+        .style('fill', this.color())
         .attr('height', availableHeight / 3)
         .attr('y', availableHeight / 3)
         .attr('width', measurez < 0 ? this.xScale1()(0) - this.xScale1()(measurez[0]) : this.xScale1()(measurez[0]) - this.xScale1()(0))
@@ -167,15 +167,15 @@ Bullet.prototype.draw = function(data, i){
 };
 
 Bullet.prototype.orient = function(_) {
-    if (!arguments.length) return this._orient();
-    this._orient(_);
-    this.reverse( this._orient() == 'right' || this._orient() == 'bottom' );
+    if (!arguments.length) return this.options.orient;
+    this.options.orient = _;
+    this.reverse( this.options.orient == 'right' || this.options.orient == 'bottom' );
     return this;
 };
 
 Bullet.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 

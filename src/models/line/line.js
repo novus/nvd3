@@ -149,6 +149,7 @@ Line.prototype.draw = function(data){
 
 Line.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
+
     // Pass through scatter dispatch events,
     // required for renderWatch to dispatch properly
     this.scatter.dispatch

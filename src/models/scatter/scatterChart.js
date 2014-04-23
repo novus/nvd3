@@ -20,8 +20,7 @@ var ScatterChartPrivates = {
     , controlsData : [ { key: 'Magnify', disabled: true } ]
     , xScale0: null
     , yScale0: null
-    , _duration : 250
-    , _color: nv.utils.defaultColor()
+    , duration : 250
 };
 
 /**
@@ -316,11 +315,11 @@ ScatterChart.prototype.showTooltip = function(e, offsetElement) {
 };
 
 ScatterChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    this.legend.color(this._color());
-    this.distX.color(this._color());
-    this.distY.color(this._color());
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color(this.color());
+    this.distX.color(this.color());
+    this.distY.color(this.color());
     return this;
 };
 
@@ -331,8 +330,8 @@ ScatterChart.prototype.tooltipContent = function(_) {
 };
 
 ScatterChart.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
     this.xAxis().duration(_);

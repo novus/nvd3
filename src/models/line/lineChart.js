@@ -5,9 +5,8 @@ var LineChartPrivates = {
     , interactive: null
     , useVoronoi: null
     , tooltips: true
-    , _duration : 250
-    , _useInteractiveGuideline : false
-    , _color: nv.utils.defaultColor()
+    , duration : 250
+    , useInteractiveGuideline : false
 };
 
 /**
@@ -185,8 +184,8 @@ LineChart.prototype.transitionDuration = function(_) {
 };
 
 LineChart.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     this.line.duration(_);
     this.xAxis().duration(_);
@@ -195,15 +194,15 @@ LineChart.prototype.duration = function(_) {
 };
 
 LineChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    this.legend.color( this._color() );
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color( this.color() );
     return this;
 };
 
 LineChart.prototype.useInteractiveGuideline = function(_) {
-    if(!arguments.length) return this._useInteractiveGuideline();
-    this._useInteractiveGuideline(_);
+    if(!arguments.length) return this.options.useInteractiveGuideline;
+    this.options.useInteractiveGuideline = _;
     if (_ === true) {
         this.interactive(false);
         this.useVoronoi(false);

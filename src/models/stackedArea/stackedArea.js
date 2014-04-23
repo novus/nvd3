@@ -19,9 +19,8 @@ var StackedAreaPrivates = {
     , xScale: null //can be accessed via chart.xScale()
     , yScale: null //can be accessed via chart.yScale()
     , dataRaw: null
-    , _duration : 250
-    , _color : nv.utils.defaultColor() // a function that computes the color
-    , _style : 'stack'
+    , duration : 250
+    , style : 'stack'
 };
 
 
@@ -206,14 +205,14 @@ StackedArea.prototype.attachEvents = function(){
 };
 
 StackedArea.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 
 StackedArea.prototype.style = function(_) { //shortcut for offset + order
-    if (!arguments.length) return this._style();
-    this._style(_);
+    if (!arguments.length) return this.options.style;
+    this.options.style = _;
 
     switch (_) {
         case 'stack':
@@ -242,8 +241,8 @@ StackedArea.prototype.style = function(_) { //shortcut for offset + order
 };
 
 StackedArea.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
     return this;

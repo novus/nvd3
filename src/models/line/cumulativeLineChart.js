@@ -10,17 +10,12 @@ var CumulativeLineChartPrivates = {
     , average : function(d) { return d.average }
     , transitionDuration : 250
     , noErrorCheck : false  //if set to TRUE, will bypass an error check in the indexify function.
-    , id : null
     , dxScale : d3.scale.linear()
     , index : {i: 0, x: 0}
     , xScale : null
     , yScale : null
-    , _duration : 250
-    , _rightAlignYAxis: false
-    , _useInteractiveGuideline : false
-    , _color : nv.utils.defaultColor()
-    , _x : null
-    , _y: null
+    , duration : 250
+    , useInteractiveGuideline : false
 };
 
 function CumulativeLineChart(options){
@@ -412,65 +407,6 @@ CumulativeLineChart.prototype.attachEvents = function(){
         });
 };
 
-CumulativeLineChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    this.legend.color( _ );
-    return this;
-};
-
-CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
-    if(!arguments.length) return this._useInteractiveGuideline();
-    this._useInteractiveGuideline(_);
-    if (_ === true) {
-        this.line.interactive(false);
-        this.line.useVoronoi(false);
-    }
-    return this;
-};
-
-CumulativeLineChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this._rightAlignYAxis();
-    this._rightAlignYAxis(_);
-    this.yAxis().orient( (_) ? 'right' : 'left');
-    return this;
-};
-
-CumulativeLineChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
-};
-
-CumulativeLineChart.prototype.transitionDuration = function(_) {
-    nv.deprecated('cumulativeLineChart.transitionDuration');
-    return this.duration(_);
-};
-
-CumulativeLineChart.prototype.duration = function(_) {
-    if(!arguments.length) return this._duration();
-    this._duration(_);
-    this.line.duration(_);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
-    this.renderWatch.reset(_);
-    return this;
-};
-
-CumulativeLineChart.prototype.x = function(_){
-    if (!arguments.length) return this._x();
-    this._x(_);
-    this.line.x(_);
-    return this;
-};
-
-CumulativeLineChart.prototype.y = function(_){
-    if (!arguments.length) return this._y();
-    this._y(_);
-    this.line.y(_);
-    return this;
-};
-
 /* Normalize the data according to an index point. */
 CumulativeLineChart.prototype.indexify = function(idx, data) {
     return data.map(function(line) {
@@ -528,6 +464,59 @@ CumulativeLineChart.prototype.showTooltip = function(e, offsetElement) {
         content = this.tooltip()(e.series.key, x, y);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
+};
+
+CumulativeLineChart.prototype.color = function(_) {
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_) ;
+    this.legend.color( this.options.color );
+    return this;
+};
+
+CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
+    if(!arguments.length) return this.options.useInteractiveGuideline;
+    this.options.useInteractiveGuideline = _;
+    if (_ === true) {
+        this.line.interactive(false);
+        this.line.useVoronoi(false);
+    }
+    return this;
+};
+
+CumulativeLineChart.prototype.rightAlignYAxis = function(_) {
+    if(!arguments.length) return this.options.rightAlignYAxis;
+    this.options.rightAlignYAxis = _;
+    this.yAxis().orient( (_) ? 'right' : 'left');
+    return this;
+};
+
+CumulativeLineChart.prototype.transitionDuration = function(_) {
+    nv.deprecated('cumulativeLineChart.transitionDuration');
+    return this.duration(_);
+};
+
+CumulativeLineChart.prototype.duration = function(_) {
+    if(!arguments.length) return this.options.duration;
+    this.options.duration = _;
+    this.line.duration(_);
+    this.xAxis().duration(_);
+    this.yAxis().duration(_);
+    this.renderWatch.reset(_);
+    return this;
+};
+
+CumulativeLineChart.prototype.x = function(_){
+    if (!arguments.length) return this.options.x;
+    this.options.x = _;
+    this.line.x(_);
+    return this;
+};
+
+CumulativeLineChart.prototype.y = function(_){
+    if (!arguments.length) return this.options.y;
+    this.options.y = _;
+    this.line.y(_);
+    return this;
 };
 
 nv.models.cumulativeLineChart = function(){

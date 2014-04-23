@@ -11,9 +11,6 @@ var DiscreteBarPrivates = {
     , xRange : null
     , yRange : null
     , rectClass : 'discreteBar'
-    , _color : nv.utils.defaultColor()
-    , _y: function(d){return d.y}
-    , _x: function(d){return d.x}
 };
 
 /**
@@ -189,21 +186,9 @@ DiscreteBar.prototype.draw = function(data){
 
 };
 
-DiscreteBar.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    return this;
-};
-
-DiscreteBar.prototype.x = function(_){
-    if (!arguments.length) return this._x();
-    this._x(_);
-    return this;
-};
-
-DiscreteBar.prototype.y = function(_){
-    if (!arguments.length) return this._y();
-    this._y(_);
+DiscreteBar.prototype.color = function(_){
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 

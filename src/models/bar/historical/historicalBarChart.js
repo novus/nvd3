@@ -1,10 +1,6 @@
 var HistoricalBarChartPrivates = {
     defaultState : null
     , transitionDuration : 250
-    , showLegend : true
-    , tooltips: true
-    , _color : nv.utils.defaultColor()
-    , _rightAlignYAxis : false
 };
 
 /**
@@ -56,6 +52,13 @@ HistoricalBarChart.prototype.draw = function(data){
 HistoricalBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
 
+    var data = null;
+    this.svg.call(function(selection){
+        selection.each(function(d){
+            data = d
+        })
+    });
+
     this.historicalBar.dispatch
         .on('elementMouseover.tooltip', function(e) {
             e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
@@ -91,20 +94,20 @@ HistoricalBarChart.prototype.attachEvents = function(){
     // add parentNode, override Charts' 'tooltipShow'
     this.dispatch
         .on('tooltipShow', function(e) {
-        if (this.tooltips()) this.showTooltip(e, this.svg[0][0].parentNode);
-    }.bind(this));
+            if (this.tooltips()) this.showTooltip(e, this.svg[0][0].parentNode);
+        }.bind(this));
 };
 
 HistoricalBarChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
-    this.legend.color(this._color());
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color(this.color());
     return this;
 };
 
 HistoricalBarChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this._rightAlignYAxis();
-    this._rightAlignYAxis(_);
+    if(!arguments.length) return this.options.rightAlignYAxis;
+    this.options.rightAlignYAxis = _;
     this.yAxis().orient( (_) ? 'right' : 'left');
     return this;
 };

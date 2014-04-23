@@ -1,13 +1,9 @@
 var DiscreteBarChartPrivates = {
-    x : null
-    , y : null
-    , defaultState : null
+    defaultState : null
     , xTicksPadding: [5, 17]
     , xScale: null
     , yScale: null
     , transitionDuration : 250
-    , tooltips: true
-    , _staggerLabels : false
 };
 
 /**
@@ -79,12 +75,6 @@ DiscreteBarChart.prototype.draw = function(data){
         .attr("y2", this.y()(0));
 
     Chart.prototype.draw.call(this, data);
-};
-
-DiscreteBarChart.prototype.staggerLabels = function(_){
-    if (!arguments.length) return this._staggerLabels();
-    this._staggerLabels(_);
-    return this;
 };
 
 /**

@@ -13,11 +13,9 @@ var StackedAreaChartPrivates = {
     , interactive: null
     , useVoronoi: null
     , tooltips: true
-    , _useInteractiveGuideline : false
-    , _rightAlignYAxis : false
-    , _controlLabels : {}
-    , _color : nv.utils.defaultColor() // a function that takes in d, i and returns color
-    , _duration : 250
+    , useInteractiveGuideline : false
+    , controlLabels : {}
+    , duration : 250
 };
 
 /**
@@ -365,23 +363,23 @@ StackedAreaChart.prototype.showTooltip = function(e, offsetElement) {
 };
 
 StackedAreaChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     this.legend.color(this.color());
     this.stacked.color(this.color());
     return this;
 };
 
 StackedAreaChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this._rightAlignYAxis();
-    this._rightAlignYAxis(_);
+    if(!arguments.length) return this.options.rightAlignYAxis;
+    this.options.rightAlignYAxis = _;
     this.yAxis().orient( (_) ? 'right' : 'left');
     return this;
 };
 
 StackedAreaChart.prototype.useInteractiveGuideline = function(_) {
-    if(!arguments.length) return this._useInteractiveGuideline();
-    this._useInteractiveGuideline(_);
+    if(!arguments.length) return this.options.useInteractiveGuideline;
+    this.options.useInteractiveGuideline = _;
     if (_ === true) {
         this.interactive(false);
         this.useVoronoi(false);
@@ -401,15 +399,14 @@ StackedAreaChart.prototype.controlsData = function(_) {
 };
 
 StackedAreaChart.prototype.controlLabels = function(_) {
-    if (!arguments.length) return this._controlLabels();
-    if (typeof _ !== 'object') return this._controlLabels();
-    this._controlLabels(_);
+    if (!arguments.length || (typeof _ !== 'object')) return this.options.controlLabels;
+    this.options.controlLabels = _;
     return this;
 };
 
 StackedAreaChart.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     // stacked.duration(duration);
     this.xAxis().duration(_);

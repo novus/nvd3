@@ -12,11 +12,10 @@ var MultiBarPrivates = {
     , hideable: false
     , groupSpacing: 0.1
     , forceY: [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-    , id: 0
     , xScale0: null
     , yScale0: null
-    , _duration: 1000
-    , _barColor: null
+    , duration: 1000
+    , barColor: null
 };
 
 /**
@@ -288,8 +287,8 @@ MultiBar.prototype.draw = function(data){
 };
 
 MultiBar.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     return this;
 };
@@ -300,8 +299,8 @@ MultiBar.prototype.delay = function(_) {
 };
 
 MultiBar.prototype.barColor = function(_) {
-    if (!arguments.length) return this._barColor();
-    this._barColor( nv.utils.getColor(_) );
+    if (!arguments.length) return this.options.barColor;
+    this.options.barColor = nv.utils.getColor(_);
     return this;
 };
 
