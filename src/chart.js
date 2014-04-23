@@ -1,12 +1,12 @@
 var ChartPrivates = {
       showXAxis : true
-    , xAxis: nv.models.axis()
-    , reduceXTicks : true
     , showYAxis : true
+    , xAxis: nv.models.axis()
     , yAxis: nv.models.axis()
+    , rightAlignYAxis: false
+    , reduceXTicks : true
     , staggerLabels: false
     , rotateLabels: 0
-    , rightAlignYAxis: false
 };
 
 /**
@@ -176,8 +176,8 @@ Chart.prototype.plotAxes = function(data){
 Chart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
     this.legend.dispatch.on('stateChange', function(newState) {
-      state = newState;
-      this.dispatch.stateChange(state);
+      this.state = newState;
+      this.dispatch.stateChange(this.state);
     }.bind(this));
 
     this.dispatch.on('tooltipShow', function(e) {

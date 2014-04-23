@@ -141,7 +141,7 @@ BulletChart.prototype.draw = function(data, i){
     var tickEnter = tick.enter().append('g')
         .attr('class', 'nv-tick')
         .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
-        .style('opacity', 1e-6);
+        .style('opacity', this.opacityDefault());
 
     tickEnter.append('line')
         .attr('y1', availableHeight)
@@ -168,7 +168,7 @@ BulletChart.prototype.draw = function(data, i){
     // Transition the exiting ticks to the new scale, x1.
     d3.transition(tick.exit())
         .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
-        .style('opacity', 1e-6)
+        .style('opacity', this.opacityDefault())
         .remove();
 };
 

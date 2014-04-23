@@ -1,18 +1,14 @@
 LayerPrivates = {
-    size: {},
-    margin: {
-        top: 20,
-        right: 20,
-        bottom: 30,
-        left: 40
-    },
-    noData: 'No Data Available',
-    showLabels: true,
-    x: function(d){return d.x;},
-    y: function(d){return d.y;},
-    color: nv.utils.defaultColor(),
-    description: function(d) { return d.description },
-    id: 0
+    size: {}
+    , margin: { top: 20, right: 20, bottom: 30, left: 40 }
+    , noData: 'No Data Available'
+    , showLabels: true
+    , x: function(d){return d.x;}
+    , y: function(d){return d.y;}
+    , color: nv.utils.defaultColor()
+    , description: function(d) { return d.description }
+    , id: 0
+    , opacityDefault: 1e-6
 };
 
 /**
@@ -67,9 +63,8 @@ Layer.prototype.render = function(selection) {
 Layer.prototype.renderElement = function(element, data){
     this.setRoot(element);
     this.wrapper(data);
-    if(this.noData(data)){
+    if (this.noData(data))
         return;
-    }
     this.draw(data);
     this.attachEvents();
 };
@@ -90,16 +85,18 @@ Layer.prototype.update = function(){
  */
 Layer.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
+
     this.options.size = {
         width: (this.size().width || parseInt(this.svg.style('width')) || 960),
         height: (this.size().height || parseInt(this.svg.style('height')) || 500)
-    }
+    };
 
     this.svg.attr(this.options.size);
 
     var margin = this.margin();
     var size = this.options.size;
     var available = this.available = {};
+
     Object.defineProperty(available, 'width', {
         get: function(){
             return Math.max(size.width - (margin.leftright), 0);
@@ -110,6 +107,7 @@ Layer.prototype.setRoot = function(root) {
             return Math.max(size.height - (margin.topbottom), 0);
         }
     });
+
 };
 
 /**
@@ -170,13 +168,21 @@ Layer.prototype.wrapper = function(data, gs) {
 Layer.prototype.draw = function(){};
 
 Layer.prototype.attachEvents = function(){
+
+    var data = null;
+    this.svg.call(function(selection){
+        selection.each(function(d){
+            data = d;
+        })
+    });
+
     this.dispatch.on('changeState', function(e) {
         if (typeof e.disabled !== 'undefined') {
             data.forEach(function(series,i) {
                 series.disabled = e.disabled[i];
             });
 
-          state.disabled = e.disabled;
+          this.state.disabled = e.disabled;
         }
 
         this.update();
@@ -203,5 +209,5 @@ Layer.prototype.margin = function(_){
     om.left = nv.utils.valueOrDefault(_.left, om.left);
     om.right = nv.utils.valueOrDefault(_.right, om.right);
     return this;
-}
+};
 

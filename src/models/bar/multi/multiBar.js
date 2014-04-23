@@ -58,7 +58,8 @@ MultiBar.prototype.draw = function(data){
         , barsEnter = null
         , endFn = function(d, i) { // This function defines the requirements for render complete
             return d.series === data.length - 1 && i === data[0].values.length - 1;
-        }, onMouseEventObject = function(d,i){
+        }
+        , onMouseEventObject = function(d,i){
             return {
                 value     : that.y()(d),
                 point     : d,
@@ -131,11 +132,7 @@ MultiBar.prototype.draw = function(data){
     this.yScale().domain(
             this.yDomain() || d3.extent(
                 d3.merge(seriesData)
-                    .map(function(d) {
-                        return that.stacked() ?
-                            that.y()(d) > 0 ? d.y1 : d.y1 + that.y()(d) :
-                            that.y()(d)}
-                )
+                    .map(function(d) { return that.stacked() ? that.y()(d) > 0 ? d.y1 : d.y1 + that.y()(d) : that.y()(d)} )
                     .concat(this.forceY())
             )
         )
@@ -143,13 +140,13 @@ MultiBar.prototype.draw = function(data){
 
     // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
     if (this.xScale().domain()[0] === this.xScale().domain()[1])
-        this.xScale().domain()[0] ?
-            this.xScale().domain([this.xScale().domain()[0] - this.xScale().domain()[0] * 0.01, this.xScale().domain()[1] + this.xScale().domain()[1] * 0.01])
+        this.xScale().domain()[0]
+            ? this.xScale().domain([this.xScale().domain()[0] - this.xScale().domain()[0] * 0.01, this.xScale().domain()[1] + this.xScale().domain()[1] * 0.01])
             : this.xScale().domain([-1,1]);
 
     if (this.yScale().domain()[0] === this.yScale().domain()[1])
-        this.yScale().domain()[0] ?
-            this.yScale().domain([this.yScale().domain()[0] + this.yScale().domain()[0] * 0.01, this.yScale().domain()[1] - this.yScale().domain()[1] * 0.01])
+        this.yScale().domain()[0]
+            ? this.yScale().domain([this.yScale().domain()[0] + this.yScale().domain()[0] * 0.01, this.yScale().domain()[1] - this.yScale().domain()[1] * 0.01])
             : this.yScale().domain([-1,1]);
 
     this.xScale0( this.xScale0() || this.xScale() );
@@ -167,8 +164,8 @@ MultiBar.prototype.draw = function(data){
     var groups = this.wrap.select('.nv-groups').selectAll('.nv-group')
         .data(function(d) { return d }, function(d,i) { return i });
     groups.enter().append('g')
-        .style('stroke-opacity', 1e-6)
-        .style('fill-opacity', 1e-6);
+        .style('stroke-opacity', this.opacityDefault())
+        .style('fill-opacity', this.opacityDefault());
 
     exitTransition = this.renderWatch
         .transition(
