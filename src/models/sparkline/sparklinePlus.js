@@ -61,7 +61,6 @@ SparklinePlus.prototype.draw = function(data){
     this.yScale(this.sparkline.yScale());
 
     this.sparkline
-        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .width(availableWidth)
         .height(availableHeight);
     sparklineWrap = this.g.select('.nv-sparklineWrap');

@@ -86,8 +86,7 @@ MultiBarChart.prototype.draw = function(data){
         .stacked(this.stacked())
         .disabled(data.map(function(series) { return series.disabled }))
         .width(this.available.width)
-        .height(this.available.height)
-        .margin({ top: 0, right: 0, bottom: 0, left: 0 });
+        .height(this.available.height);
 
     this.xScale( this.multibar.xScale() );
     this.yScale( this.multibar.yScale() );

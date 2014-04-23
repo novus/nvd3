@@ -45,7 +45,6 @@ DiscreteBarChart.prototype.wrapper = function (data) {
 DiscreteBarChart.prototype.draw = function(data){
 
     this.discreteBar
-        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .width(this.available.width)
         .height(this.available.height)
     ;

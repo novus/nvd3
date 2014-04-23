@@ -18,8 +18,8 @@ var ScatterChartPrivates = {
     , defaultState : null
     , transitionDuration : 250
     , controlsData : [ { key: 'Magnify', disabled: true } ]
-    , x0: null
-    , y0: null
+    , xScale0: null
+    , yScale0: null
     , _duration : 250
     , _color: nv.utils.defaultColor()
 };
@@ -56,8 +56,6 @@ function ScatterChart(options){
     ;
 
     this.controls.updateState(false);
-
-
 }
 
 nv.utils.create(ScatterChart, Chart, ScatterChartPrivates);
@@ -67,10 +65,6 @@ ScatterChart.prototype.getControls = function(){
 };
 ScatterChart.prototype.getDistribution = function(){
     return nv.models.distribution();
-};
-
-ScatterChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
 };
 
 /**
@@ -95,8 +89,8 @@ ScatterChart.prototype.draw = function(data){
 
     var that = this;
 
-    this.x0(this.x0() || this.xScale());
-    this.y0(this.y0() || this.yScale());
+    this.xScale0(this.xScale0() || this.xScale());
+    this.yScale0(this.yScale0() || this.yScale());
 
     //------------------------------------------------------------
     // Main Chart Component(s)
@@ -216,8 +210,8 @@ ScatterChart.prototype.draw = function(data){
     }
 
     //store old scales for use in transitions on update
-    this.x0(this.xScale().copy());
-    this.y0(this.yScale().copy());
+    this.xScale0(this.xScale().copy());
+    this.yScale0(this.yScale().copy());
 
     Chart.prototype.draw.call(this, data);
 };

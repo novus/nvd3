@@ -39,16 +39,6 @@ function CumulativeLineChart(options){
 
     this.indexLine = null;
 
-    this.showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
-            y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
-            content = this.tooltip()(e.series.key, x, y);
-
-        nv.tooltip.show([left, top], content, null, null, offsetElement);
-    }.bind(this);
-
     /* Normalize the data according to an index point. */
     this.indexify = function(idx, data) {
         return data.map(function(line) {
@@ -220,7 +210,6 @@ CumulativeLineChart.prototype.draw = function(data){
 
     this.line
         //.x(function(d) { return d.x })
-        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .y(function(d) { return d.display.y })
         .width(availableWidth)
         .height(availableHeight)
@@ -530,6 +519,16 @@ CumulativeLineChart.prototype.y = function(_){
     this._y(_);
     this.line.y(_);
     return this;
+};
+
+CumulativeLineChart.prototype.showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
+        y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
+        content = this.tooltip()(e.series.key, x, y);
+
+    nv.tooltip.show([left, top], content, null, null, offsetElement);
 };
 
 nv.models.cumulativeLineChart = function(){
