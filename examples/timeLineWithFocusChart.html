@@ -52,23 +52,12 @@ svg {
 nv.addGraph(function() {
   var chart = nv.models.timeLineWithFocusChart();
 
- // chart.transitionDuration(500);
+  // chart.transitionDuration(500);
   var day = 1000 * 60 * 60 * 24;
 
   var dateFormat = d3.time.format("%x");
   var timeFormat = d3.time.format("%X");
-  //var dateFormat = d3.time.format.multi([
-  //            ["%x", function () { return true; }]
-  //      ]);
-
-  //var timeFormat = d3.time.format.multi([
-  //            ["%X", function () { return true; }]
-  //      ]);
   
-  //chart.xAxis
-  //    .tickFormat(function (d) {
-  //      return dateFormat(new Date(d));
-  //    });
   chart.x2Axis
       .tickFormat(d3.format(',f'));
 
