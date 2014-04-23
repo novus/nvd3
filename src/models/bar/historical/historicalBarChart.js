@@ -1,9 +1,8 @@
 var HistoricalBarChartPrivates = {
-    tooltips : true
-    , state : {}
-    , defaultState : null
+    defaultState : null
     , transitionDuration : 250
     , showLegend : true
+    , tooltips: true
     , _color : nv.utils.defaultColor()
     , _rightAlignYAxis : false
 };
@@ -28,10 +27,6 @@ function HistoricalBarChart(options){
 }
 
 nv.utils.create(HistoricalBarChart, Chart, HistoricalBarChartPrivates);
-
-HistoricalBarChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
-};
 
 HistoricalBarChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data);

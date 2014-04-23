@@ -8,6 +8,7 @@ var SparklinePlusPrivates = {
     , rightAlignValue : false
     , xScale: null
     , yScale: null
+    , tooltips: true
 };
 
 /**
@@ -25,10 +26,6 @@ function SparklinePlus(options){
 }
 
 nv.utils.create(SparklinePlus, Chart, SparklinePlusPrivates);
-
-SparklinePlus.prototype.getStatesManager = function(){
-    return nv.utils.state();
-};
 
 SparklinePlus.prototype.getSparkline = function(){
     return nv.models.sparkline();

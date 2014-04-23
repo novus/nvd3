@@ -3,9 +3,9 @@ var MultiBarChartPrivates = {
     , defaultState : null
     , showControls: true
     , color : null
-    , tooltips: true
     , xScale: null
     , yScale: null
+    , tooltips: true
     , _state: null
     , _color: nv.utils.defaultColor()
     , _duration: 250
@@ -56,10 +56,6 @@ function MultiBarChart(options){
 }
 
 nv.utils.create(MultiBarChart, Chart, MultiBarChartPrivates);
-
-MultiBarChart.prototype.getStatesManager = function(){
-    return nv.utils.state()
-};
 
 MultiBarChart.prototype.getMultiBar = function(){
     return nv.models.multiBar();

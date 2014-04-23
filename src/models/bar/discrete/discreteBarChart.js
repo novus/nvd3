@@ -2,12 +2,12 @@ var DiscreteBarChartPrivates = {
     x : null
     , y : null
     , defaultState : null
-    , tooltips : true
     , xTicksPadding: [5, 17]
     , xScale: null
     , yScale: null
-    , _staggerLabels : false
     , transitionDuration : 250
+    , tooltips: true
+    , _staggerLabels : false
 };
 
 /**
@@ -30,10 +30,6 @@ nv.utils.create(DiscreteBarChart, Chart, DiscreteBarChartPrivates);
 
 DiscreteBarChart.prototype.getDiscreteBar = function(){
     return nv.models.discreteBar();
-};
-
-DiscreteBarChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
 };
 
 /**

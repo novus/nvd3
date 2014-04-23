@@ -36,7 +36,12 @@ function Chart(options, dispatch){
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
 }
+
 nv.utils.create(Chart, Layer, ChartPrivates);
+
+Chart.prototype.getStatesManager = function(){
+    return nv.utils.state();
+};
 
 /**
  * Apply the chart-specific wrap classes.

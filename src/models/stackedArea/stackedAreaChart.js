@@ -1,6 +1,5 @@
 var StackedAreaChartPrivates = {
     showControls : true
-    , tooltips : true
     , tooltip : function(key, x, y) {
         return '<h3>' + key + '</h3>' +
             '<p>' +  y + ' on ' + x + '</p>'
@@ -13,6 +12,7 @@ var StackedAreaChartPrivates = {
     , yScale: null
     , interactive: null
     , useVoronoi: null
+    , tooltips: true
     , _useInteractiveGuideline : false
     , _rightAlignYAxis : false
     , _controlLabels : {}
@@ -48,10 +48,6 @@ function StackedAreaChart(options){
 }
 
 nv.utils.create(StackedAreaChart, Chart, StackedAreaChartPrivates);
-
-StackedAreaChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
-};
 
 StackedAreaChart.prototype.getInteractiveGuideline = function(){
     return nv.interactiveGuideline();

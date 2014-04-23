@@ -1,10 +1,10 @@
 var LineChartPrivates = {
-    tooltips : true
-    , defaultState : null
+    defaultState : null
     , xScale: null
     , yScale: null
     , interactive: null
     , useVoronoi: null
+    , tooltips: true
     , _duration : 250
     , _useInteractiveGuideline : false
     , _color: nv.utils.defaultColor()
@@ -34,10 +34,6 @@ LineChart.prototype.getLine = function(){
 
 LineChart.prototype.getInteractiveLayer = function(){
     return nv.interactiveGuideline();
-};
-
-LineChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
 };
 
 LineChart.prototype.wrapper = function(data){

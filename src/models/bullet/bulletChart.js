@@ -5,7 +5,7 @@ var BulletChartPrivates = {
     , markers : function(d) { return d.markers } // markers (previous, goal)
     , measures : function(d) { return d.measures } // measures (actual, forecast)
     , tickFormat : null
-    , tooltips : true
+    , tooltips: true
 };
 
 /**
@@ -25,10 +25,6 @@ function BulletChart(options){
 }
 
 nv.utils.create(BulletChart, Chart, BulletChartPrivates);
-
-BulletChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
-};
 
 BulletChart.prototype.getBullet = function(){
     return nv.models.bullet();

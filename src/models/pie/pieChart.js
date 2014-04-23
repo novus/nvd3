@@ -17,10 +17,6 @@ function PieChart(options){
 
 nv.utils.create(PieChart, Chart, {});
 
-PieChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
-};
-
 PieChart.prototype.getPie = function(){
     return nv.models.pie();
 };
