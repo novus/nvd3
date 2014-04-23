@@ -1,387 +1,382 @@
+var ScatterPrivates = {
+    id           : Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
+    , xScale       : d3.scale.linear()
+    , yScale       : d3.scale.linear()
+    , zScale       : d3.scale.linear() //linear because d3.svg.shape.size is treated as area
+    , getSize      : function(d) { return d.size || 1} // accessor to get the point size
+    , getShape     : function(d) { return d.shape || 'circle' } // accessor to get point shape
+    , onlyCircles  : true // Set to false to use shapes
+    , forceX       : [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
+    , forceY       : [] // List of numbers to Force into the Y scale
+    , forceSize    : [] // List of numbers to Force into the Size scale
+    , interactive  : true // If true, plots a voronoi overlay for advanced point intersection
+    , pointKey     : null
+    , pointActive  : function(d) { return !d.notActive } // any points that return false will be filtered out
+    , padData      : false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
+    , padDataOuter : .1 //outerPadding to imitate ordinal scale outer padding
+    , clipEdge     : false // if true, masks points within x and y scale
+    , clipVoronoi  : true // if true, masks each point with a circle... can turn off to slightly increase performance
+    , clipRadius   : function() { return 25 } // function to get the radius for voronoi point clips
+    , xDomain      : null // Override x domain (skips the calculation from data)
+    , yDomain      : null // Override y domain
+    , xRange       : null // Override x range
+    , yRange       : null // Override y range
+    , sizeDomain   : null // Override point size domain
+    , sizeRange    : null
+    , singlePoint  : false
+    , xScale0      : null
+    , yScale0      : null
+    , zScale0      : null // used to store previous scales
+    , timeoutID    : null
+    , needsUpdate  : false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
+    , _color       : nv.utils.defaultColor() // chooses color
+    , _useVoronoi   : true
+    , _duration     : 250
+};
 
-nv.models.scatter = function() {
-  "use strict";
-  //============================================================
-  // Public Variables with Default Settings
-  //------------------------------------------------------------
+/**
+ * A Scatter
+ */
+function Scatter(options){
+    options = nv.utils.extend({}, options, ScatterPrivates, {
+        margin: {top: 0, right: 0, bottom: 0, left: 0}
+        , width: 960
+        , height: 500
+        , chartClass: 'scatter'
+        , wrapClass: 'scatterWrap'
+    });
 
-  var margin       = {top: 0, right: 0, bottom: 0, left: 0}
-    , width        = 960
-    , height       = 500
-    , color        = nv.utils.defaultColor() // chooses color
-    , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
-    , x            = d3.scale.linear()
-    , y            = d3.scale.linear()
-    , z            = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
-    , getX         = function(d) { return d.x } // accessor to get the x value
-    , getY         = function(d) { return d.y } // accessor to get the y value
-    , getSize      = function(d) { return d.size || 1} // accessor to get the point size
-    , getShape     = function(d) { return d.shape || 'circle' } // accessor to get point shape
-    , onlyCircles  = true // Set to false to use shapes
-    , forceX       = [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
-    , forceY       = [] // List of numbers to Force into the Y scale
-    , forceSize    = [] // List of numbers to Force into the Size scale
-    , interactive  = true // If true, plots a voronoi overlay for advanced point intersection
-    , pointKey     = null
-    , pointActive  = function(d) { return !d.notActive } // any points that return false will be filtered out
-    , padData      = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
-    , padDataOuter = .1 //outerPadding to imitate ordinal scale outer padding
-    , clipEdge     = false // if true, masks points within x and y scale
-    , clipVoronoi  = true // if true, masks each point with a circle... can turn off to slightly increase performance
-    , clipRadius   = function() { return 25 } // function to get the radius for voronoi point clips
-    , xDomain      = null // Override x domain (skips the calculation from data)
-    , yDomain      = null // Override y domain
-    , xRange       = null // Override x range
-    , yRange       = null // Override y range
-    , sizeDomain   = null // Override point size domain
-    , sizeRange    = null
-    , singlePoint  = false
-    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
-    , useVoronoi   = true
-    , duration     = 250
-    ;
+    Layer.call(this, options, ['elementClick', 'elementMouseover', 'elementMouseout']);
+}
 
-  //============================================================
+nv.utils.create(Scatter, Layer, ScatterPrivates);
 
+/**
+ * @override Layer::wrapper
+ */
+Scatter.prototype.wrapper = function(data){
 
-  //============================================================
-  // Private Variables
-  //------------------------------------------------------------
+    var gs = ['nv-groups', 'nv-point-paths'];
+    var chartClass = 'nv-' + this.options.chartClass;
+    var wrapClass = 'nv-' + this.options.wrapClass;
 
-  var x0, y0, z0 // used to store previous scales
-    , timeoutID
-    , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
-    , renderWatch = nv.utils.renderWatch(dispatch, duration)
-    ;
+    this.wrap = this.svg.selectAll('g.nv-wrap.' + wrapClass).data([data]);
+    this.wrapEnter = this.wrap.enter().append('g').attr('class', 'nvd3 nv-wrap '+chartClass+'nv-chart-' + this.id() + (this.singlePoint() ? ' nv-single-point' : ''));
+    this.defsEnter = this.wrapEnter.append('defs');
+    this.gEnter = this.wrapEnter.append('g');
+    this.g = this.wrap.select('g');
 
-  //============================================================
+    gs.concat([wrapClass]).forEach(function(g){
+        this.gEnter.append('g').attr('class', g);
+    }, this);
 
-
-  function chart(selection) {
-    renderWatch.reset();
-    selection.each(function(data) {
-      var availableWidth = width - margin.left - margin.right,
-          availableHeight = height - margin.top - margin.bottom,
-          container = d3.select(this);
-
-      //add series index to each data point for reference
-      data.forEach(function(series, i) {
-        series.values.forEach(function(point) {
-          point.series = i;
-        });
-      });
-
-      //------------------------------------------------------------
-      // Setup Scales
-
-      // remap and flatten the data for use in calculating the scales' domains
-      var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
-            d3.merge(
-              data.map(function(d) {
-                return d.values.map(function(d,i) {
-                  return { x: getX(d,i), y: getY(d,i), size: getSize(d,i) }
-                })
-              })
-            );
-
-      x   .domain(xDomain || d3.extent(seriesData.map(function(d) { return d.x; }).concat(forceX)))
-
-      if (padData && data[0])
-        x.range(xRange || [(availableWidth * padDataOuter +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)  ]);
-        //x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
-      else
-        x.range(xRange || [0, availableWidth]);
-
-      y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
-          .range(yRange || [availableHeight, 0]);
-
-      z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
-          .range(sizeRange || [16, 256]);
-
-      // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
-      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
-      if (x.domain()[0] === x.domain()[1])
-        x.domain()[0] ?
-            x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
-          : x.domain([-1,1]);
-
-      if (y.domain()[0] === y.domain()[1])
-        y.domain()[0] ?
-            y.domain([y.domain()[0] - y.domain()[0] * 0.01, y.domain()[1] + y.domain()[1] * 0.01])
-          : y.domain([-1,1]);
-
-      if ( isNaN(x.domain()[0])) {
-          x.domain([-1,1]);
-      }
-
-      if ( isNaN(y.domain()[0])) {
-          y.domain([-1,1]);
-      }
-
-
-      x0 = x0 || x;
-      y0 = y0 || y;
-      z0 = z0 || z;
-
-      //------------------------------------------------------------
-
-
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id + (singlePoint ? ' nv-single-point' : ''));
-      var defsEnter = wrapEnter.append('defs');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g');
-
-      gEnter.append('g').attr('class', 'nv-groups');
-      gEnter.append('g').attr('class', 'nv-point-paths');
-
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-      //------------------------------------------------------------
-
-
-      defsEnter.append('clipPath')
-          .attr('id', 'nv-edge-clip-' + id)
+    this.defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + this.id())
         .append('rect');
 
-      wrap.select('#nv-edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', (availableHeight > 0) ? availableHeight : 0);
+    this.wrap.select('#nv-edge-clip-' + this.id() + ' rect')
+        .attr('width', this.available.width)
+        .attr('height', (this.available.height > 0) ? this.available.height : 0);
 
-      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+    this.g.attr('clip-path', this.clipEdge() ? 'url(#nv-edge-clip-' + this.id() + ')' : '');
+
+    this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
+
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration())    ;
+};
+
+/**
+ * @override Layer::draw
+ */
+Scatter.prototype.draw = function(data){
+    var that = this
+        , availableWidth = this.available.width
+        , availableHeight = this.available.height;
+
+    //add series index to each data point for reference
+    data.forEach(function(series, i) {
+        series.values.forEach(function(point) {
+            point.series = i;
+        });
+    });
+
+    //------------------------------------------------------------
+    // Setup Scales
+
+    // remap and flatten the data for use in calculating the scales' domains
+    var seriesData = (this.xDomain() && this.yDomain() && this.sizeDomain()) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
+        d3.merge(
+            data.map(function(d) {
+                return d.values.map(function(d,i) {
+                    return { x: that.x()(d,i), y: that.y()(d,i), size: that.getSize()(d,i) }
+                })
+            })
+        );
+
+    this.xScale().domain(this.xDomain() || d3.extent(seriesData.map(function(d) { return d.x; }).concat(this.forceX())));
+
+    if (this.padData() && data[0])
+        this.xScale().range(
+            this.xRange() || [(availableWidth * this.padDataOuter() +  availableWidth) / (2 *data[0].values.length), availableWidth - availableWidth * (1 + this.padDataOuter()) / (2 * data[0].values.length)  ]
+        );
+    //x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+    else
+        this.xScale().range(this.xRange() || [0, availableWidth]);
+
+    this.yScale().domain(this.yDomain() || d3.extent(seriesData.map(function(d) { return d.y }).concat(this.forceY())))
+        .range(this.yRange() || [availableHeight, 0]);
+
+    this.zScale().domain(this.sizeDomain() || d3.extent(seriesData.map(function(d) { return d.size }).concat(this.forceSize())))
+        .range(this.sizeRange() || [16, 256]);
+
+    // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
+    if (this.xScale().domain()[0] === this.xScale().domain()[1] || this.yScale().domain()[0] === this.yScale().domain()[1]) this.singlePoint(true);
+    if (this.xScale().domain()[0] === this.xScale().domain()[1])
+        this.xScale().domain()[0] ?
+            this.xScale().domain([this.xScale().domain()[0] - this.xScale().domain()[0] * 0.01, this.xScale().domain()[1] + this.xScale().domain()[1] * 0.01])
+            : this.xScale().domain([-1,1]);
+
+    if (this.yScale().domain()[0] === this.yScale().domain()[1])
+        this.yScale().domain()[0] ?
+            this.yScale().domain([this.yScale().domain()[0] - this.yScale().domain()[0] * 0.01, this.yScale().domain()[1] + this.yScale().domain()[1] * 0.01])
+            : this.yScale().domain([-1,1]);
+
+    if ( isNaN(this.xScale().domain()[0])) {
+        this.xScale().domain([-1,1]);
+    }
+
+    if ( isNaN(this.yScale().domain()[0])) {
+        this.yScale().domain([-1,1]);
+    }
 
 
-      function updateInteractiveLayer() {
+    this.xScale0(this.xScale0() || this.xScale());
+    this.yScale0(this.yScale0() || this.yScale());
+    this.zScale0(this.zScale0() || this.zScale());
 
-        if (!interactive) return false;
+    function updateInteractiveLayer() {
+        if (!that.interactive()) return false;
 
         var eventElements;
 
         var vertices = d3.merge(data.map(function(group, groupIndex) {
             return group.values
-              .map(function(point, pointIndex) {
-                // *Adding noise to make duplicates very unlikely
-                // *Injecting series and point index for reference
-                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                */
-                var pX = getX(point,pointIndex);
-                var pY = getY(point,pointIndex);
+                .map(function(point, pointIndex) {
+                    // *Adding noise to make duplicates very unlikely
+                    // *Injecting series and point index for reference
+                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
+                     */
+                    var pX = that.x()(point,pointIndex);
+                    var pY = that.y()(point,pointIndex);
 
-                return [x(pX)+ Math.random() * 1e-7,
-                        y(pY)+ Math.random() * 1e-7,
+                    return [that.xScale()(pX)+ Math.random() * 1e-7,
+                        that.yScale()(pY)+ Math.random() * 1e-7,
                         groupIndex,
                         pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
-              })
-              .filter(function(pointArray, pointIndex) {
-                return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
-              })
-          })
+                })
+                .filter(function(pointArray, pointIndex) {
+                    return that.pointActive()(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
+                })
+            })
         );
 
-
-
         //inject series and point index for reference into voronoi
-        if (useVoronoi === true) {
+        if (that.useVoronoi() === true) {
 
-          if (clipVoronoi) {
-            var pointClipsEnter = wrap.select('defs').selectAll('.nv-point-clips')
-                .data([id])
-              .enter();
+            if (that.clipVoronoi()) {
+                var pointClipsEnter = that.wrap.select('defs').selectAll('.nv-point-clips')
+                    .data([that.id()])
+                    .enter();
 
-            pointClipsEnter.append('clipPath')
-                  .attr('class', 'nv-point-clips')
-                  .attr('id', 'nv-points-clip-' + id);
+                pointClipsEnter.append('clipPath')
+                    .attr('class', 'nv-point-clips')
+                    .attr('id', 'nv-points-clip-' + that.id());
 
-            var pointClips = wrap.select('#nv-points-clip-' + id).selectAll('circle')
-                .data(vertices);
-            pointClips.enter().append('circle')
-                .attr('r', clipRadius);
-            pointClips.exit().remove();
-            pointClips
-                .attr('cx', function(d) { return d[0] })
-                .attr('cy', function(d) { return d[1] });
+                var pointClips = that.wrap.select('#nv-points-clip-' + that.id()).selectAll('circle')
+                    .data(vertices);
+                pointClips.enter().append('circle')
+                    .attr('r', that.clipRadius());
+                pointClips.exit().remove();
+                pointClips
+                    .attr('cx', function(d) { return d[0] })
+                    .attr('cy', function(d) { return d[1] });
 
-            wrap.select('.nv-point-paths')
-                .attr('clip-path', 'url(#nv-points-clip-' + id + ')');
-          }
+                that.wrap.select('.nv-point-paths')
+                    .attr('clip-path', 'url(#nv-points-clip-' + that.id() + ')');
+            }
 
+            if(vertices.length) {
+                // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
+                vertices.push([that.xScale().range()[0] - 20, that.yScale().range()[0] - 20, null, null]);
+                vertices.push([that.xScale().range()[1] + 20, that.yScale().range()[1] + 20, null, null]);
+                vertices.push([that.xScale().range()[0] - 20, that.yScale().range()[0] + 20, null, null]);
+                vertices.push([that.xScale().range()[1] + 20, that.yScale().range()[1] - 20, null, null]);
+            }
 
-          if(vertices.length) {
-            // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
-            vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
-            vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
-            vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
-            vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
-          }
+            var bounds = d3.geom.polygon([
+                [-10, -10],
+                [-10, that.height() + 10],
+                [that.width() + 10, that.height() + 10],
+                [that.width() + 10, -10]
+            ]);
 
-          var bounds = d3.geom.polygon([
-              [-10,-10],
-              [-10,height + 10],
-              [width + 10,height + 10],
-              [width + 10,-10]
-          ]);
-
-          var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
-              return {
-                'data': bounds.clip(d),
-                'series': vertices[i][2],
-                'point': vertices[i][3]
-              }
+            var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
+                return {
+                    'data': bounds.clip(d),
+                    'series': vertices[i][2],
+                    'point': vertices[i][3]
+                }
             });
 
 
-          var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
-              .data(voronoi);
-          pointPaths.enter().append('path')
-              .attr('class', function(d,i) { return 'nv-path-'+i; });
-          pointPaths.exit().remove();
-          pointPaths
-              .attr('d', function(d) {
-                if (d.data.length === 0)
-                    return 'M 0 0'
-                else
-                    return 'M' + d.data.join('L') + 'Z';
-              });
+            var pointPaths = that.wrap.select('.nv-point-paths').selectAll('path')
+                .data(voronoi);
+            pointPaths.enter().append('path')
+                .attr('class', function(d,i) { return 'nv-path-'+i; });
+            pointPaths.exit().remove();
+            pointPaths
+                .attr('d', function(d) {
+                    if (d.data.length === 0)
+                        return 'M 0 0'
+                    else
+                        return 'M' + d.data.join('L') + 'Z';
+                });
 
-          var mouseEventCallback = function(d,mDispatch) {
-                if (needsUpdate) return 0;
+            var mouseEventCallback = function(d,mDispatch) {
+                if (that.needsUpdate()) return 0;
                 var series = data[d.series];
                 if (typeof series === 'undefined') return;
 
                 var point  = series.values[d.point];
 
                 mDispatch({
-                  point: point,
-                  series: series,
-                  pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
-                  seriesIndex: d.series,
-                  pointIndex: d.point
+                    point: point,
+                    series: series,
+                    pos: [that.xScale()(that.x()(point, d.point)) + that.margin().left, that.yScale()(that.y()(point, d.point)) + that.margin().top],
+                    seriesIndex: d.series,
+                    pointIndex: d.point
                 });
-          };
+            };
 
-          pointPaths
-              .on('click', function(d) {
-                mouseEventCallback(d, dispatch.elementClick);
-              })
-              .on('mouseover', function(d) {
-                mouseEventCallback(d, dispatch.elementMouseover);
-              })
-              .on('mouseout', function(d, i) {
-                mouseEventCallback(d, dispatch.elementMouseout);
-              });
+            pointPaths
+                .on('click', function(d) {
+                    mouseEventCallback(d, that.dispatch.elementClick);
+                })
+                .on('mouseover', function(d) {
+                    mouseEventCallback(d, that.dispatch.elementMouseover);
+                })
+                .on('mouseout', function(d, i) {
+                    mouseEventCallback(d, that.dispatch.elementMouseout);
+                });
 
 
         } else {
-          /*
-          // bring data in form needed for click handlers
-          var dataWithPoints = vertices.map(function(d, i) {
-              return {
-                'data': d,
-                'series': vertices[i][2],
-                'point': vertices[i][3]
-              }
-            });
-           */
+            /*
+             // bring data in form needed for click handlers
+             var dataWithPoints = vertices.map(function(d, i) {
+             return {
+             'data': d,
+             'series': vertices[i][2],
+             'point': vertices[i][3]
+             }
+             });
+             */
 
-          // add event handlers to points instead voronoi paths
-          wrap.select('.nv-groups').selectAll('.nv-group')
-            .selectAll('.nv-point')
-              //.data(dataWithPoints)
-              //.style('pointer-events', 'auto') // recativate events, disabled by css
-              .on('click', function(d,i) {
-                //nv.log('test', d, i);
-                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                var series = data[d.series],
-                    point  = series.values[i];
+            // add event handlers to points instead voronoi paths
+            that.wrap.select('.nv-groups').selectAll('.nv-group')
+                .selectAll('.nv-point')
+                //.data(dataWithPoints)
+                //.style('pointer-events', 'auto') // recativate events, disabled by css
+                .on('click', function(d,i) {
+                    //nv.log('test', d, i);
+                    if (that.needsUpdate() || !data[d.series]) return 0; //check if this is a dummy point
+                    var series = data[d.series],
+                        point  = series.values[i];
 
-                dispatch.elementClick({
-                  point: point,
-                  series: series,
-                  pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                  seriesIndex: d.series,
-                  pointIndex: i
+                    that.dispatch.elementClick({
+                        point: point,
+                        series: series,
+                        pos: [that.xScale()(that.x()(point, i)) + that.margin().left, that.yScale()(that.y()(point, i)) + that.margin().top],
+                        seriesIndex: d.series,
+                        pointIndex: i
+                    });
+                })
+                .on('mouseover', function(d,i) {
+                    if (that.needsUpdate() || !data[d.series]) return 0; //check if this is a dummy point
+                    var series = data[d.series],
+                        point  = series.values[i];
+
+                    that.dispatch.elementMouseover({
+                        point: point,
+                        series: series,
+                        pos: [that.xScale()(that.x()(point, i)) + that.margin().left, that.yScale()(that.y()(point, i)) + that.margin().top],
+                        seriesIndex: d.series,
+                        pointIndex: i
+                    });
+                })
+                .on('mouseout', function(d,i) {
+                    if (that.needsUpdate() || !data[d.series]) return 0; //check if this is a dummy point
+                    var series = data[d.series],
+                        point  = series.values[i];
+
+                    that.dispatch.elementMouseout({
+                        point: point,
+                        series: series,
+                        seriesIndex: d.series,
+                        pointIndex: i
+                    });
                 });
-              })
-              .on('mouseover', function(d,i) {
-                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                var series = data[d.series],
-                    point  = series.values[i];
+        }
 
-                dispatch.elementMouseover({
-                  point: point,
-                  series: series,
-                  pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                  seriesIndex: d.series,
-                  pointIndex: i
-                });
-              })
-              .on('mouseout', function(d,i) {
-                if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                var series = data[d.series],
-                    point  = series.values[i];
+        that.needsUpdate(false);
+    }
 
-                dispatch.elementMouseout({
-                  point: point,
-                  series: series,
-                  seriesIndex: d.series,
-                  pointIndex: i
-                });
-              });
-          }
+    this.needsUpdate(true);
+    var groups = this.wrap.select('.nv-groups').selectAll('.nv-group')
+        .data(function(d) { return d }, function(d) { return d.key });
+    groups.enter().append('g')
+        .style('stroke-opacity', 1e-6)
+        .style('fill-opacity', 1e-6);
+    groups.exit()
+        .remove();
+    groups
+        .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
+        .classed('hover', function(d) { return d.hover });
+    groups.watchTransition(this.renderWatch, 'scatter: groups')
+        .style('fill', function(d,i) { return that.color()(d, i) })
+        .style('stroke', function(d,i) { return that.color()(d, i) })
+        .style('stroke-opacity', 1)
+        .style('fill-opacity', .5);
 
-          needsUpdate = false;
-      }
-
-      needsUpdate = true;
-      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
-          .data(function(d) { return d }, function(d) { return d.key });
-      groups.enter().append('g')
-          .style('stroke-opacity', 1e-6)
-          .style('fill-opacity', 1e-6);
-      groups.exit()
-          .remove();
-      groups
-          .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
-          .classed('hover', function(d) { return d.hover });
-      groups.watchTransition(renderWatch, 'scatter: groups')
-          .style('fill', function(d,i) { return color(d, i) })
-          .style('stroke', function(d,i) { return color(d, i) })
-          .style('stroke-opacity', 1)
-          .style('fill-opacity', .5);
-
-
-      if (onlyCircles) {
+    if (this.onlyCircles()) {
         var points = groups.selectAll('circle.nv-point')
-            .data(function(d) { return d.values }, pointKey);
+            .data(function(d) { return d.values }, this.pointKey());
         points.enter().append('circle')
             .style('fill', function (d,i) { return d.color })
             .style('stroke', function (d,i) { return d.color })
-            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
-            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
-            .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
+            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(that.xScale0()(that.x()(d,i))) })
+            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(that.yScale0()(that.y()(d,i))) })
+            .attr('r', function(d,i) { return Math.sqrt(that.zScale()(that.getSize()(d,i))/Math.PI) });
         points.exit().remove();
         groups.exit().selectAll('path.nv-point')
-            .watchTransition(renderWatch, 'scatter exit')
-            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
+            .watchTransition(this.renderWatch, 'scatter exit')
+            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(that.xScale()(that.x()(d,i))) })
+            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(that.yScale()(that.y()(d,i))) })
             .remove();
         points.each(function(d,i) {
-          d3.select(this)
-            .classed('nv-point', true)
-            .classed('nv-point-' + i, true)
-            .classed('hover',false)
+            d3.select(this)
+                .classed('nv-point', true)
+                .classed('nv-point-' + i, true)
+                .classed('hover',false)
             ;
         });
         points
-            .watchTransition(renderWatch, 'scatter points')
-            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-            .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
+            .watchTransition(this.renderWatch, 'scatter points')
+            .attr('cx', function(d,i) { return nv.utils.NaNtoZero(that.xScale()(that.x()(d,i))) })
+            .attr('cy', function(d,i) { return nv.utils.NaNtoZero(that.yScale()(that.y()(d,i))) })
+            .attr('r', function(d,i) { return Math.sqrt(that.zScale()(that.getSize()(d,i))/Math.PI) });
 
-      } else {
+    } else {
 
         var points = groups.selectAll('path.nv-point')
             .data(function(d) { return d.values });
@@ -389,296 +384,116 @@ nv.models.scatter = function() {
             .style('fill', function (d,i) { return d.color })
             .style('stroke', function (d,i) { return d.color })
             .attr('transform', function(d,i) {
-              return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
+                return 'translate(' + that.xScale0()(that.x()(d,i)) + ',' + that.yScale0()(that.y()(d,i)) + ')'
             })
             .attr('d',
-              d3.svg.symbol()
-                .type(getShape)
-                .size(function(d,i) { return z(getSize(d,i)) })
+                d3.svg.symbol()
+                    .type(that.getShape())
+                    .size(function(d,i) { return that.zScale()(that.getSize()(d,i)) })
             );
         points.exit().remove();
         groups.exit().selectAll('path.nv-point')
-            .watchTransition(renderWatch, 'scatter exit')
+            .watchTransition(that.renderWatch, 'scatter exit')
             .attr('transform', function(d,i) {
-              return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+                return 'translate(' + that.xScale()(that.x()(d,i)) + ',' + that.yScale()(that.y()(d,i)) + ')'
             })
             .remove();
         points.each(function(d,i) {
-          d3.select(this)
-            .classed('nv-point', true)
-            .classed('nv-point-' + i, true)
-            .classed('hover',false)
+            d3.select(this)
+                .classed('nv-point', true)
+                .classed('nv-point-' + i, true)
+                .classed('hover',false)
             ;
         });
         points
-            .watchTransition(renderWatch, 'scatter points')
+            .watchTransition(this.renderWatch, 'scatter points')
             .attr('transform', function(d,i) {
-              //nv.log(d,i,getX(d,i), x(getX(d,i)));
-              return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+                //nv.log(d,i,getX(d,i), x(getX(d,i)));
+                return 'translate(' + that.xScale()(that.x()(d,i)) + ',' + that.yScale()(that.y()(d,i)) + ')'
             })
             .attr('d',
-              d3.svg.symbol()
-                .type(getShape)
-                .size(function(d,i) { return z(getSize(d,i)) })
+                d3.svg.symbol()
+                    .type(this.getShape())
+                    .size(function(d,i) { return that.zScale()(that.getSize()(d,i)) })
             );
-      }
-
-
-      // Delay updating the invisible interactive layer for smoother animation
-      clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
-      timeoutID = setTimeout(updateInteractiveLayer, 300);
-      //updateInteractiveLayer();
-
-      //store old scales for use in transitions on update
-      x0 = x.copy();
-      y0 = y.copy();
-      z0 = z.copy();
-
-    });
-    renderWatch.renderEnd('scatter immediate');
-    return chart;
-  }
-
-
-  //============================================================
-  // Event Handling/Dispatching (out of chart's scope)
-  //------------------------------------------------------------
-  chart.clearHighlights = function() {
-      //Remove the 'hover' class from all highlighted points.
-      d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover",false);
-  };
-
-  chart.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) {
-      d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-          .classed("hover",isHoverOver);
-  };
-
-
-  dispatch.on('elementMouseover.point', function(d) {
-     if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,true);
-  });
-
-  dispatch.on('elementMouseout.point', function(d) {
-     if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,false);
-  });
-
-  //============================================================
-
-
-  //============================================================
-  // Expose Public Variables
-  //------------------------------------------------------------
-
-  chart.dispatch = dispatch;
-  chart.options = nv.utils.optionsFunc.bind(chart);
-
-  chart.x = function(_) {
-    if (!arguments.length) return getX;
-    getX = d3.functor(_);
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = d3.functor(_);
-    return chart;
-  };
-
-  chart.size = function(_) {
-    if (!arguments.length) return getSize;
-    getSize = d3.functor(_);
-    return chart;
-  };
-
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
-  chart.xScale = function(_) {
-    if (!arguments.length) return x;
-    x = _;
-    return chart;
-  };
-
-  chart.yScale = function(_) {
-    if (!arguments.length) return y;
-    y = _;
-    return chart;
-  };
-
-  chart.zScale = function(_) {
-    if (!arguments.length) return z;
-    z = _;
-    return chart;
-  };
-
-  chart.xDomain = function(_) {
-    if (!arguments.length) return xDomain;
-    xDomain = _;
-    return chart;
-  };
-
-  chart.yDomain = function(_) {
-    if (!arguments.length) return yDomain;
-    yDomain = _;
-    return chart;
-  };
-
-  chart.sizeDomain = function(_) {
-    if (!arguments.length) return sizeDomain;
-    sizeDomain = _;
-    return chart;
-  };
-
-  chart.xRange = function(_) {
-    if (!arguments.length) return xRange;
-    xRange = _;
-    return chart;
-  };
-
-  chart.yRange = function(_) {
-    if (!arguments.length) return yRange;
-    yRange = _;
-    return chart;
-  };
-
-  chart.sizeRange = function(_) {
-    if (!arguments.length) return sizeRange;
-    sizeRange = _;
-    return chart;
-  };
-
-  chart.forceX = function(_) {
-    if (!arguments.length) return forceX;
-    forceX = _;
-    return chart;
-  };
-
-  chart.forceY = function(_) {
-    if (!arguments.length) return forceY;
-    forceY = _;
-    return chart;
-  };
-
-  chart.forceSize = function(_) {
-    if (!arguments.length) return forceSize;
-    forceSize = _;
-    return chart;
-  };
-
-  chart.interactive = function(_) {
-    if (!arguments.length) return interactive;
-    interactive = _;
-    return chart;
-  };
-
-  chart.pointKey = function(_) {
-    if (!arguments.length) return pointKey;
-    pointKey = _;
-    return chart;
-  };
-
-  chart.pointActive = function(_) {
-    if (!arguments.length) return pointActive;
-    pointActive = _;
-    return chart;
-  };
-
-  chart.padData = function(_) {
-    if (!arguments.length) return padData;
-    padData = _;
-    return chart;
-  };
-
-  chart.padDataOuter = function(_) {
-    if (!arguments.length) return padDataOuter;
-    padDataOuter = _;
-    return chart;
-  };
-
-  chart.clipEdge = function(_) {
-    if (!arguments.length) return clipEdge;
-    clipEdge = _;
-    return chart;
-  };
-
-  chart.clipVoronoi= function(_) {
-    if (!arguments.length) return clipVoronoi;
-    clipVoronoi = _;
-    return chart;
-  };
-
-  chart.useVoronoi= function(_) {
-    if (!arguments.length) return useVoronoi;
-    useVoronoi = _;
-    if (useVoronoi === false) {
-        clipVoronoi = false;
     }
+
+    // Delay updating the invisible interactive layer for smoother animation
+    clearTimeout(this.timeoutID()); // stop repeat calls to updateInteractiveLayer
+    this.timeoutID( setTimeout(updateInteractiveLayer, 300) );
+    //updateInteractiveLayer();
+
+    //store old scales for use in transitions on update
+    this.xScale0(this.xScale().copy());
+    this.yScale0(this.yScale().copy());
+    this.zScale0(this.zScale().copy());
+};
+
+Scatter.prototype.attachEvents = function(){
+    this.dispatch
+        .on('elementMouseover.point', function(d) {
+            if (this.interactive()) this.highlightPoint(d.seriesIndex,d.pointIndex,true);
+        }.bind(this))
+        .on('elementMouseout.point', function(d) {
+            if (this.interactive()) this.highlightPoint(d.seriesIndex,d.pointIndex,false);
+        }.bind(this));
+};
+
+Scatter.prototype.clearHighlights = function() {
+    //Remove the 'hover' class from all highlighted points.
+    d3.selectAll(".nv-chart-" + this.id() + " .nv-point.hover").classed("hover",false);
+};
+
+Scatter.prototype.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) {
+    d3.select(".nv-chart-" + this.id() + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+        .classed("hover", isHoverOver);
+};
+
+Scatter.prototype.useVoronoi= function(_) {
+    if (!arguments.length) return this._useVoronoi();
+    this._useVoronoi(_);
+    if (this._useVoronoi() === false) {
+        this.clipVoronoi(false);
+    }
+    return this;
+};
+
+Scatter.prototype.color = function(_) {
+    if (!arguments.length) return this._color();
+    this._color(nv.utils.getColor(_));
+    return this;
+};
+
+Scatter.prototype.duration = function(_) {
+    if (!arguments.length) return this._duration();
+    this._duration(_);
+    this.renderWatch.reset(_);
+    return this;
+};
+
+/**
+ * The scatter model returns a function wrapping an instance of a Scatter.
+ */
+nv.models.scatter = function () {
+    "use strict";
+
+    var scatter = new Scatter();
+
+    function chart(selection) {
+        scatter.render(selection);
+        return chart;
+    }
+
+    chart.dispatch = scatter.dispatch;
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    nv.utils.rebindp(chart, scatter, Scatter.prototype,
+        'x', 'y', 'size', 'margin', 'width', 'height', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain',
+        'xRange', 'yRange', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'interactive', 'pointKey', 'pointActive',
+        'padData', 'padDataOuter', 'clipEdge', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'color', 'shape', 'onlyCircles',
+        'id', 'singlePoint', 'duration'
+    );
+
     return chart;
-  };
-
-  chart.clipRadius = function(_) {
-    if (!arguments.length) return clipRadius;
-    clipRadius = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = nv.utils.getColor(_);
-    return chart;
-  };
-
-  chart.shape = function(_) {
-    if (!arguments.length) return getShape;
-    getShape = _;
-    return chart;
-  };
-
-  chart.onlyCircles = function(_) {
-    if (!arguments.length) return onlyCircles;
-    onlyCircles = _;
-    return chart;
-  };
-
-  chart.id = function(_) {
-    if (!arguments.length) return id;
-    id = _;
-    return chart;
-  };
-
-  chart.singlePoint = function(_) {
-    if (!arguments.length) return singlePoint;
-    singlePoint = _;
-    return chart;
-  };
-
-  chart.duration = function(_) {
-    if (!arguments.length) return duration;
-    duration = _;
-    renderWatch.reset(duration);
-    return chart;
-  };
-
-  //============================================================
-
-
-  return chart;
-}
+};

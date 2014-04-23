@@ -3,14 +3,14 @@
  * @type {{color: *}}
  */
 var DistributionPrivates = {
-    size : 8
-    , axis : 'x' // 'x' or 'y'... horizontal or vertical
+    axis : 'x' // 'x' or 'y'... horizontal or vertical
     , getData : null  // defaults d.x or d.y
     , scale : d3.scale.linear()
     , domain : null
     , scale0: null
     , _color : nv.utils.defaultColor()
     , _duration : 250
+    , _size : 8
 };
 
 /**
@@ -101,6 +101,12 @@ Distribution.prototype.duration = function(_) {
     if (!arguments.length) return this._duration();
     this._duration(_);
     this.renderWatch.reset(_);
+    return this;
+};
+
+Distribution.prototype.size = function(_){
+    if (!arguments.length) return this._size();
+    this._size(_);
     return this;
 };
 
