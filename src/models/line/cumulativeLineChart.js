@@ -33,61 +33,11 @@ function CumulativeLineChart(options){
 
     this.line = this.getLine();
     this.controls = this.getLegend();
+
     this.controls.updateState(false);
     this.interactiveLayer = this.getInteractiveLayer();
     this.state = d3.functor( {index: 0, rescaleY: this.rescaleY()} );
-
     this.indexLine = null;
-
-    /* Normalize the data according to an index point. */
-    this.indexify = function(idx, data) {
-        return data.map(function(line) {
-            if (!line.values) return line;
-            var indexValue = line.values[idx];
-            if (indexValue == null) return line;
-            var v = this.line.y()(indexValue, idx);
-            //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
-            if (v < -.95 && !this.noErrorCheck()) {
-                //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
-                line.tempDisabled = true;
-                return line;
-            }
-            line.tempDisabled = false;
-            line.values = line.values.map(function(point, pointIndex) {
-                point.display = {'y': (this.line.y()(point, pointIndex) - v) / (1 + v) };
-                return point;
-            }.bind(this));
-            return line;
-        }.bind(this))
-    }.bind(this);
-
-    this.updateZero = function() {
-        this.indexLine.data([this.index()]);
-        //When dragging the index line, turn off line transitions.
-        // Then turn them back on when done dragging.
-        var oldDuration = this.duration();
-        this.duration(0);
-        this.update();
-        this.duration(oldDuration);
-    }.bind(this);
-
-    this.dragStart = function() {
-        this.svg.style('cursor', 'ew-resize');
-    }.bind(this);
-
-    this.dragMove = function() {
-        this.index().x = d3.event.x;
-        this.index().i = Math.round(this.dxScale().invert( this.index().x ));
-        this.updateZero();
-    }.bind(this);
-
-    this.dragEnd = function() {
-        this.svg.style('cursor', 'auto');
-        // update state and send stateChange with new index
-        this.state().index = this.index().i;
-        this.dispatch.stateChange(this.state());
-    }.bind(this);
-
 }
 
 nv.utils.create(CumulativeLineChart, Chart, CumulativeLineChartPrivates);
@@ -519,6 +469,55 @@ CumulativeLineChart.prototype.y = function(_){
     this._y(_);
     this.line.y(_);
     return this;
+};
+
+/* Normalize the data according to an index point. */
+CumulativeLineChart.prototype.indexify = function(idx, data) {
+    return data.map(function(line) {
+        if (!line.values) return line;
+        var indexValue = line.values[idx];
+        if (indexValue == null) return line;
+        var v = this.line.y()(indexValue, idx);
+        //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
+        if (v < -.95 && !this.noErrorCheck()) {
+            //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
+            line.tempDisabled = true;
+            return line;
+        }
+        line.tempDisabled = false;
+        line.values = line.values.map(function(point, pointIndex) {
+            point.display = {'y': (this.line.y()(point, pointIndex) - v) / (1 + v) };
+            return point;
+        }.bind(this));
+        return line;
+    }.bind(this))
+};
+
+CumulativeLineChart.prototype.updateZero = function() {
+    this.indexLine.data([this.index()]);
+    //When dragging the index line, turn off line transitions.
+    // Then turn them back on when done dragging.
+    var oldDuration = this.duration();
+    this.duration(0);
+    this.update();
+    this.duration(oldDuration);
+};
+
+CumulativeLineChart.prototype.dragStart = function() {
+    this.svg.style('cursor', 'ew-resize');
+};
+
+CumulativeLineChart.prototype.dragMove = function() {
+    this.index().x = d3.event.x;
+    this.index().i = Math.round(this.dxScale().invert( this.index().x ));
+    this.updateZero();
+};
+
+CumulativeLineChart.prototype.dragEnd = function() {
+    this.svg.style('cursor', 'auto');
+    // update state and send stateChange with new index
+    this.state().index = this.index().i;
+    this.dispatch.stateChange(this.state());
 };
 
 CumulativeLineChart.prototype.showTooltip = function(e, offsetElement) {
