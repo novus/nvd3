@@ -47,11 +47,13 @@ Chart.prototype.getStatesManager = function(){
  * Apply the chart-specific wrap classes.
  */
 Chart.prototype.wrapper = function(data, gs) {
+
     var wrapPoints = [
         'nv-x nv-axis',
         'nv-y nv-axis',
         'nv-legendWrap'
     ].concat(gs || []);
+
     Layer.prototype.wrapper.call(this, data, wrapPoints);
 
     this.axis = {

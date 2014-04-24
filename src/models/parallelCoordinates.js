@@ -59,7 +59,7 @@ nv.models.parallelCoordinates = function() {
           y[d].brush = d3.svg.brush().y(y[d]).on('brush', brush);
 
           return d != 'name';
-        })
+        });
 
 
       //------------------------------------------------------------
@@ -71,7 +71,7 @@ nv.models.parallelCoordinates = function() {
       var wrap = container.selectAll('g.nv-wrap.nv-parallelCoordinates').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-parallelCoordinates');
       var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+      var g = wrap.select('g');
 
       gEnter.append('g').attr('class', 'nv-parallelCoordinatesWrap');
 
@@ -202,7 +202,7 @@ nv.models.parallelCoordinates = function() {
 
   chart.color = function(_) {
     if (!arguments.length) return color;
-    color = nv.utils.getColor(_)
+    color = nv.utils.getColor(_);
     return chart;
   };
 
@@ -236,4 +236,4 @@ nv.models.parallelCoordinates = function() {
 
 
   return chart;
-}
+};
