@@ -35,6 +35,9 @@ LineChart.prototype.getInteractiveLayer = function(){
     return nv.interactiveGuideline();
 };
 
+/**
+ * @override Layer::wrapper
+ */
 LineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data, [ 'nv-interactive' ]);
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
@@ -43,6 +46,9 @@ LineChart.prototype.wrapper = function(data){
     if (this.showYAxis()) this.renderWatch.models(this.yAxis());
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 LineChart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
 
@@ -138,6 +144,9 @@ LineChart.prototype.attachEvents = function(){
         }.bind(this));
 };
 
+/**
+ * @override Layer::draw
+ */
 LineChart.prototype.draw = function(data){
 
     var that = this,

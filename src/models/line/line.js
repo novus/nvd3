@@ -35,10 +35,17 @@ Line.prototype.getScatter = function(){
     return nv.models.scatter();
 };
 
+/**
+ * @override Layer::wrapper
+ */
 Line.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data, [ 'nv-groups' ]);
 };
 
+/**
+ * override Layer::draw
+ * @param data
+ */
 Line.prototype.draw = function(data){
     var that = this,
         availableWidth = this.available.width,
@@ -147,6 +154,9 @@ Line.prototype.draw = function(data){
     that.yScale0(this.yScale().copy());
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 Line.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
 

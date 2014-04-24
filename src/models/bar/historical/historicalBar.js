@@ -28,6 +28,9 @@ function HistoricalBar(options){
 
 nv.utils.create(HistoricalBar, Layer, HistoricalBarPrivates);
 
+/**
+ * @override Layer::attachEvents
+ */
 HistoricalBar.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
     this.svg.on('click', function(d,i) {
@@ -40,10 +43,16 @@ HistoricalBar.prototype.attachEvents = function(){
     }.bind(this));
 };
 
+/**
+ * @override Layer::wrapper
+ */
 HistoricalBar.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data[0].values, ['nv-bars'])
 };
 
+/**
+ * @override Layer::draw
+ */
 HistoricalBar.prototype.draw = function(data){
 
     var that = this

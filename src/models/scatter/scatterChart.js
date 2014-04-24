@@ -62,6 +62,7 @@ nv.utils.create(ScatterChart, Chart, ScatterChartPrivates);
 ScatterChart.prototype.getControls = function(){
     return nv.models.legend();
 };
+
 ScatterChart.prototype.getDistribution = function(){
     return nv.models.distribution();
 };

@@ -428,6 +428,9 @@ Scatter.prototype.draw = function(data){
     this.zScale0(this.zScale().copy());
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 Scatter.prototype.attachEvents = function(){
     this.dispatch
         .on('elementMouseover.point', function(d) {

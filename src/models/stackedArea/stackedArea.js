@@ -176,6 +176,9 @@ StackedArea.prototype.draw = function(data){
         .attr('d', function(d,i) { return area(d.values,i) });
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 StackedArea.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
 

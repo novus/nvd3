@@ -1,4 +1,4 @@
-PieLabels = {
+var PieLabels = {
     Normal: {
         rotateAngle: function(){
             return 0;
@@ -67,6 +67,9 @@ Pie.prototype.wrapper = function (data) {
     this.wrap.attr('transform', 'translate(' + this.available.width / 2 + ',' + this.available.height / 2 + ')');
 };
 
+/**
+ * @override Layer::draw
+ */
 Pie.prototype.draw = function(data){
 
     var arc = null
@@ -208,6 +211,9 @@ Pie.prototype.mouseData = function(d, i){
     }
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 Pie.prototype.attachEvents = function(){
     this.svg.on('click', function (d, i) {
         this.dispatch.chartClick({

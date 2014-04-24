@@ -168,6 +168,9 @@ BulletChart.prototype.draw = function(data, i){
         .remove();
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 BulletChart.prototype.attachEvents = function(){
 
     this.bullet.dispatch
