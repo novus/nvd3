@@ -346,14 +346,23 @@ nv.utils.create = function(ctor, parent, privates){
  * Copy properties right to left, returning base.
  */
 nv.utils.extend = function(base) {
+  var __hasProp = {}.hasOwnProperty;
   if (base) {
-    var extras = [].slice.call(arguments, 1);
-    extras.forEach(function(extra) {
+    var i = arguments.length;
+    while( --i ) {
+      var extra = arguments[i];
       for (var key in extra) {
-        if (typeof base[key] === 'object' && typeof extra[key] === 'object') {
-          // recurse
-          nv.utils.extend(base[key], extra[key]);
+        if (!__hasProp.call(extra, key)) continue;
+        if (typeof extra[key] === 'object'){
+          if (typeof base[key] === 'object') {
+            // recurse
+            nv.utils.extend(base[key], extra[key]);
+          } else if (extra[key]) {
+            // clone
+            base[key] = nv.utils.extend({}, extra[key]);
+          }
         } else {
+          // copy
           base[key] = extra[key];
         }
       }

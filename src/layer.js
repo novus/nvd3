@@ -22,6 +22,7 @@ LayerPrivates = {
  */
 function Layer(options, dispatch){
     this.options = nv.utils.extend({}, options, LayerPrivates);
+    // LayerPrivates.size = {};
     this.options.id = Math.floor(Math.random() * 10000); // TODO Replace
 
     var margin = this.options.margin;
