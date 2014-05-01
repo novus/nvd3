@@ -10,7 +10,6 @@ var HistoricalBarPrivates = {
     , xRange: null
     , yRange: null
     , interactive : true
-    , _color: nv.utils.defaultColor()
 };
 
 /**
@@ -24,24 +23,14 @@ function HistoricalBar(options){
         , chartClass: 'historicalBar'
     });
 
-    Layer.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout']);
-
-    //Create methods to allow outside functions to highlight a specific bar.
-    this.highlightPoint = function(pointIndex, isHoverOver) {
-        d3.select(".nv-"+this.options.chartClass+"-" + this.id())
-            .select(".nv-bars .nv-bar-0-" + pointIndex)
-            .classed("hover", isHoverOver);
-    };
-
-    this.clearHighlights = function() {
-        d3.select(".nv-"+this.options.chartClass+"-" + this.id())
-            .select(".nv-bars .nv-bar.hover")
-            .classed("hover", false);
-    };
+    Layer.call(this, options, []);
 }
 
 nv.utils.create(HistoricalBar, Layer, HistoricalBarPrivates);
 
+/**
+ * @override Layer::attachEvents
+ */
 HistoricalBar.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
     this.svg.on('click', function(d,i) {
@@ -54,10 +43,16 @@ HistoricalBar.prototype.attachEvents = function(){
     }.bind(this));
 };
 
+/**
+ * @override Layer::wrapper
+ */
 HistoricalBar.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data[0].values, ['nv-bars'])
 };
 
+/**
+ * @override Layer::draw
+ */
 HistoricalBar.prototype.draw = function(data){
 
     var that = this
@@ -160,7 +155,7 @@ HistoricalBar.prototype.draw = function(data){
         });
 
     bars
-        .attr('fill', function(d, i) { return that._color()(d, i); })
+        .attr('fill', function(d, i) { return that.color()(d, i); })
         .attr('class', function(d,i,j) { return (that.y()(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
         .transition()
         .attr('transform', function(d,i) { return 'translate(' + (that.xScale()(that.x()(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
@@ -180,10 +175,24 @@ HistoricalBar.prototype.draw = function(data){
 };
 
 HistoricalBar.prototype.color = function(_){
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
+
+//Create methods to allow outside functions to highlight a specific bar.
+HistoricalBar.prototype.highlightPoint = function(pointIndex, isHoverOver) {
+    d3.select(".nv-"+this.options.chartClass+"-" + this.id())
+        .select(".nv-bars .nv-bar-0-" + pointIndex)
+        .classed("hover", isHoverOver);
+};
+
+HistoricalBar.prototype.clearHighlights = function() {
+    d3.select(".nv-"+this.options.chartClass+"-" + this.id())
+        .select(".nv-bars .nv-bar.hover")
+        .classed("hover", false);
+};
+
 /**
  * The historicalBar model returns a function wrapping an instance of a HistoricalBar.
  */

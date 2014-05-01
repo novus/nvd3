@@ -184,9 +184,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
       selection.duration = function(){return this;};
       return selection;
     } else {
-      selection.__rendered = selection.length === 0 ? true :
-                             selection.every( function(d){ return !d.length; }) ? true :
-                             false;
+      selection.__rendered = selection.length === 0 ? true : selection.every( function(d){ return !d.length; }) ? true : false;
       var n = 0;
       return selection
         .transition()

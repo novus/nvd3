@@ -5,7 +5,7 @@ var BulletChartPrivates = {
     , markers : function(d) { return d.markers } // markers (previous, goal)
     , measures : function(d) { return d.measures } // measures (actual, forecast)
     , tickFormat : null
-    , tooltips : true
+    , tooltips: true
 };
 
 /**
@@ -18,17 +18,10 @@ function BulletChart(options){
         , wrapClass : 'bulletWrap'
     });
 
-    Chart.call(this, options, ['']);
+    Chart.call(this, options);
 
     this.bullet = this.getBullet();
-
-    this.showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + this.margin().left,
-            top = e.pos[1] + ( offsetElement.offsetTop || 0) + this.margin().top,
-            content = this.tooltip()(e.key, e.label, e.value);
-
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
-    }.bind(this);
+    this.state = this.getStatesManager();
 }
 
 nv.utils.create(BulletChart, Chart, BulletChartPrivates);
@@ -46,11 +39,6 @@ BulletChart.prototype.wrapper = function (data) {
         'nv-legendWrap'
     ].concat(gs || []);
     Layer.prototype.wrapper.call(this, data, wrapPoints);
-
-    this.axis = {
-        x: this.wrap.select('.nv-x.nv-axis'),
-        y: this.wrap.select('.nv-x.nv-axis')
-    };
 
     // The legend can change the available height.
     this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
@@ -94,14 +82,7 @@ BulletChart.prototype.renderElement = function(element, data){
 BulletChart.prototype.draw = function(data, i){
 
     var availableWidth = this.available.width,
-        availableHeight = this.available.height,
-        that = this;
-
-    this.update = function() {
-        that.svg.call(function(selection){
-            that(selection)
-        });
-    };
+        availableHeight = this.available.height;
 
     var rangez = this.ranges().call(this, data, i).slice().sort(d3.descending),
         markerz = this.markers().call(this, data, i).slice().sort(d3.descending),
@@ -156,7 +137,7 @@ BulletChart.prototype.draw = function(data, i){
     var tickEnter = tick.enter().append('g')
         .attr('class', 'nv-tick')
         .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
-        .style('opacity', 1e-6);
+        .style('opacity', this.opacityDefault());
 
     tickEnter.append('line')
         .attr('y1', availableHeight)
@@ -183,36 +164,35 @@ BulletChart.prototype.draw = function(data, i){
     // Transition the exiting ticks to the new scale, x1.
     d3.transition(tick.exit())
         .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
-        .style('opacity', 1e-6)
+        .style('opacity', this.opacityDefault())
         .remove();
-
-    // Chart.prototype.draw.call(this, data);
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 BulletChart.prototype.attachEvents = function(){
-
-    var that = this;
 
     this.bullet.dispatch
         .on('elementMouseover.tooltip', function(e) {
-            that.dispatch.tooltipShow(e);
-        })
+            this.dispatch.tooltipShow(e);
+        }.bind(this))
         .on('elementMouseout.tooltip', function(e) {
-            that.dispatch.tooltipHide(e);
-        });
+            this.dispatch.tooltipHide();
+        }.bind(this));
 
     this.dispatch
         .on('tooltipHide', function() {
-            if (that.tooltips()) nv.tooltip.cleanup();
-        })
+            if (this.tooltips()) nv.tooltip.cleanup();
+        }.bind(this))
         .on('tooltipShow', function(e) {
-            that.svg.call(function(selection){
+            this.svg.call(function(selection){
                 selection.each(function(data){
                     e.key = data.title;
-                    if (that.tooltips()) that.showTooltip(e, that.svg[0][0]);
-                })
-            });
-        });
+                    if (this.tooltips()) this.showTooltip(e, this.svg[0][0]);
+                }.bind(this))
+            }.bind(this));
+        }.bind(this));
 };
 
 BulletChart.prototype.orient = function(_) {
@@ -221,10 +201,13 @@ BulletChart.prototype.orient = function(_) {
     this.reverse( this.orient() == 'right' || this.orient() == 'bottom' );
     return this;
 };
-BulletChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
+
+BulletChart.prototype.showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + this.margin().left,
+        top = e.pos[1] + ( offsetElement.offsetTop || 0) + this.margin().top,
+        content = this.tooltip()(e.key, e.label, e.value);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
 };
 
 /**
@@ -242,6 +225,7 @@ nv.models.bulletChart = function() {
 
     chart.dispatch = bulletChart.dispatch;
     chart.bullet = bulletChart.bullet;
+    chart.state = bulletChart.state;
 
     d3.rebind(chart, bulletChart.bullet, 'color');
 

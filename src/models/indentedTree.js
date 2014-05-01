@@ -129,10 +129,10 @@ nv.models.indentedTree = function() {
               .append('a')
               .attr('href',getUrl)
               .attr('class', d3.functor(column.classes))
-              .append('span')
+              .append('span');
           else
             d3.select(this)
-              .append('span')
+              .append('span');
 
             d3.select(this).select('span')
               .attr('class', d3.functor(column.classes) )
@@ -316,19 +316,19 @@ nv.models.indentedTree = function() {
      if (!arguments.length) return iconOpen;
     iconOpen = _;
     return chart;
-  }
+  };
 
   chart.iconClose = function(_){
      if (!arguments.length) return iconClose;
     iconClose = _;
     return chart;
-  }
+  };
 
   chart.getUrl = function(_){
      if (!arguments.length) return getUrl;
     getUrl = _;
     return chart;
-  }
+  };
 
   //============================================================
 

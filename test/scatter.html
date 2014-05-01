@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<style>
+
+    body {
+        overflow-y:scroll;
+        font-family: Arial;
+    }
+
+    text {
+        font: 12px sans-serif;
+    }
+
+</style>
+<body class='with-transitions'>
+
+<div class='chart half' id="test1">
+    <h2>simple scatter</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test2">
+    <h2>simple scatterChart</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test3">
+    <h2>simple scatter renders no data</h2>
+    <svg></svg>
+</div>
+
+<div class='chart half' id="test4">
+    <h2>simple scatterChart renders no data</h2>
+    <svg></svg>
+</div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/canvas.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/scatter/scatter.js"></script>
+<script src="../src/models/scatter/scatterChart.js"></script>
+<script>
+
+    function randomData() {
+        var data = [];
+        for (var i = 0; i < 2; i++) {
+            data.push({
+                key: 'Group ' + i,
+                values: []
+            });
+            for (var j = 0; j < 100; j++) {
+                data[i].values.push({
+                    x: Math.random(),
+                    y: Math.random(),
+                    z: Math.random()
+                });
+            }
+        }
+        return data;
+    }
+
+    var chart;
+
+    function renderScatter(containerId, data) {
+        nv.addGraph({
+            generate: function() {
+                chart = nv.models.scatter()
+                        .margin({top: 25, right: 100, bottom: 100, left: 100})
+                        .size(function(d) { return d.z })
+                        .useVoronoi(false);
+                d3.select('#'+containerId+' svg')
+                        .datum(data)
+                        .transition().duration(500)
+                        .call(chart);
+
+                return chart;
+            },
+            callback: function(graph) {
+                window.onresize = function() {
+                    d3.select('#'+containerId+' svg')
+                            .call(graph);
+
+                };
+            }
+        });
+    }
+
+    function renderScatterChart(containerId, data) {
+        nv.addGraph(function() {
+            chart = nv.models.scatterChart()
+                    .margin({top: 25, right: 100, bottom: 100, left: 100})
+                    .showDistX(true)
+                    .showDistY(true)
+                    .useVoronoi(true)
+                    .color(d3.scale.category10().range())
+                    .transitionDuration(300);
+            chart.xAxis.tickFormat(d3.format('.02f'));
+            chart.yAxis.tickFormat(d3.format('.02f'));
+            chart.tooltipContent(function(key) {
+                return '<h2>' + key + '</h2>';
+            });
+            d3.select('#'+containerId+' svg')
+                    .datum(data)
+                    .call(chart);
+            nv.utils.windowResize(chart.update);
+            return chart;
+        });
+
+    }
+
+    renderScatter("test1", randomData());
+    renderScatterChart("test2", randomData());
+    renderScatter("test3", []);
+    renderScatterChart("test4", []);
+
+</script>

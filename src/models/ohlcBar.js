@@ -221,7 +221,7 @@ nv.models.ohlcBar = function() {
                  + ',0l'
                  + (-w/2)
                  + ',0z';
-          })
+          });
           //.attr('width', (availableWidth / data[0].values.length) * .9 )
 
 
@@ -377,4 +377,4 @@ nv.models.ohlcBar = function() {
 
 
   return chart;
-}
+};

@@ -1,4 +1,4 @@
-PieLabels = {
+var PieLabels = {
     Normal: {
         rotateAngle: function(){
             return 0;
@@ -21,7 +21,7 @@ PieLabels = {
             return ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end')
         }
     }
-}
+};
 
 var PiePrivates = {
     startAngle: 0,
@@ -46,7 +46,7 @@ function Pie(options) {
         wrapClass: 'pieWrap'
     });
 
-    Layer.call(this, options, [ 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout' ]);
+    Layer.call(this, options, []);
 }
 nv.utils.create(Pie, Layer, PiePrivates);
 
@@ -65,11 +65,21 @@ Pie.prototype.wrapper = function (data) {
     Layer.prototype.wrapper.call(this, data, ['nv-pieLabels']);
 
     this.wrap.attr('transform', 'translate(' + this.available.width / 2 + ',' + this.available.height / 2 + ')');
-}
+};
 
+/**
+ * @override Layer::draw
+ */
 Pie.prototype.draw = function(data){
-    var arc = this.getArc();
-    var arcTween = function(a) {
+
+    var arc = null
+        , arcTween = null
+        , pieLayout = null
+        , slices = null;
+
+    arc = this.getArc();
+
+    arcTween = function(a) {
         a.endAngle = isNaN(a.endAngle) ? 0 : a.endAngle;
         a.startAngle = isNaN(a.startAngle) ? 0 : a.startAngle;
         a.innerRadius = nv.utils.valueOrDefault(a.innerRadius, 0);
@@ -81,13 +91,13 @@ Pie.prototype.draw = function(data){
     }.bind(this);
 
     // Setup the Pie chart and choose the data element
-    var pieLayout = d3.layout.pie()
+    pieLayout = d3.layout.pie()
         .sort(null)
         .value(function (d) {
             return d.disabled ? 0 : this.y()(d)
         }.bind(this));
 
-    var slices = this.g.selectAll('.nv-slice').data(pieLayout);
+    slices = this.g.selectAll('.nv-slice').data(pieLayout);
 
     slices.exit().remove();
 
@@ -113,15 +123,26 @@ Pie.prototype.draw = function(data){
 };
 
 Pie.prototype.doLabels = function(data, arc, pieLayout){
-    var pieLabels = this.wrap.select('.nv-pieLabels')
+
+    var pieLabels = null
+        , labelsArc = null
+        , pieSelf = this
+        , labelLocationHash = {}
+        , avgHeight = 14
+        , avgWidth = 140
+        , createHashKey = function (coordinates) {
+            return Math.floor(coordinates[0] / avgWidth) * avgWidth + ',' +
+                Math.floor(coordinates[1] / avgHeight) * avgHeight;
+        };
+
+    pieLabels = this.wrap.select('.nv-pieLabels')
         .selectAll('.nv-label')
         .data(pieLayout);
     pieLabels.exit().remove();
 
     // This does the normal label, or just use the arc if outside.
-    var labelsArc = this.pieLabelsOutside() ? arc : d3.svg.arc().innerRadius(0);
+    labelsArc = this.pieLabelsOutside() ? arc : d3.svg.arc().innerRadius(0);
 
-    var pieSelf = this;
     pieLabels
         .enter().append("g")
         .classed("nv-label", true)
@@ -145,14 +166,6 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
                 .style('text-anchor', pieSelf.labelLayout().textAnchor)
                 .style('fill', '#000')
         });
-
-    var labelLocationHash = {};
-    var avgHeight = 14;
-    var avgWidth = 140;
-    var createHashKey = function (coordinates) {
-        return Math.floor(coordinates[0] / avgWidth) * avgWidth + ',' +
-            Math.floor(coordinates[1] / avgHeight) * avgHeight;
-    };
 
     pieLabels.transition()
         .attr('transform', function(d) {
@@ -198,6 +211,9 @@ Pie.prototype.mouseData = function(d, i){
     }
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 Pie.prototype.attachEvents = function(){
     this.svg.on('click', function (d, i) {
         this.dispatch.chartClick({
@@ -237,13 +253,13 @@ Pie.prototype.getArc = function(){
 
 Pie.prototype.layoutCenter = function(){
     return this.layout.center(this);
-}
+};
 
 Pie.prototype.labelSunbeamLayout = function(_){
     if(!arguments.length) return this.labelLayout() === PieLabels.Sunbeam;
     this.labelLayout(_ ? PieLabels.Sunbeam : PieLabels.Normal);
     return this;
-}
+};
 
 /**
  * The Pie model returns a function wrapping an instance of a Pie.
