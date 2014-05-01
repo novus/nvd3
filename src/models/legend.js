@@ -4,7 +4,6 @@ var LegendPrivates = {
     , rightAlign : true
     , updateState : true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
     , radioButtonMode : false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
-    , _color : nv.utils.defaultColor()
 };
 
 /**
@@ -201,8 +200,8 @@ Legend.prototype.draw = function(data){
 };
 
 Legend.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 

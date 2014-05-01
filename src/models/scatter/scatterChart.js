@@ -18,10 +18,9 @@ var ScatterChartPrivates = {
     , defaultState : null
     , transitionDuration : 250
     , controlsData : [ { key: 'Magnify', disabled: true } ]
-    , x0: null
-    , y0: null
-    , _duration : 250
-    , _color: nv.utils.defaultColor()
+    , xScale0: null
+    , yScale0: null
+    , duration : 250
 };
 
 /**
@@ -56,8 +55,6 @@ function ScatterChart(options){
     ;
 
     this.controls.updateState(false);
-
-
 }
 
 nv.utils.create(ScatterChart, Chart, ScatterChartPrivates);
@@ -65,12 +62,9 @@ nv.utils.create(ScatterChart, Chart, ScatterChartPrivates);
 ScatterChart.prototype.getControls = function(){
     return nv.models.legend();
 };
+
 ScatterChart.prototype.getDistribution = function(){
     return nv.models.distribution();
-};
-
-ScatterChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
 };
 
 /**
@@ -95,8 +89,8 @@ ScatterChart.prototype.draw = function(data){
 
     var that = this;
 
-    this.x0(this.x0() || this.xScale());
-    this.y0(this.y0() || this.yScale());
+    this.xScale0(this.xScale0() || this.xScale());
+    this.yScale0(this.yScale0() || this.yScale());
 
     //------------------------------------------------------------
     // Main Chart Component(s)
@@ -216,8 +210,8 @@ ScatterChart.prototype.draw = function(data){
     }
 
     //store old scales for use in transitions on update
-    this.x0(this.xScale().copy());
-    this.y0(this.yScale().copy());
+    this.xScale0(this.xScale().copy());
+    this.yScale0(this.yScale().copy());
 
     Chart.prototype.draw.call(this, data);
 };
@@ -322,11 +316,11 @@ ScatterChart.prototype.showTooltip = function(e, offsetElement) {
 };
 
 ScatterChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    this.legend.color(this._color());
-    this.distX.color(this._color());
-    this.distY.color(this._color());
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color(this.color());
+    this.distX.color(this.color());
+    this.distY.color(this.color());
     return this;
 };
 
@@ -337,8 +331,8 @@ ScatterChart.prototype.tooltipContent = function(_) {
 };
 
 ScatterChart.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
     this.xAxis().duration(_);

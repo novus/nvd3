@@ -29,9 +29,8 @@ var ScatterPrivates = {
     , zScale0      : null // used to store previous scales
     , timeoutID    : null
     , needsUpdate  : false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
-    , _color       : nv.utils.defaultColor() // chooses color
-    , _useVoronoi   : true
-    , _duration     : 250
+    , useVoronoi   : true
+    , duration     : 250
 };
 
 /**
@@ -429,6 +428,9 @@ Scatter.prototype.draw = function(data){
     this.zScale0(this.zScale().copy());
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 Scatter.prototype.attachEvents = function(){
     this.dispatch
         .on('elementMouseover.point', function(d) {
@@ -450,23 +452,23 @@ Scatter.prototype.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) 
 };
 
 Scatter.prototype.useVoronoi= function(_) {
-    if (!arguments.length) return this._useVoronoi();
-    this._useVoronoi(_);
-    if (this._useVoronoi() === false) {
+    if (!arguments.length) return this.options.useVoronoi;
+    this.options.useVoronoi = _;
+    if (this.useVoronoi() === false) {
         this.clipVoronoi(false);
     }
     return this;
 };
 
 Scatter.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 
 Scatter.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     return this;
 };

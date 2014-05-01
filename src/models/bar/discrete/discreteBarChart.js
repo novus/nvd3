@@ -1,13 +1,9 @@
 var DiscreteBarChartPrivates = {
-    x : null
-    , y : null
-    , defaultState : null
-    , tooltips : true
+    defaultState : null
     , xTicksPadding: [5, 17]
     , xScale: null
     , yScale: null
-    , _staggerLabels : false
-    , _transitionDuration : 250
+    , transitionDuration : 250
 };
 
 /**
@@ -32,10 +28,6 @@ DiscreteBarChart.prototype.getDiscreteBar = function(){
     return nv.models.discreteBar();
 };
 
-DiscreteBarChart.prototype.getStatesManager = function(){
-    return nv.utils.state();
-};
-
 /**
  * @override Layer::wrapper
  */
@@ -48,20 +40,18 @@ DiscreteBarChart.prototype.wrapper = function (data) {
  */
 DiscreteBarChart.prototype.draw = function(data){
 
-    var
-         availableWidth = this.available.width
-        , availableHeight = this.available.height
-        ;
-
     this.discreteBar
-        .margin({top: 0, right: 0, bottom: 0, left: 0})
-        .width(availableWidth)
-        .height(availableHeight)
+        .width(this.available.width)
+        .height(this.available.height)
     ;
+    var discreteBarWrap = this.g.select('.nv-barsWrap').datum(data);
+    d3.transition(discreteBarWrap).call(this.discreteBar);
+
     this.xScale(this.discreteBar.xScale());
     this.yScale(this.discreteBar.yScale().clamp(true));
     this.x(this.discreteBar.x());
     this.y(this.discreteBar.y());
+    this.id(this.discreteBar.id());
 
 /*    this.gEnter.insert('g', '.nv-'+this.options.wrapClass).attr('class', 'nv-y nv-axis')
         .append('g')
@@ -69,24 +59,20 @@ DiscreteBarChart.prototype.draw = function(data){
         .append('line');*/
 
     this.defsEnter.append('clipPath')
-        .attr('id', 'nv-x-label-clip-' + this.discreteBar.id())
+        .attr('id', 'nv-x-label-clip-' + this.id())
         .append('rect');
 
-    this.g.select('#nv-x-label-clip-' + this.discreteBar.id() + ' rect')
+    this.g.select('#nv-x-label-clip-' + this.id() + ' rect')
         .attr('width', this.xScale().rangeBand() * (this.staggerLabels() ? 2 : 1))
         .attr('height', 16)
         .attr('x', -this.xScale().rangeBand() / (this.staggerLabels() ? 1 : 2 ));
 
-
     // Zero line
     this.g.select(".nv-zeroLine line")
         .attr("x1",0)
-        .attr("x2", availableWidth)
+        .attr("x2", this.available.width)
         .attr("y1", this.y()(0))
         .attr("y2", this.y()(0));
-
-    var discreteBarWrap = this.g.select('.nv-barsWrap').datum(data);
-    d3.transition(discreteBarWrap).call(this.discreteBar);
 
     Chart.prototype.draw.call(this, data);
 };
@@ -94,23 +80,6 @@ DiscreteBarChart.prototype.draw = function(data){
 /**
  * @override Layer::attachEvents
  */
-DiscreteBarChart.prototype.attachEvents = function(){
-    Chart.prototype.attachEvents.call(this);
-
-};
-
-DiscreteBarChart.prototype.staggerLabels = function(_){
-    if (!arguments.length) return this._staggerLabels();
-    this._staggerLabels(_);
-    return this;
-};
-
-DiscreteBarChart.prototype.transitionDuration = function(_) {
-    if (!arguments.length) return this._transitionDuration();
-    this._transitionDuration(_);
-    return this;
-};
-
 DiscreteBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
 
@@ -158,6 +127,7 @@ nv.models.discreteBarChart = function() {
     d3.rebind(chart, discreteBarChart.discreteBar,
         'color', 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat'
     );
+
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, discreteBarChart, DiscreteBarChart.prototype,

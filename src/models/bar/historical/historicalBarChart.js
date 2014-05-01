@@ -1,13 +1,6 @@
 var HistoricalBarChartPrivates = {
-    showXAxis : true
-    , showYAxis : true
-    , tooltips : true
-    , state : {}
-    , defaultState : null
+    defaultState : null
     , transitionDuration : 250
-    , showLegend : true
-    , _color : nv.utils.defaultColor()
-    , _rightAlignYAxis : false
 };
 
 /**
@@ -21,49 +14,34 @@ function HistoricalBarChart(options){
         , wrapClass: 'barsWrap'
     });
 
-    Chart.call(this, options, ['tooltipShow', 'tooltipHide', 'stateChange', 'changeState']);
+    Chart.call(this, options);
 
     this.historicalBar = nv.models.historicalBar();
     this.xScale = this.historicalBar.xScale;
     this.yScale = this.historicalBar.yScale;
-
-    this.showTooltip = function(e, offsetElement) {
-        // New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
-        if (offsetElement) {
-            var svg = d3.select(offsetElement).select('svg');
-            var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
-            if (viewBox) {
-                viewBox = viewBox.split(' ');
-                var ratio = parseInt(svg.style('width')) / viewBox[2];
-                e.pos[0] = e.pos[0] * ratio;
-                e.pos[1] = e.pos[1] * ratio;
-            }
-        }
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.historicalBar.x()(e.point, e.pointIndex)),
-            y = this.yAxis().tickFormat()(this.historicalBar.y()(e.point, e.pointIndex)),
-            content = this.tooltip()(e.series.key, x, y);
-        nv.tooltip.show([left, top], content, null, null, offsetElement);
-    };
+    this.state = this.getStatesManager();
 }
 
 nv.utils.create(HistoricalBarChart, Chart, HistoricalBarChartPrivates);
 
+/**
+ * @override Layer::wrapper
+ */
 HistoricalBarChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data);
 };
 
+/**
+ * @override Layer::draw
+ */
 HistoricalBarChart.prototype.draw = function(data){
-
-    var that = this;
 
     this.historicalBar
         .width(this.available.width)
         .height(this.available.height)
         .color(
             d3.functor(
-                data.map(function(d,i) { return d.color || that._color(d, i)}.bind(this))
+                data.map(function(d,i) { return d.color || this.color(d, i)}.bind(this))
                     .filter(function(d,i) { return !data[i].disabled })
             )
         );
@@ -74,10 +52,21 @@ HistoricalBarChart.prototype.draw = function(data){
         .call(this.historicalBar);
 
     Chart.prototype.draw.call(this, data);
+
 };
 
+/**
+ * @override Layer::attacheEvents
+ */
 HistoricalBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
+
+    var data = null;
+    this.svg.call(function(selection){
+        selection.each(function(d){
+            data = d
+        })
+    });
 
     this.historicalBar.dispatch
         .on('elementMouseover.tooltip', function(e) {
@@ -112,29 +101,44 @@ HistoricalBarChart.prototype.attachEvents = function(){
         }.bind(this));
 
     // add parentNode, override Charts' 'tooltipShow'
-    this.dispatch.on('tooltipShow', function(e) {
-        if (this.tooltips()) this.showTooltip(e, this.svg[0][0].parentNode);
-    }.bind(this));
+    this.dispatch
+        .on('tooltipShow', function(e) {
+            if (this.tooltips()) this.showTooltip(e, this.svg[0][0].parentNode);
+        }.bind(this));
 };
 
 HistoricalBarChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
-    this.legend.color(this._color());
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color(this.color());
     return this;
 };
 
 HistoricalBarChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this._rightAlignYAxis();
-    this._rightAlignYAxis(_);
+    if(!arguments.length) return this.options.rightAlignYAxis;
+    this.options.rightAlignYAxis = _;
     this.yAxis().orient( (_) ? 'right' : 'left');
     return this;
 };
 
-HistoricalBarChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
+HistoricalBarChart.prototype.showTooltip = function(e, offsetElement) {
+    // New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
+    if (offsetElement) {
+        var svg = d3.select(offsetElement).select('svg');
+        var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
+        if (viewBox) {
+            viewBox = viewBox.split(' ');
+            var ratio = parseInt(svg.style('width')) / viewBox[2];
+            e.pos[0] = e.pos[0] * ratio;
+            e.pos[1] = e.pos[1] * ratio;
+        }
+    }
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = this.xAxis().tickFormat()(this.historicalBar.x()(e.point, e.pointIndex)),
+        y = this.yAxis().tickFormat()(this.historicalBar.y()(e.point, e.pointIndex)),
+        content = this.tooltip()(e.series.key, x, y);
+    nv.tooltip.show([left, top], content, null, null, offsetElement);
 };
 
 /**
@@ -152,6 +156,7 @@ nv.models.historicalBarChart = function() {
 
     chart.dispatch = historicalBarChart.dispatch;
     chart.historicalBar = historicalBarChart.historicalBar;
+    chart.state = historicalBarChart.state;
 
     d3.rebind(chart, historicalBarChart.historicalBar, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale',
         'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi',

@@ -11,9 +11,6 @@ var DiscreteBarPrivates = {
     , xRange : null
     , yRange : null
     , rectClass : 'discreteBar'
-    , _color : nv.utils.defaultColor()
-    , _y: function(d){return d.y}
-    , _x: function(d){return d.x}
 };
 
 /**
@@ -27,9 +24,7 @@ function DiscreteBar(options){
         , chartClass: 'discretebar'
     });
 
-    Layer.call(this, options,
-        ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout']
-    );
+    Layer.call(this, options, []);
 }
 
 nv.utils.create(DiscreteBar, Layer, DiscreteBarPrivates);
@@ -88,16 +83,15 @@ DiscreteBar.prototype.draw = function(data){
     //------------------------------------------------------------
 
     //TODO: by definition, the discrete bar should not have multiple groups, will modify/remove later
-    var _opacity = 1e-6;
     var groups = this.wrap.select('.nv-groups').selectAll('.nv-group')
         .data(function(d) { return d }, function(d) { return d.key });
     groups.enter().append('g')
-        .style('stroke-opacity', _opacity)
-        .style('fill-opacity', _opacity);
+        .style('stroke-opacity', this.opacityDefault())
+        .style('fill-opacity', this.opacityDefault());
     groups.exit()
         .transition()
-        .style('stroke-opacity', _opacity)
-        .style('fill-opacity', _opacity)
+        .style('stroke-opacity', this.opacityDefault())
+        .style('fill-opacity', this.opacityDefault())
         .remove();
     groups
         .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
@@ -192,21 +186,9 @@ DiscreteBar.prototype.draw = function(data){
 
 };
 
-DiscreteBar.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    return this;
-};
-
-DiscreteBar.prototype.x = function(_){
-    if (!arguments.length) return this._x();
-    this._x(_);
-    return this;
-};
-
-DiscreteBar.prototype.y = function(_){
-    if (!arguments.length) return this._y();
-    this._y(_);
+DiscreteBar.prototype.color = function(_){
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 

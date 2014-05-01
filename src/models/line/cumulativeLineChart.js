@@ -10,17 +10,12 @@ var CumulativeLineChartPrivates = {
     , average : function(d) { return d.average }
     , transitionDuration : 250
     , noErrorCheck : false  //if set to TRUE, will bypass an error check in the indexify function.
-    , id : null
     , dxScale : d3.scale.linear()
     , index : {i: 0, x: 0}
     , xScale : null
     , yScale : null
-    , _duration : 250
-    , _rightAlignYAxis: false
-    , _useInteractiveGuideline : false
-    , _color : nv.utils.defaultColor()
-    , _x : null
-    , _y: null
+    , duration : 250
+    , useInteractiveGuideline : false
 };
 
 function CumulativeLineChart(options){
@@ -33,71 +28,11 @@ function CumulativeLineChart(options){
 
     this.line = this.getLine();
     this.controls = this.getLegend();
+
     this.controls.updateState(false);
     this.interactiveLayer = this.getInteractiveLayer();
     this.state = d3.functor( {index: 0, rescaleY: this.rescaleY()} );
-
     this.indexLine = null;
-
-    this.showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
-            y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
-            content = this.tooltip()(e.series.key, x, y);
-
-        nv.tooltip.show([left, top], content, null, null, offsetElement);
-    }.bind(this);
-
-    /* Normalize the data according to an index point. */
-    this.indexify = function(idx, data) {
-        return data.map(function(line) {
-            if (!line.values) return line;
-            var indexValue = line.values[idx];
-            if (indexValue == null) return line;
-            var v = this.line.y()(indexValue, idx);
-            //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
-            if (v < -.95 && !this.noErrorCheck()) {
-                //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
-                line.tempDisabled = true;
-                return line;
-            }
-            line.tempDisabled = false;
-            line.values = line.values.map(function(point, pointIndex) {
-                point.display = {'y': (this.line.y()(point, pointIndex) - v) / (1 + v) };
-                return point;
-            }.bind(this));
-            return line;
-        }.bind(this))
-    }.bind(this);
-
-    this.updateZero = function() {
-        this.indexLine.data([this.index()]);
-        //When dragging the index line, turn off line transitions.
-        // Then turn them back on when done dragging.
-        var oldDuration = this.duration();
-        this.duration(0);
-        this.update();
-        this.duration(oldDuration);
-    }.bind(this);
-
-    this.dragStart = function() {
-        this.svg.style('cursor', 'ew-resize');
-    }.bind(this);
-
-    this.dragMove = function() {
-        this.index().x = d3.event.x;
-        this.index().i = Math.round(this.dxScale().invert( this.index().x ));
-        this.updateZero();
-    }.bind(this);
-
-    this.dragEnd = function() {
-        this.svg.style('cursor', 'auto');
-        // update state and send stateChange with new index
-        this.state().index = this.index().i;
-        this.dispatch.stateChange(this.state());
-    }.bind(this);
-
 }
 
 nv.utils.create(CumulativeLineChart, Chart, CumulativeLineChartPrivates);
@@ -220,7 +155,6 @@ CumulativeLineChart.prototype.draw = function(data){
 
     this.line
         //.x(function(d) { return d.x })
-        .margin({top: 0, right: 0, bottom: 0, left: 0})
         .y(function(d) { return d.display.y })
         .width(availableWidth)
         .height(availableHeight)
@@ -473,16 +407,75 @@ CumulativeLineChart.prototype.attachEvents = function(){
         });
 };
 
+/* Normalize the data according to an index point. */
+CumulativeLineChart.prototype.indexify = function(idx, data) {
+    return data.map(function(line) {
+        if (!line.values) return line;
+        var indexValue = line.values[idx];
+        if (indexValue == null) return line;
+        var v = this.line.y()(indexValue, idx);
+        //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
+        if (v < -.95 && !this.noErrorCheck()) {
+            //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
+            line.tempDisabled = true;
+            return line;
+        }
+        line.tempDisabled = false;
+        line.values = line.values.map(function(point, pointIndex) {
+            point.display = {'y': (this.line.y()(point, pointIndex) - v) / (1 + v) };
+            return point;
+        }.bind(this));
+        return line;
+    }.bind(this))
+};
+
+CumulativeLineChart.prototype.updateZero = function() {
+    this.indexLine.data([this.index()]);
+    //When dragging the index line, turn off line transitions.
+    // Then turn them back on when done dragging.
+    var oldDuration = this.duration();
+    this.duration(0);
+    this.update();
+    this.duration(oldDuration);
+};
+
+CumulativeLineChart.prototype.dragStart = function() {
+    this.svg.style('cursor', 'ew-resize');
+};
+
+CumulativeLineChart.prototype.dragMove = function() {
+    this.index().x = d3.event.x;
+    this.index().i = Math.round(this.dxScale().invert( this.index().x ));
+    this.updateZero();
+};
+
+CumulativeLineChart.prototype.dragEnd = function() {
+    this.svg.style('cursor', 'auto');
+    // update state and send stateChange with new index
+    this.state().index = this.index().i;
+    this.dispatch.stateChange(this.state());
+};
+
+CumulativeLineChart.prototype.showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
+        y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
+        content = this.tooltip()(e.series.key, x, y);
+
+    nv.tooltip.show([left, top], content, null, null, offsetElement);
+};
+
 CumulativeLineChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    this.legend.color( _ );
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_) ;
+    this.legend.color( this.options.color );
     return this;
 };
 
 CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
-    if(!arguments.length) return this._useInteractiveGuideline();
-    this._useInteractiveGuideline(_);
+    if(!arguments.length) return this.options.useInteractiveGuideline;
+    this.options.useInteractiveGuideline = _;
     if (_ === true) {
         this.line.interactive(false);
         this.line.useVoronoi(false);
@@ -491,15 +484,9 @@ CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
 };
 
 CumulativeLineChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this._rightAlignYAxis();
-    this._rightAlignYAxis(_);
+    if(!arguments.length) return this.options.rightAlignYAxis;
+    this.options.rightAlignYAxis = _;
     this.yAxis().orient( (_) ? 'right' : 'left');
-    return this;
-};
-
-CumulativeLineChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
     return this;
 };
 
@@ -509,8 +496,8 @@ CumulativeLineChart.prototype.transitionDuration = function(_) {
 };
 
 CumulativeLineChart.prototype.duration = function(_) {
-    if(!arguments.length) return this._duration();
-    this._duration(_);
+    if(!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.line.duration(_);
     this.xAxis().duration(_);
     this.yAxis().duration(_);
@@ -519,15 +506,15 @@ CumulativeLineChart.prototype.duration = function(_) {
 };
 
 CumulativeLineChart.prototype.x = function(_){
-    if (!arguments.length) return this._x();
-    this._x(_);
+    if (!arguments.length) return this.options.x;
+    this.options.x = _;
     this.line.x(_);
     return this;
 };
 
 CumulativeLineChart.prototype.y = function(_){
-    if (!arguments.length) return this._y();
-    this._y(_);
+    if (!arguments.length) return this.options.y;
+    this.options.y = _;
     this.line.y(_);
     return this;
 };

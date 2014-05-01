@@ -4,8 +4,8 @@ var LinePrivates = {
     , interpolate : "linear" // controls the line interpolation
     , xScale: null
     , yScale: null
-    , x0: null
-    , y0: null
+    , xScale0: null
+    , yScale0: null
     , duration: 250
 };
 
@@ -20,7 +20,7 @@ function Line(options) {
         , chartClass: 'line'
         , wrapClass: 'scatterWrap'
     });
-    Layer.call(this, options, [ 'elementClick', 'elementMouseover', 'elementMouseout' ]);
+    Layer.call(this, options, []);
 
     this.scatter = this.getScatter()
         .size(16) // default size
@@ -35,10 +35,17 @@ Line.prototype.getScatter = function(){
     return nv.models.scatter();
 };
 
+/**
+ * @override Layer::wrapper
+ */
 Line.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data, [ 'nv-groups' ]);
 };
 
+/**
+ * override Layer::draw
+ * @param data
+ */
 Line.prototype.draw = function(data){
     var that = this,
         availableWidth = this.available.width,
@@ -57,8 +64,8 @@ Line.prototype.draw = function(data){
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());
-    this.x0(this.x0() || this.xScale());
-    this.y0(this.y0() || this.yScale());
+    this.xScale0(this.xScale0() || this.xScale());
+    this.yScale0(this.yScale0() || this.yScale());
 
     this.defsEnter.append('clipPath')
         .attr('id', 'nv-edge-clip-' + this.id())
@@ -77,8 +84,8 @@ Line.prototype.draw = function(data){
         .data(function(d) { return d }, function(d) { return d.key });
 
     groups.enter().append('g')
-        .style('stroke-opacity', 1e-6)
-        .style('fill-opacity', 1e-6);
+        .style('stroke-opacity', this.opacityDefault())
+        .style('fill-opacity', this.opacityDefault());
 
     groups.exit().remove();
 
@@ -100,10 +107,10 @@ Line.prototype.draw = function(data){
             return d3.svg.area()
                 .interpolate(that.interpolate())
                 .defined(that.defined)
-                .x(function(d,i) { return nv.utils.NaNtoZero(that.x0()(that.x()(d,i))) })
-                .y0(function(d,i) { return nv.utils.NaNtoZero(that.y0()(that.y()(d,i))) })
-                .y1(function() { return that.y0()( that.yScale().domain()[0] <= 0 ? that.yScale().domain()[1] >= 0 ? 0 : that.yScale().domain()[1] : that.yScale().domain()[0] ) })
-                //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
+                .x(function(d,i) { return nv.utils.NaNtoZero(that.xScale0()(that.x()(d,i))) })
+                .y0(function(d,i) { return nv.utils.NaNtoZero(that.yScale0()(that.y()(d,i))) })
+                .y1(function() { return that.yScale0()( that.yScale().domain()[0] <= 0 ? that.yScale().domain()[1] >= 0 ? 0 : that.yScale().domain()[1] : that.yScale().domain()[0] ) })
+                //.y1(function(d,i) { return yScale0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(that, [d.values])
         });
     groups.exit().selectAll('path.nv-area')
@@ -117,7 +124,7 @@ Line.prototype.draw = function(data){
                 .x(function(d,i) { return nv.utils.NaNtoZero(that.xScale()(that.x()(d,i))) })
                 .y0(function(d,i) { return nv.utils.NaNtoZero(that.yScale()(that.y()(d,i))) })
                 .y1(function() { return that.yScale()( that.yScale().domain()[0] <= 0 ? that.yScale().domain()[1] >= 0 ? 0 : that.yScale().domain()[1] : that.yScale().domain()[0] ) })
-                //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
+                //.y1(function(d,i) { return yScale0(0) }) //assuming 0 is within y domain.. may need to tweak this
                 .apply(that, [d.values])
         });
 
@@ -129,8 +136,8 @@ Line.prototype.draw = function(data){
             d3.svg.line()
                 .interpolate(this.interpolate())
                 .defined(function(d, i){ return !isNaN(that.y()(d, i)) && (that.y()(d, i) !== null) })
-                .x(function(d,i) { return nv.utils.NaNtoZero(that.x0()(that.x()(d,i))) })
-                .y(function(d,i) { return nv.utils.NaNtoZero(that.y0()(that.y()(d,i))) })
+                .x(function(d,i) { return nv.utils.NaNtoZero(that.xScale0()(that.x()(d,i))) })
+                .y(function(d,i) { return nv.utils.NaNtoZero(that.yScale0()(that.y()(d,i))) })
         );
 
     linePaths.watchTransition(this.renderWatch, 'line: linePaths')
@@ -143,12 +150,16 @@ Line.prototype.draw = function(data){
         );
 
     //store old scales for use in transitions on update
-    that.x0(this.xScale().copy());
-    that.y0(this.yScale().copy());
+    that.xScale0(this.xScale().copy());
+    that.yScale0(this.yScale().copy());
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 Line.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
+
     // Pass through scatter dispatch events,
     // required for renderWatch to dispatch properly
     this.scatter.dispatch

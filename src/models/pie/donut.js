@@ -12,7 +12,7 @@ Donut.prototype.getArc = function() {
     var arc = Pie.prototype.getArc.call(this);
     arc.innerRadius(this.radius() * this.donutRatio());
     return arc;
-}
+};
 
 nv.models.donut = function(){
     var donut = new Donut();
@@ -28,7 +28,7 @@ nv.models.donut = function(){
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     return chart;
-}
+};
 
 
 function DonutChart(options){
@@ -38,7 +38,7 @@ DonutChart.prototype = Object.create(PieChart.prototype);
 
 DonutChart.prototype.getPie = function(){
     return nv.models.donut();
-}
+};
 
 nv.models.donutChart = function(){
     var donutChart = new DonutChart();
@@ -57,4 +57,4 @@ nv.models.donutChart = function(){
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     return chart;
-}
+};

@@ -1,13 +1,13 @@
 var ChartPrivates = {
       showXAxis : true
-    , xAxis: nv.models.axis()
-    , reduceXTicks : true
     , showYAxis : true
+    , xAxis: nv.models.axis()
     , yAxis: nv.models.axis()
+    , rightAlignYAxis: false
+    , reduceXTicks : true
     , staggerLabels: false
     , rotateLabels: 0
-    , rightAlignYAxis: false
-}
+};
 
 /**
  * A Chart is a composite Layer structure.
@@ -36,22 +36,29 @@ function Chart(options, dispatch){
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
 }
+
 nv.utils.create(Chart, Layer, ChartPrivates);
+
+Chart.prototype.getStatesManager = function(){
+    return nv.utils.state();
+};
 
 /**
  * Apply the chart-specific wrap classes.
  */
 Chart.prototype.wrapper = function(data, gs) {
+
     var wrapPoints = [
         'nv-x nv-axis',
         'nv-y nv-axis',
         'nv-legendWrap'
     ].concat(gs || []);
+
     Layer.prototype.wrapper.call(this, data, wrapPoints);
 
     this.axis = {
         x: this.wrap.select('.nv-x.nv-axis'),
-        y: this.wrap.select('.nv-x.nv-axis')
+        y: this.wrap.select('.nv-y.nv-axis')
     };
 
     this.buildLegend(data);
@@ -98,7 +105,7 @@ Chart.prototype.showLegend = function(_) {
 
 Chart.prototype.draw = function(data){
     this.plotAxes(data);
-}
+};
 
 Chart.prototype.plotAxes = function(data){
     if (this.rightAlignYAxis()) {
@@ -171,13 +178,13 @@ Chart.prototype.plotAxes = function(data){
 
         this.axis.y.transition().call(this.yAxis());
     }
-}
+};
 
 Chart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
     this.legend.dispatch.on('stateChange', function(newState) {
-      state = newState;
-      this.dispatch.stateChange(state);
+      this.state = newState;
+      this.dispatch.stateChange(this.state);
     }.bind(this));
 
     this.dispatch.on('tooltipShow', function(e) {
@@ -196,5 +203,10 @@ Chart.prototype.attachEvents = function(){
 Chart.prototype.tooltip = function(_) {
     if(!arguments.length) return this.options.tooltip;
     this.options.tooltip = _;
+    return this;
+};
+
+Chart.prototype.tooltipContent = function(_){
+    this.tooltip(_);
     return this;
 };

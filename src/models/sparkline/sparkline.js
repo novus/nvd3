@@ -6,7 +6,7 @@ var SparklinePrivates = {
     , yDomain : null
     , xRange : null
     , yRange : null
-    , _color: nv.utils.getColor(['#000000'])
+    , color: nv.utils.getColor(['#000000'])
 };
 
 /**
@@ -93,8 +93,8 @@ Sparkline.prototype.draw = function(data){
 };
 
 Sparkline.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 

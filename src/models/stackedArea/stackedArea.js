@@ -19,9 +19,8 @@ var StackedAreaPrivates = {
     , xScale: null //can be accessed via chart.xScale()
     , yScale: null //can be accessed via chart.yScale()
     , dataRaw: null
-    , _duration : 250
-    , _color : nv.utils.defaultColor() // a function that computes the color
-    , _style : 'stack'
+    , duration : 250
+    , style : 'stack'
 };
 
 
@@ -68,7 +67,22 @@ StackedArea.prototype.wrapper = function(data){
  */
 StackedArea.prototype.draw = function(data){
 
-    var that = this;
+    var that = this
+        , dataFiltered = data.filter(function(series) {
+            return !series.disabled;
+        })
+        , scatterWrap = null
+        , area = null
+        , zeroArea = null
+        , path = null
+        , mouseEventObject = function(d){
+            return {
+                point : d,
+                series: d.key,
+                pos   : [d3.event.pageX, d3.event.pageY],
+                seriesIndex: d.seriesIndex
+            }
+        };
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());
@@ -83,10 +97,6 @@ StackedArea.prototype.draw = function(data){
             d.seriesIndex = i;
             return d;
         });
-    });
-
-    var dataFiltered = data.filter(function(series) {
-        return !series.disabled;
     });
 
     data = d3.layout.stack()
@@ -114,7 +124,7 @@ StackedArea.prototype.draw = function(data){
             return d.color || that.color()(d, d.seriesIndex);
         }));
 
-    var scatterWrap = this.g.select('.nv-scatterWrap')
+    scatterWrap = this.g.select('.nv-scatterWrap')
         .datum(data);
     scatterWrap.call(this.scatter);
 
@@ -128,42 +138,34 @@ StackedArea.prototype.draw = function(data){
 
     this.g.attr('clip-path', this.clipEdge() ? 'url(#nv-edge-clip-' + this.id() + ')' : '');
 
-    var area = d3.svg.area()
+    area = d3.svg.area()
         .x(function(d)  { return that.xScale()(that.x()(d)) })
         .y0(function(d) { return that.yScale()(d.display.y0) })
         .y1(function(d) { return that.yScale()(d.display.y + d.display.y0) })
         .interpolate(this.interpolate());
 
-    var zeroArea = d3.svg.area()
+    zeroArea = d3.svg.area()
         .x(function(d)  { return that.xScale()(that.x()(d)) })
         .y0(function(d) { return that.yScale()(d.display.y0) })
         .y1(function(d) { return that.yScale()(d.display.y0) });
 
-    var path = this.g.select('.nv-areaWrap').selectAll('path.nv-area')
+    path = this.g.select('.nv-areaWrap').selectAll('path.nv-area')
         .data(data);
 
-    var _mouseEventObject = function(d){
-        return {
-            point : d,
-            series: d.key,
-            pos   : [d3.event.pageX, d3.event.pageY],
-            seriesIndex: d.seriesIndex
-        }
-    };
     path.enter().append('path')
         .attr('class', function(d,i) { return 'nv-area nv-area-' + i })
         .attr('d', function(d){ return zeroArea(d.values, d.seriesIndex) })
         .on('mouseover', function(d) {
             d3.select(this).classed('hover', true);
-            that.dispatch.areaMouseover( _mouseEventObject(d) );
+            that.dispatch.areaMouseover( mouseEventObject(d) );
         })
         .on('mouseout', function(d) {
             d3.select(this).classed('hover', false);
-            that.dispatch.areaMouseout( _mouseEventObject(d) );
+            that.dispatch.areaMouseout( mouseEventObject(d) );
         })
         .on('click', function(d) {
             d3.select(this).classed('hover', false);
-            that.dispatch.areaClick( _mouseEventObject(d) );
+            that.dispatch.areaClick( mouseEventObject(d) );
         });
 
     path.exit().remove();
@@ -174,6 +176,9 @@ StackedArea.prototype.draw = function(data){
         .attr('d', function(d,i) { return area(d.values,i) });
 };
 
+/**
+ * @override Layer::attachEvents
+ */
 StackedArea.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
 
@@ -203,14 +208,14 @@ StackedArea.prototype.attachEvents = function(){
 };
 
 StackedArea.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color(nv.utils.getColor(_));
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 
 StackedArea.prototype.style = function(_) { //shortcut for offset + order
-    if (!arguments.length) return this._style();
-    this._style(_);
+    if (!arguments.length) return this.options.style;
+    this.options.style = _;
 
     switch (_) {
         case 'stack':
@@ -239,8 +244,8 @@ StackedArea.prototype.style = function(_) { //shortcut for offset + order
 };
 
 StackedArea.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
     return this;
