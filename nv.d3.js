@@ -1237,7 +1237,7 @@ nv.utils.extend = function(base) {
           base[key] = extra[key];
         }
       }
-    }, this);
+    }
   }
 
   return base;
