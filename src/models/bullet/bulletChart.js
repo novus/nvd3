@@ -21,7 +21,7 @@ function BulletChart(options){
     Chart.call(this, options);
 
     this.bullet = this.getBullet();
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 }
 
 nv.utils.create(BulletChart, Chart, BulletChartPrivates);

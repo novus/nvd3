@@ -90,15 +90,14 @@ nv.addGraph(function() {
     var width = 500,
         height = 500;
 
-    var chart = nv.models.pieChart()
+    var chart = nv.models.donutChart()
         .x(function(d) { return d.key })
         //.y(function(d) { return d.value })
-        //.labelThreshold(.08)
-        //.showLabels(false)
+        // .labelThreshold(.08)
+        .showLabels(false)
         .color(d3.scale.category10().range())
         .width(width)
-        .height(height)
-        .donut(true);
+        .height(height);
 
     chart.pie
         .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })

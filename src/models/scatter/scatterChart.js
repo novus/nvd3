@@ -38,7 +38,7 @@ function ScatterChart(options){
     this.distX = this.getDistribution();
     this.distY = this.getDistribution();
     this.controls = this.getControls();
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 
     this.xScale( d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : this.scatter.xScale() );
     this.yScale( d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : this.scatter.yScale() );

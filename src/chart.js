@@ -39,7 +39,7 @@ function Chart(options, dispatch){
 
 nv.utils.create(Chart, Layer, ChartPrivates);
 
-Chart.prototype.getStatesManager = function(){
+Chart.prototype.getStateManager = function(){
     return nv.utils.state();
 };
 

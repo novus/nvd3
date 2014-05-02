@@ -352,7 +352,14 @@ nv.utils.extend = function(base) {
       for (var key in extra) {
         if (!__hasProp.call(extra, key)) continue;
         if (typeof extra[key] === 'object'){
-          if (typeof base[key] === 'object') {
+          if (extra[key] instanceof Array){
+            // copy array. Should this be deep? Not yet (DS 2014-05-01)
+            // Force base to be array.
+            base[key] = [];
+            for(var j=0; j < extra[key].length; j++){
+              base[key].push(extra[key][j]);
+            }
+          } else if (typeof base[key] === 'object') {
             // recurse
             nv.utils.extend(base[key], extra[key]);
           } else if (extra[key]) {

@@ -22,7 +22,7 @@ function LineChart(options){
 
     this.line = this.getLine();
     this.interactiveLayer = this.getInteractiveLayer();
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 }
 
 nv.utils.create(LineChart, Chart, LineChartPrivates);

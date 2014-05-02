@@ -1,0 +1,5 @@
+# Breaking Changes
+
+1. `nv.model.pie().donut(true)` no longer valid, now use `nv.model.donut()`.
+1. `nv.model.pieChart().donut(true)` no longer valid, now use `nv.model.donutChart()`.
+

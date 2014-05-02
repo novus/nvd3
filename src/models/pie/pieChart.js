@@ -10,11 +10,10 @@ function PieChart(options){
 
     Chart.call(this, options);
     this.pie = this.getPie();
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 
     this.pie.showLabels(true);
 }
-
 nv.utils.create(PieChart, Chart, {});
 
 PieChart.prototype.getPie = function(){

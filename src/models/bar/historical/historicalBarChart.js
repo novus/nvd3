@@ -19,7 +19,7 @@ function HistoricalBarChart(options){
     this.historicalBar = nv.models.historicalBar();
     this.xScale = this.historicalBar.xScale;
     this.yScale = this.historicalBar.yScale;
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 }
 
 nv.utils.create(HistoricalBarChart, Chart, HistoricalBarChartPrivates);

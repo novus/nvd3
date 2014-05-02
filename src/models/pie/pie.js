@@ -277,9 +277,10 @@ nv.models.pie = function () {
     chart.dispatch = pie.dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
+    // This is really shitty
     nv.utils.rebindp(chart, pie, Pie.prototype, 'margin', 'width', 'height', 'x', 'y', 'description', 'showLabels',
         'labelSunbeamLayout', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio',
-        'startAngle', 'endAngle', 'id', 'color', 'labelThreshold', 'valueFormat');
+        'startAngle', 'endAngle', 'id', 'color', 'labelThreshold', 'valueFormat', 'values');
 
     return chart;
 };

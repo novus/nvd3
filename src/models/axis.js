@@ -360,8 +360,9 @@ nv.models.axis = function() {
     d3.rebind(chart, axis.axis,
         'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat'
     );
-    d3.rebind(chart, axis.scale, //these are also accessible by chart.scale(), but added common ones directly for ease of use
-        'domain', 'range', 'rangeBand', 'rangeBands'
+
+    d3.rebind(chart, axis.scale(), //these are also accessible by chart.scale(), but added common ones directly for ease of use
+        'domain', 'range'//, 'rangeBand', 'rangeBands'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);

@@ -9,6 +9,7 @@ LayerPrivates = {
     , description: function(d) { return d.description }
     , x: function(d){return d.x;}
     , y: function(d){return d.y;}
+    , values: function(d){return d;}
 };
 
 /**

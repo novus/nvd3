@@ -24,7 +24,7 @@ function MultiBarChart(options){
     this.multibar = this.getMultiBar();
     this.controls = this.getLegend();
 
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
 
     this.controlWidth = function() { return this.showControls() ? 180 : 0};

@@ -9,15 +9,34 @@ module.exports = function(grunt) {
             },
             dist: {
                 src: [
-                     'src/intro.js',
-                     'src/core.js',
-                     'src/canvas.js',
-                     'src/interactiveLayer.js',
-                     'src/tooltip.js',
-                     'src/utils.js',
-                     'src/models/**/*js',
-                     'src/outro.js'
-                     ],
+                  'src/intro.js',
+                  'src/core.js',
+                  'src/utils.js',
+                  'src/layer.js',
+
+                  'src/canvas.js',
+                  'src/interactiveLayer.js',
+                  'src/tooltip.js',
+                  'src/utils.js',
+
+                  'src/models/axis.js',
+                  'src/models/legend.js',
+
+                  'src/chart.js',
+
+                  'src/models/bar/**/*js',
+                  'src/models/bullet/**/*js',
+                  'src/models/line/**/*js',
+
+                  'src/models/pie/pie*js',
+                  'src/models/pie/donut.js',
+
+                  'src/models/scatter/**/*js',
+                  'src/models/sparkline/**/*js',
+                  'src/models/stackedArea/**/*js',
+
+                  'src/outro.js'
+                ],
                 dest: 'nv.d3.js'
             }
         },

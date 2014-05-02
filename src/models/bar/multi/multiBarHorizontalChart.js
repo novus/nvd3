@@ -57,7 +57,7 @@ function MultiBarHorizontalChart(options){
 
     this.state = this.getStateManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
-    
+
     this.showTooltip = function(e, offsetElement) {
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
             top = e.pos[1] + ( offsetElement.offsetTop || 0),
@@ -104,10 +104,6 @@ MultiBarHorizontalChart.prototype.getLegend = function(){
 
 MultiBarHorizontalChart.prototype.getAxis = function(){
     return nv.models.axis();
-};
-
-MultiBarHorizontalChart.prototype.getStateManager = function(){
-    return nv.utils.state();
 };
 
 MultiBarHorizontalChart.prototype.draw = function(data){

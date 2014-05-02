@@ -17,7 +17,7 @@ function DiscreteBarChart(options){
     });
 
     this.discreteBar = this.getDiscreteBar();
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 
     Chart.call(this, options);
 }

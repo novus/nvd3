@@ -33,7 +33,7 @@ function StackedAreaChart(options){
     this.stacked = this.getStackedArea();
     this.controls = this.getLegend();
     this.interactiveLayer = this.getInteractiveGuideline();
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 
     this.yAxis().tickFormat = function(_) {
         if (!arguments.length) return this.yAxisTickFormat();

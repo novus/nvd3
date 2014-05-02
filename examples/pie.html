@@ -73,11 +73,10 @@ nv.addGraph(function() {
     var width = nv.utils.windowSize().width - 40,
         height = nv.utils.windowSize().height / 2 - 40;
 
-    var chart = nv.models.pie()
+    var chart = nv.models.donut()
         .values(function(d) { return d })
         .width(width)
-        .height(height)
-        .donut(true);
+        .height(height);
 
     d3.select("#test2")
         .datum(testdata)

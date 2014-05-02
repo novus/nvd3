@@ -21,7 +21,7 @@ function SparklinePlus(options){
     Chart.call(this, options);
 
     this.sparkline = this.getSparkline();
-    this.state = this.getStatesManager();
+    this.state = this.getStateManager();
 }
 
 nv.utils.create(SparklinePlus, Chart, SparklinePlusPrivates);
