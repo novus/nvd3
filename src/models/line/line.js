@@ -174,6 +174,15 @@ Line.prototype.attachEvents = function(){
         }.bind(this))
 };
 
+Line.prototype.duration = function(_) {
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
+    this.scatter.duration(_);
+    this.renderWatch.reset(_);
+    return this;
+};
+
+
 Line.prototype.transitionDuration = function(_) {
     nv.deprecated('line.transitionDuration');
     return this.duration(_);
@@ -196,10 +205,10 @@ nv.models.line = function () {
         return chart;
     }
 
-    d3.rebind(chart, line.scatter,
+    nv.utils.rebindp(chart, line.scatter, Scatter.prototype,
         'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
         'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
-        'highlightPoint','clearHighlights', 'duration', 'clipEdge', 'x', 'y', 'color'
+        'highlightPoint','clearHighlights', 'clipEdge', 'x', 'y', 'color'
     );
 
     chart.dispatch = line.dispatch;
@@ -207,7 +216,7 @@ nv.models.line = function () {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, line, Line.prototype,
-        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'transitionDuration'
+        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'duration', 'transitionDuration'
     );
 
     return chart;

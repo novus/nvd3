@@ -21,6 +21,7 @@ module.exports = function(grunt) {
 
                   'src/models/axis.js',
                   'src/models/legend.js',
+                  'src/models/distribution.js',
 
                   'src/chart.js',
 

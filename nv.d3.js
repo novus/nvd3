@@ -2065,15 +2065,147 @@ nv.models.legend = function () {
     );
 
     return chart;
-};var ChartPrivates = {
-      showXAxis : true
-    , showYAxis : true
-    , xAxis: nv.models.axis()
-    , yAxis: nv.models.axis()
-    , rightAlignYAxis: false
-    , reduceXTicks : true
-    , staggerLabels: false
-    , rotateLabels: 0
+};/**
+ * Private variables
+ * @type {{color: *}}
+ */
+var DistributionPrivates = {
+    axis : 'x' // 'x' or 'y'... horizontal or vertical
+    , getData : null  // defaults d.x or d.y
+    , scale : d3.scale.linear()
+    , domain : null
+    , scale0: null
+    , _color : nv.utils.defaultColor()
+    , _duration : 250
+    , _size : 8
+};
+
+/**
+ * A Distribution
+ */
+function Distribution(options){
+    options = nv.utils.extend({}, options, DistributionPrivates, {
+        margin : {top: 0, right: 0, bottom: 0, left: 0}
+        , width : 400 //technically width or height depending on x or y....
+        , chartClass: 'distribution'
+        , wrapClass: 'distribution'
+    });
+
+    Layer.call(this, options, []);
+
+    this.getData(function(d) {
+        return d[this.axis()]
+    }.bind(this));
+
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
+}
+
+nv.utils.create(Distribution, Layer, DistributionPrivates);
+
+/**
+ * @override Layer::wrapper
+ */
+Distribution.prototype.wrapper = function(data){
+    Layer.prototype.wrapper.call(this, data, []);
+
+};
+
+/**
+ * @override Layer::draw
+ */
+Distribution.prototype.draw = function(data){
+
+    var that = this
+        , availableLength = this.width() -
+            (this.axis() === 'x'
+            ? this.margin().left + this.margin().right
+            : this.margin().top + this.margin().bottom)
+        , naxis = this.axis() == 'x' ? 'y' : 'x';
+
+    this.scale0(this.scale0() || this.scale());
+
+    var distWrap = this.g.selectAll('g.nv-dist')
+        .data(function(d) { return d }, function(d) { return d.key });
+
+    distWrap.enter().append('g');
+    distWrap
+        .attr('class', function(d,i) { return 'nv-dist nv-series-' + i })
+        .style('stroke', function(d,i) { return that.color(d, i) });
+
+    var dist = distWrap.selectAll('line.nv-dist' + this.axis())
+        .data(function(d) { return d.values });
+
+    dist.enter().append('line')
+        .attr(this.axis() + '1', function(d,i) { return that.scale0()(that.getData()(d,i)) })
+        .attr(this.axis() + '2', function(d,i) { return that.scale0()(that.getData()(d,i)) });
+
+    this.renderWatch.transition(distWrap.exit().selectAll('line.nv-dist' + this.axis()), 'dist exit')
+        // .transition()
+        .attr(this.axis() + '1', function(d,i) { return that.scale()(that.getData()(d,i)) })
+        .attr(this.axis() + '2', function(d,i) { return that.scale()(that.getData()(d,i)) })
+        .style('stroke-opacity', 0)
+        .remove();
+
+    dist
+        .attr('class', function(d,i) { return 'nv-dist' + that.axis() + ' nv-dist' + that.axis() + '-' + i })
+        .attr(naxis + '1', 0)
+        .attr(naxis + '2', this.size());
+
+    this.renderWatch.transition(dist, 'dist')
+        // .transition()
+        .attr(this.axis() + '1', function(d,i) { return that.scale()(that.getData()(d,i)) })
+        .attr(this.axis() + '2', function(d,i) { return that.scale()(that.getData()(d,i)) });
+
+    this.scale0(this.scale().copy());
+};
+
+Distribution.prototype.color = function(_) {
+    if (!arguments.length) return this._color();
+    this._color( nv.utils.getColor(_) );
+    return this;
+};
+Distribution.prototype.duration = function(_) {
+    if (!arguments.length) return this._duration();
+    this._duration(_);
+    this.renderWatch.reset(_);
+    return this;
+};
+
+Distribution.prototype.size = function(_){
+    if (!arguments.length) return this._size();
+    this._size(_);
+    return this;
+};
+
+/**
+ * The distribution model returns a function wrapping an instance of a Distribution.
+ */
+nv.models.distribution = function () {
+    "use strict";
+
+    var distribution = new Distribution();
+
+    function chart(selection) {
+        distribution.render(selection);
+        return chart;
+    }
+
+    chart.dispatch = distribution.dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    nv.utils.rebindp(chart, distribution, Distribution.prototype,
+        'margin', 'width', 'axis', 'size', 'getData', 'scale','color', 'duration'
+    );
+
+    return chart;
+};
+var ChartPrivates = {
+    showXAxis : true,
+    showYAxis : true,
+    rightAlignYAxis: false,
+    reduceXTicks : true,
+    staggerLabels: false,
+    rotateLabels: 0
 };
 
 /**
@@ -2102,12 +2234,18 @@ function Chart(options, dispatch){
 
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
+    this.xAxis = this.getAxis();
+    this.yAxis = this.getAxis();
 }
 
 nv.utils.create(Chart, Layer, ChartPrivates);
 
 Chart.prototype.getStateManager = function(){
     return nv.utils.state();
+};
+
+Chart.prototype.getAxis = function(){
+    return nv.models.axis();
 };
 
 /**
@@ -2180,7 +2318,7 @@ Chart.prototype.plotAxes = function(data){
     }
 
     if (this.showXAxis()) {
-        this.xAxis()
+        this.xAxis
             .orient('bottom')
             .tickPadding(7)
             .highlightZero(true)
@@ -2192,7 +2330,7 @@ Chart.prototype.plotAxes = function(data){
 
         this.axis.x
             .transition()
-            .call(this.xAxis());
+            .call(this.xAxis);
 
         var xTicks = this.g.select('.nv-x.nv-axis > g').selectAll('g');
 
@@ -2236,14 +2374,14 @@ Chart.prototype.plotAxes = function(data){
     }
 
     if (this.showYAxis()) {
-        this.yAxis()
+        this.yAxis
             .orient(this.rightAlignYAxis() ? 'right' : 'left')
             .tickFormat(d3.format(',.1f'))
             .scale(this.yScale())
             .ticks( this.available.height / 36 )
             .tickSize( -this.available.width, 0);
 
-        this.axis.y.transition().call(this.yAxis());
+        this.axis.y.transition().call(this.yAxis);
     }
 };
 
@@ -5574,7 +5712,10 @@ CumulativeLineChart.prototype.draw = function(data){
     this.svg.classed('nv-chart-' + this.id(), true);
 
     this.xScale( this.line.xScale() );
+
+    this.line.yScale();
     this.yScale( this.line.yScale() );
+    console.log(this.options.yScale);
 
     var that = this
         , availableWidth = this.available.width
@@ -6042,9 +6183,11 @@ nv.models.cumulativeLineChart = function(){
     chart.lines = cumulativeLineChart.line;
     chart.legend = cumulativeLineChart.legend;
     chart.interactiveLayer = cumulativeLineChart.interactiveLayer;
+    chart.xAxis = cumulativeLineChart.xAxis();
+    chart.yAxis = cumulativeLineChart.yAxis();
 
     d3.rebind(chart, cumulativeLineChart.line,
-        'defined', 'isArea', 'xScale', 'yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
+        'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
         'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi',  'id'
     );
 
@@ -6053,7 +6196,7 @@ nv.models.cumulativeLineChart = function(){
     nv.utils.rebindp(chart, cumulativeLineChart, CumulativeLineChart.prototype,
         'margin', 'width', 'height', 'color', 'rescaleY', 'showControls', 'useInteractiveGuideline', 'showLegend',
         'showXAxis', 'showYAxis', 'rightAlignYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'xAxis', 'yAxis', 'x', 'y'
+        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'x', 'y'
     );
 
     return chart;
@@ -6235,6 +6378,15 @@ Line.prototype.attachEvents = function(){
         }.bind(this))
 };
 
+Line.prototype.duration = function(_) {
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
+    this.scatter.duration(_);
+    this.renderWatch.reset(_);
+    return this;
+};
+
+
 Line.prototype.transitionDuration = function(_) {
     nv.deprecated('line.transitionDuration');
     return this.duration(_);
@@ -6257,10 +6409,10 @@ nv.models.line = function () {
         return chart;
     }
 
-    d3.rebind(chart, line.scatter,
+    nv.utils.rebindp(chart, line.scatter, Scatter.prototype,
         'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
         'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
-        'highlightPoint','clearHighlights', 'duration', 'clipEdge', 'x', 'y', 'color'
+        'highlightPoint','clearHighlights', 'clipEdge', 'x', 'y', 'color'
     );
 
     chart.dispatch = line.dispatch;
@@ -6268,7 +6420,7 @@ nv.models.line = function () {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, line, Line.prototype,
-        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'transitionDuration'
+        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'duration', 'transitionDuration'
     );
 
     return chart;
@@ -9256,8 +9408,8 @@ ScatterChart.prototype.wrapper = function (data) {
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 
     this.renderWatch.models(this.scatter);
-    if (this.showXAxis()) this.renderWatch.models(this.xAxis());
-    if (this.showYAxis()) this.renderWatch.models(this.yAxis());
+    if (this.showXAxis()) this.renderWatch.models(this.xAxis);
+    if (this.showYAxis()) this.renderWatch.models(this.yAxis);
     if (this.showDistX()) this.renderWatch.models(this.distX);
     if (this.showDistY()) this.renderWatch.models(this.distY);
 };
@@ -9510,13 +9662,19 @@ ScatterChart.prototype.tooltipContent = function(_) {
     return this;
 };
 
+ScatterChart.prototype.transitionDuration = function(_) {
+    nv.deprecated('scatterChart.transitionDuration');
+    return this.duration(_);
+};
+
 ScatterChart.prototype.duration = function(_) {
     if (!arguments.length) return this.options.duration;
     this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
+    console.log('xAxis duration');
+    this.xAxis.duration(_);
+    this.yAxis.duration(_);
     this.distX.duration(_);
     this.distY.duration(_);
     return this;
@@ -9541,6 +9699,8 @@ nv.models.scatterChart = function() {
     chart.controls = scatterChart.controls;
     chart.distX = scatterChart.distX;
     chart.distY = scatterChart.distY;
+    chart.xAxis = scatterChart.xAxis;
+    chart.yAxis = scatterChart.yAxis;
 
     d3.rebind(chart, scatterChart.scatter,
         'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain',
@@ -9551,9 +9711,9 @@ nv.models.scatterChart = function() {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, scatterChart, ScatterChart.prototype,
-        'duration', 'tooltipContent', 'color', 'margin', 'width', 'height', 'showDistX', 'showDistY', 'showControls',
+        'transitionDuration', 'duration', 'tooltipContent', 'color', 'margin', 'width', 'height', 'showDistX', 'showDistY', 'showControls',
         'showLegend', 'showXAxis', 'showYAxis', 'rightAlignYAxis', 'fisheye', 'xPadding', 'yPadding', 'tooltips',
-        'tooltipXContent', 'tooltipYContent', 'state', 'defaultState', 'noData', 'xAxis', 'yAxis'
+        'tooltipXContent', 'tooltipYContent', 'state', 'defaultState', 'noData'
     );
 
     return chart;
@@ -10991,46 +11151,6 @@ StackedAreaChart.prototype.draw = function(data){
     stackedWrap.transition().call(this.stacked);
 
     this.plotAxes(data);
-};
-
-Chart.prototype.plotAxes = function(data){
-
-    if (this.rightAlignYAxis()) {
-        this.wrap.select('.nv-x.nv-axis').attr("transform", "translate(" + this.available.width + ", 0)");
-    }
-
-    if (this.showXAxis()) {
-
-        this.xAxis()
-            .orient('bottom')
-            .tickPadding(7)
-            .scale(this.xScale())
-            .ticks( this.available.width / 100 )
-            .tickSize( -this.available.height, 0);
-
-        this.g.select('.nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + this.available.height + ')')
-            .transition().duration(0)
-            .call(this.xAxis());
-    }
-
-    if (this.showYAxis()) {
-        this.yAxis()
-            .orient((this.rightAlignYAxis()) ? 'right' : 'left')
-            .scale(this.yScale())
-            .ticks(this.stacked.offset() == 'wiggle' ? 0 : this.available.height / 36)
-            .tickSize(-this.available.width, 0)
-            .setTickFormat(
-                (this.stacked.style() == 'expand' || this.stacked.style() == 'stack_percent')
-                    ? d3.format('%')
-                    : this.yAxisTickFormat()
-            );
-
-        this.g.select('.nv-y.nv-axis')
-            .transition().duration(0)
-            .call(this.yAxis());
-    }
-
 };
 
 /**

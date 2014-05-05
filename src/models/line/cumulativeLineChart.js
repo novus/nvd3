@@ -65,7 +65,10 @@ CumulativeLineChart.prototype.draw = function(data){
     this.svg.classed('nv-chart-' + this.id(), true);
 
     this.xScale( this.line.xScale() );
+
+    this.line.yScale();
     this.yScale( this.line.yScale() );
+    console.log(this.options.yScale);
 
     var that = this
         , availableWidth = this.available.width
@@ -533,9 +536,11 @@ nv.models.cumulativeLineChart = function(){
     chart.lines = cumulativeLineChart.line;
     chart.legend = cumulativeLineChart.legend;
     chart.interactiveLayer = cumulativeLineChart.interactiveLayer;
+    chart.xAxis = cumulativeLineChart.xAxis();
+    chart.yAxis = cumulativeLineChart.yAxis();
 
     d3.rebind(chart, cumulativeLineChart.line,
-        'defined', 'isArea', 'xScale', 'yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
+        'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
         'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi',  'id'
     );
 
@@ -544,7 +549,7 @@ nv.models.cumulativeLineChart = function(){
     nv.utils.rebindp(chart, cumulativeLineChart, CumulativeLineChart.prototype,
         'margin', 'width', 'height', 'color', 'rescaleY', 'showControls', 'useInteractiveGuideline', 'showLegend',
         'showXAxis', 'showYAxis', 'rightAlignYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'xAxis', 'yAxis', 'x', 'y'
+        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'x', 'y'
     );
 
     return chart;

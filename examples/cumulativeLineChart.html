@@ -60,6 +60,7 @@ nv.addGraph(function() {
              .transitionDuration(300)
              .clipVoronoi(false);
 
+  window.chart = chart;
    chart.xAxis
       .tickFormat(function(d) {
           return d3.time.format('%m/%d/%y')(new Date(d))
@@ -90,7 +91,7 @@ nv.addGraph(function() {
              .color(d3.scale.category10().range())
              .average(function(d) { return d.mean/100; })
              .clipVoronoi(false);
-
+  window.chart = chart;
    chart.xAxis
       .tickFormat(function(d) {
           return d3.time.format('%m/%d/%y')(new Date(d))
