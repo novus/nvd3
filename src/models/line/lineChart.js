@@ -1,12 +1,12 @@
 var LineChartPrivates = {
-    defaultState : null
-    , xScale: null
-    , yScale: null
-    , interactive: null
-    , useVoronoi: null
-    , tooltips: true
-    , duration : 250
-    , useInteractiveGuideline : false
+    defaultState: null,
+    xScale: null,
+    yScale: null,
+    interactive: null,
+    useVoronoi: null,
+    tooltips: true,
+    duration: 250,
+    useInteractiveGuideline: false
 };
 
 /**
@@ -42,8 +42,8 @@ LineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data, [ 'nv-interactive' ]);
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     this.renderWatch.models(this.line);
-    if (this.showXAxis()) this.renderWatch.models(this.xAxis());
-    if (this.showYAxis()) this.renderWatch.models(this.yAxis());
+    if (this.showXAxis()) this.renderWatch.models(this.xAxis);
+    if (this.showYAxis()) this.renderWatch.models(this.yAxis);
 };
 
 /**
@@ -89,7 +89,7 @@ LineChart.prototype.attachEvents = function(){
                 if (indexToHighlight !== null)
                     allData[indexToHighlight].highlight = true;
             }
-            var xValue = this.xAxis().tickFormat()(this.x()(singlePoint, pointIndex));
+            var xValue = this.xAxis.tickFormat()(this.x()(singlePoint, pointIndex));
             this.interactiveLayer.tooltip
                 .position({
                     left: pointXLocation + this.margin().left,
@@ -98,7 +98,7 @@ LineChart.prototype.attachEvents = function(){
                 .chartContainer(this.svg[0][0].parentNode)
                 .enabled(this.tooltips)
                 .valueFormatter(function(d) {
-                    return this.yAxis().tickFormat()(d);
+                    return this.yAxis.tickFormat()(d);
                 }.bind(this))
                 .data({
                     value: xValue,
@@ -197,8 +197,8 @@ LineChart.prototype.duration = function(_) {
     this.options.duration = _;
     this.renderWatch.reset(_);
     this.line.duration(_);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
+    this.xAxis.duration(_);
+    this.yAxis.duration(_);
     return this;
 };
 
@@ -222,8 +222,8 @@ LineChart.prototype.useInteractiveGuideline = function(_) {
 LineChart.prototype.showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
-        y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.line.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.line.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
     nv.tooltip.show([left, top], content, null, null, offsetElement);
 };
@@ -246,6 +246,8 @@ nv.models.lineChart = function() {
     chart.legend = lineChart.legend;
     chart.interactiveLayer = lineChart.interactiveLayer;
     chart.state = lineChart.state;
+    chart.xAxis = lineChart.xAxis;
+    chart.yAxis = lineChart.yAxis;
 
     d3.rebind(chart, lineChart.line,
         'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'defined', 'isArea',
@@ -256,8 +258,7 @@ nv.models.lineChart = function() {
 
     nv.utils.rebindp(chart, lineChart, LineChart.prototype,
         'margin', 'width', 'height', 'showXAxis', 'showYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'showLegend', 'transitionDuration', 'duration', 'color', 'rightAlignYAxis', 'useInteractiveGuideline',
-        'xAxis', 'yAxis'
+        'noData', 'showLegend', 'transitionDuration', 'duration', 'color', 'rightAlignYAxis', 'useInteractiveGuideline'
     );
 
     return chart;

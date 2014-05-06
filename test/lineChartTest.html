@@ -166,10 +166,10 @@ nv.addGraph(function() {
       .x(function(d,i) { return d.x });
 
 
-  chart.xAxis() // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
       .tickFormat(d3.format(',.1f'));
 
-  chart.yAxis()
+  chart.yAxis
       .axisLabel('Voltage (v)')
       .tickFormat(d3.format(',.4f'));
 
@@ -251,12 +251,12 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
         formatter = d3.format(",.1f");
     }
     chart.margin({right: 40});
-    chart.xAxis() // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+    chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
         .tickFormat(
             formatter
           );
 
-    chart.yAxis()
+    chart.yAxis
         .axisLabel('Voltage (v)')
         .tickFormat(d3.format(',.2f'));
 

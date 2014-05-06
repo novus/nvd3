@@ -533,17 +533,19 @@ nv.utils.extend = function(base) {
   return base;
 };
 LayerPrivates = {
-    id: 0
-    , size: {}
-    , margin: { top: 20, right: 20, bottom: 30, left: 40 }
-    , showLabels: true
-    , noData: 'No Data Available'
-    , opacityDefault: 1e-6
-    , color: nv.utils.defaultColor()
-    , description: function(d) { return d.description }
-    , x: function(d){return d.x;}
-    , y: function(d){return d.y;}
-    , values: function(d){return d;}
+    id: 0,
+    height: null,
+    width: null,
+    size: {},
+    margin: { top: 20, right: 20, bottom: 30, left: 40 },
+    showLabels: true,
+    noData: 'No Data Available',
+    opacityDefault: 1e-6,
+    color: nv.utils.defaultColor(),
+    description: function(d) { return d.description },
+    x: function(d){return d.x;},
+    y: function(d){return d.y;},
+    values: function(d){return d;}
 };
 
 /**
@@ -622,25 +624,32 @@ Layer.prototype.update = function(){
 Layer.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
 
-    this.options.size = {
-        width: (this.size().width || parseInt(this.svg.style('width')) || 960),
-        height: (this.size().height || parseInt(this.svg.style('height')) || 500)
-    };
 
-    this.svg.attr(this.options.size);
+    // this.options.size = {
+    //     width: (this.size().width || parseInt(this.svg.style('width')) || 960),
+    //     height: (this.size().height || parseInt(this.svg.style('height')) || 500)
+    // };
+    this.width(this.width() || parseInt(this.svg.style('width')) || 960);
+    this.height(this.height() || parseInt(this.svg.style('height')) || 500);
+
+    this.svg.attr({
+        width: this.width(),
+        height: this.height()
+    });
 
     var margin = this.margin();
-    var size = this.options.size;
+    // var size = this.options.size;
+    var options = this.options
     var available = this.available = {};
 
     Object.defineProperty(available, 'width', {
         get: function(){
-            return Math.max(size.width - (margin.leftright), 0);
+            return Math.max(options.width - (margin.leftright), 0);
         }
     });
     Object.defineProperty(available, 'height', {
         get: function(){
-            return Math.max(size.height - (margin.topbottom), 0);
+            return Math.max(options.height - (margin.topbottom), 0);
         }
     });
 
@@ -672,8 +681,8 @@ Layer.prototype.noData = function(data){
             .style('text-anchor', 'middle');
 
         noDataText
-            .attr('x', this.size().width / 2)
-            .attr('y', this.size().height / 2)
+            .attr('x', this.width() / 2)
+            .attr('y', this.height() / 2)
             .text(function(d) { return d });
 
         return true;
@@ -724,17 +733,17 @@ Layer.prototype.attachEvents = function(){
         }.bind(this));
 };
 
-Layer.prototype.width = function(_){
-    if (!arguments.length) return this.size().width;
-    this.options.size.width = _;
-    return this;
-};
+// Layer.prototype.width = function(_){
+//     if (!arguments.length) return this.size().width;
+//     this.options.size.width = _;
+//     return this;
+// };
 
-Layer.prototype.height = function(_){
-    if (!arguments.length) return this.size().height;
-    this.options.size.height = _;
-    return this;
-};
+// Layer.prototype.height = function(_){
+//     if (!arguments.length) return this.size().height;
+//     this.options.size.height = _;
+//     return this;
+// };
 
 Layer.prototype.margin = function(_){
     if (!arguments.length) return this.options.margin;
@@ -1464,21 +1473,21 @@ window.nv.tooltip.* also has various helper methods.
 
 })();
 var AxisPrivates = {
-    axisLabelText : null
-    , showMaxMin : true //TODO: showMaxMin should be disabled on all ordinal scaled axes
-    , highlightZero : true
-    , rotateLabels : 0
-    , rotateYLabel : true
-    , staggerLabels : false
-    , isOrdinal : false
-    , ticks : null
-    , axisLabelDistance : 12 //The larger this number is, the closer the axis label is to the axis.
-    , axisRendered : false
-    , maxMinRendered : false
-    , scale0 : null
-    , axisLabel: null
-    , _scale : d3.scale.linear()
-    , _duration : 250
+    axisLabelText : null,
+    showMaxMin : true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
+    highlightZero : true,
+    rotateLabels : 0,
+    rotateYLabel : true,
+    staggerLabels : false,
+    isOrdinal : false,
+    ticks : null,
+    axisLabelDistance : 12, //The larger this number is, the closer the axis label is to the axis.
+    axisRendered : false,
+    maxMinRendered : false,
+    scale0 : null,
+    axisLabel: null,
+    scale: d3.scale.linear(),
+    _duration : 250
 };
 
 function Axis(options){
@@ -1526,22 +1535,24 @@ Axis.prototype.wrapper = function(data){
 
 Axis.prototype.draw = function(data){
 
-    var that = this
-        , axisMaxMin = null
-        , xLabelMargin = null
-        , w = null;
+    var that = this,
+        axisMaxMin = null,
+        xLabelMargin = null,
+        scale = this.scale(),
+        scale0 = this.scale0(),
+        w = null;
 
     if (this.ticks() !== null)
         this.axis.ticks(this.ticks());
     else if (this.axis.orient() == 'top' || this.axis.orient() == 'bottom')
-        this.axis.ticks(Math.abs(this.scale().range()[1] - this.scale().range()[0]) / 100);
+        this.axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
     //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
     this.g
         .watchTransition(this.renderWatch, 'axis')
         .call(this.axis);
 
-    this.scale0(this.scale0() || this.axis.scale());
+    this.scale0(this.scale0() || this.axis.scale);
 
     var fmt = this.axis.tickFormat();
     if (fmt == null)
@@ -1555,23 +1566,23 @@ Axis.prototype.draw = function(data){
         case 'top':
             axisLabel.enter().append('text')
                 .attr('class', 'nv-axislabel');
-            w = (this.scale().range().length==2)
-                ? this.scale().range()[1]
-                : (this.scale().range()[this.scale().range().length-1]+(this.scale().range()[1]-this.scale().range()[0]));
+            w = (scale.range().length==2)
+                ? scale.range()[1]
+                : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
             axisLabel
                 .attr('text-anchor', 'middle')
                 .attr('y', 0)
                 .attr('x', w/2);
             if (this.showMaxMin()) {
                 axisMaxMin = this.wrap.selectAll('g.nv-axisMaxMin')
-                    .data(this.scale().domain());
+                    .data(scale.domain());
                 axisMaxMin.enter().append('g')
                     .attr('class', 'nv-axisMaxMin')
                     .append('text');
                 axisMaxMin.exit().remove();
                 axisMaxMin
                     .attr('transform', function(d,i) {
-                        return 'translate(' + that.scale()(d) + ',0)'
+                        return 'translate(' + scale(d) + ',0)'
                     })
                     .select('text')
                     .attr('dy', '-0.5em')
@@ -1583,7 +1594,7 @@ Axis.prototype.draw = function(data){
                     });
                 axisMaxMin.watchTransition(this.renderWatch, 'min-max top')
                     .attr('transform', function(d,i) {
-                        return 'translate(' + that.scale().range()[i] + ',0)'
+                        return 'translate(' + scale.range()[i] + ',0)'
                     });
             }
             break;
@@ -1606,9 +1617,9 @@ Axis.prototype.draw = function(data){
                     .style('text-anchor', that.rotateLabels()%360 > 0 ? 'start' : 'end');
             }
             axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-            w = (this.scale().range().length==2)
-                ? this.scale().range()[1]
-                : (this.scale().range()[this.scale().range().length-1]+(this.scale().range()[1]-this.scale().range()[0]));
+            w = (scale.range().length==2)
+                ? scale.range()[1]
+                : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
             axisLabel
                 .attr('text-anchor', 'middle')
                 .attr('y', xLabelMargin)
@@ -1617,12 +1628,12 @@ Axis.prototype.draw = function(data){
                 //if (showMaxMin && !isOrdinal) {
                 axisMaxMin = this.wrap.selectAll('g.nv-axisMaxMin')
                     //.data(scale.domain())
-                    .data([this.scale().domain()[0], this.scale().domain()[this.scale().domain().length - 1]]);
+                    .data([scale.domain()[0], scale.domain()[scale.domain().length - 1]]);
                 axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
                 axisMaxMin.exit().remove();
                 axisMaxMin
                     .attr('transform', function(d,i) {
-                        return 'translate(' + (that.scale()(d) + (that.isOrdinal() ? that.scale().rangeBand() / 2: 0)) + ',0)'
+                        return 'translate(' + (scale(d) + (that.isOrdinal() ? scale.rangeBand() / 2: 0)) + ',0)'
                     })
                     .select('text')
                     .attr('dy', '.71em')
@@ -1637,7 +1648,7 @@ Axis.prototype.draw = function(data){
                     });
                 axisMaxMin.watchTransition(this.renderWatch, 'min-max bottom')
                     .attr('transform', function(d,i) {
-                        return 'translate(' + (that.scale()(d) + (that.isOrdinal() ? that.scale().rangeBand() / 2 : 0)) + ',0)'
+                        return 'translate(' + (scale(d) + (that.isOrdinal() ? scale.rangeBand() / 2 : 0)) + ',0)'
                     });
             }
             if (that.staggerLabels())
@@ -1650,16 +1661,16 @@ Axis.prototype.draw = function(data){
                 .style('text-anchor', this.rotateYLabel() ? 'middle' : 'begin')
                 .attr('transform', this.rotateYLabel() ? 'rotate(90)' : '')
                 .attr('y', this.rotateYLabel() ? (-Math.max(this.margin().right,this.width()) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
-                .attr('x', this.rotateYLabel() ? (this.scale().range()[0] / 2) : this.axis.tickPadding());
+                .attr('x', this.rotateYLabel() ? (scale.range()[0] / 2) : this.axis.tickPadding());
             if (this.showMaxMin()) {
                 axisMaxMin = this.wrap.selectAll('g.nv-axisMaxMin')
-                    .data(this.scale().domain());
+                    .data(scale.domain());
                 axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                     .style('opacity', 0);
                 axisMaxMin.exit().remove();
                 axisMaxMin
                     .attr('transform', function(d,i) {
-                        return 'translate(0,' + that.scale()(d) + ')'
+                        return 'translate(0,' + scale(d) + ')'
                     })
                     .select('text')
                     .attr('dy', '.32em')
@@ -1672,7 +1683,7 @@ Axis.prototype.draw = function(data){
                     });
                 axisMaxMin.watchTransition(this.renderWatch, 'min-max right')
                     .attr('transform', function(d,i) {
-                        return 'translate(0,' + that.scale().range()[i] + ')'
+                        return 'translate(0,' + scale.range()[i] + ')'
                     })
                     .select('text')
                     .style('opacity', 1);
@@ -1698,12 +1709,12 @@ Axis.prototype.draw = function(data){
                 ) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
                 .attr('x',
                     this.rotateYLabel()
-                        ? (-this.scale().range()[0] / 2)
+                        ? (-scale.range()[0] / 2)
                         : -this.axis.tickPadding()
                 );
             if (this.showMaxMin()) {
                 axisMaxMin = this.wrap.selectAll('g.nv-axisMaxMin')
-                    .data(this.scale().domain());
+                    .data(scale.domain());
                 axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                     .style('opacity', 0);
                 axisMaxMin.exit().remove();
@@ -1722,7 +1733,7 @@ Axis.prototype.draw = function(data){
                     });
                 axisMaxMin.watchTransition(this.renderWatch, 'min-max right')
                     .attr('transform', function(d,i) {
-                        return 'translate(0,' + that.scale().range()[i] + ')'
+                        return 'translate(0,' + scale.range()[i] + ')'
                     })
                     .select('text')
                     .style('opacity', 1);
@@ -1738,7 +1749,7 @@ Axis.prototype.draw = function(data){
         this.g.selectAll('g') // the g's wrapping each tick
             .each(function(d,i) {
                 d3.select(this).select('text').attr('opacity', 1);
-                if (that.scale()(d) < that.scale().range()[1] + 10 || that.scale()(d) > that.scale().range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
+                if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
                     if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                         d3.select(this).attr('opacity', 0);
                     d3.select(this).select('text').attr('opacity', 0); // Don't remove the ZERO line!!
@@ -1746,7 +1757,7 @@ Axis.prototype.draw = function(data){
             });
 
         //if Max and Min = 0 only show min, Issue #281
-        if (this.scale().domain()[0] == this.scale().domain()[1] && this.scale().domain()[0] == 0)
+        if (scale.domain()[0] == scale.domain()[1] && scale.domain()[0] == 0)
             this.wrap.selectAll('g.nv-axisMaxMin')
                 .style('opacity', function(d,i) { return !i ? 1 : 0 });
     }
@@ -1757,19 +1768,19 @@ Axis.prototype.draw = function(data){
             .each(function(d,i) {
                 try {
                     if (i) // i== 1, max position
-                        maxMinRange.push(that.scale()(d) - this.getBBox().width - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+                        maxMinRange.push(scale(d) - this.getBBox().width - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
                     else // i==0, min position
-                        maxMinRange.push(that.scale()(d) + this.getBBox().width + 4)
+                        maxMinRange.push(scale(d) + this.getBBox().width + 4)
                 } catch (err) {
                     if (i) // i== 1, max position
-                        maxMinRange.push(that.scale()(d) - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+                        maxMinRange.push(scale(d) - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
                     else // i==0, min position
-                        maxMinRange.push(that.scale()(d) + 4)
+                        maxMinRange.push(scale(d) + 4)
                 }
             });
         this.g.selectAll('g') // the g's wrapping each tick
             .each(function(d,i) {
-                if (that.scale()(d) < maxMinRange[0] || that.scale()(d) > maxMinRange[1]) {
+                if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
                     if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                         d3.select(this).remove();
                     else
@@ -1787,7 +1798,7 @@ Axis.prototype.draw = function(data){
             .classed('zero', true);
 
     //store old scales for use in transitions on update
-    this.scale0( this.scale().copy() );
+    this.scale0( scale.copy() );
 };
 
 Axis.prototype.duration = function(_) {
@@ -1798,13 +1809,15 @@ Axis.prototype.duration = function(_) {
 };
 
 Axis.prototype.scale = function(_) {
-    if (!arguments.length) return this._scale();
-    this._scale(_);
+    if (!arguments.length) return this.options.scale;
+    this.options.scale = _;
     this.axis.scale(_);
-    this.isOrdinal( typeof this._scale().rangeBands === 'function' );
-    d3.rebind(this, this._scale(), 'domain', 'range', 'rangeBand', 'rangeBands');
+    this.isOrdinal( typeof this.options.scale.rangeBands === 'function' );
+    d3.rebind(this, this.options.scale, 'domain', 'range', 'rangeBand', 'rangeBands');
     return this;
 };
+
+
 
 /**
  * The axis model returns a function wrapping an instance of a Axis.
@@ -1826,10 +1839,6 @@ nv.models.axis = function() {
         'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat'
     );
 
-    d3.rebind(chart, axis.scale(), //these are also accessible by chart.scale(), but added common ones directly for ease of use
-        'domain', 'range'//, 'rangeBand', 'rangeBands'
-    );
-
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, axis, Axis.prototype,
@@ -1839,6 +1848,7 @@ nv.models.axis = function() {
 
     return chart;
 };
+
 var LegendPrivates = {
     getKey : function(d) { return d.key }
     , align : true
@@ -6230,6 +6240,8 @@ function Line(options) {
         .size(16) // default size
         .sizeDomain([16,256]) //set to speed up calculation, needs to be unset if there is a custom size accessor
     ;
+
+    this.scatter.size();
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
@@ -6260,8 +6272,11 @@ Line.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight);
 
+    this.scatter.width();
+
     scatterWrap.transition().call(this.scatter);
 
+    debugger;
     this.x(this.scatter.x());
     this.y(this.scatter.y());
     this.color(this.scatter.color());
@@ -6409,7 +6424,7 @@ nv.models.line = function () {
         return chart;
     }
 
-    nv.utils.rebindp(chart, line.scatter, Scatter.prototype,
+    d3.rebind(chart, line.scatter,
         'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
         'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
         'highlightPoint','clearHighlights', 'clipEdge', 'x', 'y', 'color'
@@ -6419,6 +6434,8 @@ nv.models.line = function () {
     chart.scatter = line.scatter;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
+    chart.xScale();
+
     nv.utils.rebindp(chart, line, Line.prototype,
         'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'duration', 'transitionDuration'
     );
@@ -6426,14 +6443,14 @@ nv.models.line = function () {
     return chart;
 };
 var LineChartPrivates = {
-    defaultState : null
-    , xScale: null
-    , yScale: null
-    , interactive: null
-    , useVoronoi: null
-    , tooltips: true
-    , duration : 250
-    , useInteractiveGuideline : false
+    defaultState: null,
+    xScale: null,
+    yScale: null,
+    interactive: null,
+    useVoronoi: null,
+    tooltips: true,
+    duration: 250,
+    useInteractiveGuideline: false
 };
 
 /**
@@ -6469,8 +6486,8 @@ LineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data, [ 'nv-interactive' ]);
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     this.renderWatch.models(this.line);
-    if (this.showXAxis()) this.renderWatch.models(this.xAxis());
-    if (this.showYAxis()) this.renderWatch.models(this.yAxis());
+    if (this.showXAxis()) this.renderWatch.models(this.xAxis);
+    if (this.showYAxis()) this.renderWatch.models(this.yAxis);
 };
 
 /**
@@ -6516,7 +6533,7 @@ LineChart.prototype.attachEvents = function(){
                 if (indexToHighlight !== null)
                     allData[indexToHighlight].highlight = true;
             }
-            var xValue = this.xAxis().tickFormat()(this.x()(singlePoint, pointIndex));
+            var xValue = this.xAxis.tickFormat()(this.x()(singlePoint, pointIndex));
             this.interactiveLayer.tooltip
                 .position({
                     left: pointXLocation + this.margin().left,
@@ -6525,7 +6542,7 @@ LineChart.prototype.attachEvents = function(){
                 .chartContainer(this.svg[0][0].parentNode)
                 .enabled(this.tooltips)
                 .valueFormatter(function(d) {
-                    return this.yAxis().tickFormat()(d);
+                    return this.yAxis.tickFormat()(d);
                 }.bind(this))
                 .data({
                     value: xValue,
@@ -6624,8 +6641,8 @@ LineChart.prototype.duration = function(_) {
     this.options.duration = _;
     this.renderWatch.reset(_);
     this.line.duration(_);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
+    this.xAxis.duration(_);
+    this.yAxis.duration(_);
     return this;
 };
 
@@ -6649,8 +6666,8 @@ LineChart.prototype.useInteractiveGuideline = function(_) {
 LineChart.prototype.showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
-        y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.line.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.line.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
     nv.tooltip.show([left, top], content, null, null, offsetElement);
 };
@@ -6673,6 +6690,8 @@ nv.models.lineChart = function() {
     chart.legend = lineChart.legend;
     chart.interactiveLayer = lineChart.interactiveLayer;
     chart.state = lineChart.state;
+    chart.xAxis = lineChart.xAxis;
+    chart.yAxis = lineChart.yAxis;
 
     d3.rebind(chart, lineChart.line,
         'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'defined', 'isArea',
@@ -6683,8 +6702,7 @@ nv.models.lineChart = function() {
 
     nv.utils.rebindp(chart, lineChart, LineChart.prototype,
         'margin', 'width', 'height', 'showXAxis', 'showYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'showLegend', 'transitionDuration', 'duration', 'color', 'rightAlignYAxis', 'useInteractiveGuideline',
-        'xAxis', 'yAxis'
+        'noData', 'showLegend', 'transitionDuration', 'duration', 'color', 'rightAlignYAxis', 'useInteractiveGuideline'
     );
 
     return chart;
@@ -9304,6 +9322,14 @@ Scatter.prototype.duration = function(_) {
     return this;
 };
 
+
+Scatter.prototype.size = function(_) {
+    if (!arguments.length) return this.options.getSize;
+    this.options.getSize = d3.functor(_);
+    return this;
+};
+
+
 /**
  * The scatter model returns a function wrapping an instance of a Scatter.
  */
@@ -9319,7 +9345,7 @@ nv.models.scatter = function () {
 
     chart.dispatch = scatter.dispatch;
 
-    chart.options = nv.utils.optionsFunc.bind(chart);
+    // chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, scatter, Scatter.prototype,
         'x', 'y', 'size', 'margin', 'width', 'height', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain',
@@ -9672,7 +9698,6 @@ ScatterChart.prototype.duration = function(_) {
     this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
-    console.log('xAxis duration');
     this.xAxis.duration(_);
     this.yAxis.duration(_);
     this.distX.duration(_);

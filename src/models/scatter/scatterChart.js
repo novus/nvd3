@@ -340,7 +340,6 @@ ScatterChart.prototype.duration = function(_) {
     this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
-    console.log('xAxis duration');
     this.xAxis.duration(_);
     this.yAxis.duration(_);
     this.distX.duration(_);

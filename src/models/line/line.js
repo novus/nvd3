@@ -26,6 +26,8 @@ function Line(options) {
         .size(16) // default size
         .sizeDomain([16,256]) //set to speed up calculation, needs to be unset if there is a custom size accessor
     ;
+
+    this.scatter.size();
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
@@ -56,8 +58,11 @@ Line.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight);
 
+    this.scatter.width();
+
     scatterWrap.transition().call(this.scatter);
 
+    debugger;
     this.x(this.scatter.x());
     this.y(this.scatter.y());
     this.color(this.scatter.color());
@@ -205,7 +210,7 @@ nv.models.line = function () {
         return chart;
     }
 
-    nv.utils.rebindp(chart, line.scatter, Scatter.prototype,
+    d3.rebind(chart, line.scatter,
         'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
         'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
         'highlightPoint','clearHighlights', 'clipEdge', 'x', 'y', 'color'
@@ -214,6 +219,8 @@ nv.models.line = function () {
     chart.dispatch = line.dispatch;
     chart.scatter = line.scatter;
     chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart.xScale();
 
     nv.utils.rebindp(chart, line, Line.prototype,
         'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'duration', 'transitionDuration'

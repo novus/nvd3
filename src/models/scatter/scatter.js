@@ -473,6 +473,14 @@ Scatter.prototype.duration = function(_) {
     return this;
 };
 
+
+Scatter.prototype.size = function(_) {
+    if (!arguments.length) return this.options.getSize;
+    this.options.getSize = d3.functor(_);
+    return this;
+};
+
+
 /**
  * The scatter model returns a function wrapping an instance of a Scatter.
  */
@@ -488,7 +496,7 @@ nv.models.scatter = function () {
 
     chart.dispatch = scatter.dispatch;
 
-    chart.options = nv.utils.optionsFunc.bind(chart);
+    // chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, scatter, Scatter.prototype,
         'x', 'y', 'size', 'margin', 'width', 'height', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain',
