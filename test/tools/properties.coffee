@@ -1,7 +1,14 @@
 should = chai.should()
 
+###
 
-# MUT = Model Under Test
+config:
+    instance:       Instance to test
+    properties:     Properties to test against instance
+    parent:         Parent of instance, from which prototypes are inherited
+    overrides:      Properties expected to be overridden by instance
+
+###
 
 checkProperties = (config)->
     config.overrides = config.overrides || []
@@ -25,3 +32,10 @@ checkProperties = (config)->
                     instance[prop]()
                     spy.calledOnce.should.be.true
                     config.parent.prototype[prop].restore()
+
+
+checkInstanceProp = (instance, source, props)->
+    props.forEach (prop)->
+        it "#{prop}", ->
+            should.exist instance[prop]
+

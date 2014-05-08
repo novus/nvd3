@@ -19,33 +19,52 @@ apiTest.axis = (instance, overrides=[])->
         'duration'
     ]
 
-    axisBind = [
-        'orient'
-        'tickValues'
-        'tickSubdivide'
-        'tickSize'
-        'tickPadding'
-        'tickFormat'
-    ]
-
-    scaleBind = [
-        'domain'
-        'range'
-        'rangeBand'
-        'rangeBands'
-    ]
-
     describe 'Inherited APIs', ->
         apiTest.layer(instance)
 
     describe 'Axis API', ->
         checkProperties
             instance: instance
-            properties: options.concat(axisBind).concat(scaleBind)
+            properties: options
             overrides: overrides
             parent: Axis
 
-describe.only 'Axis Model', ->
-    apiTest.axis(nv.models.axis())
+
+describe 'Axis Model', ->
+    apiTest.axis nv.models.axis()
+
+    describe 'Submodels', ->
+        instance = null
+        before ->
+            instance = nv.models.axis()
+        submodels = [
+            'axis'
+            'dispatch'
+        ]
+        submodels.forEach (model)->
+                it "#{model} exists", ->
+                    should.exist instance[model]
+
+    describe 'Inherited instance properties', ->
+        instance = nv.models.axis()
+        axisBind = [
+            'orient'
+            'tickValues'
+            'tickSubdivide'
+            'tickSize'
+            'tickPadding'
+            'tickFormat'
+        ]
+        scaleBind = [
+            'domain'
+            'range'
+            'rangeBand'
+            'rangeBands'
+        ]
+
+        describe 'from axis', ->
+            checkInstanceProp instance, instance.axis, axisBind
+        describe 'from scale', ->
+            checkInstanceProp instance, instance.scale(), scaleBind
 
 

@@ -365,9 +365,11 @@ nv.models.axis = function() {
         'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat'
     );
 
+    d3.rebind(chart, axis.scale(), 'domain', 'range', 'rangeBand', 'rangeBands');
+
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    api = [
+    var api = [
         'margin',
         'width',
         'ticks',
@@ -381,7 +383,7 @@ nv.models.axis = function() {
         'axisLabelDistance',
         'duration',
         'scale'
-    ]
+    ];
 
     nv.utils.rebindp(chart, axis, Axis.prototype, api);
 
