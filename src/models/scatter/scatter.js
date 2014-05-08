@@ -480,6 +480,12 @@ Scatter.prototype.size = function(_) {
     return this;
 };
 
+Scatter.prototype.shape = function(_) {
+    if (!arguments.length) return this.options.getShape;
+    this.options.getShape = _;
+    return this;
+}
+
 
 /**
  * The scatter model returns a function wrapping an instance of a Scatter.
@@ -496,14 +502,48 @@ nv.models.scatter = function () {
 
     chart.dispatch = scatter.dispatch;
 
-    // chart.options = nv.utils.optionsFunc.bind(chart);
+    chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, scatter, Scatter.prototype,
-        'x', 'y', 'size', 'margin', 'width', 'height', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain',
-        'xRange', 'yRange', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'interactive', 'pointKey', 'pointActive',
-        'padData', 'padDataOuter', 'clipEdge', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'color', 'shape', 'onlyCircles',
-        'id', 'singlePoint', 'duration'
-    );
+    var publicApi = [
+        'x',
+        'y',
+        'size',
+        'margin',
+        'width',
+        'height',
+        'xScale',
+        'yScale',
+        'zScale',
+        'xDomain',
+        'yDomain',
+        'sizeDomain',
+        'xRange',
+        'yRange',
+        'sizeRange',
+        'forceX',
+        'forceY',
+        'forceSize',
+        'interactive',
+        'pointKey',
+        'pointActive',
+        'padData',
+        'padDataOuter',
+        'clipEdge',
+        'clipVoronoi',
+        'useVoronoi',
+        'clipRadius',
+        'color',
+        'shape',
+        'onlyCircles',
+        'id',
+        'singlePoint',
+        'duration',
+        'update',
+        'clearHighlights',
+        'highlightPoint'
+    ]
+
+    nv.utils.rebindp(chart, scatter, Scatter.prototype, publicApi);
 
     return chart;
 };

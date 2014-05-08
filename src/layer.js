@@ -1,17 +1,12 @@
 LayerPrivates = {
-    id: 0,
     height: null,
     width: null,
     size: {},
     margin: { top: 20, right: 20, bottom: 30, left: 40 },
-    showLabels: true,
-    noData: 'No Data Available',
     opacityDefault: 1e-6,
-    color: nv.utils.defaultColor(),
-    description: function(d) { return d.description },
-    x: function(d){return d.x;},
-    y: function(d){return d.y;},
-    values: function(d){return d;}
+    // color: nv.utils.defaultColor(),
+    // x: function(d){return d.x;},
+    // y: function(d){return d.y;}
 };
 
 /**
@@ -74,27 +69,12 @@ Layer.prototype.renderElement = function(element, data){
 };
 
 /**
- * Call the render function, using the last selection.
- */
-Layer.prototype.update = function(){
-    this.wrap.remove();
-    this.svg.call(function(selection){
-        this.render(selection);
-    }.bind(this));
-};
-
-/**
  * Given an element, set it as the root of this chart. Configure
  * appropriate sizing info, etc.
  */
 Layer.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
 
-
-    // this.options.size = {
-    //     width: (this.size().width || parseInt(this.svg.style('width')) || 960),
-    //     height: (this.size().height || parseInt(this.svg.style('height')) || 500)
-    // };
     this.width(this.width() || parseInt(this.svg.style('width')) || 960);
     this.height(this.height() || parseInt(this.svg.style('height')) || 500);
 
@@ -104,7 +84,6 @@ Layer.prototype.setRoot = function(root) {
     });
 
     var margin = this.margin();
-    // var size = this.options.size;
     var options = this.options
     var available = this.available = {};
 
@@ -121,39 +100,6 @@ Layer.prototype.setRoot = function(root) {
 
 };
 
-/**
- * Utility to check if data is available.
- */
-Layer.prototype.hasData = function(data){
-    function hasValues(d){
-        return !d.values || d.values.length > 0
-    }
-    return data && data.length > 0 && data.filter(hasValues).length > 0
-};
-
-/**
- * Render a "noData" message.
- */
-Layer.prototype.noData = function(data){
-    if ( this.hasData(data) ) {
-        this.svg.selectAll('.nv-noData').remove();
-        return false;
-    } else {
-        var noDataText = this.svg.selectAll('.nv-noData').data([this.options.noData]);
-
-        noDataText.enter().append('text')
-            .attr('class', 'nvd3 nv-noData')
-            .attr('dy', '-.7em')
-            .style('text-anchor', 'middle');
-
-        noDataText
-            .attr('x', this.width() / 2)
-            .attr('y', this.height() / 2)
-            .text(function(d) { return d });
-
-        return true;
-    }
-};
 
 /**
  * Create several wrap layers to work with in the chart.
@@ -195,21 +141,8 @@ Layer.prototype.attachEvents = function(){
                 });
               this.state.disabled = e.disabled;
             }
-            this.update();
         }.bind(this));
 };
-
-// Layer.prototype.width = function(_){
-//     if (!arguments.length) return this.size().width;
-//     this.options.size.width = _;
-//     return this;
-// };
-
-// Layer.prototype.height = function(_){
-//     if (!arguments.length) return this.size().height;
-//     this.options.size.height = _;
-//     return this;
-// };
 
 Layer.prototype.margin = function(_){
     if (!arguments.length) return this.options.margin;

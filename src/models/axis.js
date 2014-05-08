@@ -367,10 +367,23 @@ nv.models.axis = function() {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, axis, Axis.prototype,
-        'margin', 'width', 'ticks', 'height', 'axisLabel', 'showMaxMin', 'highlightZero', 'rotateYLabel',
-        'rotateLabels', 'staggerLabels', 'axisLabelDistance', 'duration', 'scale'
-    );
+    api = [
+        'margin',
+        'width',
+        'ticks',
+        'height',
+        'axisLabel',
+        'showMaxMin',
+        'highlightZero',
+        'rotateYLabel',
+        'rotateLabels',
+        'staggerLabels',
+        'axisLabelDistance',
+        'duration',
+        'scale'
+    ]
+
+    nv.utils.rebindp(chart, axis, Axis.prototype, api);
 
     return chart;
 };
