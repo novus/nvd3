@@ -65,6 +65,15 @@ checkOptionsFunc = (model)->
             spy.calledOnce.should.be.true
             nv.utils.optionsFunc.restore()
 
+checkForDuck = (instance, model)->
+    it 'exposes correct submodel API', ->
+        modelAPI = [key for key of model]
+        instanceAPI = [key for key of instance]
+        instanceAPI.should.deep.equal modelAPI
+
+
+
+
 
 
 

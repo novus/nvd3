@@ -39,8 +39,25 @@ apiTest.scatterChart = (instance, overrides=[])->
             overrides: overrides
             parent: ScatterChart
 
-describe 'Scatter Model', ->
+describe 'ScatterChart Model', ->
     apiTest.scatterChart(nv.models.scatterChart())
+
+    describe 'Submodels', ->
+        instance = nv.models.scatterChart()
+        submodels =
+            scatter: nv.models.scatter
+            legend: nv.models.legend
+            controls: nv.models.legend
+            xAxis: nv.models.axis
+            yAxis: nv.models.axis
+            distX: nv.models.distribution
+            distY: nv.models.distribution
+
+        for key, model of submodels
+            describe "#{key}", ->
+                it 'exists', ->
+                    should.exist instance[key]
+                checkForDuck instance[key], model()
 
     describe 'Inherited instance properties', ->
         instance = nv.models.scatterChart()

@@ -29,21 +29,22 @@ apiTest.axis = (instance, overrides=[])->
             overrides: overrides
             parent: Axis
 
-
 describe 'Axis Model', ->
     apiTest.axis nv.models.axis()
 
     describe 'Submodels', ->
-        instance = null
-        before ->
-            instance = nv.models.axis()
-        submodels = [
-            'axis'
-            'dispatch'
+        instance = nv.models.axis()
+        describe 'Axis', ->
+            it "exists", ->
+                should.exist instance.axis
+            checkForDuck instance.axis, d3.svg.axis()
+
+    describe 'Instance properties', ->
+        events = [
+            'renderEnd'
         ]
-        submodels.forEach (model)->
-                it "#{model} exists", ->
-                    should.exist instance[model]
+        checkDispatch nv.models.axis, events
+        checkOptionsFunc nv.models.axis
 
     describe 'Inherited instance properties', ->
         instance = nv.models.axis()
