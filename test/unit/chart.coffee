@@ -9,6 +9,9 @@ apiTest.models.chart = (instance, overrides=[])->
         'rightAlignYAxis'
         'reduceXTicks'
         'noData'
+        'update'
+        'tooltip'
+        'tooltipContent'
     ]
 
     describe 'Inherited API', ->

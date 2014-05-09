@@ -238,7 +238,7 @@ Chart.prototype.attachEvents = function(){
     }.bind(this));
 };
 
-Layer.prototype.update = function(){
+Chart.prototype.update = function(){
     this.svg.call(function(selection){
         this.render(selection);
     }.bind(this));
