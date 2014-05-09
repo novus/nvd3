@@ -16,6 +16,7 @@ apiTest.models.layer = (instance, overrides=[], ignoreList=[])->
         to be exposed as the API.
         ###
         options = [
+            'size'
             'height'
             'width'
             'margin'
