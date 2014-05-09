@@ -61,5 +61,14 @@ apiTest.scatter = (instance, overrides=[])->
 
 describe 'Scatter Model', ->
     apiTest.scatter(nv.models.scatter())
+    describe 'Instance properties', ->
+        events = [
+            'elementClick'
+            'elementMouseover'
+            'elementMouseout'
+            'renderEnd'
+        ]
+        checkDispatch nv.models.scatter, events
+        checkOptionsFunc nv.models.scatter
 
 

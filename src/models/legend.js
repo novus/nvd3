@@ -205,6 +205,12 @@ Legend.prototype.color = function(_) {
     return this;
 };
 
+Legend.prototype.key = function(_) {
+    if (!arguments.length) return this.options.getKey;
+    this.options.getKey = _;
+    return this;
+};
+
 nv.models.legend = function () {
     "use strict";
 
@@ -219,9 +225,18 @@ nv.models.legend = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, legend, Legend.prototype,
-        'margin', 'width', 'height', 'key', 'rightAlign', 'radioButtonMode', 'updateState', 'color'
-    );
+    api = [
+        'margin',
+        'width',
+        'height',
+        'key',
+        'align',
+        'rightAlign',
+        'radioButtonMode',
+        'updateState',
+        'color'
+    ]
+    nv.utils.rebindp(chart, legend, Legend.prototype, api);
 
     return chart;
 };

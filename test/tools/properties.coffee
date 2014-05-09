@@ -39,3 +39,34 @@ checkInstanceProp = (instance, source, props)->
         it "#{prop}", ->
             should.exist instance[prop]
 
+checkDispatch = (model, events=[])->
+    describe 'dispatch', ->
+        it 'exists', ->
+            instance = model()
+            should.exist instance.dispatch
+
+        if events.length isnt 0
+            describe 'Events', ->
+                instance = null
+                beforeEach -> instance = model()
+                events.forEach (event)->
+                    it "#{event}", ->
+                        should.exist instance.dispatch[event]
+
+checkOptionsFunc = (model)->
+    describe 'options', ->
+        it 'exists', ->
+            instance = model()
+            should.exist instance.options
+        it 'calls nv.utils.optionFunc', ->
+            spy = sinon.spy nv.utils, 'optionsFunc'
+            instance = model()
+            instance.options()
+            spy.calledOnce.should.be.true
+            nv.utils.optionsFunc.restore()
+
+
+
+
+
+
