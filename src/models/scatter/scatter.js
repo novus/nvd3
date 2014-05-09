@@ -1,36 +1,38 @@
 var ScatterPrivates = {
-    id           : Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
-    , xScale       : d3.scale.linear()
-    , yScale       : d3.scale.linear()
-    , zScale       : d3.scale.linear() //linear because d3.svg.shape.size is treated as area
-    , getSize      : function(d) { return d.size || 1} // accessor to get the point size
-    , getShape     : function(d) { return d.shape || 'circle' } // accessor to get point shape
-    , onlyCircles  : true // Set to false to use shapes
-    , forceX       : [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
-    , forceY       : [] // List of numbers to Force into the Y scale
-    , forceSize    : [] // List of numbers to Force into the Size scale
-    , interactive  : true // If true, plots a voronoi overlay for advanced point intersection
-    , pointKey     : null
-    , pointActive  : function(d) { return !d.notActive } // any points that return false will be filtered out
-    , padData      : false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
-    , padDataOuter : .1 //outerPadding to imitate ordinal scale outer padding
-    , clipEdge     : false // if true, masks points within x and y scale
-    , clipVoronoi  : true // if true, masks each point with a circle... can turn off to slightly increase performance
-    , clipRadius   : function() { return 25 } // function to get the radius for voronoi point clips
-    , xDomain      : null // Override x domain (skips the calculation from data)
-    , yDomain      : null // Override y domain
-    , xRange       : null // Override x range
-    , yRange       : null // Override y range
-    , sizeDomain   : null // Override point size domain
-    , sizeRange    : null
-    , singlePoint  : false
-    , xScale0      : null
-    , yScale0      : null
-    , zScale0      : null // used to store previous scales
-    , timeoutID    : null
-    , needsUpdate  : false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
-    , useVoronoi   : true
-    , duration     : 250
+    id           : Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't select one
+    x            : function(d){return d.x;},
+    y            : function(d){return d.y;},
+    xScale       : d3.scale.linear(),
+    yScale       : d3.scale.linear(),
+    zScale       : d3.scale.linear(), //linear because d3.svg.shape.size is treated as area
+    getSize      : function(d) { return d.size || 1}, // accessor to get the point size
+    getShape     : function(d) { return d.shape || 'circle' }, // accessor to get point shape
+    onlyCircles  : true, // Set to false to use shapes
+    forceX       : [], // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
+    forceY       : [], // List of numbers to Force into the Y scale
+    forceSize    : [], // List of numbers to Force into the Size scale
+    interactive  : true, // If true, plots a voronoi overlay for advanced point intersection
+    pointKey     : null,
+    pointActive  : function(d) { return !d.notActive }, // any points that return false will be filtered out
+    padData      : false, // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
+    padDataOuter : .1, //outerPadding to imitate ordinal scale outer padding
+    clipEdge     : false, // if true, masks points within x and y scale
+    clipVoronoi  : true, // if true, masks each point with a circle... can turn off to slightly increase performance
+    clipRadius   : function() { return 25 }, // function to get the radius for voronoi point clips
+    xDomain      : null, // Override x domain (skips the calculation from data)
+    yDomain      : null, // Override y domain
+    xRange       : null, // Override x range
+    yRange       : null, // Override y range
+    sizeDomain   : null, // Override point size domain
+    sizeRange    : null,
+    singlePoint  : false,
+    xScale0      : null,
+    yScale0      : null,
+    zScale0      : null, // used to store previous scales
+    timeoutID    : null,
+    needsUpdate  : false, // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
+    useVoronoi   : true,
+    duration     : 250
 };
 
 /**

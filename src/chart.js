@@ -199,6 +199,7 @@ Chart.prototype.hasData = function(data){
  * Render a "noData" message.
  */
 Chart.prototype.noData = function(data){
+    if (this.svg === undefined) return;
     if ( this.hasData(data) ) {
         this.svg.selectAll('.nv-noData').remove();
         return false;
