@@ -1,9 +1,8 @@
-should = chai.should()
-
-apiTest = apiTest || {}
-
-apiTest.scatter = (instance, overrides=[])->
-    options = [
+apiTest.config.scatter =
+    ctor: Scatter
+    name: 'scatter'
+    parent: 'layer'
+    options: [
         'clearHighlights'
         'highlightPoint'
         'x'
@@ -40,29 +39,14 @@ apiTest.scatter = (instance, overrides=[])->
         'singlePoint'
         'duration'
     ]
-
-    describe 'Inherited APIs', ->
-        apiTest.layer(instance, [
-            'color'
-            'size'
-        ])
-    describe 'Scatter APIs', ->
-        checkProperties
-            instance: instance
-            properties: options
-            overrides: overrides
-            parent: Scatter
+    dispatch: true
+    optionsFunc: true
+    events: [
+        'elementClick'
+        'elementMouseover'
+        'elementMouseout'
+        'renderEnd'
+    ]
 
 describe 'Scatter Model', ->
-    apiTest.scatter(nv.models.scatter())
-    describe 'Instance properties', ->
-        events = [
-            'elementClick'
-            'elementMouseover'
-            'elementMouseout'
-            'renderEnd'
-        ]
-        checkDispatch nv.models.scatter, events
-        checkOptionsFunc nv.models.scatter
-
-
+    apiTest.run 'scatter'

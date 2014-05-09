@@ -1,9 +1,8 @@
-should = chai.should()
-
-apiTest = apiTest || {}
-
-apiTest.axis = (instance, overrides=[])->
-    options = [
+apiTest.config.axis =
+    ctor: Axis
+    name: 'axis'
+    parent: 'layer'
+    options: [
         'margin'
         'width'
         'ticks'
@@ -18,37 +17,10 @@ apiTest.axis = (instance, overrides=[])->
         'axisLabelDistance'
         'duration'
     ]
-
-    describe 'Inherited APIs', ->
-        apiTest.layer(instance)
-
-    describe 'Axis API', ->
-        checkProperties
-            instance: instance
-            properties: options
-            overrides: overrides
-            parent: Axis
-
-describe 'Axis Model', ->
-    apiTest.axis nv.models.axis()
-
-    describe 'Submodels', ->
-        instance = nv.models.axis()
-        describe 'Axis', ->
-            it "exists", ->
-                should.exist instance.axis
-            checkForDuck instance.axis, d3.svg.axis()
-
-    describe 'Instance properties', ->
-        events = [
-            'renderEnd'
-        ]
-        checkDispatch nv.models.axis, events
-        checkOptionsFunc nv.models.axis
-
-    describe 'Inherited instance properties', ->
-        instance = nv.models.axis()
-        axisBind = [
+    submodels:
+        axis: d3.svg.axis
+    inheritedInstance:
+        axis: [
             'orient'
             'tickValues'
             'tickSubdivide'
@@ -56,16 +28,16 @@ describe 'Axis Model', ->
             'tickPadding'
             'tickFormat'
         ]
-        scaleBind = [
+        scale: [
             'domain'
             'range'
             'rangeBand'
             'rangeBands'
         ]
+    dispatch: true
+    optionsFunc: true
+    events: [
+        'renderEnd'
+    ]
 
-        describe 'from axis', ->
-            checkInstanceProp instance, instance.axis, axisBind
-        describe 'from scale', ->
-            checkInstanceProp instance, instance.scale(), scaleBind
-
-
+apiTest.run 'axis'

@@ -2,7 +2,7 @@ should = chai.should()
 
 apiTest = apiTest || {}
 
-apiTest.layer = (instance, overrides=[], ignoreList=[])->
+apiTest.models.layer = (instance, overrides=[], ignoreList=[])->
     describe 'Testing Layer API', ->
         ignore = (a, b)->
             if b not in ignoreList
@@ -28,7 +28,7 @@ apiTest.layer = (instance, overrides=[], ignoreList=[])->
             parent: Layer
 
 describe 'Layer Model', ->
-    apiTest.layer(new Layer())
+    apiTest.models.layer(new Layer())
 
 
 

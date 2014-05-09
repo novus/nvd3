@@ -1,9 +1,8 @@
-should = chai.should()
-
-apiTest = apiTest || {}
-
-apiTest.line = (instance, overrides=[])->
-    options = [
+apiTest.config.line =
+    ctor: Line
+    name: 'line'
+    parent: 'layer'
+    options: [
         'margin'
         'width'
         'height'
@@ -16,35 +15,15 @@ apiTest.line = (instance, overrides=[])->
         'isArea'
         'duration'
     ]
+    submodels:
+        scatter: nv.models.scatter
+    dispatch: true
+    optionsFunc: true
+    events: [
+        'elementClick'
+        'elementMouseover'
+        'elementMouseout'
+        'renderEnd'
+    ]
 
-    describe 'Inherited API', ->
-        apiTest.layer(instance)
-
-    describe 'Line API', ->
-        checkProperties
-            instance: instance
-            properties: options
-            overrides: overrides
-            parent: Line
-
-describe 'Line Model', ->
-    apiTest.line(nv.models.line())
-
-    describe 'Submodels', ->
-        instance = nv.models.line()
-        describe 'Scatter', ->
-            it "exists", ->
-                should.exist instance.scatter
-            checkForDuck instance.scatter, nv.models.scatter()
-
-    describe 'Instance properties', ->
-        events = [
-            'elementClick'
-            'elementMouseover'
-            'elementMouseout'
-            'renderEnd'
-        ]
-        checkDispatch nv.models.scatter, events
-        checkOptionsFunc nv.models.scatter
-
-
+apiTest.run 'line'

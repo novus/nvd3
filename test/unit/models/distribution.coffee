@@ -1,9 +1,8 @@
-should = chai.should()
-
-apiTest = apiTest || {}
-
-apiTest.distribution = (instance, overrides=[])->
-    options = [
+apiTest.config.distribution =
+    ctor: Distribution
+    name: 'distribution'
+    parent: 'layer'
+    options: [
         'margin'
         'width'
         'axis'
@@ -13,24 +12,10 @@ apiTest.distribution = (instance, overrides=[])->
         'color'
         'duration'
     ]
+    dispatch: true
+    optionsFunc: true
+    events: [
+        'renderEnd'
+    ]
 
-    describe 'Inherited API', ->
-        apiTest.layer(instance, [], ['height'])
-    describe 'Distribution API', ->
-        checkProperties
-            instance: instance
-            properties: options
-            overrides: overrides
-            parent: Distribution
-
-describe 'Distribution Model', ->
-    apiTest.distribution(nv.models.distribution())
-    describe 'Instance properties', ->
-        events = [
-            'renderEnd'
-        ]
-        checkDispatch nv.models.distribution, events
-        checkOptionsFunc nv.models.distribution
-
-
-
+apiTest.run 'distribution'

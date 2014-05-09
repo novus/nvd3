@@ -2,7 +2,7 @@ should = chai.should()
 
 apiTest = apiTest || {}
 
-apiTest.chart = (instance, overrides=[])->
+apiTest.models.chart = (instance, overrides=[])->
     options = [
         'showXAxis'
         'showYAxis'
@@ -12,7 +12,7 @@ apiTest.chart = (instance, overrides=[])->
     ]
 
     describe 'Inherited API', ->
-        apiTest.layer(instance)
+        apiTest.models.layer(instance)
 
     describe 'Chart API', ->
         checkProperties
@@ -22,6 +22,6 @@ apiTest.chart = (instance, overrides=[])->
                 parent: Chart
 
 describe 'Chart Model', ->
-    apiTest.chart(new Chart())
+    apiTest.models.chart(new Chart())
 
 

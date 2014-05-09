@@ -1,9 +1,8 @@
-should = chai.should()
-
-apiTest = apiTest || {}
-
-apiTest.legend = (instance, overrides=[])->
-    options = [
+apiTest.config.legend =
+    ctor: Legend
+    name: 'legend'
+    parent: 'layer'
+    options: [
         'margin'
         'width'
         'height'
@@ -14,21 +13,7 @@ apiTest.legend = (instance, overrides=[])->
         'updateState'
         'radioButtonMode'
     ]
+    dispatch: true
+    optionsFunc: true
 
-    describe 'Inherited API', ->
-        apiTest.layer(instance, [])
-
-    describe 'Legend API', ->
-        checkProperties
-            instance: instance
-            properties: options
-            overrides: overrides
-            parent: Legend
-
-describe 'Legend Model', ->
-    apiTest.legend(nv.models.legend())
-
-    describe 'Instance properties', ->
-        checkDispatch nv.models.legend
-        checkOptionsFunc nv.models.legend
-
+apiTest.run 'legend'

@@ -1,9 +1,8 @@
-should = chai.should()
-
-apiTest = apiTest || {}
-
-apiTest.cumulativeLineChart = (instance, overrides=[])->
-    options = [
+apiTest.config.cumulativeLineChart =
+    ctor: CumulativeLineChart
+    name: 'cumulativeLineChart'
+    parent: 'chart'
+    options: [
         'margin'
         'width'
         'height'
@@ -25,38 +24,14 @@ apiTest.cumulativeLineChart = (instance, overrides=[])->
         'duration'
         'noErrorCheck'
     ]
-
-    describe 'Inherited API', ->
-        apiTest.chart instance
-
-    describe 'CumulativeLineChart API', ->
-        checkProperties
-            instance: instance
-            properties: options
-            overrides: overrides
-            parent: CumulativeLineChart
-
-describe 'CumulativeLineChart Model', ->
-    apiTest.cumulativeLineChart nv.models.cumulativeLineChart()
-
-    describe 'Submodels', ->
-        instance = nv.models.cumulativeLineChart()
-        submodels =
-            lines: nv.models.line
-            legend: nv.models.legend
-            xAxis: nv.models.axis
-            yAxis: nv.models.axis
-            interactiveLayer: nv.interactiveGuideline
-
-        for key, model of submodels
-            describe "#{key}", ->
-                it 'exists', ->
-                    should.exist instance[key]
-                checkForDuck instance[key], model()
-
-    describe 'Inherited instance properties', ->
-        instance = nv.models.lineChart()
-        lineBind = [
+    submodels:
+        lines: nv.models.line
+        legend: nv.models.legend
+        xAxis: nv.models.axis
+        yAxis: nv.models.axis
+        interactiveLayer: nv.interactiveGuideline
+    inheritedInstance:
+        lines: [
             'defined'
             'isArea'
             'x'
@@ -76,19 +51,14 @@ describe 'CumulativeLineChart Model', ->
             'useVoronoi'
             'id'
         ]
-        describe 'from line', ->
-            checkInstanceProp instance, instance.lines, lineBind
+    dispatch: true
+    optionsFunc: true
+    events: [
+        'tooltipShow'
+        'tooltipHide'
+        'stateChange'
+        'changeState'
+        'renderEnd'
+    ]
 
-    describe 'Instance properties', ->
-        events = [
-            'tooltipShow'
-            'tooltipHide'
-            'stateChange'
-            'changeState'
-            'renderEnd'
-        ]
-        checkDispatch nv.models.cumulativeLineChart, events
-        checkOptionsFunc nv.models.cumulativeLineChart
-
-
-
+apiTest.run 'cumulativeLineChart'

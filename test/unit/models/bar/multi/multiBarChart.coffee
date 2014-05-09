@@ -1,63 +1,51 @@
-apiTest.config.scatterChart =
-    ctor: ScatterChart
-    name: 'scatterChart'
+apiTest.config.multiBarChart =
+    ctor: MultiBarChart
+    name: 'multiBarChart'
     parent: 'chart'
     options: [
         'margin'
         'width'
         'height'
         'color'
-        'showDistX'
-        'showDistY'
         'showControls'
         'showLegend'
         'showXAxis'
         'showYAxis'
         'rightAlignYAxis'
-        'fisheye'
-        'xPadding'
-        'yPadding'
+        'reduceXTick'
+        'rotateLabels'
+        'staggerLabels'
+        'tooltip'
         'tooltips'
         'tooltipContent'
-        'tooltipXContent'
-        'tooltipYContent'
         'state'
         'defaultState'
         'noData'
+        'transitionDuration'
         'duration'
     ]
     submodels:
-        scatter: nv.models.scatter
+        multibar: nv.models.multiBar
         legend: nv.models.legend
-        controls: nv.models.legend
         xAxis: nv.models.axis
         yAxis: nv.models.axis
-        distX: nv.models.distribution
-        distY: nv.models.distribution
     inheritedInstance:
-        scatter: [
-            'id'
-            'interactive'
-            'pointActive'
+        multibar: [
             'x'
             'y'
-            'shape'
-            'size'
-            'xScale'
-            'yScale'
-            'zScale'
             'xDomain'
             'yDomain'
             'xRange'
             'yRange'
-            'sizeDomain'
-            'sizeRange'
             'forceX'
             'forceY'
-            'forceSize'
-            'clipVoronoi'
-            'clipRadius'
-            'useVoronoi'
+            'clipEdge'
+            'id'
+            'stacked'
+            'stackOffset'
+            'delay'
+            'barColor'
+            'groupSpacing'
         ]
     dispatch: true
     optionsFunc: true
@@ -69,4 +57,4 @@ apiTest.config.scatterChart =
         'renderEnd'
     ]
 
-apiTest.run 'scatterChart'
+apiTest.run 'multiBarChart'
