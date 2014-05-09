@@ -5,9 +5,6 @@ var ScatterChartPrivates = {
     , yPadding     : 0
     , showDistX    : false
     , showDistY    : false
-    , showXAxis    : true
-    , showYAxis    : true
-    , rightAlignYAxis : false
     , showControls : !!d3.fisheye
     , fisheye      : 0
     , pauseFisheye : false
@@ -377,11 +374,34 @@ nv.models.scatterChart = function() {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, scatterChart, ScatterChart.prototype,
-        'transitionDuration', 'duration', 'tooltipContent', 'color', 'margin', 'width', 'height', 'showDistX', 'showDistY', 'showControls',
-        'showLegend', 'showXAxis', 'showYAxis', 'rightAlignYAxis', 'fisheye', 'xPadding', 'yPadding', 'tooltips',
-        'tooltipXContent', 'tooltipYContent', 'state', 'defaultState', 'noData'
-    );
+    api = [
+        'transitionDuration',
+        'duration',
+        'tooltipContent',
+        'color',
+        'margin',
+        'width',
+        'height',
+        'showDistX',
+        'showDistY',
+        'showControls',
+        'showLegend',
+        'showXAxis',
+        'showYAxis',
+        'rightAlignYAxis',
+        'reduceXTicks',
+        'fisheye',
+        'xPadding',
+        'yPadding',
+        'tooltips',
+        'tooltipXContent',
+        'tooltipYContent',
+        'state',
+        'defaultState',
+        'noData'
+    ]
+
+    nv.utils.rebindp(chart, scatterChart, ScatterChart.prototype, api);
 
     return chart;
 };

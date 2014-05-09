@@ -4,8 +4,6 @@ var ChartPrivates = {
     showYAxis : true,
     rightAlignYAxis: false,
     reduceXTicks : true,
-    staggerLabels: false,
-    rotateLabels: 0
 };
 
 /**

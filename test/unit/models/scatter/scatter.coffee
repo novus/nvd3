@@ -41,12 +41,6 @@ apiTest.scatter = (instance, overrides=[])->
         'duration'
     ]
 
-    # model properties
-    props = [
-        'dispatch'
-        'options'
-    ]
-
     describe 'Inherited APIs', ->
         apiTest.layer(instance, [
             'color'

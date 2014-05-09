@@ -3,31 +3,23 @@ should = chai.should()
 apiTest = apiTest || {}
 
 apiTest.chart = (instance, overrides=[])->
-    props = [
+    options = [
         'showXAxis'
         'showYAxis'
         'rightAlignYAxis'
         'reduceXTicks'
-        'staggerLabels'
-        'rotateLabels'
         'noData'
     ]
 
-    overrides = [
-        'wrapper'
-        'draw'
-        'attachEvents'
-    ]
-
     describe 'Inherited API', ->
-        console.log 'CALLING FROM CHART'
-        apiTest.layer(new Chart(), overrides)
+        apiTest.layer(instance)
 
-    checkProperties
-            instance: instance
-            properties: props
-            overrides: overrides
-            parent: Chart
+    describe 'Chart API', ->
+        checkProperties
+                instance: instance
+                properties: options
+                overrides: overrides
+                parent: Chart
 
 describe 'Chart Model', ->
     apiTest.chart(new Chart())

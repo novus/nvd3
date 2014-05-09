@@ -2,8 +2,14 @@ should = chai.should()
 
 apiTest = apiTest || {}
 
-apiTest.layer = (instance, overrides=[])->
+apiTest.layer = (instance, overrides=[], ignoreList=[])->
     describe 'Testing Layer API', ->
+        ignore = (a, b)->
+            if b not in ignoreList
+                a.concat(b)
+            else
+                a
+
         ###
         These are the foundational options for every layer.
         These are the only ones that are guaranteed
@@ -13,7 +19,7 @@ apiTest.layer = (instance, overrides=[])->
             'height'
             'width'
             'margin'
-        ]
+        ].reduce ignore, []
 
         checkProperties
             instance: instance
