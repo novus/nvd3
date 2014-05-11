@@ -2,7 +2,7 @@
 
 As of mid April, 2014, NVD3 is undergoing a major internal refactoring. While we wanted to make it in such a way that it would be a perfectly backwards compatible minor version release, we cannot do so. There are a half-dozen side and corner cases in the current code base, that, while we could call them "bugs", are just poorly implemented features. Because of this, we are announcing heavy development on the 2.0 NVD3 line, which will bring a sane internal structure and numerous API and development enhancements.
 
-The code is on the branch at [refactor/2.0.0-dev](https://github.com/DavidSouther/nvd3/tree/refactor/2.0.0-dev). It is currently about 4/5ths functional, and we are working through finishing the tests for the last few parameters. The commonly used charts are there, and any outstanding or new pull requests will need to rebase and target that. Of course, if you want to implement some of those features, that would also be great!
+The code is on the branch at [refactor/2.0.0-dev](https://github.com/novus/nvd3/tree/refactor/2.0.0-dev). It is currently about 4/5ths functional, and we are working through finishing the tests for the last few parameters. The commonly used charts are there, and any outstanding or new pull requests will need to rebase and target that. Of course, if you want to implement some of those features, that would also be great!
 
 For more information on the refactored architecture and approach, please see the recent blog posts on  [architecture](http://nvd3.org/blog/2014/03/architecture/) and [chart drawing lifecycle](http://nvd3.org/blog/2014/03/nvd3-chart-drawing-lifecycle/).
 
