@@ -177,11 +177,14 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
              Each label location is hashed, and if a hash collision occurs, we assume an overlap.
              Adjust the label's y-position to remove the overlap.
              */
-            var center = labelsArc.centroid(d), hashKey = createHashKey(center);
-            if (labelLocationHash[hashKey]) {
-                center[1] -= avgHeight;
+            var center = labelsArc.centroid(d);
+            if (d.value) {
+                var hashKey = createHashKey(center);
+                if (labelLocationHash[hashKey]) {
+                    center[1] -= avgHeight;
+                }
+                labelLocationHash[createHashKey(center)] = true;
             }
-            labelLocationHash[createHashKey(center)] = true;
 
             return 'translate(' + center + ') ' +
                 'rotate(' + this.labelLayout().rotateAngle(d) + ')';
