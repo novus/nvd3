@@ -114,8 +114,7 @@ module.exports = (grunt)->
 
     grunt.registerTask('test', ['connect:test', 'selenium-launch', 'mochaTest:nvd3'])
 
-    grunt.registerTask('default', ['concat', 'copy'])
+    grunt.registerTask('default', ['karma', 'concat', 'copy', 'test'])
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin'])
     grunt.registerTask('release', ['production'])
     grunt.registerTask('lint', ['jshint'])
-
