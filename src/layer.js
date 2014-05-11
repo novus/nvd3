@@ -1,15 +1,17 @@
 LayerPrivates = {
-    id: 0
-    , size: {}
-    , margin: { top: 20, right: 20, bottom: 30, left: 40 }
-    , showLabels: true
-    , noData: 'No Data Available'
-    , opacityDefault: 1e-6
-    , color: nv.utils.defaultColor()
-    , description: function(d) { return d.description }
-    , x: function(d){return d.x;}
-    , y: function(d){return d.y;}
-    , values: function(d){return d;}
+    id: 0,
+    height: null,
+    width: null,
+    size: {},
+    margin: { top: 20, right: 20, bottom: 30, left: 40 },
+    showLabels: true,
+    noData: 'No Data Available',
+    opacityDefault: 1e-6,
+    color: nv.utils.defaultColor(),
+    description: function(d) { return d.description },
+    x: function(d){return d.x;},
+    y: function(d){return d.y;},
+    values: function(d){return d;}
 };
 
 /**
@@ -88,25 +90,32 @@ Layer.prototype.update = function(){
 Layer.prototype.setRoot = function(root) {
     this.svg = d3.select(root);
 
-    this.options.size = {
-        width: (this.size().width || parseInt(this.svg.style('width')) || 960),
-        height: (this.size().height || parseInt(this.svg.style('height')) || 500)
-    };
 
-    this.svg.attr(this.options.size);
+    // this.options.size = {
+    //     width: (this.size().width || parseInt(this.svg.style('width')) || 960),
+    //     height: (this.size().height || parseInt(this.svg.style('height')) || 500)
+    // };
+    this.width(this.width() || parseInt(this.svg.style('width')) || 960);
+    this.height(this.height() || parseInt(this.svg.style('height')) || 500);
+
+    this.svg.attr({
+        width: this.width(),
+        height: this.height()
+    });
 
     var margin = this.margin();
-    var size = this.options.size;
+    // var size = this.options.size;
+    var options = this.options
     var available = this.available = {};
 
     Object.defineProperty(available, 'width', {
         get: function(){
-            return Math.max(size.width - (margin.leftright), 0);
+            return Math.max(options.width - (margin.leftright), 0);
         }
     });
     Object.defineProperty(available, 'height', {
         get: function(){
-            return Math.max(size.height - (margin.topbottom), 0);
+            return Math.max(options.height - (margin.topbottom), 0);
         }
     });
 
@@ -138,8 +147,8 @@ Layer.prototype.noData = function(data){
             .style('text-anchor', 'middle');
 
         noDataText
-            .attr('x', this.size().width / 2)
-            .attr('y', this.size().height / 2)
+            .attr('x', this.width() / 2)
+            .attr('y', this.height() / 2)
             .text(function(d) { return d });
 
         return true;
@@ -190,17 +199,17 @@ Layer.prototype.attachEvents = function(){
         }.bind(this));
 };
 
-Layer.prototype.width = function(_){
-    if (!arguments.length) return this.size().width;
-    this.options.size.width = _;
-    return this;
-};
+// Layer.prototype.width = function(_){
+//     if (!arguments.length) return this.size().width;
+//     this.options.size.width = _;
+//     return this;
+// };
 
-Layer.prototype.height = function(_){
-    if (!arguments.length) return this.size().height;
-    this.options.size.height = _;
-    return this;
-};
+// Layer.prototype.height = function(_){
+//     if (!arguments.length) return this.size().height;
+//     this.options.size.height = _;
+//     return this;
+// };
 
 Layer.prototype.margin = function(_){
     if (!arguments.length) return this.options.margin;

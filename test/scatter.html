@@ -68,6 +68,7 @@
         nv.addGraph({
             generate: function() {
                 chart = nv.models.scatter()
+                        .duration(1000)
                         .margin({top: 25, right: 100, bottom: 100, left: 100})
                         .size(function(d) { return d.z })
                         .useVoronoi(false);

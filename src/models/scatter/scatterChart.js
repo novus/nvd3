@@ -76,8 +76,8 @@ ScatterChart.prototype.wrapper = function (data) {
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 
     this.renderWatch.models(this.scatter);
-    if (this.showXAxis()) this.renderWatch.models(this.xAxis());
-    if (this.showYAxis()) this.renderWatch.models(this.yAxis());
+    if (this.showXAxis()) this.renderWatch.models(this.xAxis);
+    if (this.showYAxis()) this.renderWatch.models(this.yAxis);
     if (this.showDistX()) this.renderWatch.models(this.distX);
     if (this.showDistY()) this.renderWatch.models(this.distY);
 };
@@ -330,13 +330,18 @@ ScatterChart.prototype.tooltipContent = function(_) {
     return this;
 };
 
+ScatterChart.prototype.transitionDuration = function(_) {
+    nv.deprecated('scatterChart.transitionDuration');
+    return this.duration(_);
+};
+
 ScatterChart.prototype.duration = function(_) {
     if (!arguments.length) return this.options.duration;
     this.options.duration = _;
     this.renderWatch.reset(_);
     this.scatter.duration(_);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
+    this.xAxis.duration(_);
+    this.yAxis.duration(_);
     this.distX.duration(_);
     this.distY.duration(_);
     return this;
@@ -361,6 +366,8 @@ nv.models.scatterChart = function() {
     chart.controls = scatterChart.controls;
     chart.distX = scatterChart.distX;
     chart.distY = scatterChart.distY;
+    chart.xAxis = scatterChart.xAxis;
+    chart.yAxis = scatterChart.yAxis;
 
     d3.rebind(chart, scatterChart.scatter,
         'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain',
@@ -371,9 +378,9 @@ nv.models.scatterChart = function() {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, scatterChart, ScatterChart.prototype,
-        'duration', 'tooltipContent', 'color', 'margin', 'width', 'height', 'showDistX', 'showDistY', 'showControls',
+        'transitionDuration', 'duration', 'tooltipContent', 'color', 'margin', 'width', 'height', 'showDistX', 'showDistY', 'showControls',
         'showLegend', 'showXAxis', 'showYAxis', 'rightAlignYAxis', 'fisheye', 'xPadding', 'yPadding', 'tooltips',
-        'tooltipXContent', 'tooltipYContent', 'state', 'defaultState', 'noData', 'xAxis', 'yAxis'
+        'tooltipXContent', 'tooltipYContent', 'state', 'defaultState', 'noData'
     );
 
     return chart;

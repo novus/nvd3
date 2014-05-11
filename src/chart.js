@@ -1,12 +1,10 @@
 var ChartPrivates = {
-      showXAxis : true
-    , showYAxis : true
-    , xAxis: nv.models.axis()
-    , yAxis: nv.models.axis()
-    , rightAlignYAxis: false
-    , reduceXTicks : true
-    , staggerLabels: false
-    , rotateLabels: 0
+    showXAxis : true,
+    showYAxis : true,
+    rightAlignYAxis: false,
+    reduceXTicks : true,
+    staggerLabels: false,
+    rotateLabels: 0
 };
 
 /**
@@ -35,12 +33,18 @@ function Chart(options, dispatch){
 
     this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
+    this.xAxis = this.getAxis();
+    this.yAxis = this.getAxis();
 }
 
 nv.utils.create(Chart, Layer, ChartPrivates);
 
 Chart.prototype.getStateManager = function(){
     return nv.utils.state();
+};
+
+Chart.prototype.getAxis = function(){
+    return nv.models.axis();
 };
 
 /**
@@ -113,7 +117,7 @@ Chart.prototype.plotAxes = function(data){
     }
 
     if (this.showXAxis()) {
-        this.xAxis()
+        this.xAxis
             .orient('bottom')
             .tickPadding(7)
             .highlightZero(true)
@@ -125,7 +129,7 @@ Chart.prototype.plotAxes = function(data){
 
         this.axis.x
             .transition()
-            .call(this.xAxis());
+            .call(this.xAxis);
 
         var xTicks = this.g.select('.nv-x.nv-axis > g').selectAll('g');
 
@@ -169,14 +173,14 @@ Chart.prototype.plotAxes = function(data){
     }
 
     if (this.showYAxis()) {
-        this.yAxis()
+        this.yAxis
             .orient(this.rightAlignYAxis() ? 'right' : 'left')
             .tickFormat(d3.format(',.1f'))
             .scale(this.yScale())
             .ticks( this.available.height / 36 )
             .tickSize( -this.available.width, 0);
 
-        this.axis.y.transition().call(this.yAxis());
+        this.axis.y.transition().call(this.yAxis);
     }
 };
 

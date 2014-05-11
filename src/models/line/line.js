@@ -26,6 +26,8 @@ function Line(options) {
         .size(16) // default size
         .sizeDomain([16,256]) //set to speed up calculation, needs to be unset if there is a custom size accessor
     ;
+
+    this.scatter.size();
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
@@ -56,8 +58,11 @@ Line.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight);
 
+    this.scatter.width();
+
     scatterWrap.transition().call(this.scatter);
 
+    debugger;
     this.x(this.scatter.x());
     this.y(this.scatter.y());
     this.color(this.scatter.color());
@@ -174,6 +179,15 @@ Line.prototype.attachEvents = function(){
         }.bind(this))
 };
 
+Line.prototype.duration = function(_) {
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
+    this.scatter.duration(_);
+    this.renderWatch.reset(_);
+    return this;
+};
+
+
 Line.prototype.transitionDuration = function(_) {
     nv.deprecated('line.transitionDuration');
     return this.duration(_);
@@ -199,15 +213,17 @@ nv.models.line = function () {
     d3.rebind(chart, line.scatter,
         'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
         'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
-        'highlightPoint','clearHighlights', 'duration', 'clipEdge', 'x', 'y', 'color'
+        'highlightPoint','clearHighlights', 'clipEdge', 'x', 'y', 'color'
     );
 
     chart.dispatch = line.dispatch;
     chart.scatter = line.scatter;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
+    chart.xScale();
+
     nv.utils.rebindp(chart, line, Line.prototype,
-        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'transitionDuration'
+        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'duration', 'transitionDuration'
     );
 
     return chart;

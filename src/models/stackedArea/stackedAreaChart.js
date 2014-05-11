@@ -158,46 +158,6 @@ StackedAreaChart.prototype.draw = function(data){
     this.plotAxes(data);
 };
 
-Chart.prototype.plotAxes = function(data){
-
-    if (this.rightAlignYAxis()) {
-        this.wrap.select('.nv-x.nv-axis').attr("transform", "translate(" + this.available.width + ", 0)");
-    }
-
-    if (this.showXAxis()) {
-
-        this.xAxis()
-            .orient('bottom')
-            .tickPadding(7)
-            .scale(this.xScale())
-            .ticks( this.available.width / 100 )
-            .tickSize( -this.available.height, 0);
-
-        this.g.select('.nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + this.available.height + ')')
-            .transition().duration(0)
-            .call(this.xAxis());
-    }
-
-    if (this.showYAxis()) {
-        this.yAxis()
-            .orient((this.rightAlignYAxis()) ? 'right' : 'left')
-            .scale(this.yScale())
-            .ticks(this.stacked.offset() == 'wiggle' ? 0 : this.available.height / 36)
-            .tickSize(-this.available.width, 0)
-            .setTickFormat(
-                (this.stacked.style() == 'expand' || this.stacked.style() == 'stack_percent')
-                    ? d3.format('%')
-                    : this.yAxisTickFormat()
-            );
-
-        this.g.select('.nv-y.nv-axis')
-            .transition().duration(0)
-            .call(this.yAxis());
-    }
-
-};
-
 /**
  * Set up listeners for dispatches fired on the underlying
  * multiBar graph.
