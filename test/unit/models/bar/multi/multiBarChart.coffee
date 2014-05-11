@@ -1,0 +1,60 @@
+apiTest.config.multiBarChart =
+    ctor: MultiBarChart
+    name: 'multiBarChart'
+    parent: 'chart'
+    options: [
+        'margin'
+        'width'
+        'height'
+        'color'
+        'showControls'
+        'showLegend'
+        'showXAxis'
+        'showYAxis'
+        'rightAlignYAxis'
+        'reduceXTick'
+        'rotateLabels'
+        'staggerLabels'
+        'tooltip'
+        'tooltips'
+        'tooltipContent'
+        'state'
+        'defaultState'
+        'noData'
+        'transitionDuration'
+        'duration'
+    ]
+    submodels:
+        multibar: nv.models.multiBar
+        legend: nv.models.legend
+        xAxis: nv.models.axis
+        yAxis: nv.models.axis
+    inheritedInstance:
+        multibar: [
+            'x'
+            'y'
+            'xDomain'
+            'yDomain'
+            'xRange'
+            'yRange'
+            'forceX'
+            'forceY'
+            'clipEdge'
+            'id'
+            'stacked'
+            'stackOffset'
+            'delay'
+            'barColor'
+            'groupSpacing'
+        ]
+    dispatch: true
+    optionsFunc: true
+    events: [
+        'tooltipShow'
+        'tooltipHide'
+        'stateChange'
+        'changeState'
+        'renderEnd'
+    ]
+
+apiTest.run 'multiBarChart'

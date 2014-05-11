@@ -6,6 +6,9 @@ dispatch.elementMousemove is the important event to latch onto.  It is fired whe
 the rectangle. The dispatch is given one object which contains the mouseX/Y location.
 It also has 'pointXValue', which is the conversion of mouseX to the x-axis scale.
 */
+
+function InteractiveGuideline(){};
+
 nv.interactiveGuideline = function() {
 	"use strict";
 	var tooltip = nv.models.tooltip()
@@ -19,7 +22,7 @@ nv.interactiveGuideline = function() {
 	, yScale = d3.scale.linear()
 	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick')
 	, showGuideLine = true
-	, svgContainer = null  
+	, svgContainer = null
     //Must pass in the bounding chart's <svg> container.
     //The mousemove event is attached to this container.
 	;
@@ -198,7 +201,7 @@ nv.interactiveGuideline = function() {
 /* Utility class that uses d3.bisect to find the index in a given array, where a search value can be inserted.
 This is different from normal bisectLeft; this function finds the nearest index to insert the search value.
 
-For instance, lets say your array is [1,2,3,5,10,30], and you search for 28. 
+For instance, lets say your array is [1,2,3,5,10,30], and you search for 28.
 Normal d3.bisectLeft will return 4, because 28 is inserted after the number 10.  But interactiveBisect will return 5
 because 28 is closer to 30 than 10.
 

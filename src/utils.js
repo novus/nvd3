@@ -304,7 +304,8 @@ nv.utils.valueOrDefault = function(value, defaultValue){
  * any arguments thru. It returns either the return value, or `dest` for chaining.
  */
 nv.utils.rebindp = function(dest, source, proto, args){
-    [].slice.call(arguments, 3).forEach(function(method){
+    api = args instanceof Array ? args : [].slice.call(arguments, 3)
+    api.forEach(function(method){
         dest[method] = function(arg1){
             var ret = null;
             // Minor perf win for the 0, 1 arg versions

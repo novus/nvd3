@@ -536,8 +536,8 @@ nv.models.cumulativeLineChart = function(){
     chart.lines = cumulativeLineChart.line;
     chart.legend = cumulativeLineChart.legend;
     chart.interactiveLayer = cumulativeLineChart.interactiveLayer;
-    chart.xAxis = cumulativeLineChart.xAxis();
-    chart.yAxis = cumulativeLineChart.yAxis();
+    chart.xAxis = cumulativeLineChart.xAxis;
+    chart.yAxis = cumulativeLineChart.yAxis;
 
     d3.rebind(chart, cumulativeLineChart.line,
         'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',

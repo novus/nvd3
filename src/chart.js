@@ -1,10 +1,9 @@
 var ChartPrivates = {
+    noData: 'No Data Available',
     showXAxis : true,
     showYAxis : true,
     rightAlignYAxis: false,
     reduceXTicks : true,
-    staggerLabels: false,
-    rotateLabels: 0
 };
 
 /**
@@ -184,6 +183,41 @@ Chart.prototype.plotAxes = function(data){
     }
 };
 
+/**
+ * Utility to check if data is available.
+ */
+Chart.prototype.hasData = function(data){
+    function hasValues(d){
+        return !d.values || d.values.length > 0
+    }
+    return data && data.length > 0 && data.filter(hasValues).length > 0
+};
+
+/**
+ * Render a "noData" message.
+ */
+Chart.prototype.noData = function(data){
+    if (this.svg === undefined) return;
+    if ( this.hasData(data) ) {
+        this.svg.selectAll('.nv-noData').remove();
+        return false;
+    } else {
+        var noDataText = this.svg.selectAll('.nv-noData').data([this.options.noData]);
+
+        noDataText.enter().append('text')
+            .attr('class', 'nvd3 nv-noData')
+            .attr('dy', '-.7em')
+            .style('text-anchor', 'middle');
+
+        noDataText
+            .attr('x', this.width() / 2)
+            .attr('y', this.height() / 2)
+            .text(function(d) { return d });
+
+        return true;
+    }
+};
+
 Chart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
     this.legend.dispatch.on('stateChange', function(newState) {
@@ -201,7 +235,13 @@ Chart.prototype.attachEvents = function(){
 
     this.dispatch.on('stateChange', function(state){
         this.update();
-    }.bind(this))
+    }.bind(this));
+};
+
+Chart.prototype.update = function(){
+    this.svg.call(function(selection){
+        this.render(selection);
+    }.bind(this));
 };
 
 Chart.prototype.tooltip = function(_) {

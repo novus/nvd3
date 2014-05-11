@@ -365,12 +365,27 @@ nv.models.axis = function() {
         'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat'
     );
 
+    d3.rebind(chart, axis.scale(), 'domain', 'range', 'rangeBand', 'rangeBands');
+
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, axis, Axis.prototype,
-        'margin', 'width', 'ticks', 'height', 'axisLabel', 'showMaxMin', 'highlightZero', 'rotateYLabel',
-        'rotateLabels', 'staggerLabels', 'axisLabelDistance', 'duration', 'scale'
-    );
+    var api = [
+        'margin',
+        'width',
+        'ticks',
+        'height',
+        'axisLabel',
+        'showMaxMin',
+        'highlightZero',
+        'rotateYLabel',
+        'rotateLabels',
+        'staggerLabels',
+        'axisLabelDistance',
+        'duration',
+        'scale'
+    ];
+
+    nv.utils.rebindp(chart, axis, Axis.prototype, api);
 
     return chart;
 };
