@@ -31,6 +31,7 @@ var PiePrivates = {
     labelType: "key",
     labelThreshold: 0.02, //if slice percentage is under this, don't show label
     labelLayout: PieLabels.Normal,
+    labelFormat: d3.format('%'),
     valueFormat: d3.format(',.2f')
 };
 
@@ -197,7 +198,7 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
             var labelTypes = {
                 "key"    : this.x()(d.data),
                 "value"  : this.y()(d.data),
-                "percent": d3.format('%')(percent)
+                "percent": labelFormat(percent)
             };
             return (d.value && percent > this.labelThreshold()) ? labelTypes[this.labelType()] : '';
         }.bind(this));
