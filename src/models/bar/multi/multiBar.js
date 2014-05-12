@@ -16,6 +16,10 @@ var MultiBarPrivates = {
     , yScale0: null
     , duration: 1000
     , barColor: null
+    , id: null
+    , x: null
+    , y: null
+    , color: null
 };
 
 /**
@@ -322,10 +326,29 @@ nv.models.multiBar = function () {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, multiBar, MultiBar.prototype,
-        'margin', 'width', 'height', 'x', 'y', 'color', 'barColor', 'description', 'showLabels',
-        'xScale', 'yScale', 'disabled', 'xDomain', 'yDomain', 'xRange', 'yRange', 'clipEdge', 'stacked', 'stackOffset',
-        'hideable', 'groupSpacing', 'duration', 'forceY', 'id',
-        'delay'// deprecated
+        'x',
+        'y',
+        'margin',
+        'width',
+        'height',
+        'xScale',
+        'yScale',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'forceY',
+        'stacked',
+        'stackOffset',
+        'clipEdge',
+        'color',
+        'barColor',
+        'disabled',
+        'id',
+        'hideable',
+        'groupSpacing',
+        'duration',
+        'delay'
     );
 
     return chart;
