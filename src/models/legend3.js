@@ -1,4 +1,4 @@
-nv.models.legend = function() {
+nv.models.legend3 = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
@@ -10,7 +10,7 @@ nv.models.legend = function() {
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
     , align = true
-    , rightAlign = true
+    , rightAlign = false
     , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
     , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
@@ -32,7 +32,7 @@ nv.models.legend = function() {
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
       var g = wrap.select('g');
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      wrap.attr('transform', 'translate(' + margin.left + ',0)');
 
       //------------------------------------------------------------
 
@@ -82,6 +82,7 @@ nv.models.legend = function() {
                 });
             }
           });
+      seriesEnter.append('rect');
       seriesEnter.append('circle')
           .style('stroke-width', 2)
           .attr('class','nv-legend-symbol')
@@ -91,13 +92,13 @@ nv.models.legend = function() {
           .attr('class','nv-legend-text')
           .attr('dy', '.32em')
           .attr('dx', '8');
+
       series.classed('disabled', function(d) { return d.disabled });
       series.exit().remove();
       series.select('circle')
           .style('fill', function(d,i) { return d.color || color(d,i)})
           .style('stroke', function(d,i) { return d.color || color(d, i) });
       series.select('text').text(getKey);
-
 
       //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
 
@@ -109,7 +110,7 @@ nv.models.legend = function() {
               var legendText = d3.select(this).select('text').node();
               var nodeTextLength;
               try {
-                nodeTextLength = legendText.node().getComputedTextLength();
+                nodeTextLength = legendText.getComputedTextLength();
                 // If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
                 if(nodeTextLength <= 0) throw Error();
               }
@@ -153,8 +154,20 @@ nv.models.legend = function() {
 
         series
             .attr('transform', function(d, i) {
-              return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * 20) + ')';
+              return 'translate(0,'+i*20+')';
             });
+        series.select('rect')
+            .attr('transform','translate(-8,-10)')
+            .style('fill','#ECECEE')
+//            .attr('transform', function(d, i) {
+//              return 'translate(0,'+i*20+')';
+//            })
+            .attr('width',function(d,i){
+                return seriesWidths[i];
+            })
+            .attr('height','20')
+            .attr('rx','10')
+            .attr('ry','10');
 
         //position legend as far right as possible within the total width
         if (rightAlign) {

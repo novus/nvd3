@@ -2,6 +2,7 @@ JS_FILES = \
 	src/intro.js \
 	src/core.js \
 	src/interactiveLayer.js \
+	src/interactiveLayer2.js \
 	src/tooltip.js \
 	src/utils.js \
 	src/models/axis.js \
@@ -15,8 +16,12 @@ JS_FILES = \
 	src/models/historicalBarChart.js \
 	src/models/indentedTree.js \
 	src/models/legend.js \
+	src/models/legend2.js \
+	src/models/legend3.js \
 	src/models/line.js \
+	src/models/line2.js \
 	src/models/lineChart.js \
+	src/models/lineChart2.js \
 	src/models/linePlusBarChart.js \
 	src/models/lineWithFocusChart.js \
 	src/models/linePlusBarWithFocusChart.js \

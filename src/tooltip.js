@@ -322,7 +322,7 @@ window.nv.tooltip.* also has various helper methods.
 
   //Original tooltip.show function. Kept for backward compatibility.
   // pos = [left,top]
-  nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
+  nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes , bgcolor) {
       
         //Create new tooltip div if it doesn't exist on DOM.
         var   container = document.createElement('div');
@@ -337,6 +337,10 @@ window.nv.tooltip.* also has various helper methods.
         container.style.left = 0;
         container.style.top = 0;
         container.style.opacity = 0;
+        if(bgcolor){
+            container.style.backgroundColor = bgcolor;
+            container.style.borderColor = bgcolor;
+        }
         container.innerHTML = content;
         body.appendChild(container);
         

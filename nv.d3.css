@@ -18,9 +18,7 @@
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   box-shadow: 0 5px 10px rgba(0,0,0,.2);
 
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
+
 }
 
 /********************
@@ -31,7 +29,8 @@
   position: absolute;
   background-color: rgba(255,255,255,1.0);
   padding: 1px;
-  border: 1px solid rgba(0,0,0,.2);
+  color: #000000;
+  border-color: red;
   z-index: 10000;
 
   font-family: Arial;
@@ -49,6 +48,18 @@
   user-select: none;
 }
 
+.nvtooltip.y-nvtooltip:before{
+  content:"";
+   position: absolute;
+   right: 100%;
+   top: 4px;
+   width: 0;
+   height: 0;
+   border-top: 7px solid transparent;
+   border-right: 9px solid #ffda40;
+   border-right-color: inherit;
+   border-bottom: 7px solid transparent;}
+
 /*Give tooltips that old fade in transition by
     putting a "with-transitions" class on the container div.
 */
@@ -64,7 +75,7 @@
 
 .nvtooltip.x-nvtooltip,
 .nvtooltip.y-nvtooltip {
-  padding: 8px;
+  padding: 4px;
 }
 
 .nvtooltip h3 {
@@ -222,7 +233,7 @@ svg .title {
   stroke-opacity: .75;
 }
 
-.nvd3 .nv-axis.nv-x path.domain {
+.nvd3 .nv-axis.nv-y path.domain {
   stroke-opacity: 0;
 }
 
