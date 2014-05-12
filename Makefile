@@ -2,6 +2,7 @@ JS_FILES = \
 	src/intro.js \
 	src/core.js \
 	src/interactiveLayer.js \
+	src/interactiveLayer2.js \
 	src/tooltip.js \
 	src/utils.js \
 	src/models/axis.js \
