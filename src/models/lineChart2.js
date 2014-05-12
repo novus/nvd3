@@ -60,14 +60,13 @@ nv.models.linechart2 = function () {
         toolTipData.forEach(function(e,i){
             var cls = 'c-'+chart.id()+'-x-'+ e.pointIndex;
             var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            topX = y.range()[0] + margin.top + ( offsetElement.offsetTop || 0),
-            leftY = x.range()[1] + margin.left + tickPadding + ( offsetElement.offsetLeft || 0 ),
+            top = e.pos[1],
+            leftX = e.pos[0],
+            topX = y.range()[0] + margin.top + ( (offsetElement.offsetTop + offsetElement.marginTop) || 0),
+            leftY = x.range()[1] + margin.left + tickPadding ,
             topY = e.pos[1] + ( offsetElement.offsetTop || 0),
             xVal = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
             yVal = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex));
-
             if (tooltipX != null)
                 if(!d3.selectAll('.x-nvtooltip.'+cls)[0].length){
                     nv.tooltip.show([leftX, topX], tooltipX(e.series.key, xVal, yVal, e, chart), 'n', 1, offsetElement, 'x-nvtooltip '+cls, 'grey' );
@@ -92,7 +91,6 @@ nv.models.linechart2 = function () {
                     - margin.left - margin.right,
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
-
 
             chart.update = function () {
                 container.transition().duration(transitionDuration).call(chart)
@@ -329,7 +327,7 @@ nv.models.linechart2 = function () {
             });
 
             dispatch.on('tooltipShow', function (tooltipData) {
-                if (tooltips) showTooltip(tooltipData, that.parentNode);
+                if (tooltips) showTooltip(tooltipData, that.parentNode.parentNode);
             });
 
 
