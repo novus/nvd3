@@ -46,27 +46,18 @@ CSS_COMPILER = \
 	cssmin
 
 all: nv.d3.js nv.d3.min.js nv.d3.css nv.d3.min.css
-nv.d3.js: $(JS_FILES)
-nv.d3.min.js: $(JS_FILES)
-nv.d3.css: $(CSS_FILES)
-nv.d3.min.css: $(CSS_FILES)
 
-nv.d3.js: Makefile
-	rm -f $@
-	cat $(filter %.js,$^) >> $@
+nv.d3.js: $(JS_FILES) Makefile
+	cat $(JS_FILES) > $@
 
-nv.d3.css: Makefile
-	rm -f $@
-	cat $(filter %.css,$^) >> $@
+nv.d3.css: $(CSS_FILES) Makefile
+	cat $(CSS_FILES) > $@
 
-%.min.js:: Makefile
-	rm -f $@
-	$(JS_COMPILER) nv.d3.js >> $@
+%.min.js: %.js Makefile
+	$(JS_COMPILER) $< > $@
 
-%.min.css:: Makefile
-	rm -f $@
-	$(CSS_COMPILER) nv.d3.css >> $@
-
+%.min.css: %.css Makefile
+	$(CSS_COMPILER) $< > $@
 
 clean:
 	rm -rf nv.d3*.js nv.d3*.css
