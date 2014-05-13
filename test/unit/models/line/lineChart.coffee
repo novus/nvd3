@@ -1,5 +1,3 @@
-should = chai.should()
-
 apiTest.config.lineChart =
     ctor: LineChart
     name: 'lineChart'
@@ -9,25 +7,16 @@ apiTest.config.lineChart =
         'width'
         'height'
         'color'
-        'showDistX'
-        'showDistY'
-        'showControls'
-        'showLegend'
         'showXAxis'
         'showYAxis'
-        'rightAlignYAxis'
-        'fisheye'
-        'xPadding'
-        'yPadding'
         'tooltips'
         'tooltipContent'
-        'tooltipXContent'
-        'tooltipYContent'
         'state'
         'defaultState'
         'noData'
         'duration'
         'transitionDuration'
+        'useInteractiveGuideline'
     ]
     submodels:
         lines: nv.models.line
@@ -37,7 +26,6 @@ apiTest.config.lineChart =
         interactiveLayer: nv.interactiveGuideline
     inheritedInstance:
         lines: [
-            'defined'
             'isArea'
             'x'
             'y'
