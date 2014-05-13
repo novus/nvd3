@@ -1,9 +1,9 @@
-LayerPrivates = {
+var LayerPrivates = {
     height: null,
     width: null,
     size: {},
     margin: { top: 20, right: 20, bottom: 30, left: 40 },
-    opacityDefault: 1e-6,
+    opacityDefault: 1e-6
     // color: nv.utils.defaultColor(),
     // x: function(d){return d.x;},
     // y: function(d){return d.y;}
@@ -84,7 +84,7 @@ Layer.prototype.setRoot = function(root) {
     });
 
     var margin = this.margin();
-    var options = this.options
+    var options = this.options;
     var available = this.available = {};
 
     Object.defineProperty(available, 'width', {

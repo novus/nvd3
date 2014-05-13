@@ -16,6 +16,10 @@ var MultiBarPrivates = {
     , yScale0: null
     , duration: 1000
     , barColor: null
+    , id: null
+    , x: null
+    , y: null
+    , color: null
 };
 
 /**
@@ -310,7 +314,32 @@ MultiBar.prototype.barColor = function(_) {
 nv.models.multiBar = function () {
     "use strict";
 
-    var multiBar = new MultiBar();
+    var multiBar = new MultiBar(),
+        api = [
+            'x',
+            'y',
+            'margin',
+            'width',
+            'height',
+            'xScale',
+            'yScale',
+            'xDomain',
+            'yDomain',
+            'xRange',
+            'yRange',
+            'forceY',
+            'stacked',
+            'stackOffset',
+            'clipEdge',
+            'color',
+            'barColor',
+            'disabled',
+            'id',
+            'hideable',
+            'groupSpacing',
+            'duration',
+            'delay'
+        ];
 
     function chart(selection) {
         multiBar.render(selection);
@@ -321,12 +350,7 @@ nv.models.multiBar = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, multiBar, MultiBar.prototype,
-        'margin', 'width', 'height', 'x', 'y', 'color', 'barColor', 'description', 'showLabels',
-        'xScale', 'yScale', 'disabled', 'xDomain', 'yDomain', 'xRange', 'yRange', 'clipEdge', 'stacked', 'stackOffset',
-        'hideable', 'groupSpacing', 'duration', 'forceY', 'id',
-        'delay'// deprecated
-    );
+    nv.utils.rebindp(chart, multiBar, MultiBar.prototype, api);
 
     return chart;
 };

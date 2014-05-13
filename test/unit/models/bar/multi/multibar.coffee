@@ -25,6 +25,7 @@ apiTest.config.multiBar =
         'hideable'
         'groupSpacing'
         'duration'
+        'delay'
     ]
     dispatch: true
     optionsFunc: true
