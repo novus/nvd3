@@ -12,7 +12,6 @@ apiTest.config.multiBarChart =
         'showXAxis'
         'showYAxis'
         'rightAlignYAxis'
-        'reduceXTick'
         'rotateLabels'
         'staggerLabels'
         'tooltip'
@@ -46,6 +45,8 @@ apiTest.config.multiBarChart =
             'delay'
             'barColor'
             'groupSpacing'
+            'xScale'
+            'yScale'
         ]
     dispatch: true
     optionsFunc: true

@@ -7,6 +7,8 @@ var MultiBarChartPrivates = {
     , yScale: null
     , tooltips: true
     , duration: 250
+    , rotateLabels: false
+    , staggerLabels: false
 };
 
 /**
@@ -239,7 +241,28 @@ MultiBarChart.prototype.state = function(_) {
 nv.models.multiBarChart = function() {
     "use strict";
 
-    var multiBarChart = new MultiBarChart();
+    var multiBarChart = new MultiBarChart(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'color',
+            'showControls',
+            'showLegend',
+            'showXAxis',
+            'showYAxis',
+            'rightAlignYAxis',
+            'rotateLabels',
+            'staggerLabels',
+            'tooltip',
+            'tooltips',
+            'tooltipContent',
+            'state',
+            'defaultState',
+            'noData',
+            'transitionDuration',
+            'duration'
+        ];
 
     function chart(selection) {
         multiBarChart.render(selection);
@@ -249,24 +272,36 @@ nv.models.multiBarChart = function() {
     chart.dispatch = multiBarChart.dispatch;
     chart.multibar = multiBarChart.multibar;
     chart.legend = multiBarChart.legend;
+    chart.xAxis = multiBarChart.xAxis;
+    chart.yAxis = multiBarChart.yAxis;
 
     // DO NOT DELETE. This is currently overridden below
     // until deprecated portions are removed.
     chart.state = multiBarChart.state;
 
     d3.rebind(chart, multiBarChart.multibar,
-        'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge', 'id', 'stacked',
-        'stackOffset', 'delay', 'barColor','groupSpacing', 'xScale', 'yScale'
+        'x',
+        'y',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'forceX',
+        'forceY',
+        'clipEdge',
+        'id',
+        'stacked',
+        'stackOffset',
+        'delay',
+        'barColor',
+        'groupSpacing',
+        'xScale',
+        'yScale'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, multiBarChart, MultiBarChart.prototype,
-        'margin', 'width', 'height', 'color', 'showControls', 'showLegend', 'showXAxis', 'showYAxis', 'rightAlignYAxis',
-        'reduceXTicks', 'rotateLabels', 'staggerLabels', 'tooltip', 'tooltips', 'defaultState', 'noData',
-        'transitionDuration', 'duration', 'xAxis', 'yAxis',
-        'state'/*deprecated*/
-    );
+    nv.utils.rebindp(chart, multiBarChart, MultiBarChart.prototype, api);
 
     return chart;
 };
