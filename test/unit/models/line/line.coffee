@@ -6,17 +6,40 @@ apiTest.config.line =
         'margin'
         'width'
         'height'
-        'x'
-        'y'
-        'clipEdge'
-        'color'
         'interpolate'
-        'defined'
         'isArea'
         'duration'
+        'transitionDuration'
     ]
     submodels:
         scatter: nv.models.scatter
+    inheritedInstance:
+      scatter: [
+        'x'
+        'y'
+        'xScale'
+        'yScale'
+        'zScale'
+        'xDomain'
+        'yDomain'
+        'xRange'
+        'yRange'
+        'id'
+        'interactive'
+        'size'
+        'sizeDomain'
+        'forceX'
+        'forceY'
+        'forceSize'
+        'clipVoronoi'
+        'useVoronoi'
+        'clipRadius'
+        'padData'
+        'highlightPoint'
+        'clearHighlights'
+        'clipEdge'
+        'color'
+      ]
     dispatch: true
     optionsFunc: true
     events: [

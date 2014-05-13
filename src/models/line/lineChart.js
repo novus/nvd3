@@ -6,7 +6,8 @@ var LineChartPrivates = {
     useVoronoi: null,
     tooltips: true,
     duration: 250,
-    useInteractiveGuideline: false
+    useInteractiveGuideline: false,
+    state: null
 };
 
 /**
@@ -234,7 +235,23 @@ LineChart.prototype.showTooltip = function(e, offsetElement) {
 nv.models.lineChart = function() {
     "use strict";
 
-    var lineChart = new LineChart();
+    var lineChart = new LineChart(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'color',
+            'showXAxis',
+            'showYAxis',
+            'tooltips',
+            'tooltipContent',
+            'state',
+            'defaultState',
+            'noData',
+            'duration',
+            'transitionDuration',
+            'useInteractiveGuideline'
+        ];
 
     function chart(selection) {
         lineChart.render(selection);
@@ -242,7 +259,7 @@ nv.models.lineChart = function() {
     }
 
     chart.dispatch = lineChart.dispatch;
-    chart.line = lineChart.line;
+    chart.lines = lineChart.line;
     chart.legend = lineChart.legend;
     chart.interactiveLayer = lineChart.interactiveLayer;
     chart.state = lineChart.state;
@@ -250,16 +267,18 @@ nv.models.lineChart = function() {
     chart.yAxis = lineChart.yAxis;
 
     d3.rebind(chart, lineChart.line,
-        'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'defined', 'isArea',
-        'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate'
+        'margin',
+        'width',
+        'height',
+        'interpolate',
+        'isArea',
+        'duration',
+        'transitionDuration'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, lineChart, LineChart.prototype,
-        'margin', 'width', 'height', 'showXAxis', 'showYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'showLegend', 'transitionDuration', 'duration', 'color', 'rightAlignYAxis', 'useInteractiveGuideline'
-    );
+    nv.utils.rebindp(chart, lineChart, LineChart.prototype, api);
 
     return chart;
 };
