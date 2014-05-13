@@ -267,24 +267,13 @@ nv.models.lineChart = function() {
     chart.yAxis = lineChart.yAxis;
 
     d3.rebind(chart, lineChart.line,
+        'margin',
+        'width',
+        'height',
+        'interpolate',
         'isArea',
-        'x',
-        'y',
-        'size',
-        'xScale',
-        'yScale',
-        'xDomain',
-        'yDomain',
-        'xRange',
-        'yRange',
-        'forceX',
-        'forceY',
-        'interactive',
-        'clipEdge',
-        'clipVoronoi',
-        'useVoronoi',
-        'id',
-        'interpolate'
+        'duration',
+        'transitionDuration'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
