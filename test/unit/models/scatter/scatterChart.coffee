@@ -13,18 +13,17 @@ apiTest.config.scatterChart =
         'showLegend'
         'showXAxis'
         'showYAxis'
-        'rightAlignYAxis'
         'fisheye'
         'xPadding'
         'yPadding'
         'tooltips'
         'tooltipContent'
-        'tooltipXContent'
-        'tooltipYContent'
         'state'
         'defaultState'
         'noData'
         'duration'
+        'tooltipX'
+        'tooltipY'
     ]
     submodels:
         scatter: nv.models.scatter

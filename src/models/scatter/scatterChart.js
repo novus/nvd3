@@ -18,6 +18,7 @@ var ScatterChartPrivates = {
     , xScale0: null
     , yScale0: null
     , duration : 250
+    , state: null
 };
 
 /**
@@ -321,12 +322,6 @@ ScatterChart.prototype.color = function(_) {
     return this;
 };
 
-ScatterChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
-};
-
 ScatterChart.prototype.transitionDuration = function(_) {
     nv.deprecated('scatterChart.transitionDuration');
     return this.duration(_);
@@ -350,7 +345,33 @@ ScatterChart.prototype.duration = function(_) {
 nv.models.scatterChart = function() {
     "use strict";
 
-    var scatterChart = new ScatterChart();
+    var scatterChart = new ScatterChart(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'color',
+            'showDistX',
+            'showDistY',
+            'showControls',
+            'showLegend',
+            'showXAxis',
+            'showYAxis',
+            'fisheye',
+            'xPadding',
+            'yPadding',
+            'tooltips',
+            'tooltipContent',
+            'state',
+            'defaultState',
+            'noData',
+            'duration',
+            'transitionDuration',
+            'tooltipX',
+            'tooltipY',
+            'reduceXTicks',
+            'rightAlignYAxis'
+        ];
 
     function chart(selection) {
         scatterChart.render(selection);
@@ -367,39 +388,31 @@ nv.models.scatterChart = function() {
     chart.yAxis = scatterChart.yAxis;
 
     d3.rebind(chart, scatterChart.scatter,
-        'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain',
-        'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi',
-        'clipRadius', 'useVoronoi'
+        'id',
+        'interactive',
+        'pointActive',
+        'x',
+        'y',
+        'shape',
+        'size',
+        'xScale',
+        'yScale',
+        'zScale',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'sizeDomain',
+        'sizeRange',
+        'forceX',
+        'forceY',
+        'forceSize',
+        'clipVoronoi',
+        'clipRadius',
+        'useVoronoi'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
-
-    api = [
-        'transitionDuration',
-        'duration',
-        'tooltipContent',
-        'color',
-        'margin',
-        'width',
-        'height',
-        'showDistX',
-        'showDistY',
-        'showControls',
-        'showLegend',
-        'showXAxis',
-        'showYAxis',
-        'rightAlignYAxis',
-        'reduceXTicks',
-        'fisheye',
-        'xPadding',
-        'yPadding',
-        'tooltips',
-        'tooltipXContent',
-        'tooltipYContent',
-        'state',
-        'defaultState',
-        'noData'
-    ]
 
     nv.utils.rebindp(chart, scatterChart, ScatterChart.prototype, api);
 
