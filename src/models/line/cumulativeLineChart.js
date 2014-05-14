@@ -487,13 +487,6 @@ CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
     return this;
 };
 
-CumulativeLineChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this.options.rightAlignYAxis;
-    this.options.rightAlignYAxis = _;
-    this.yAxis().orient( (_) ? 'right' : 'left');
-    return this;
-};
-
 CumulativeLineChart.prototype.transitionDuration = function(_) {
     nv.deprecated('cumulativeLineChart.transitionDuration');
     return this.duration(_);
@@ -544,9 +537,11 @@ nv.models.cumulativeLineChart = function(){
             'defaultState',
             'noData',
             'average',
-            'transitionDuration',
             'duration',
-            'noErrorCheck'
+            'transitionDuration',
+            'noErrorCheck',
+            'reduceXTicks',
+            'rightAlignYAxis'
         ];
 
     function chart(selection){
