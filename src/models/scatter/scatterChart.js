@@ -368,7 +368,9 @@ nv.models.scatterChart = function() {
             'duration',
             'transitionDuration',
             'tooltipX',
-            'tooltipY'
+            'tooltipY',
+            'reduceXTicks',
+            'rightAlignYAxis'
         ];
 
     function chart(selection) {
