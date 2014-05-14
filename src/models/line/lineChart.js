@@ -250,7 +250,9 @@ nv.models.lineChart = function() {
             'noData',
             'duration',
             'transitionDuration',
-            'useInteractiveGuideline'
+            'useInteractiveGuideline',
+            'reduceXTicks',
+            'rightAlignYAxis'
         ];
 
     function chart(selection) {
