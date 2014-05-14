@@ -48,5 +48,4 @@ apiTest.config.scatter =
         'renderEnd'
     ]
 
-describe 'Scatter Model', ->
-    apiTest.run 'scatter'
+apiTest.run 'scatter'

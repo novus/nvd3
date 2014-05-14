@@ -1,5 +1,5 @@
 var ScatterPrivates = {
-    id           : Math.floor(Math.random() * 100000), //Create semi-unique ID incase user doesn't select one
+    id           : null,
     x            : function(d){return d.x;},
     y            : function(d){return d.y;},
     xScale       : d3.scale.linear(),
@@ -238,7 +238,7 @@ Scatter.prototype.draw = function(data){
             pointPaths
                 .attr('d', function(d) {
                     if (d.data.length === 0)
-                        return 'M 0 0'
+                        return 'M 0 0';
                     else
                         return 'M' + d.data.join('L') + 'Z';
                 });
@@ -475,7 +475,6 @@ Scatter.prototype.duration = function(_) {
     return this;
 };
 
-
 Scatter.prototype.size = function(_) {
     if (!arguments.length) return this.options.getSize;
     this.options.getSize = d3.functor(_);
@@ -486,8 +485,7 @@ Scatter.prototype.shape = function(_) {
     if (!arguments.length) return this.options.getShape;
     this.options.getShape = _;
     return this;
-}
-
+};
 
 /**
  * The scatter model returns a function wrapping an instance of a Scatter.
@@ -495,7 +493,44 @@ Scatter.prototype.shape = function(_) {
 nv.models.scatter = function () {
     "use strict";
 
-    var scatter = new Scatter();
+    var scatter = new Scatter(),
+        api = [
+            'clearHighlights',
+            'highlightPoint',
+            'x',
+            'y',
+            'size',
+            'margin',
+            'width',
+            'height',
+            'xScale',
+            'yScale',
+            'zScale',
+            'xDomain',
+            'yDomain',
+            'sizeDomain',
+            'xRange',
+            'yRange',
+            'sizeRange',
+            'forceX',
+            'forceY',
+            'forceSize',
+            'interactive',
+            'pointKey',
+            'pointActive',
+            'padData',
+            'padDataOuter',
+            'clipEdge',
+            'clipVoronoi',
+            'useVoronoi',
+            'clipRadius',
+            'color',
+            'shape',
+            'onlyCircles',
+            'id',
+            'singlePoint',
+            'duration'
+        ];
 
     function chart(selection) {
         scatter.render(selection);
@@ -506,46 +541,7 @@ nv.models.scatter = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    var publicApi = [
-        'x',
-        'y',
-        'size',
-        'margin',
-        'width',
-        'height',
-        'xScale',
-        'yScale',
-        'zScale',
-        'xDomain',
-        'yDomain',
-        'sizeDomain',
-        'xRange',
-        'yRange',
-        'sizeRange',
-        'forceX',
-        'forceY',
-        'forceSize',
-        'interactive',
-        'pointKey',
-        'pointActive',
-        'padData',
-        'padDataOuter',
-        'clipEdge',
-        'clipVoronoi',
-        'useVoronoi',
-        'clipRadius',
-        'color',
-        'shape',
-        'onlyCircles',
-        'id',
-        'singlePoint',
-        'duration',
-        'update',
-        'clearHighlights',
-        'highlightPoint'
-    ]
-
-    nv.utils.rebindp(chart, scatter, Scatter.prototype, publicApi);
+    nv.utils.rebindp(chart, scatter, Scatter.prototype, api);
 
     return chart;
 };
