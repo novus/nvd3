@@ -193,7 +193,8 @@ Line.prototype.transitionDuration = function(_) {
     return this.duration(_);
 };
 
-Line.prototype.defined = function(d, i) {  // allows a line to be not continuous when it is not defined
+// allows a line to be not continuous when it is not defined
+Line.prototype.defined = function(d, i) {
     return !isNaN(this.y()(d,i)) && (this.y()(d,i) !== null)
 };
 
@@ -203,7 +204,16 @@ Line.prototype.defined = function(d, i) {  // allows a line to be not continuous
 nv.models.line = function () {
     "use strict";
 
-    var line = new Line();
+    var line = new Line(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'interpolate',
+            'isArea',
+            'duration',
+            'transitionDuration'
+        ];
 
     function chart(selection) {
         line.render(selection);
@@ -211,20 +221,40 @@ nv.models.line = function () {
     }
 
     d3.rebind(chart, line.scatter,
-        'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
-        'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData',
-        'highlightPoint','clearHighlights', 'clipEdge', 'x', 'y', 'color'
+        'x',
+        'y',
+        'xScale',
+        'yScale',
+        'zScale',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'id',
+        'interactive',
+        'size',
+        'sizeDomain',
+        'forceX',
+        'forceY',
+        'forceSize',
+        'clipVoronoi',
+        'useVoronoi',
+        'clipRadius',
+        'padData',
+        'highlightPoint',
+        'clearHighlights',
+        'clipEdge',
+        'color'
     );
 
     chart.dispatch = line.dispatch;
     chart.scatter = line.scatter;
+
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart.xScale();
 
-    nv.utils.rebindp(chart, line, Line.prototype,
-        'margin', 'width', 'height', 'interpolate', 'defined', 'isArea', 'duration', 'transitionDuration'
-    );
+    nv.utils.rebindp(chart, line, Line.prototype, api);
 
     return chart;
 };

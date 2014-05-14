@@ -16,6 +16,7 @@ var CumulativeLineChartPrivates = {
     , yScale : null
     , duration : 250
     , useInteractiveGuideline : false
+    , state: null
 };
 
 function CumulativeLineChart(options){
@@ -486,13 +487,6 @@ CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
     return this;
 };
 
-CumulativeLineChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this.options.rightAlignYAxis;
-    this.options.rightAlignYAxis = _;
-    this.yAxis().orient( (_) ? 'right' : 'left');
-    return this;
-};
-
 CumulativeLineChart.prototype.transitionDuration = function(_) {
     nv.deprecated('cumulativeLineChart.transitionDuration');
     return this.duration(_);
@@ -525,7 +519,30 @@ CumulativeLineChart.prototype.y = function(_){
 nv.models.cumulativeLineChart = function(){
     "use strict";
 
-    var cumulativeLineChart = new CumulativeLineChart();
+    var cumulativeLineChart = new CumulativeLineChart(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'color',
+            'rescaleY',
+            'showControls',
+            'useInteractiveGuideline',
+            'showLegend',
+            'showXAxis',
+            'showYAxis',
+            'tooltips',
+            'tooltipContent',
+            'state',
+            'defaultState',
+            'noData',
+            'average',
+            'duration',
+            'transitionDuration',
+            'noErrorCheck',
+            'reduceXTicks',
+            'rightAlignYAxis'
+        ];
 
     function chart(selection){
         cumulativeLineChart.render(selection);
@@ -540,17 +557,25 @@ nv.models.cumulativeLineChart = function(){
     chart.yAxis = cumulativeLineChart.yAxis;
 
     d3.rebind(chart, cumulativeLineChart.line,
-        'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
-        'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi',  'id'
+        'isArea',
+        'x',
+        'y',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'forceX',
+        'forceY',
+        'interactive',
+        'clipEdge',
+        'clipVoronoi',
+        'useVoronoi',
+        'id'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, cumulativeLineChart, CumulativeLineChart.prototype,
-        'margin', 'width', 'height', 'color', 'rescaleY', 'showControls', 'useInteractiveGuideline', 'showLegend',
-        'showXAxis', 'showYAxis', 'rightAlignYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'x', 'y'
-    );
+    nv.utils.rebindp(chart, cumulativeLineChart, CumulativeLineChart.prototype, api);
 
     return chart;
 };
