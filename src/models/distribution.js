@@ -124,6 +124,7 @@ nv.models.distribution = function () {
     nv.utils.rebindp(chart, distribution, Distribution.prototype,
         'margin',
         'width',
+        'height',
         'axis',
         'size',
         'getData',
