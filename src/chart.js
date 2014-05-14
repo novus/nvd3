@@ -4,6 +4,7 @@ var ChartPrivates = {
     showYAxis : true,
     rightAlignYAxis: false,
     reduceXTicks : true,
+    tooltips: true
 };
 
 /**
@@ -252,5 +253,24 @@ Chart.prototype.tooltip = function(_) {
 
 Chart.prototype.tooltipContent = function(_){
     this.tooltip(_);
+    return this;
+};
+
+Chart.prototype.tooltips = function(_) {
+    if(!arguments.length) return this.options.tooltips;
+    this.options.tooltips = _;
+    return this;
+};
+
+Chart.prototype.rightAlignYAxis = function(_) {
+    if(!arguments.length) return this.options.rightAlignYAxis;
+    this.options.rightAlignYAxis = _;
+    this.yAxis().orient( (_) ? 'right' : 'left');
+    return this;
+};
+
+Chart.prototype.reduceXTicks = function(_){
+    if(!arguments.length) return this.options.reduceXTicks;
+    this.options.reduceXTicks = _;
     return this;
 };
