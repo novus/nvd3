@@ -1,6 +1,5 @@
 /**
  * Private variables
- * @type {{color: *}}
  */
 var DistributionPrivates = {
     axis : 'x' // 'x' or 'y'... horizontal or vertical
@@ -8,9 +7,9 @@ var DistributionPrivates = {
     , scale : d3.scale.linear()
     , domain : null
     , scale0: null
-    , _color : nv.utils.defaultColor()
-    , _duration : 250
-    , _size : 8
+    , color : nv.utils.defaultColor()
+    , duration : 250
+    , size : 8
 };
 
 /**
@@ -49,10 +48,6 @@ Distribution.prototype.wrapper = function(data){
 Distribution.prototype.draw = function(data){
 
     var that = this
-        , availableLength = this.width() -
-            (this.axis() === 'x'
-            ? this.margin().left + this.margin().right
-            : this.margin().top + this.margin().bottom)
         , naxis = this.axis() == 'x' ? 'y' : 'x';
 
     this.scale0(this.scale0() || this.scale());
@@ -93,20 +88,20 @@ Distribution.prototype.draw = function(data){
 };
 
 Distribution.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     return this;
 };
 Distribution.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     return this;
 };
 
 Distribution.prototype.size = function(_){
-    if (!arguments.length) return this._size();
-    this._size(_);
+    if (!arguments.length) return this.options.size;
+    this.options.size = _;
     return this;
 };
 
@@ -127,7 +122,14 @@ nv.models.distribution = function () {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     nv.utils.rebindp(chart, distribution, Distribution.prototype,
-        'margin', 'width', 'axis', 'size', 'getData', 'scale','color', 'duration'
+        'margin',
+        'width',
+        'axis',
+        'size',
+        'getData',
+        'scale',
+        'color',
+        'duration'
     );
 
     return chart;
