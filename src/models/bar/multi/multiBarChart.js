@@ -260,8 +260,10 @@ nv.models.multiBarChart = function() {
             'state',
             'defaultState',
             'noData',
+            'duration',
             'transitionDuration',
-            'duration'
+            'reduceXTicks',
+            'rightAlignYAxis'
         ];
 
     function chart(selection) {
