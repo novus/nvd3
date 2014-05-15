@@ -16,6 +16,7 @@ var CumulativeLineChartPrivates = {
     , yScale : null
     , duration : 250
     , useInteractiveGuideline : false
+    , state: null
 };
 
 function CumulativeLineChart(options){
@@ -41,10 +42,6 @@ CumulativeLineChart.prototype.getLine = function(){
     return nv.models.line();
 };
 
-CumulativeLineChart.prototype.getLegend = function(){
-    return nv.models.legend();
-};
-
 CumulativeLineChart.prototype.getInteractiveLayer = function(){
     return nv.interactiveGuideline()
 };
@@ -55,8 +52,8 @@ CumulativeLineChart.prototype.wrapper = function(data){
     );
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     this.renderWatch.models(this.line);
-    if (this.showXAxis()) this.renderWatch.models(this.xAxis());
-    if (this.showYAxis()) this.renderWatch.models(this.yAxis());
+    if (this.showXAxis()) this.renderWatch.models(this.xAxis);
+    if (this.showYAxis()) this.renderWatch.models(this.yAxis);
 };
 
 CumulativeLineChart.prototype.draw = function(data){
@@ -68,7 +65,6 @@ CumulativeLineChart.prototype.draw = function(data){
 
     this.line.yScale();
     this.yScale( this.line.yScale() );
-    console.log(this.options.yScale);
 
     var that = this
         , availableWidth = this.available.width
@@ -249,7 +245,7 @@ CumulativeLineChart.prototype.plotAxes = function(data){
 
     if (this.showXAxis()) {
 
-        this.xAxis()
+        this.xAxis
             //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
             .ticks( Math.min(data[0].values.length, this.available.width/70) )
             .orient('bottom')
@@ -263,12 +259,12 @@ CumulativeLineChart.prototype.plotAxes = function(data){
             .style("pointer-events","none")
             .attr('transform', 'translate(0,' + this.yScale().range()[0] + ')')
             .transition()
-            .call(this.xAxis());
+            .call(this.xAxis);
     }
 
     if (this.showYAxis()) {
 
-        this.yAxis()
+        this.yAxis
             .orient(this.rightAlignYAxis() ? 'right' : 'left')
             .tickFormat(d3.format(',.1f'))
             .scale(this.yScale())
@@ -276,7 +272,7 @@ CumulativeLineChart.prototype.plotAxes = function(data){
             .tickSize( -this.available.width, 0);
 
         this.wrap.select('.nv-y.nv-axis')
-            .transition().call(this.yAxis());
+            .transition().call(this.yAxis);
     }
 };
 
@@ -353,13 +349,13 @@ CumulativeLineChart.prototype.attachEvents = function(){
                     allData[indexToHighlight].highlight = true;
             }
 
-            var xValue = that.xAxis().tickFormat()(that.x()(singlePoint,pointIndex), pointIndex);
+            var xValue = that.xAxis.tickFormat()(that.x()(singlePoint,pointIndex), pointIndex);
             that.interactiveLayer.tooltip
                 .position({left: pointXLocation + that.margin().left, top: e.mouseY + that.margin().top})
                 .chartContainer(that.parentNode)
                 .enabled(that.tooltips())
                 .valueFormatter(function(d) {
-                    return that.yAxis().tickFormat()(d);
+                    return that.yAxis.tickFormat()(d);
                 })
                 .data({ value: xValue, series: allData })
                 ();
@@ -462,8 +458,8 @@ CumulativeLineChart.prototype.dragEnd = function() {
 CumulativeLineChart.prototype.showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
-        y = this.yAxis().tickFormat()(this.line.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.line.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.line.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
@@ -486,24 +482,12 @@ CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
     return this;
 };
 
-CumulativeLineChart.prototype.rightAlignYAxis = function(_) {
-    if(!arguments.length) return this.options.rightAlignYAxis;
-    this.options.rightAlignYAxis = _;
-    this.yAxis().orient( (_) ? 'right' : 'left');
-    return this;
-};
-
-CumulativeLineChart.prototype.transitionDuration = function(_) {
-    nv.deprecated('cumulativeLineChart.transitionDuration');
-    return this.duration(_);
-};
-
 CumulativeLineChart.prototype.duration = function(_) {
     if(!arguments.length) return this.options.duration;
     this.options.duration = _;
     this.line.duration(_);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
+    this.xAxis.duration(_);
+    this.yAxis.duration(_);
     this.renderWatch.reset(_);
     return this;
 };
@@ -525,7 +509,30 @@ CumulativeLineChart.prototype.y = function(_){
 nv.models.cumulativeLineChart = function(){
     "use strict";
 
-    var cumulativeLineChart = new CumulativeLineChart();
+    var cumulativeLineChart = new CumulativeLineChart(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'color',
+            'rescaleY',
+            'showControls',
+            'useInteractiveGuideline',
+            'showLegend',
+            'showXAxis',
+            'showYAxis',
+            'tooltips',
+            'tooltipContent',
+            'state',
+            'defaultState',
+            'noData',
+            'average',
+            'duration',
+            'transitionDuration',
+            'noErrorCheck',
+            'reduceXTicks',
+            'rightAlignYAxis'
+        ];
 
     function chart(selection){
         cumulativeLineChart.render(selection);
@@ -540,17 +547,25 @@ nv.models.cumulativeLineChart = function(){
     chart.yAxis = cumulativeLineChart.yAxis;
 
     d3.rebind(chart, cumulativeLineChart.line,
-        'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX',
-        'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi',  'id'
+        'isArea',
+        'x',
+        'y',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'forceX',
+        'forceY',
+        'interactive',
+        'clipEdge',
+        'clipVoronoi',
+        'useVoronoi',
+        'id'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, cumulativeLineChart, CumulativeLineChart.prototype,
-        'margin', 'width', 'height', 'color', 'rescaleY', 'showControls', 'useInteractiveGuideline', 'showLegend',
-        'showXAxis', 'showYAxis', 'rightAlignYAxis', 'tooltips', 'tooltipContent', 'state', 'defaultState',
-        'noData', 'average', 'transitionDuration', 'duration', 'noErrorCheck', 'x', 'y'
-    );
+    nv.utils.rebindp(chart, cumulativeLineChart, CumulativeLineChart.prototype, api);
 
     return chart;
 };

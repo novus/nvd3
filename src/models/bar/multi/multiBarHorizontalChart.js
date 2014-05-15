@@ -98,14 +98,6 @@ MultiBarHorizontalChart.prototype.wrapper = function(data){
         .update();
 };
 
-MultiBarHorizontalChart.prototype.getLegend = function(){
-    return nv.models.legend();
-};
-
-MultiBarHorizontalChart.prototype.getAxis = function(){
-    return nv.models.axis();
-};
-
 MultiBarHorizontalChart.prototype.draw = function(data){
 
     var that = this,

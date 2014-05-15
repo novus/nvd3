@@ -13,7 +13,6 @@ apiTest.config.cumulativeLineChart =
         'showLegend'
         'showXAxis'
         'showYAxis'
-        'rightAlignYAxis'
         'tooltips'
         'tooltipContent'
         'state'
@@ -32,13 +31,9 @@ apiTest.config.cumulativeLineChart =
         interactiveLayer: nv.interactiveGuideline
     inheritedInstance:
         lines: [
-            'defined'
             'isArea'
             'x'
             'y'
-            'xScale'
-            'yScale'
-            'size'
             'xDomain'
             'yDomain'
             'xRange'

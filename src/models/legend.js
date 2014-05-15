@@ -1,3 +1,6 @@
+/**
+ * private variables
+ */
 var LegendPrivates = {
     getKey : function(d) { return d.key }
     , align : true
@@ -214,7 +217,18 @@ Legend.prototype.key = function(_) {
 nv.models.legend = function () {
     "use strict";
 
-    var legend = new Legend();
+    var legend = new Legend(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'key',
+            'color',
+            'align',
+            'rightAlign',
+            'updateState',
+            'radioButtonMode'
+        ];
 
     function chart(selection) {
         legend.render(selection);
@@ -225,17 +239,6 @@ nv.models.legend = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    api = [
-        'margin',
-        'width',
-        'height',
-        'key',
-        'align',
-        'rightAlign',
-        'radioButtonMode',
-        'updateState',
-        'color'
-    ]
     nv.utils.rebindp(chart, legend, Legend.prototype, api);
 
     return chart;

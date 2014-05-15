@@ -97,8 +97,8 @@ DiscreteBarChart.prototype.showTooltip = function(e) {
     var offsetElement = this.svg[0][0],
         left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis().tickFormat()(this.x()(e.point, e.pointIndex)),
-        y = this.yAxis().tickFormat()(this.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
 };

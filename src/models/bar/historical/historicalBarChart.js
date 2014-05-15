@@ -117,7 +117,7 @@ HistoricalBarChart.prototype.color = function(_) {
 HistoricalBarChart.prototype.rightAlignYAxis = function(_) {
     if(!arguments.length) return this.options.rightAlignYAxis;
     this.options.rightAlignYAxis = _;
-    this.yAxis().orient( (_) ? 'right' : 'left');
+    this.yAxis.orient( (_) ? 'right' : 'left');
     return this;
 };
 
@@ -135,8 +135,8 @@ HistoricalBarChart.prototype.showTooltip = function(e, offsetElement) {
     }
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis().tickFormat()(this.historicalBar.x()(e.point, e.pointIndex)),
-        y = this.yAxis().tickFormat()(this.historicalBar.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.historicalBar.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.historicalBar.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
     nv.tooltip.show([left, top], content, null, null, offsetElement);
 };

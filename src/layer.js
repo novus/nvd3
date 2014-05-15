@@ -3,8 +3,9 @@ var LayerPrivates = {
     width: null,
     size: {},
     margin: { top: 20, right: 20, bottom: 30, left: 40 },
-    opacityDefault: 1e-6
-    // color: nv.utils.defaultColor(),
+    opacityDefault: 1e-6,
+    color: nv.utils.defaultColor(),
+    duration: 0
     // x: function(d){return d.x;},
     // y: function(d){return d.y;}
 };
@@ -62,7 +63,7 @@ Layer.prototype.render = function(selection) {
 Layer.prototype.renderElement = function(element, data){
     this.setRoot(element);
     this.wrapper(data);
-    if (this.noData(data))
+    if (!this.hasData(data))
         return;
     this.draw(data);
     this.attachEvents();
@@ -154,3 +155,24 @@ Layer.prototype.margin = function(_){
     return this;
 };
 
+
+/**
+ * Utility to check if data is available.
+ */
+Layer.prototype.hasData = function(data){
+    function hasValues(d){
+        return !d.values || d.values.length > 0
+    }
+    return data && data.length > 0 && data.filter(hasValues).length > 0
+};
+
+Layer.prototype.duration = function(_){
+    if (!arguments) return this.options.duration;
+    this.options.duration = _;
+    return this;
+};
+
+Layer.prototype.transitionDuration = function(_) {
+    nv.deprecated('transitionDuration');
+    return this.duration(_);
+};

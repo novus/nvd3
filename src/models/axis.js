@@ -1,19 +1,19 @@
 var AxisPrivates = {
-    axisLabelText : null,
-    showMaxMin : true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
-    highlightZero : true,
-    rotateLabels : 0,
-    rotateYLabel : true,
-    staggerLabels : false,
-    isOrdinal : false,
-    ticks : null,
-    axisLabelDistance : 12, //The larger this number is, the closer the axis label is to the axis.
-    axisRendered : false,
-    maxMinRendered : false,
-    scale0 : null,
+    axisLabelText: null,
+    showMaxMin: true, //TODO: showMaxMin should be disabled on all ordinal scaled axes
+    highlightZero: true,
+    rotateLabels: 0,
+    rotateYLabel: true,
+    staggerLabels: false,
+    isOrdinal: false,
+    ticks: null,
+    axisLabelDistance: 12, //The larger this number is, the closer the axis label is to the axis.
+    axisRendered: false,
+    maxMinRendered: false,
+    scale0: null,
     axisLabel: null,
     scale: d3.scale.linear(),
-    _duration : 250
+    duration: 250
 };
 
 function Axis(options){
@@ -328,8 +328,8 @@ Axis.prototype.draw = function(data){
 };
 
 Axis.prototype.duration = function(_) {
-    if (!arguments.length) return this._duration();
-    this._duration(_);
+    if (!arguments.length) return this.options.duration;
+    this.options.duration = _;
     this.renderWatch.reset(_);
     return this;
 };
@@ -351,7 +351,22 @@ Axis.prototype.scale = function(_) {
 nv.models.axis = function() {
     "use strict";
 
-    var axis = new Axis();
+    var axis = new Axis(),
+        api = [
+            'margin',
+            'width',
+            'ticks',
+            'height',
+            'axisLabel',
+            'showMaxMin',
+            'highlightZero',
+            'scale',
+            'rotateYLabel',
+            'rotateLabels',
+            'staggerLabels',
+            'axisLabelDistance',
+            'duration'
+        ];
 
     function chart(selection) {
         axis.render(selection);
@@ -362,28 +377,22 @@ nv.models.axis = function() {
     chart.dispatch = axis.dispatch;
 
     d3.rebind(chart, axis.axis,
-        'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat'
+        'orient',
+        'tickValues',
+        'tickSubdivide',
+        'tickSize',
+        'tickPadding',
+        'tickFormat'
     );
 
-    d3.rebind(chart, axis.scale(), 'domain', 'range', 'rangeBand', 'rangeBands');
+    d3.rebind(chart, axis.scale(),
+        'domain',
+        'range',
+        'rangeBand',
+        'rangeBands'
+    );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
-
-    var api = [
-        'margin',
-        'width',
-        'ticks',
-        'height',
-        'axisLabel',
-        'showMaxMin',
-        'highlightZero',
-        'rotateYLabel',
-        'rotateLabels',
-        'staggerLabels',
-        'axisLabelDistance',
-        'duration',
-        'scale'
-    ];
 
     nv.utils.rebindp(chart, axis, Axis.prototype, api);
 

@@ -10,7 +10,7 @@ apiTest.models.chart = (instance, overrides=[])->
         'reduceXTicks'
         'noData'
         'update'
-        'tooltip'
+        'tooltips'
         'tooltipContent'
     ]
 

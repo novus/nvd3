@@ -4,6 +4,7 @@ var ChartPrivates = {
     showYAxis : true,
     rightAlignYAxis: false,
     reduceXTicks : true,
+    tooltips: true
 };
 
 /**
@@ -24,9 +25,9 @@ function Chart(options, dispatch){
     options.showLegend = nv.utils.valueOrDefault(options.showLegend, true);
 
     dispatch = nv.utils.valueOrDefault(dispatch, []);
-    if (options.tooltips) {
+
+    if (options.tooltips)
         dispatch = dispatch.concat(['tooltipShow', 'tooltipHide']);
-    }
 
     Layer.call(this, options, dispatch);
 
@@ -40,6 +41,10 @@ nv.utils.create(Chart, Layer, ChartPrivates);
 
 Chart.prototype.getStateManager = function(){
     return nv.utils.state();
+};
+
+Chart.prototype.getLegend = function(){
+    return nv.models.legend();
 };
 
 Chart.prototype.getAxis = function(){
@@ -136,7 +141,7 @@ Chart.prototype.plotAxes = function(data){
             .selectAll('line, text')
             .style('opacity', 1);
 
-        if (this.staggerLabels()) {
+        if (this.xAxis.staggerLabels()) {
             var getTranslate = function(x,y) {
                 return "translate(" + x + "," + y + ")";
             };
@@ -162,7 +167,7 @@ Chart.prototype.plotAxes = function(data){
                 .selectAll('text, line')
                 .style('opacity', 0);
 
-        if(this.rotateLabels())
+        if(this.xAxis.rotateLabels())
             xTicks
                 .selectAll('.tick text')
                 .attr('transform', 'rotate(' + that.rotateLabels() + ' 0,0)')
@@ -181,16 +186,6 @@ Chart.prototype.plotAxes = function(data){
 
         this.axis.y.transition().call(this.yAxis);
     }
-};
-
-/**
- * Utility to check if data is available.
- */
-Chart.prototype.hasData = function(data){
-    function hasValues(d){
-        return !d.values || d.values.length > 0
-    }
-    return data && data.length > 0 && data.filter(hasValues).length > 0
 };
 
 /**
@@ -252,5 +247,12 @@ Chart.prototype.tooltip = function(_) {
 
 Chart.prototype.tooltipContent = function(_){
     this.tooltip(_);
+    return this;
+};
+
+Chart.prototype.rightAlignYAxis = function(_) {
+    if(!arguments.length) return this.options.rightAlignYAxis;
+    this.options.rightAlignYAxis = _;
+    this.yAxis.orient( (_) ? 'right' : 'left');
     return this;
 };
