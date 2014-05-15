@@ -275,7 +275,9 @@ nv.models.lineChart = function() {
         'interpolate',
         'isArea',
         'duration',
-        'transitionDuration'
+        'transitionDuration',
+        'x',
+        'y'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);

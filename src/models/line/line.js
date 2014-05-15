@@ -7,6 +7,9 @@ var LinePrivates = {
     , xScale0: null
     , yScale0: null
     , duration: 250
+    , x: null
+    , y: null
+    , id: null
 };
 
 /**
@@ -66,6 +69,7 @@ Line.prototype.draw = function(data){
     this.x(this.scatter.x());
     this.y(this.scatter.y());
     this.color(this.scatter.color());
+    this.id(this.scatter.id());
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());

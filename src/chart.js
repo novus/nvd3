@@ -24,9 +24,9 @@ function Chart(options, dispatch){
     options.showLegend = nv.utils.valueOrDefault(options.showLegend, true);
 
     dispatch = nv.utils.valueOrDefault(dispatch, []);
-    if (options.tooltips) {
+
+    if (options.tooltips)
         dispatch = dispatch.concat(['tooltipShow', 'tooltipHide']);
-    }
 
     Layer.call(this, options, dispatch);
 
@@ -248,6 +248,6 @@ Chart.prototype.tooltipContent = function(_){
 Chart.prototype.rightAlignYAxis = function(_) {
     if(!arguments.length) return this.options.rightAlignYAxis;
     this.options.rightAlignYAxis = _;
-    this.yAxis().orient( (_) ? 'right' : 'left');
+    this.yAxis.orient( (_) ? 'right' : 'left');
     return this;
 };

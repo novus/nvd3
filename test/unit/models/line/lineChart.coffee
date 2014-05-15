@@ -33,6 +33,8 @@ apiTest.config.lineChart =
           'isArea'
           'duration'
           'transitionDuration'
+          'x'
+          'y'
         ]
     dispatch: true
     optionsFunc: true

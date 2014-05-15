@@ -72,8 +72,8 @@ MultiBarChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['nv-controlsWrap']);
     this.renderWatch = nv.utils.renderWatch(this.dispatch);
     this.renderWatch.reset();
-    if (this.showXAxis()) this.renderWatch.models(this.xAxis());
-    if (this.showYAxis()) this.renderWatch.models(this.yAxis());
+    if (this.showXAxis()) this.renderWatch.models(this.xAxis);
+    if (this.showYAxis()) this.renderWatch.models(this.yAxis);
     this.renderWatch.models(this.multibar);
 };
 
@@ -204,8 +204,8 @@ MultiBarChart.prototype.color = function(_){
 MultiBarChart.prototype.showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis().tickFormat()(this.multibar.x()(e.point, e.pointIndex)),
-        y = this.yAxis().tickFormat()(this.multibar.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.multibar.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.multibar.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
@@ -220,8 +220,8 @@ MultiBarChart.prototype.duration = function(_) {
     if (!arguments.length) return this.options.duration;
     this.options.duration = _;
     this.multibar.duration(_);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
+    this.xAxis.duration(_);
+    this.yAxis.duration(_);
     this.renderWatch.reset(_);
     return this;
 };

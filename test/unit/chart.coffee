@@ -9,7 +9,7 @@ apiTest.models.chart = (instance, overrides=[])->
         'rightAlignYAxis'
         'reduceXTicks'
         'noData'
-        'update'
+        #'update'
         'tooltips'
         'tooltipContent'
     ]

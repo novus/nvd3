@@ -111,7 +111,18 @@ Distribution.prototype.size = function(_){
 nv.models.distribution = function () {
     "use strict";
 
-    var distribution = new Distribution();
+    var distribution = new Distribution(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'axis',
+            'size',
+            'getData',
+            'scale',
+            'color',
+            'duration'
+        ];
 
     function chart(selection) {
         distribution.render(selection);
@@ -121,17 +132,7 @@ nv.models.distribution = function () {
     chart.dispatch = distribution.dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, distribution, Distribution.prototype,
-        'margin',
-        'width',
-        'height',
-        'axis',
-        'size',
-        'getData',
-        'scale',
-        'color',
-        'duration'
-    );
+    nv.utils.rebindp(chart, distribution, Distribution.prototype, api);
 
     return chart;
 };
