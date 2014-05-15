@@ -194,10 +194,10 @@ ScatterChart.prototype.draw = function(data){
             .call(that.scatter);
 
         if (that.showXAxis())
-            that.g.select('.nv-x.nv-axis').call(that.xAxis());
+            that.g.select('.nv-x.nv-axis').call(that.xAxis);
 
         if (that.showYAxis())
-            that.g.select('.nv-y.nv-axis').call(that.yAxis());
+            that.g.select('.nv-y.nv-axis').call(that.yAxis);
 
         that.g.select('.nv-distributionX')
             .datum(data.filter(function(d) { return !d.disabled }))
@@ -248,8 +248,8 @@ ScatterChart.prototype.attachEvents = function(){
             that.xScale().distortion(that.fisheye()).focus(0);
             that.yScale().distortion(that.fisheye()).focus(0);
             that.g.select('.nv-scatterWrap').call(that.scatter);
-            that.g.select('.nv-x.nv-axis').call(that.xAxis());
-            that.g.select('.nv-y.nv-axis').call(that.yAxis());
+            that.g.select('.nv-x.nv-axis').call(that.xAxis);
+            that.g.select('.nv-y.nv-axis').call(that.yAxis);
         } else
             that.pauseFisheye(false);
 
@@ -302,8 +302,8 @@ ScatterChart.prototype.showTooltip = function(e, offsetElement) {
         topX = this.yScale().range()[0] + this.margin().top + ( offsetElement.offsetTop || 0),
         leftY = this.xScale().range()[0] + this.margin().left + ( offsetElement.offsetLeft || 0 ),
         topY = e.pos[1] + ( offsetElement.offsetTop || 0),
-        xVal = this.xAxis().tickFormat()(this.scatter.x()(e.point, e.pointIndex)),
-        yVal = this.yAxis().tickFormat()(this.scatter.y()(e.point, e.pointIndex));
+        xVal = this.xAxis.tickFormat()(this.scatter.x()(e.point, e.pointIndex)),
+        yVal = this.yAxis.tickFormat()(this.scatter.y()(e.point, e.pointIndex));
 
     if( this.tooltipX() != null )
         nv.tooltip.show([leftX, topX], this.tooltipX()(e.series.key, xVal, yVal, e, this), 'n', 1, offsetElement, 'x-nvtooltip');

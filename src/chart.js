@@ -3,8 +3,7 @@ var ChartPrivates = {
     showXAxis : true,
     showYAxis : true,
     rightAlignYAxis: false,
-    reduceXTicks : true,
-    tooltips: true
+    reduceXTicks : true
 };
 
 /**
@@ -137,7 +136,7 @@ Chart.prototype.plotAxes = function(data){
             .selectAll('line, text')
             .style('opacity', 1);
 
-        if (this.staggerLabels()) {
+        if (this.xAxis.staggerLabels()) {
             var getTranslate = function(x,y) {
                 return "translate(" + x + "," + y + ")";
             };
@@ -163,7 +162,7 @@ Chart.prototype.plotAxes = function(data){
                 .selectAll('text, line')
                 .style('opacity', 0);
 
-        if(this.rotateLabels())
+        if(this.xAxis.rotateLabels())
             xTicks
                 .selectAll('.tick text')
                 .attr('transform', 'rotate(' + that.rotateLabels() + ' 0,0)')
@@ -182,16 +181,6 @@ Chart.prototype.plotAxes = function(data){
 
         this.axis.y.transition().call(this.yAxis);
     }
-};
-
-/**
- * Utility to check if data is available.
- */
-Chart.prototype.hasData = function(data){
-    function hasValues(d){
-        return !d.values || d.values.length > 0
-    }
-    return data && data.length > 0 && data.filter(hasValues).length > 0
 };
 
 /**
@@ -256,21 +245,9 @@ Chart.prototype.tooltipContent = function(_){
     return this;
 };
 
-Chart.prototype.tooltips = function(_) {
-    if(!arguments.length) return this.options.tooltips;
-    this.options.tooltips = _;
-    return this;
-};
-
 Chart.prototype.rightAlignYAxis = function(_) {
     if(!arguments.length) return this.options.rightAlignYAxis;
     this.options.rightAlignYAxis = _;
     this.yAxis().orient( (_) ? 'right' : 'left');
-    return this;
-};
-
-Chart.prototype.reduceXTicks = function(_){
-    if(!arguments.length) return this.options.reduceXTicks;
-    this.options.reduceXTicks = _;
     return this;
 };
