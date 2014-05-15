@@ -89,10 +89,6 @@ LinePlusBarWithFocusChart.prototype.getHistoricalBar = function(){
     return nv.models.historicalBar();
 };
 
-LinePlusBarWithFocusChart.prototype.getAxis = function(){
-    return nv.models.axis();
-};
-
 LinePlusBarWithFocusChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['']);
 };

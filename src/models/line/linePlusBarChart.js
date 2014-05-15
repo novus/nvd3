@@ -62,10 +62,6 @@ LinePlusBarChart.prototype.getHistoricalBar = function(){
     return nv.models.historicalBar();
 };
 
-LinePlusBarChart.prototype.getAxis = function(){
-    return nv.models.axis();
-};
-
 LinePlusBarChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data,
         ['nv-y1 nv-axis', 'nv-y2 nv-axis', 'nv-barsWrap', 'nv-linesWrap']
