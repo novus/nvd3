@@ -191,12 +191,6 @@ Line.prototype.duration = function(_) {
     return this;
 };
 
-
-Line.prototype.transitionDuration = function(_) {
-    nv.deprecated('line.transitionDuration');
-    return this.duration(_);
-};
-
 // allows a line to be not continuous when it is not defined
 Line.prototype.defined = function(d, i) {
     return !isNaN(this.y()(d,i)) && (this.y()(d,i) !== null)

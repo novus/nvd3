@@ -211,11 +211,6 @@ MultiBarChart.prototype.showTooltip = function(e, offsetElement) {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
 };
 
-MultiBarChart.prototype.transitionDuration = function(_) {
-    nv.deprecated('multiBarChart.transitionDuration');
-    return this.duration(_);
-};
-
 MultiBarChart.prototype.duration = function(_) {
     if (!arguments.length) return this.options.duration;
     this.options.duration = _;

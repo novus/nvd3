@@ -4,7 +4,8 @@ var LayerPrivates = {
     size: {},
     margin: { top: 20, right: 20, bottom: 30, left: 40 },
     opacityDefault: 1e-6,
-    color: nv.utils.defaultColor()
+    color: nv.utils.defaultColor(),
+    duration: 0
     // x: function(d){return d.x;},
     // y: function(d){return d.y;}
 };
@@ -163,4 +164,15 @@ Layer.prototype.hasData = function(data){
         return !d.values || d.values.length > 0
     }
     return data && data.length > 0 && data.filter(hasValues).length > 0
+};
+
+Layer.prototype.duration = function(_){
+    if (!arguments) return this.options.duration;
+    this.options.duration = _;
+    return this;
+};
+
+Layer.prototype.transitionDuration = function(_) {
+    nv.deprecated('transitionDuration');
+    return this.duration(_);
 };

@@ -487,11 +487,6 @@ CumulativeLineChart.prototype.useInteractiveGuideline = function(_) {
     return this;
 };
 
-CumulativeLineChart.prototype.transitionDuration = function(_) {
-    nv.deprecated('cumulativeLineChart.transitionDuration');
-    return this.duration(_);
-};
-
 CumulativeLineChart.prototype.duration = function(_) {
     if(!arguments.length) return this.options.duration;
     this.options.duration = _;

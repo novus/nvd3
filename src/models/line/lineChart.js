@@ -188,11 +188,6 @@ LineChart.prototype.draw = function(data){
     Chart.prototype.draw.call(this, data);
 };
 
-LineChart.prototype.transitionDuration = function(_) {
-    nv.deprecated('lineChart.transitionDuration');
-    return this.duration(_);
-};
-
 LineChart.prototype.duration = function(_) {
     if (!arguments.length) return this.options.duration;
     this.options.duration = _;

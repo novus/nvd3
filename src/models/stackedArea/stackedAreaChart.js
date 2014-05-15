@@ -347,11 +347,6 @@ StackedAreaChart.prototype.useInteractiveGuideline = function(_) {
     return this;
 };
 
-StackedAreaChart.prototype.transitionDuration = function(_) {
-    nv.deprecated('stackedAreaChart.transitionDuration');
-    return this.duration(_);
-};
-
 StackedAreaChart.prototype.controlsData = function(_) {
     if (!arguments.length) return this.cData();
     this.cData(_);

@@ -322,11 +322,6 @@ ScatterChart.prototype.color = function(_) {
     return this;
 };
 
-ScatterChart.prototype.transitionDuration = function(_) {
-    nv.deprecated('scatterChart.transitionDuration');
-    return this.duration(_);
-};
-
 ScatterChart.prototype.duration = function(_) {
     if (!arguments.length) return this.options.duration;
     this.options.duration = _;
