@@ -225,7 +225,7 @@ nv.models.linePlusBarChart = function() {
 
       xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
       g.select('.nv-x.nv-axis')
@@ -236,7 +236,7 @@ nv.models.linePlusBarChart = function() {
 
       y1Axis
         .scale(y1)
-        .ticks( availableHeight / 36 )
+        .ticks( y1Axis.ticks() ? y1Axis.ticks() : availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.nv-y1.nv-axis'))
@@ -246,7 +246,7 @@ nv.models.linePlusBarChart = function() {
 
       y2Axis
         .scale(y2)
-        .ticks( availableHeight / 36 )
+        .ticks( y2Axis.ticks() ? y2Axis.ticks() : availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
       g.select('.nv-y2.nv-axis')
