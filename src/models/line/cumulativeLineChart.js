@@ -65,7 +65,6 @@ CumulativeLineChart.prototype.draw = function(data){
 
     this.line.yScale();
     this.yScale( this.line.yScale() );
-    console.log(this.options.yScale);
 
     var that = this
         , availableWidth = this.available.width

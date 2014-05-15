@@ -90,7 +90,6 @@ Scatter.prototype.wrapper = function(data){
  * @override Layer::draw
  */
 Scatter.prototype.draw = function(data){
-    console.log(this)
     var that = this
         , availableWidth = this.available.width
         , availableHeight = this.available.height;
