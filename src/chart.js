@@ -3,7 +3,8 @@ var ChartPrivates = {
     showXAxis : true,
     showYAxis : true,
     rightAlignYAxis: false,
-    reduceXTicks : true
+    reduceXTicks : true,
+    tooltips: true
 };
 
 /**
