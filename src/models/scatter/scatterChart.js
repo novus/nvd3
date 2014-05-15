@@ -35,7 +35,7 @@ function ScatterChart(options){
     this.scatter = nv.models.scatter();
     this.distX = this.getDistribution();
     this.distY = this.getDistribution();
-    this.controls = this.getControls();
+    this.controls = this.getLegend();
     this.state = this.getStateManager();
 
     this.xScale( d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : this.scatter.xScale() );
@@ -56,10 +56,6 @@ function ScatterChart(options){
 }
 
 nv.utils.create(ScatterChart, Chart, ScatterChartPrivates);
-
-ScatterChart.prototype.getControls = function(){
-    return nv.models.legend();
-};
 
 ScatterChart.prototype.getDistribution = function(){
     return nv.models.distribution();

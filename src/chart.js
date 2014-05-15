@@ -43,6 +43,10 @@ Chart.prototype.getStateManager = function(){
     return nv.utils.state();
 };
 
+Chart.prototype.getLegend = function(){
+    return nv.models.legend();
+};
+
 Chart.prototype.getAxis = function(){
     return nv.models.axis();
 };

@@ -42,10 +42,6 @@ CumulativeLineChart.prototype.getLine = function(){
     return nv.models.line();
 };
 
-CumulativeLineChart.prototype.getLegend = function(){
-    return nv.models.legend();
-};
-
 CumulativeLineChart.prototype.getInteractiveLayer = function(){
     return nv.interactiveGuideline()
 };

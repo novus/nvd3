@@ -9,6 +9,7 @@ var MultiBarChartPrivates = {
     , duration: 250
     , rotateLabels: false
     , staggerLabels: false
+    , controlsData: []
 };
 
 /**
@@ -29,28 +30,24 @@ function MultiBarChart(options){
     this.state = this.getStateManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
 
-    this.controlWidth = function() { return this.showControls() ? 180 : 0};
-    this.controlsData = [];
-
-    var that = this;
     this.stateGetter = function (data) {
         return function(){
             return {
                 active: data.map(function(d) { return !d.disabled }),
-                stacked: that.stacked()
+                stacked: this.stacked()
             }
         }
-    };
+    }.bind(this);
     this.stateSetter = function(data) {
         return function(state) {
             if (state.stacked !== undefined)
-                that.stacked(state.stacked);
+                this.stacked(state.stacked);
             if (state.active !== undefined)
                 data.forEach(function(series,i) {
                     series.disabled = !state.active[i];
                 });
         }
-    };
+    }.bind(this);
 
     this.controls.updateState(false); // DEPRECATED
 }
@@ -59,10 +56,6 @@ nv.utils.create(MultiBarChart, Chart, MultiBarChartPrivates);
 
 MultiBarChart.prototype.getMultiBar = function(){
     return nv.models.multiBar();
-};
-
-MultiBarChart.prototype.getLegend = function(){
-    return nv.models.legend();
 };
 
 /**
@@ -101,15 +94,15 @@ MultiBarChart.prototype.draw = function(data){
     this.state.disabled = data.map(function(d) { return !!d.disabled }); // DEPRECATED set state.disabled
 
     if (this.showControls()) {
-        this.controlsData = [
+        this.controlsData([
             { key: 'Grouped', disabled: this.stacked() },
             { key: 'Stacked', disabled: !this.stacked() }
-        ];
+        ]);
         this.controls
-            .width(this.controlWidth())
+            .width( this.showControls() ? 180 : 0 )
             .color(['#444', '#444', '#444']);
         this.g.select('.nv-controlsWrap')
-            .datum(this.controlsData)
+            .datum(this.controlsData())
             .attr('transform', 'translate(0,' + (-this.margin().top) +')')
             .call(this.controls);
     }
@@ -141,11 +134,9 @@ MultiBarChart.prototype.attachEvents = function(){
 
     this.controls.dispatch.on('legendClick', function(d) {
         if (!d.disabled) return;
-        this.controlsData =
-            this.controlsData.map(function(s) {
-                s.disabled = true;
-                return s;
-            });
+        this.controlsData(
+            this.controlsData.map(function(s) { s.disabled = true; return s; })
+        );
         d.disabled = false;
 
         switch (d.key) {

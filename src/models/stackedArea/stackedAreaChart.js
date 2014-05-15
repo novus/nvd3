@@ -51,10 +51,6 @@ StackedAreaChart.prototype.getInteractiveGuideline = function(){
     return nv.interactiveGuideline();
 };
 
-StackedAreaChart.prototype.getLegend = function(){
-    return nv.models.legend();
-};
-
 StackedAreaChart.prototype.getStackedArea = function(){
     return nv.models.stackedArea();
 };
