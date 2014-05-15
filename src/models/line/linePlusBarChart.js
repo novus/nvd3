@@ -25,7 +25,7 @@ function LinePlusBarChart(options){
     this.y1Axis(this.getAxis());
     this.y2Axis(this.getAxis());
 
-    this.xAxis()
+    this.xAxis
         .tickPadding(7)
     ;
     this.historicalBar
@@ -44,7 +44,7 @@ function LinePlusBarChart(options){
     this.showTooltip = function(e, offsetElement) {
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
             top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis().tickFormat()(this.line.x()(e.point, e.pointIndex)),
+            x = this.xAxis.tickFormat()(this.line.x()(e.point, e.pointIndex)),
             y = (e.series.bar ? this.y1Axis() : this.y2Axis()).tickFormat()(this.line.y()(e.point, e.pointIndex)),
             content = this.tooltip()(e.series.key, x, y);
 
@@ -109,7 +109,7 @@ LinePlusBarChart.prototype.draw = function(data){
     this.yScale1(this.historicalBar.yScale());
     this.yScale2(this.line.yScale());
 
-    this.xAxis()
+    this.xAxis
         .scale(this.xScale())
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight, 0);
@@ -133,7 +133,7 @@ LinePlusBarChart.prototype.draw = function(data){
     //.attr('transform', 'translate(' + x.range()[1] + ',0)');
 
     d3.transition(this.g.select('.nv-x.nv-axis'))
-        .call(this.xAxis());
+        .call(this.xAxis);
     d3.transition(this.g.select('.nv-y1.nv-axis'))
         .style('opacity', dataBars.length ? 1 : 0)
         .call(this.y1Axis());

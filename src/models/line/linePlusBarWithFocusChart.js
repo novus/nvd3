@@ -44,7 +44,7 @@ function LinePlusBarWithFocusChart(options){
     this.line2
         .interactive(false)
     ;
-    this.xAxis()
+    this.xAxis
         .orient('bottom')
         .tickPadding(5)
     ;
@@ -71,7 +71,7 @@ function LinePlusBarWithFocusChart(options){
             e.pointIndex += Math.ceil(that.extent()[0]);
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
             top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = that.xAxis().tickFormat()(that.line.x()(e.point, e.pointIndex)),
+            x = that.xAxis.tickFormat()(that.line.x()(e.point, e.pointIndex)),
             y = (e.series.bar ? that.y1Axis : that.y2Axis).tickFormat()(that.line.y()(e.point, e.pointIndex)),
             content = that.tooltip()(e.series.key, x, y);
 
@@ -368,16 +368,16 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
         else
             that.xScale(that.line.xScale());
 
-        that.xAxis()
+        that.xAxis
             .scale(that.xScale())
             .ticks( availableWidth / 100 )
             .tickSize(-availableHeight1, 0);
 
-        that.xAxis()
+        that.xAxis
             .domain([Math.ceil(that.extent()[0]), Math.floor(that.extent()[1])]);
 
         that.g.select('.nv-x.nv-axis').transition().duration(that.transitionDuration())
-            .call(that.xAxis());
+            .call(that.xAxis);
         //------------------------------------------------------------
 
 

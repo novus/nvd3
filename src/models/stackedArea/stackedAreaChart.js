@@ -35,12 +35,12 @@ function StackedAreaChart(options){
     this.interactiveLayer = this.getInteractiveGuideline();
     this.state = this.getStateManager();
 
-    this.yAxis().tickFormat = function(_) {
+    this.yAxis.tickFormat = function(_) {
         if (!arguments.length) return this.yAxisTickFormat();
         this.yAxisTickFormat(_);
-        return this.yAxis();
+        return this.yAxis;
     }.bind(this);
-    this.yAxis().setTickFormat = this.yAxis().tickFormat;
+    this.yAxis.setTickFormat = this.yAxis.tickFormat;
 
     this.controls.updateState(false);
 }
@@ -259,12 +259,12 @@ StackedAreaChart.prototype.attachEvents = function(){
                     allData[indexToHighlight].highlight = true;
             }
 
-            var xValue = that.xAxis().tickFormat()(that.x()(singlePoint,pointIndex));
+            var xValue = that.xAxis.tickFormat()(that.x()(singlePoint,pointIndex));
 
             //If we are in 'expand' mode, force the format to be a percentage.
             var valueFormatter = (that.stacked.style() == 'expand') ?
                 function(d) {return d3.format(".1%")(d);} :
-                function(d) {return that.yAxis().tickFormat()(d); };
+                function(d) {return that.yAxis.tickFormat()(d); };
             that.interactiveLayer.tooltip
                 .position({left: pointXLocation + that.margin().left, top: e.mouseY + that.margin().top})
                 .chartContainer(that.parentNode)
@@ -315,8 +315,8 @@ StackedAreaChart.prototype.attachEvents = function(){
 StackedAreaChart.prototype.showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis().tickFormat()(this.stacked.x()(e.point, e.pointIndex)),
-        y = this.yAxis().tickFormat()(this.stacked.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.stacked.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.stacked.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
@@ -333,7 +333,7 @@ StackedAreaChart.prototype.color = function(_) {
 StackedAreaChart.prototype.rightAlignYAxis = function(_) {
     if(!arguments.length) return this.options.rightAlignYAxis;
     this.options.rightAlignYAxis = _;
-    this.yAxis().orient( (_) ? 'right' : 'left');
+    this.yAxis.orient( (_) ? 'right' : 'left');
     return this;
 };
 
@@ -364,8 +364,8 @@ StackedAreaChart.prototype.duration = function(_) {
     this.options.duration = _;
     this.renderWatch.reset(_);
     // stacked.duration(duration);
-    this.xAxis().duration(_);
-    this.yAxis().duration(_);
+    this.xAxis.duration(_);
+    this.yAxis.duration(_);
     return this;
 };
 
