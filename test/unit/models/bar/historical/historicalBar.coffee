@@ -1,25 +1,26 @@
-apiTest.config.discreteBar =
-  ctor: DiscreteBar
-  name: 'discreteBar'
+apiTest.config.historicalBar =
+  ctor: HistoricalBar
+  name: 'historicalBar'
   parent: 'layer'
   options: [
     'x'
     'y'
-    'margin'
     'width'
     'height'
+    'margin'
     'xScale'
     'yScale'
     'xDomain'
     'yDomain'
     'xRange'
     'yRange'
+    'forceX'
     'forceY'
-    'id'
-    'showValues'
-    'valueFormat'
-    'rectClass'
+    'padData'
+    'clipEdge'
     'color'
+    'id'
+    'interactive'
   ]
   dispatch: true
   optionsFunc: true
@@ -32,4 +33,4 @@ apiTest.config.discreteBar =
     'renderEnd'
   ]
 
-apiTest.run 'discreteBar'
+apiTest.run 'historicalBar'

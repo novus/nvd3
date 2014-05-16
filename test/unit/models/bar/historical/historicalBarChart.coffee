@@ -1,45 +1,57 @@
-apiTest.config.discreteBarChart =
-  ctor: DiscreteBarChart
-  name: 'discreteBarChart'
+apiTest.config.historicalBarChart =
+  ctor: HistoricalBarChart
+  name: 'historicalBarChart'
   parent: 'chart'
   options: [
     'margin'
     'width'
     'height'
-    'tooltips'
-    'tooltipContent'
+    'color'
     'showLegend'
     'showXAxis'
     'showYAxis'
     'rightAlignYAxis'
-    'staggerLabels'
+    'tooltips'
+    'tooltipContent'
+    'state'
+    'defaultState'
     'noData'
     'transitionDuration'
-    'state'
+    'xAxis'
+    'yAxis'
   ]
   overrides: [
     'tooltips'
   ]
   submodels:
-    discreteBar: nv.models.discreteBar
+    historicalBar: nv.models.historicalBar
     legend: nv.models.legend
     xAxis: nv.models.axis
     yAxis: nv.models.axis
-    #state: nv.utils.state
+#state: nv.utils.state
   inheritedInstance:
-    discreteBar: [
+    historicalBar: [
+      'defined'
+      'isArea'
       'x'
       'y'
-      'color'
+      'size'
+      'xScale'
+      'yScale'
       'xDomain'
       'yDomain'
       'xRange'
       'yRange'
       'forceX'
       'forceY'
+      'interactive'
+      'clipEdge'
+      'clipVoronoi'
       'id'
-      'showValues'
-      'valueFormat'
+      'interpolate'
+      'highlightPoint'
+      'clearHighlights'
+      'interactive'
     ]
   dispatch: true
   optionsFunc: true
@@ -51,4 +63,4 @@ apiTest.config.discreteBarChart =
     'renderEnd'
   ]
 
-apiTest.run 'discreteBarChart'
+apiTest.run.only 'historicalBarChart'
