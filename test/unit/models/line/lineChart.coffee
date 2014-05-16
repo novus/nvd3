@@ -18,6 +18,9 @@ apiTest.config.lineChart =
         'transitionDuration'
         'useInteractiveGuideline'
     ]
+    overrides: [
+      'tooltips'
+    ]
     submodels:
         lines: nv.models.line
         legend: nv.models.legend
