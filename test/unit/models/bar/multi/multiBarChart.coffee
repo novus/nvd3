@@ -31,6 +31,7 @@ apiTest.config.multiBarChart =
         legend: nv.models.legend
         xAxis: nv.models.axis
         yAxis: nv.models.axis
+        #state: nv.utils.state
     inheritedInstance:
         multibar: [
             'x'
