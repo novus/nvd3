@@ -237,7 +237,7 @@ nv.models.pie = function() {
                   var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
                   var labelTypes = {
                     "key" : getX(d.data),
-                    "value": getY(d.data),
+                    "value": valueFormat(getY(d.data)),
                     "percent": labelFormat(percent)
                   };
                   return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
