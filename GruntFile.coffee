@@ -31,10 +31,29 @@ module.exports = (grunt)->
         concat:
             options:
                 separator: '\n'
-                banner: '(function(){\n'
-                footer: '\n})();'
+                # UMD Banner for AMD, CommonJS, and globals
+                banner: """
+                (function (root, factory) {
+                    if (typeof define === 'function' && define.amd) {
+                        // AMD. Register as an anonymous module.
+                        define(['exports', 'd3'], factory);
+                    } else if (typeof exports === 'object') {
+                        // CommonJS
+                        factory(exports, require('d3'));
+                    } else {
+                        // Browser globals
+                        factory((root.commonJsStrict = {}), root.d3);
+                    }
+                }(this, function (exports, d3) {
+                """
+                footer: """
+
+                exports = nv;
+
+                }));
+                """
             dist:
-                src: files,
+                src: ['src/**/*.js', '!src/**/*_.js'],
                 dest: 'nv.d3.js'
 
         uglify:
