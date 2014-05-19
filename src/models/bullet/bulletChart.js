@@ -196,8 +196,8 @@ BulletChart.prototype.attachEvents = function(){
 };
 
 BulletChart.prototype.orient = function(_) {
-    if (!arguments.length) return this.orient();
-    this.orient(_);
+    if (!arguments.length) return this.options.orient;
+    this.options.orient = _;
     this.reverse( this.orient() == 'right' || this.orient() == 'bottom' );
     return this;
 };
@@ -216,7 +216,24 @@ BulletChart.prototype.showTooltip = function(e, offsetElement) {
 nv.models.bulletChart = function() {
     "use strict";
 
-    var bulletChart = new BulletChart();
+    var bulletChart = new BulletChart(),
+        api = [
+            'orient',
+            'tooltipContent',
+            'ranges',
+            'markers',
+            'measures',
+            'width',
+            'height',
+            'margin',
+            'tickFormat',
+            'tooltips',
+            'noData',
+            'reduceXTicks',
+            'rightAlignYAxis',
+            'showXAxis',
+            'showYAxis'
+        ];
 
     function chart(selection) {
         bulletChart.render(selection);
@@ -226,15 +243,15 @@ nv.models.bulletChart = function() {
     chart.dispatch = bulletChart.dispatch;
     chart.bullet = bulletChart.bullet;
     chart.state = bulletChart.state;
+    chart.xAxis = bulletChart.xAxis;
+    chart.yAxis = bulletChart.yAxis;
+    chart.legend = bulletChart.legend;
 
     d3.rebind(chart, bulletChart.bullet, 'color');
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, bulletChart, BulletChart.prototype,
-        'orient', 'tooltipContent', 'ranges', 'markers', 'measures', 'width', 'height', 'margin', 'tickFormat',
-        'tooltips', 'noData'
-    );
+    nv.utils.rebindp(chart, bulletChart, BulletChart.prototype, api);
 
     return chart;
 };
