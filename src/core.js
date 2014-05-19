@@ -1,9 +1,7 @@
-var nv = window.nv || {};
+var nv = nv || {};
 
 nv.version = '1.1.15b';
 nv.dev = true //set false when in production
-
-window.nv = nv;
 
 nv.tooltip = nv.tooltip || {}; // For the tooltip system
 nv.utils = nv.utils || {}; // Utility subsystem

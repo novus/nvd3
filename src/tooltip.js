@@ -1,12 +1,12 @@
 /* Tooltip rendering model for nvd3 charts.
-window.nv.models.tooltip is the updated,new way to render tooltips.
+nv.models.tooltip is the updated,new way to render tooltips.
 
-window.nv.tooltip.show is the old tooltip code.
-window.nv.tooltip.* also has various helper methods.
+nv.tooltip.show is the old tooltip code.
+nv.tooltip.* also has various helper methods.
 */
 (function() {
   "use strict";
-  window.nv.tooltip = {};
+  nv.tooltip = {};
 
   /* Model which can be instantiated to handle tooltip rendering.
     Example usage:
@@ -15,7 +15,7 @@ window.nv.tooltip.* also has various helper methods.
 
         tip();    //just invoke the returned function to render tooltip.
   */
-  window.nv.models.tooltip = function() {
+  nv.models.tooltip = function() {
         var content = null    //HTML contents of the tooltip.  If null, the content is generated via the data variable.
         , data = null     /* Tooltip data. If data is given in the proper format, a consistent tooltip is generated.
         Format of data:

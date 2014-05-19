@@ -31,10 +31,12 @@ module.exports = (grunt)->
         concat:
             options:
                 separator: '\n'
-                banner: '(function(){\n'
-                footer: '\n})();'
+                # UMD Banner for AMD, CommonJS, and globals
+                banner: grunt.file.read './src/wrapper/head.js'
+                footer: grunt.file.read './src/wrapper/foot.js'
             dist:
-                src: files,
+                src: files.map (file) ->
+                    'src/' + file + '.js'
                 dest: 'nv.d3.js'
 
         uglify:

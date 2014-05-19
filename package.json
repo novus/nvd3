@@ -1,6 +1,11 @@
 {
   "name": "nvd3",
   "version": "0.0.1",
+  "main": "nv.d3.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:novus/nvd3.git"
+  },
   "devDependencies": {
     "glob": "~3.2.9",
     "grunt": "~0.4.1",
@@ -24,5 +29,8 @@
     "q": "~1.0.1",
     "selenium-webdriver": "~2.40.0",
     "should": "~3.1.4"
+  },
+  "dependencies": {
+    "d3": "^3.4.6"
   }
 }
