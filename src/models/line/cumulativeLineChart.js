@@ -364,7 +364,7 @@ CumulativeLineChart.prototype.attachEvents = function(){
                 .data({ value: xValue, series: allData })
                 ();
 
-            that.interactiveLayer.renderGuideLine(pointXLocation);
+            that.interactiveLayer.renderGuideLine()(pointXLocation);
         })
         .on("elementMouseout",function() {
             that.dispatch.tooltipHide();

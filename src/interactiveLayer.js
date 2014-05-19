@@ -13,6 +13,7 @@ var InteractiveGuidelinePrivates = {
     , showGuideLine: true
     , svgContainer: null
     , isMSIE: navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
+    , renderGuideLine: null
 
 //Must pass in the bounding chart's <svg> container.
 //The mousemove event is attached to this container.
@@ -35,6 +36,24 @@ function InteractiveGuideline(options){
 
     this.tooltip = nv.models.tooltip();
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
+
+    //Draws a vertical guideline at the given X postion.
+    this.renderGuideLine(function(x) {
+        if (!this.showGuideLine()) return;
+        var line = this.wrap.select(".nv-interactiveGuideLine")
+            .selectAll("line")
+            .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
+
+        line.enter()
+            .append("line")
+            .attr("class", "nv-guideline")
+            .attr("x1", function(d) { return d;})
+            .attr("x2", function(d) { return d;})
+            .attr("y1", this.available.height)
+            .attr("y2",0)
+        ;
+        line.exit().remove();
+    }.bind(this));
 }
 
 nv.utils.create(InteractiveGuideline, Layer, InteractiveGuidelinePrivates);
@@ -44,24 +63,6 @@ nv.utils.create(InteractiveGuideline, Layer, InteractiveGuidelinePrivates);
  */
 InteractiveGuideline.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data, ['nv-interactiveGuideLine']);
-};
-
-//Draws a vertical guideline at the given X postion.
-InteractiveGuideline.prototype.renderGuideLine = function(x) {
-    if (!this.showGuideLine()) return;
-    var line = this.wrap.select(".nv-interactiveGuideLine")
-        .selectAll("line")
-        .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
-
-    line.enter()
-        .append("line")
-        .attr("class", "nv-guideline")
-        .attr("x1", function(d) { return d;})
-        .attr("x2", function(d) { return d;})
-        .attr("y1", this.available.height)
-        .attr("y2",0)
-    ;
-    line.exit().remove();
 };
 
 /**
@@ -134,7 +135,7 @@ InteractiveGuideline.prototype.draw = function(data){
                 mouseX: mouseX,
                 mouseY: mouseY
             });
-            that.renderGuideLine(null); //hide the guideline
+            that.renderGuideLine()(null); //hide the guideline
             return;
         }
 

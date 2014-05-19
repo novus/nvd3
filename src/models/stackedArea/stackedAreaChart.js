@@ -273,7 +273,7 @@ StackedAreaChart.prototype.attachEvents = function(){
                 }
             )();
 
-            that.interactiveLayer.renderGuideLine(pointXLocation);
+            that.interactiveLayer.renderGuideLine()(pointXLocation);
         })
         .on("elementMouseout",function() {
             that.dispatch.tooltipHide();

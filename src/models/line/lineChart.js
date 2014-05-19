@@ -106,7 +106,7 @@ LineChart.prototype.attachEvents = function(){
                     series: allData
                 })();
 
-            this.interactiveLayer.renderGuideLine(pointXLocation);
+            this.interactiveLayer.renderGuideLine()(pointXLocation);
         }.bind(this))
         .on("elementMouseout",function() {
             this.dispatch.tooltipHide();
