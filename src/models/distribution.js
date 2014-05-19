@@ -87,11 +87,6 @@ Distribution.prototype.draw = function(data){
     this.scale0(this.scale().copy());
 };
 
-Distribution.prototype.color = function(_) {
-    if (!arguments.length) return this.options.color;
-    this.options.color = nv.utils.getColor(_);
-    return this;
-};
 Distribution.prototype.duration = function(_) {
     if (!arguments.length) return this.options.duration;
     this.options.duration = _;

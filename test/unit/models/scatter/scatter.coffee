@@ -39,6 +39,9 @@ apiTest.config.scatter =
         'singlePoint'
         'duration'
     ]
+    overrides: [
+    	'size'
+    ]
     dispatch: true
     optionsFunc: true
     events: [

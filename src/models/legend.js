@@ -202,12 +202,6 @@ Legend.prototype.draw = function(data){
     }
 };
 
-Legend.prototype.color = function(_) {
-    if (!arguments.length) return this.options.color;
-    this.options.color = nv.utils.getColor(_);
-    return this;
-};
-
 Legend.prototype.key = function(_) {
     if (!arguments.length) return this.options.getKey;
     this.options.getKey = _;

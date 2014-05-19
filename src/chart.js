@@ -262,3 +262,12 @@ Chart.prototype.reduceXTicks = function(_){
     this.options.reduceXTicks = _;
     return this;
 };
+
+// DEPRECATED
+Chart.prototype.state = function(_) {
+    nv.deprecated('Chart.state');
+    if (!arguments.length) return this.options.state;
+    this.options.state = _;
+    return this;
+};
+// END DEPRECATED

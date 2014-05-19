@@ -173,12 +173,6 @@ Bullet.prototype.orient = function(_) {
     return this;
 };
 
-Bullet.prototype.color = function(_) {
-    if (!arguments.length) return this.options.color;
-    this.options.color = nv.utils.getColor(_);
-    return this;
-};
-
 /**
  * override Layer::noData
  * @param data
@@ -194,7 +188,19 @@ Bullet.prototype.noData = function(data){
 nv.models.bullet = function () {
     "use strict";
 
-    var bullet = new Bullet();
+    var bullet = new Bullet(),
+        api = [
+            'ranges',
+            'markers',
+            'measures',
+            'forceX',
+            'width',
+            'height',
+            'margin',
+            'tickFormat',
+            'orient',
+            'color'
+        ];
 
     function chart(selection) {
         bullet.render(selection);
@@ -205,9 +211,7 @@ nv.models.bullet = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, bullet, Bullet.prototype,
-        'ranges', 'markers', 'measures', 'forceX', 'width', 'height', 'margin', 'tickFormat', 'orient', 'color'
-    );
+    nv.utils.rebindp(chart, bullet, Bullet.prototype, api);
 
     return chart;
 };

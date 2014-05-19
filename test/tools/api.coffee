@@ -7,11 +7,16 @@ apiTest.run = (name, only)->
     label = name.toFirstUpper()
     config = apiTest.config[name]
 
-    apiTest.models[name] = do (config) -> (instance, overrides)->
-        overrides = overrides || config.overrides
+
+    apiTest.models[name] = do (config)-> (instance, overrides)->
         if config.parent?
             describe 'Inherited API', ->
-                apiTest.models[config.parent] instance
+                pOverrides =
+                    if overrides?
+                        overrides.concat config.overrides 
+                    else
+                        config.overrides
+                apiTest.models[config.parent] instance, pOverrides
 
         describe "#{label} API", ->
             checkProperties

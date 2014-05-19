@@ -207,12 +207,6 @@ StackedArea.prototype.attachEvents = function(){
         }.bind(this))*/;
 };
 
-StackedArea.prototype.color = function(_) {
-    if (!arguments.length) return this.options.color;
-    this.options.color = nv.utils.getColor(_);
-    return this;
-};
-
 StackedArea.prototype.style = function(_) { //shortcut for offset + order
     if (!arguments.length) return this.options.style;
     this.options.style = _;

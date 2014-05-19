@@ -17,6 +17,7 @@ var CumulativeLineChartPrivates = {
     , duration : 250
     , useInteractiveGuideline : false
     , state: null
+    , id: null
 };
 
 function CumulativeLineChart(options){
@@ -59,6 +60,9 @@ CumulativeLineChart.prototype.wrapper = function(data){
 CumulativeLineChart.prototype.draw = function(data){
 
     this.id(this.line.id());
+    this.x(this.line.x());
+    this.y(this.line.y());
+
     this.svg.classed('nv-chart-' + this.id(), true);
 
     this.xScale( this.line.xScale() );
@@ -360,7 +364,7 @@ CumulativeLineChart.prototype.attachEvents = function(){
                 .data({ value: xValue, series: allData })
                 ();
 
-            that.interactiveLayer.renderGuideLine(pointXLocation);
+            that.interactiveLayer.renderGuideLine()(pointXLocation);
         })
         .on("elementMouseout",function() {
             that.dispatch.tooltipHide();

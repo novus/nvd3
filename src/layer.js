@@ -176,3 +176,9 @@ Layer.prototype.transitionDuration = function(_) {
     nv.deprecated('transitionDuration');
     return this.duration(_);
 };
+
+Layer.prototype.color = function(_) {
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    return this;
+};

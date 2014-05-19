@@ -84,12 +84,12 @@
                     .transitionDuration(300)
                     .clipVoronoi(false);
 
-            chart.xAxis()
+            chart.xAxis
                     .tickFormat(function(d) {
                         return d3.time.format('%m/%d/%y')(new Date(d))
                     });
 
-            chart.yAxis()
+            chart.yAxis
                     .tickFormat(d3.format(',.1%'));
 
             d3.select('#'+containerId+' svg')

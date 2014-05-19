@@ -1,6 +1,6 @@
 var LinePlusBarWithFocusChartPrivates = {
     finderHeight: 100
-    , _color: nv.utils.defaultColor()
+    , color: nv.utils.defaultColor()
     , extent: null
     , brushExtent : null
     , tooltips : true
@@ -166,7 +166,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight2)
         .color(
-            data.map(function(d,i) {return d.color || that._color(d, i);})
+            data.map(function(d,i) {return d.color || that.color()(d, i);})
                 .filter(function(d,i) { return !data[i].disabled && data[i].bar })
         );
 
@@ -174,7 +174,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight2)
         .color(
-            data.map(function(d,i) { return d.color || that._color(d, i) })
+            data.map(function(d,i) { return d.color || that.color()(d, i) })
                 .filter(function(d,i) { return !data[i].disabled && !data[i].bar })
         );
 
@@ -312,7 +312,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
             .width(availableWidth)
             .height(availableHeight1)
             .color(
-                data.map(function(d,i) { return d.color || that._color(d, i) })
+                data.map(function(d,i) { return d.color || that.color()(d, i) })
                     .filter(function(d,i) { return !data[i].disabled && data[i].bar })
             );
 
@@ -320,7 +320,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
             .width(availableWidth)
             .height(availableHeight1)
             .color(
-                data.map(function(d,i) { return d.color || that._color(d, i) })
+                data.map(function(d,i) { return d.color || that.color()(d, i) })
                     .filter(function(d,i) { return !data[i].disabled && !data[i].bar })
             );
 
@@ -465,9 +465,9 @@ LinePlusBarWithFocusChart.prototype.y = function(_) {
 };
 
 LinePlusBarWithFocusChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
-    this.legend.color( _ );
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color( this.color() );
     return this;
 };
 
@@ -483,7 +483,11 @@ LinePlusBarWithFocusChart.prototype.tooltipContent = function(_) {
 nv.models.linePlusBarWithFocusChart = function() {
     "use strict";
 
-    var linePlusBarWithFocusChart = new LinePlusBarWithFocusChart();
+    var linePlusBarWithFocusChart = new LinePlusBarWithFocusChart(),
+        api = [
+            'x', 'y', 'margin', 'width', 'height', 'color', 'showLegend', 'tooltips', 'tooltipContent', 'noData',
+            'brushExtent', 'finderHeight', 'xAxis', 'yScale'
+        ];
 
     function chart(selection) {
         linePlusBarWithFocusChart.render(selection);
@@ -511,10 +515,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, linePlusBarWithFocusChart, LinePlusBarWithFocusChart.prototype,
-        'x', 'y', 'margin', 'width', 'height', 'color', 'showLegend', 'tooltips', 'tooltipContent', 'noData',
-        'brushExtent', 'finderHeight', 'xAxis', 'yScale'
-    );
+    nv.utils.rebindp(chart, linePlusBarWithFocusChart, LinePlusBarWithFocusChart.prototype, api);
 
     return chart;
 };

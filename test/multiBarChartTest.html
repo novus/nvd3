@@ -133,12 +133,12 @@ function defaultChartConfig(containerId, data, chartOptions) {
       chart.multibar
         .hideable(true);
 
-      chart.xAxis()
+      chart.xAxis
           .axisLabel("Current Index")
           .showMaxMin(true)
           .tickFormat(d3.format(',0f'));
 
-      chart.yAxis()
+      chart.yAxis
           .tickFormat(d3.format(',.1f'));
 
       d3.select('#' + containerId + ' svg')

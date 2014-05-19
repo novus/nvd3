@@ -1,6 +1,9 @@
 var HistoricalBarChartPrivates = {
     defaultState : null
     , transitionDuration : 250
+    , xScale: null
+    , yScale: null
+    , tooltips: true
 };
 
 /**
@@ -17,8 +20,6 @@ function HistoricalBarChart(options){
     Chart.call(this, options);
 
     this.historicalBar = nv.models.historicalBar();
-    this.xScale = this.historicalBar.xScale;
-    this.yScale = this.historicalBar.yScale;
     this.state = this.getStateManager();
 }
 
@@ -45,6 +46,9 @@ HistoricalBarChart.prototype.draw = function(data){
                     .filter(function(d,i) { return !data[i].disabled })
             )
         );
+
+    this.xScale(this.historicalBar.xScale());
+    this.yScale(this.historicalBar.yScale());
 
     var barsWrap = this.g.select('.nv-barsWrap')
         .datum(data.filter(function(d) { return !d.disabled }))
@@ -155,7 +159,8 @@ nv.models.historicalBarChart = function() {
             'state',
             'defaultState',
             'noData',
-            'transitionDuration'
+            'transitionDuration',
+            'reduceXTicks'
         ];
 
     function chart(selection) {

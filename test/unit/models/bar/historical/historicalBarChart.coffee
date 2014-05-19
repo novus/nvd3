@@ -17,8 +17,6 @@ apiTest.config.historicalBarChart =
     'defaultState'
     'noData'
     'transitionDuration'
-    'xAxis'
-    'yAxis'
   ]
   overrides: [
     'tooltips'
@@ -28,7 +26,7 @@ apiTest.config.historicalBarChart =
     legend: nv.models.legend
     xAxis: nv.models.axis
     yAxis: nv.models.axis
-#state: nv.utils.state
+    #state: nv.utils.state
   inheritedInstance:
     historicalBar: [
       'defined'
@@ -63,4 +61,4 @@ apiTest.config.historicalBarChart =
     'renderEnd'
   ]
 
-apiTest.run.only 'historicalBarChart'
+apiTest.run 'historicalBarChart'
