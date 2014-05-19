@@ -4,6 +4,11 @@ var DiscreteBarChartPrivates = {
     , xScale: null
     , yScale: null
     , transitionDuration : 250
+    , state: null
+    , staggerLabels: null
+    , x: null
+    , y: null
+    , id: null
 };
 
 /**
@@ -109,7 +114,22 @@ DiscreteBarChart.prototype.showTooltip = function(e) {
 nv.models.discreteBarChart = function() {
     "use strict";
 
-    var discreteBarChart = new DiscreteBarChart();
+    var discreteBarChart = new DiscreteBarChart(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'tooltips',
+            'tooltipContent',
+            'showLegend',
+            'showXAxis',
+            'showYAxis',
+            'rightAlignYAxis',
+            'staggerLabels',
+            'noData',
+            'transitionDuration',
+            'state'
+        ];
 
     function chart(selection) {
         discreteBarChart.render(selection);
@@ -119,21 +139,31 @@ nv.models.discreteBarChart = function() {
     chart.legend = discreteBarChart.legend;
     chart.dispatch = discreteBarChart.dispatch;
     chart.discreteBar = discreteBarChart.discreteBar;
+    chart.xAxis = discreteBarChart.xAxis;
+    chart.yAxis = discreteBarChart.yAxis;
 
     // DO NOT DELETE. This is currently overridden below
     // until deprecated portions are removed.
     chart.state = discreteBarChart.state;
 
     d3.rebind(chart, discreteBarChart.discreteBar,
-        'color', 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'id', 'showValues', 'valueFormat'
+        'x',
+        'y',
+        'color',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'forceX',
+        'forceY',
+        'id',
+        'showValues',
+        'valueFormat'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, discreteBarChart, DiscreteBarChart.prototype,
-        'margin', 'width', 'height', 'tooltips', 'tooltipContent', 'showLegend', 'showXAxis', 'showYAxis',
-        'rightAlignYAxis', 'staggerLabels', 'noData', 'transitionDuration', 'state'
-    );
+    nv.utils.rebindp(chart, discreteBarChart, DiscreteBarChart.prototype, api);
 
     return chart;
 };

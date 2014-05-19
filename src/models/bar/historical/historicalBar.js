@@ -10,6 +10,9 @@ var HistoricalBarPrivates = {
     , xRange: null
     , yRange: null
     , interactive : true
+    , id : null
+    , x: function(d){return d.x;}
+    , y: function(d){return d.y;}
 };
 
 /**
@@ -199,7 +202,27 @@ HistoricalBar.prototype.clearHighlights = function() {
 nv.models.historicalBar = function () {
     "use strict";
 
-    var historicalBar = new HistoricalBar();
+    var historicalBar = new HistoricalBar(),
+        api = [
+            'x',
+            'y',
+            'width',
+            'height',
+            'margin',
+            'xScale',
+            'yScale',
+            'xDomain',
+            'yDomain',
+            'xRange',
+            'yRange',
+            'forceX',
+            'forceY',
+            'padData',
+            'clipEdge',
+            'color',
+            'id',
+            'interactive'
+        ];
 
     function chart(selection) {
         historicalBar.render(selection);
@@ -210,10 +233,7 @@ nv.models.historicalBar = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, historicalBar, HistoricalBar.prototype,
-        'x', 'y', 'width', 'height', 'margin', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
-        'forceX', 'forceY', 'padData', 'clipEdge', 'color', 'id', 'interactive'
-    );
+    nv.utils.rebindp(chart, historicalBar, HistoricalBar.prototype, api);
 
     return chart;
 };

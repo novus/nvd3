@@ -25,13 +25,13 @@ checkProperties = (config)->
                     spy = sinon.spy parent.prototype, prop
                     instance[prop]()
                     spy.called.should.be.false
-                    config.parent.prototype[prop].restore()
+                    parent.prototype[prop].restore()
             else
                 it "calls #{parent.name}.prototype.#{prop}", ->
                     spy = sinon.spy parent.prototype, prop
                     instance[prop]()
                     spy.calledOnce.should.be.true
-                    config.parent.prototype[prop].restore()
+                    parent.prototype[prop].restore()
 
 
 checkInstanceProp = (instance, source, props)->

@@ -7,7 +7,8 @@ apiTest.run = (name, only)->
     label = name.toFirstUpper()
     config = apiTest.config[name]
 
-    apiTest.models[name] = do (config)-> (instance, overrides=[])->
+    apiTest.models[name] = do (config) -> (instance, overrides)->
+        overrides = overrides || config.overrides
         if config.parent?
             describe 'Inherited API', ->
                 apiTest.models[config.parent] instance

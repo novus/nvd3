@@ -256,3 +256,9 @@ Chart.prototype.rightAlignYAxis = function(_) {
     this.yAxis.orient( (_) ? 'right' : 'left');
     return this;
 };
+
+Chart.prototype.reduceXTicks = function(_){
+    if (!arguments.length) return this.options.reduceXTicks;
+    this.options.reduceXTicks = _;
+    return this;
+};

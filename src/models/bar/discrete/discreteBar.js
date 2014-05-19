@@ -11,6 +11,9 @@ var DiscreteBarPrivates = {
     , xRange : null
     , yRange : null
     , rectClass : 'discreteBar'
+    , id: null
+    , x: null
+    , y: null
 };
 
 /**
@@ -198,7 +201,26 @@ DiscreteBar.prototype.color = function(_){
 nv.models.discreteBar = function () {
     "use strict";
 
-    var discreteBar = new DiscreteBar();
+    var discreteBar = new DiscreteBar(),
+        api = [
+            'x',
+            'y',
+            'margin',
+            'width',
+            'height',
+            'xScale',
+            'yScale',
+            'xDomain',
+            'yDomain',
+            'xRange',
+            'yRange',
+            'forceY',
+            'id',
+            'showValues',
+            'valueFormat',
+            'rectClass',
+            'color'
+        ];
 
     function chart(selection) {
         discreteBar.render(selection);
@@ -209,10 +231,7 @@ nv.models.discreteBar = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, discreteBar, DiscreteBar.prototype,
-        'x', 'y', 'margin', 'width', 'height', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
-        'forceY', 'id', 'showValues', 'valueFormat', 'rectClass', 'color'
-    );
+    nv.utils.rebindp(chart, discreteBar, DiscreteBar.prototype, api);
 
     return chart;
 };

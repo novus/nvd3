@@ -23,6 +23,9 @@ apiTest.config.cumulativeLineChart =
         'duration'
         'noErrorCheck'
     ]
+    overrides: [
+      'tooltips'
+    ]
     submodels:
         lines: nv.models.line
         legend: nv.models.legend

@@ -23,11 +23,15 @@ apiTest.config.multiBarChart =
         'transitionDuration'
         'duration'
     ]
+    overrides: [
+      'tooltips'
+    ]
     submodels:
         multibar: nv.models.multiBar
         legend: nv.models.legend
         xAxis: nv.models.axis
         yAxis: nv.models.axis
+        #state: nv.utils.state
     inheritedInstance:
         multibar: [
             'x'

@@ -9,7 +9,7 @@ apiTest.models.chart = (instance, overrides=[])->
         'rightAlignYAxis'
         'reduceXTicks'
         'noData'
-        'update'
+        #'update'
         'tooltips'
         'tooltipContent'
     ]
@@ -19,10 +19,10 @@ apiTest.models.chart = (instance, overrides=[])->
 
     describe 'Chart API', ->
         checkProperties
-                instance: instance
-                properties: options
-                overrides: overrides
-                parent: Chart
+            instance: instance
+            properties: options
+            overrides: overrides
+            parent: Chart
 
 describe 'Chart Model', ->
     apiTest.models.chart(new Chart())
