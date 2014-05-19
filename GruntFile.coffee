@@ -53,7 +53,8 @@ module.exports = (grunt)->
                 }));
                 """
             dist:
-                src: ['src/**/*.js', '!src/**/*_.js'],
+                src: files.map (file) ->
+                    'src/' + file + '.js'
                 dest: 'nv.d3.js'
 
         uglify:
