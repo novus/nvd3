@@ -194,7 +194,7 @@ function multiBarHorizontalChart(containerId, data) {
             .transitionDuration(250)
             .stacked(true)
             .showControls(true);
-    chart.yAxis().tickFormat(d3.format(',.2f'));
+    chart.yAxis.tickFormat(d3.format(',.2f'));
     d3.select('#'+containerId+' svg')
             .datum(data)
             .call(chart);

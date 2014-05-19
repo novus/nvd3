@@ -71,7 +71,7 @@
                     .x(function(d,i) { return i })
                     .color(d3.scale.category10().range())
                     .finderHeight(75);
-            chart.xAxis().tickFormat(function(d) {
+            chart.xAxis.tickFormat(function(d) {
                 var dx = testdata[0].values[d] && testdata[0].values[d].x || 0;
                 if (dx > 0)
                     return d3.time.format('%x')(new Date(dx));

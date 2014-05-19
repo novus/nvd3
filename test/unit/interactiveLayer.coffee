@@ -12,14 +12,15 @@ apiTest.interactiveGuideline = (instance, overrides=[])->
         'xScale'
         'showGuideLine'
         'svgContainer'
+        'renderGuideLine'
     ]
 
     describe 'InteractiveGuideline API', ->
         checkProperties
-                instance: instance
-                properties: options
-                overrides: overrides
-                parent: InteractiveGuideline
+            instance: instance
+            properties: options
+            overrides: overrides
+            parent: InteractiveGuideline
 
 describe 'InteractiveGuideline Model', ->
     apiTest.interactiveGuideline nv.interactiveGuideline()

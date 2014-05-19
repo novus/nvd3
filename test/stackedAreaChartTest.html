@@ -301,10 +301,10 @@ function RenderStackedAreaChart(container, data, useGuideline) {
                   .color(keyColor)
                     ;
 
-    chart.xAxis()
+    chart.xAxis
         .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
 
-    chart.yAxis()
+    chart.yAxis
         .tickFormat(d3.format(',.2f'));
 
     d3.select('#' + container + ' svg')
@@ -354,9 +354,9 @@ nv.addGraph(function() {
                     .margin({right:90})
                     .rightAlignYAxis(true)
             ;
-    chart.xAxis()
+    chart.xAxis
             .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
-    chart.yAxis()
+    chart.yAxis
             .tickFormat(d3.format(',.2f'));
     d3.select('#chart2 svg')
             .datum(histcatexpshort)
