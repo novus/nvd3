@@ -42,13 +42,16 @@ module.exports = (grunt)->
                         factory(exports, require('d3'));
                     } else {
                         // Browser globals
-                        factory((root.commonJsStrict = {}), root.d3);
+                        factory((root.nv = {}), root.d3);
                     }
                 }(this, function (exports, d3) {
+
                 """
                 footer: """
 
                 exports = nv;
+
+                return nv;
 
                 }));
                 """
