@@ -57,8 +57,8 @@ PieChart.prototype.attachEvents = function(){
 PieChart.prototype.color = function(_){
     if (!arguments.length) return this.color;
     this.options.color = nv.utils.getColor(_);
-    this.legend.color(this.options.color);
-    this.pie.color(this.options.color);
+    this.legend.color( this.color() );
+    this.pie.color( this.color() );
     return this;
 };
 

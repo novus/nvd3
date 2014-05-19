@@ -177,12 +177,6 @@ HistoricalBar.prototype.draw = function(data){
         .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.max(Math.abs(that.yScale()(that.y()(d,i)) - that.yScale()(0)),1)) });
 };
 
-HistoricalBar.prototype.color = function(_){
-    if (!arguments.length) return this.options.color;
-    this.options.color = nv.utils.getColor(_);
-    return this;
-};
-
 //Create methods to allow outside functions to highlight a specific bar.
 HistoricalBar.prototype.highlightPoint = function(pointIndex, isHoverOver) {
     d3.select(".nv-"+this.options.chartClass+"-" + this.id())

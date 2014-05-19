@@ -7,7 +7,7 @@ var LinePlusBarChartPrivates = {
     , yScale2 : null
     , y1Axis: null
     , y2Axis: null
-    , _color: nv.utils.defaultColor()
+    , color: nv.utils.defaultColor()
 };
 
 /**
@@ -83,7 +83,7 @@ LinePlusBarChart.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-            return d.color || that._color()(d, i);
+            return d.color || that.color()(d, i);
         }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }));
 
     this.historicalBar
@@ -91,7 +91,7 @@ LinePlusBarChart.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
-            return d.color || that._color()(d, i);
+            return d.color || that.color()(d, i);
         }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
     d3.transition(barsWrap).call(this.historicalBar);
@@ -198,8 +198,8 @@ LinePlusBarChart.prototype.x = function(_) {
 };
 
 LinePlusBarChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color();
-    this._color( nv.utils.getColor(_) );
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
     this.legend.color(_);
     return this;
 };

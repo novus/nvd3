@@ -92,12 +92,6 @@ Sparkline.prototype.draw = function(data){
         });
 };
 
-Sparkline.prototype.color = function(_) {
-    if (!arguments.length) return this.options.color;
-    this.options.color = nv.utils.getColor(_);
-    return this;
-};
-
 /**
  * The sparkline model returns a function wrapping an instance of a Sparkline.
  */

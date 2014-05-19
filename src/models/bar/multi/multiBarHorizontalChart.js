@@ -1,6 +1,5 @@
 var MultiBarHorizontalChartPrivates = {
-    color : null
-    , showLegend: true
+    showLegend: true
     , showControls : true
     , showXAxis : true
     , showYAxis : true
@@ -13,6 +12,7 @@ var MultiBarHorizontalChartPrivates = {
     , yScale: null
     , tooltipContent: null
     , tooltip: null
+    , color: nv.utils.defaultColor()
 };
 
 /**
@@ -32,8 +32,6 @@ function MultiBarHorizontalChart(options){
     this.xAxis = this.getAxis();
     this.yAxis = this.getAxis();
     this.state = { stacked: this.stacked() };
-
-    this._color = nv.utils.defaultColor();
 
     this.legend = nv.models.legend()
         .height(30);
@@ -127,7 +125,7 @@ MultiBarHorizontalChart.prototype.draw = function(data){
         .width(availableWidth)
         .height(availableHeight)
         .color(
-            data.map(function(d,i) { return d.color || that._color(d, i) })
+            data.map(function(d,i) { return d.color || that.color()(d, i) })
                 .filter(function(d,i) { return !data[i].disabled })
         );
 
@@ -268,9 +266,9 @@ MultiBarHorizontalChart.prototype.getMultibarHorizontal = function(){
 };
 
 MultiBarHorizontalChart.prototype.color = function(_) {
-    if (!arguments.length) return this._color;
-    this._color = nv.utils.getColor(_);
-    this.legend.color(this._color);
+    if (!arguments.length) return this.options.color;
+    this.options.color = nv.utils.getColor(_);
+    this.legend.color(this.color());
     return this;
 };
 

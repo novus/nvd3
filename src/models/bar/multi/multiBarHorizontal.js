@@ -2,7 +2,7 @@ var MultiBarHorizontalPrivates = {
     xScale: d3.scale.ordinal()
     , yScale: d3.scale.linear()
     , forceY : [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-    , color : null
+    , color : nv.utils.defaultColor()
     , disabled : null// used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked : false
     , showValues : false
@@ -16,7 +16,6 @@ var MultiBarHorizontalPrivates = {
     , yRange: null
     , duration: null
     , id: null
-
 };
 
 /**
@@ -32,7 +31,6 @@ function MultiBarHorizontal(options){
     });
 
     this._barColor = nv.utils.defaultColor(); // adding the ability to set the color for each rather than the whole group
-    this._color = nv.utils.defaultColor();
     Chart.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd']);
 }
 
@@ -126,8 +124,8 @@ MultiBarHorizontal.prototype.draw = function(data){
     groups
         .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
         .classed('hover', function(d) { return d.hover })
-        .style('fill', function(d){ return that._color(d) })
-        .style('stroke', function(d){ return that._color(d) });
+        .style('fill', function(d){ return that.color()(d) })
+        .style('stroke', function(d){ return that.color()(d) });
     groups.transition()
         .style('stroke-opacity', 1)
         .style('fill-opacity', .75);
@@ -269,12 +267,6 @@ MultiBarHorizontal.prototype.draw = function(data){
 MultiBarHorizontal.prototype.barColor = function(_) {
     if (!arguments.length) return this._barColor;
     this._barColor = nv.utils.getColor(_);
-    return this;
-};
-
-MultiBarHorizontal.prototype.color = function(_) {
-    if (!arguments.length) return this._color;
-    this._color = nv.utils.getColor(_);
     return this;
 };
 

@@ -189,12 +189,6 @@ DiscreteBar.prototype.draw = function(data){
 
 };
 
-DiscreteBar.prototype.color = function(_){
-    if (!arguments.length) return this.options.color;
-    this.options.color = nv.utils.getColor(_);
-    return this;
-};
-
 /**
  * The discreteBar model returns a function wrapping an instance of a DiscreteBar.
  */
