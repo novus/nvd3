@@ -15,7 +15,7 @@ apiTest.models.chart = (instance, overrides=[])->
     ]
 
     describe 'Inherited API', ->
-        apiTest.models.layer(instance)
+        apiTest.models.layer instance, overrides
 
     describe 'Chart API', ->
         checkProperties

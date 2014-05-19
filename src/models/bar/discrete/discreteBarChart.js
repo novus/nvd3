@@ -6,6 +6,7 @@ var DiscreteBarChartPrivates = {
     , transitionDuration : 250
     , state: null
     , staggerLabels: null
+    , tooltips: true
     , x: null
     , y: null
     , id: null
@@ -128,7 +129,8 @@ nv.models.discreteBarChart = function() {
             'staggerLabels',
             'noData',
             'transitionDuration',
-            'state'
+            'state',
+            'reduceXTicks'
         ];
 
     function chart(selection) {

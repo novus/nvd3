@@ -212,15 +212,6 @@ MultiBarChart.prototype.duration = function(_) {
     return this;
 };
 
-// DEPRECATED
-MultiBarChart.prototype.state = function(_) {
-    nv.deprecated('multiBarChart.state');
-    if (!arguments.length) return this.options.state;
-    this.options.state = _;
-    return this;
-};
-// END DEPRECATED
-
 /**
  * The multiBarChart model returns a function wrapping an instance of a MultiBarChart.
  */
