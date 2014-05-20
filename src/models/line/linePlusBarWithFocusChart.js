@@ -91,6 +91,7 @@ LinePlusBarWithFocusChart.prototype.getHistoricalBar = function(){
 
 LinePlusBarWithFocusChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['']);
+
 };
 
 LinePlusBarWithFocusChart.prototype.draw = function(data){
@@ -118,7 +119,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
         .filter(function(d) { return !d.disabled && d.bar })
         .map(function(d) {
             return d.values.map(function(d,i) {
-                return { x: that._x()(d,i), y: that._y()(d,i) }
+                return { x: that.x()(d,i), y: that.y()(d,i) }
             })
         });
 
@@ -126,7 +127,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
         .filter(function(d) { return !d.disabled && !d.bar })
         .map(function(d) {
             return d.values.map(function(d,i) {
-                return { x: that._x()(d,i), y: that._y()(d,i) }
+                return { x: that.x()(d,i), y: that.y()(d,i) }
             })
         });
 
@@ -471,12 +472,6 @@ LinePlusBarWithFocusChart.prototype.color = function(_) {
     return this;
 };
 
-LinePlusBarWithFocusChart.prototype.tooltipContent = function(_) {
-    if (!arguments.length) return this.tooltip();
-    this.tooltip(_);
-    return this;
-};
-
 /**
  * The linePlusBarWithFocusChart model returns a function wrapping an instance of a LinePlusBarWithFocusChart.
  */
@@ -485,8 +480,23 @@ nv.models.linePlusBarWithFocusChart = function() {
 
     var linePlusBarWithFocusChart = new LinePlusBarWithFocusChart(),
         api = [
-            'x', 'y', 'margin', 'width', 'height', 'color', 'showLegend', 'tooltips', 'tooltipContent', 'noData',
-            'brushExtent', 'finderHeight', 'xAxis', 'yScale'
+            'x',
+            'y',
+            'margin',
+            'width',
+            'height',
+            'color',
+            'showLegend',
+            'tooltips',
+            'tooltipContent',
+            'noData',
+            'brushExtent',
+            'finderHeight',
+            'yScale',
+            'reduceXTicks',
+            'rightAlignYAxis',
+            'showXAxis',
+            'showYAxis'
         ];
 
     function chart(selection) {
@@ -509,7 +519,12 @@ nv.models.linePlusBarWithFocusChart = function() {
 
     //d3.rebind(chart, linePlusBarWithFocusChart.historicalBar, '');
 
-    d3.rebind(chart, linePlusBarWithFocusChart.line, 'defined', 'size', 'clipVoronoi', 'interpolate');
+    d3.rebind(chart, linePlusBarWithFocusChart.line,
+        'defined',
+        'size',
+        'clipVoronoi',
+        'interpolate'
+    );
     //TODO: consider rebinding x, y and some other stuff, and simply do something like bars.x(lines.x()), etc.
     //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
