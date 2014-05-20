@@ -1,11 +1,13 @@
-DonutPrivates = {
+var DonutPrivates = {
     donutRatio: 0.5,
     donutLabelsOutside: false
 };
+
 function Donut(options) {
     options = nv.utils.extend({}, options, DonutPrivates);
     Pie.call(this, options);
 }
+
 nv.utils.create(Donut, Pie, DonutPrivates);
 
 Donut.prototype.getArc = function() {
@@ -15,7 +17,29 @@ Donut.prototype.getArc = function() {
 };
 
 nv.models.donut = function(){
-    var donut = new Donut();
+
+    var donut = new Donut(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'x',
+            'y',
+            'values',
+            'description',
+            'showLabels',
+            'labelSunbeamLayout',
+            'donutLabelsOutside',
+            'pieLabelsOutside',
+            'labelType',
+            'donutRatio',
+            'startAngle',
+            'endAngle',
+            'id',
+            'color',
+            'labelThreshold',
+            'valueFormat'
+        ];
 
     function chart(selection){
         donut.render(selection);
@@ -23,7 +47,7 @@ nv.models.donut = function(){
     }
 
     chart.dispatch = donut.dispatch;
-    nv.utils.rebindp(chart, donut, Donut.prototype, 'margin', 'width', 'height', 'x', 'y', 'values', 'description', 'showLabels', 'labelSunbeamLayout', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'startAngle', 'endAngle', 'id', 'color', 'labelThreshold', 'valueFormat');
+    nv.utils.rebindp(chart, donut, Donut.prototype, api);
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
