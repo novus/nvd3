@@ -24,15 +24,19 @@ var PieLabels = {
 };
 
 var PiePrivates = {
-    startAngle: 0,
-    endAngle: 0,
-    pieLabelsOutside: true,
-    showLabels: true,
-    labelType: "key",
-    labelThreshold: 0.02, //if slice percentage is under this, don't show label
-    labelLayout: PieLabels.Normal,
-    labelFormat: d3.format('%'),
-    valueFormat: d3.format(',.2f')
+    startAngle: 0
+    , endAngle: 0
+    , pieLabelsOutside: true
+    , showLabels: true
+    , labelType: "key"
+    , labelThreshold: 0.02 //if slice percentage is under this, don't show label
+    , labelLayout: PieLabels.Normal
+    , labelFormat: d3.format('%')
+    , valueFormat: d3.format(',.2f')
+    , id: null
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
+    , description: null
 };
 
 /**
@@ -198,7 +202,7 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
             var labelTypes = {
                 "key"    : this.x()(d.data),
                 "value"  : this.y()(d.data),
-                "percent": labelFormat(percent)
+                "percent": this.labelFormat()(percent)
             };
             return (d.value && percent > this.labelThreshold()) ? labelTypes[this.labelType()] : '';
         }.bind(this));
@@ -271,7 +275,25 @@ Pie.prototype.labelSunbeamLayout = function(_){
 nv.models.pie = function () {
     "use strict";
 
-    var pie = new Pie();
+    var pie = new Pie(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'x',
+            'y',
+            'description',
+            'showLabels',
+            'labelSunbeamLayout',
+            'pieLabelsOutside',
+            'labelType',
+            'startAngle',
+            'endAngle',
+            'id',
+            'color',
+            'labelThreshold',
+            'valueFormat'
+        ];
 
     function chart(selection) {
         pie.render(selection);
@@ -282,9 +304,7 @@ nv.models.pie = function () {
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     // This is really shitty
-    nv.utils.rebindp(chart, pie, Pie.prototype, 'margin', 'width', 'height', 'x', 'y', 'description', 'showLabels',
-        'labelSunbeamLayout', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio',
-        'startAngle', 'endAngle', 'id', 'color', 'labelThreshold', 'valueFormat', 'values');
+    nv.utils.rebindp(chart, pie, Pie.prototype, api);
 
     return chart;
 };

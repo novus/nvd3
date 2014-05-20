@@ -21,6 +21,8 @@ var StackedAreaPrivates = {
     , dataRaw: null
     , duration : 250
     , style : 'stack'
+    , x: null
+    , y: null
 };
 
 
@@ -86,6 +88,8 @@ StackedArea.prototype.draw = function(data){
 
     this.xScale(this.scatter.xScale());
     this.yScale(this.scatter.yScale());
+    this.x(this.scatter.x());
+    this.y(this.scatter.y());
 
     this.dataRaw(data);
 
@@ -274,7 +278,18 @@ StackedArea.prototype.d3_stackedOffset_stackPercent = function(stackData) {
 nv.models.stackedArea = function () {
     "use strict";
 
-    var stackedArea = new StackedArea();
+    var stackedArea = new StackedArea(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'clipEdge',
+            'offset',
+            'order',
+            'color',
+            'style',
+            'interpolate'
+        ];
 
     function chart(selection) {
         stackedArea.render(selection);
@@ -285,15 +300,31 @@ nv.models.stackedArea = function () {
     chart.scatter = stackedArea.scatter;
 
     d3.rebind(chart, stackedArea.scatter,
-        'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain',
-        'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'highlightPoint', 'clearHighlights'
+        'x',
+        'y',
+        'interactive',
+        'size',
+        'xScale',
+        'yScale',
+        'zScale',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'sizeDomain',
+        'forceX',
+        'forceY',
+        'forceSize',
+        'clipVoronoi',
+        'useVoronoi',
+        'clipRadius',
+        'highlightPoint',
+        'clearHighlights'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, stackedArea, StackedArea.prototype,
-        'x', 'y', 'margin', 'width', 'height', 'clipEdge', 'offset', 'order', 'color', 'style', 'interpolate'
-    );
+    nv.utils.rebindp(chart, stackedArea, StackedArea.prototype, api);
 
     return chart;
 };

@@ -7,6 +7,8 @@ var SparklinePrivates = {
     , xRange : null
     , yRange : null
     , color: nv.utils.getColor(['#000000'])
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
 };
 
 /**
@@ -98,7 +100,22 @@ Sparkline.prototype.draw = function(data){
 nv.models.sparkline = function () {
     "use strict";
 
-    var sparkline = new Sparkline();
+    var sparkline = new Sparkline(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'x',
+            'y',
+            'xScale',
+            'yScale',
+            'xDomain',
+            'yDomain',
+            'xRange',
+            'yRange',
+            'animate',
+            'color'
+        ];
 
     function chart(selection) {
         sparkline.render(selection);
@@ -109,10 +126,7 @@ nv.models.sparkline = function () {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, sparkline, Sparkline.prototype,
-        'margin', 'width', 'height', 'x', 'y', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
-        'animate', 'color'
-    );
+    nv.utils.rebindp(chart, sparkline, Sparkline.prototype, api);
 
     return chart;
 };

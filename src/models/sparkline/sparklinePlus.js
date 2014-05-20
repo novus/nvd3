@@ -50,11 +50,9 @@ SparklinePlus.prototype.draw = function(data){
     var that = this
         , availableWidth = this.available.width
         , availableHeight = this.available.height
-        , sparklineWrap = null
         , valueWrap = null
-        , value = null;
-
-    var currentValue = this.sparkline.y()(data[data.length-1], data.length-1);
+        , value = null
+        , currentValue = this.sparkline.y()(data[data.length-1], data.length-1);
 
     this.xScale(this.sparkline.xScale());
     this.yScale(this.sparkline.yScale());
@@ -62,9 +60,8 @@ SparklinePlus.prototype.draw = function(data){
     this.sparkline
         .width(availableWidth)
         .height(availableHeight);
-    sparklineWrap = this.g.select('.nv-sparklineWrap');
 
-    sparklineWrap
+    this.g.select('.nv-sparklineWrap')
         .call(this.sparkline);
 
     valueWrap = this.g.select('.nv-valueWrap');
@@ -178,7 +175,18 @@ SparklinePlus.prototype.attachEvents = function(){
 nv.models.sparklinePlus = function() {
     "use strict";
 
-    var sparklinePlus = new SparklinePlus();
+    var sparklinePlus = new SparklinePlus(),
+        api = [
+            'margin',
+            'width',
+            'height',
+            'xTickFormat',
+            'yTickFormat',
+            'showValue',
+            'alignValue',
+            'rightAlignValue',
+            'noData'
+        ];
 
     function chart(selection) {
         sparklinePlus.render(selection);
@@ -190,15 +198,16 @@ nv.models.sparklinePlus = function() {
     chart.state = sparklinePlus.state;
 
     d3.rebind(chart, sparklinePlus.sparkline,
-        'x', 'y', 'xScale', 'yScale', 'color'
+        'x',
+        'y',
+        'xScale',
+        'yScale',
+        'color'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, sparklinePlus, SparklinePlus.prototype,
-        'margin', 'width', 'height', 'xTickFormat', 'yTickFormat', 'showValue', 'alignValue', 'rightAlignValue',
-        'noData'
-    );
+    nv.utils.rebindp(chart, sparklinePlus, SparklinePlus.prototype, api);
 
     return chart;
 };

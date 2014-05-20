@@ -152,7 +152,9 @@ nv.addGraph(function() {
     var width = 500,
         height = 500;
 
-    var chart = nv.models.donutChart()
+    var chart = nv.models.donutChart();
+
+    chart
         .x(function(d) { return d.key })
         .color(d3.scale.category10().range())
         .width(width)
