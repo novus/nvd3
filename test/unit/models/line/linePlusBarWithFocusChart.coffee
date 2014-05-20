@@ -50,4 +50,4 @@ apiTest.config.linePlusBarWithFocusChart =
     'renderEnd'
   ]
 
-apiTest.run.only 'linePlusBarWithFocusChart'
+apiTest.run 'linePlusBarWithFocusChart'
