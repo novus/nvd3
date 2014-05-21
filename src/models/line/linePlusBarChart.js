@@ -40,15 +40,6 @@ function LinePlusBarChart(options){
     this.y2Axis
         .orient('right')
     ;
-    this.showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = this.xAxis.tickFormat()(this.line.x()(e.point, e.pointIndex)),
-            y = (e.series.bar ? this.y1Axis: this.y2Axis).tickFormat()(this.line.y()(e.point, e.pointIndex)),
-            content = this.tooltip()(e.series.key, x, y);
-
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-    }.bind(this);
 }
 
 nv.utils.create(LinePlusBarChart, Chart, LinePlusBarChartPrivates);
@@ -139,11 +130,13 @@ LinePlusBarChart.prototype.draw = function(data){
 
 LinePlusBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
+
     var that = this;
+
     this.dispatch
         .on('tooltipShow', function(e) {
-            if (this.tooltips) this.showTooltip(e, this.svg[0][0].parentNode);
-        }.bind(this))
+            if (that.tooltips()) that.showTooltip(e, that.svg[0][0]);
+        })
         // Update chart from a state object passed to event handler
         .on('changeState', function(e) {
             if (typeof e.disabled !== 'undefined') {
@@ -156,36 +149,35 @@ LinePlusBarChart.prototype.attachEvents = function(){
                     });
                 });
             }
-            this.update();
-        }.bind(this))
+            that.update();
+        })
         .on('tooltipHide', function() {
-            if (this.tooltips) nv.tooltip.cleanup();
-        }.bind(this));
+            if (that.tooltips()) nv.tooltip.cleanup();
+        });
 
     this.legend.dispatch.on('stateChange', function(newState) {
-        this.state = newState;
-        this.dispatch.stateChange(this.state);
-        this.update();
-    }.bind(this));
+        that.state = newState;
+        that.dispatch.stateChange(that.state);
+        that.update();
+    });
 
     this.line
         .dispatch.on('elementMouseover.tooltip', function(e) {
-            e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
-            this.dispatch.tooltipShow(e);
-        }.bind(this))
+            e.pos = [e.pos[0] +  that.margin().left, e.pos[1] + that.margin().top];
+            that.dispatch.tooltipShow(e);
+        })
         .on('elementMouseout.tooltip', function(e) {
-            this.dispatch.tooltipHide(e);
-        }.bind(this));
+            that.dispatch.tooltipHide(e);
+        });
 
     this.historicalBar
         .dispatch.on('elementMouseover.tooltip', function(e) {
-            e.pos = [e.pos[0] + this.margin().left, e.pos[1] + this.margin().top];
-            this.dispatch.tooltipShow(e);
-        }.bind(this))
+            e.pos = [e.pos[0] + that.margin().left, e.pos[1] + that.margin().top];
+            that.dispatch.tooltipShow(e);
+        })
         .on('elementMouseout.tooltip', function(e) {
-            this.dispatch.tooltipHide(e);
-        }.bind(this));
-
+            that.dispatch.tooltipHide(e);
+        });
 };
 
 LinePlusBarChart.prototype.x = function(_) {
@@ -201,6 +193,16 @@ LinePlusBarChart.prototype.color = function(_) {
     this.options.color = nv.utils.getColor(_);
     this.legend.color(_);
     return this;
+};
+
+LinePlusBarChart.prototype.showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+        x = this.xAxis.tickFormat()(this.line.x()(e.point, e.pointIndex)),
+        y = (e.series.bar ? this.y1Axis: this.y2Axis).tickFormat()(this.line.y()(e.point, e.pointIndex)),
+        content = this.tooltip()(e.series.key, x, y);
+
+    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
 };
 
 nv.models.linePlusBarChart = function() {
@@ -236,7 +238,7 @@ nv.models.linePlusBarChart = function() {
     chart.y1Axis = linePlusBarChart.y1Axis;
     chart.y2Axis = linePlusBarChart.y2Axis;
     chart.xAxis = linePlusBarChart.xAxis;
-    //chart.state = linePlusBarChart.state;
+    chart.state = linePlusBarChart.state;
 
     d3.rebind(chart, linePlusBarChart.line,
         'defined',

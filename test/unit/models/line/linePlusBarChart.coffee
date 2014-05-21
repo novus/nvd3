@@ -3,21 +3,14 @@ apiTest.config.linePlusBarChart =
   name: 'linePlusBarChart'
   parent: 'chart'
   options: [
-    'x',
-    'margin',
-    'width',
-    'height',
-    'color',
-    'showLegend',
-    'tooltips',
-    'tooltipContent',
-    'state',
-    'defaultState',
-    'noData',
-    'showXAxis',
-    'showYAxis',
-    'rightAlignYAxis',
-    'reduceXTicks'
+    'x'
+    'margin'
+    'width'
+    'height'
+    'color'
+    'showLegend'
+    'state'
+    'defaultState'
   ]
   overrides: [
     'tooltips'
@@ -29,7 +22,6 @@ apiTest.config.linePlusBarChart =
     xAxis: nv.models.axis
     y1Axis: nv.models.axis
     y2Axis: nv.models.axis
-    #state: nv.utils.state
   inheritedInstance:
     lines: [
       'defined',
