@@ -6,14 +6,8 @@ apiTest.config.discreteBarChart =
     'margin'
     'width'
     'height'
-    'tooltips'
-    'tooltipContent'
     'showLegend'
-    'showXAxis'
-    'showYAxis'
-    'rightAlignYAxis'
     'staggerLabels'
-    'noData'
     'transitionDuration'
     'state'
   ]
@@ -25,7 +19,6 @@ apiTest.config.discreteBarChart =
     legend: nv.models.legend
     xAxis: nv.models.axis
     yAxis: nv.models.axis
-    #state: nv.utils.state
   inheritedInstance:
     discreteBar: [
       'x'
