@@ -56,4 +56,4 @@ apiTest.config.cumulativeLineChart =
         'renderEnd'
     ]
 
-apiTest.run.only 'cumulativeLineChart'
+apiTest.run 'cumulativeLineChart'
