@@ -241,13 +241,15 @@ nv.models.bulletChart = function() {
     }
 
     chart.dispatch = bulletChart.dispatch;
+    chart.legend = bulletChart.legend;
     chart.bullet = bulletChart.bullet;
-    chart.state = bulletChart.state;
     chart.xAxis = bulletChart.xAxis;
     chart.yAxis = bulletChart.yAxis;
-    chart.legend = bulletChart.legend;
+    chart.state = bulletChart.state;
 
-    d3.rebind(chart, bulletChart.bullet, 'color');
+    d3.rebind(chart, bulletChart.bullet,
+        'color'
+    );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 

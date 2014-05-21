@@ -4,7 +4,6 @@ apiTest.config.bulletChart =
   parent: 'chart'
   options: [
     'orient',
-    'tooltipContent',
     'ranges',
     'markers',
     'measures',
@@ -12,8 +11,6 @@ apiTest.config.bulletChart =
     'height',
     'margin',
     'tickFormat',
-    'tooltips',
-    'noData'
   ]
   overrides: [
     'tooltips'
@@ -23,7 +20,6 @@ apiTest.config.bulletChart =
     legend: nv.models.legend
     xAxis: nv.models.axis
     yAxis: nv.models.axis
-    #state: nv.utils.state()
   inheritedInstance:
     bullet: [
       'color'
@@ -38,4 +34,4 @@ apiTest.config.bulletChart =
     'renderEnd'
   ]
 
-apiTest.run 'bulletChart'
+apiTest.run.only 'bulletChart'
