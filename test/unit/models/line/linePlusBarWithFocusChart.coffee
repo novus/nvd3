@@ -10,9 +10,6 @@ apiTest.config.linePlusBarWithFocusChart =
     'height',
     'color',
     'showLegend',
-    'tooltips',
-    'tooltipContent',
-    'noData',
     'brushExtent',
     'finderHeight',
     'yScale'
@@ -21,18 +18,17 @@ apiTest.config.linePlusBarWithFocusChart =
     'tooltips'
   ]
   submodels:
+    legend: nv.models.legend
     lines: nv.models.line
     lines2: nv.models.line
     bars: nv.models.historicalBar
     bars2: nv.models.historicalBar
-    legend: nv.models.legend
     xAxis: nv.models.axis
     x2Axis: nv.models.axis
-    y3Axis: nv.models.axis
-    y4Axis: nv.models.axis
     y1Axis: nv.models.axis
     y2Axis: nv.models.axis
-    #state: nv.utils.state
+    y3Axis: nv.models.axis
+    y4Axis: nv.models.axis
   inheritedInstance:
     lines: [
       'defined',
