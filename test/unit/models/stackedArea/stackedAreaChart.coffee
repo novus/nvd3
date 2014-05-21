@@ -61,4 +61,4 @@ apiTest.config.stackedAreaChart =
     'renderEnd'
   ]
 
-apiTest.run.only 'stackedAreaChart'
+apiTest.run 'stackedAreaChart'
