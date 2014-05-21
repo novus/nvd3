@@ -34,4 +34,4 @@ apiTest.config.bulletChart =
     'renderEnd'
   ]
 
-apiTest.run.only 'bulletChart'
+apiTest.run 'bulletChart'
