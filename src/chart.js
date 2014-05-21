@@ -132,6 +132,7 @@ Chart.prototype.plotAxes = function(data){
             .tickSize(-this.available.height, 0);
 
         this.axis.x
+            .attr('transform', 'translate(0,' + this.yScale().range()[0] + ')')
             .transition()
             .call(this.xAxis);
 

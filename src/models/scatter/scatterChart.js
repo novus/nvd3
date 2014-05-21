@@ -32,7 +32,7 @@ function ScatterChart(options){
     });
     Chart.call(this, options);
 
-    this.scatter = nv.models.scatter();
+    this.scatter = this.getScatter();
     this.distX = this.getDistribution();
     this.distY = this.getDistribution();
     this.controls = this.getLegend();
@@ -56,6 +56,10 @@ function ScatterChart(options){
 }
 
 nv.utils.create(ScatterChart, Chart, ScatterChartPrivates);
+
+ScatterChart.prototype.getScatter = function(){
+    return nv.models.scatter();
+};
 
 ScatterChart.prototype.getDistribution = function(){
     return nv.models.distribution();
