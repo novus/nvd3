@@ -9,17 +9,10 @@ apiTest.config.multiBarChart =
         'color'
         'showControls'
         'showLegend'
-        'showXAxis'
-        'showYAxis'
-        'rightAlignYAxis'
         'rotateLabels'
         'staggerLabels'
-        'tooltip'
-        'tooltips'
-        'tooltipContent'
         'state'
         'defaultState'
-        'noData'
         'transitionDuration'
         'duration'
     ]
@@ -31,7 +24,6 @@ apiTest.config.multiBarChart =
         legend: nv.models.legend
         xAxis: nv.models.axis
         yAxis: nv.models.axis
-        #state: nv.utils.state
     inheritedInstance:
         multibar: [
             'x'

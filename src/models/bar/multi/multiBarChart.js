@@ -239,8 +239,7 @@ nv.models.multiBarChart = function() {
             'noData',
             'duration',
             'transitionDuration',
-            'reduceXTicks',
-            'rightAlignYAxis'
+            'reduceXTicks'
         ];
 
     function chart(selection) {
@@ -253,9 +252,6 @@ nv.models.multiBarChart = function() {
     chart.legend = multiBarChart.legend;
     chart.xAxis = multiBarChart.xAxis;
     chart.yAxis = multiBarChart.yAxis;
-
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
     chart.state = multiBarChart.state;
 
     d3.rebind(chart, multiBarChart.multibar,
