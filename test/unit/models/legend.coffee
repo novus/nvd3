@@ -15,5 +15,11 @@ apiTest.config.legend =
     ]
     dispatch: true
     optionsFunc: true
+    events: [
+      'legendClick'
+      'legendDblclick'
+      'legendMouseover'
+      'legendMouseout'
+    ]
 
 apiTest.run 'legend'
