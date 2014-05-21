@@ -18,6 +18,8 @@ var CumulativeLineChartPrivates = {
     , useInteractiveGuideline : false
     , state: null
     , id: null
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
 };
 
 function CumulativeLineChart(options){
@@ -74,9 +76,9 @@ CumulativeLineChart.prototype.draw = function(data){
         , availableWidth = this.available.width
         , availableHeight = this.available.height
         , indexDrag = d3.behavior.drag()
-        .on('dragstart', this.dragStart)
-        .on('drag', this.dragMove)
-        .on('dragend', this.dragEnd);
+            .on('dragstart', this.dragStart)
+            .on('drag', this.dragMove)
+            .on('dragend', this.dragEnd);
 
     if (!this.rescaleY()) {
         var seriesDomains = data
@@ -535,7 +537,9 @@ nv.models.cumulativeLineChart = function(){
             'transitionDuration',
             'noErrorCheck',
             'reduceXTicks',
-            'rightAlignYAxis'
+            'rightAlignYAxis',
+            'x',
+            'y'
         ];
 
     function chart(selection){

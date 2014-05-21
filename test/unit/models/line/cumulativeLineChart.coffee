@@ -11,17 +11,14 @@ apiTest.config.cumulativeLineChart =
         'showControls'
         'useInteractiveGuideline'
         'showLegend'
-        'showXAxis'
-        'showYAxis'
-        'tooltips'
-        'tooltipContent'
         'state'
         'defaultState'
-        'noData'
         'average'
         'transitionDuration'
         'duration'
         'noErrorCheck'
+        'x'
+        'y'
     ]
     overrides: [
       'tooltips'
@@ -59,4 +56,4 @@ apiTest.config.cumulativeLineChart =
         'renderEnd'
     ]
 
-apiTest.run 'cumulativeLineChart'
+apiTest.run.only 'cumulativeLineChart'
