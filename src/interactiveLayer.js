@@ -24,7 +24,7 @@ var InteractiveGuidelinePrivates = {
  */
 function InteractiveGuideline(options){
     options = nv.utils.extend({}, options, InteractiveGuidelinePrivates, {
-        margin: {top: 0, left: 0}
+        margin: {top: 0, left: 0, right: 0, bottom: 0}
         , width: null
         , height: null
         //Please pass in the bounding chart's top and left margins

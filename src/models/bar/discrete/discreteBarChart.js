@@ -138,14 +138,11 @@ nv.models.discreteBarChart = function() {
         return chart;
     }
 
-    chart.legend = discreteBarChart.legend;
     chart.dispatch = discreteBarChart.dispatch;
+    chart.legend = discreteBarChart.legend;
     chart.discreteBar = discreteBarChart.discreteBar;
     chart.xAxis = discreteBarChart.xAxis;
     chart.yAxis = discreteBarChart.yAxis;
-
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
     chart.state = discreteBarChart.state;
 
     d3.rebind(chart, discreteBarChart.discreteBar,

@@ -11,11 +11,9 @@ apiTest.config.sparklinePlus =
     'showValue',
     'alignValue',
     'rightAlignValue',
-    'noData'
   ]
   submodels:
     sparkline: nv.models.sparkline
-    #state: nv.utils.state()
   inheritedInstance:
     sparkline: [
       'x',

@@ -79,8 +79,8 @@
 
     function renderBullet(containerId, data) {
         nv.addGraph(function() {
-            chart = nv.models.bullet()
-                    .height(height)
+            chart = nv.models.bullet();
+            chart.height(height)
                     .margin(margin);
             d3.select("#"+containerId+" svg")
                     .datum(data)

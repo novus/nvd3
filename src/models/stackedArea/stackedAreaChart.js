@@ -17,8 +17,8 @@ var StackedAreaChartPrivates = {
     , useInteractiveGuideline : false
     , controlLabels : {}
     , duration : 250
-    , x: null
-    , y: null
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
 };
 
 /**

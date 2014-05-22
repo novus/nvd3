@@ -8,14 +8,8 @@ apiTest.config.historicalBarChart =
     'height'
     'color'
     'showLegend'
-    'showXAxis'
-    'showYAxis'
-    'rightAlignYAxis'
-    'tooltips'
-    'tooltipContent'
     'state'
     'defaultState'
-    'noData'
     'transitionDuration'
   ]
   overrides: [
@@ -26,7 +20,6 @@ apiTest.config.historicalBarChart =
     legend: nv.models.legend
     xAxis: nv.models.axis
     yAxis: nv.models.axis
-    #state: nv.utils.state
   inheritedInstance:
     historicalBar: [
       'defined'

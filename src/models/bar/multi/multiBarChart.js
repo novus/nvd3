@@ -30,13 +30,13 @@ function MultiBarChart(options){
     this.state = this.getStateManager();
     this.state.stacked = false; // DEPRECATED Maintained for backward compatibility
 
-    this.stateGetter = function (data) {
+    this.stateGetter = function(data) {
         return function(){
             return {
                 active: data.map(function(d) { return !d.disabled }),
                 stacked: this.stacked()
             }
-        }
+        }.bind(this);
     }.bind(this);
     this.stateSetter = function(data) {
         return function(state) {
@@ -46,7 +46,7 @@ function MultiBarChart(options){
                 data.forEach(function(series,i) {
                     series.disabled = !state.active[i];
                 });
-        }
+        }.bind(this);
     }.bind(this);
 
     this.controls.updateState(false); // DEPRECATED
@@ -135,7 +135,7 @@ MultiBarChart.prototype.attachEvents = function(){
     this.controls.dispatch.on('legendClick', function(d) {
         if (!d.disabled) return;
         this.controlsData(
-            this.controlsData.map(function(s) { s.disabled = true; return s; })
+            this.controlsData().map(function(s) { s.disabled = true; return s; })
         );
         d.disabled = false;
 
@@ -239,8 +239,7 @@ nv.models.multiBarChart = function() {
             'noData',
             'duration',
             'transitionDuration',
-            'reduceXTicks',
-            'rightAlignYAxis'
+            'reduceXTicks'
         ];
 
     function chart(selection) {
@@ -253,9 +252,6 @@ nv.models.multiBarChart = function() {
     chart.legend = multiBarChart.legend;
     chart.xAxis = multiBarChart.xAxis;
     chart.yAxis = multiBarChart.yAxis;
-
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
     chart.state = multiBarChart.state;
 
     d3.rebind(chart, multiBarChart.multibar,

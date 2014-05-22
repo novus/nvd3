@@ -7,11 +7,8 @@ apiTest.config.pieChart =
     'width',
     'height',
     'color',
-    'tooltips',
-    'tooltipContent',
     'showLegend',
     'duration',
-    'noData',
     'state'
   ]
   overrides: [
@@ -20,7 +17,6 @@ apiTest.config.pieChart =
   submodels:
     pie: nv.models.pie
     legend: nv.models.legend
-    #state: nv.utils.state
   inheritedInstance:
     pie: [
       'valueFormat',

@@ -62,7 +62,7 @@ Scatter.prototype.wrapper = function(data){
     var wrapClass = 'nv-' + this.options.wrapClass;
 
     this.wrap = this.svg.selectAll('g.nv-wrap.' + wrapClass).data([data]);
-    this.wrapEnter = this.wrap.enter().append('g').attr('class', 'nvd3 nv-wrap '+chartClass+'nv-chart-' + this.id() + (this.singlePoint() ? ' nv-single-point' : ''));
+    this.wrapEnter = this.wrap.enter().append('g').attr('class', 'nvd3 nv-wrap '+chartClass+' nv-chart-' + this.id() + (this.singlePoint() ? ' nv-single-point' : ''));
     this.defsEnter = this.wrapEnter.append('defs');
     this.gEnter = this.wrapEnter.append('g');
     this.g = this.wrap.select('g');
@@ -243,7 +243,7 @@ Scatter.prototype.draw = function(data){
                         return 'M' + d.data.join('L') + 'Z';
                 });
 
-            var mouseEventCallback = function(d,mDispatch) {
+            var mouseEventCallback = function(d, mDispatch) {
                 if (that.needsUpdate()) return 0;
                 var series = data[d.series];
                 if (typeof series === 'undefined') return;

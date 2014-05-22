@@ -17,8 +17,8 @@ var MultiBarPrivates = {
     , duration: 1000
     , barColor: null
     , id: null
-    , x: null
-    , y: null
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
     , color: null
 };
 
