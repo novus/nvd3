@@ -182,6 +182,10 @@ Bullet.prototype.noData = function(data){
     return ( !data || typeof  data == 'undefined' || data == null );
 };
 
+Bullet.prototype.hasData = function(data){
+    return data && data.markers.length && data.measures.length && data.ranges.length && data.subtitle && data.title;
+};
+
 /**
  * The bullet model returns a function wrapping an instance of a Bullet.
  */
