@@ -449,7 +449,6 @@ Scatter.prototype.clearHighlights = function() {
 };
 
 Scatter.prototype.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) {
-    console.log(".nv-chart-" + this.id() + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex);
     d3.select(".nv-chart-" + this.id() + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
         .classed("hover", isHoverOver);
 };
