@@ -1,13 +1,16 @@
 var LineChartPrivates = {
-    defaultState: null,
-    xScale: null,
-    yScale: null,
-    interactive: null,
-    useVoronoi: null,
-    tooltips: true,
-    duration: 250,
-    useInteractiveGuideline: false,
-    state: null
+    defaultState: null
+    , xScale: null
+    , yScale: null
+    , interactive: null
+    , useVoronoi: null
+    , tooltips: true
+    , duration: 250
+    , useInteractiveGuideline: false
+    , state: null
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
+    , id: null
 };
 
 /**
@@ -48,104 +51,6 @@ LineChart.prototype.wrapper = function(data){
 };
 
 /**
- * @override Layer::attachEvents
- */
-LineChart.prototype.attachEvents = function(){
-    Layer.prototype.attachEvents.call(this);
-
-    this.legend.dispatch.on('stateChange', function(newState) {
-        this.state = newState;
-        this.dispatch.stateChange(this.state);
-        this.update();
-    }.bind(this));
-
-    this.interactiveLayer.dispatch
-        .on('elementMousemove', function(e) {
-            this.line.clearHighlights();
-            var singlePoint, pointIndex, pointXLocation, allData = [];
-            this.svg.call(function(selection){
-                selection.each(function(data){
-                    data.filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
-                        .forEach(function(series,i) {
-                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, this.x());
-                            this.line.highlightPoint(i, pointIndex, true);
-                            var point = series.values[pointIndex];
-                            if (typeof point === 'undefined') return;
-                            if (typeof singlePoint === 'undefined') singlePoint = point;
-                            if (typeof pointXLocation === 'undefined') pointXLocation = this.xScale()(this.x()(point,pointIndex));
-                            allData.push({
-                                key: series.key,
-                                value: this.y()(point, pointIndex),
-                                color: this.color(series, series.seriesIndex)
-                            });
-                        }.bind(this));
-                });
-            });
-            //Highlight the tooltip entry based on which point the mouse is closest to.
-            if (allData.length > 2) {
-                var yValue = this.yScale().invert(e.mouseY);
-                var domainExtent = Math.abs(this.yScale().domain()[0] - this.yScale().domain()[1]);
-                var threshold = 0.03 * domainExtent;
-                var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
-                if (indexToHighlight !== null)
-                    allData[indexToHighlight].highlight = true;
-            }
-            var xValue = this.xAxis.tickFormat()(this.x()(singlePoint, pointIndex));
-            this.interactiveLayer.tooltip
-                .position({
-                    left: pointXLocation + this.margin().left,
-                    top: e.mouseY + this.margin().top
-                })
-                .chartContainer(this.svg[0][0].parentNode)
-                .enabled(this.tooltips)
-                .valueFormatter(function(d) {
-                    return this.yAxis.tickFormat()(d);
-                }.bind(this))
-                .data({
-                    value: xValue,
-                    series: allData
-                })();
-
-            this.interactiveLayer.renderGuideLine()(pointXLocation);
-        }.bind(this))
-        .on("elementMouseout",function() {
-            this.dispatch.tooltipHide();
-            this.line.clearHighlights();
-        }.bind(this));
-
-    this.dispatch
-        .on('tooltipShow', function(e) {
-            if (this.tooltips())
-                this.showTooltip(e, this.svg[0][0].parentNode)
-        }.bind(this))
-        .on('changeState', function(e) {
-            if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
-                this.svg.call(function(selection){
-                    selection.each(function(data){
-                        data.forEach(function(series,i) {
-                            series.disabled = e.disabled[i];
-                        });
-                    });
-                });
-                this.state.disabled = e.disabled;
-            }
-            this.update();
-        }.bind(this))
-        .on('tooltipHide', function() {
-            if (this.tooltips()) nv.tooltip.cleanup();
-        }.bind(this));
-
-    this.line.dispatch
-        .on('elementMouseover.tooltip', function(e) {
-            e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
-            this.dispatch.tooltipShow(e);
-        }.bind(this))
-        .on('elementMouseout.tooltip', function(e) {
-            this.dispatch.tooltipHide(e);
-        }.bind(this));
-};
-
-/**
  * @override Layer::draw
  */
 LineChart.prototype.draw = function(data){
@@ -156,36 +61,138 @@ LineChart.prototype.draw = function(data){
 
     this.xScale(this.line.xScale());
     this.yScale(this.line.yScale());
-
-    if (this.useInteractiveGuideline()) {
-        this.interactiveLayer
-            .width(availableWidth)
-            .height(availableHeight)
-            .margin({
-                left: this.margin().left,
-                top: this.margin().top
-            })
-            .svgContainer(this.svg)
-            .xScale(this.xScale());
-        this.wrap.select(".nv-interactive")
-            .call(this.interactiveLayer);
-    }
+    this.x(this.line.x());
+    this.y(this.line.y());
+    this.id(this.line.id());
 
     this.line
         .width(availableWidth)
         .height(availableHeight)
         .color(
-            data
-                .map( function(d,i){return d.color || that.color()(d, i)} )
-                .filter( function(d,i) { return !data[i].disabled } )
-        );
+        data
+            .map( function(d,i){return d.color || that.color()(d, i)} )
+            .filter( function(d,i) { return !data[i].disabled } )
+    );
 
     var linesWrap = this.g.select('.nv-linesWrap')
         .datum(data.filter(function(d) { return !d.disabled }))
         .transition()
         .call(this.line);
 
+    if (this.useInteractiveGuideline()) {
+        this.interactiveLayer
+            .width(availableWidth)
+            .height(availableHeight)
+            .margin({ left: this.margin().left, top: this.margin().top })
+            .svgContainer(this.svg)
+            .xScale(this.xScale());
+        this.wrap.select(".nv-interactive")
+            .call(this.interactiveLayer);
+        this.wrap.select(".nv-interactiveLineLayer")
+            .attr("transform", "translate(0,0)");
+    }
+
     Chart.prototype.draw.call(this, data);
+};
+
+/**
+ * @override Layer::attachEvents
+ */
+LineChart.prototype.attachEvents = function(){
+    Layer.prototype.attachEvents.call(this);
+
+    var that = this;
+
+    this.legend.dispatch.on('stateChange', function(newState) {
+        that.state = newState;
+        that.dispatch.stateChange(that.state);
+        that.update();
+    });
+
+    this.interactiveLayer.dispatch
+        .on('elementMousemove', function(e) {
+            that.line.clearHighlights();
+            var singlePoint, pointIndex, pointXLocation, allData = [];
+            that.svg.call(function(selection){
+                selection.each(function(data){
+                    data.filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
+                        .forEach(function(series,i) {
+                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
+                            that.line.highlightPoint(i, pointIndex, true);
+                            var point = series.values[pointIndex];
+                            if (typeof point === 'undefined') return;
+                            if (typeof singlePoint === 'undefined') singlePoint = point;
+                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
+                            allData.push({
+                                key: series.key,
+                                value: that.y()(point, pointIndex),
+                                color: that.color()(series, series.seriesIndex)
+                            });
+                        });
+                });
+            });
+            //Highlight the tooltip entry based on which point the mouse is closest to.
+            if (allData.length > 2) {
+                var yValue = that.yScale().invert(e.mouseY);
+                var domainExtent = Math.abs(that.yScale().domain()[0] - that.yScale().domain()[1]);
+                var threshold = 0.03 * domainExtent;
+                var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+                if (indexToHighlight !== null)
+                    allData[indexToHighlight].highlight = true;
+            }
+            var xValue = that.xAxis.tickFormat()(that.x()(singlePoint, pointIndex));
+            that.interactiveLayer.tooltip
+                .position({
+                    left: pointXLocation + that.margin().left,
+                    top: e.mouseY + that.margin().top
+                })
+                .chartContainer(that.svg[0][0].parentNode)
+                .enabled(that.tooltips())
+                .valueFormatter(function(d) {
+                    return that.yAxis.tickFormat()(d);
+                })
+                .data({
+                    value: xValue,
+                    series: allData
+                })();
+
+            that.interactiveLayer.renderGuideLine()(pointXLocation);
+        })
+        .on("elementMouseout",function() {
+            that.dispatch.tooltipHide();
+            that.line.clearHighlights();
+        });
+
+    this.dispatch
+        .on('tooltipShow', function(e) {
+            if (that.tooltips())
+                that.showTooltip(e, that.svg[0][0].parentNode)
+        })
+        .on('changeState', function(e) {
+            if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
+                that.svg.call(function(selection){
+                    selection.each(function(data){
+                        data.forEach(function(series,i) {
+                            series.disabled = e.disabled[i];
+                        });
+                    });
+                });
+                that.state.disabled = e.disabled;
+            }
+            that.update();
+        })
+        .on('tooltipHide', function() {
+            if (that.tooltips()) nv.tooltip.cleanup();
+        });
+
+    this.line.dispatch
+        .on('elementMouseover.tooltip', function(e) {
+            e.pos = [e.pos[0] +  that.margin().left, e.pos[1] + that.margin().top];
+            that.dispatch.tooltipShow(e);
+        })
+        .on('elementMouseout.tooltip', function(e) {
+            that.dispatch.tooltipHide(e);
+        });
 };
 
 LineChart.prototype.duration = function(_) {
@@ -272,7 +279,8 @@ nv.models.lineChart = function() {
         'duration',
         'transitionDuration',
         'x',
-        'y'
+        'y',
+        'id'
     );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
