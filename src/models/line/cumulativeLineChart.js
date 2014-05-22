@@ -148,7 +148,10 @@ CumulativeLineChart.prototype.draw = function(data){
             .margin({left:this.margin().left, top:this.margin().top})
             .svgContainer(this.svg)
             .xScale(this.xScale());
-        this.wrap.select(".nv-interactive").call(this.interactiveLayer);
+        this.wrap.select(".nv-interactive")
+            .call(this.interactiveLayer);
+        this.wrap.select(".nv-interactiveLineLayer")
+            .attr("transform", "translate(0,0)");
     }
 
     this.gEnter.select('.nv-background')
