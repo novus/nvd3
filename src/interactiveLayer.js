@@ -49,7 +49,7 @@ function InteractiveGuideline(options){
             .attr("class", "nv-guideline")
             .attr("x1", function(d) { return d;})
             .attr("x2", function(d) { return d;})
-            .attr("y1", this.available.height)
+            .attr("y1", this.height())
             .attr("y2",0)
         ;
         line.exit().remove();
@@ -119,7 +119,8 @@ InteractiveGuideline.prototype.draw = function(data){
          trigger a mouseOut event.
          */
         if (mouseX < 0 || mouseY < 0
-            || mouseX > that.available.width || mouseY > that.available.height
+            || mouseX > that.width()
+            || mouseY > that.height()
             || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
             || mouseOutAnyReason
             )

@@ -2,7 +2,7 @@ var LineChartPrivates = {
     defaultState: null
     , xScale: null
     , yScale: null
-    , interactive: null
+    , interactive: true
     , useVoronoi: null
     , tooltips: true
     , duration: 250
@@ -101,7 +101,14 @@ LineChart.prototype.draw = function(data){
 LineChart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
 
-    var that = this;
+    var that = this,
+        data = null;
+
+    that.svg.call(function(selection){
+        selection.each(function(d){
+            data = d;
+        });
+    });
 
     this.legend.dispatch.on('stateChange', function(newState) {
         that.state = newState;
@@ -112,25 +119,26 @@ LineChart.prototype.attachEvents = function(){
     this.interactiveLayer.dispatch
         .on('elementMousemove', function(e) {
             that.line.clearHighlights();
-            var singlePoint, pointIndex, pointXLocation, allData = [];
-            that.svg.call(function(selection){
-                selection.each(function(data){
-                    data.filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
-                        .forEach(function(series,i) {
-                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
-                            that.line.highlightPoint(i, pointIndex, true);
-                            var point = series.values[pointIndex];
-                            if (typeof point === 'undefined') return;
-                            if (typeof singlePoint === 'undefined') singlePoint = point;
-                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
-                            allData.push({
-                                key: series.key,
-                                value: that.y()(point, pointIndex),
-                                color: that.color()(series, series.seriesIndex)
-                            });
-                        });
+            var singlePoint,
+                pointIndex,
+                pointXLocation,
+                allData = [],
+                xValue = null;
+
+            data.filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
+                .forEach(function(series,i) {
+                    pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
+                    that.line.highlightPoint(i, pointIndex, true);
+                    var point = series.values[pointIndex];
+                    if (typeof point === 'undefined') return;
+                    if (typeof singlePoint === 'undefined') singlePoint = point;
+                    if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point, pointIndex));
+                    allData.push({
+                        key: series.key,
+                        value: that.y()(point, pointIndex),
+                        color: that.color()(series, series.seriesIndex)
+                    });
                 });
-            });
             //Highlight the tooltip entry based on which point the mouse is closest to.
             if (allData.length > 2) {
                 var yValue = that.yScale().invert(e.mouseY);
@@ -140,7 +148,7 @@ LineChart.prototype.attachEvents = function(){
                 if (indexToHighlight !== null)
                     allData[indexToHighlight].highlight = true;
             }
-            var xValue = that.xAxis.tickFormat()(that.x()(singlePoint, pointIndex));
+            xValue = that.xAxis.tickFormat()(that.x()(singlePoint, pointIndex));
             that.interactiveLayer.tooltip
                 .position({
                     left: pointXLocation + that.margin().left,
