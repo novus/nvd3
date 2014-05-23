@@ -2,7 +2,6 @@ var MultiBarHorizontalPrivates = {
     xScale: d3.scale.ordinal()
     , yScale: d3.scale.linear()
     , forceY : [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-    , color : nv.utils.defaultColor()
     , disabled : null// used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked : false
     , showValues : false
@@ -16,6 +15,8 @@ var MultiBarHorizontalPrivates = {
     , yRange: null
     , duration: null
     , id: null
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
 };
 
 /**
@@ -31,16 +32,17 @@ function MultiBarHorizontal(options){
     });
 
     this._barColor = nv.utils.defaultColor(); // adding the ability to set the color for each rather than the whole group
-    Chart.call(this, options, ['chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd']);
+    Layer.call(this, options, []);
 }
 
-nv.utils.create(MultiBarHorizontal, Chart, MultiBarHorizontalPrivates);
+nv.utils.create(MultiBarHorizontal, Layer, MultiBarHorizontalPrivates);
 
 /**
  * @override Layer::wrapper
  */
 MultiBarHorizontal.prototype.wrapper = function (data) {
     Layer.prototype.wrapper.call(this, data, ['nv-groups']);
+
 };
 
 /**
@@ -124,7 +126,9 @@ MultiBarHorizontal.prototype.draw = function(data){
     groups
         .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
         .classed('hover', function(d) { return d.hover })
-        .style('fill', function(d){ return that.color()(d) })
+        .style('fill', function(d){
+            return that.color()(d)
+        })
         .style('stroke', function(d){ return that.color()(d) });
     groups.transition()
         .style('stroke-opacity', 1)
@@ -273,7 +277,31 @@ MultiBarHorizontal.prototype.barColor = function(_) {
 nv.models.multiBarHorizontal = function() {
     "use strict";
 
-    var multiBarHorizontal = new MultiBarHorizontal();
+    var multiBarHorizontal = new MultiBarHorizontal(),
+        api = [
+            'x',
+            'y',
+            'margin',
+            'width',
+            'height',
+            'xScale',
+            'yScale',
+            'xDomain',
+            'yDomain',
+            'xRange',
+            'yRange',
+            'forceY',
+            'stacked',
+            'color',
+            'barColor',
+            'disabled',
+            'id',
+            'delay',
+            'showValues',
+            'showBarLabels',
+            'valueFormat',
+            'valuePadding'
+        ];
 
     function chart(selection) {
         multiBarHorizontal.render(selection);
@@ -283,10 +311,7 @@ nv.models.multiBarHorizontal = function() {
     chart.dispatch = multiBarHorizontal.dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    nv.utils.rebindp(chart, multiBarHorizontal, MultiBarHorizontal.prototype,
-        'x', 'y', 'margin', 'width', 'height', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceY',
-        'stacked', 'color', 'barColor', 'disabled', 'id', 'delay', 'showValues', 'showBarLabels', 'valueFormat', 'valuePadding'
-    );
+    nv.utils.rebindp(chart, multiBarHorizontal, MultiBarHorizontal.prototype, api);
 
     return chart;
 };
