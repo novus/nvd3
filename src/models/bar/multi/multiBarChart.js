@@ -2,7 +2,7 @@ var MultiBarChartPrivates = {
     stacked : false
     , defaultState : null
     , showControls: true
-    , color : null
+    , color: nv.utils.defaultColor()
     , xScale: null
     , yScale: null
     , tooltips: true
@@ -187,8 +187,8 @@ MultiBarChart.prototype.attachEvents = function(){
 MultiBarChart.prototype.color = function(_){
     if (!arguments.length) return this.options.color;
     this.options.color = nv.utils.getColor(_);
-    this.legend.color( this.options.color );
-    this.multibar.color( this.options.color );
+    this.legend.color( this.color() );
+    this.multibar.color( this.color() );
     return this;
 };
 
