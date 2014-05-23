@@ -76,9 +76,9 @@ CumulativeLineChart.prototype.draw = function(data){
         , availableWidth = this.available.width
         , availableHeight = this.available.height
         , indexDrag = d3.behavior.drag()
-            .on('dragstart', this.dragStart)
-            .on('drag', this.dragMove)
-            .on('dragend', this.dragEnd);
+            .on('dragstart', dragStart)
+            .on('drag', dragMove)
+            .on('dragend', dragEnd);
 
     if (!this.rescaleY()) {
         var seriesDomains = data
@@ -243,6 +243,23 @@ CumulativeLineChart.prototype.draw = function(data){
         .attr('height', availableHeight);
 
     this.plotAxes(data);
+
+    function dragStart() {
+        that.svg.style('cursor', 'ew-resize');
+    }
+
+    function dragMove() {
+        that.index().x = d3.event.x;
+        that.index().i = Math.round(that.dxScale().invert( that.index().x ));
+        that.updateZero();
+    }
+
+    function dragEnd() {
+        that.svg.style('cursor', 'auto');
+        // update state and send stateChange with new index
+        that.state().index = that.index().i;
+        that.dispatch.stateChange(that.state());
+    }
 };
 
 CumulativeLineChart.prototype.plotAxes = function(data){
@@ -445,23 +462,6 @@ CumulativeLineChart.prototype.updateZero = function() {
     this.duration(0);
     this.update();
     this.duration(oldDuration);
-};
-
-CumulativeLineChart.prototype.dragStart = function() {
-    this.svg.style('cursor', 'ew-resize');
-};
-
-CumulativeLineChart.prototype.dragMove = function() {
-    this.index().x = d3.event.x;
-    this.index().i = Math.round(this.dxScale().invert( this.index().x ));
-    this.updateZero();
-};
-
-CumulativeLineChart.prototype.dragEnd = function() {
-    this.svg.style('cursor', 'auto');
-    // update state and send stateChange with new index
-    this.state().index = this.index().i;
-    this.dispatch.stateChange(this.state());
 };
 
 CumulativeLineChart.prototype.showTooltip = function(e, offsetElement) {
