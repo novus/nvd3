@@ -24,15 +24,24 @@ apiTest.config.lineChart =
         interactiveLayer: nv.interactiveGuideline
     inheritedInstance:
         lines: [
-          'margin'
-          'width'
-          'height'
+          'isArea',
+          'x',
+          'y',
+          'size',
+          'xScale',
+          'yScale',
+          'xDomain',
+          'yDomain',
+          'xRange',
+          'yRange',
+          'forceX',
+          'forceY',
+          'interactive',
+          'clipEdge',
+          'clipVoronoi',
+          'useVoronoi',
+          'id',
           'interpolate'
-          'isArea'
-          'duration'
-          'transitionDuration'
-          'x'
-          'y'
         ]
     dispatch: true
     optionsFunc: true

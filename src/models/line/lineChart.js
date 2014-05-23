@@ -2,7 +2,6 @@ var LineChartPrivates = {
     defaultState: null
     , xScale: null
     , yScale: null
-    , interactive: true
     , useVoronoi: null
     , tooltips: true
     , duration: 250
@@ -11,6 +10,22 @@ var LineChartPrivates = {
     , x: function(d){return d.x}
     , y: function(d){return d.y}
     , id: null
+    , isArea: null
+    , size: null
+    , xDomain: null
+    , yDomain: null
+    , xRange: null
+    , yRange: null
+    , forceX: null
+    , forceY: null
+    , clipEdge: null
+    , clipVoronoi: null
+    , interpolate: null
+    , interactive: null
+    , tooltip: function(key, x, y) {
+        return '<h3>' + key + '</h3>' +
+        '<p>' +  y + ' at ' + x + '</p>'
+    }
 };
 
 /**
@@ -217,6 +232,7 @@ LineChart.prototype.color = function(_) {
     if (!arguments.length) return this.options.color;
     this.options.color = nv.utils.getColor(_);
     this.legend.color( this.color() );
+    this.line.color( this.color() );
     return this;
 };
 
@@ -227,6 +243,20 @@ LineChart.prototype.useInteractiveGuideline = function(_) {
         this.interactive(false);
         this.useVoronoi(false);
     }
+    return this;
+};
+
+LineChart.prototype.interactive = function(_){
+    if(!arguments.length) return this.options.interactive;
+    this.options.interactive = _;
+    this.line.interactive(_);
+    return this;
+};
+
+LineChart.prototype.useVoronoi = function(_){
+    if(!arguments.length) return this.options.useVoronoi;
+    this.options.useVoronoi = _;
+    this.line.useVoronoi(_);
     return this;
 };
 
@@ -270,6 +300,27 @@ nv.models.lineChart = function() {
         return chart;
     }
 
+    d3.rebind(chart, lineChart.line,
+        'isArea',
+        'x',
+        'y',
+        'size',
+        'xScale',
+        'yScale',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'forceX',
+        'forceY',
+        'interactive',
+        'clipEdge',
+        'clipVoronoi',
+        'useVoronoi',
+        'id',
+        'interpolate'
+    );
+
     chart.dispatch = lineChart.dispatch;
     chart.lines = lineChart.line;
     chart.legend = lineChart.legend;
@@ -277,19 +328,6 @@ nv.models.lineChart = function() {
     chart.state = lineChart.state;
     chart.xAxis = lineChart.xAxis;
     chart.yAxis = lineChart.yAxis;
-
-    d3.rebind(chart, lineChart.line,
-        'margin',
-        'width',
-        'height',
-        'interpolate',
-        'isArea',
-        'duration',
-        'transitionDuration',
-        'x',
-        'y',
-        'id'
-    );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
