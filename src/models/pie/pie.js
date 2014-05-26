@@ -69,7 +69,7 @@ Pie.prototype.arcRadius = function(){
 Pie.prototype.wrapper = function (data) {
     Layer.prototype.wrapper.call(this, data, ['nv-pieLabels']);
 
-    this.wrap.attr('transform', 'translate(' + this.available.width / 2 + ',' + this.available.height / 2 + ')');
+    this.wrap.attr('transform', 'translate(' + this.arcRadius() + ',' + this.arcRadius() + ')');
 };
 
 /**
