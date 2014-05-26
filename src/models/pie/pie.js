@@ -27,7 +27,7 @@ var PiePrivates = {
     startAngle: 0
     , endAngle: 0
     , pieLabelsOutside: true
-    , showLabels: true
+    , showLabels: false
     , labelType: "key"
     , labelThreshold: 0.02 //if slice percentage is under this, don't show label
     , labelLayout: PieLabels.Normal
