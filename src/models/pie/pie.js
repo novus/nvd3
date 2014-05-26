@@ -36,7 +36,7 @@ var PiePrivates = {
     , id: null
     , x: function(d){return d.x}
     , y: function(d){return d.y}
-    , description: null
+    , description: function(){}
 };
 
 /**
