@@ -2,6 +2,7 @@ var ChartPrivates = {
     noData: 'No Data Available',
     showXAxis : true,
     showYAxis : true,
+    showLegend: true,
     rightAlignYAxis: false,
     reduceXTicks : true,
     tooltips: true
@@ -31,8 +32,10 @@ function Chart(options, dispatch){
 
     Layer.call(this, options, dispatch);
 
-    this.legend = nv.models.legend();
     this.state = nv.utils.valueOrDefault(this.state, {});
+
+    this.legend = nv.models.legend();
+
     this.xAxis = this.getAxis();
     this.yAxis = this.getAxis();
 }
@@ -56,11 +59,14 @@ Chart.prototype.getAxis = function(){
  */
 Chart.prototype.wrapper = function(data, gs) {
 
-    var wrapPoints = [
-        'nv-x nv-axis',
-        'nv-y nv-axis',
-        'nv-legendWrap'
-    ].concat(gs || []);
+    var wrapPoints = gs || [];
+
+    if (this.showXAxis())
+        wrapPoints.push('nv-x nv-axis');
+    if (this.showYAxis())
+        wrapPoints.push('nv-y nv-axis');
+    if (this.showLegend())
+        wrapPoints.push('nv-legendWrap');
 
     Layer.prototype.wrapper.call(this, data, wrapPoints);
 

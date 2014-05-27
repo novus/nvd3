@@ -13,6 +13,8 @@ apiTest.config.pieChart =
   ]
   overrides: [
     'tooltips'
+    'showXAxis'
+    'showYAxis'
   ]
   submodels:
     pie: nv.models.pie
