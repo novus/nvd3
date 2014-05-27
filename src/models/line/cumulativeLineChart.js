@@ -287,7 +287,14 @@ CumulativeLineChart.prototype.plotAxes = function(data){
 
 CumulativeLineChart.prototype.attachEvents = function(){
 
-    var that = this;
+    var that = this,
+        data = null;
+
+    this.svg.call(function(selection){
+        selection.each(function(d){
+            data = d;
+        })
+    });
 
     this.line.dispatch
         .on('elementMouseover.tooltip', function(e) {
@@ -324,29 +331,23 @@ CumulativeLineChart.prototype.attachEvents = function(){
         .on('elementMousemove', function(e) {
             that.line.clearHighlights();
             var singlePoint, pointIndex, pointXLocation, allData = [];
+            data
+                .filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
+                .forEach(function(series,i) {
+                    pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
+                    that.line.highlightPoint(i, pointIndex, true);
 
-            that.svg.call(function(selection){
-                selection.each(function(data){
-                    data
-                        .filter(function(series, i) {
-                            series.seriesIndex = i;
-                            return !series.disabled;
-                        })
-                        .forEach(function(series,i) {
-                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
-                            that.line.highlightPoint(i, pointIndex, true);
-                            var point = series.values[pointIndex];
-                            if (typeof point === 'undefined') return;
-                            if (typeof singlePoint === 'undefined') singlePoint = point;
-                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
-                            allData.push({
-                                key: series.key,
-                                value: that.y()(point, pointIndex),
-                                color: that.color()(series,series.seriesIndex)
-                            });
-                        });
+                    var point = series.values[pointIndex];
+                    if (typeof point === 'undefined') return;
+                    if (typeof singlePoint === 'undefined') singlePoint = point;
+                    if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
+
+                    allData.push({
+                        key: series.key,
+                        value: that.y()(point, pointIndex),
+                        color: that.color()(series,series.seriesIndex)
+                    });
                 });
-            });
 
             //Highlight the tooltip entry based on which point the mouse is closest to.
             if (allData.length > 2) {
