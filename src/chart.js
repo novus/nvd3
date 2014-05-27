@@ -59,7 +59,7 @@ Chart.prototype.getAxis = function(){
  */
 Chart.prototype.wrapper = function(data, gs) {
 
-    var wrapPoints = gs || [];
+    var wrapPoints = [];
 
     if (this.showXAxis())
         wrapPoints.push('nv-x nv-axis');
@@ -67,6 +67,8 @@ Chart.prototype.wrapper = function(data, gs) {
         wrapPoints.push('nv-y nv-axis');
     if (this.showLegend())
         wrapPoints.push('nv-legendWrap');
+
+    wrapPoints = wrapPoints.concat(gs || []);
 
     Layer.prototype.wrapper.call(this, data, wrapPoints);
 
