@@ -20,7 +20,6 @@ function LinePlusBarWithFocusChart(options){
     options = nv.utils.extend({}, options, LinePlusBarWithFocusChartPrivates, {
         margin: {top: 30, right: 30, bottom: 30, left: 60}
         , chartClass: 'linePlusBar'
-        , wrapClass: ''
         , margin2: {top: 0, right: 30, bottom: 20, left: 60}
     });
     Chart.call(this, options, ['brush']);
@@ -108,8 +107,9 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
     var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
 
     this.xScale( this.bars.xScale() );
-    this.yScale( this.bars.xScale() );
     this.x2Scale( this.x2Axis.scale() );
+
+    this.yScale( this.bars.xScale() );
     this.y1Scale( this.bars.yScale() );
     this.y2Scale( this.line.yScale() );
     this.y3Scale( this.bars2.yScale() );
@@ -135,7 +135,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
 
     this.x2Scale()
         .domain( d3.extent(d3.merge(series1.concat(series2)),function(d){return d.x}) )
-        .range([0, availableWidth] );
+        .range([0, availableWidth]);
 
     //------------------------------------------------------------
 
@@ -413,10 +413,9 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
             .call(that.y2Axis);
     }
 
-    Chart.prototype.draw.call(this, data);
-
     onBrush();
 
+    Chart.prototype.draw.call(this, data);
 };
 
 LinePlusBarWithFocusChart.prototype.attachEvents = function(){

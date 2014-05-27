@@ -16,8 +16,6 @@ function PieChart(options){
 
     this.pie = this.getPie();
     this.state = this.getStateManager();
-
-    this.pie.showLabels(true);
 }
 nv.utils.create(PieChart, Chart, PieChartPrivates);
 
