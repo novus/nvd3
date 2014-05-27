@@ -2,7 +2,6 @@ var LineChartPrivates = {
     defaultState: null
     , xScale: null
     , yScale: null
-    , interactive: null
     , useVoronoi: null
     , tooltips: true
     , duration: 250
@@ -11,6 +10,22 @@ var LineChartPrivates = {
     , x: function(d){return d.x}
     , y: function(d){return d.y}
     , id: null
+    , isArea: null
+    , size: null
+    , xDomain: null
+    , yDomain: null
+    , xRange: null
+    , yRange: null
+    , forceX: null
+    , forceY: null
+    , clipEdge: null
+    , clipVoronoi: null
+    , interpolate: null
+    , interactive: null
+    , tooltip: function(key, x, y) {
+        return '<h3>' + key + '</h3>' +
+        '<p>' +  y + ' at ' + x + '</p>'
+    }
 };
 
 /**
@@ -101,7 +116,14 @@ LineChart.prototype.draw = function(data){
 LineChart.prototype.attachEvents = function(){
     Layer.prototype.attachEvents.call(this);
 
-    var that = this;
+    var that = this,
+        data = null;
+
+    that.svg.call(function(selection){
+        selection.each(function(d){
+            data = d;
+        });
+    });
 
     this.legend.dispatch.on('stateChange', function(newState) {
         that.state = newState;
@@ -112,25 +134,26 @@ LineChart.prototype.attachEvents = function(){
     this.interactiveLayer.dispatch
         .on('elementMousemove', function(e) {
             that.line.clearHighlights();
-            var singlePoint, pointIndex, pointXLocation, allData = [];
-            that.svg.call(function(selection){
-                selection.each(function(data){
-                    data.filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
-                        .forEach(function(series,i) {
-                            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
-                            that.line.highlightPoint(i, pointIndex, true);
-                            var point = series.values[pointIndex];
-                            if (typeof point === 'undefined') return;
-                            if (typeof singlePoint === 'undefined') singlePoint = point;
-                            if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point,pointIndex));
-                            allData.push({
-                                key: series.key,
-                                value: that.y()(point, pointIndex),
-                                color: that.color()(series, series.seriesIndex)
-                            });
-                        });
+            var singlePoint,
+                pointIndex,
+                pointXLocation,
+                allData = [],
+                xValue = null;
+
+            data.filter(function(series, i) { series.seriesIndex = i; return !series.disabled; })
+                .forEach(function(series,i) {
+                    pointIndex = nv.interactiveBisect(series.values, e.pointXValue, that.x());
+                    that.line.highlightPoint(i, pointIndex, true);
+                    var point = series.values[pointIndex];
+                    if (typeof point === 'undefined') return;
+                    if (typeof singlePoint === 'undefined') singlePoint = point;
+                    if (typeof pointXLocation === 'undefined') pointXLocation = that.xScale()(that.x()(point, pointIndex));
+                    allData.push({
+                        key: series.key,
+                        value: that.y()(point, pointIndex),
+                        color: that.color()(series, series.seriesIndex)
+                    });
                 });
-            });
             //Highlight the tooltip entry based on which point the mouse is closest to.
             if (allData.length > 2) {
                 var yValue = that.yScale().invert(e.mouseY);
@@ -140,7 +163,7 @@ LineChart.prototype.attachEvents = function(){
                 if (indexToHighlight !== null)
                     allData[indexToHighlight].highlight = true;
             }
-            var xValue = that.xAxis.tickFormat()(that.x()(singlePoint, pointIndex));
+            xValue = that.xAxis.tickFormat()(that.x()(singlePoint, pointIndex));
             that.interactiveLayer.tooltip
                 .position({
                     left: pointXLocation + that.margin().left,
@@ -209,6 +232,7 @@ LineChart.prototype.color = function(_) {
     if (!arguments.length) return this.options.color;
     this.options.color = nv.utils.getColor(_);
     this.legend.color( this.color() );
+    this.line.color( this.color() );
     return this;
 };
 
@@ -219,6 +243,20 @@ LineChart.prototype.useInteractiveGuideline = function(_) {
         this.interactive(false);
         this.useVoronoi(false);
     }
+    return this;
+};
+
+LineChart.prototype.interactive = function(_){
+    if(!arguments.length) return this.options.interactive;
+    this.options.interactive = _;
+    this.line.interactive(_);
+    return this;
+};
+
+LineChart.prototype.useVoronoi = function(_){
+    if(!arguments.length) return this.options.useVoronoi;
+    this.options.useVoronoi = _;
+    this.line.useVoronoi(_);
     return this;
 };
 
@@ -262,6 +300,27 @@ nv.models.lineChart = function() {
         return chart;
     }
 
+    d3.rebind(chart, lineChart.line,
+        'isArea',
+        'x',
+        'y',
+        'size',
+        'xScale',
+        'yScale',
+        'xDomain',
+        'yDomain',
+        'xRange',
+        'yRange',
+        'forceX',
+        'forceY',
+        'interactive',
+        'clipEdge',
+        'clipVoronoi',
+        'useVoronoi',
+        'id',
+        'interpolate'
+    );
+
     chart.dispatch = lineChart.dispatch;
     chart.lines = lineChart.line;
     chart.legend = lineChart.legend;
@@ -269,19 +328,6 @@ nv.models.lineChart = function() {
     chart.state = lineChart.state;
     chart.xAxis = lineChart.xAxis;
     chart.yAxis = lineChart.yAxis;
-
-    d3.rebind(chart, lineChart.line,
-        'margin',
-        'width',
-        'height',
-        'interpolate',
-        'isArea',
-        'duration',
-        'transitionDuration',
-        'x',
-        'y',
-        'id'
-    );
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 

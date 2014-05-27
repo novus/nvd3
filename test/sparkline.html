@@ -65,8 +65,7 @@
     function renderSparkline(containerId, data) {
         nv.addGraph({
             generate: function() {
-                chart = nv.models.sparkline()
-                        .margin(margin);
+                chart = nv.models.sparkline();
                 d3.select("#"+containerId+" svg")
                         .datum(data)
                         .call(chart);

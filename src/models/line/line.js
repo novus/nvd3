@@ -7,6 +7,7 @@ var LinePrivates = {
     , xScale0: null
     , yScale0: null
     , duration: 250
+    , interactive: null
     , x: null
     , y: null
     , id: null
@@ -52,6 +53,7 @@ Line.prototype.wrapper = function(data){
  * @param data
  */
 Line.prototype.draw = function(data){
+
     var that = this,
         availableWidth = this.available.width,
         availableHeight = this.available.height,

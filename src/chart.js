@@ -4,7 +4,7 @@ var ChartPrivates = {
     showYAxis : true,
     showLegend: true,
     rightAlignYAxis: false,
-    reduceXTicks : true,
+    reduceXTicks : false,
     tooltips: true
 };
 
@@ -99,8 +99,8 @@ Chart.prototype.prepareLegend = function(data){
 
 Chart.prototype.buildLegend = function(data) {
     this.prepareLegend(data);
-    if (this.options.showLegend) {
-        this.legend.width(this.size().width);
+    if (this.showLegend()) {
+        this.legend.width(this.width());
 
         this.g.select('.nv-legendWrap')
             .datum(data)

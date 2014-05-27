@@ -25,6 +25,7 @@ nv.models.donut = function(){
             'height',
             'x',
             'y',
+            'values',
             'description',
             'showLabels',
             'labelSunbeamLayout',

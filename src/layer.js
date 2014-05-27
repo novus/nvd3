@@ -148,7 +148,7 @@ Layer.prototype.attachEvents = function(){
 Layer.prototype.margin = function(_){
     if (!arguments.length) return this.options.margin;
     var om = this.options.margin;
-    om.top = nv.utils.valueOrDefault(_.bottom, om.top);
+    om.top = nv.utils.valueOrDefault(_.top, om.top);
     om.bottom = nv.utils.valueOrDefault(_.bottom, om.bottom);
     om.left = nv.utils.valueOrDefault(_.left, om.left);
     om.right = nv.utils.valueOrDefault(_.right, om.right);

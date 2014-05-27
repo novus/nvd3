@@ -27,7 +27,7 @@ var PiePrivates = {
     startAngle: 0
     , endAngle: 0
     , pieLabelsOutside: true
-    , showLabels: true
+    , showLabels: false
     , labelType: "key"
     , labelThreshold: 0.02 //if slice percentage is under this, don't show label
     , labelLayout: PieLabels.Normal
@@ -36,7 +36,7 @@ var PiePrivates = {
     , id: null
     , x: function(d){return d.x}
     , y: function(d){return d.y}
-    , description: null
+    , description: function(){}
 };
 
 /**
@@ -69,7 +69,7 @@ Pie.prototype.arcRadius = function(){
 Pie.prototype.wrapper = function (data) {
     Layer.prototype.wrapper.call(this, data, ['nv-pieLabels']);
 
-    this.wrap.attr('transform', 'translate(' + this.available.width / 2 + ',' + this.available.height / 2 + ')');
+    this.wrap.attr('transform', 'translate(' + this.arcRadius() + ',' + this.arcRadius() + ')');
 };
 
 /**

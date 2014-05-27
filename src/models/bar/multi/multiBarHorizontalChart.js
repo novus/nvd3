@@ -12,7 +12,7 @@ var MultiBarHorizontalChartPrivates = {
     , yScale: null
     , tooltipContent: null
     , tooltip: null
-    , color: nv.utils.defaultColor()
+    , color: null
 };
 
 /**
@@ -132,7 +132,6 @@ MultiBarHorizontalChart.prototype.draw = function(data){
     this.g.select('.nv-barsWrap')
         .datum(data.filter(function(d) { return !d.disabled }))
         .transition().call(this.multibarHorizontal);
-
 
         if (this.showLegend()) {
             this.legend.width(availableWidth - this.controlWidth());
@@ -269,6 +268,7 @@ MultiBarHorizontalChart.prototype.color = function(_) {
     if (!arguments.length) return this.options.color;
     this.options.color = nv.utils.getColor(_);
     this.legend.color(this.color());
+    this.multiBarHorizontal.color(this.color());
     return this;
 };
 
