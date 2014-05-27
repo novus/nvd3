@@ -304,7 +304,7 @@ nv.utils.valueOrDefault = function(value, defaultValue){
  * any arguments thru. It returns either the return value, or `dest` for chaining.
  */
 nv.utils.rebindp = function(dest, source, proto, args){
-    api = args instanceof Array ? args : [].slice.call(arguments, 3)
+    var api = args instanceof Array ? args : [].slice.call(arguments, 3);
     api.forEach(function(method){
         dest[method] = function(arg1){
             var ret = null;
@@ -321,7 +321,7 @@ nv.utils.rebindp = function(dest, source, proto, args){
             return ret === source ? dest : ret;
         };
     });
-}
+};
 
 /**
  * Fancy extension on Object.create, that additionally creates a getter/setter
@@ -339,7 +339,7 @@ nv.utils.create = function(ctor, parent, privates){
             }
         }(key))
     }
-}
+};
 
 /**
  * Copy properties right to left, returning base.

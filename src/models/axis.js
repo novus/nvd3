@@ -10,7 +10,7 @@ var AxisPrivates = {
     axisLabelDistance: 12, //The larger this number is, the closer the axis label is to the axis.
     axisRendered: false,
     maxMinRendered: false,
-    scale0: null,
+    scale0: function(){},
     axisLabel: null,
     scale: d3.scale.linear(),
     duration: 250
