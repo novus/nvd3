@@ -14,6 +14,8 @@ apiTest.config.bulletChart =
   ]
   overrides: [
     'tooltips'
+    'showXAxis'
+    'showYAxis'
   ]
   submodels:
     bullet: nv.models.bullet

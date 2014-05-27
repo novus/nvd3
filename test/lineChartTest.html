@@ -223,7 +223,8 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
   if (guideline === undefined) guideline = true;
   nv.addGraph(function() {
     var chart;
-    chart = nv.models.lineChart().useInteractiveGuideline(guideline);
+    chart = nv.models.lineChart()
+            .useInteractiveGuideline(guideline);
 
     chart
         .x(function(d,i) {
@@ -259,7 +260,6 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
     chart.yAxis
         .axisLabel('Voltage (v)')
         .tickFormat(d3.format(',.2f'));
-
 
     d3.select('#' + containerid + ' svg')
         .datum(data)

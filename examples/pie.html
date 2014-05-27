@@ -55,7 +55,7 @@ nv.addGraph(function() {
         height = nv.utils.windowSize().height / 2 - 40;
 
     var chart = nv.models.pie()
-        .values(function(d) { return d })
+        //.values(function(d) { return d }) no longer supported
         .width(width)
         .height(height);
 
@@ -74,7 +74,7 @@ nv.addGraph(function() {
         height = nv.utils.windowSize().height / 2 - 40;
 
     var chart = nv.models.donut()
-        .values(function(d) { return d })
+        //.values(function(d) { return d }) no longer supported
         .width(width)
         .height(height);
 

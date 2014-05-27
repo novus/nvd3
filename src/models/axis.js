@@ -10,7 +10,7 @@ var AxisPrivates = {
     axisLabelDistance: 12, //The larger this number is, the closer the axis label is to the axis.
     axisRendered: false,
     maxMinRendered: false,
-    scale0: null,
+    scale0: function(){},
     axisLabel: null,
     scale: d3.scale.linear(),
     duration: 250
@@ -27,8 +27,7 @@ function Axis(options){
 
     Layer.call(this, options);
 
-    this.axis = d3.svg.axis();
-    this.axis
+    this.axis = d3.svg.axis()
         .scale(this.scale())
         .orient('bottom')
         .tickFormat(function(d) { return d });
@@ -78,11 +77,11 @@ Axis.prototype.draw = function(data){
         .watchTransition(this.renderWatch, 'axis')
         .call(this.axis);
 
-    this.scale0(this.scale0() || this.axis.scale);
+    scale0(scale0() || this.axis.scale);
 
     var fmt = this.axis.tickFormat();
     if (fmt == null)
-        fmt = this.scale0().tickFormat();
+        fmt = scale0().tickFormat();
 
     var axisLabel = this.g.selectAll('text.nv-axislabel')
         .data([this.axisLabelText() || null]);
@@ -222,7 +221,7 @@ Axis.prototype.draw = function(data){
              yTicks.each(function(d,i){
              var labelPadding = this.getBBox().width + axis.tickPadding() + 16;
              if(labelPadding > width) width = labelPadding;
-             });                                               f
+             });
              */
             axisLabel.enter().append('text').attr('class', 'nv-axislabel');
             axisLabel
@@ -324,14 +323,7 @@ Axis.prototype.draw = function(data){
             .classed('zero', true);
 
     //store old scales for use in transitions on update
-    this.scale0( scale.copy() );
-};
-
-Axis.prototype.duration = function(_) {
-    if (!arguments.length) return this.options.duration;
-    this.options.duration = _;
-    this.renderWatch.reset(_);
-    return this;
+    scale0( scale.copy() );
 };
 
 Axis.prototype.scale = function(_) {

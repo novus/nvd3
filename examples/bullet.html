@@ -45,7 +45,7 @@ var chart = nv.models.bullet()
     .enter().append("svg")
       .attr("class", "bullet nvd3")
       .attr("width", width)
-      .attr("height", height)
+      .attr("height", height);
     //.append("g")
       //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
@@ -64,13 +64,6 @@ var chart = nv.models.bullet()
       .call(chart);
   };
 
-
-
-
-
-
-
-
 function randomize(d) {
   if (!d.randomizer) d.randomizer = randomizer(d);
   d.ranges = d.ranges.map(d.randomizer);
@@ -86,10 +79,6 @@ function randomizer(d) {
   };
 }
 
-
-
-
 d3.select('body').on('click', window.transition);
-
 
 </script>

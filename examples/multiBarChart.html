@@ -35,12 +35,6 @@ text {
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="stream_layers.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/canvas.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/bar/multi/multiBar.js"></script>
-<script src="../src/models/bar/multi/multiBarChart.js"></script>
 <script>
 
 var test_data = stream_layers(3,10+Math.random()*100,.1).map(function(data, i) {
@@ -88,18 +82,14 @@ nv.addGraph(function() {
     chart.yAxis
         .tickFormat(d3.format(',.1f'));
 
-    chart.state.init({
+/*    chart.state.init({
       stacked: true,
       active: [1,1,0]
-    });
+    });*/
 
     chart.dispatch.on('renderEnd', function(){
         console.log('rendered');
     });
-
-    chart.state.dispatch.on('change', function(e){
-      console.log('state change:', e);
-    })
 
     d3.select('#chart1 svg')
         .datum(negative_test_data)

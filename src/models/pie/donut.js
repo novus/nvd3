@@ -25,7 +25,6 @@ nv.models.donut = function(){
             'height',
             'x',
             'y',
-            'values',
             'description',
             'showLabels',
             'labelSunbeamLayout',
@@ -76,7 +75,7 @@ nv.models.donutChart = function(){
     chart.dispatch = donutChart.dispatch;
     chart.pie = donutChart.pie;
 
-    d3.rebind(chart, donutChart.pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
+    d3.rebind(chart, donutChart.pie, 'valueFormat', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
 
     nv.utils.rebindp(chart, donutChart, DonutChart.prototype, 'margin', 'width', 'height', 'color', 'tooltips', 'tooltipContent', 'showLegend', 'duration', 'noData', 'state', 'showLegend');
 

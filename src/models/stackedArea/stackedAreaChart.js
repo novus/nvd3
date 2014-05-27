@@ -136,6 +136,8 @@ StackedAreaChart.prototype.draw = function(data){
             .svgContainer(this.svg)
             .xScale(this.xScale());
         this.wrap.select(".nv-interactive").call(this.interactiveLayer);
+        this.wrap.select(".nv-interactiveLineLayer")
+            .attr("transform", "translate(0,0)");
     }
 
     this.stacked
@@ -261,12 +263,8 @@ StackedAreaChart.prototype.attachEvents = function(){
                 .chartContainer(that.parentNode)
                 .enabled(that.tooltips())
                 .valueFormatter(valueFormatter)
-                .data(
-                {
-                    value: xValue,
-                    series: allData
-                }
-            )();
+                .data({ value: xValue, series: allData })
+            ();
 
             that.interactiveLayer.renderGuideLine()(pointXLocation);
         })

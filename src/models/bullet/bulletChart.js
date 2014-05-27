@@ -6,6 +6,8 @@ var BulletChartPrivates = {
     , measures : function(d) { return d.measures } // measures (actual, forecast)
     , tickFormat : null
     , tooltips: true
+    , showXAxis: false
+    , showYAxis: false
 };
 
 /**

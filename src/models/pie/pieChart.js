@@ -1,5 +1,7 @@
 var PieChartPrivates = {
-    tooltips: true
+    tooltips: true,
+    showXAxis: false,
+    showYAxis: false
 };
 
 /**
