@@ -8,12 +8,12 @@
  */
 
 var InteractiveGuidelinePrivates = {
-    xScale: d3.scale.linear()
-    , yScale: d3.scale.linear()
-    , showGuideLine: true
+    xScale: null
+    , yScale: null
     , svgContainer: null
-    , isMSIE: navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
     , renderGuideLine: null
+    , showGuideLine: true
+    , isMSIE: navigator.userAgent.indexOf("MSIE") !== -1  //Check user-agent for Microsoft Internet Explorer.
 
 //Must pass in the bounding chart's <svg> container.
 //The mousemove event is attached to this container.
@@ -32,7 +32,7 @@ function InteractiveGuideline(options){
         , chartClass: 'interactiveLineLayer'
     });
 
-    Layer.call(this, options, ['elementMousemove', 'elementMouseout','elementDblclick']);
+    Layer.call(this, options, ['elementMousemove']);
 
     this.tooltip = nv.models.tooltip();
     this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
