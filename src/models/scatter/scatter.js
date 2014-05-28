@@ -47,7 +47,7 @@ function Scatter(options){
         , wrapClass: 'scatterWrap'
     });
 
-    Layer.call(this, options, ['elementClick', 'elementMouseover', 'elementMouseout']);
+    Layer.call(this, options, []);
 }
 
 nv.utils.create(Scatter, Layer, ScatterPrivates);
