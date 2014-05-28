@@ -169,7 +169,7 @@ Legend.prototype.draw = function(data){
 
         //position legend as far right as possible within the total width
         if (this.rightAlign())
-            this.g.attr('transform', 'translate(' + (this.width() - this.margin().right - legendWidth) + ',' + this.margin().top + ')');
+            this.g.attr('transform', 'translate(' + (this.available.width - this.margin().right - legendWidth) + ',' + this.margin().top + ')');
         else
             this.g.attr('transform', 'translate(0' + ',' + this.margin().top + ')');
 

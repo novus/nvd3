@@ -100,7 +100,7 @@ Chart.prototype.prepareLegend = function(data){
 Chart.prototype.buildLegend = function(data) {
     this.prepareLegend(data);
     if (this.showLegend()) {
-        this.legend.width(this.width());
+        this.legend.width(this.available.width);
 
         this.g.select('.nv-legendWrap')
             .datum(data)
