@@ -9,7 +9,7 @@
     "Frank Shao"
   ],
   "description": "Re-usable charts and chart components for d3.",
-  "main": ["nv.d3.js", "src/nv.d3.css"],
+  "main": ["nv.d3.js", "nv.d3.css"],
   "keywords": [
     "d3",
     "visualization",
