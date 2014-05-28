@@ -10,7 +10,7 @@ var AxisPrivates = {
     axisLabelDistance: 12, //The larger this number is, the closer the axis label is to the axis.
     axisRendered: false,
     maxMinRendered: false,
-    scale0: function(){},
+    scale0: null,
     axisLabel: null,
     scale: d3.scale.linear(),
     duration: 250
@@ -64,7 +64,6 @@ Axis.prototype.draw = function(data){
         axisMaxMin = null,
         xLabelMargin = null,
         scale = this.scale(),
-        scale0 = this.scale0(),
         w = null;
 
     if (this.ticks() !== null)
@@ -77,11 +76,11 @@ Axis.prototype.draw = function(data){
         .watchTransition(this.renderWatch, 'axis')
         .call(this.axis);
 
-    scale0(scale0() || this.axis.scale);
+    this.scale0(this.scale0() || this.axis.scale());
 
     var fmt = this.axis.tickFormat();
     if (fmt == null)
-        fmt = scale0().tickFormat();
+        fmt = this.scale0().tickFormat();
 
     var axisLabel = this.g.selectAll('text.nv-axislabel')
         .data([this.axisLabelText() || null]);
@@ -323,7 +322,7 @@ Axis.prototype.draw = function(data){
             .classed('zero', true);
 
     //store old scales for use in transitions on update
-    scale0( scale.copy() );
+    this.scale0( scale.copy() );
 };
 
 Axis.prototype.scale = function(_) {
