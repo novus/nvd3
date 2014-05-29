@@ -53,9 +53,6 @@ Axis.prototype.wrapper = function(data){
     gs.concat([wrapClass]).forEach(function(g){
         this.gEnter.append('g').attr('class', g);
     }, this);
-
-    this.renderWatch.reset();
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 };
 
 Axis.prototype.draw = function(data){

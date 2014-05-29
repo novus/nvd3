@@ -6,8 +6,6 @@ var LayerPrivates = {
     opacityDefault: 1e-6,
     color: nv.utils.defaultColor(),
     duration: 0
-    // x: function(d){return d.x;},
-    // y: function(d){return d.y;}
 };
 
 /**
@@ -35,8 +33,9 @@ function Layer(options, dispatch){
         'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout'
     ]);
     this.dispatch = d3.dispatch.apply(null, dispatch);
-    this.renderWatch = nv.utils.renderWatch(this.dispatch);
+    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
+
 nv.utils.create(Layer, Object, LayerPrivates);
 
 /**

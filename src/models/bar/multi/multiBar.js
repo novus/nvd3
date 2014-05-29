@@ -34,8 +34,6 @@ function MultiBar(options){
     });
 
     Layer.call(this, options, []);
-
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
 nv.utils.create(MultiBar, Layer, MultiBarPrivates);
@@ -288,13 +286,6 @@ MultiBar.prototype.draw = function(data){
     this.xScale0( this.xScale().copy );
     this.yScale0( this.yScale().copy );
 */
-};
-
-MultiBar.prototype.duration = function(_) {
-    if (!arguments.length) return this.options.duration;
-    this.options.duration = _;
-    this.renderWatch.reset(_);
-    return this;
 };
 
 MultiBar.prototype.delay = function(_) {
