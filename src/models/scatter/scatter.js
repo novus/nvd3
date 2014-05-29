@@ -82,8 +82,6 @@ Scatter.prototype.wrapper = function(data){
     this.g.attr('clip-path', this.clipEdge() ? 'url(#nv-edge-clip-' + this.id() + ')' : '');
 
     this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
-
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration())    ;
 };
 
 /**

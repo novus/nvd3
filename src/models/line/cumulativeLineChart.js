@@ -53,7 +53,6 @@ CumulativeLineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data,
         ['nv-interactive', 'nv-background', 'nv-avgLinesWrap', 'nv-controlsWrap']
     );
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     this.renderWatch.models(this.line);
     if (this.showXAxis()) this.renderWatch.models(this.xAxis);
     if (this.showYAxis()) this.renderWatch.models(this.yAxis);

@@ -57,7 +57,6 @@ StackedAreaChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data,
         ['nv-stackedWrap', 'nv-controlsWrap', 'nv-interactive']
     );
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
     if (this.showXAxis()) this.renderWatch.models(this.xAxis);
     if (this.showYAxis()) this.renderWatch.models(this.yAxis);
 };
