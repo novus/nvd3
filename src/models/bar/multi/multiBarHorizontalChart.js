@@ -88,6 +88,10 @@ function MultiBarHorizontalChart(options){
 
 nv.utils.create(MultiBarHorizontalChart, Chart, MultiBarHorizontalChartPrivates);
 
+/**
+ * override Chart::wrapper
+ * @param data
+ */
 MultiBarHorizontalChart.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data, ['nv-x nv-axis', 'nv-y nv-axis', 'nv-zeroLine', 'nv-controlsWrap']);
     this.state

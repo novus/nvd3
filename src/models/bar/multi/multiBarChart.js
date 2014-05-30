@@ -59,7 +59,7 @@ MultiBarChart.prototype.getMultiBar = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 MultiBarChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['nv-controlsWrap']);

@@ -31,7 +31,7 @@ SparklinePlus.prototype.getSparkline = function(){
 };
 
 /**
- * @override Chart::wrapper
+ * @override Layer::wrapper
  */
 SparklinePlus.prototype.wrapper = function (data) {
     var wrapPoints = [

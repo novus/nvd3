@@ -55,7 +55,7 @@ LineChart.prototype.getInteractiveLayer = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 LineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data, [ 'nv-interactive' ]);

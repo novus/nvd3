@@ -26,7 +26,7 @@ function HistoricalBarChart(options){
 nv.utils.create(HistoricalBarChart, Chart, HistoricalBarChartPrivates);
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 HistoricalBarChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data);

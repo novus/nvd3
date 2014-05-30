@@ -88,6 +88,10 @@ LinePlusBarWithFocusChart.prototype.getHistoricalBar = function(){
     return nv.models.historicalBar();
 };
 
+/**
+ * override Chart::wrapper
+ * @param data
+ */
 LinePlusBarWithFocusChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['']);
 
@@ -438,7 +442,7 @@ LinePlusBarWithFocusChart.prototype.attachEvents = function(){
             this.dispatch.tooltipHide(e);
         }.bind(this));
 
-    this.legend.dispatch.on('stateChange', function(newState) {
+    this.legend.dispatch.on('stateChange', function() {
         this.update();
     }.bind(this));
 

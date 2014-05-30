@@ -35,7 +35,8 @@ DiscreteBarChart.prototype.getDiscreteBar = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * override Chart::wrapper
+ * @param data
  */
 DiscreteBarChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, []);

@@ -66,7 +66,7 @@ ScatterChart.prototype.getDistribution = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 ScatterChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['nv-distWrap', 'nv-controlsWrap']);

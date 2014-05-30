@@ -55,6 +55,9 @@ Axis.prototype.wrapper = function(data){
     }, this);
 };
 
+/**
+ * @override Layer::draw
+ */
 Axis.prototype.draw = function(data){
 
     var that = this,
