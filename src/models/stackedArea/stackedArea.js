@@ -35,16 +35,14 @@ function StackedArea(options){
         , chartClass: 'stackedarea'
     });
 
-    Chart.call(this, options,
-        ['areaClick', 'areaMouseover', 'areaMouseout']
+    Layer.call(this, options,
+        ['areaClick', 'areaMouseover', 'areaMouseout', 'tooltipShow', 'tooltipHide']
     );
 
     this.scatter = this.getScatter();
-
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
-nv.utils.create(StackedArea, Chart, StackedAreaPrivates);
+nv.utils.create(StackedArea, Layer, StackedAreaPrivates);
 
 StackedArea.prototype.getScatter = function(){
     return nv.models.scatter();
@@ -184,11 +182,19 @@ StackedArea.prototype.draw = function(data){
  * @override Layer::attachEvents
  */
 StackedArea.prototype.attachEvents = function(){
-    Chart.prototype.attachEvents.call(this);
+    Layer.prototype.attachEvents.call(this);
 
     var _mouseEventSelector = function(e){
         return '.nv-chart-' + this.id() + ' .nv-area-' + e.seriesIndex
     }.bind(this);
+
+    this.dispatch.on('tooltipShow', function(e) {
+        if (this.options.tooltips) this.showTooltip(e);
+    }.bind(this));
+
+    this.dispatch.on('tooltipHide', function() {
+        if (this.options.tooltips) nv.tooltip.cleanup();
+    }.bind(this));
 
     this.scatter.dispatch
         .on('elementMouseover.area', function(e) {

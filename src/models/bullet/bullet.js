@@ -28,7 +28,6 @@ function Bullet(options){
     Layer.call(this, options, []);
 
     this.xScale0( this.__chart__ || d3.scale.linear() );
-    this.renderWatch = nv.utils.renderWatch(this.dispatch);
 }
 
 nv.utils.create(Bullet, Layer, BulletPrivates);

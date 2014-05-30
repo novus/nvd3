@@ -32,7 +32,6 @@ function Line(options) {
     ;
 
     this.scatter.size();
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
 nv.utils.create(Line, Layer, LinePrivates);

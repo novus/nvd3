@@ -154,9 +154,10 @@ Pie.prototype.doLabels = function(data, arc, pieLayout){
         .each(function(d) {
             var group = d3.select(this);
             group.attr('transform', function(d) {
+                d.startAngle = isNaN(d.startAngle) ? 0 : d.startAngle;
+                d.endAngle = isNaN(d.endAngle) ? 0 : d.endAngle;
                 d.outerRadius = this.arcRadius() + 10; // Set Outer Coordinate
                 d.innerRadius = this.arcRadius() + 15; // Set Inner Coordinate
-
                 return 'translate(' + labelsArc.centroid(d) + ') ' +
                     'rotate(' + this.labelLayout().rotateAngle(d) + ')';
             }.bind(pieSelf));

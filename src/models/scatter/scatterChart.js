@@ -71,8 +71,6 @@ ScatterChart.prototype.getDistribution = function(){
 ScatterChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['nv-distWrap', 'nv-controlsWrap']);
 
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
-
     this.renderWatch.models(this.scatter);
     if (this.showXAxis()) this.renderWatch.models(this.xAxis);
     if (this.showYAxis()) this.renderWatch.models(this.yAxis);

@@ -28,8 +28,6 @@ function Distribution(options){
     this.getData(function(d) {
         return d[this.axis()]
     }.bind(this));
-
-    this.renderWatch = nv.utils.renderWatch(this.dispatch, this.duration());
 }
 
 nv.utils.create(Distribution, Layer, DistributionPrivates);
