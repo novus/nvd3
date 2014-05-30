@@ -110,10 +110,10 @@ LineChart.prototype.draw = function(data){
 };
 
 /**
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 LineChart.prototype.attachEvents = function(){
-    Layer.prototype.attachEvents.call(this);
+    Chart.prototype.attachEvents.call(this);
 
     var that = this,
         data = null;

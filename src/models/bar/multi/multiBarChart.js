@@ -110,10 +110,7 @@ MultiBarChart.prototype.draw = function(data){
 };
 
 /**
- * Set up listeners for dispatches fired on the underlying
- * multiBar graph.
- *
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 MultiBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

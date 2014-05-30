@@ -159,9 +159,6 @@ SparklinePlus.prototype.draw = function(data){
 };
 
 /**
- * Set up listeners for dispatches fired on the underlying
- * multiBar graph.
- *
  * @override Chart::attachEvents
  */
 SparklinePlus.prototype.attachEvents = function(){

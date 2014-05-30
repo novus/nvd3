@@ -85,7 +85,7 @@ DiscreteBarChart.prototype.draw = function(data){
 };
 
 /**
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 DiscreteBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

@@ -60,7 +60,7 @@ HistoricalBarChart.prototype.draw = function(data){
 };
 
 /**
- * @override Layer::attacheEvents
+ * @override Chart::attacheEvents
  */
 HistoricalBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

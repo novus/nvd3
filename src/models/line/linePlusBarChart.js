@@ -135,6 +135,9 @@ LinePlusBarChart.prototype.draw = function(data){
 
 };
 
+/**
+ * @override Chart::attachEvents
+ */
 LinePlusBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
 

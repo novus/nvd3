@@ -425,6 +425,9 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
     Chart.prototype.draw.call(this, data);
 };
 
+/**
+ * @override Chart::attachEvents
+ */
 LinePlusBarWithFocusChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
     this.line.dispatch

@@ -200,7 +200,7 @@ MultiBarHorizontalChart.prototype.draw = function(data){
 
 /**
  *
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 MultiBarHorizontalChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

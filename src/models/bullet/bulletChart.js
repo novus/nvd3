@@ -103,8 +103,8 @@ BulletChart.prototype.draw = function(data, i){
     // Stash the new scale.
     this.__chart__ = x1;
 
-    var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
-        w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
+    //var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
+    //    w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
     var title = this.gEnter.select('.nv-titles').append('g')
         .attr('text-anchor', 'end')
@@ -174,12 +174,13 @@ BulletChart.prototype.draw = function(data, i){
  * @override Layer::attachEvents
  */
 BulletChart.prototype.attachEvents = function(){
+    Layer.prototype.attachEvents.call(this);
 
     this.bullet.dispatch
         .on('elementMouseover.tooltip', function(e) {
             this.dispatch.tooltipShow(e);
         }.bind(this))
-        .on('elementMouseout.tooltip', function(e) {
+        .on('elementMouseout.tooltip', function() {
             this.dispatch.tooltipHide();
         }.bind(this));
 

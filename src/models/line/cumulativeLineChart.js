@@ -308,6 +308,9 @@ CumulativeLineChart.prototype.plotAxes = function(data){
     }
 };
 
+/**
+ * @override Chart::attachEvents
+ */
 CumulativeLineChart.prototype.attachEvents = function(){
 
     var that = this,
