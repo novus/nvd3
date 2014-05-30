@@ -79,7 +79,7 @@ BulletChart.prototype.renderElement = function(element, data){
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 BulletChart.prototype.draw = function(data, i){
 

@@ -43,7 +43,7 @@ DiscreteBarChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 DiscreteBarChart.prototype.draw = function(data){
 

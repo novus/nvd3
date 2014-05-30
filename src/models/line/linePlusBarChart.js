@@ -62,6 +62,9 @@ LinePlusBarChart.prototype.wrapper = function(data){
     );
 };
 
+/**
+ * @override Chart::draw
+ */
 LinePlusBarChart.prototype.draw = function(data){
     var that = this
         , availableWidth = this.available.width

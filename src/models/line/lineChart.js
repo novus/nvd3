@@ -65,7 +65,7 @@ LineChart.prototype.wrapper = function(data){
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 LineChart.prototype.draw = function(data){
 

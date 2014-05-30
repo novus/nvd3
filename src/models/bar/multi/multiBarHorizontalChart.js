@@ -100,6 +100,9 @@ MultiBarHorizontalChart.prototype.wrapper = function(data){
         .update();
 };
 
+/**
+ * @override Chart::draw
+ */
 MultiBarHorizontalChart.prototype.draw = function(data){
 
     var that = this,

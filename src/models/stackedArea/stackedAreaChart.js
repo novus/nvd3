@@ -62,7 +62,7 @@ StackedAreaChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 StackedAreaChart.prototype.draw = function(data){
 

@@ -44,6 +44,9 @@ Legend.prototype.wrapper = function(data){
     this.g = this.wrap.select('g');
 };
 
+/**
+ * @override Layer::draw
+ */
 Legend.prototype.draw = function(data){
 
     var that = this

@@ -97,6 +97,9 @@ LinePlusBarWithFocusChart.prototype.wrapper = function (data) {
 
 };
 
+/**
+ * @override Chart::draw
+ */
 LinePlusBarWithFocusChart.prototype.draw = function(data){
 
     var that = this

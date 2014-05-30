@@ -62,6 +62,9 @@ CumulativeLineChart.prototype.wrapper = function(data){
     if (this.showYAxis()) this.renderWatch.models(this.yAxis);
 };
 
+/**
+ * @override Chart::draw
+ */
 CumulativeLineChart.prototype.draw = function(data){
 
     this.id(this.line.id());

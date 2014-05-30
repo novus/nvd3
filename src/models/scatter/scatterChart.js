@@ -79,7 +79,7 @@ ScatterChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 ScatterChart.prototype.draw = function(data){
 

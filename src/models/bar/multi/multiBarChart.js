@@ -70,7 +70,7 @@ MultiBarChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 MultiBarChart.prototype.draw = function(data){
 

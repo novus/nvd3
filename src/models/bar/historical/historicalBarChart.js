@@ -33,7 +33,7 @@ HistoricalBarChart.prototype.wrapper = function(data){
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 HistoricalBarChart.prototype.draw = function(data){
 

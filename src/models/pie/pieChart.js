@@ -26,7 +26,7 @@ PieChart.prototype.getPie = function(){
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 PieChart.prototype.draw = function(data){
     this.pie
