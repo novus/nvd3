@@ -356,7 +356,11 @@ nv.models.axis = function() {
             'rotateLabels',
             'staggerLabels',
             'axisLabelDistance',
-            'duration'
+            'duration',
+            'domain',
+            'range',
+            'rangeBand',
+            'rangeBands'
         ];
 
     function chart(selection) {

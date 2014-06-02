@@ -2,7 +2,7 @@ var LinePlusBarWithFocusChartPrivates = {
     finderHeight: 100
     , color: nv.utils.defaultColor()
     , extent: null
-    , brushExtent : null
+    , brushExtent : []
     , tooltips : true
     , xScale: null
     , yScale: null
@@ -93,7 +93,7 @@ LinePlusBarWithFocusChart.prototype.getHistoricalBar = function(){
  * @param data
  */
 LinePlusBarWithFocusChart.prototype.wrapper = function (data) {
-    Chart.prototype.wrapper.call(this, data, ['']);
+    Chart.prototype.wrapper.call(this, data, ['brush']);
 
 };
 
@@ -374,8 +374,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
             .ticks( availableWidth / 100 )
             .tickSize(-availableHeight1, 0);
 
-        that.xAxis
-            .domain([Math.ceil(that.extent()[0]), Math.floor(that.extent()[1])]);
+        that.xScale().domain( [Math.ceil(that.extent()[0]), Math.floor(that.extent()[1])] );
 
         that.g.select('.nv-x.nv-axis').transition().duration(that.transitionDuration())
             .call(that.xAxis);
