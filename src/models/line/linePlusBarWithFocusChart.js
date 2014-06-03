@@ -116,7 +116,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
     this.xScale( this.bars.xScale() );
     this.x2Scale( this.x2Axis.scale() );
 
-    this.yScale( this.bars.xScale() );
+    this.yScale( this.bars.yScale() );
     this.y1Scale( this.bars.yScale() );
     this.y2Scale( this.line.yScale() );
     this.y3Scale( this.bars2.yScale() );
