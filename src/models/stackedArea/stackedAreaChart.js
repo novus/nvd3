@@ -62,7 +62,7 @@ StackedAreaChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 StackedAreaChart.prototype.draw = function(data){
 
@@ -151,9 +151,6 @@ StackedAreaChart.prototype.draw = function(data){
 };
 
 /**
- * Set up listeners for dispatches fired on the underlying
- * multiBar graph.
- *
  * @override Chart::attachEvents
  */
 StackedAreaChart.prototype.attachEvents = function(){
@@ -234,7 +231,8 @@ StackedAreaChart.prototype.attachEvents = function(){
             //Highlight the tooltip entry based on which stack the mouse is closest to.
             if (allData.length > 2) {
                 var yValue = that.yScale().invert(e.mouseY);
-                var yDistMax = Infinity, indexToHighlight = null;
+                var //yDistMax = Infinity,
+                    indexToHighlight = null;
                 allData.forEach(function(series,i) {
 
                     //To handle situation where the stacked area chart is negative, we need to use absolute values

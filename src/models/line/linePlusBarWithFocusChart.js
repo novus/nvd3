@@ -2,7 +2,7 @@ var LinePlusBarWithFocusChartPrivates = {
     finderHeight: 100
     , color: nv.utils.defaultColor()
     , extent: null
-    , brushExtent : null
+    , brushExtent : []
     , tooltips : true
     , xScale: null
     , yScale: null
@@ -88,11 +88,18 @@ LinePlusBarWithFocusChart.prototype.getHistoricalBar = function(){
     return nv.models.historicalBar();
 };
 
+/**
+ * override Chart::wrapper
+ * @param data
+ */
 LinePlusBarWithFocusChart.prototype.wrapper = function (data) {
-    Chart.prototype.wrapper.call(this, data, ['']);
+    Chart.prototype.wrapper.call(this, data, ['brush']);
 
 };
 
+/**
+ * @override Chart::draw
+ */
 LinePlusBarWithFocusChart.prototype.draw = function(data){
 
     var that = this
@@ -109,7 +116,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
     this.xScale( this.bars.xScale() );
     this.x2Scale( this.x2Axis.scale() );
 
-    this.yScale( this.bars.xScale() );
+    this.yScale( this.bars.yScale() );
     this.y1Scale( this.bars.yScale() );
     this.y2Scale( this.line.yScale() );
     this.y3Scale( this.bars2.yScale() );
@@ -367,8 +374,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
             .ticks( availableWidth / 100 )
             .tickSize(-availableHeight1, 0);
 
-        that.xAxis
-            .domain([Math.ceil(that.extent()[0]), Math.floor(that.extent()[1])]);
+        that.xScale().domain( [Math.ceil(that.extent()[0]), Math.floor(that.extent()[1])] );
 
         that.g.select('.nv-x.nv-axis').transition().duration(that.transitionDuration())
             .call(that.xAxis);
@@ -418,6 +424,9 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
     Chart.prototype.draw.call(this, data);
 };
 
+/**
+ * @override Chart::attachEvents
+ */
 LinePlusBarWithFocusChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
     this.line.dispatch
@@ -438,7 +447,7 @@ LinePlusBarWithFocusChart.prototype.attachEvents = function(){
             this.dispatch.tooltipHide(e);
         }.bind(this));
 
-    this.legend.dispatch.on('stateChange', function(newState) {
+    this.legend.dispatch.on('stateChange', function() {
         this.update();
     }.bind(this));
 

@@ -26,14 +26,14 @@ function HistoricalBarChart(options){
 nv.utils.create(HistoricalBarChart, Chart, HistoricalBarChartPrivates);
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 HistoricalBarChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data);
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 HistoricalBarChart.prototype.draw = function(data){
 
@@ -60,7 +60,7 @@ HistoricalBarChart.prototype.draw = function(data){
 };
 
 /**
- * @override Layer::attacheEvents
+ * @override Chart::attacheEvents
  */
 HistoricalBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

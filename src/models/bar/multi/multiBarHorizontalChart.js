@@ -88,6 +88,10 @@ function MultiBarHorizontalChart(options){
 
 nv.utils.create(MultiBarHorizontalChart, Chart, MultiBarHorizontalChartPrivates);
 
+/**
+ * override Chart::wrapper
+ * @param data
+ */
 MultiBarHorizontalChart.prototype.wrapper = function(data){
     Layer.prototype.wrapper.call(this, data, ['nv-x nv-axis', 'nv-y nv-axis', 'nv-zeroLine', 'nv-controlsWrap']);
     this.state
@@ -96,6 +100,9 @@ MultiBarHorizontalChart.prototype.wrapper = function(data){
         .update();
 };
 
+/**
+ * @override Chart::draw
+ */
 MultiBarHorizontalChart.prototype.draw = function(data){
 
     var that = this,
@@ -193,7 +200,7 @@ MultiBarHorizontalChart.prototype.draw = function(data){
 
 /**
  *
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 MultiBarHorizontalChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

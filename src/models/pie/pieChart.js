@@ -26,7 +26,7 @@ PieChart.prototype.getPie = function(){
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 PieChart.prototype.draw = function(data){
     this.pie
@@ -38,10 +38,7 @@ PieChart.prototype.draw = function(data){
 };
 
 /**
- * Set up listeners for dispatches fired on the underlying
- * pie graph.
- *
- * @override PieChart::onDispatches
+ * @override Chart::attachEvents
  */
 PieChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

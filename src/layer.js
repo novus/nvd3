@@ -122,8 +122,14 @@ Layer.prototype.wrapper = function(data, gs) {
     this.wrap.attr('transform', 'translate(' + this.margin().left + ',' + this.margin().top + ')');
 };
 
+/**
+ * This should be overridden
+ */
 Layer.prototype.draw = function(){};
 
+/**
+ * Default events
+ */
 Layer.prototype.attachEvents = function(){
 
     var data = null;

@@ -66,7 +66,7 @@ ScatterChart.prototype.getDistribution = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 ScatterChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['nv-distWrap', 'nv-controlsWrap']);
@@ -79,7 +79,7 @@ ScatterChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 ScatterChart.prototype.draw = function(data){
 
@@ -213,10 +213,7 @@ ScatterChart.prototype.draw = function(data){
 };
 
 /**
- * Set up listeners for dispatches fired on the underlying
- * multiBar graph.
- *
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 ScatterChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

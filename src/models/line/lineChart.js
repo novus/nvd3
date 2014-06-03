@@ -55,7 +55,7 @@ LineChart.prototype.getInteractiveLayer = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 LineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data, [ 'nv-interactive' ]);
@@ -65,7 +65,7 @@ LineChart.prototype.wrapper = function(data){
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 LineChart.prototype.draw = function(data){
 
@@ -110,10 +110,10 @@ LineChart.prototype.draw = function(data){
 };
 
 /**
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 LineChart.prototype.attachEvents = function(){
-    Layer.prototype.attachEvents.call(this);
+    Chart.prototype.attachEvents.call(this);
 
     var that = this,
         data = null;

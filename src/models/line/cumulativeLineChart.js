@@ -49,6 +49,10 @@ CumulativeLineChart.prototype.getInteractiveLayer = function(){
     return nv.interactiveGuideline()
 };
 
+/**
+ * override Chart::wrapper
+ * @param data
+ */
 CumulativeLineChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data,
         ['nv-interactive', 'nv-background', 'nv-avgLinesWrap', 'nv-controlsWrap']
@@ -58,6 +62,9 @@ CumulativeLineChart.prototype.wrapper = function(data){
     if (this.showYAxis()) this.renderWatch.models(this.yAxis);
 };
 
+/**
+ * @override Chart::draw
+ */
 CumulativeLineChart.prototype.draw = function(data){
 
     this.id(this.line.id());
@@ -301,6 +308,9 @@ CumulativeLineChart.prototype.plotAxes = function(data){
     }
 };
 
+/**
+ * @override Chart::attachEvents
+ */
 CumulativeLineChart.prototype.attachEvents = function(){
 
     var that = this,

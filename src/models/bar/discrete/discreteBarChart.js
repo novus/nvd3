@@ -35,14 +35,15 @@ DiscreteBarChart.prototype.getDiscreteBar = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * override Chart::wrapper
+ * @param data
  */
 DiscreteBarChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, []);
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 DiscreteBarChart.prototype.draw = function(data){
 
@@ -84,7 +85,7 @@ DiscreteBarChart.prototype.draw = function(data){
 };
 
 /**
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 DiscreteBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

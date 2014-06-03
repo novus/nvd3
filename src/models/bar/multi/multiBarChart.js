@@ -59,7 +59,7 @@ MultiBarChart.prototype.getMultiBar = function(){
 };
 
 /**
- * @override Layer::wrapper
+ * @override Chart::wrapper
  */
 MultiBarChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['nv-controlsWrap']);
@@ -70,7 +70,7 @@ MultiBarChart.prototype.wrapper = function (data) {
 };
 
 /**
- * @override Layer::draw
+ * @override Chart::draw
  */
 MultiBarChart.prototype.draw = function(data){
 
@@ -110,10 +110,7 @@ MultiBarChart.prototype.draw = function(data){
 };
 
 /**
- * Set up listeners for dispatches fired on the underlying
- * multiBar graph.
- *
- * @override Layer::attachEvents
+ * @override Chart::attachEvents
  */
 MultiBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);

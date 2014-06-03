@@ -31,7 +31,7 @@ SparklinePlus.prototype.getSparkline = function(){
 };
 
 /**
- * @override Chart::wrapper
+ * @override Layer::wrapper
  */
 SparklinePlus.prototype.wrapper = function (data) {
     var wrapPoints = [
@@ -159,9 +159,6 @@ SparklinePlus.prototype.draw = function(data){
 };
 
 /**
- * Set up listeners for dispatches fired on the underlying
- * multiBar graph.
- *
  * @override Chart::attachEvents
  */
 SparklinePlus.prototype.attachEvents = function(){

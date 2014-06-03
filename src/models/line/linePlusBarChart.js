@@ -52,12 +52,19 @@ LinePlusBarChart.prototype.getHistoricalBar = function(){
     return nv.models.historicalBar();
 };
 
+/**
+ * override Chart::wrapper
+ * @param data
+ */
 LinePlusBarChart.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data,
         ['nv-y1 nv-axis', 'nv-y2 nv-axis', 'nv-barsWrap', 'nv-linesWrap']
     );
 };
 
+/**
+ * @override Chart::draw
+ */
 LinePlusBarChart.prototype.draw = function(data){
     var that = this
         , availableWidth = this.available.width
@@ -128,6 +135,9 @@ LinePlusBarChart.prototype.draw = function(data){
 
 };
 
+/**
+ * @override Chart::attachEvents
+ */
 LinePlusBarChart.prototype.attachEvents = function(){
     Chart.prototype.attachEvents.call(this);
 

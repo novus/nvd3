@@ -224,6 +224,8 @@ Pie.prototype.mouseData = function(d, i){
  * @override Layer::attachEvents
  */
 Pie.prototype.attachEvents = function(){
+    Layer.prototype.attachEvents.call(this);
+
     this.svg.on('click', function (d, i) {
         this.dispatch.chartClick({
             data: d,
@@ -258,10 +260,6 @@ Pie.prototype.getArc = function(){
     if (this.startAngle()) arc.startAngle(this.startAngle());
     if (this.endAngle()) arc.endAngle(this.endAngle());
     return arc;
-};
-
-Pie.prototype.layoutCenter = function(){
-    return this.layout.center(this);
 };
 
 Pie.prototype.labelSunbeamLayout = function(_){

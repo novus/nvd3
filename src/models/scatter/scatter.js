@@ -156,8 +156,6 @@ Scatter.prototype.draw = function(data){
     function updateInteractiveLayer() {
         if (!that.interactive()) return false;
 
-        var eventElements;
-
         var vertices = d3.merge(data.map(function(group, groupIndex) {
             return group.values
                 .map(function(point, pointIndex) {
@@ -432,6 +430,8 @@ Scatter.prototype.draw = function(data){
  * @override Layer::attachEvents
  */
 Scatter.prototype.attachEvents = function(){
+    Layer.prototype.attachEvents.call(this);
+
     this.dispatch
         .on('elementMouseover.point', function(d) {
             if (this.interactive()) this.highlightPoint(d.seriesIndex,d.pointIndex,true);

@@ -55,6 +55,9 @@ Axis.prototype.wrapper = function(data){
     }, this);
 };
 
+/**
+ * @override Layer::draw
+ */
 Axis.prototype.draw = function(data){
 
     var that = this,
@@ -353,7 +356,11 @@ nv.models.axis = function() {
             'rotateLabels',
             'staggerLabels',
             'axisLabelDistance',
-            'duration'
+            'duration',
+            'domain',
+            'range',
+            'rangeBand',
+            'rangeBands'
         ];
 
     function chart(selection) {
