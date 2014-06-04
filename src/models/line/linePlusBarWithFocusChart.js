@@ -1,7 +1,6 @@
 var LinePlusBarWithFocusChartPrivates = {
     finderHeight: 100
     , color: nv.utils.defaultColor()
-    , extent: null
     , brushExtent : []
     , tooltips : true
     , xScale: null
@@ -66,8 +65,8 @@ function LinePlusBarWithFocusChart(options){
 
     var that = this;
     this.showTooltip = function(e, offsetElement) {
-        if (that.extent())
-            e.pointIndex += Math.ceil(that.extent()[0]);
+        if (that.brushExtent())
+            e.pointIndex += Math.ceil(that.brushExtent()[0]);
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
             top = e.pos[1] + ( offsetElement.offsetTop || 0),
             x = that.xAxis.tickFormat()(that.line.x()(e.point, e.pointIndex)),
@@ -304,8 +303,8 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
 
     function onBrush() {
         that.brushExtent(that.brush.empty() ? null : that.brush.extent());
-        that.extent(that.brush.empty() ? that.x2Scale().domain() : that.brush.extent());
-        that.dispatch.brush({extent: that.extent(), brush: that.brush});
+        var extent = that.brush.empty() ? that.x2Scale().domain() : that.brush.extent();
+        that.dispatch.brush({extent: extent, brush: that.brush});
         updateBrushBG();
 
         //------------------------------------------------------------
@@ -334,7 +333,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
                         return {
                             key: d.key,
                             values: d.values.filter(function(d,i) {
-                                return that.bars.x()(d,i) >= that.extent[0] && that.bars.x()(d,i) <= that.extent()[1];
+                                return that.bars.x()(d,i) >= extent[0] && that.bars.x()(d,i) <= extent[1];
                             })
                         }
                     })
@@ -347,7 +346,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
                         return {
                             key: d.key,
                             values: d.values.filter(function(d,i) {
-                                return that.line.x()(d,i) >= that.extent()[0] && that.line.x()(d,i) <= that.extent()[1];
+                                return that.line.x()(d,i) >= extent[0] && that.line.x()(d,i) <= extent[1];
                             })
                         }
                     })
@@ -369,7 +368,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
             .ticks( availableWidth / 100 )
             .tickSize(-availableHeight1, 0);
 
-        that.xScale().domain( [Math.ceil(that.extent()[0]), Math.floor(that.extent()[1])] );
+        that.xScale().domain( [Math.ceil(extent[0]), Math.floor(extent[1])] );
 
         that.g.select('.nv-x.nv-axis').transition().duration(that.transitionDuration())
             .call(that.xAxis);
