@@ -95,6 +95,22 @@ LinePlusBarWithFocusChart.prototype.getHistoricalBar = function(){
 LinePlusBarWithFocusChart.prototype.wrapper = function (data) {
     Chart.prototype.wrapper.call(this, data, ['brush']);
 
+    var focusEnter = this.gEnter.append('g').attr('class', 'nv-focus');
+    focusEnter.append('g').attr('class', 'nv-x nv-axis');
+    focusEnter.append('g').attr('class', 'nv-y1 nv-axis');
+    focusEnter.append('g').attr('class', 'nv-y2 nv-axis');
+    focusEnter.append('g').attr('class', 'nv-barsWrap');
+    focusEnter.append('g').attr('class', 'nv-linesWrap');
+
+    var contextEnter = this.gEnter.append('g').attr('class', 'nv-context');
+    contextEnter.append('g').attr('class', 'nv-x nv-axis');
+    contextEnter.append('g').attr('class', 'nv-y1 nv-axis');
+    contextEnter.append('g').attr('class', 'nv-y2 nv-axis');
+    contextEnter.append('g').attr('class', 'nv-barsWrap');
+    contextEnter.append('g').attr('class', 'nv-linesWrap');
+    contextEnter.append('g').attr('class', 'nv-brushBackground');
+    contextEnter.append('g').attr('class', 'nv-x nv-brush');
+
 };
 
 /**
@@ -146,26 +162,6 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
 
     //------------------------------------------------------------
 
-    //------------------------------------------------------------
-    // Setup containers and skeleton of chart
-
-    var focusEnter = this.gEnter.append('g').attr('class', 'nv-focus');
-    focusEnter.append('g').attr('class', 'nv-x nv-axis');
-    focusEnter.append('g').attr('class', 'nv-y1 nv-axis');
-    focusEnter.append('g').attr('class', 'nv-y2 nv-axis');
-    focusEnter.append('g').attr('class', 'nv-barsWrap');
-    focusEnter.append('g').attr('class', 'nv-linesWrap');
-
-    var contextEnter = this.gEnter.append('g').attr('class', 'nv-context');
-    contextEnter.append('g').attr('class', 'nv-x nv-axis');
-    contextEnter.append('g').attr('class', 'nv-y1 nv-axis');
-    contextEnter.append('g').attr('class', 'nv-y2 nv-axis');
-    contextEnter.append('g').attr('class', 'nv-barsWrap');
-    contextEnter.append('g').attr('class', 'nv-linesWrap');
-    contextEnter.append('g').attr('class', 'nv-brushBackground');
-    contextEnter.append('g').attr('class', 'nv-x nv-brush');
-
-    //------------------------------------------------------------
 
     //------------------------------------------------------------
     // Context Components
@@ -212,8 +208,7 @@ LinePlusBarWithFocusChart.prototype.draw = function(data){
     var brushBG = this.g.select('.nv-brushBackground').selectAll('g')
         .data([this.brushExtent() || this.brush.extent()]);
 
-    var brushBGenter = brushBG.enter()
-        .append('g');
+    var brushBGenter = brushBG.enter().append('g');
 
     brushBGenter.append('rect')
         .attr('class', 'left')
