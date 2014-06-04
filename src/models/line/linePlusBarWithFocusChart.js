@@ -1,3 +1,6 @@
+/**
+ * Private variables
+ */
 var LinePlusBarWithFocusChartPrivates = {
     finderHeight: 100
     , color: nv.utils.defaultColor()
@@ -15,6 +18,9 @@ var LinePlusBarWithFocusChartPrivates = {
     , transitionDuration: 0
 };
 
+/**
+ * A LinePlusBarWithFocusChart
+ */
 function LinePlusBarWithFocusChart(options){
     options = nv.utils.extend({}, options, LinePlusBarWithFocusChartPrivates, {
         margin: {top: 30, right: 30, bottom: 30, left: 60}
