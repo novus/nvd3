@@ -167,8 +167,9 @@ StackedAreaChart.prototype.attachEvents = function(){
 
     this.dispatch
         .on('tooltipShow', function(e) {
+            console.log(e);
             if (that.tooltips())
-                that.showTooltip(e, that.parentNode);
+                that.showTooltip(e, that.svg[0][0].parentNode);
         })
         .on('changeState', function(e) { // Update chart from a state object passed to event handler
             if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
@@ -257,7 +258,7 @@ StackedAreaChart.prototype.attachEvents = function(){
                 function(d) {return that.yAxis.tickFormat()(d); };
             that.interactiveLayer.tooltip
                 .position({left: pointXLocation + that.margin().left, top: e.mouseY + that.margin().top})
-                .chartContainer(that.parentNode)
+                .chartContainer(that.svg[0][0].parentNode)
                 .enabled(that.tooltips())
                 .valueFormatter(valueFormatter)
                 .data({ value: xValue, series: allData })
@@ -299,6 +300,7 @@ StackedAreaChart.prototype.attachEvents = function(){
 };
 
 StackedAreaChart.prototype.showTooltip = function(e, offsetElement) {
+    console.log(offsetElement);
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = this.xAxis.tickFormat()(this.stacked.x()(e.point, e.pointIndex)),
