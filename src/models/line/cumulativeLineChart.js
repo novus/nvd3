@@ -10,7 +10,7 @@ var CumulativeLineChartPrivates = {
     , average : function(d) { return d.average }
     , transitionDuration : 250
     , noErrorCheck : false  //if set to TRUE, will bypass an error check in the indexify function.
-    , dxScale : d3.scale.linear()
+    , dxScale : null
     , index : {i: 0, x: 0}
     , xScale : null
     , yScale : null
@@ -37,6 +37,7 @@ function CumulativeLineChart(options){
     this.interactiveLayer = this.getInteractiveLayer();
     this.state = d3.functor( {index: 0, rescaleY: this.rescaleY()} );
     this.indexLine = null;
+    this.dxScale(d3.scale.linear());
 }
 
 nv.utils.create(CumulativeLineChart, Chart, CumulativeLineChartPrivates);
