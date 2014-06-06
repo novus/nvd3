@@ -1,7 +1,7 @@
 var SparklinePrivates = {
     animate : true
-    , xScale : d3.scale.linear()
-    , yScale : d3.scale.linear()
+    , xScale : null
+    , yScale : null
     , xDomain : null
     , yDomain : null
     , xRange : null
@@ -23,6 +23,8 @@ function Sparkline(options){
     });
 
     Layer.call(this, options, []);
+    this.xScale(d3.scale.linear());
+    this.yScale(d3.scale.linear());
 }
 
 nv.utils.create(Sparkline, Layer, SparklinePrivates);
