@@ -1,6 +1,6 @@
 var MultiBarPrivates = {
-    xScale: d3.scale.ordinal()
-    , yScale: d3.scale.linear()
+    xScale: null
+    , yScale: null
     , disabled: []
     , xDomain: null
     , yDomain: null
@@ -34,6 +34,9 @@ function MultiBar(options){
     });
 
     Layer.call(this, options, []);
+
+    this.xScale(d3.scale.ordinal());
+    this.yScale(d3.scale.linear());
 }
 
 nv.utils.create(MultiBar, Layer, MultiBarPrivates);
