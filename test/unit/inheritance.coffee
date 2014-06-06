@@ -1,6 +1,6 @@
 should = chai.should()
 
-test = describe.only
+test = describe
 
 test 'Boilerplate', ->
   describe 'A single boilerplate instance', ->
