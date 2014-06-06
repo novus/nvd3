@@ -4,7 +4,7 @@
 var DistributionPrivates = {
     axis : 'x' // 'x' or 'y'... horizontal or vertical
     , getData : null  // defaults d.x or d.y
-    , scale : d3.scale.linear()
+    , scale : null
     , domain : null
     , scale0: null
     , color : nv.utils.defaultColor()
@@ -24,6 +24,7 @@ function Distribution(options){
     });
 
     Layer.call(this, options, []);
+    this.scale(d3.scale.linear());
 
     this.getData(function(d) {
         return d[this.axis()]
