@@ -173,7 +173,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
                _duration !== undefined ? _duration :
                250;
     selection.__rendered = false;
-    
+
     if (renderStack.indexOf(selection) < 0)
       renderStack.push(selection);
 
@@ -210,6 +210,64 @@ nv.utils.renderWatch = function(dispatch, duration) {
       renderStack.forEach( function(d){ d.__rendered = false; });
       dispatch.renderEnd.apply(this, arguments);
     }
+  }
+
+}
+
+// Chart state utility
+nv.utils.state = function(){
+  if (!(this instanceof nv.utils.state))
+    return new nv.utils.state();
+  var state = {};
+  var _self = this;
+  var _setState = function(){ return;};
+  var _getState = function(){ return {};};
+
+  init = null;
+
+  this.dispatch = d3.dispatch('change', 'set');
+
+  this.dispatch.on('set', function(state){
+    _setState(state, true);
+  });
+
+  this.getter = function(fn){
+    _getState = fn;
+    return this;
+  }
+
+  this.setter = function(fn, callback) {
+    if (!callback) callback = function(){};
+    _setState = function(state, update){
+      fn(state);
+      if (update) callback();
+    }
+    return this;
+  }
+
+  this.init = function(state){
+    init = state;
+  }
+
+  var _set = function(){
+    var settings = _getState();
+    if (JSON.stringify(settings) === JSON.stringify(state))
+      return false;
+    for (var key in settings) {
+      if (state[key] === undefined) state[key] = {};
+      state[key] = settings[key];
+      changed = true;
+    }
+    return true;
+  }
+
+  this.update = function(){
+    if (init) {
+      _setState(init, false);
+      init = null;
+    }
+    if (_set.call(this))
+      this.dispatch.change(state);
   }
 
 }

@@ -31,14 +31,15 @@ nv.models.multiBarChart = function() {
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
-    , state = { stacked: false }
+    , state = nv.utils.state()
     , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , duration = 250
-    
     ;
+
+    state.stacked = false // DEPRECATED Maintained for backward compatibility
 
   multibar
     .stacked(false)
@@ -63,7 +64,8 @@ nv.models.multiBarChart = function() {
   // Private Variables
   //------------------------------------------------------------
   var renderWatch = nv.utils.renderWatch(dispatch);
-  
+  var stacked = false;
+
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
@@ -73,6 +75,26 @@ nv.models.multiBarChart = function() {
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        stacked: stacked
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.stacked !== undefined)
+        stacked = state.stacked;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  }
 
   //============================================================
 
@@ -102,7 +124,12 @@ nv.models.multiBarChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -267,7 +294,7 @@ nv.models.multiBarChart = function() {
               // Issue #140
               xTicks
                 .selectAll("text")
-                .attr('transform', function(d,i,j) { 
+                .attr('transform', function(d,i,j) {
                     return  getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
                   });
 
@@ -291,13 +318,13 @@ nv.models.multiBarChart = function() {
               .selectAll('.tick text')
               .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
               .style('text-anchor', rotateLabels > 0 ? 'start' : 'end');
-          
+
           g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
               .style('opacity', 1);
       }
 
 
-      if (showYAxis) {     
+      if (showYAxis) {
           yAxis
             .scale(y)
             .ticks( availableHeight / 36 )
@@ -316,8 +343,9 @@ nv.models.multiBarChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
-        state = newState;
+      legend.dispatch.on('stateChange', function(newState) {
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -363,6 +391,7 @@ nv.models.multiBarChart = function() {
         if (typeof e.stacked !== 'undefined') {
           multibar.stacked(e.stacked);
           state.stacked = e.stacked;
+          stacked = e.stacked;
         }
 
         chart.update();
@@ -409,12 +438,15 @@ nv.models.multiBarChart = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge',
    'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -512,18 +544,24 @@ nv.models.multiBarChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('multiBarChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
     defaultState = _;
     return chart;
   };
-  
+
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
