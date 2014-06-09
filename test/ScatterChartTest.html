@@ -131,6 +131,7 @@ defaultChartTest("test10", randomData(30,2));
 scatterPlusLineTest("test11", randomDataSloped(2,0));
 scatterPlusLineTest("test12", randomDataSloped(2,10));
 scatterPlusLineTest("test13", randomDataSloped(-0.5,1));
+
 defaultChartTest("test14", [
 {key: "Duplicate Y",
      values: [
@@ -168,7 +169,11 @@ function defaultChartTest(container, data, margin) {
         return "<h3>" + key + "</h3>";
     });
     d3.select('#' + container + ' svg').datum(data).transition().duration(500).call(chart);
+
     nv.utils.windowResize(chart.update);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
     return chart;
   });
 }
@@ -188,7 +193,6 @@ function scatterPlusLineTest(container, data) {
     return chart;
   });
 }
-
 
 function randomData(groups, points) { //# groups,# points per group
   var data = [],
@@ -213,7 +217,6 @@ function randomData(groups, points) { //# groups,# points per group
 
   return data;
 }
-
 
 function randomDataSloped(slope,intercept) { //# groups,# points per group
   var data = [],
@@ -241,7 +244,6 @@ function randomDataSloped(slope,intercept) { //# groups,# points per group
 
   return data;
 }
-
 
 function tinyPoints() {
   var rval = {key: "Tiny points", values: []};
