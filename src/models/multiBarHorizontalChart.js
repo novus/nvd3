@@ -28,13 +28,15 @@ nv.models.multiBarHorizontalChart = function() {
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
-    , state = { stacked: stacked }
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , duration = 250
     ;
+
+    state.stacked = false; // DEPRECATED Maintained for backward compatibility
 
   multibar
     .stacked(stacked)
@@ -69,6 +71,26 @@ nv.models.multiBarHorizontalChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
   };
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        stacked: stacked
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.stacked !== undefined)
+        stacked = state.stacked;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+      });
+    }
+  };
+
   //============================================================
   var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -90,7 +112,12 @@ nv.models.multiBarHorizontalChart = function() {
       chart.update = function() { container.transition().duration(duration).call(chart) };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -164,7 +191,7 @@ nv.models.multiBarHorizontalChart = function() {
         if (multibar.barColor())
           data.forEach(function(series,i) {
             series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
-          })
+          });
 
         g.select('.nv-legendWrap')
             .datum(data)
@@ -214,11 +241,10 @@ nv.models.multiBarHorizontalChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled }))
-
+        }).filter(function(d,i) { return !data[i].disabled }));
 
       var barsWrap = g.select('.nv-barsWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(data.filter(function(d) { return !d.disabled }));
 
       barsWrap.transition().call(multibar);
 
@@ -270,7 +296,8 @@ nv.models.multiBarHorizontalChart = function() {
       //------------------------------------------------------------
 
       legend.dispatch.on('stateChange', function(newState) {
-        state = newState;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -316,6 +343,7 @@ nv.models.multiBarHorizontalChart = function() {
         if (typeof e.stacked !== 'undefined') {
           multibar.stacked(e.stacked);
           state.stacked = e.stacked;
+          stacked = e.stacked;
         }
 
         chart.update();
@@ -357,6 +385,10 @@ nv.models.multiBarHorizontalChart = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
     'clipEdge', 'id', 'delay', 'showValues','showBarLabels', 'valueFormat', 'stacked', 'barColor');
@@ -433,11 +465,17 @@ nv.models.multiBarHorizontalChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('multiBarHorizontalChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -467,6 +505,5 @@ nv.models.multiBarHorizontalChart = function() {
   };
   //============================================================
 
-
   return chart;
-}
+};
