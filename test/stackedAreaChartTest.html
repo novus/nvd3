@@ -279,6 +279,8 @@ function defaultChartConfig(container, data, useGuideline) {
 
     nv.utils.windowResize(chart.update);
 
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
     return chart;
   });
 }
@@ -304,9 +306,11 @@ nv.addGraph(function() {
     .datum(histcatexpshort)
       .call(chart);
 
-
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
   nv.utils.windowResize(chart.update);
+
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
   return chart;
 });
