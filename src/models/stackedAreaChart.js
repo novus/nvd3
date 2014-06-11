@@ -31,7 +31,7 @@ nv.models.stackedAreaChart = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , yAxisTickFormat = d3.format(',.2f')
-    , state = { style: stacked.style() }
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
@@ -40,6 +40,8 @@ nv.models.stackedAreaChart = function() {
     , controlLabels = {}
     , duration = 250
     ;
+
+  state.style = stacked.style();
 
   xAxis
     .orient('bottom')
@@ -57,6 +59,7 @@ nv.models.stackedAreaChart = function() {
   // Private Variables
   //------------------------------------------------------------
   var renderWatch = nv.utils.renderWatch(dispatch);
+  var style = stacked.style();
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -66,6 +69,26 @@ nv.models.stackedAreaChart = function() {
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+  };
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        style: style
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.style !== undefined)
+        style = state.style;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
   };
 
   //============================================================
@@ -89,7 +112,12 @@ nv.models.stackedAreaChart = function() {
       chart.update = function() { container.transition().duration(duration).call(chart); };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -212,7 +240,7 @@ nv.models.stackedAreaChart = function() {
 
         controlsData = controlsData.filter(function(d) {
           return cData.indexOf(d.metaKey) !== -1;
-        })
+        });
 
         controls
           .width( controlWidth )
@@ -261,7 +289,7 @@ nv.models.stackedAreaChart = function() {
 
       stacked
         .width(availableWidth)
-        .height(availableHeight)
+        .height(availableHeight);
 
       var stackedWrap = g.select('.nv-stackedWrap')
           .datum(data);
@@ -325,7 +353,8 @@ nv.models.stackedAreaChart = function() {
       });
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -443,6 +472,7 @@ nv.models.stackedAreaChart = function() {
 
         if (typeof e.style !== 'undefined') {
           stacked.style(e.style);
+          style = e.style;
         }
 
         chart.update();
@@ -469,7 +499,7 @@ nv.models.stackedAreaChart = function() {
     }
    */
 
-    e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+    e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
   });
 
@@ -496,6 +526,10 @@ nv.models.stackedAreaChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
 
@@ -589,11 +623,17 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('stackedAreaChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -647,4 +687,4 @@ nv.models.stackedAreaChart = function() {
   //============================================================
 
   return chart;
-}
+};
