@@ -1,21 +1,21 @@
 
 nv.models.lineChart = function() {
   "use strict";
-  var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      color = nv.utils.defaultColor(),
-      width = null, 
-      height = null,
-      showLegend = true,
-      showControls = true,
-      fisheye = 0,
-      pauseFisheye = false,
-      tooltips = true,
-      tooltip = function(key, x, y, e, graph) { 
+  var margin = {top: 30, right: 20, bottom: 50, left: 60}
+      , color = nv.utils.defaultColor()
+      , width = null
+      , height = null
+      , showLegend = true
+      , showControls = true
+      , fisheye = 0
+      , pauseFisheye = false
+      , tooltips = true
+      , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' at ' + x + '</p>'
-      },
-      noData = "No Data Available."
-      ;
+      }
+      , noData = "No Data Available."
+      , state = nv.utils.state();
 
 
   var x = d3.fisheye.scale(d3.scale.linear).distortion(0);
@@ -27,7 +27,7 @@ nv.models.lineChart = function() {
       yAxis = nv.models.axis().scale(y).orient('left'),
       legend = nv.models.legend().height(30),
       controls = nv.models.legend().height(30).updateState(false),
-      dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
+      dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'changeState', 'stateChange');
 
 
   var showTooltip = function(e, offsetElement) {
@@ -38,6 +38,26 @@ nv.models.lineChart = function() {
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
+  };
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        fisheye: fisheye
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.fisheye !== undefined)
+        fisheye = state.fisheye;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
   };
 
 
@@ -56,8 +76,17 @@ nv.models.lineChart = function() {
           availableHeight = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom;
 
-    chart.update = function() { container.transition().call(chart) };
-    chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+      chart.update = function() { container.transition().call(chart) };
+      chart.container = this; // I need a reference to the container in order to have outside code check if the chart is visible or not
+
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
@@ -76,8 +105,6 @@ nv.models.lineChart = function() {
 
       //------------------------------------------------------------
 
-
-
       var wrap = container.selectAll('g.nv-wrap.nv-lineChart').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineChart').append('g');
 
@@ -87,7 +114,6 @@ nv.models.lineChart = function() {
           .attr('width', availableWidth)
           .attr('height', availableHeight);
 
-
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-linesWrap');
@@ -95,11 +121,7 @@ nv.models.lineChart = function() {
       gEnter.append('g').attr('class', 'nv-controlsWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-
       var g = wrap.select('g');
-
-
-
 
       if (showLegend) {
         legend.width(availableWidth);
@@ -126,8 +148,6 @@ nv.models.lineChart = function() {
             .call(controls);
       }
 
-
-
       lines
         .width(availableWidth)
         .height(availableHeight)
@@ -135,17 +155,13 @@ nv.models.lineChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }));
 
-
-
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
       var linesWrap = g.select('.nv-linesWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(data.filter(function(d) { return !d.disabled }));
 
       d3.transition(linesWrap).call(lines);
-
-
 
       xAxis
         //.scale(x)
@@ -165,8 +181,6 @@ nv.models.lineChart = function() {
 
       d3.transition(g.select('.nv-y.nv-axis'))
           .call(yAxis);
-
-
 
       g.select('.nv-background').on('mousemove', updateFisheye);
       g.select('.nv-background').on('click', function() { pauseFisheye = !pauseFisheye; });
@@ -209,11 +223,31 @@ nv.models.lineChart = function() {
           pauseFisheye = false;
         }
 
+        state.fisheye = fisheye;
+        dispatch.stateChange(state);
+
         chart.update();
       });
 
+      // Update chart from a state object passed to event handler
+      dispatch.on('changeState', function(e) {
+        if (typeof e.disabled !== 'undefined') {
+          data.forEach(function(series,i) {
+              series.disabled = e.disabled[i];
+          });
+          state.disabled = e.disabled;
+        }
+        if (typeof e.fisheye !== 'undefined') {
+          state.fisheye = e.fisheye;
+          fisheye = e.fisheye;
+        }
+        chart.update();
+      });
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
+        for (var key in newState)
+          state[key] = newState[key];
+        dispatch.stateChange(state);
         chart.update();
       });
 
@@ -221,12 +255,18 @@ nv.models.lineChart = function() {
         e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
       });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
+
+      dispatch.on('tooltipShow', function(e) {
+        if (tooltips)
+          showTooltip(e, that.parentNode)
+      } ); // TODO: maybe merge with above?
 
       lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
       });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
+
+      if (tooltips)
+          dispatch.on('tooltipHide', nv.tooltip.cleanup);
 
     });
 
@@ -238,6 +278,10 @@ nv.models.lineChart = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, lines, 'defined', 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate');
 
@@ -286,12 +330,23 @@ nv.models.lineChart = function() {
     return chart;
   };
 
+  // DEPRECATED
+  chart.state = function(_) {
+    nv.deprecated('multiBarChart.state');
+    if (!arguments.length) return state;
+    state = _;
+    return chart;
+  };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
+
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
     return chart;
   };
 
-
   return chart;
-}
+};
