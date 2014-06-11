@@ -32,7 +32,7 @@ nv.models.cumulativeLineChart = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , id = lines.id()
-    , state = { index: 0, rescaleY: rescaleY }
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , average = function(d) { return d.average }
@@ -41,6 +41,9 @@ nv.models.cumulativeLineChart = function() {
     , duration = 250
     , noErrorCheck = false  //if set to TRUE, will bypass an error check in the indexify function.
     ;
+
+    state.index = 0;
+    state.rescaleY = rescaleY;
 
   xAxis
     .orient('bottom')
@@ -62,7 +65,6 @@ nv.models.cumulativeLineChart = function() {
     , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
-
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
@@ -71,6 +73,29 @@ nv.models.cumulativeLineChart = function() {
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
+  };
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        index: index,
+        rescaleY: rescaleY
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.index !== undefined)
+        index = state.index;
+      if (state.rescaleY !== undefined)
+        rescaleY = state.rescaleY;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
   };
 
   //============================================================
@@ -98,7 +123,12 @@ nv.models.cumulativeLineChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -187,7 +217,7 @@ nv.models.cumulativeLineChart = function() {
         var completeDomain = [
           d3.min(seriesDomains, function(d) { return d[0] }),
           d3.max(seriesDomains, function(d) { return d[1] })
-        ]
+        ];
 
         lines.yDomain(completeDomain);
       } else {
@@ -385,11 +415,11 @@ nv.models.cumulativeLineChart = function() {
           .attr('fill', 'red')
           .attr('fill-opacity', .5)
           .style("pointer-events","all")
-          .call(indexDrag)
+          .call(indexDrag);
 
       indexLine
           .attr('transform', function(d) { return 'translate(' + dx(d.i) + ',0)' })
-          .attr('height', availableHeight)
+          .attr('height', availableHeight);
 
       //------------------------------------------------------------
 
@@ -474,7 +504,8 @@ nv.models.cumulativeLineChart = function() {
 
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -482,7 +513,6 @@ nv.models.cumulativeLineChart = function() {
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
-
 
           data
           .filter(function(series, i) {
@@ -564,7 +594,6 @@ nv.models.cumulativeLineChart = function() {
             .data([index]);
         }
 
-
         if (typeof e.rescaleY !== 'undefined') {
           rescaleY = e.rescaleY;
         }
@@ -613,6 +642,10 @@ nv.models.cumulativeLineChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi','useVoronoi',  'id');
 
@@ -705,11 +738,17 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('cululativeLineChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+    // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -784,7 +823,7 @@ nv.models.cumulativeLineChart = function() {
       line.values = line.values.map(function(point, pointIndex) {
         point.display = {'y': (indexifyYGetter(point, pointIndex) - v) / (1 + v) };
         return point;
-      })
+      });
 
       return line;
     })
@@ -794,4 +833,4 @@ nv.models.cumulativeLineChart = function() {
 
 
   return chart;
-}
+};
