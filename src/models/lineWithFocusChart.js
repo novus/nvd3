@@ -32,8 +32,10 @@ nv.models.lineWithFocusChart = function() {
                '<p>' +  y + ' at ' + x + '</p>'
       }
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
     , transitionDuration = 250
+    , state = nv.utils.state()
+    , defaultState = null
     ;
 
   lines
@@ -73,6 +75,23 @@ nv.models.lineWithFocusChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
+
   //============================================================
 
 
@@ -90,6 +109,24 @@ nv.models.lineWithFocusChart = function() {
       chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -302,7 +339,6 @@ nv.models.lineWithFocusChart = function() {
       d3.transition(g.select('.nv-context .nv-x.nv-axis'))
           .call(x2Axis);
 
-
       y2Axis
         .scale(y2)
         .ticks( availableHeight2 / 36 )
@@ -321,12 +357,24 @@ nv.models.lineWithFocusChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
+        for (var key in newState)
+          state[key] = newState[key];
+        dispatch.stateChange(state);
         chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
+      });
+
+      dispatch.on('changeState', function(e) {
+        if (typeof e.disabled !== 'undefined') {
+          data.forEach(function(series,i) {
+            series.disabled = e.disabled[i];
+          });
+        }
+        chart.update();
       });
 
       //============================================================
@@ -451,6 +499,10 @@ nv.models.lineWithFocusChart = function() {
   chart.x2Axis = x2Axis;
   chart.y2Axis = y2Axis;
 
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
+
   d3.rebind(chart, lines, 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
@@ -524,6 +576,24 @@ nv.models.lineWithFocusChart = function() {
   chart.tooltipContent = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+
+  // DEPRECATED
+  chart.state = function(_) {
+    nv.deprecated('lineWithFocusChart.state');
+    if (!arguments.length) return state;
+    state = _;
+    return chart;
+  };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
     return chart;
   };
 
