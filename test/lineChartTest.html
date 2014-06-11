@@ -171,6 +171,8 @@ nv.addGraph(function() {
 
   nv.utils.windowResize(chart.update);
 
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
   return chart;
 });
 
@@ -241,6 +243,8 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
         .call(chart);
 
     nv.utils.windowResize(chart.update);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
     return chart;
   });

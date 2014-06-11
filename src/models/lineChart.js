@@ -1,4 +1,3 @@
-
 nv.models.lineChart = function() {
   "use strict";
   //============================================================
@@ -28,7 +27,7 @@ nv.models.lineChart = function() {
       }
     , x
     , y
-    , state = {}
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
@@ -62,6 +61,23 @@ nv.models.lineChart = function() {
 
   var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+      }
+  };
+
   //============================================================
 
 
@@ -89,9 +105,13 @@ nv.models.lineChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
-      state.disabled = data.map(function(d) { return !!d.disabled });
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
 
+      // DEPRECATED set state.disableddisabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
         var key;
@@ -248,9 +268,10 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
 
       legend.dispatch.on('stateChange', function(newState) {
-          state = newState;
-          dispatch.stateChange(state);
-          chart.update();
+        for (var key in newState)
+          state[key] = newState[key];
+        dispatch.stateChange(state);
+        chart.update();
       });
 
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
@@ -366,6 +387,9 @@ nv.models.lineChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
     , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
@@ -447,11 +471,17 @@ nv.models.lineChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('lineChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -484,4 +514,4 @@ nv.models.lineChart = function() {
 
 
   return chart;
-}
+};
