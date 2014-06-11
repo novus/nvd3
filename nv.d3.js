@@ -699,29 +699,47 @@ window.nv.tooltip.* also has various helper methods.
   //Original tooltip.show function. Kept for backward compatibility.
   // pos = [left,top]
   nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
-      
-        //Create new tooltip div if it doesn't exist on DOM.
-        var   container = document.createElement('div');
-        container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
+    
+    var body = parentContainer.getElementsByTagName('svg')[0];
 
-        var body = parentContainer;
-        if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
-            //If the parent element is an SVG element, place tooltip in the <body> element.
-            body = document.getElementsByTagName('body')[0];
-        }
-   
-        container.style.left = 0;
-        container.style.top = 0;
-        container.style.opacity = 0;
-        container.innerHTML = content;
-        body.appendChild(container);
-        
-        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
-        if (parentContainer) {
-           pos[0] = pos[0] - parentContainer.scrollLeft;
-           pos[1] = pos[1] - parentContainer.scrollTop;
-        }
-        nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
+    if (parentContainer) {
+        pos[0] = pos[0] - parentContainer.scrollLeft;
+        pos[1] = pos[1] - parentContainer.scrollTop;
+    }
+
+    var container = d3.select(body)
+        .append('g')
+        .attr('class','tooltip-container');
+
+    var containerHeight = 25;
+    var containerWidth;
+
+    var text = container.append("text")
+        .attr("text-anchor", "middle")
+        .text(content);
+
+    text.each(function(){
+        containerWidth = this.getBBox().width +15;
+    });
+
+    var bounds = nv.tooltip.calcTooltipPosition(pos, gravity, dist, container[0][0], containerWidth, containerHeight);
+
+    container.attr('transform', function(d,i){
+        d.x = bounds.x;
+        d.y = bounds.y;
+        return "translate(" + d.x + "," + d.y + ")";
+    });
+
+    text
+        .attr("x", containerWidth/2)
+        .attr("y", containerHeight/2)
+        .attr("dy", ".35em");
+
+    container.insert('rect', ":first-child")
+        .attr("width",containerWidth)
+        .attr("height", containerHeight)
+        .attr("fill","white")
+        .attr("stroke", "black");
   };
 
   //Looks up the ancestry of a DOM element, and returns the first NON-svg node.
@@ -762,105 +780,63 @@ window.nv.tooltip.* also has various helper methods.
   //pos = [left,top] coordinates of where to place the tooltip, relative to the SVG chart container.
   //gravity = how to orient the tooltip
   //dist = how far away from the mouse to place tooltip
-  //container = tooltip DIV
-  nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
-
-            var height = parseInt(container.offsetHeight),
-                width = parseInt(container.offsetWidth),
-                windowWidth = nv.utils.windowSize().width,
-                windowHeight = nv.utils.windowSize().height,
-                scrollTop = window.pageYOffset,
-                scrollLeft = window.pageXOffset,
-                left, top;
-
-            windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
-            windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
+  //container = tooltip container <g>
+  nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container, width, height) {
+        var windowWidth = parseInt(container.parentElement.getBBox().width),
+            windowHeight = parseInt(container.parentElement.getBBox().height),
+            left, top;
 
             gravity = gravity || 's';
-            dist = dist || 20;
+            dist = dist || 5;
 
-            var tooltipTop = function ( Elem ) {
-                return nv.tooltip.findTotalOffsetTop(Elem, top);
-            };
+        var tooltipTop = function ( Elem ) {
+            return nv.tooltip.findTotalOffsetTop(Elem, top);
+        };
 
-            var tooltipLeft = function ( Elem ) {
-                return nv.tooltip.findTotalOffsetLeft(Elem,left);
-            };
-
-            switch (gravity) {
-              case 'e':
+        var tooltipLeft = function ( Elem ) {
+            return nv.tooltip.findTotalOffsetLeft(Elem,left);
+        };
+        switch (gravity) {
+            case 'e':
                 left = pos[0] - width - dist;
                 top = pos[1] - (height / 2);
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = pos[0] + dist > scrollLeft ? pos[0] + dist : scrollLeft - tLeft + left;
-                if (tTop < scrollTop) top = scrollTop - tTop + top;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                if (top + height > windowHeight) top = windowHeight - height;
                 break;
-              case 'w':
+            case 'w':
                 left = pos[0] + dist;
                 top = pos[1] - (height / 2);
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft + width > windowWidth) left = pos[0] - width - dist;
-                if (tTop < scrollTop) top = scrollTop + 5;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                if (left + width > windowWidth) left = pos[0] - width - dist;
+                if (top + height > windowHeight) top = windowHeight - height;
                 break;
-              case 'n':
+            case 'n':
                 left = pos[0] - (width / 2) - 5;
                 top = pos[1] + dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = scrollLeft + 5;
-                if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                if (left + width > windowWidth) left = left - width/2 + 5;
+                if (top + height > windowHeight) top = windowHeight - height;
                 break;
-              case 's':
+            case 's':
                 left = pos[0] - (width / 2);
                 top = pos[1] - height - dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = scrollLeft + 5;
-                if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                if (scrollTop > tTop) top = scrollTop;
+                if (left + width > windowWidth) left = left - width/2 + 5;
                 break;
-              case 'none':
+            case 'none':
                 left = pos[0];
                 top = pos[1] - dist;
                 var tLeft = tooltipLeft(container);
                 var tTop = tooltipTop(container);
                 break;
-            }
+        }
 
-
-            container.style.left = left+'px';
-            container.style.top = top+'px';
-            container.style.opacity = 1;
-            container.style.position = 'absolute'; 
-
-            return container;
+        return {
+            x: left,
+            y: top
+        };
     };
 
     //Global utility function to remove tooltips from the DOM.
     nv.tooltip.cleanup = function() {
-
-              // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
-              var tooltips = document.getElementsByClassName('nvtooltip');
-              var purging = [];
-              while(tooltips.length) {
-                purging.push(tooltips[0]);
-                tooltips[0].style.transitionDelay = '0 !important';
-                tooltips[0].style.opacity = 0;
-                tooltips[0].className = 'nvtooltip-pending-removal';
-              }
-
-              setTimeout(function() {
-
-                  while (purging.length) {
-                     var removeMe = purging.pop();
-                      removeMe.parentNode.removeChild(removeMe);
-                  }
-            }, 500);
+        d3.selectAll('g.tooltip-container')
+            .remove();
     };
 
 })();
@@ -2176,8 +2152,8 @@ nv.models.bulletChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
-        top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
+    var left = e.pos[0] + margin.left,
+        top = e.pos[1] + margin.top,
         content = tooltip(e.key, e.label, e.value, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
@@ -2543,8 +2519,8 @@ nv.models.cumulativeLineChart = function() {
      ;
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -3652,8 +3628,8 @@ nv.models.discreteBarChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(discretebar.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(discretebar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -4158,8 +4134,8 @@ nv.models.historicalBarChart = function() {
       }
     }
 
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -4650,7 +4626,8 @@ nv.models.indentedTree = function() {
 
             d3.select(this).select('span')
               .attr('class', d3.functor(column.classes) )
-              .text(function(d) { return column.format ? (d[column.key] ? column.format(d[column.key]) : '-') :  (d[column.key] || '-'); });
+              .text(function(d) { return column.format ? column.format(d) :
+                                        (d[column.key] || '-') });
           });
 
         if  (column.showCount) {
@@ -4958,7 +4935,7 @@ nv.models.indentedTree = function() {
               var legendText = d3.select(this).select('text');
               var nodeTextLength;
               try {
-                nodeTextLength = legendText.getComputedTextLength();
+                nodeTextLength = legendText.node().getComputedTextLength();
                 // If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
                 if(nodeTextLength <= 0) throw Error();
               }
@@ -5446,8 +5423,8 @@ nv.models.lineChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -5923,8 +5900,8 @@ nv.models.linePlusBarChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-      var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-          top = e.pos[1] + ( offsetElement.offsetTop || 0),
+      var left = e.pos[0],
+          top = e.pos[1],
           x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
           y = (e.series.bar ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
           content = tooltip(e.series.key, x, y, e, chart);
@@ -6359,8 +6336,8 @@ nv.models.lineWithFocusChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -6687,6 +6664,7 @@ nv.models.lineWithFocusChart = function() {
                 .map(function(d,i) {
                   return {
                     key: d.key,
+                    area: d.area,
                     values: d.values.filter(function(d,i) {
                       return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                     })
@@ -6953,8 +6931,8 @@ nv.models.linePlusBarWithFocusChart = function() {
     if (extent) {
         e.pointIndex += Math.ceil(extent[0]);
     }
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
         y = (e.series.bar ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -8051,8 +8029,8 @@ nv.models.multiBarChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(multibar.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -9019,8 +8997,8 @@ nv.models.multiBarHorizontalChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(multibar.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -9465,8 +9443,8 @@ nv.models.multiChart = function() {
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(lines1.x()(e.point, e.pointIndex)),
         y = ((e.series.yAxis == 2) ? yAxis2 : yAxis1).tickFormat()(lines1.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -10250,6 +10228,7 @@ nv.models.ohlcBar = function() {
 
   return chart;
 }
+
 nv.models.pie = function() {
   "use strict";
   //============================================================
@@ -10265,6 +10244,7 @@ nv.models.pie = function() {
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
+    , labelFormat = d3.format('%')
     , showLabels = true
     , pieLabelsOutside = true
     , donutLabelsOutside = false
@@ -10345,12 +10325,13 @@ nv.models.pie = function() {
               .attr('class', 'nv-slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
+
                 dispatch.elementMouseover({
                     label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     pointIndex: i,
-                    pos: [d3.event.pageX, d3.event.pageY],
+                    pos: [d3.mouse(this)[0] + margin.left + availableWidth / 2, d3.mouse(this)[1] + margin.top + availableHeight / 2],
                     id: id
                 });
               })
@@ -10472,11 +10453,13 @@ nv.models.pie = function() {
                       Adjust the label's y-position to remove the overlap.
                       */
                       var center = labelsArc.centroid(d);
-                      var hashKey = createHashKey(center);
-                      if (labelLocationHash[hashKey]) {
-                        center[1] -= avgHeight;
+                      if(d.value){
+                        var hashKey = createHashKey(center);
+                        if (labelLocationHash[hashKey]) {
+                          center[1] -= avgHeight;
+                        }
+                        labelLocationHash[createHashKey(center)] = true;
                       }
-                      labelLocationHash[createHashKey(center)] = true;
                       return 'translate(' + center + ')'
                     }
                 });
@@ -10487,7 +10470,7 @@ nv.models.pie = function() {
                   var labelTypes = {
                     "key" : getX(d.data),
                     "value": getY(d.data),
-                    "percent": d3.format('%')(percent)
+                    "percent": labelFormat(percent)
                   };
                   return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                 });
@@ -10649,6 +10632,12 @@ nv.models.pie = function() {
     return chart;
   };
 
+  chart.labelFormat = function(_) {
+    if (!arguments.length) return labelFormat;
+    labelFormat = _;
+    return chart;
+  };
+
   chart.labelThreshold = function(_) {
     if (!arguments.length) return labelThreshold;
     labelThreshold = _;
@@ -10659,6 +10648,7 @@ nv.models.pie = function() {
 
   return chart;
 }
+
 nv.models.pieChart = function() {
   "use strict";
   //============================================================
@@ -10694,8 +10684,8 @@ nv.models.pieChart = function() {
 
   var showTooltip = function(e, offsetElement) {
     var tooltipLabel = pie.description()(e.point) || pie.x()(e.point)
-    var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
-        top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         y = pie.valueFormat()(pie.y()(e.point)),
         content = tooltip(tooltipLabel, y, e, chart);
 
@@ -10827,6 +10817,11 @@ nv.models.pieChart = function() {
         dispatch.tooltipHide(e);
       });
 
+    dispatch.on('tooltipShow', function(e) {
+      if (tooltips) showTooltip(e, that.parentNode);
+    });
+
+
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
 
@@ -10858,10 +10853,6 @@ nv.models.pieChart = function() {
     dispatch.tooltipShow(e);
   });
 
-  dispatch.on('tooltipShow', function(e) {
-    if (tooltips) showTooltip(e);
-  });
-
   dispatch.on('tooltipHide', function() {
     if (tooltips) nv.tooltip.cleanup();
   });
@@ -10878,9 +10869,9 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'labelFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -11701,12 +11692,12 @@ nv.models.scatterChart = function() {
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
 
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        topX = y.range()[0] + margin.top + ( offsetElement.offsetTop || 0),
-        leftY = x.range()[0] + margin.left + ( offsetElement.offsetLeft || 0 ),
-        topY = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
+        leftX = e.pos[0],
+        topX = y.range()[0] + margin.top,
+        leftY = x.range()[0] + margin.left,
+        topY = e.pos[1],
         xVal = xAxis.tickFormat()(scatter.x()(e.point, e.pointIndex)),
         yVal = yAxis.tickFormat()(scatter.y()(e.point, e.pointIndex));
 
@@ -12328,12 +12319,12 @@ nv.models.scatterPlusLineChart = function() {
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
 
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        topX = y.range()[0] + margin.top + ( offsetElement.offsetTop || 0),
-        leftY = x.range()[0] + margin.left + ( offsetElement.offsetLeft || 0 ),
-        topY = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
+        leftX = e.pos[0],
+        topX = y.range()[0] + margin.top,
+        leftY = x.range()[0] + margin.left,
+        topY = e.pos[1],
         xVal = xAxis.tickFormat()(scatter.x()(e.point, e.pointIndex)),
         yVal = yAxis.tickFormat()(scatter.y()(e.point, e.pointIndex));
 
@@ -13790,8 +13781,8 @@ nv.models.stackedAreaChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(stacked.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(stacked.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);

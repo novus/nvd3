@@ -45,8 +45,8 @@ nv.models.multiChart = function() {
       dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(lines1.x()(e.point, e.pointIndex)),
         y = ((e.series.yAxis == 2) ? yAxis2 : yAxis1).tickFormat()(lines1.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
