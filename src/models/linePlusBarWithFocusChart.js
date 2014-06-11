@@ -1,4 +1,3 @@
-
 nv.models.linePlusBarWithFocusChart = function() {
   "use strict";
   //============================================================
@@ -42,8 +41,10 @@ nv.models.linePlusBarWithFocusChart = function() {
     , y3
     , y4
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
     , transitionDuration = 0
+    , state = nv.utils.state()
+    , defaultState = null
     ;
 
   lines
@@ -93,6 +94,23 @@ nv.models.linePlusBarWithFocusChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
+
   //------------------------------------------------------------
 
 
@@ -111,6 +129,24 @@ nv.models.linePlusBarWithFocusChart = function() {
       chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
       chart.container = this;
 
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -276,7 +312,7 @@ nv.models.linePlusBarWithFocusChart = function() {
       if (brushExtent) brush.extent(brushExtent);
 
       var brushBG = g.select('.nv-brushBackground').selectAll('g')
-          .data([brushExtent || brush.extent()])
+          .data([brushExtent || brush.extent()]);
 
       var brushBGenter = brushBG.enter()
           .append('g');
@@ -346,12 +382,26 @@ nv.models.linePlusBarWithFocusChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
+        for (var key in newState)
+          state[key] = newState[key];
+        dispatch.stateChange(state);
         chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
+      });
+
+        // Update chart from a state object passed to event handler
+      dispatch.on('changeState', function(e) {
+        if (typeof e.disabled !== 'undefined') {
+          data.forEach(function(series,i) {
+            series.disabled = e.disabled[i];
+          });
+          state.disabled = e.disabled;
+        }
+        chart.update();
       });
 
       //============================================================
@@ -570,6 +620,10 @@ nv.models.linePlusBarWithFocusChart = function() {
   chart.y3Axis = y3Axis;
   chart.y4Axis = y4Axis;
 
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
+
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
@@ -638,6 +692,18 @@ nv.models.linePlusBarWithFocusChart = function() {
     return chart;
   };
 
+  // DEPRECATED
+  chart.state = function(_) {
+    nv.deprecated('linePlusBarWithFocusChart.state');
+    if (!arguments.length) return state;
+    state = _;
+    return chart;
+  };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
+
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
@@ -655,4 +721,4 @@ nv.models.linePlusBarWithFocusChart = function() {
 
 
   return chart;
-}
+};
