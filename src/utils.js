@@ -202,7 +202,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
           }
         });
     }
-  }
+  };
 
   this.renderEnd = function() {
     if (renderStack.every( function(d){ return d.__rendered; } ))
@@ -212,18 +212,18 @@ nv.utils.renderWatch = function(dispatch, duration) {
     }
   }
 
-}
+};
 
 // Chart state utility
 nv.utils.state = function(){
   if (!(this instanceof nv.utils.state))
     return new nv.utils.state();
-  var state = {};
-  var _self = this;
-  var _setState = function(){ return;};
-  var _getState = function(){ return {};};
-
-  init = null;
+  var state = {},
+    _self = this,
+    _setState = function(){},
+    _getState = function(){ return {};},
+    init = null,
+    changed = null;
 
   this.dispatch = d3.dispatch('change', 'set');
 
@@ -234,20 +234,20 @@ nv.utils.state = function(){
   this.getter = function(fn){
     _getState = fn;
     return this;
-  }
+  };
 
   this.setter = function(fn, callback) {
     if (!callback) callback = function(){};
     _setState = function(state, update){
       fn(state);
       if (update) callback();
-    }
+    };
     return this;
-  }
+  };
 
   this.init = function(state){
     init = state;
-  }
+  };
 
   var _set = function(){
     var settings = _getState();
@@ -259,7 +259,7 @@ nv.utils.state = function(){
       changed = true;
     }
     return true;
-  }
+  };
 
   this.update = function(){
     if (init) {
@@ -270,7 +270,7 @@ nv.utils.state = function(){
       this.dispatch.change(state);
   }
 
-}
+};
 
 /*
 Snippet of code you can insert into each nv.models.* to give you the ability to

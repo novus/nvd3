@@ -34,7 +34,7 @@ nv.models.scatterChart = function() {
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
     , tooltip      = null
-    , state = {}
+    , state        = nv.utils.state()
     , defaultState = null
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , noData       = "No Data Available."
@@ -97,6 +97,23 @@ nv.models.scatterChart = function() {
     { key: 'Magnify', disabled: true }
   ];
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
+
   //============================================================
 
 
@@ -125,7 +142,13 @@ nv.models.scatterChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
+
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -407,11 +430,14 @@ nv.models.scatterChart = function() {
           pauseFisheye = false;
         }
 
+        dispatch.stateChange(state);
+
         chart.update();
       });
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled;
+        for (var key in newState)
+            state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -490,6 +516,9 @@ nv.models.scatterChart = function() {
   chart.yAxis = yAxis;
   chart.distX = distX;
   chart.distY = distY;
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
   chart.options = nv.utils.optionsFunc.bind(chart);
@@ -610,11 +639,17 @@ nv.models.scatterChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('scatterChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -637,7 +672,7 @@ nv.models.scatterChart = function() {
     distX.duration(duration);
     distY.duration(duration);
     return chart;
-  }
+  };
   chart.transitionDuration = function(_) {
     nv.deprecated('scatterChart.transitionDuration');
     return chart.duration(_);
@@ -647,4 +682,4 @@ nv.models.scatterChart = function() {
 
 
   return chart;
-}
+};
