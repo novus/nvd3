@@ -218,7 +218,7 @@ nv.addGraph(function() {
     .each('start', function() {
         setTimeout(function() {
             d3.selectAll('#chart1 *').each(function() {
-              console.log('start',this.__transition__, this)
+              // console.log('start',this.__transition__, this)
               // while(this.__transition__)
               if(this.__transition__)
                 this.__transition__.duration = 1;
@@ -232,6 +232,10 @@ nv.addGraph(function() {
     //           if(this.__transition__)
     //             this.__transition__.duration = 1;
     //         })});
+
+  chart.state.dispatch.on('change', function(state){
+    console.log('state', JSON.stringify(state));
+  });
 
   nv.utils.windowResize(chart.update);
 
@@ -258,6 +262,10 @@ nv.addGraph(function() {
     .datum(histcatexpshort)
     .transition()
       .call(chart);
+
+  chart.state.dispatch.on('change', function(state){
+    console.log('state', JSON.stringify(state));
+  });
 
   nv.utils.windowResize(chart.update);
 

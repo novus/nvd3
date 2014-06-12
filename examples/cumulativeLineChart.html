@@ -88,7 +88,7 @@ nv.addGraph(function() {
 
   chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
   chart.state.dispatch.on('change', function(state){
-    console.log('state', JSON.stringify(state));
+    nv.log('state', JSON.stringify(state));
   });
 
   return chart;
@@ -127,7 +127,7 @@ nv.addGraph(function() {
 
   chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
   chart.state.dispatch.on('change', function(state){
-    console.log('state', JSON.stringify(state));
+    nv.log('state', JSON.stringify(state));
   });
   return chart;
 });

@@ -90,7 +90,9 @@ nv.addGraph(function() {
   //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
 
   chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
-
+  chart.state.dispatch.on('change', function(state){
+    nv.log('state', JSON.stringify(state));
+  });
   return chart;
 });
 

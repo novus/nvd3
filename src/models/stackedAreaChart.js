@@ -75,7 +75,7 @@ nv.models.stackedAreaChart = function() {
     return function(){
       return {
         active: data.map(function(d) { return !d.disabled }),
-        style: style
+        style: stacked.style()
       };
     }
   };
