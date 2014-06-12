@@ -66,6 +66,38 @@ Axis.prototype.draw = function(data){
         scale = this.scale(),
         w = null;
 
+    function getXLabelPosition(scale) {
+	// This function calculates the midway position for the X
+	// label. It tries to use rangeExtent() if present. If not, it
+	// defers to range() values. Depending on the chart type, these
+	// can have different meanings and it can be difficult to
+	// calculate the full range of the chart. This should work in all
+	// cases.
+	var xPosition;
+	if ('rangeExtent' in scale) {
+	    xPosition = (scale.rangeExtent()[1] + scale.rangeExtent()[0]) / 2;
+	    return xPosition;
+	}
+
+	if (scale.range().length > 2) {
+	    var w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+	    xPosition = w / 2;
+	} else if (scale.range().length == 2) {
+	    if (scale.range()[0] == 0) {
+		// presumably range is [0, full_length]
+		var xPosition = scale.range()[1] / 2;
+	    } else {
+		// use same method as for when there are > 2 points, though simplified
+		var w = scale.range()[1] - (scale.range()[0] / 2);
+		xPosition = w / 2;
+	    }
+	} else {
+	    // scale.range is 1. Difficult to tell.
+	    var xPosition = scale.range()[0];
+	}
+	return xPosition;
+    }
+
     if (this.ticks() !== null)
         this.axis.ticks(this.ticks());
     else if (this.axis.orient() == 'top' || this.axis.orient() == 'bottom')
@@ -90,13 +122,10 @@ Axis.prototype.draw = function(data){
         case 'top':
             axisLabel.enter().append('text')
                 .attr('class', 'nv-axislabel');
-            w = (scale.range().length==2)
-                ? scale.range()[1]
-                : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
             axisLabel
                 .attr('text-anchor', 'middle')
                 .attr('y', 0)
-                .attr('x', w/2);
+                .attr('x', getXLabelPosition(scale));
             if (this.showMaxMin()) {
                 axisMaxMin = this.wrap.selectAll('g.nv-axisMaxMin')
                     .data(scale.domain());
@@ -141,13 +170,10 @@ Axis.prototype.draw = function(data){
                     .style('text-anchor', that.rotateLabels()%360 > 0 ? 'start' : 'end');
             }
             axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-            w = (scale.range().length==2)
-                ? scale.range()[1]
-                : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
             axisLabel
                 .attr('text-anchor', 'middle')
                 .attr('y', xLabelMargin)
-                .attr('x', w/2);
+                .attr('x', getXLabelPosition(scale));
             if (this.showMaxMin()) {
                 //if (showMaxMin && !isOrdinal) {
                 axisMaxMin = this.wrap.selectAll('g.nv-axisMaxMin')
@@ -393,4 +419,3 @@ nv.models.axis = function() {
 
     return chart;
 };
-
