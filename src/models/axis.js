@@ -12,7 +12,7 @@ var AxisPrivates = {
     maxMinRendered: false,
     scale0: null,
     axisLabel: null,
-    scale: d3.scale.linear(),
+    scale: null,
     duration: 250
 };
 
@@ -28,9 +28,12 @@ function Axis(options){
     Layer.call(this, options);
 
     this.axis = d3.svg.axis()
-        .scale(this.scale())
         .orient('bottom')
         .tickFormat(function(d) { return d });
+
+    this.scale(d3.scale.linear());
+
+    this.axis.scale(this.scale());
 }
 
 nv.utils.create(Axis, Layer, AxisPrivates);

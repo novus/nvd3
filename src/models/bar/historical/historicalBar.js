@@ -1,6 +1,6 @@
 var HistoricalBarPrivates = {
-    xScale : d3.scale.linear()
-    , yScale : d3.scale.linear()
+    xScale : null
+    , yScale : null
     , forceX : null
     , forceY : [0]
     , padData : false
@@ -27,6 +27,9 @@ function HistoricalBar(options){
     });
 
     Layer.call(this, options, []);
+
+    this.xScale(d3.scale.linear());
+    this.yScale(d3.scale.linear());
 }
 
 nv.utils.create(HistoricalBar, Layer, HistoricalBarPrivates);

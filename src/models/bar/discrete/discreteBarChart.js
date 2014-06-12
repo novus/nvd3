@@ -96,13 +96,12 @@ DiscreteBarChart.prototype.attachEvents = function(){
         }.bind(this))
         .on('elementMouseover.tooltip', function(e) {
             e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
-            this.dispatch.tooltipShow(e);
+            this.showTooltip(e, this.svg[0][0].parentNode);
         }.bind(this));
 };
 
-DiscreteBarChart.prototype.showTooltip = function(e) {
-    var offsetElement = this.svg[0][0],
-        left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+DiscreteBarChart.prototype.showTooltip = function(e, offsetElement) {
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = this.xAxis.tickFormat()(this.x()(e.point, e.pointIndex)),
         y = this.yAxis.tickFormat()(this.y()(e.point, e.pointIndex)),

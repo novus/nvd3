@@ -1,6 +1,5 @@
 /**
  * Private variables
- * @type {{color: *}}
  */
 var LineWithFocusChartPrivates = {
     margin2: {top: 0, right: 30, bottom: 20, left: 60}
@@ -10,9 +9,11 @@ var LineWithFocusChartPrivates = {
     , yScale: null
     , x2Scale: null
     , y2Scale: null
-    , brushExtent :null
-    , tooltips : true
-    , tooltip : function(key, x, y) {
+    , brushExtent: []
+    , tooltips: true
+    , x: function(d){return d.x}
+    , y: function(d){return d.y}
+    , tooltip: function(key, x, y) {
         return '<h3>' + key + '</h3>' +
             '<p>' +  y + ' at ' + x + '</p>'
     }
@@ -71,8 +72,18 @@ LineWithFocusChart.prototype.getLine = function(){
  * @override Chart::wrapper
  */
 LineWithFocusChart.prototype.wrapper = function(data){
-    Chart.prototype.wrapper.call(this, data, ['']);
+    Chart.prototype.wrapper.call(this, data, ['brush']);
 
+    var focusEnter = this.gEnter.append('g').attr('class', 'nv-focus');
+    focusEnter.append('g').attr('class', 'nv-y nv-axis');
+    focusEnter.append('g').attr('class', 'nv-linesWrap');
+
+    var contextEnter = this.gEnter.append('g').attr('class', 'nv-context');
+    contextEnter.append('g').attr('class', 'nv-x nv-axis');
+    contextEnter.append('g').attr('class', 'nv-y nv-axis');
+    contextEnter.append('g').attr('class', 'nv-linesWrap');
+    contextEnter.append('g').attr('class', 'nv-brushBackground');
+    contextEnter.append('g').attr('class', 'nv-x nv-brush');
 };
 
 /**
@@ -85,66 +96,22 @@ LineWithFocusChart.prototype.draw = function(data){
         , availableHeight1 = (this.options.size.height || parseInt(this.svg.style('height')) || 400) - this.margin().top - this.margin().bottom - this.height2()
         , availableHeight2 = this.height2() - this.margin2().top - this.margin2().bottom;
 
-    //------------------------------------------------------------
-    // Setup Scales
-
-    this.xScale(this.lines.xScale());
-    this.yScale(this.lines.yScale());
-    this.x2Scale(this.lines2.xScale());
-    this.y2Scale(this.lines2.yScale());
+    this.xScale( this.lines.xScale() );
+    this.yScale( this.lines.yScale() );
+    this.x2Scale( this.lines2.xScale() );
+    this.y2Scale( this.lines2.yScale() );
 
     //------------------------------------------------------------
-
-    //------------------------------------------------------------
-    // Setup containers and skeleton of chart
-
-    var focusEnter = this.gEnter.append('g').attr('class', 'nv-focus');
-    focusEnter.append('g').attr('class', 'nv-y nv-axis');
-    focusEnter.append('g').attr('class', 'nv-linesWrap');
-
-    var contextEnter = this.gEnter.append('g').attr('class', 'nv-context');
-    contextEnter.append('g').attr('class', 'nv-x nv-axis');
-    contextEnter.append('g').attr('class', 'nv-y nv-axis');
-    contextEnter.append('g').attr('class', 'nv-linesWrap');
-    contextEnter.append('g').attr('class', 'nv-brushBackground');
-    contextEnter.append('g').attr('class', 'nv-x nv-brush');
-
-    //------------------------------------------------------------
-
-    //------------------------------------------------------------
-    // Legend
-
-    if (this.showLegend()) {
-        this.legend.width(availableWidth);
-        this.g.select('.nv-legendWrap').datum(data).call(this.legend);
-        if ( this.margin().top != this.legend.height()) {
-            this.margin().top = this.legend.height();
-            availableHeight1 = (this.options.size.height || parseInt(this.svg.style('height')) || 400) - this.margin().top - this.margin().bottom - this.height2();
-        }
-        this.g.select('.nv-legendWrap').attr('transform', 'translate(0,' + (-this.margin().top) +')')
-    }
-
-    //------------------------------------------------------------
-
-    //------------------------------------------------------------
-    // Main Chart Component(s)
-
-    this.lines
-        .width(availableWidth)
-        .height(availableHeight1)
-        .color(
-            data.map(function(d,i) { return d.color || that.color()(d, i) })
-                .filter(function(d,i) { return !data[i].disabled })
-        );
+    // Context Component(s)
 
     this.lines2
         //.defined(this.defined())
         .width(availableWidth)
         .height(availableHeight2)
         .color(
-            data.map(function(d,i) { return d.color || that.color()(d, i) })
-                .filter(function(d,i) { return !data[i].disabled })
-        );
+        data.map(function(d,i) { return d.color || that.color()(d, i) })
+            .filter(function(d,i) { return !data[i].disabled })
+    );
 
     this.g.select('.nv-context')
         .attr('transform', 'translate(0,' + ( availableHeight1 + this.margin().bottom + this.margin2().top) + ')');
@@ -153,27 +120,6 @@ LineWithFocusChart.prototype.draw = function(data){
         .datum(data.filter(function(d) { return !d.disabled }));
 
     d3.transition(contextLinesWrap).call(this.lines2);
-
-    //------------------------------------------------------------
-
-    //------------------------------------------------------------
-    // Setup Main (Focus) Axes
-
-    this.xAxis
-        .scale(this.xScale())
-        .ticks( availableWidth / 100 )
-        .tickSize(-availableHeight1, 0);
-
-    this.yAxis
-        .scale(this.yScale())
-        .ticks( availableHeight1 / 36 )
-        .tickSize( -availableWidth, 0);
-
-    this.g.select('.nv-focus .nv-x.nv-axis')
-        .attr('transform', 'translate(0,' + availableHeight1 + ')');
-
-    //------------------------------------------------------------
-
 
     //------------------------------------------------------------
     // Setup Brush
@@ -188,14 +134,12 @@ LineWithFocusChart.prototype.draw = function(data){
             that.transitionDuration(oldTransition);
         });
 
-    if (this.brushExtent())
-        this.brush.extent(this.brushExtent());
+    if (this.brushExtent()) this.brush.extent(this.brushExtent());
 
     var brushBG = this.g.select('.nv-brushBackground').selectAll('g')
         .data([this.brushExtent() || this.brush.extent()]);
 
-    var brushBGenter = brushBG.enter()
-        .append('g');
+    var brushBGenter = brushBG.enter().append('g');
 
     brushBGenter.append('rect')
         .attr('class', 'left')
@@ -216,15 +160,11 @@ LineWithFocusChart.prototype.draw = function(data){
         .attr('height', availableHeight2);
     gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
-    onBrush();
-
-    //------------------------------------------------------------
-
     //------------------------------------------------------------
     // Setup Secondary (Context) Axes
 
     this.x2Axis
-        .scale(this.x2Scale())
+        //.scale(this.x2Scale())
         .ticks( availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
@@ -243,6 +183,11 @@ LineWithFocusChart.prototype.draw = function(data){
 
     this.g.select('.nv-context .nv-x.nv-axis')
         .attr('transform', 'translate(0,' + this.y2Scale().range()[0] + ')');
+
+    //------------------------------------------------------------
+
+    this.g.select('.nv-focus .nv-x.nv-axis')
+        .attr('transform', 'translate(0,' + availableHeight1 + ')');
 
     //------------------------------------------------------------
 
@@ -283,21 +228,38 @@ LineWithFocusChart.prototype.draw = function(data){
 
     function onBrush() {
         that.brushExtent(that.brush.empty() ? null : that.brush.extent());
-        var extent = that.brush.empty() ? that.x2Scale().domain() : that.brush.extent();
-
-        //The brush extent cannot be less than one.  If it is, don't update the line chart.
-        if (Math.abs(extent[0] - extent[1]) <= 1)
-            return;
-
+        var extent = that.brush.empty() ? that.x2Scale().domain() : that.brush.extent(),
+            focusLinesWrap = null;
         that.dispatch.brush({extent: extent, brush: that.brush});
-
         updateBrushBG();
 
-        // Update Main (Focus)
-        var focusLinesWrap = that.g.select('.nv-focus .nv-linesWrap')
-            .datum(
-            data
-                .filter(function(d) { return !d.disabled })
+        //The brush extent cannot be less than one.  If it is, don't update the line chart.
+/*        if (Math.abs(extent[0] - extent[1]) <= 1)
+            return;*/
+
+        //------------------------------------------------------------
+        // Setup Main (Focus) Axes
+
+        that.xAxis
+            .scale(that.xScale())
+            .ticks( availableWidth / 100 )
+            .tickSize(-availableHeight1, 0);
+
+        that.yAxis
+            .scale(that.yScale())
+            .ticks( availableHeight1 / 36 )
+            .tickSize( -availableWidth, 0);
+
+        that.lines
+            .width(availableWidth)
+            .height(availableHeight1)
+            .color(
+            data.map(function(d,i) { return d.color || that.color()(d, i) })
+                .filter(function(d,i) { return !data[i].disabled })
+        );
+
+        focusLinesWrap = that.g.select('.nv-focus .nv-linesWrap').datum(
+            data.filter(function(d) { return !d.disabled })
                 .map(function(d) {
                     return {
                         key: d.key,
@@ -308,12 +270,16 @@ LineWithFocusChart.prototype.draw = function(data){
                     }
                 })
         );
-        focusLinesWrap.transition().duration(that.transitionDuration()).call(that.lines);
 
         // Update Main (Focus) Axes
         that.g.select('.nv-focus .nv-x.nv-axis').transition().duration(that.transitionDuration()).call(that.xAxis);
         that.g.select('.nv-focus .nv-y.nv-axis').transition().duration(that.transitionDuration()).call(that.yAxis);
+
+        focusLinesWrap.transition().duration(that.transitionDuration()).call(that.lines);
+
     }
+
+    onBrush();
 
     Chart.prototype.draw.call(this, data);
 };
@@ -321,8 +287,8 @@ LineWithFocusChart.prototype.draw = function(data){
 LineWithFocusChart.prototype.showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = this.xAxis.tickFormat()(this.lines.x()(e.point, e.pointIndex)),
-        y = this.yAxis.tickFormat()(this.lines.y()(e.point, e.pointIndex)),
+        x = this.xAxis.tickFormat()(this.x()(e.point, e.pointIndex)),
+        y = this.yAxis.tickFormat()(this.y()(e.point, e.pointIndex)),
         content = this.tooltip()(e.series.key, x, y);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
@@ -340,7 +306,7 @@ LineWithFocusChart.prototype.attachEvents = function(){
             e.pos = [e.pos[0] +  this.margin().left, e.pos[1] + this.margin().top];
             this.dispatch.tooltipShow(e);
         }.bind(this))
-            .on('elementMouseout.tooltip', function(e) {
+        .on('elementMouseout.tooltip', function(e) {
             this.dispatch.tooltipHide(e);
         }.bind(this));
 
@@ -358,18 +324,16 @@ LineWithFocusChart.prototype.attachEvents = function(){
 };
 
 LineWithFocusChart.prototype.x = function(_) {
-    if (!arguments.length) return this.options.x;
+    if (!arguments.length) return this.lines.x();
     this.lines.x(_);
     this.lines2.x(_);
-    this.options.x = _;
     return this;
 };
 
 LineWithFocusChart.prototype.y = function(_) {
-    if (!arguments.length) return this.options.y;
+    if (!arguments.length) return this.lines.y();
     this.lines.y(_);
     this.lines2.y(_);
-    this.options.y = _;
     return this;
 };
 
@@ -384,10 +348,9 @@ LineWithFocusChart.prototype.margin2 = function(_) {
 };
 
 LineWithFocusChart.prototype.interpolate = function(_) {
-    if (!arguments.length) return this.options.interpolate;
+    if (!arguments.length) return this.lines.interpolate();
     this.lines.interpolate(_);
     this.lines2.interpolate(_);
-    this.options.interpolate = _;
     return this;
 };
 

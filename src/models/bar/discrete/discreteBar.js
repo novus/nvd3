@@ -1,11 +1,11 @@
 var DiscreteBarPrivates = {
-    xScale : d3.scale.ordinal()
-    , yScale : d3.scale.linear()
+    xScale : null
+    , yScale : null
     , xScale0: null
     , yScale0: null
     , forceY : [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , showValues : false
-    , valueFormat : d3.format(',.2f')
+    , valueFormat : null
     , xDomain : null
     , yDomain : null
     , xRange : null
@@ -28,6 +28,10 @@ function DiscreteBar(options){
     });
 
     Layer.call(this, options, []);
+
+    this.xScale(d3.scale.ordinal());
+    this.yScale(d3.scale.linear());
+    this.valueFormat(d3.format(',.2f'));
 }
 
 nv.utils.create(DiscreteBar, Layer, DiscreteBarPrivates);

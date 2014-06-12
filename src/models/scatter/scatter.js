@@ -2,9 +2,9 @@ var ScatterPrivates = {
     id           : null,
     x            : function(d){return d.x;},
     y            : function(d){return d.y;},
-    xScale       : d3.scale.linear(),
-    yScale       : d3.scale.linear(),
-    zScale       : d3.scale.linear(), //linear because d3.svg.shape.size is treated as area
+    xScale       : null,
+    yScale       : null,
+    zScale       : null,
     getSize      : function(d) { return d.size || 1}, // accessor to get the point size
     getShape     : function(d) { return d.shape || 'circle' }, // accessor to get point shape
     onlyCircles  : true, // Set to false to use shapes
@@ -48,6 +48,10 @@ function Scatter(options){
     });
 
     Layer.call(this, options, []);
+
+    this.xScale(d3.scale.linear());
+    this.yScale(d3.scale.linear());
+    this.zScale(d3.scale.linear()); //linear because d3.svg.shape.size is treated as area
 }
 
 nv.utils.create(Scatter, Layer, ScatterPrivates);

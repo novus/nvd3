@@ -2,30 +2,30 @@
  * Private variables
  * @type {{color: *}}
  */
-var ChartNamePrivates = {
-    color: nv.utils.getColor( d3.scale.category20c().range() )
+var BoilerplatePrivates = {
+    color: nv.utils.defaultColor()
 };
 
 /**
- * A ChartName
+ * A Boilerplate
  */
-function ChartName(options){
-    options = nv.utils.extend({}, options, ChartNamePrivates, {
-        margin: {top: 30, right: 10, bottom: 10, left: 10}
-        , width : 960
-        , height : 500
-        , chartClass: 'chartName'
+function Boilerplate(options){
+    options = nv.utils.extend({}, options, BoilerplatePrivates, {
+        margin: {top: 1, right: 2, bottom: 3, left: 4}
+        , width : 5
+        , height : 6
+        , chartClass: 'boilerplate'
     });
 
     Chart.call(this, options, []);
 }
 
-nv.utils.create(ChartName, Chart, ChartNamePrivates);
+nv.utils.create(Boilerplate, Chart, BoilerplatePrivates);
 
 /**
  * @override Chart::wrapper
  */
-ChartName.prototype.wrapper = function(data){
+Boilerplate.prototype.wrapper = function(data){
     Chart.prototype.wrapper.call(this, data, []);
 
 };
@@ -33,30 +33,32 @@ ChartName.prototype.wrapper = function(data){
 /**
  * @override Chart::draw
  */
-ChartName.prototype.draw = function(data){
+Boilerplate.prototype.draw = function(data){
 
     Chart.prototype.draw.call(this, data);
 };
 
 /**
- * The chartName model returns a function wrapping an instance of a ChartName.
+ * The boilerplate model returns a function wrapping an instance of a Boilerplate.
  */
-nv.models.chartName = function () {
+nv.models.boilerplate = function () {
     "use strict";
 
-    var chartName = new ChartName();
+    var boilerplate = new Boilerplate();
 
     function chart(selection) {
-        chartName.render(selection);
+        boilerplate.render(selection);
         return chart;
     }
 
-    chart.dispatch = chartName.dispatch;
+    chart.dispatch = boilerplate.dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
+    chart.xAxis = boilerplate.xAxis;
+    chart.yAxis = boilerplate.yAxis;
 
-    // d3.rebind(chart, chartName.something, '');
+    // d3.rebind(chart, boilerplate.something, '');
 
-    nv.utils.rebindp(chart, chartName, ChartName.prototype,
+    nv.utils.rebindp(chart, boilerplate, Boilerplate.prototype,
         'margin', 'width', 'height', 'color'
     );
 

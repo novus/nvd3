@@ -1,6 +1,6 @@
 var MultiBarHorizontalPrivates = {
-    xScale: d3.scale.ordinal()
-    , yScale: d3.scale.linear()
+    xScale: null
+    , yScale: null
     , forceY : [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , disabled : null// used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , stacked : false
@@ -33,6 +33,9 @@ function MultiBarHorizontal(options){
 
     this._barColor = nv.utils.defaultColor(); // adding the ability to set the color for each rather than the whole group
     Layer.call(this, options, []);
+
+    this.xScale(d3.scale.ordinal());
+    this.yScale(d3.scale.linear());
 }
 
 nv.utils.create(MultiBarHorizontal, Layer, MultiBarHorizontalPrivates);

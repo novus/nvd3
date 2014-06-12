@@ -8,7 +8,7 @@ var BulletPrivates = {
     , measureLabels : function(d) { return d.measureLabels ? d.measureLabels : []  }
     , forceX : [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
     , tickFormat : null
-    , xScale1 : d3.scale.linear()
+    , xScale1 : null
     , xScale0: null
     , color: nv.utils.getColor(['#1f77b4'])
     , orient : 'left' // TODO top & bottom
@@ -27,6 +27,7 @@ function Bullet(options){
 
     Layer.call(this, options, []);
 
+    this.xScale1(d3.scale.linear());
     this.xScale0( this.__chart__ || d3.scale.linear() );
 }
 

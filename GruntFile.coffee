@@ -20,6 +20,8 @@ module.exports = (grunt)->
         'models/scatter/**/*'
         'models/sparkline/**/*'
         'models/stackedArea/**/*'
+        'models/boilerplate'
+        'inheritance'
     ]
 
     # Project configuration.
