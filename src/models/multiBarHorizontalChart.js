@@ -61,6 +61,7 @@ nv.models.multiBarHorizontalChart = function() {
   // Private Variables
   //------------------------------------------------------------
 
+
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
@@ -111,6 +112,8 @@ nv.models.multiBarHorizontalChart = function() {
 
       chart.update = function() { container.transition().duration(duration).call(chart) };
       chart.container = this;
+
+      stacked = multibar.stacked();
 
       state
         .setter(stateSetter(data), chart.update)
@@ -321,6 +324,7 @@ nv.models.multiBarHorizontalChart = function() {
 
         state.stacked = multibar.stacked();
         dispatch.stateChange(state);
+        stacked = multibar.stacked();
 
         chart.update();
       });
