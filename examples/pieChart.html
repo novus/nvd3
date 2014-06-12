@@ -83,7 +83,9 @@ nv.addGraph(function() {
           .call(chart);
 
     chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
-
+    chart.state.dispatch.on('change', function(state){
+      nv.log('state', JSON.stringify(state));
+    });
     return chart;
 });
 
@@ -108,6 +110,7 @@ nv.addGraph(function() {
 
       //chart.pie.donutLabelsOutside(true).donut(true);
 
+
       d3.select("#test2")
           //.datum(historicalBarChart)
           .datum(testdata)
@@ -115,6 +118,10 @@ nv.addGraph(function() {
           .attr('width', width)
           .attr('height', height)
           .call(chart);
+
+    chart.state.dispatch.on('change', function(state){
+      nv.log('state', JSON.stringify(state));
+    });
 
     return chart;
 });

@@ -18,7 +18,7 @@ nv.models.pieChart = function() {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + '</p>'
       }
-    , state = {}
+    , state = nv.utils.state()
     , defaultState = null
     , noData = "No Data Available."
     , duration = 250
@@ -43,6 +43,23 @@ nv.models.pieChart = function() {
   };
 
   var renderWatch = nv.utils.renderWatch(dispatch);
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  }
   //============================================================
 
 
@@ -61,6 +78,11 @@ nv.models.pieChart = function() {
 
       chart.update = function() { container.transition().call(chart); };
       chart.container = this;
+
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
@@ -162,7 +184,8 @@ nv.models.pieChart = function() {
       //------------------------------------------------------------
 
       legend.dispatch.on('stateChange', function(newState) {
-        state = newState;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -273,11 +296,17 @@ nv.models.pieChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('pieChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
