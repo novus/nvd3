@@ -79,10 +79,7 @@ nv.models.cumulativeLineChart = function() {
     return function(){
       return {
         active: data.map(function(d) { return !d.disabled }),
-        index: {
-          i: index.i,
-          x: index.x
-        },
+        index: index.i,
         rescaleY: rescaleY
       };
     }
@@ -91,7 +88,7 @@ nv.models.cumulativeLineChart = function() {
   var stateSetter = function(data) {
     return function(state) {
       if (state.index !== undefined)
-        index = state.index;
+        index.i = state.index;
       if (state.rescaleY !== undefined)
         rescaleY = state.rescaleY;
       if (state.active !== undefined)
