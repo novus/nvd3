@@ -163,17 +163,14 @@ Scatter.prototype.draw = function(data){
         var vertices = d3.merge(data.map(function(group, groupIndex) {
             return group.values
                 .map(function(point, pointIndex) {
-                    // *Adding noise to make duplicates very unlikely
                     // *Injecting series and point index for reference
-                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                     */
                     var pX = that.x()(point,pointIndex);
                     var pY = that.y()(point,pointIndex);
 
-                    return [that.xScale()(pX)+ Math.random() * 1e-7,
-                        that.yScale()(pY)+ Math.random() * 1e-7,
-                        groupIndex,
-                        pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
+                    return [that.xScale()(pX),
+                            that.yScale()(pY),
+                            groupIndex,
+                            pointIndex, point];
                 })
                 .filter(function(pointArray, pointIndex) {
                     return that.pointActive()(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
@@ -220,6 +217,18 @@ Scatter.prototype.draw = function(data){
                 [that.width() + 10, that.height() + 10],
                 [that.width() + 10, -10]
             ]);
+
+	    // delete duplicates from vertices - essential assumption for d3.geom.voronoi
+	    var epsilon = 1e-6; // d3 uses 1e-6 to determine equivalence.
+	    vertices = vertices.sort(function(a,b){return ((a[0] - b[0]) || (a[1] - b[1]))});
+	    for (var i = 0; i < vertices.length - 1; ) {
+		if ((Math.abs(vertices[i][0] - vertices[i+1][0]) < epsilon) &&
+		    (Math.abs(vertices[i][1] - vertices[i+1][1]) < epsilon)) {
+		    vertices.splice(i+1, 1);
+		} else {
+		    i++;
+		}
+	    }
 
             var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
                 return {
