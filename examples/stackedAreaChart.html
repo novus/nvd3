@@ -264,7 +264,7 @@ nv.addGraph(function() {
       .call(chart);
 
   chart.state.dispatch.on('change', function(state){
-    console.log('state', JSON.stringify(state));
+    nv.log('state', JSON.stringify(state));
   });
 
   nv.utils.windowResize(chart.update);
