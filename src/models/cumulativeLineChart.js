@@ -79,7 +79,10 @@ nv.models.cumulativeLineChart = function() {
     return function(){
       return {
         active: data.map(function(d) { return !d.disabled }),
-        index: index,
+        index: {
+          i: index.i,
+          x: index.x
+        },
         rescaleY: rescaleY
       };
     }

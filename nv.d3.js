@@ -1104,7 +1104,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
           }
         });
     }
-  }
+  };
 
   this.renderEnd = function() {
     if (renderStack.every( function(d){ return d.__rendered; } ))
@@ -1114,18 +1114,18 @@ nv.utils.renderWatch = function(dispatch, duration) {
     }
   }
 
-}
+};
 
 // Chart state utility
 nv.utils.state = function(){
   if (!(this instanceof nv.utils.state))
     return new nv.utils.state();
-  var state = {};
-  var _self = this;
-  var _setState = function(){ return;};
-  var _getState = function(){ return {};};
-
-  init = null;
+  var state = {},
+    _self = this,
+    _setState = function(){},
+    _getState = function(){ return {};},
+    init = null,
+    changed = null;
 
   this.dispatch = d3.dispatch('change', 'set');
 
@@ -1136,20 +1136,20 @@ nv.utils.state = function(){
   this.getter = function(fn){
     _getState = fn;
     return this;
-  }
+  };
 
   this.setter = function(fn, callback) {
     if (!callback) callback = function(){};
     _setState = function(state, update){
       fn(state);
       if (update) callback();
-    }
+    };
     return this;
-  }
+  };
 
   this.init = function(state){
     init = state;
-  }
+  };
 
   var _set = function(){
     var settings = _getState();
@@ -1161,7 +1161,7 @@ nv.utils.state = function(){
       changed = true;
     }
     return true;
-  }
+  };
 
   this.update = function(){
     if (init) {
@@ -1172,7 +1172,7 @@ nv.utils.state = function(){
       this.dispatch.change(state);
   }
 
-}
+};
 
 /*
 Snippet of code you can insert into each nv.models.* to give you the ability to
@@ -1495,7 +1495,7 @@ nv.models.axis = function() {
       //highlight zero line ... Maybe should not be an option and should just be in CSS?
       if (highlightZero)
         g.selectAll('.tick')
-          .filter(function(d) { return !parseFloat(Math.round(d.__data__*100000)/1000000) && (d.__data__ !== undefined) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
+          .filter(function(d) { return !parseFloat(Math.round(this.__data__*100000)/1000000) && (this.__data__ !== undefined) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
             .classed('zero', true);
 
       //store old scales for use in transitions on update
@@ -2705,7 +2705,7 @@ nv.models.cumulativeLineChart = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , id = lines.id()
-    , state = { index: 0, rescaleY: rescaleY }
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , average = function(d) { return d.average }
@@ -2714,6 +2714,9 @@ nv.models.cumulativeLineChart = function() {
     , duration = 250
     , noErrorCheck = false  //if set to TRUE, will bypass an error check in the indexify function.
     ;
+
+    state.index = 0;
+    state.rescaleY = rescaleY;
 
   xAxis
     .orient('bottom')
@@ -2735,7 +2738,6 @@ nv.models.cumulativeLineChart = function() {
     , renderWatch = nv.utils.renderWatch(dispatch, duration)
     ;
 
-
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
@@ -2744,6 +2746,29 @@ nv.models.cumulativeLineChart = function() {
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, null, null, offsetElement);
+  };
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        index: index,
+        rescaleY: rescaleY
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.index !== undefined)
+        index = state.index;
+      if (state.rescaleY !== undefined)
+        rescaleY = state.rescaleY;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
   };
 
   //============================================================
@@ -2771,7 +2796,12 @@ nv.models.cumulativeLineChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -2860,7 +2890,7 @@ nv.models.cumulativeLineChart = function() {
         var completeDomain = [
           d3.min(seriesDomains, function(d) { return d[0] }),
           d3.max(seriesDomains, function(d) { return d[1] })
-        ]
+        ];
 
         lines.yDomain(completeDomain);
       } else {
@@ -3058,11 +3088,11 @@ nv.models.cumulativeLineChart = function() {
           .attr('fill', 'red')
           .attr('fill-opacity', .5)
           .style("pointer-events","all")
-          .call(indexDrag)
+          .call(indexDrag);
 
       indexLine
           .attr('transform', function(d) { return 'translate(' + dx(d.i) + ',0)' })
-          .attr('height', availableHeight)
+          .attr('height', availableHeight);
 
       //------------------------------------------------------------
 
@@ -3147,7 +3177,8 @@ nv.models.cumulativeLineChart = function() {
 
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -3155,7 +3186,6 @@ nv.models.cumulativeLineChart = function() {
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
           lines.clearHighlights();
           var singlePoint, pointIndex, pointXLocation, allData = [];
-
 
           data
           .filter(function(series, i) {
@@ -3237,7 +3267,6 @@ nv.models.cumulativeLineChart = function() {
             .data([index]);
         }
 
-
         if (typeof e.rescaleY !== 'undefined') {
           rescaleY = e.rescaleY;
         }
@@ -3286,6 +3315,10 @@ nv.models.cumulativeLineChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi','useVoronoi',  'id');
 
@@ -3378,11 +3411,17 @@ nv.models.cumulativeLineChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('cululativeLineChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+    // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -3457,7 +3496,7 @@ nv.models.cumulativeLineChart = function() {
       line.values = line.values.map(function(point, pointIndex) {
         point.display = {'y': (indexifyYGetter(point, pointIndex) - v) / (1 + v) };
         return point;
-      })
+      });
 
       return line;
     })
@@ -3467,8 +3506,7 @@ nv.models.cumulativeLineChart = function() {
 
 
   return chart;
-}
-//TODO: consider deprecating by adding necessary features to multiBar model
+};//TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
   "use strict";
   //============================================================
@@ -5660,7 +5698,6 @@ nv.models.line = function() {
 
   return chart;
 }
-
 nv.models.lineChart = function() {
   "use strict";
   //============================================================
@@ -5690,7 +5727,7 @@ nv.models.lineChart = function() {
       }
     , x
     , y
-    , state = {}
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
@@ -5724,6 +5761,23 @@ nv.models.lineChart = function() {
 
   var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+      }
+  };
+
   //============================================================
 
 
@@ -5751,9 +5805,13 @@ nv.models.lineChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
-      state.disabled = data.map(function(d) { return !!d.disabled });
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
 
+      // DEPRECATED set state.disableddisabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
         var key;
@@ -5910,9 +5968,10 @@ nv.models.lineChart = function() {
       //------------------------------------------------------------
 
       legend.dispatch.on('stateChange', function(newState) {
-          state = newState;
-          dispatch.stateChange(state);
-          chart.update();
+        for (var key in newState)
+          state[key] = newState[key];
+        dispatch.stateChange(state);
+        chart.update();
       });
 
       interactiveLayer.dispatch.on('elementMousemove', function(e) {
@@ -6028,6 +6087,9 @@ nv.models.lineChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
     , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
@@ -6109,11 +6171,17 @@ nv.models.lineChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('lineChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -6146,7 +6214,7 @@ nv.models.lineChart = function() {
 
 
   return chart;
-}
+};
 
 nv.models.linePlusBarChart = function() {
   "use strict";
@@ -6177,7 +6245,7 @@ nv.models.linePlusBarChart = function() {
     , x
     , y1
     , y2
-    , state = {}
+    , state = nv.utils.state()
     , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
@@ -6220,6 +6288,23 @@ nv.models.linePlusBarChart = function() {
     }
     ;
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
+
   //------------------------------------------------------------
 
 
@@ -6237,7 +6322,12 @@ nv.models.linePlusBarChart = function() {
       chart.update = function() { container.transition().call(chart); };
       // chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -6345,19 +6435,19 @@ nv.models.linePlusBarChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }))
+        }).filter(function(d,i) { return !data[i].disabled && !data[i].bar }));
 
       bars
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled && data[i].bar }))
+        }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
 
 
       var barsWrap = g.select('.nv-barsWrap')
-          .datum(dataBars.length ? dataBars : [{values:[]}])
+          .datum(dataBars.length ? dataBars : [{values:[]}]);
 
       var linesWrap = g.select('.nv-linesWrap')
           .datum(dataLines[0] && !dataLines[0].disabled ? dataLines : [{values:[]}] );
@@ -6413,8 +6503,9 @@ nv.models.linePlusBarChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
-        state = newState;
+      legend.dispatch.on('stateChange', function(newState) {
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -6489,6 +6580,10 @@ nv.models.linePlusBarChart = function() {
   chart.y1Axis = y1Axis;
   chart.y2Axis = y2Axis;
 
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
+
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
@@ -6557,11 +6652,17 @@ nv.models.linePlusBarChart = function() {
     return chart;
   };
 
+    // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('linePlusBarChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -6577,9 +6678,8 @@ nv.models.linePlusBarChart = function() {
 
   //============================================================
 
-
   return chart;
-}
+};
 nv.models.lineWithFocusChart = function() {
   "use strict";
   //============================================================
@@ -6614,8 +6714,10 @@ nv.models.lineWithFocusChart = function() {
                '<p>' +  y + ' at ' + x + '</p>'
       }
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
     , transitionDuration = 250
+    , state = nv.utils.state()
+    , defaultState = null
     ;
 
   lines
@@ -6655,6 +6757,23 @@ nv.models.lineWithFocusChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
+
   //============================================================
 
 
@@ -6672,6 +6791,24 @@ nv.models.lineWithFocusChart = function() {
       chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
       chart.container = this;
 
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -6884,7 +7021,6 @@ nv.models.lineWithFocusChart = function() {
       d3.transition(g.select('.nv-context .nv-x.nv-axis'))
           .call(x2Axis);
 
-
       y2Axis
         .scale(y2)
         .ticks( availableHeight2 / 36 )
@@ -6903,12 +7039,24 @@ nv.models.lineWithFocusChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
+        for (var key in newState)
+          state[key] = newState[key];
+        dispatch.stateChange(state);
         chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
+      });
+
+      dispatch.on('changeState', function(e) {
+        if (typeof e.disabled !== 'undefined') {
+          data.forEach(function(series,i) {
+            series.disabled = e.disabled[i];
+          });
+        }
+        chart.update();
       });
 
       //============================================================
@@ -7033,6 +7181,10 @@ nv.models.lineWithFocusChart = function() {
   chart.x2Axis = x2Axis;
   chart.y2Axis = y2Axis;
 
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
+
   d3.rebind(chart, lines, 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
@@ -7109,6 +7261,24 @@ nv.models.lineWithFocusChart = function() {
     return chart;
   };
 
+  // DEPRECATED
+  chart.state = function(_) {
+    nv.deprecated('lineWithFocusChart.state');
+    if (!arguments.length) return state;
+    state = _;
+    return chart;
+  };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
+
+  chart.defaultState = function(_) {
+    if (!arguments.length) return defaultState;
+    defaultState = _;
+    return chart;
+  };
+
   chart.interpolate = function(_) {
     if (!arguments.length) return lines.interpolate();
     lines.interpolate(_);
@@ -7154,7 +7324,6 @@ nv.models.lineWithFocusChart = function() {
 
   return chart;
 }
-
 nv.models.linePlusBarWithFocusChart = function() {
   "use strict";
   //============================================================
@@ -7198,8 +7367,10 @@ nv.models.linePlusBarWithFocusChart = function() {
     , y3
     , y4
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
     , transitionDuration = 0
+    , state = nv.utils.state()
+    , defaultState = null
     ;
 
   lines
@@ -7249,6 +7420,23 @@ nv.models.linePlusBarWithFocusChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
   };
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
+
   //------------------------------------------------------------
 
 
@@ -7267,6 +7455,24 @@ nv.models.linePlusBarWithFocusChart = function() {
       chart.update = function() { container.transition().duration(transitionDuration).call(chart); };
       chart.container = this;
 
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
+      state.disabled = data.map(function(d) { return !!d.disabled });
+
+      if (!defaultState) {
+        var key;
+        defaultState = {};
+        for (key in state) {
+          if (state[key] instanceof Array)
+            defaultState[key] = state[key].slice(0);
+          else
+            defaultState[key] = state[key];
+        }
+      }
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -7432,7 +7638,7 @@ nv.models.linePlusBarWithFocusChart = function() {
       if (brushExtent) brush.extent(brushExtent);
 
       var brushBG = g.select('.nv-brushBackground').selectAll('g')
-          .data([brushExtent || brush.extent()])
+          .data([brushExtent || brush.extent()]);
 
       var brushBGenter = brushBG.enter()
           .append('g');
@@ -7502,12 +7708,26 @@ nv.models.linePlusBarWithFocusChart = function() {
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
 
-      legend.dispatch.on('stateChange', function(newState) { 
+      legend.dispatch.on('stateChange', function(newState) {
+        for (var key in newState)
+          state[key] = newState[key];
+        dispatch.stateChange(state);
         chart.update();
       });
 
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
+      });
+
+        // Update chart from a state object passed to event handler
+      dispatch.on('changeState', function(e) {
+        if (typeof e.disabled !== 'undefined') {
+          data.forEach(function(series,i) {
+            series.disabled = e.disabled[i];
+          });
+          state.disabled = e.disabled;
+        }
+        chart.update();
       });
 
       //============================================================
@@ -7726,6 +7946,10 @@ nv.models.linePlusBarWithFocusChart = function() {
   chart.y3Axis = y3Axis;
   chart.y4Axis = y4Axis;
 
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
+
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
   //d3.rebind(chart, lines, 'x', 'y', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
@@ -7794,6 +8018,18 @@ nv.models.linePlusBarWithFocusChart = function() {
     return chart;
   };
 
+  // DEPRECATED
+  chart.state = function(_) {
+    nv.deprecated('linePlusBarWithFocusChart.state');
+    if (!arguments.length) return state;
+    state = _;
+    return chart;
+  };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
+
   chart.noData = function(_) {
     if (!arguments.length) return noData;
     noData = _;
@@ -7811,7 +8047,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
 
   return chart;
-}
+};
 
 nv.models.multiBar = function() {
   "use strict";
@@ -9372,13 +9608,15 @@ nv.models.multiBarHorizontalChart = function() {
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
-    , state = { stacked: stacked }
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , duration = 250
     ;
+
+    state.stacked = false; // DEPRECATED Maintained for backward compatibility
 
   multibar
     .stacked(stacked)
@@ -9413,6 +9651,26 @@ nv.models.multiBarHorizontalChart = function() {
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
   };
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        stacked: stacked
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.stacked !== undefined)
+        stacked = state.stacked;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+      });
+    }
+  };
+
   //============================================================
   var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -9434,7 +9692,12 @@ nv.models.multiBarHorizontalChart = function() {
       chart.update = function() { container.transition().duration(duration).call(chart) };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -9508,7 +9771,7 @@ nv.models.multiBarHorizontalChart = function() {
         if (multibar.barColor())
           data.forEach(function(series,i) {
             series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
-          })
+          });
 
         g.select('.nv-legendWrap')
             .datum(data)
@@ -9558,11 +9821,10 @@ nv.models.multiBarHorizontalChart = function() {
         .height(availableHeight)
         .color(data.map(function(d,i) {
           return d.color || color(d, i);
-        }).filter(function(d,i) { return !data[i].disabled }))
-
+        }).filter(function(d,i) { return !data[i].disabled }));
 
       var barsWrap = g.select('.nv-barsWrap')
-          .datum(data.filter(function(d) { return !d.disabled }))
+          .datum(data.filter(function(d) { return !d.disabled }));
 
       barsWrap.transition().call(multibar);
 
@@ -9614,7 +9876,8 @@ nv.models.multiBarHorizontalChart = function() {
       //------------------------------------------------------------
 
       legend.dispatch.on('stateChange', function(newState) {
-        state = newState;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -9660,6 +9923,7 @@ nv.models.multiBarHorizontalChart = function() {
         if (typeof e.stacked !== 'undefined') {
           multibar.stacked(e.stacked);
           state.stacked = e.stacked;
+          stacked = e.stacked;
         }
 
         chart.update();
@@ -9701,6 +9965,10 @@ nv.models.multiBarHorizontalChart = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
     'clipEdge', 'id', 'delay', 'showValues','showBarLabels', 'valueFormat', 'stacked', 'barColor');
@@ -9777,11 +10045,17 @@ nv.models.multiBarHorizontalChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('multiBarHorizontalChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -9811,9 +10085,8 @@ nv.models.multiBarHorizontalChart = function() {
   };
   //============================================================
 
-
   return chart;
-}
+};
 nv.models.multiChart = function() {
   "use strict";
   //============================================================
@@ -12091,7 +12364,7 @@ nv.models.scatterChart = function() {
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
     , tooltip      = null
-    , state = {}
+    , state        = nv.utils.state()
     , defaultState = null
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , noData       = "No Data Available."
@@ -12154,6 +12427,23 @@ nv.models.scatterChart = function() {
     { key: 'Magnify', disabled: true }
   ];
 
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled })
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
+
   //============================================================
 
 
@@ -12182,7 +12472,13 @@ nv.models.scatterChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
+
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -12464,11 +12760,14 @@ nv.models.scatterChart = function() {
           pauseFisheye = false;
         }
 
+        dispatch.stateChange(state);
+
         chart.update();
       });
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled;
+        for (var key in newState)
+            state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -12547,6 +12846,9 @@ nv.models.scatterChart = function() {
   chart.yAxis = yAxis;
   chart.distX = distX;
   chart.distY = distY;
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
   chart.options = nv.utils.optionsFunc.bind(chart);
@@ -12667,11 +12969,17 @@ nv.models.scatterChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('scatterChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -12694,7 +13002,7 @@ nv.models.scatterChart = function() {
     distX.duration(duration);
     distY.duration(duration);
     return chart;
-  }
+  };
   chart.transitionDuration = function(_) {
     nv.deprecated('scatterChart.transitionDuration');
     return chart.duration(_);
@@ -12704,7 +13012,7 @@ nv.models.scatterChart = function() {
 
 
   return chart;
-}
+};
 
 nv.models.scatterPlusLineChart = function() {
   "use strict";
@@ -12741,12 +13049,14 @@ nv.models.scatterPlusLineChart = function() {
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
     , tooltip      = function(key, x, y, date) { return '<h3>' + key + '</h3>'
                                                       + '<p>' + date + '</p>' }
-    , state = {}
+    , state = nv.utils.state()
     , defaultState = null
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , noData       = "No Data Available."
     , duration = 250
     ;
+
+  state.fisheye = 0; // DEPRECATED Maintained for backward compatibility
 
   scatter
     .xScale(x)
@@ -12776,8 +13086,7 @@ nv.models.scatterPlusLineChart = function() {
   //------------------------------------------------------------
 
   var x0, y0
-    , renderWatch = nv.utils.renderWatch(dispatch, duration)
-    ;
+    , renderWatch = nv.utils.renderWatch(dispatch, duration);
 
   var showTooltip = function(e, offsetElement) {
     //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?)
@@ -12802,6 +13111,26 @@ nv.models.scatterPlusLineChart = function() {
   var controlsData = [
     { key: 'Magnify', disabled: true }
   ];
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        fisheye: fisheye
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.fisheye !== undefined)
+          fisheye = state.fisheye;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
+  };
 
   //============================================================
 
@@ -12831,7 +13160,12 @@ nv.models.scatterPlusLineChart = function() {
       };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -12889,7 +13223,7 @@ nv.models.scatterPlusLineChart = function() {
       var wrap = container.selectAll('g.nv-wrap.nv-scatterChart').data([data]);
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatterChart nv-chart-' + scatter.id());
       var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+      var g = wrap.select('g');
 
       // background for pointer events
       gEnter.append('rect').attr('class', 'nvd3 nv-background').style("pointer-events","none");
@@ -12957,7 +13291,7 @@ nv.models.scatterPlusLineChart = function() {
           .height(availableHeight)
           .color(data.map(function(d,i) {
             return d.color || color(d, i);
-          }).filter(function(d,i) { return !data[i].disabled }))
+          }).filter(function(d,i) { return !data[i].disabled }));
 
       wrap.select('.nv-scatterWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
@@ -13122,11 +13456,15 @@ nv.models.scatterPlusLineChart = function() {
           pauseFisheye = false;
         }
 
+        state.fisheye = fisheye;
+        dispatch.stateChange(state);
+
         chart.update();
       });
 
       legend.dispatch.on('stateChange', function(newState) {
-        state = newState;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -13155,6 +13493,11 @@ nv.models.scatterPlusLineChart = function() {
           });
 
           state.disabled = e.disabled;
+        }
+
+        if (typeof e.fisheye !== 'undefined') {
+          state.fisheye = e.fisheye;
+          fisheye = e.fisheye;
         }
 
         chart.update();
@@ -13206,6 +13549,10 @@ nv.models.scatterPlusLineChart = function() {
   chart.yAxis = yAxis;
   chart.distX = distX;
   chart.distY = distY;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
 
@@ -13314,11 +13661,17 @@ nv.models.scatterPlusLineChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('scatterPlusLineChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+      chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -13333,7 +13686,7 @@ nv.models.scatterPlusLineChart = function() {
   };
 
   chart.transitionDuration = function(_) {
-    nv.deprecated('scatterPlusLineChart.transitionDuration')
+    nv.deprecated('scatterPlusLineChart.transitionDuration');
     return chart.duration(_);
   };
 
@@ -13347,7 +13700,7 @@ nv.models.scatterPlusLineChart = function() {
 
 
   return chart;
-}
+};
 
 nv.models.sparkline = function() {
   "use strict";
@@ -14251,7 +14604,7 @@ nv.models.stackedAreaChart = function() {
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
     , yAxisTickFormat = d3.format(',.2f')
-    , state = { style: stacked.style() }
+    , state = nv.utils.state()
     , defaultState = null
     , noData = 'No Data Available.'
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
@@ -14260,6 +14613,8 @@ nv.models.stackedAreaChart = function() {
     , controlLabels = {}
     , duration = 250
     ;
+
+  state.style = stacked.style();
 
   xAxis
     .orient('bottom')
@@ -14277,6 +14632,7 @@ nv.models.stackedAreaChart = function() {
   // Private Variables
   //------------------------------------------------------------
   var renderWatch = nv.utils.renderWatch(dispatch);
+  var style = stacked.style();
 
   var showTooltip = function(e, offsetElement) {
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -14286,6 +14642,26 @@ nv.models.stackedAreaChart = function() {
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+  };
+
+  var stateGetter = function(data) {
+    return function(){
+      return {
+        active: data.map(function(d) { return !d.disabled }),
+        style: style
+      };
+    }
+  };
+
+  var stateSetter = function(data) {
+    return function(state) {
+      if (state.style !== undefined)
+        style = state.style;
+      if (state.active !== undefined)
+        data.forEach(function(series,i) {
+          series.disabled = !state.active[i];
+        });
+    }
   };
 
   //============================================================
@@ -14309,7 +14685,12 @@ nv.models.stackedAreaChart = function() {
       chart.update = function() { container.transition().duration(duration).call(chart); };
       chart.container = this;
 
-      //set state.disabled
+      state
+        .setter(stateSetter(data), chart.update)
+        .getter(stateGetter(data))
+        .update();
+
+      // DEPRECATED set state.disableddisabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -14432,7 +14813,7 @@ nv.models.stackedAreaChart = function() {
 
         controlsData = controlsData.filter(function(d) {
           return cData.indexOf(d.metaKey) !== -1;
-        })
+        });
 
         controls
           .width( controlWidth )
@@ -14481,7 +14862,7 @@ nv.models.stackedAreaChart = function() {
 
       stacked
         .width(availableWidth)
-        .height(availableHeight)
+        .height(availableHeight);
 
       var stackedWrap = g.select('.nv-stackedWrap')
           .datum(data);
@@ -14545,7 +14926,8 @@ nv.models.stackedAreaChart = function() {
       });
 
       legend.dispatch.on('stateChange', function(newState) {
-        state.disabled = newState.disabled;
+        for (var key in newState)
+          state[key] = newState[key];
         dispatch.stateChange(state);
         chart.update();
       });
@@ -14663,6 +15045,7 @@ nv.models.stackedAreaChart = function() {
 
         if (typeof e.style !== 'undefined') {
           stacked.style(e.style);
+          style = e.style;
         }
 
         chart.update();
@@ -14689,7 +15072,7 @@ nv.models.stackedAreaChart = function() {
     }
    */
 
-    e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
+    e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
   });
 
@@ -14716,6 +15099,10 @@ nv.models.stackedAreaChart = function() {
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
   chart.interactiveLayer = interactiveLayer;
+
+  // DO NOT DELETE. This is currently overridden below
+  // until deprecated portions are removed.
+  chart.state = state;
 
   d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
 
@@ -14809,11 +15196,17 @@ nv.models.stackedAreaChart = function() {
     return chart;
   };
 
+  // DEPRECATED
   chart.state = function(_) {
+    nv.deprecated('stackedAreaChart.state');
     if (!arguments.length) return state;
     state = _;
     return chart;
   };
+  for (var key in state) {
+    chart.state[key] = state[key];
+  }
+  // END DEPRECATED
 
   chart.defaultState = function(_) {
     if (!arguments.length) return defaultState;
@@ -14867,5 +15260,5 @@ nv.models.stackedAreaChart = function() {
   //============================================================
 
   return chart;
-}
+};
 })();

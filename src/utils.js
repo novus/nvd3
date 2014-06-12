@@ -251,8 +251,11 @@ nv.utils.state = function(){
 
   var _set = function(){
     var settings = _getState();
-    if (JSON.stringify(settings) === JSON.stringify(state))
+
+    if (JSON.stringify(settings) === JSON.stringify(state)) {
       return false;
+    }
+
     for (var key in settings) {
       if (state[key] === undefined) state[key] = {};
       state[key] = settings[key];
