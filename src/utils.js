@@ -214,6 +214,22 @@ nv.utils.renderWatch = function(dispatch, duration) {
 
 };
 
+
+nv.utils.deepExtend = function(dst){
+  var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
+  sources.forEach(function(source) {
+    for (key in source) {
+      var isArray = dst[key] instanceof Array;
+      var isObject = typeof dst[key] === 'object';
+      var srcObj = typeof source[key] === 'object';
+      if (isObject && !isArray && srcObj)
+        nv.utils.deepExtend(dst[key], source[key]);
+      else
+        dst[key] = source[key];
+    }
+  });
+}
+
 // Chart state utility
 nv.utils.state = function(){
   if (!(this instanceof nv.utils.state))
@@ -246,7 +262,8 @@ nv.utils.state = function(){
   };
 
   this.init = function(state){
-    init = state;
+    init = init || {};
+    nv.utils.deepExtend(init, state);
   };
 
   var _set = function(){
