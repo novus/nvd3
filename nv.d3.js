@@ -1119,7 +1119,6 @@ nv.utils.renderWatch = function(dispatch, duration) {
 
 nv.utils.deepExtend = function(dst){
   var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
-  console.log(dst, sources);
   sources.forEach(function(source) {
     for (key in source) {
       var isArray = dst[key] instanceof Array;
