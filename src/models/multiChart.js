@@ -5,7 +5,7 @@ nv.models.multiChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       width = null, 
       height = null,
       showLegend = true,
@@ -17,7 +17,10 @@ nv.models.multiChart = function() {
       x,
       y,
       yDomain1,
-      yDomain2
+      yDomain2,
+      getX,
+      getY,
+      interpolate = 'monotone'
       ; //can be accessed via chart.lines.[x/y]Scale()
 
   //============================================================
@@ -132,15 +135,15 @@ nv.models.multiChart = function() {
       lines1
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
-        .color(data.map(function(d,i) {
+        .interpolate(interpolate)
+        .color(data.map(function(d, i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
 
       lines2
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
+        .interpolate(interpolate)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
@@ -258,6 +261,9 @@ nv.models.multiChart = function() {
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
+	  g.selectAll('g.nv-wrap.nv-line')
+        .attr('fill', function (d, i) { return color(d, i); })
+        .attr('stroke', function (d, i) { return color(d, i); });
     });
 
     return chart;
@@ -446,7 +452,12 @@ nv.models.multiChart = function() {
     tooltip = _;
     return chart;
   };
+  
+  chart.interpolate = function (_) {
+      if (!arguments.length) return interpolate;
+      interpolate = _;
+      return chart;
+  };
 
   return chart;
 };
-
