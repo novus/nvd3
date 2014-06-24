@@ -22,6 +22,7 @@ nv.models.pieChart = function() {
     , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , explodeMultiplier = false
     ;
 
   //============================================================
@@ -104,6 +105,14 @@ nv.models.pieChart = function() {
 
       gEnter.append('g').attr('class', 'nv-pieWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
+
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Exploded Pie
+      if (explodeMultiplier)
+          pie.explodeMultiplier(explodeMultiplier);
 
       //------------------------------------------------------------
 
@@ -285,6 +294,11 @@ nv.models.pieChart = function() {
     return chart;
   };
 
+  chart.explodeMultiplier = function(_) {
+    if(!arguments.length) return explodeMultiplier;
+    explodeMultiplier = _;
+    return chart;
+  };
   //============================================================
 
 
