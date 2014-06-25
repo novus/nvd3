@@ -126,7 +126,7 @@ Axis.prototype.draw = function(data){
             }
             break;
         case 'bottom':
-            xLabelMargin = 36;
+            xLabelMargin = axisLabelDistance ? axisLabelDistance + 24 : 36;
             var maxTextWidth = 30;
             var xTicks = this.g.selectAll('g').select("text");
             if (this.rotateLabels()%360) {
