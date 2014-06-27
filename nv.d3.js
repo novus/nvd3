@@ -2782,7 +2782,7 @@ nv.models.cumulativeLineChart = function() {
 
       lines
         //.x(function(d) { return d.x })
-        .y(function(d) { return d.display.y })
+        .y(function(d) { return ( (d.display) ? d.display.y :  d[1] ); })
         .width(availableWidth)
         .height(availableHeight)
         .color(data.map(function(d,i) {
