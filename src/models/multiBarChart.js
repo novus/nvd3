@@ -6,6 +6,7 @@ nv.models.multiBarChart = function() {
   //------------------------------------------------------------
 
   var multibar = nv.models.multiBar()
+    , lines = nv.models.line()
     , xAxis = nv.models.axis()
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
@@ -37,6 +38,8 @@ nv.models.multiBarChart = function() {
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
+    , average = function(d) { return d.average }
+    , showAverage = false
     ;
 
   multibar
@@ -146,6 +149,7 @@ nv.models.multiBarChart = function() {
       gEnter.append('g').attr('class', 'nv-barsWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
+      gEnter.append('g').attr('class', 'nv-avgLineWrap').style("pointer-events","none");
 
       //------------------------------------------------------------
 
@@ -205,6 +209,22 @@ nv.models.multiBarChart = function() {
       }
 
       //------------------------------------------------------------
+      // Calculate yDomain to allow average line to be outside
+      // the data range
+      if (showAverage) {
+          var range = [
+            0,
+            d3.max([
+                d3.max(data, function (series) {
+                    return d3.max(series.values, function(value) {
+                        return chart.y()(value);
+                    })
+                }),
+                d3.max(data, function (d) { return average(d);})])
+          ];
+      }
+
+      //------------------------------------------------------------
       // Main Chart Component(s)
 
       multibar
@@ -215,6 +235,11 @@ nv.models.multiBarChart = function() {
           return d.color || color(d, i);
         }).filter(function(d,i) { return !data[i].disabled }))
 
+      if (showAverage){
+          multibar
+            .yDomain(range);
+      }
+
 
       var barsWrap = g.select('.nv-barsWrap')
           .datum(data.filter(function(d) { return !d.disabled }))
@@ -222,7 +247,55 @@ nv.models.multiBarChart = function() {
       barsWrap.transition().call(multibar);
 
       //------------------------------------------------------------
+      // Handle average lines [AN-612]
 
+      if (showAverage) {
+          //Store a series index number in the data array.
+          data.forEach(function(d,i) {
+                d.seriesIndex = i;
+          });
+
+          var avgLineData = data.filter(function(d) {
+              return !d.disabled && !!average(d);
+          });
+
+          var avgLines = g.select(".nv-avgLineWrap").selectAll("line")
+                  .data(avgLineData, function(d) { return d.key; });
+
+          var getAvgLineY = function(d) {
+              //If average lines go off the svg element, clamp them to the svg bounds.
+              var yVal = y(average(d));
+              if (yVal < 0) return 0;
+              if (yVal > availableHeight) return availableHeight;
+              return yVal;
+          };
+
+          avgLines.enter()
+                  .append('line')
+                  .style('stroke-width',2)
+                  .style('stroke-dasharray','10,10')
+                  .style('stroke',function (d,i) {
+                      return lines.color()(d,d.seriesIndex);
+                  })
+                  .attr('x1',0)
+                  .attr('x2',availableWidth)
+                  .attr('y1', getAvgLineY)
+                  .attr('y2', getAvgLineY);
+
+          avgLines
+                  .style('stroke-opacity',function(d){
+                      //If average lines go offscreen, make them transparent
+                      var yVal = y(average(d));
+                      if (yVal < 0 || yVal > availableHeight) return 0;
+                      return 1;
+                  })
+                  .attr('x1',0)
+                  .attr('x2',availableWidth)
+                  .attr('y1', getAvgLineY)
+                  .attr('y2', getAvgLineY);
+
+          avgLines.exit().remove();
+      }
 
       //------------------------------------------------------------
       // Setup Axes
@@ -509,6 +582,18 @@ nv.models.multiBarChart = function() {
     if (!arguments.length) return noData;
     noData = _;
     return chart;
+  };
+
+  chart.showAverage = function(_) {
+    if (!arguments.length) return showAverage;
+    showAverage = _;
+    return chart;
+  };
+
+  chart.average = function(_) {
+     if(!arguments.length) return average;
+     average = _;
+     return chart;
   };
 
   chart.transitionDuration = function(_) {
