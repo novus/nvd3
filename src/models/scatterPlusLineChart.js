@@ -179,13 +179,6 @@ nv.models.scatterPlusLineChart = function() {
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-      if (rightAlignYAxis) {
-          g.select(".nv-y.nv-axis")
-              .attr("transform", "translate(" + availableWidth + ",0)");
-      }
-
       //------------------------------------------------------------
 
 
@@ -225,6 +218,12 @@ nv.models.scatterPlusLineChart = function() {
 
       //------------------------------------------------------------
 
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      if (rightAlignYAxis) {
+          g.select(".nv-y.nv-axis")
+              .attr("transform", "translate(" + availableWidth + ",0)");
+      }
 
       //------------------------------------------------------------
       // Main Chart Component(s)
