@@ -10989,7 +10989,7 @@ nv.models.scatter = function() {
     , sizeDomain   = null // Override point size domain
     , sizeRange    = null
     , singlePoint  = false
-    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout')
+    , dispatch     = d3.dispatch('elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
     , useVoronoi   = true
     ;
 
@@ -11215,6 +11215,9 @@ nv.models.scatter = function() {
           pointPaths
               .on('click', function(d) {
                 mouseEventCallback(d, dispatch.elementClick);
+              })
+              .on('dblclick', function(d) {
+                  mouseEventCallback(d, dispatch.elementDblClick);
               })
               .on('mouseover', function(d) {
                 mouseEventCallback(d, dispatch.elementMouseover);
