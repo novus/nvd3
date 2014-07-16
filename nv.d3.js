@@ -11269,6 +11269,19 @@ nv.models.scatter = function() {
                   pointIndex: i
                 });
               })
+			  .on('dblclick', function(d,i) {
+				if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
+                var series = data[d.series],
+                    point  = series.values[i];
+
+                dispatch.elementDblClick({
+                  point: point,
+                  series: series,
+                  pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                  seriesIndex: d.series,
+                  pointIndex: i
+                });
+			  })
               .on('mouseover', function(d,i) {
                 if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                 var series = data[d.series],
