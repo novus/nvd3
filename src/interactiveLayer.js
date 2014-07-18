@@ -212,7 +212,7 @@ Has the following known issues:
 */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
 	  "use strict";
-      if (! values instanceof Array) return null;
+      if (!(values instanceof Array)) return null;
       if (typeof xAccessor !== 'function') xAccessor = function(d,i) { return d.x;}
 
       var bisect = d3.bisector(xAccessor).left;
