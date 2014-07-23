@@ -10354,7 +10354,8 @@ nv.models.pie = function() {
                     point: d.data,
                     pointIndex: i,
                     pos: [d3.event.pageX, d3.event.pageY],
-                    id: id
+                    id: id,
+					percent: (d.endAngle - d.startAngle) * 100 / (2 * Math.PI)
                 });
               })
               .on('mouseout', function(d,i){
