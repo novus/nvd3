@@ -36,7 +36,10 @@
     Chart with 0 data points
     <svg></svg>
   </div>
-
+ <div class='chart half' id="chart8">
+    Chart with normalized stack enabled, 18 series, 7 data points per series.
+    <svg></svg>
+  </div>
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
@@ -108,6 +111,11 @@ defaultChartConfig("chart6",dataFactory(1,2),{
 
 defaultChartConfig("chart7",dataFactory(0,0),{
   delay:0
+});
+
+defaultChartConfig("chart8",dataFactory(18,7),{
+  delay:800,
+  allowNormalized: true
 });
 
 function defaultChartConfig(containerId, data, chartOptions) {
