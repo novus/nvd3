@@ -56,7 +56,7 @@ nv.models.multiBarChart = function() {
     .orient((rightAlignYAxis) ? 'right' : 'left')
     .tickFormat(d3.format(',.1f'))
     ;
-  
+
   controls.updateState(false);
   //============================================================
 
@@ -313,8 +313,7 @@ nv.models.multiBarChart = function() {
 
       legend.dispatch.on('stateChange', function(newState) { 
         state = newState;
-        dispatch.stateChange(state);
-        
+        dispatch.stateChange(state);     
         chart.update();
       });
 
@@ -376,8 +375,7 @@ nv.models.multiBarChart = function() {
           multibar.stacked(e.stacked);
           multibar.normalized(e.normalized);
           state.stacked = e.stacked;
-          state.normalized = e.normalized;
-          
+          state.normalized = e.normalized;    
         }
 
         chart.update();

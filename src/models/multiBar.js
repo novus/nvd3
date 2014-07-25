@@ -49,7 +49,7 @@ nv.models.multiBar = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
-      
+
       if(hideable && data.length) hideable = [{
         values: data[0].values.map(function(d) {
         return {
@@ -91,7 +91,8 @@ nv.models.multiBar = function() {
           point.series = i;
         });
       });
-      
+
+
       //------------------------------------------------------------
       // HACK for negative value stacking
       if (stacked)
@@ -118,7 +119,7 @@ nv.models.multiBar = function() {
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1}
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
               })
             });
 
@@ -126,10 +127,7 @@ nv.models.multiBar = function() {
           .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
       //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { 
-            return stacked ? (getY(d) > 0 ? d.y1 : d.y1 + getY(d) ) : getY(d) 
-            })
-          .concat(forceY)))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (getY(d) > 0 ? d.y1 : d.y1 + getY(d) ) : getY(d) }).concat(forceY)))
           .range(yRange || [availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
