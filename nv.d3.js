@@ -4650,7 +4650,8 @@ nv.models.indentedTree = function() {
 
             d3.select(this).select('span')
               .attr('class', d3.functor(column.classes) )
-              .text(function(d) { return column.format ? (d[column.key] ? column.format(d[column.key]) : '-') :  (d[column.key] || '-'); });
+              .text(function(d) { return column.format ? column.format(d) :
+                                        (d[column.key] || '-') });
           });
 
         if  (column.showCount) {
@@ -4958,7 +4959,7 @@ nv.models.indentedTree = function() {
               var legendText = d3.select(this).select('text');
               var nodeTextLength;
               try {
-                nodeTextLength = legendText.getComputedTextLength();
+                nodeTextLength = legendText.node().getComputedTextLength();
                 // If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
                 if(nodeTextLength <= 0) throw Error();
               }
@@ -6687,6 +6688,7 @@ nv.models.lineWithFocusChart = function() {
                 .map(function(d,i) {
                   return {
                     key: d.key,
+                    area: d.area,
                     values: d.values.filter(function(d,i) {
                       return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                     })
@@ -7555,6 +7557,7 @@ nv.models.multiBar = function() {
     , yRange
     , groupSpacing = 0.1
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , normalized = false
     ;
 
   //============================================================
@@ -7575,7 +7578,7 @@ nv.models.multiBar = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
-
+      
       if(hideable && data.length) hideable = [{
         values: data[0].values.map(function(d) {
         return {
@@ -7585,7 +7588,24 @@ nv.models.multiBar = function() {
           size: 0.01
         };}
       )}];
-
+      // internal copy so that org data is NEVER modified.
+      // necessary since we are calculating new y values for normalized state
+      
+      var data = JSON.parse(JSON.stringify(data));
+      if (normalized && data.length>0) {
+          data[0].values.forEach(function(val,i){
+              var values = [];
+              for (var c=0;c<data.length;c++){
+                  values.push(data[c].values[i].y);
+              }
+              var sum = d3.sum(values);
+              
+              data.forEach(function(d){
+                  d.values[i].y = sum>0 ? d.values[i].y/sum :0;
+              });
+          });
+      }
+      
       if (stacked)
         data = d3.layout.stack()
                  .offset(stackOffset)
@@ -7600,8 +7620,7 @@ nv.models.multiBar = function() {
           point.series = i;
         });
       });
-
-
+      
       //------------------------------------------------------------
       // HACK for negative value stacking
       if (stacked)
@@ -7628,7 +7647,7 @@ nv.models.multiBar = function() {
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1}
               })
             });
 
@@ -7636,7 +7655,10 @@ nv.models.multiBar = function() {
           .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
       //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { 
+            return stacked ? (getY(d) > 0 ? d.y1 : d.y1 + getY(d) ) : getY(d) 
+            })
+          .concat(forceY)))
           .range(yRange || [availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -7981,6 +8003,12 @@ nv.models.multiBar = function() {
     return chart;
   };
 
+
+chart.normalized = function(_) {
+    if (!arguments.length) return normalized;
+    normalized = _;
+    return chart;
+  };
   //============================================================
 
 
@@ -8023,8 +8051,11 @@ nv.models.multiBarChart = function() {
     , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
-    , controlWidth = function() { return showControls ? 180 : 0 }
+    , controlWidth = function() { return showControls ? (allowNormalized? 290 : 180) : 0 }
     , transitionDuration = 250
+    // new stuff from pschoepf
+    , orgYTickFormat = null // used to store original tick format before switching to normalized % view
+    , allowNormalized = false // enables control for normalized stacked
     ;
 
   multibar
@@ -8041,7 +8072,7 @@ nv.models.multiBarChart = function() {
     .orient((rightAlignYAxis) ? 'right' : 'left')
     .tickFormat(d3.format(',.1f'))
     ;
-
+  
   controls.updateState(false);
   //============================================================
 
@@ -8170,10 +8201,16 @@ nv.models.multiBarChart = function() {
       // Controls
 
       if (showControls) {
-        var controlsData = [
+         var controlsData = [
           { key: 'Grouped', disabled: multibar.stacked() },
-          { key: 'Stacked', disabled: !multibar.stacked() }
+          { key: 'Stacked', disabled: !multibar.stacked() || (multibar.stacked()&& multibar.normalized())}
+           
         ];
+        // add normalized 100% control switch if enabled by property
+        if (allowNormalized) {
+           controlsData.push({ key: 'Stacked normalized', disabled: !multibar.stacked() ||(multibar.stacked() && !multibar.normalized()) });
+        }
+        
 
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
         g.select('.nv-controlsWrap')
@@ -8293,6 +8330,7 @@ nv.models.multiBarChart = function() {
       legend.dispatch.on('stateChange', function(newState) { 
         state = newState;
         dispatch.stateChange(state);
+        
         chart.update();
       });
 
@@ -8307,13 +8345,29 @@ nv.models.multiBarChart = function() {
         switch (d.key) {
           case 'Grouped':
             multibar.stacked(false);
+            multibar.normalized(false);
             break;
           case 'Stacked':
             multibar.stacked(true);
+            multibar.normalized(false);
+            break;
+          case 'Stacked normalized':
+            multibar.stacked(true);
+            multibar.normalized(true);
             break;
         }
 
         state.stacked = multibar.stacked();
+        state.normalized = multibar.normalized();
+        if (multibar.normalized()) {
+            orgYTickFormat = yAxis.tickFormat();
+            yAxis
+            .tickFormat(d3.format('.0%'))
+        } else if (orgYTickFormat) {
+            yAxis
+            .tickFormat(orgYTickFormat)
+        }
+        
         dispatch.stateChange(state);
 
         chart.update();
@@ -8336,7 +8390,10 @@ nv.models.multiBarChart = function() {
 
         if (typeof e.stacked !== 'undefined') {
           multibar.stacked(e.stacked);
+          multibar.normalized(e.normalized);
           state.stacked = e.stacked;
+          state.normalized = e.normalized;
+          
         }
 
         chart.update();
@@ -8382,7 +8439,7 @@ nv.models.multiBarChart = function() {
   chart.yAxis = yAxis;
 
   d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge',
-   'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing');
+   'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing','normalized');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
   
@@ -8484,6 +8541,7 @@ nv.models.multiBarChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    dispatch.changeState(_);
     return chart;
   };
 
@@ -8505,6 +8563,11 @@ nv.models.multiBarChart = function() {
     return chart;
   };
 
+  chart.allowNormalized = function(_) {
+    if (!arguments.length) return allowNormalized;
+    allowNormalized = _;
+    return chart;
+  };
   //============================================================
 
 
@@ -10265,6 +10328,7 @@ nv.models.pie = function() {
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
+    , labelFormat = d3.format('%')
     , showLabels = true
     , pieLabelsOutside = true
     , donutLabelsOutside = false
@@ -10472,11 +10536,13 @@ nv.models.pie = function() {
                       Adjust the label's y-position to remove the overlap.
                       */
                       var center = labelsArc.centroid(d);
-                      var hashKey = createHashKey(center);
-                      if (labelLocationHash[hashKey]) {
-                        center[1] -= avgHeight;
+                      if(d.value){
+                        var hashKey = createHashKey(center);
+                        if (labelLocationHash[hashKey]) {
+                          center[1] -= avgHeight;
+                        }
+                        labelLocationHash[createHashKey(center)] = true;
                       }
-                      labelLocationHash[createHashKey(center)] = true;
                       return 'translate(' + center + ')'
                     }
                 });
@@ -10487,7 +10553,7 @@ nv.models.pie = function() {
                   var labelTypes = {
                     "key" : getX(d.data),
                     "value": getY(d.data),
-                    "percent": d3.format('%')(percent)
+                    "percent": labelFormat(percent)
                   };
                   return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                 });
@@ -10646,6 +10712,12 @@ nv.models.pie = function() {
   chart.valueFormat = function(_) {
     if (!arguments.length) return valueFormat;
     valueFormat = _;
+    return chart;
+  };
+
+  chart.labelFormat = function(_) {
+    if (!arguments.length) return labelFormat;
+    labelFormat = _;
     return chart;
   };
 
@@ -10878,9 +10950,9 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'labelFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
