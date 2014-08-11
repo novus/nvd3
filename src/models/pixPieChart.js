@@ -75,17 +75,20 @@ nv.models.pieChart = function() {
       // re calculating the ratio
       var amount = 0;
 
-      for(var dIndex = 0 ; dIndex < data.length ; dIndex++){
-        if(state.disabled[dIndex])
+      for(var dIndex = 0; dIndex < data.length; dIndex++){
+        if ( state.disabled[dIndex] ) {
           continue;
-        else
+        } else {
           amount += data[dIndex].y;
+        }
       }
-      for(var dIndex = 0 ; dIndex < data.length ; dIndex++){
-        if(state.disabled[dIndex])
+
+      for(var dIndex = 0; dIndex < data.length; dIndex++){
+        if (state.disabled[dIndex]) {
           continue;
-        else
+        } else {
           data[dIndex].x = Math.round( data[dIndex].y / amount * 100 );
+        }
       }
 
       //------------------------------------------------------------
@@ -133,7 +136,9 @@ nv.models.pieChart = function() {
         //modified display format to diff labels and legends 
         legend
           .width( availableWidth )
-          .key(function(d){ return d.key });
+          .key(function(d) { 
+            return d.key 
+          });
 
         wrap.select('.nv-legendWrap')
             .datum(data)
@@ -159,11 +164,12 @@ nv.models.pieChart = function() {
       // Main Chart Component(s)
       console.log(pie);
 
-      pie.x(function(d){
-        if(d.x < 10)
+      pie.x(function(d) {
+        if( d.x < 10 ) {
           return "";
-        else 
+        } else {
           return d.x + "%";
+        }
       });
 
       pie
