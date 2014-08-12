@@ -39,6 +39,7 @@ module.exports = function(grunt) {
                      'src/models/ohlcBar.js',
                      'src/models/pie.js',
                      'src/models/pieChart.js',
+                     'src/models/pixPieChart.js',
                      'src/models/scatter.js',
                      'src/models/scatterChart.js',
                      'src/models/scatterPlusLineChart.js',
