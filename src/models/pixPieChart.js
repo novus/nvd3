@@ -1,4 +1,4 @@
-nv.models.pieChart = function() {
+nv.models.pixPieChart = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
