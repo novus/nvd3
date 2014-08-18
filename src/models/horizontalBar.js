@@ -100,12 +100,51 @@ nv.models.horizontalBar = function() {
 					return 'translate(' + x(0) + ', ' + (y(getY(d,i)) + y.rangeBand() * .05 ) + ')';
 				})
 				.on('mouseover', function(d,i) {
+		            d3.select(this).classed('hover', true);
+		            dispatch.elementMouseover({
+		              value: getX(d,i),
+		              point: d,
+		              series: data[0],
+		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .9 / data.length) ],  // TODO: Figure out why the value appears to be shifted
+		              pointIndex: i,
+		              seriesIndex: 0,
+		              e: d3.event
+		            });
 				})
 				.on('mouseout', function(d,i) {
+		            d3.select(this).classed('hover', false);
+		            dispatch.elementMouseout({
+		              value: getX(d,i),
+		              point: d,
+		              series: data[0],
+		              pointIndex: i,
+		              seriesIndex: 0,
+		              e: d3.event
+		            });
 				})
 				.on('click', function(d,i) {
+		            dispatch.elementClick({
+		              value: getX(d,i),
+		              point: d,
+		              series: data[0],
+		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .9 / data.length) ],  // TODO: Figure out why the value appears to be shifted
+		              pointIndex: i,
+		              seriesIndex: 0,
+		              e: d3.event
+		            });
+		            d3.event.stopPropagation();
 				})
 				.on('dbclick', function(d,i) {
+		            dispatch.elementDblClick({
+		              value: getX(d,i),
+		              point: d,
+		              series: data[0],
+		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .9 / data.length) ],  // TODO: Figure out why the value appears to be shifted
+		              pointIndex: i,
+		              seriesIndex: 0,
+		              e: d3.event
+		            });
+		            d3.event.stopPropagation();
 				});
 
 			// bars' attributes
