@@ -197,6 +197,73 @@ nv.models.horizontalBarChart = function(){
 			// .attr('height')
 			// .attr('x');
 
+			// setup axis
+
+			if(showXAxis) {
+				xAxis
+				 .scale(x)
+				 .ticks( availableWidth / 100 )
+				 .tickSize(-availableHeight, 0)
+				 ;
+
+				g.select('.nv-x.nv-axis')
+				 .attr('transform', 'translate(0,' + availableHeight + ')');
+
+				g.select('.nv-x.nv-axis')
+				 .transition()
+				 .call(xAxis);
+
+				var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+
+				// customize xTicks following ...
+			}
+
+			if(showYAxis) {
+				yAxis
+				 .scale(y)
+				 .ticks( availableHeight / 36 )
+				 .tickSize( -availableWidth, 0);
+
+				 g.select('.nv-y.nv-axis')
+				  .transition()
+				  .call(yAxis);
+
+				var yTicks = g.select('.nv-y.nv-axis').selectAll('g');
+
+				// customize yTicks following ...
+			}
+
+			// solution : dymnamically calc the margins of left & right
+			setTimeout(function() {
+				if(changed){
+					var lastText = (horizontalBar.showValues()) 
+							? g.select('.nv-barsWrap').selectAll('text') 
+							: g.select('.nv-x.nv-axis').selectAll('g').selectAll('text'),
+						right = lastText[lastText.length-1][0].getComputedTextLength();
+					
+					margin.right = (margin.right < right + 30) ? right+30 : margin.right;
+
+					var leftLabels = g.select('.nv-y.nv-axis').selectAll('g').select('text')[0],
+						maxLeftLength = 0;
+
+					for (var i = 0; i < leftLabels.length; i++) {
+						var current = 0;
+						if( !leftLabels[i] ) {
+							continue;
+						}
+						
+						current = leftLabels[i].getComputedTextLength();
+
+						if(maxLeftLength < current)
+							maxLeftLength = current; 
+					}
+
+					margin.left = (maxLeftLength > 45) ? maxLeftLength + 15 : margin.left;
+
+					changed = false;
+					chart.update();
+				}
+			},300);
 
 			/* Event Handling / Dispatching */
 			legend.dispatch.on('stateChange', function(newState) {
