@@ -32,6 +32,138 @@ nv.models.horizontalBar = function() {
 	var x0, y0;
 
 	function chart(selection) {
+		selection.each(function(data) {
+			var availableWidth = width - margin.left - margin.right,
+			availableHeight = height - margin.top - margin.bottom,
+			container = d3.select(this);
+
+			// domain raw data
+			var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
+            	data.map(function(d) {
+	              return d.values.map(function(d,i) {
+	                return { x: getX(d,i), y: getY(d,i) }
+	              });
+            	});
+
+            // X domain ex: x.domain([0,183]); 
+            x.domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)));
+
+            // Y domain ex: y.domain(['A','B','C','D']); Range : equaling height value (0.1x for padding)
+            y.domain(yDomain || d3.merge(seriesData).map(function(d) { return d.y }) )
+             .rangeBands(yRange || [0, availableHeight], .1);
+
+            // show the value label of each bar 
+            if(showValues) {
+            	// customizing when showValues
+            	x.range(xRange || [ 0, availableWidth]);
+            } else {
+            	x.range(xRange || [ 0, availableWidth]);
+            }
+
+            /* Setup containers and skeleton of chart */
+            var wrap = container.selectAll('g.nv-wrap.nv-horizontalbar').data([data]),
+            	wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-horizontalbar'),
+            	gEnter = wrapEnter.append('g'),
+            	g = wrap.select('g');
+
+            gEnter.append('g').attr('class', 'nv-groups');
+			wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+			//TODO: by definition, the discrete bar should not have multiple groups, will modify/remove later
+			var groups = wrap.select('.nv-groups').selectAll('.nv-group')
+			  .data(function(d) { return d }, function(d) { return d.key });
+			groups.enter().append('g')
+			  .style('stroke-opacity', 1e-6)
+			  .style('fill-opacity', 1e-6);
+			groups.exit()
+			  .transition()
+			  .style('stroke-opacity', 1e-6)
+			  .style('fill-opacity', 1e-6)
+			  .remove();
+			groups
+			  .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
+			  .classed('hover', function(d) { return d.hover });
+			groups
+			  .transition()
+			  .style('stroke-opacity', 1)
+			  .style('fill-opacity', .75);			
+
+			var bars = groups.selectAll('g.nv-bar')
+				.data(function(d) { 
+					return d.values; 
+				});
+
+			bars.exit().remove();
+
+			var barsEnter = bars.enter().append('g')
+				.attr('transform', function(d,i,j) {
+					return 'translate(' + x(0) + ', ' + (y(getY(d,i)) + y.rangeBand() * .05 ) + ')';
+				})
+				.on('mouseover', function(d,i) {
+				})
+				.on('mouseout', function(d,i) {
+				})
+				.on('click', function(d,i) {
+				})
+				.on('dbclick', function(d,i) {
+				});
+
+			// bars' attributes
+			barsEnter.append('rect')
+				.attr('height', y.rangeBand() * .9 / data.length)
+				.attr('width', 0 );
+			
+			if(showValues) {
+				barsEnter
+					.append('text')
+					.append('text-anchor', 'middle')
+				;
+
+				bars.select('text')
+					.text(function(d,i) {
+						return valueFormat(getX(d,i));
+					})
+					.transition()
+					.attr('x', function(d,i) {
+						//customizing text label position
+						return getX(d,i) > 0 ? x(getX(d,i)) - x(0) + 10 : -4 ;
+					})
+					.attr('y', y.rangeBand() * .9 / 2 )
+					;
+			} else {
+				bars.selectAll('text').remove();
+			}
+
+			bars
+				.attr('class', function(d,i) {
+					return getX(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive';
+				})
+				.style('fill', function(d,i) {
+					return d.color || color(d,i);
+				})
+				.style('stroke', function(d,i) {
+					return d.color || color(d,i);
+				})
+				.select('rect')
+				.attr('class', rectClass)
+				.transition()
+				.attr('height', y.rangeBand() * .9 / data.length )
+				;
+
+			bars.transition()
+				.attr('transform', function(d,i) {
+					var top = y(getY(d,i)) + y.rangeBand() * .05,
+						left =  x(getX(d,i)) - x(0) < 1 ? 1 : x(0) + 1;
+					return 'translate(' + left + ', ' + top + ')';
+				})
+				.select('rect')
+				.attr('width' , function(d,i) {
+					return Math.max(Math.abs( x(getX(d,i)) - x( (xDomain && xDomain[0]) || 0 ) ) || 1);
+				});
+			x0 = x.copy();
+			y0 = y.copy();
+		});
+
 		return chart;
 	}
 
