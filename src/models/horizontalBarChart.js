@@ -70,6 +70,18 @@ nv.models.horizontalBarChart = function(){
 				container.transition().duration(transitionDuration).call(chart);
 			};
 
+			// set state
+			if( !state.disabled || !state.disabled.length) {
+				state.disabled = data[0].values.map(function(d) { 
+					return !!d.disabled;
+				});
+			}
+
+			// set disabled 
+			for (var index = 0; index < data[0].values.length; index++) {
+				data[0].values[index].disabled = state.disabled[index];
+			}
+
 			chart.container = this;
 
 			/* no data exists */
@@ -122,6 +134,30 @@ nv.models.horizontalBarChart = function(){
 
 			/* Drawing each components */
 
+			// Legend
+			if(showLegend) {
+				legend.width(availableWidth)
+					  .key(function(d) {
+					  	return d.label;
+					  });
+
+				// styling legend ....
+
+				// calling legend
+				g.select('.nv-legendWrap')
+				 .datum(data[0].values)
+				 .call(legend);
+
+				if( margin.top != legend.height()) {
+					margin.top = legend.height();
+					availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+
+				}
+
+				g.select('.nv-legendWrap')
+				 .attr('transform', 'translate(0 ,' + (-margin.top) + ')');
+			}
 
 			wrap.attr('transform', 'translate(0 ,' + margin.top + ')');
 			// Main Chart Components
@@ -163,6 +199,12 @@ nv.models.horizontalBarChart = function(){
 
 
 			/* Event Handling / Dispatching */
+			legend.dispatch.on('stateChange', function(newState) {
+				// update chart using state instead of new dataset
+				changed = true;
+				state = newState;
+				chart.update();
+			});
 
 			dispatch.on('tooltipShow', function(e) {
 		        if (tooltips) {
