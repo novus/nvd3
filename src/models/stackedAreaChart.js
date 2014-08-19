@@ -39,6 +39,7 @@ nv.models.stackedAreaChart = function() {
     , cData = ['Stacked','Stream','Expanded']
     , controlLabels = {}
     , transitionDuration = 250
+    , nvalues = 0
     ;
 
   xAxis
@@ -269,9 +270,17 @@ nv.models.stackedAreaChart = function() {
       // Setup Axes
 
       if (showXAxis) {
+        var numberTicks;
+        if (nvalues <= 2) {
+          numberTicks = 0;
+        } else if (availableWidth / 100 > nvalues) {
+          numberTicks =  nvalues - 1;
+        } else {
+          numberTicks = availableWidth / 100;
+        }
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
+          .ticks(numberTicks)
           .tickSize( -availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
