@@ -13805,6 +13805,7 @@ nv.models.stackedAreaChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      nvalues = data[0].values.length;	
       var container = d3.select(this),
           that = this;
 
