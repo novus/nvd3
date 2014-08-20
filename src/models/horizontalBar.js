@@ -105,7 +105,7 @@ nv.models.horizontalBar = function() {
 		              value: getX(d,i),
 		              point: d,
 		              series: data[0],
-		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .9 / data.length) ],  // TODO: Figure out why the value appears to be shifted
+		              pos: [ x(getX(d,i)),  y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
 		              pointIndex: i,
 		              seriesIndex: 0,
 		              e: d3.event
@@ -127,7 +127,7 @@ nv.models.horizontalBar = function() {
 		              value: getX(d,i),
 		              point: d,
 		              series: data[0],
-		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .9 / data.length) ],  // TODO: Figure out why the value appears to be shifted
+		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
 		              pointIndex: i,
 		              seriesIndex: 0,
 		              e: d3.event
@@ -139,7 +139,7 @@ nv.models.horizontalBar = function() {
 		              value: getX(d,i),
 		              point: d,
 		              series: data[0],
-		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .9 / data.length) ],  // TODO: Figure out why the value appears to be shifted
+		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
 		              pointIndex: i,
 		              seriesIndex: 0,
 		              e: d3.event
