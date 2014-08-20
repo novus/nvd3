@@ -165,7 +165,7 @@ nv.models.horizontalBar = function() {
 					.transition()
 					.attr('x', function(d,i) {
 						//customizing text label position
-						return getX(d,i) > 0 ? x(getX(d,i)) - x(0) + 10 : -4 ;
+						return getX(d,i) > 0 ? x(getX(d,i)) - x(0) + 10 : 10 ;
 					})
 					.attr('y', y.rangeBand() * .9 / 2 )
 					;
