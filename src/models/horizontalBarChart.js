@@ -344,6 +344,7 @@ nv.models.horizontalBarChart = function(){
 		if (!arguments.length) 
 			return color;
 		color = nv.utils.getColor(_);
+		legend.color(color);
 		horizontalBar.color(color);
 		return chart;
 	};
