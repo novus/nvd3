@@ -1,72 +1,73 @@
 
 nv.models.horizontalBar = function() {
-	"use strict";
+  "use strict";
 
-	/* public variables */
-	var margin = {top: 0, right: 0, bottom: 0, left: 0}, 
-		width = 960,
-		height = 500, 
-		id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
-	    x = d3.scale.linear(),
-	    y = d3.scale.ordinal(),
-	    getX = function(d) { 
-	    	return d.x 
-	    },
-    	getY = function(d) { 
-    		return d.y 
-    	},
-    	color = nv.utils.defaultColor(),
-    	showValues = false,
-    	valueFormat = d3.format(',.2f'),
-    	xDomain, // dynamically assign (not default)
-    	yDomain, // dynamically assign (not default)
-    	xRange,
-    	yRange,
-    	dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout'),
-    	rectClass = 'horizontalbar',
-    	forceX = [0], //force x start at zero
-	    disabled // communicate with horizontalBarChart to disabled choosen bars
-	    ;
+  /* public variables */
+  var margin = {top: 0, right: 0, bottom: 0, left: 0}, 
+    width = 960,
+    height = 500, 
+    id = Math.floor(Math.random() * 10000), //Create semi-unique ID in case user doesn't select one
+    x = d3.scale.linear(),
+    y = d3.scale.ordinal(),
+    getX = function(d) { 
+      return d.x 
+    },
+    getY = function(d) { 
+      return d.y
+    },
+    color = nv.utils.defaultColor(),
+    showValues = false,
+    valueFormat = d3.format(',.2f'),
+    xDomain, // dynamically assign (not default)
+    yDomain, // dynamically assign (not default)
+    xRange,
+    yRange,
+    dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout'),
+    rectClass = 'horizontalbar',
+    forceX = [0], //force x start at zero
+    disabled // communicate with horizontalBarChart to disabled choosen bars
+    ;
 
-	/* private variables */
-	var x0, y0;
+  /* private variables */
+  var x0, y0;
 
-	function chart(selection) {
-		selection.each(function(data) {
-			var availableWidth = width - margin.left - margin.right,
-			availableHeight = height - margin.top - margin.bottom,
-			container = d3.select(this);
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+      availableHeight = height - margin.top - margin.bottom,
+      container = d3.select(this);
 
-			// domain raw data
-			var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-            	data.map(function(d) {
-	              return d.values.map(function(d,i) {
-	                return { x: getX(d,i), y: getY(d,i) }
-	              });
-            	});
+      // domain raw data
+      var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
+        data.map(function(d) {
+          return d.values.map(function(d,i) {
+            return { x: getX(d,i), y: getY(d,i) }
+          });
+        });
 
-            // X domain ex: x.domain([0,183]); 
-            x.domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)));
+      // X domain ex: x.domain([0,183]); 
+      x.domain(xDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.x }).concat(forceX)));
 
-            // Y domain ex: y.domain(['A','B','C','D']); Range : equaling height value (0.1x for padding)
-            y.domain(yDomain || d3.merge(seriesData).map(function(d) { return d.y }) )
-             .rangeBands(yRange || [0, availableHeight], .1);
+      // Y domain ex: y.domain(['A','B','C','D']); Range : equaling height value (0.1x for padding)
+      y.domain(yDomain || d3.merge(seriesData).map(function(d) { return d.y }) )
+       .rangeBands(yRange || [0, availableHeight], .1);
 
-            // show the value label of each bar 
-            if(showValues) {
-            	// customizing when showValues
-            	x.range(xRange || [ 0, availableWidth]);
-            } else {
-            	x.range(xRange || [ 0, availableWidth]);
-            }
+      // show the value label of each bar 
+      if(showValues) {
+        // customizing when showValues
+        x.range(xRange || [ 0, availableWidth]);
+      } else {
+        x.range(xRange || [ 0, availableWidth]);
+      }
 
-            /* Setup containers and skeleton of chart */
-            var wrap = container.selectAll('g.nv-wrap.nv-horizontalbar').data([data]),
-            	wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-horizontalbar'),
-            	gEnter = wrapEnter.append('g'),
-            	g = wrap.select('g');
+      /* Setup containers and skeleton of chart */
+      var wrap = container.selectAll('g.nv-wrap.nv-horizontalbar').data([data]),
+        wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-horizontalbar'),
+        gEnter = wrapEnter.append('g'),
+        g = wrap.select('g');
 
-            gEnter.append('g').attr('class', 'nv-groups');
+      gEnter.append('g').attr('class', 'nv-groups');
+
 			wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 			//TODO: by definition, the discrete bar should not have multiple groups, will modify/remove later
@@ -100,51 +101,51 @@ nv.models.horizontalBar = function() {
 					return 'translate(' + x(0) + ', ' + (y(getY(d,i)) + y.rangeBand() * .05 ) + ')';
 				})
 				.on('mouseover', function(d,i) {
-		            d3.select(this).classed('hover', true);
-		            dispatch.elementMouseover({
-		              value: getX(d,i),
-		              point: d,
-		              series: data[0],
-		              pos: [ x(getX(d,i)),  y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
-		              pointIndex: i,
-		              seriesIndex: 0,
-		              e: d3.event
-		            });
+          d3.select(this).classed('hover', true);
+          dispatch.elementMouseover({
+            value: getX(d,i),
+            point: d,
+            series: data[0],
+            pos: [ x(getX(d,i)),  y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
+            pointIndex: i,
+            seriesIndex: 0,
+            e: d3.event
+          });
 				})
 				.on('mouseout', function(d,i) {
-		            d3.select(this).classed('hover', false);
-		            dispatch.elementMouseout({
-		              value: getX(d,i),
-		              point: d,
-		              series: data[0],
-		              pointIndex: i,
-		              seriesIndex: 0,
-		              e: d3.event
-		            });
+          d3.select(this).classed('hover', false);
+          dispatch.elementMouseout({
+            value: getX(d,i),
+            point: d,
+            series: data[0],
+            pointIndex: i,
+            seriesIndex: 0,
+            e: d3.event
+          });
 				})
 				.on('click', function(d,i) {
-		            dispatch.elementClick({
-		              value: getX(d,i),
-		              point: d,
-		              series: data[0],
-		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
-		              pointIndex: i,
-		              seriesIndex: 0,
-		              e: d3.event
-		            });
-		            d3.event.stopPropagation();
+          dispatch.elementClick({
+            value: getX(d,i),
+            point: d,
+            series: data[0],
+            pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
+            pointIndex: i,
+            seriesIndex: 0,
+            e: d3.event
+          });
+          d3.event.stopPropagation();
 				})
 				.on('dbclick', function(d,i) {
-		            dispatch.elementDblClick({
-		              value: getX(d,i),
-		              point: d,
-		              series: data[0],
-		              pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
-		              pointIndex: i,
-		              seriesIndex: 0,
-		              e: d3.event
-		            });
-		            d3.event.stopPropagation();
+          dispatch.elementDblClick({
+            value: getX(d,i),
+            point: d,
+            series: data[0],
+            pos: [ x(getX(d,i)), y(getY(d,i)) + (y.rangeBand() * .5 ) ],  // TODO: Figure out why the value appears to be shifted
+            pointIndex: i,
+            seriesIndex: 0,
+            e: d3.event
+          });
+          d3.event.stopPropagation();
 				});
 
 			// bars' attributes
