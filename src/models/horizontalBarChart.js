@@ -63,6 +63,12 @@ nv.models.horizontalBarChart = function(){
       var availableWidth = (width  || parseInt(container.style('width')) || 960)- margin.left - margin.right,
           availableHeight = (height || parseInt(container.style('height')) || 400)- margin.top - margin.bottom;
 
+      // case when legend cannot fit
+      if( showLegend && margin.top < legend.height()) {
+          margin.top = legend.height();
+          availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
+      }
+
       chart.update = function() {
         dispatch.beforeUpdate();
         container.transition().duration(transitionDuration).call(chart);
@@ -145,12 +151,6 @@ nv.models.horizontalBarChart = function(){
         g.select('.nv-legendWrap')
          .datum(data[0].values)
          .call(legend);
-
-        if( margin.top != legend.height()) {
-          margin.top = legend.height();
-          availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
-
-        }
 
         g.select('.nv-legendWrap')
          .attr('transform', 'translate(0 ,' + (-margin.top) + ')');
