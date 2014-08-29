@@ -146,13 +146,11 @@ nv.models.pixStackBarHorizontalChart = function() {
             if(gdomain.indexOf(glabel) == -1){gdomain.push(glabel);} else;
           });
         });
-        console.log(gdomain);
       }
       if(typeof gstate.disabled == "undefined"){
         gstate.disabled = gdomain.map(function(d){ return !d; });
         gstate.set = gdomain.map(function(d){return d}); //to restore gdomain
         gdomain.forEach(function(d){ gstate[d] = {}; });
-        console.log(gstate);
       }
       //------------------------------------------------------------
       // Setup Scales
@@ -397,8 +395,6 @@ nv.models.pixStackBarHorizontalChart = function() {
               gdomain.splice(gdomain.indexOf(gstate.set[groupIndex]),1);
               gstate.disabled[groupIndex] = true;
           }
-          console.log(gstate);
-          console.log(data);
         }
         chart.update();
       });
