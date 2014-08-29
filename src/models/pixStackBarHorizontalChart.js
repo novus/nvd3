@@ -49,7 +49,12 @@ nv.models.pixStackBarHorizontalChart = function() {
     .tickPadding(5)
     .highlightZero(false)
     .showMaxMin(false)
-    .tickFormat(function(d) { return d })
+    .tickFormat(function(d) { 
+      if(typeof d == "string")
+        return d.split("_")[1];
+      else
+        return d; 
+    })
     ;
   yAxis
     .orient('bottom')
