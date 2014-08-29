@@ -12,8 +12,7 @@
     /* chart attributes */
     #chart1 {
       position: absolute;
-      left: 10%;
-      margin: 10px;
+      left: 13%;
       width: 90%;
     }
     #chart1 svg {
@@ -83,9 +82,9 @@
           chart = nv.models.pixMultiBarHorizontalChart()
             .x(function(d) { return d.label })
             .y(function(d) { return d.value })
-            .margin({top: 30, right: 50, bottom: 50, left: 180})
+            .margin({top: 30, right: 50, bottom: 50, left: 185})
             //.showValues(true)
-            //.tooltips(false)
+            .tooltips(true)
             .transitionDuration(250)
             .stacked(true)
             //.showControls(false);
@@ -140,7 +139,6 @@
     </nav>
   </div>
   <div class="col-md-12 column with-3d-shadow with-transitions" id="chart1">
-    <h1 class="graph">Chart Analysis</h1>
     <svg></svg>
   </div>
 </body>
