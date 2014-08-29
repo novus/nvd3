@@ -60,6 +60,12 @@ nv.models.pixStackBarHorizontalChart = function() {
     .orient('bottom')
     .tickFormat(d3.format(',.1f'))
     ;
+  gAxis
+    .orient('left')
+    .tickPadding(5)
+    .highlightZero(false)
+    .showMaxMin(false).tickFormat(function(d){return d})
+    ;
 
   controls.updateState(false);
   //============================================================
@@ -131,14 +137,29 @@ nv.models.pixStackBarHorizontalChart = function() {
       }
 
       //------------------------------------------------------------
-
-
+      // create group domain set & state
+      if(typeof gdomain == "undefined"){
+        gdomain = [];
+        data.forEach(function(series,i){
+          series.values.forEach(function(pointer){
+            var glabel = pointer.label.split("_")[0];
+            if(gdomain.indexOf(glabel) == -1){gdomain.push(glabel);} else;
+          });
+        });
+        console.log(gdomain);
+      }
+      if(typeof gstate.disabled == "undefined"){
+        gstate.disabled = gdomain.map(function(d){ return !d; });
+        gstate.set = gdomain.map(function(d){return d}); //to restore gdomain
+        gdomain.forEach(function(d){ gstate[d] = {}; });
+        console.log(gstate);
+      }
       //------------------------------------------------------------
       // Setup Scales
 
       x = multibar.xScale();
       y = multibar.yScale();
-
+      gScale = d3.scale.ordinal().domain(gdomain).rangeBands([0,availableHeight]);
       //------------------------------------------------------------
 
 
@@ -157,6 +178,8 @@ nv.models.pixStackBarHorizontalChart = function() {
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
+      // Append Group 
+      gEnter.append('g').attr('class', 'nv-g nv-axis');
       //------------------------------------------------------------
 
 
@@ -260,6 +283,18 @@ nv.models.pixStackBarHorizontalChart = function() {
               .call(yAxis);
       }
 
+      // Group Axes
+      if(showGAxis) {
+        gAxis
+          .scale(gScale)
+          .ticks( gdomain.length );
+
+        g.select('.nv-g.nv-axis')
+         .attr('transform', 'translate('+ 0.5*(-margin.left) +',0)');
+        g.select('.nv-g.nv-axis')
+         .call(gAxis);
+
+      }
       // Zero line
       g.select(".nv-zeroLine line")
         .attr("x1", y(0))
