@@ -30,7 +30,14 @@ svg {
   <div id="chart1">
     <svg></svg>
   </div>
-
+<script>
+  window.addEventListener('resize', function(event){
+    if(!!chart) {
+      chart.update();
+    }
+    console.log('Resize');
+  });
+</script>
 <script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <!-- including all the components so I don't have to minify every time I test in development -->
@@ -72,7 +79,7 @@ nv.addGraph(function() {
       .x(function(d) { return d.value })
       .y(function(d) { return d.label })
       .tooltips(true)
-      .margin({top: 15, right: 100, bottom: 50, left: 300})
+      .margin({top: 15, right: 100, bottom: 70, left: 300})
       .showValues(true)
       .transitionDuration(250)
       ;
