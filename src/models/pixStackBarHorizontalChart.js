@@ -76,8 +76,8 @@ nv.models.pixStackBarHorizontalChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ('relative' === d3.select(offsetElement).style('position') ? 0 : offsetElement.offsetLeft),
-        top = e.pos[1] + ('relative' === d3.select(offsetElement).style('position') ? 0 : offsetElement.offsetTop),
+    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+        top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = xAxis.tickFormat()(multibar.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
