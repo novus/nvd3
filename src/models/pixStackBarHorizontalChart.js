@@ -362,9 +362,48 @@ nv.models.pixStackBarHorizontalChart = function() {
 
         chart.update();
       });
+
+      //sidebar group was clicked then set the group on/off (  show / hide )
+      //because NVD3 is not supported , implemented myself
+      dispatch.on('groupClick', function(e) {
+        if(typeof e.groupIndex !== 'undefined') {
+          var groupIndex = e.groupIndex;
+          if(gstate.disabled[groupIndex]){
+            for(var args in gstate[gstate.set[groupIndex]]){
+
+              if(typeof gstate[gstate.set[groupIndex]][args] !== "undefined" ){
+                var dest = parseInt(args.charAt(args.length-1));
+                for(var index=gstate[gstate.set[groupIndex]][args].length-1;index>=0;index--)
+                  data[dest].values.push(gstate[gstate.set[groupIndex]][args].splice(index,1)[0]);
+              }
+
+            }
+            gdomain.push(gstate.set[groupIndex]);
+            gstate.disabled[groupIndex] = false;
+          }
+          else{
+            //remove selected group from dataset 
+              data.forEach(function(series,i){
+                for(var index=series.values.length-1;index>=0;index--){
+                  var d = series.values[index];
+                  if(gstate.set.indexOf(d.label.split("_")[0]) == e.groupIndex){
+                    if(typeof gstate[gstate.set[groupIndex]]["series"+i] == "undefined"){
+                      gstate[gstate.set[groupIndex]]["series"+i] = [];
+                    }
+                    gstate[gstate.set[groupIndex]]["series"+i].push(series.values.splice(index,1)[0]);      
+                  }
+                }
+              });
+              gdomain.splice(gdomain.indexOf(gstate.set[groupIndex]),1);
+              gstate.disabled[groupIndex] = true;
+          }
+          console.log(gstate);
+          console.log(data);
+        }
+        chart.update();
+      });
+
       //============================================================
-
-
     });
 
     return chart;
