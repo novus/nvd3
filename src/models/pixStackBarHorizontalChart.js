@@ -344,7 +344,6 @@ nv.models.pixStackBarHorizontalChart = function() {
 
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
-
         if (typeof e.disabled !== 'undefined') {
           data.forEach(function(series,i) {
             series.disabled = e.disabled[i];
@@ -540,6 +539,11 @@ nv.models.pixStackBarHorizontalChart = function() {
   chart.transitionDuration = function(_) {
     if (!arguments.length) return transitionDuration;
     transitionDuration = _;
+    return chart;
+  };
+  chart.gdomain = function(_) {
+    if (!arguments.length) return gdomain;
+    gdomain = _;
     return chart;
   };
   //============================================================
