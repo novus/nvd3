@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Data Analysis</title>
+  <meta charset="utf-8">
+  <meta property="og:title" content="Simple Data Gragh">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="data event driven visualization interactive json data graph">
+
+  <link href="../src/nv.d3.css" rel="stylesheet">
+  <style>
+    /* chart attributes */
+    #chart1 {
+      position: absolute;
+      left: 10%;
+      margin: 10px;
+      width: 90%;
+    }
+    #chart1 svg {
+      width: 95%;
+      height: 600px;
+    }
+    g.nv-g g.nv-axis g g.tick.major text {
+      font-family : inherit;
+      font-size : 1.2em;
+      fill : #000;
+    }
+    text {
+      font: 12px sans-serif;
+    }
+    /* HTML attributes */
+    body {
+      overflow-y:scroll;
+    }
+    div#sidebar {
+      width : 10%;
+      height : auto;
+      position : absolute;
+      left : 0px;
+      top : 200px;
+      font-weight: bold;
+    }
+    nav#select_bar {
+      display:inline;
+    }
+    nav#select_bar ul {
+      list-style: none;
+    }
+    nav#select_bar ul li {
+      width : 100%;
+      padding-top : 1.5em;
+      border-bottom: 1px solid #D9E3DC;
+      font-size: 1.2em;
+    }
+    nav#select_bar ul li:hover {
+      border-left: 1em solid #D9E3DC;
+      transform : translate(-1em,0);
+    }
+  </style>
+  <!-- chart lib -->
+  <script type="text/javascript" src="../lib/d3.v3.js"></script>
+  <script type="text/javascript" src="../nv.d3.js"></script>
+  <script type="text/javascript" src="../src/models/utils.js"></script>
+  <script type="text/javascript" src="../src/models/tooltip.js"></script>
+  <script type="text/javascript" src="../src/models/legend.js"></script>
+  <script type="text/javascript" src="../src/models/axis.js"></script>
+  <script type="text/javascript" src="../src/models/multiBarHorizontal.js"></script>
+  <script type="text/javascript" src="../src/models/pixStackBarHorizontalChart.js"></script>
+  <!-- load data default from data.json  -->
+  <!-- main -->
+  <script type="text/javascript">
+    /* ******************** */
+    /* all global variables */
+    var multiChart; //access chart out of scope ; Original chart object and new sideBar 
+    /* -------------------- */
+    (function() {
+      d3.json("./data.json", function(err, data) {
+        if(err) {
+          return console.warn(err);
+        }
+        /*  create a stacked chart from examples */
+        nv.addGraph(function() {
+          chart = nv.models.pixStackBarHorizontalChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .margin({top: 30, right: 50, bottom: 50, left: 180})
+            //.showValues(true)
+            //.tooltips(false)
+            .transitionDuration(250)
+            .stacked(true)
+            //.showControls(false);
+
+          chart.yAxis
+            .tickFormat(d3.format(',.2f'));
+
+          d3.select('#chart1 svg')
+            .datum(data)
+            .call(chart);
+
+          nv.utils.windowResize(chart.update);
+
+          chart.dispatch.on('stateChange', function(e) { 
+            nv.log('New State:', JSON.stringify(e)); 
+          });
+
+          //for accessing out of scope
+          multiChart = chart;
+
+        /*  
+            trigger group show/display event using chart.dispatch.groupClick({ groupIndex : int })  
+            For example : leonChart.dispatch.groupClick({groupIndex:1})
+
+            groupIndex -> ["Asus","Samgsung","Acer"][1] == "Samgsung"
+
+            chart group getter function -> chart.gdomain()
+            For example : leonChart.gdomain() 
+        */
+
+
+          return chart;
+        });
+      });
+    })();
+
+  </script>
+  <!--[if lte IE 8]>
+  <script language="javascript" type="text/javascript" src="/js/flot/excanvas.min.js">
+  </script>
+  <![endif]-->
+</head>
+<body>
+  <div id="sidebar">
+    <!--  create sidebar from chart gdomain -->
+    <nav id="select_bar">
+      <ul>
+        <li onclick="multiChart.dispatch.groupClick({ groupIndex:0 });">Asus</li>
+        <li onclick="multiChart.dispatch.groupClick({ groupIndex:1 });">Samgsung</li>
+        <li onclick="multiChart.dispatch.groupClick({ groupIndex:2 });">Acer</li>
+      </ul>
+    </nav>
+  </div>
+  <div class="col-md-12 column with-3d-shadow with-transitions" id="chart1">
+    <h1 class="graph">Chart Analysis</h1>
+    <svg></svg>
+  </div>
+</body>
+</html>
