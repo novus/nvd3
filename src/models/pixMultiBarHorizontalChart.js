@@ -64,7 +64,9 @@ nv.models.pixMultiBarHorizontalChart = function() {
     .orient('left')
     .tickPadding(5)
     .highlightZero(false)
-    .showMaxMin(false).tickFormat(function(d){return d})
+    .showMaxMin(false).tickFormat(function(d) {
+      return d
+    })
     ;
 
   controls.updateState(false);
@@ -138,26 +140,28 @@ nv.models.pixMultiBarHorizontalChart = function() {
 
       //------------------------------------------------------------
       // create group domain set & state
-      if(typeof gdomain == "undefined"){
+      if(typeof gdomain == "undefined") {
         gdomain = [];
-        data.forEach(function(series,i){
-          series.values.forEach(function(pointer){
+        data.forEach(function(series, i) {
+          series.values.forEach(function(pointer) {
             var glabel = pointer.label.split("_")[0];
-            if(gdomain.indexOf(glabel) == -1){gdomain.push(glabel);} else;
+            if(gdomain.indexOf(glabel) == -1) {
+              gdomain.push(glabel);
+            } else { }
           });
         });
       }
-      if(typeof gstate.disabled == "undefined"){
-        gstate.disabled = gdomain.map(function(d){ return !d; });
-        gstate.set = gdomain.map(function(d){return d}); //to restore gdomain
-        gdomain.forEach(function(d){ gstate[d] = {}; });
+      if(typeof gstate.disabled == "undefined") {
+        gstate.disabled = gdomain.map(function(d) { return !d; });
+        gstate.set = gdomain.map(function(d) { return d }); //to restore gdomain
+        gdomain.forEach(function(d) { gstate[d] = {}; });
       }
       //------------------------------------------------------------
       // Setup Scales
 
       x = multibar.xScale();
       y = multibar.yScale();
-      gScale = d3.scale.ordinal().domain(gdomain).rangeBands([0,availableHeight]);
+      gScale = d3.scale.ordinal().domain(gdomain).rangeBands( [0, availableHeight] );
       //------------------------------------------------------------
 
 
@@ -363,35 +367,36 @@ nv.models.pixMultiBarHorizontalChart = function() {
       //sidebar group was clicked then set the group on/off (  show / hide )
       //because NVD3 is not supported , implemented myself
       dispatch.on('groupClick', function(e) {
-        if(typeof e.groupIndex !== 'undefined') {
+        if (typeof e.groupIndex !== 'undefined') {
           var groupIndex = e.groupIndex;
-          if(gstate.disabled[groupIndex]){
-            for(var args in gstate[gstate.set[groupIndex]]){
+          if (gstate.disabled[groupIndex]) {
+            for (var args in gstate[gstate.set[groupIndex]]) {
 
-              if(typeof gstate[gstate.set[groupIndex]][args] !== "undefined" ){
-                var dest = parseInt(args.charAt(args.length-1));
-                for(var index=gstate[gstate.set[groupIndex]][args].length-1;index>=0;index--)
-                  data[dest].values.push(gstate[gstate.set[groupIndex]][args].splice(index,1)[0]);
+              if (typeof gstate[gstate.set[groupIndex]][args] !== "undefined" ) {
+                var dest = parseInt( args.charAt(args.length - 1) );
+                for (var index = gstate[gstate.set[groupIndex]][args].length - 1; index >= 0; index--) {
+                   data[dest].values.push( gstate[ gstate.set[groupIndex] ][args].splice(index, 1)[0]);
+                }
               }
 
             }
-            gdomain.push(gstate.set[groupIndex]);
+            gdomain.push( gstate.set[groupIndex] );
             gstate.disabled[groupIndex] = false;
           }
           else{
             //remove selected group from dataset 
-              data.forEach(function(series,i){
-                for(var index=series.values.length-1;index>=0;index--){
+              data.forEach(function(series,i) {
+                for (var index = series.values.length - 1; index >= 0; index--) {
                   var d = series.values[index];
-                  if(gstate.set.indexOf(d.label.split("_")[0]) == e.groupIndex){
-                    if(typeof gstate[gstate.set[groupIndex]]["series"+i] == "undefined"){
-                      gstate[gstate.set[groupIndex]]["series"+i] = [];
+                  if(gstate.set.indexOf( d.label.split("_")[0] ) == e.groupIndex){
+                    if(typeof gstate[ gstate.set[groupIndex] ][ "series" + i ] == "undefined"){
+                      gstate[ gstate.set[groupIndex] ][ "series" + i ] = [];
                     }
-                    gstate[gstate.set[groupIndex]]["series"+i].push(series.values.splice(index,1)[0]);      
+                    gstate[ gstate.set[groupIndex] ][ "series" + i ].push(series.values.splice(index,1)[0]);      
                   }
                 }
               });
-              gdomain.splice(gdomain.indexOf(gstate.set[groupIndex]),1);
+              gdomain.splice( gdomain.indexOf(gstate.set[groupIndex]), 1);
               gstate.disabled[groupIndex] = true;
           }
         }
