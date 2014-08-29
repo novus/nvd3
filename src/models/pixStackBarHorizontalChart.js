@@ -10,6 +10,7 @@ nv.models.pixStackBarHorizontalChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend().height(30)
     , controls = nv.models.legend().height(30)
+    , gAxis = nv.models.axis() //group axis
     ;
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -28,12 +29,16 @@ nv.models.pixStackBarHorizontalChart = function() {
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
+    , gScale //group scale
+    , gdomain //group domain set 
     , state = { stacked: stacked }
+    , gstate ={}
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'groupClick' )
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
+    , showGAxis = true //show group axis
     ;
 
   multibar
