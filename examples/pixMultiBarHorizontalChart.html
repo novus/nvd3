@@ -65,7 +65,7 @@
   <script type="text/javascript" src="../src/models/legend.js"></script>
   <script type="text/javascript" src="../src/models/axis.js"></script>
   <script type="text/javascript" src="../src/models/multiBarHorizontal.js"></script>
-  <script type="text/javascript" src="../src/models/pixStackBarHorizontalChart.js"></script>
+  <script type="text/javascript" src="../src/models/pixMultiBarHorizontalChart.js"></script>
   <!-- load data default from data.json  -->
   <!-- main -->
   <script type="text/javascript">
@@ -80,7 +80,7 @@
         }
         /*  create a stacked chart from examples */
         nv.addGraph(function() {
-          chart = nv.models.pixStackBarHorizontalChart()
+          chart = nv.models.pixMultiBarHorizontalChart()
             .x(function(d) { return d.label })
             .y(function(d) { return d.value })
             .margin({top: 30, right: 50, bottom: 50, left: 180})

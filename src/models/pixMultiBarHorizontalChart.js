@@ -1,5 +1,5 @@
 
-nv.models.pixStackBarHorizontalChart = function() {
+nv.models.pixMultiBarHorizontalChart = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
