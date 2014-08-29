@@ -418,6 +418,14 @@ nv.models.pixStackBarHorizontalChart = function() {
   multibar.dispatch.on('elementMouseout.tooltip', function(e) {
     dispatch.tooltipHide(e);
   });
+
+  // Add click event
+  multibar.dispatch.on('elementClick', function(e) {
+    var nColor = (e.seriesIndex == 0)?"info":"error";
+
+    alert(e.point.label+" : "+e.value+"\n("+e.series.key+")");
+  });
+
   dispatch.on('tooltipHide', function() {
     if (tooltips) nv.tooltip.cleanup();
   });
