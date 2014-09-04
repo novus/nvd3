@@ -23,7 +23,8 @@ nv.addGraph({
 
     var chart = nv.models.legend()
                 .width(width)
-                .height(height);
+                .height(height)
+                .legendExtraDistance(40);
 
     chart.dispatch.on('legendClick', function(d,i) { console.log(d,i) });
 
