@@ -7,6 +7,7 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 0}
     , width = 400
     , height = 20
+    , legendExtraDistance = 0
     , getKey = function(d) { return d.key }
     , color = nv.utils.defaultColor()
     , align = true
@@ -117,7 +118,7 @@ nv.models.legend = function() {
                 nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
               }
 
-              seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
+              seriesWidths.push(nodeTextLength + 28 + legendExtraDistance); // 28 is ~ the width of the circle plus some padding
             });
 
         var seriesPerRow = 0;
@@ -174,7 +175,7 @@ nv.models.legend = function() {
             xpos;
         series
             .attr('transform', function(d, i) {
-              var length = d3.select(this).select('text').node().getComputedTextLength() + 28;
+              var length = d3.select(this).select('text').node().getComputedTextLength() + 28 + legendExtraDistance;
               xpos = newxpos;
 
               if (width < margin.left + margin.right + xpos + length) {
@@ -262,6 +263,13 @@ nv.models.legend = function() {
   chart.radioButtonMode = function(_) {
     if (!arguments.length) return radioButtonMode;
     radioButtonMode = _;
+    return chart;
+  };
+
+
+  chart.legendExtraDistance = function(_) {
+    if (!arguments.length) return legendExtraDistance;
+    legendExtraDistance = _;
     return chart;
   };
 
