@@ -37,7 +37,7 @@ describe 'NVD3', ->
             xPadding: 0
             yPadding: 0
             tooltips: true
-            tooltipContent: (d)-> 'hello'
+            tooltipContent: (d)-> "<h3>#{d}</h3>"
             tooltipXContent: (d)-> 'x content'
             tooltipYContent: (d)-> 'y content'
             noData: 'No Data Available'
@@ -46,18 +46,64 @@ describe 'NVD3', ->
         builder = null
         beforeEach ->
             builder = new ChartBuilder nv.models.scatterChart()
+            builder.build options, sampleData1
 
         afterEach ->
             builder.teardown()
 
         it 'api check', ->
-            builder.build options, sampleData1
-
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
-            builder.build options, sampleData1
             wrap = builder.$ 'g.nvd3.nv-scatterChart'
             should.exist wrap[0], 'scatter chart wrap exists'
+
+        it 'has axes', ->
+            xaxis = builder.$ '.nv-x .nv-axis'
+            yaxis = builder.$ '.nv-y .nv-axis'
+
+            should.exist xaxis[0], 'xaxis exists'
+            should.exist yaxis[0], 'yaxis exists'
+
+        it 'has data points', ->
+            points = builder.$ '.nv-groups .nv-series-0 circle.nv-point'
+            points.should.have.length 4
+
+            expected = [
+                {x: '0', y: '120'},
+                {x: '35', y: '80'},
+                {x: '70', y: '40'},
+                {x: '105', y: '0'}
+            ]
+
+            for point,i in points
+                point.getAttribute('cx').should.equal expected[i].x
+                point.getAttribute('cy').should.equal expected[i].y
+                should.exist point.getAttribute('r'), 'radius exists'
+
+        it 'has a legend', ->
+            legend = builder.$ '.nv-legendWrap'
+            should.exist legend, 'legend exists'
+
+        it 'can show a tooltip', ->
+            eventData =
+                point:
+                    series: 0
+                    x: -1
+                    y: 1
+                pointIndex: 0
+                pos: [
+                    210
+                    119
+                ]
+                series:
+                    key: 'Series 1'
+                seriesIndex: 0
+
+            builder.model.scatter.dispatch.elementMouseover eventData
+
+            tooltip = document.querySelector '.nvtooltip'
+            should.exist tooltip
+
 
