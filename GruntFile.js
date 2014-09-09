@@ -55,6 +55,10 @@ module.exports = function(grunt) {
             files: [
               { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
             ]
+          },
+          d3: {
+            src: 'bower_components/d3/d3.js',
+            dest: 'lib/d3.v3.js'
           }
         },
         cssmin: {
@@ -70,12 +74,23 @@ module.exports = function(grunt) {
                     logLevel: 'ERROR',
                     browsers: ['Chrome'],
                     frameworks: [ 'mocha', 'sinon-chai' ],
-                    reporters: [ 'spec', 'junit'],
+                    reporters: [ 'spec', 'junit', 'coverage'],
                     singleRun: true,
                     preprocessors: {
+                        'src/core.js': ['coverage'],
+                        'src/interactiveLayer.js': ['coverage'],
+                        'src/tooltip.js': ['coverage'],
+                        'src/utils.js': ['coverage'],
+                        'src/models/*.js': ['coverage'],
                         'test/mocha/*.coffee': ['coffee']
                     },
                     files: [
+                        'lib/d3.v3.js',
+                        'src/core.js',
+                        'src/interactiveLayer.js',
+                        'src/tooltip.js',
+                        'src/utils.js',
+                        'src/models/*.js',
                         'test/mocha/*.coffee'
                     ]
                 }
