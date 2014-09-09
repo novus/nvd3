@@ -63,6 +63,23 @@ module.exports = function(grunt) {
               'nv.d3.min.css' : ['nv.d3.css']
             }
           }
+        },
+        karma: {
+            unit: {
+                options: {
+                    logLevel: 'ERROR',
+                    browsers: ['Chrome'],
+                    frameworks: [ 'mocha', 'sinon-chai' ],
+                    reporters: [ 'spec', 'junit'],
+                    singleRun: true,
+                    preprocessors: {
+                        'test/mocha/*.coffee': ['coffee']
+                    },
+                    files: [
+                        'test/mocha/*.coffee'
+                    ]
+                }
+            }
         }
     });
 
@@ -72,8 +89,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-karma');
 
-    grunt.registerTask('default', ['concat', 'copy']);
+    grunt.registerTask('default', ['concat', 'copy', 'karma:unit']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
