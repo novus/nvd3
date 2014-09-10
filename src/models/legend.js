@@ -47,6 +47,10 @@ nv.models.legend = function() {
             dispatch.legendMouseout(d,i);
           })
           .on('click', function(d,i) {
+            
+            // Re-associate this node to the current data in case it changed.
+            data[i] = d;
+            
             dispatch.legendClick(d,i);
             if (updateState) {
                if (radioButtonMode) {
@@ -69,6 +73,10 @@ nv.models.legend = function() {
             }
           })
           .on('dblclick', function(d,i) {
+            
+            // Re-associate this node to the current data in case it changed.
+            data[i] = d;
+            
             dispatch.legendDblclick(d,i);
             if (updateState) {
                 //the default behavior of NVD3 legends, when double clicking one,
