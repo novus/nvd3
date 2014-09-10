@@ -2,6 +2,8 @@ describe 'NVD3', ->
     describe 'Scatter Chart', ->
         sampleData1 = [
             key: 'Series 1'
+            slope: 0.5
+            intercept: 0.2
             values: [
                 [-1,-1]
                 [0,0]
@@ -137,3 +139,14 @@ describe 'NVD3', ->
 
             points2 = builder.$ '.nv-groups .nv-series-1 circle.nv-point'
             points2.should.have.length 4
+
+        it 'scatterPlusLineChart', ->
+            builder = new ChartBuilder nv.models.scatterPlusLineChart()
+
+            delete options.xPadding
+            delete options.yPadding
+
+            builder.build options, sampleData1
+
+            wrap = builder.$ 'g.nvd3.nv-scatterChart'
+            should.exist wrap[0]

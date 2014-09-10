@@ -16,7 +16,10 @@ class ChartBuilder
         document.querySelector('body').appendChild @svg
 
         for opt, val of options
-            @model[opt](val)
+            unless @model[opt]?
+                console.warn "#{opt} not property of model."
+            else
+                @model[opt](val)
 
         d3.select(@svg)
         .datum(data)

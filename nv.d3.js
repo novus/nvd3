@@ -2081,7 +2081,6 @@ nv.models.bulletChart = function() {
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
-
       if (!d || !ranges.call(this, d, i)) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -2278,7 +2277,7 @@ nv.models.bulletChart = function() {
   d3.rebind(chart, bullet, 'color');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   // left, right, top, bottom
   chart.orient = function(x) {
     if (!arguments.length) return orient;

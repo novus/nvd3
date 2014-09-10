@@ -77,24 +77,27 @@ module.exports = function(grunt) {
                     reporters: [ 'spec', 'junit', 'coverage'],
                     singleRun: true,
                     preprocessors: {
-                        'src/core.js': ['coverage'],
-                        'src/interactiveLayer.js': ['coverage'],
-                        'src/tooltip.js': ['coverage'],
-                        'src/utils.js': ['coverage'],
+                        'src/*.js': ['coverage'],
                         'src/models/*.js': ['coverage'],
                         'test/mocha/*.coffee': ['coffee']
                     },
                     files: [
                         'lib/d3.v3.js',
-                        'src/core.js',
-                        'src/interactiveLayer.js',
-                        'src/tooltip.js',
-                        'src/utils.js',
+                        'src/*.js',
                         'src/models/*.js',
                         'test/mocha/*.coffee'
                     ],
                     exclude: [
-                        'src/models/lineWithFisheye*'
+                        'src/intro.js',
+                        'src/outro.js',
+                        //Files we don't want to test.
+                        'src/models/lineWith*',
+                        'src/models/parallelCoordinates*',
+                        'src/models/multiBarTime*',
+                        'src/models/indented*',
+                        'src/models/linePlus*',
+                        'src/models/ohlcBar.js',
+                        'src/models/multiChart.js'
                     ]
                 }
             }
