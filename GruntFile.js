@@ -92,6 +92,9 @@ module.exports = function(grunt) {
                         'src/utils.js',
                         'src/models/*.js',
                         'test/mocha/*.coffee'
+                    ],
+                    exclude: [
+                        'src/models/lineWithFisheye*'
                     ]
                 }
             }

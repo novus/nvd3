@@ -7194,7 +7194,6 @@ nv.models.linePlusBarWithFocusChart = function() {
                 .map(function(d,i) {
                   return {
                     key: d.key,
-                    area: d.area,
                     values: d.values.filter(function(d,i) {
                       return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                     })
@@ -7867,6 +7866,7 @@ nv.models.lineWithFocusChart = function() {
                 .map(function(d,i) {
                   return {
                     key: d.key,
+                    area: d.area,
                     values: d.values.filter(function(d,i) {
                       return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                     })
@@ -10955,7 +10955,6 @@ nv.models.pie = function() {
     , height = 500
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
-    , getDescription = function(d) { return d.description }
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
@@ -11267,12 +11266,6 @@ nv.models.pie = function() {
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = d3.functor(_);
-    return chart;
-  };
-
-  chart.description = function(_) {
-    if (!arguments.length) return getDescription;
-    getDescription = _;
     return chart;
   };
 
@@ -11620,7 +11613,7 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'labelFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'labelFormat', 'x', 'y', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
   chart.options = nv.utils.optionsFunc.bind(chart);
 
   chart.margin = function(_) {

@@ -28,10 +28,6 @@ describe 'NVD3', ->
             ]
         ]
 
-        svg = null
-        model = null
-
-
         options =
             x: (d)-> d[0]
             y: (d)-> d[1]
@@ -75,7 +71,7 @@ describe 'NVD3', ->
 
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-scatterChart'
-            should.exist wrap[0], 'scatter chart wrap exists'
+            should.exist wrap[0]
 
         it 'has axes', ->
             xaxis = builder.$ '.nv-x .nv-axis'
