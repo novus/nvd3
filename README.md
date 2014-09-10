@@ -13,10 +13,8 @@ You can also check out the [examples page](http://nvd3.org/ghpages/examples.html
 ---
 
 # Current development focus
-
-- Getting documentation up.
-- Unifying common API functions between charts.
-- Bug fixes that come up.
+- Better unit test coverage
+- bug fixes.
 
 ---
 
@@ -43,6 +41,7 @@ We are currently changing our branch structure so that master will be gauranteed
 ## Minifying your fork:
 
 ### Using Make
+** Note: we would like people to use Grunt going forward **
 The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS) and [CSSMin](https://github.com/jbleuzen/node-cssmin)
 
 The easiest way to install UglifyJS and CSSMin is via npm. Run `npm install -g uglify-js cssmin`. After installing verify the setup by running `uglifyjs --version` and `cssmin --help`.
@@ -60,7 +59,7 @@ fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
 
 *Without UglifyJS or CSSMin, you won't get the minified versions when running make.**
 
-### Using Grunt
+### Using Grunt (preferred)
 
 You can use grunt instead of makefile to build js file. See more about [grunt](http://gruntjs.com/).
 ***[Nodejs](http://nodejs.org/) must be installed before you can use grunt.***
@@ -68,7 +67,7 @@ Run `npm install` in root dir to install grunt and it's dependencies.
 
 Then, you can use these commands:
 
-    grunt # build nv.d3.js
+    grunt # build nv.d3.js and run unit tests
     grunt production # build nv.d3.js and nv.d3.min.js
     grunt watch # watch file changes in src/, and rebuild nv.d3.js, it's very helpful when delevop NVD3
     grunt lint # run jshint on src/**/*.js
@@ -76,6 +75,9 @@ Then, you can use these commands:
 **We ask that you DO NOT minify pull requests...
 If you need to minify please build pull request in separate branch, and
 merge and minify in your master.
+
+**Please run grunt before making a pull request.
+**Please add a unit test if adding a new feature.
 
 ## Supported Browsers
 NVD3 runs best on WebKit based browsers.
