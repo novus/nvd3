@@ -10,6 +10,24 @@ describe 'NVD3', ->
             ]
         ]
 
+        sampleData2 = [
+            key: 'Series 1'
+            values: [
+                [-1,-3]
+                [0,6]
+                [1,12]
+                [2,18]
+            ]
+        ,
+            key: 'Series 2'
+            values: [
+                [-1,-4]
+                [0,7]
+                [1,13]
+                [2,14]
+            ]
+        ]
+
         svg = null
         model = null
 
@@ -106,4 +124,20 @@ describe 'NVD3', ->
             tooltip = document.querySelector '.nvtooltip'
             should.exist tooltip
 
+        it 'shows no data message', ->
+            builder.teardown()
+            builder.build options, []
 
+            noData = builder.$ 'text.nv-noData'
+            should.exist noData[0]
+            noData[0].textContent.should.equal 'No Data Available'
+
+        it 'can update with new data', ->
+            d3.select(builder.svg).datum(sampleData2)
+            builder.model.update()
+
+            points1 = builder.$ '.nv-groups .nv-series-0 circle.nv-point'
+            points1.should.have.length 4
+
+            points2 = builder.$ '.nv-groups .nv-series-1 circle.nv-point'
+            points2.should.have.length 4
