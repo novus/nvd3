@@ -55,7 +55,10 @@ nv.utils.getColor = function(color) {
 // Default color chooser uses the index of an object as before.
 nv.utils.defaultColor = function() {
     var colors = d3.scale.category20().range();
-    return function(d, i) { return d.color || colors[i % colors.length] };
+    return function(d, i) {
+        // Pick all the "main" colors from the scale first before picking their lighter versions.
+        return d.color || colors[((i * 2) % colors.length) + (Math.floor((i * 2) / colors.length) % 2)];
+    };
 }
 
 
