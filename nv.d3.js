@@ -1336,7 +1336,7 @@ nv.models.axis = function() {
           if (rotateLabels%360) {
             //Calculate the longest xTick width
             xTicks.each(function(d,i){
-              var width = this.getBBox().width;
+              var width = this.getBoundingClientRect().width;
               if(width > maxTextWidth) maxTextWidth = width;
             });
             //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
@@ -1422,7 +1422,7 @@ nv.models.axis = function() {
           //For dynamically placing the label. Can be used with dynamically-sized chart axis margins
           var yTicks = g.selectAll('g').select("text");
           yTicks.each(function(d,i){
-            var labelPadding = this.getBBox().width + axis.tickPadding() + 16;
+            var labelPadding = this.getBoundingClientRect().width + axis.tickPadding() + 16;
             if(labelPadding > width) width = labelPadding;
           });
           */
@@ -1490,9 +1490,9 @@ nv.models.axis = function() {
             .each(function(d,i) {
               try {
                   if (i) // i== 1, max position
-                      maxMinRange.push(scale(d) - this.getBBox().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+                      maxMinRange.push(scale(d) - this.getBoundingClientRect().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
                   else // i==0, min position
-                      maxMinRange.push(scale(d) + this.getBBox().width + 4)
+                      maxMinRange.push(scale(d) + this.getBoundingClientRect().width + 4)
               }catch (err) {
                   if (i) // i== 1, max position
                       maxMinRange.push(scale(d) - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
@@ -1522,7 +1522,7 @@ nv.models.axis = function() {
       scale0 = scale.copy();
 
     });
-    
+
     renderWatch.renderEnd('axis immediate');
     return chart;
   }
