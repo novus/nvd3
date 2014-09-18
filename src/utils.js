@@ -125,7 +125,8 @@ nv.utils.NaNtoZero = function(n) {
     if (typeof n !== 'number'
         || isNaN(n)
         || n === null
-        || n === Infinity) return 0;
+        || n === Infinity
+        || n === -Infinity) return 0;
 
     return n;
 };
