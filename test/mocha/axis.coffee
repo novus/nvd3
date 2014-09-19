@@ -132,10 +132,8 @@ describe 'NVD3', ->
 
             for tick, i in ticks
                 transform = tick.getAttribute 'transform'
-                if i%2 is 0
-                    transform.should.contain 'translate(0,0)'
-                else
-                    transform.should.contain 'translate(0,12)'
+                if i%2 is 0 then transform.should.contain 'translate(0,12)'
+                else transform.should.contain 'translate(0,0)'
 
         it 'axis orientation', (done)->
             axis = builder.model.xAxis
