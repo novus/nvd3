@@ -44,6 +44,23 @@ describe 'NVD3', ->
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
-        it 'renders', ->
-            wrap = builder.$ 'g.nvd3.nv-pieChart'
-            should.exist wrap[0]
+        describe 'renders', ->
+
+            wrap = null
+            labels = null
+
+            beforeEach ->
+              wrap = builder.$ 'g.nvd3.nv-pieChart'
+              labels = wrap[0].querySelectorAll('.nv-label text')
+
+            it '.nv-pieChart', ->
+              should.exist wrap[0]
+
+            describe 'labels correctly', ->
+              it "[#{sampleData1.length}] labels", ->
+                wrap[0].querySelectorAll('.nv-label').should.have.length sampleData1.length
+
+              for item, i in sampleData1
+                do (item, i) ->
+                  it "label '#{item.label}'", ->
+                    item.label.should.be.equal labels[i].textContent
