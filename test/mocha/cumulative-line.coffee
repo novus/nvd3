@@ -34,10 +34,10 @@ describe 'NVD3', ->
             x: (d)-> d[0]
             y: (d)-> d[1]
             margin:
-                top: 30
+                top: 10
                 right: 20
-                bottom: 50
-                left: 75
+                bottom: 30
+                left: 40
             color: nv.utils.defaultColor()
             showLegend: true
             showXAxis: true
@@ -66,3 +66,30 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-cumulativeLine'
             should.exist wrap[0]
+
+        it 'has the element with .nv-cumulativeLine class right ositioned', ->
+          cumulativeLine = builder.$ 'g.nvd3.nv-cumulativeLine'
+          cumulativeLine[0].getAttribute('transform').should.be.equal "translate(40,30)"
+
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-cumulativeLine'
+            '.nv-interactive'
+            '.nv-interactiveLineLayer'
+            '.nv-interactiveGuideLine'
+            '.nv-y.nv-axis'
+            '.nv-x.nv-axis'
+            '.nv-background'
+            '.nv-linesWrap'
+            '.nv-line'
+            '.nv-scatterWrap'
+            '.nv-scatter'
+            '.nv-indexLine'
+            '.nv-avgLinesWrap'
+            '.nv-legendWrap'
+            '.nv-controlsWrap'
+            '.tempDisabled'
+          ]
+          for cssClass in cssClasses
+            do (cssClass) ->
+              should.exist builder.$("g.nvd3 #{cssClass}")

@@ -61,4 +61,4 @@ describe 'NVD3', ->
             ]
           for cssClass in cssClasses
             do (cssClass) ->
-              should.exist builder.$(cssClass)[0]
+              should.exist builder.$("g.nvd3 #{cssClass}")[0]
