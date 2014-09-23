@@ -67,13 +67,12 @@ describe 'NVD3', ->
             wrap = builder.$ 'g.nvd3.nv-cumulativeLine'
             should.exist wrap[0]
 
-        it 'has the element with .nv-cumulativeLine class right ositioned', ->
+        it 'has the element with .nv-cumulativeLine class right positioned', ->
           cumulativeLine = builder.$ 'g.nvd3.nv-cumulativeLine'
           cumulativeLine[0].getAttribute('transform').should.be.equal "translate(40,30)"
 
         it 'has correct structure', ->
           cssClasses = [
-            '.nv-cumulativeLine'
             '.nv-interactive'
             '.nv-interactiveLineLayer'
             '.nv-interactiveGuideLine'
@@ -92,4 +91,4 @@ describe 'NVD3', ->
           ]
           for cssClass in cssClasses
             do (cssClass) ->
-              should.exist builder.$("g.nvd3 #{cssClass}")
+              should.exist builder.$("g.nvd3 #{cssClass}")[0]
