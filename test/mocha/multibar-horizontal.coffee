@@ -62,3 +62,20 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-multiBarHorizontalChart'
             should.exist wrap[0]
+
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-x.nv-axis'
+            '.nv-y.nv-axis'
+            '.nv-barsWrap'
+            '.nv-multibarHorizontal'
+            '.nv-legendWrap'
+            '.nv-controlsWrap'
+          ]
+          for cssClass in cssClasses
+            do (cssClass) ->
+              should.exist builder.$("g.nvd3.nv-multiBarHorizontalChart #{cssClass}")[0]
+
+        it 'renders bars', ->
+          bars = builder.$('g.nvd3.nv-multiBarHorizontalChart .nv-multibarHorizontal .nv-bar')
+          bars.should.have.length 12
