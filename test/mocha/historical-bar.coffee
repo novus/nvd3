@@ -55,4 +55,4 @@ describe 'NVD3', ->
           ]
           for cssClass in cssClasses
             do (cssClass) ->
-              should.exist builder.$("g.nvd3.nv-historicalBarChart #{cssClass}")
+              should.exist builder.$("g.nvd3.nv-historicalBarChart #{cssClass}")[0]
