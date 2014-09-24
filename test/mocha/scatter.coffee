@@ -88,7 +88,7 @@ describe 'NVD3', ->
 
           for cssClass in cssClasses
             do (cssClass) ->
-              should.exist builder.$("g.nvd3.nv-scatterChart #{cssClass}")
+              should.exist builder.$("g.nvd3.nv-scatterChart #{cssClass}")[0]
 
         it 'has data points', ->
             points = builder.$ '.nv-groups .nv-series-0 circle.nv-point'
