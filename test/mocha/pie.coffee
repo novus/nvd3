@@ -64,3 +64,14 @@ describe 'NVD3', ->
                 do (item, i) ->
                   it "label '#{item.label}'", ->
                     item.label.should.be.equal labels[i].textContent
+
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-pieWrap'
+            '.nv-pie'
+            '.nv-pieLabels'
+            '.nv-legendWrap'
+          ]
+          for cssClass in cssClasses
+            do (cssClass) ->
+              should.exist builder.$("g.nvd3.nv-pieChart #{cssClass}")[0]
