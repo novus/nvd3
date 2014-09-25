@@ -1,5 +1,18 @@
 describe 'NVD3', ->
-    describe.only 'Bullet Chart', ->
+
+    describe 'Bullet Chart', ->
+        removeAllTooltips = ->
+            elements = document.getElementsByClassName('nvtooltip')
+            while(elements[0])
+              elements[0].parentNode.removeChild(elements[0])
+
+        eventTooltipData =
+          point: {series: 0, x: -1, y: 1}
+          pointIndex: 0
+          pos: [210, 119]
+          series: {key: 'Series 1'}
+          seriesIndex: 0
+
         sampleData1 =
             title: 'Revenue'
             subtitle: 'US$ in thousands'
@@ -63,21 +76,10 @@ describe 'NVD3', ->
               should.exist builder1.$("g.nvd3 #{cssClass}")[0]
 
         it 'can show tooltip', ->
-          eventData =
-            point:
-              series: 0
-              x: -1
-              y: 1
-            pointIndex: 0
-            pos: [
-              210
-              119
-            ]
-            series:
-              key: 'Series 1'
-            seriesIndex: 0
 
-          builder1.model.bullet.dispatch.elementMouseover eventData
+          removeAllTooltips()
+
+          builder1.model.bullet.dispatch.elementMouseover eventTooltipData
 
           tooltip = document.querySelector '.nvtooltip'
           should.exist tooltip
@@ -98,12 +100,6 @@ describe 'NVD3', ->
               markers: [50]
           afterEach ->
             builder.teardown()
-
-          it "noData", ->
-            options =
-              noData: 'No Data Available'
-            builder.build options, {}
-            builder.svg.textContent.should.be.equal 'No Data Available'
 
           describe "orient", ->
 
@@ -136,3 +132,74 @@ describe 'NVD3', ->
                 offsetPrevious = offsetCurrent
                 offsetCurrent = parseInt ticks[i].getAttribute('transform').match(pattern)[1]
                 expect(offsetPrevious).to.be.above(offsetCurrent) if i > 0
+
+          it "noData", ->
+            options =
+              noData: 'No Data Available'
+            builder.build options, {}
+            builder.svg.textContent.should.be.equal 'No Data Available'
+
+          it 'margin', ->
+            options =
+              margin:
+                top: 10
+                right: 20
+                bottom: 30
+                left: 40
+            builder.build options, sampleData
+            builder.$(".nv-bulletChart")[0].getAttribute('transform').should.be.equal "translate(40,10)"
+
+          it "color", ->
+            options =
+              color: -> "#000000"
+            builder.build options, sampleData
+            expect(builder.$(".nv-measure")[0].getAttribute("style")).to.contain "fill: rgb(0, 0, 0)"
+
+          it 'width', ->
+            options =
+              margin:
+                top: 0
+                right: 0
+                bottom: 0
+                left: 0
+              width: 300
+            builder.build options, sampleData
+            parseInt( builder.$(".nv-rangeMax")[0].getAttribute('width') ).should.be.equal 300
+
+          it 'height', ->
+            options =
+              margin:
+                top: 0
+                right: 0
+                bottom: 0
+                left: 0
+              height: 300
+            builder.build options, sampleData
+            parseInt( builder.$(".nv-rangeMax")[0].getAttribute('height') ).should.be.equal 300
+
+          it 'tooltips', ->
+
+            removeAllTooltips()
+
+            options =
+              tooltips: false
+
+            builder.build options, sampleData
+
+            builder.model.bullet.dispatch.elementMouseover eventTooltipData
+
+            tooltip = document.querySelector '.nvtooltip'
+            should.not.exist tooltip
+
+          it 'tooltipContent', ->
+
+            removeAllTooltips()
+
+            options =
+              tooltipContent: (key)-> "<h2>#{key}</h2>"
+            builder.build options, sampleData
+
+            builder.model.bullet.dispatch.elementMouseover eventTooltipData
+
+            tooltip = document.querySelectorAll '.nvtooltip'
+            expect(tooltip[0].innerHTML).to.contain "<h2>Revenue</h2>"
