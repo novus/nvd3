@@ -1,5 +1,5 @@
 describe 'NVD3', ->
-    describe 'Bullet Chart Chart', ->
+    describe.only 'Bullet Chart', ->
         sampleData1 =
             title: 'Revenue'
             subtitle: 'US$ in thousands'
@@ -25,25 +25,24 @@ describe 'NVD3', ->
             tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
 
-        builder = null
+        builder1 = null
         beforeEach ->
-            builder = new ChartBuilder nv.models.bulletChart()
-            builder.build options, sampleData1
+            builder1 = new ChartBuilder nv.models.bulletChart()
+            builder1.build options, sampleData1
 
         afterEach ->
-            builder.teardown()
+            builder1.teardown()
 
         it 'api check', ->
             for opt of options
-                should.exist builder.model[opt](), "#{opt} can be called"
+                should.exist builder1.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
-            wrap = builder.$ 'g.nvd3.nv-bulletChart'
+            wrap = builder1.$ 'g.nvd3.nv-bulletChart'
             should.exist wrap[0]
 
         it 'has correct g.nvd3.nv-bulletChart position', ->
-          chart = builder.$ 'g.nvd3.nv-bulletChart'
-          dump chart[0]
+          chart = builder1.$ 'g.nvd3.nv-bulletChart'
           chart[0].getAttribute('transform').should.be.equal 'translate(90,60)'
 
         it "has correct structure", ->
@@ -61,4 +60,79 @@ describe 'NVD3', ->
             ]
           for cssClass in cssClasses
             do (cssClass) ->
-              should.exist builder.$("g.nvd3 #{cssClass}")[0]
+              should.exist builder1.$("g.nvd3 #{cssClass}")[0]
+
+        it 'can show tooltip', ->
+          eventData =
+            point:
+              series: 0
+              x: -1
+              y: 1
+            pointIndex: 0
+            pos: [
+              210
+              119
+            ]
+            series:
+              key: 'Series 1'
+            seriesIndex: 0
+
+          builder1.model.bullet.dispatch.elementMouseover eventData
+
+          tooltip = document.querySelector '.nvtooltip'
+          should.exist tooltip
+
+
+        describe "applies correctly option", ->
+
+          builder = null
+          sampleData = null
+
+          beforeEach ->
+            builder = new ChartBuilder nv.models.bulletChart()
+            sampleData =
+              title: 'Revenue'
+              subtitle: 'US$ in thousands'
+              ranges: [10,20,30]
+              measures: [40]
+              markers: [50]
+          afterEach ->
+            builder.teardown()
+
+          it "noData", ->
+            options =
+              noData: 'No Data Available'
+            builder.build options, {}
+            builder.svg.textContent.should.be.equal 'No Data Available'
+
+          describe "orient", ->
+
+            it 'left', ->
+              options =
+                orient: 'left'
+              builder.build options, sampleData
+              ticks = builder.$(".nv-tick")
+              offsetPrevious = 0
+              offsetCurrent = 0
+              pattern = ///
+                  translate\((.*),0\)
+              ///
+              for tick, i in ticks
+                offsetPrevious = offsetCurrent
+                offsetCurrent = parseInt ticks[i].getAttribute('transform').match(pattern)[1]
+                expect(offsetPrevious).to.be.below(offsetCurrent) if i > 0
+
+            it 'right', ->
+              options =
+                orient: 'right'
+              builder.build options, sampleData
+              ticks = builder.$(".nv-tick")
+              offsetPrevious = 0
+              offsetCurrent = 0
+              pattern = ///
+                  translate\((.*),0\)
+              ///
+              for tick, i in ticks
+                offsetPrevious = offsetCurrent
+                offsetCurrent = parseInt ticks[i].getAttribute('transform').match(pattern)[1]
+                expect(offsetPrevious).to.be.above(offsetCurrent) if i > 0
