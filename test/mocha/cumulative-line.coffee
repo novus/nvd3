@@ -1,5 +1,5 @@
 describe 'NVD3', ->
-    describe 'Cumulative Line Chart', ->
+    describe.only 'Cumulative Line Chart', ->
         sampleData1 = [
             key: 'Series 1'
             values: [
@@ -51,24 +51,24 @@ describe 'NVD3', ->
             duration: 0
             noErrorCheck: false
 
-        builder = null
+        builder1 = null
         beforeEach ->
-            builder = new ChartBuilder nv.models.cumulativeLineChart()
-            builder.build options, sampleData1
+            builder1 = new ChartBuilder nv.models.cumulativeLineChart()
+            builder1.build options, sampleData1
 
         afterEach ->
-            builder.teardown()
+            builder1.teardown()
 
         it 'api check', ->
             for opt of options
-                should.exist builder.model[opt](), "#{opt} can be called"
+                should.exist builder1.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
-            wrap = builder.$ 'g.nvd3.nv-cumulativeLine'
+            wrap = builder1.$ 'g.nvd3.nv-cumulativeLine'
             should.exist wrap[0]
 
         it 'has the element with .nv-cumulativeLine class right positioned', ->
-          cumulativeLine = builder.$ 'g.nvd3.nv-cumulativeLine'
+          cumulativeLine = builder1.$ 'g.nvd3.nv-cumulativeLine'
           cumulativeLine[0].getAttribute('transform').should.be.equal "translate(40,30)"
 
         it 'has correct structure', ->
@@ -91,4 +91,78 @@ describe 'NVD3', ->
           ]
           for cssClass in cssClasses
             do (cssClass) ->
-              should.exist builder.$("g.nvd3 #{cssClass}")[0]
+              should.exist builder1.$("g.nvd3 #{cssClass}")[0]
+
+        describe "applies correctly option", ->
+
+          builder = null
+          sampleData = sampleData1
+
+          beforeEach ->
+            builder = new ChartBuilder nv.models.cumulativeLineChart()
+
+          afterEach ->
+            builder.teardown()
+
+          # todo: ideally it should work, but...
+          xit 'margin', ->
+            options =
+              margin:
+                top: 10
+                right: 20
+                bottom: 30
+                left: 40
+            builder.build options, sampleData
+            builder.$(".nv-cumulativeLine")[0].getAttribute('transform').should.be.equal "translate(40,10)"
+
+          it "color", ->
+            options.color = -> "#000000"
+            builder.build options, sampleData
+            legendSymbol = builder.$(".nv-cumulativeLine .nv-legend-symbol")
+            expect(legendSymbol[0].getAttribute("style")).to.contain "fill: rgb(0, 0, 0)"
+            expect(legendSymbol[0].getAttribute("style")).to.contain "stroke: rgb(0, 0, 0)"
+
+          describe "showLegend", ->
+            it 'true', ->
+              options.showLegend = true
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-legendWrap *").length.should.not.be.equal 0
+            it 'false', ->
+              options =
+                showLegend : false
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-legendWrap *").length.should.be.equal 0
+
+          describe 'showXAxis', ->
+            it 'true', ->
+              options.showXAxis = true
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-axis.nv-x *").length.should.not.be.equal 0
+            it 'false', ->
+              options.showXAxis = false
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-axis.nv-x *").length.should.be.equal 0
+
+
+          describe 'showYAxis', ->
+            it 'true', ->
+              options.showYAxis = true
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-axis.nv-y *").length.should.not.be.equal 0
+            it 'false', ->
+              options.showYAxis = false
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-axis.nv-y *").length.should.be.equal 0
+
+          ###
+            x: (d)-> d[0]
+            y: (d)-> d[1]
+            rightAlignYAxis: false
+            useInteractiveGuideline: true
+            tooltips: true
+            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
+            noData: 'No Data Available'
+            average: (d)-> d.average
+            duration: 0
+            noErrorCheck: false
+          ###
