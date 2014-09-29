@@ -30,6 +30,8 @@ describe 'NVD3', ->
             ]
         ]
 
+        eventTooltipData = {mouseX: 1250, mouseY: 363, pointXValue: 1271774227712.8547}
+
         options =
             x: (d)-> d[0]
             y: (d)-> d[1]
@@ -55,6 +57,11 @@ describe 'NVD3', ->
         beforeEach ->
             builder1 = new ChartBuilder nv.models.cumulativeLineChart()
             builder1.build options, sampleData1
+
+            # remove all tooltips
+            elements = document.getElementsByClassName('nvtooltip')
+            while(elements[0])
+              elements[0].parentNode.removeChild(elements[0])
 
         afterEach ->
             builder1.teardown()
@@ -154,15 +161,77 @@ describe 'NVD3', ->
               builder.build options, sampleData
               builder.$(".nv-cumulativeLine .nv-axis.nv-y *").length.should.be.equal 0
 
-          ###
-            x: (d)-> d[0]
-            y: (d)-> d[1]
-            rightAlignYAxis: false
-            useInteractiveGuideline: true
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
-            noData: 'No Data Available'
-            average: (d)-> d.average
-            duration: 0
-            noErrorCheck: false
-          ###
+          describe 'rightAlignYAxis', ->
+            it 'true', ->
+              options.rightAlignYAxis = true
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-axis.nv-y")[0].getAttribute('transform').should.be.equal "translate(870,0)"
+            it 'false', ->
+              options.rightAlignYAxis = false
+              builder.build options, sampleData
+              assert.isNull builder.$(".nv-cumulativeLine .nv-axis.nv-y")[0].getAttribute('transform')
+
+          describe "useInteractiveGuideline", ->
+            it "true", ->
+              options.useInteractiveGuideline = true
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-interactiveLineLayer").should.have.length 1
+            it "false", ->
+              options.useInteractiveGuideline = false
+              builder.build options, sampleData
+              builder.$(".nv-cumulativeLine .nv-interactiveLineLayer").should.have.length 0
+
+          # todo: pass this
+          describe 'tooltips', ->
+            xit "true", ->
+              options.tooltips = true
+              builder.build options, sampleData
+              builder.model.interactiveLayer.dispatch.elementMousemove eventTooltipData
+              tooltip = document.querySelector '.nvtooltip'
+              should.exist tooltip
+
+            xit "false", ->
+              options.tooltips = false
+              builder.build options, sampleData
+              builder.model.interactiveLayer.dispatch.elementMousemove eventTooltipData
+              tooltip = document.querySelector '.nvtooltip'
+              should.not.exist tooltip
+
+          # todo: pass this
+          describe "noErrorCheck", ->
+            xit "true", ->
+              options.noErrorCheck = true
+              builder.build options, sampleData
+            xit "false", ->
+              options.noErrorCheck = false
+              builder.build options, sampleData
+            xit "tooltipContent", ->
+              options.tooltipContent = (key,x,y)-> "<h2>#{key}</h2>"
+              builder.build options, sampleData
+              # show a tooltip
+              expect(builder.$(".nv-cumulativeLine .nv-tooltip")).to.contain "<h2>#{sampleData1[0].key}</h2>"
+
+          it "noData", ->
+            options.noData = "error error"
+            builder.build options, []
+            builder.svg.textContent.should.be.equal 'error error'
+
+          it "x", ->
+            options.x = (d) -> d[1]
+            builder.build options, sampleData
+            builder.model.x()([1,2]).should.be.equal 2
+
+          it "y", ->
+            options.y = (d) -> d[0]
+            builder.build options, sampleData
+            builder.model.y()({display: {y: 1}}).should.be.equal 1
+
+          it "average", ->
+            options.average = (d)-> d.avg
+            builder.build options, sampleData
+            builder.model.average()({avg: 1}).should.be.equal 1
+
+          it "duration", ->
+            options.duration = 100
+            builder.build options, sampleData
+            builder.model.duration().should.be.equal 100
