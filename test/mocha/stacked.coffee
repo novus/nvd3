@@ -67,3 +67,17 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-stackedAreaChart'
             should.exist wrap[0]
+
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-x.nv-axis'
+            '.nv-y.nv-axis'
+            '.nv-stackedWrap'
+            '.nv-legendWrap'
+            '.nv-controlsWrap'
+            '.nv-interactive'
+          ]
+
+          for cssClass in cssClasses
+            do (cssClass) ->
+              should.exist builder.$("g.nvd3.nv-stackedAreaChart #{cssClass}")[0]

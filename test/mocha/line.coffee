@@ -107,3 +107,17 @@ describe 'NVD3', ->
             should.exist tooltip, 'tooltip exists'
 
             builder.model.interactiveLayer.dispatch.elementMouseout()
+
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-x.nv-axis'
+            '.nv-y.nv-axis'
+            '.nv-linesWrap'
+            '.nv-legendWrap'
+            '.nv-line'
+            '.nv-scatter'
+            '.nv-legend'
+          ]
+          for cssClass in cssClasses
+            do (cssClass) ->
+              should.exist builder.$("g.nvd3.nv-lineChart #{cssClass}")[0]

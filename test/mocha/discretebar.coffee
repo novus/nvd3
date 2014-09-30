@@ -45,3 +45,14 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-discreteBarWithAxes'
             should.exist wrap[0]
+
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-x.nv-axis'
+            '.nv-y.nv-axis'
+            '.nv-barsWrap'
+            '.nv-discretebar'
+          ]
+          for cssClass in cssClasses
+            do (cssClass) ->
+              should.exist builder.$("g.nvd3.nv-discreteBarWithAxes #{cssClass}")[0]

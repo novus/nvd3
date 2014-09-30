@@ -75,12 +75,20 @@ describe 'NVD3', ->
             wrap = builder.$ 'g.nvd3.nv-scatterChart'
             should.exist wrap[0]
 
-        it 'has axes', ->
-            xaxis = builder.$ '.nv-x .nv-axis'
-            yaxis = builder.$ '.nv-y .nv-axis'
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-background'
+            '.nv-x.nv-axis'
+            '.nv-y.nv-axis'
+            '.nv-scatterWrap'
+            '.nv-distWrap'
+            '.nv-legendWrap'
+            '.nv-controlsWrap'
+          ]
 
-            should.exist xaxis[0], 'xaxis exists'
-            should.exist yaxis[0], 'yaxis exists'
+          for cssClass in cssClasses
+            do (cssClass) ->
+              should.exist builder.$("g.nvd3.nv-scatterChart #{cssClass}")[0]
 
         it 'has data points', ->
             points = builder.$ '.nv-groups .nv-series-0 circle.nv-point'

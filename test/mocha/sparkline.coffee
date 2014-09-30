@@ -40,3 +40,16 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-sparklineplus'
             should.exist wrap[0]
+
+        it 'has correct structure', ->
+          cssClasses = [
+            '.nv-sparklineWrap'
+            '.nv-sparkline'
+            '.nv-minValue'
+            '.nv-maxValue'
+            '.nv-currentValue'
+            '.nv-valueWrap'
+          ]
+          for cssClass in cssClasses
+            do(cssClass) ->
+              should.exist builder.$("g.nvd3.nv-sparklineplus #{cssClass}")[0]
