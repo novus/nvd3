@@ -130,10 +130,13 @@ describe 'NVD3', ->
 
             ticks = builder.$ '.nv-x.nv-axis .tick text'
 
+            prevTransform = ''
             for tick, i in ticks
                 transform = tick.getAttribute 'transform'
-                if i%2 is 0 then transform.should.contain 'translate(0,12)'
-                else transform.should.contain 'translate(0,0)'
+
+                transform.should.not.equal prevTransform
+                transform.should.match /translate\(0,(12|0)\)/
+                prevTransform = transform
 
         it 'axis orientation', (done)->
             axis = builder.model.xAxis
