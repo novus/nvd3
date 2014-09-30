@@ -133,7 +133,7 @@ nv.models.discreteBarChart = function() {
 
       gEnter.append('g').attr('class', 'nv-barsWrap');
 
-      g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       if (rightAlignYAxis) {
           g.select(".nv-y.nv-axis")

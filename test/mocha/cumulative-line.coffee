@@ -1,5 +1,5 @@
 describe 'NVD3', ->
-    describe.only 'Cumulative Line Chart', ->
+    describe 'Cumulative Line Chart', ->
         sampleData1 = [
             key: 'Series 1'
             values: [
