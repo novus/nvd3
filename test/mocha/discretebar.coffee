@@ -88,7 +88,7 @@ describe 'NVD3', ->
             builder.build options, sampleData
             builder.$(".nv-discreteBarWithAxes")[0].getAttribute("transform").should.be.equal "translate(444,111)"
 
-          # ideally it should be passed but...
+          # todo: ideally it should be passed but...
           xit 'width', ->
             options =
               margin:
@@ -100,7 +100,7 @@ describe 'NVD3', ->
             builder.build options, sampleData
             builder.$(".nv-discreteBarWithAxes")[0].getBoundingClientRect().width.should.be.equal 500
 
-          # ideally it should be passed but...
+          # todo: ideally it should be passed but...
           xit 'height', ->
             options =
               margin:
