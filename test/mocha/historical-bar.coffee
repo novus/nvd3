@@ -77,6 +77,9 @@ describe 'NVD3', ->
           beforeEach ->
             builder = new ChartBuilder nv.models.historicalBarChart()
 
+          afterEach ->
+            builder.teardown()
+
           # todo: ideally it should be passed
           xit "margin", ->
             options.margin =
@@ -99,7 +102,7 @@ describe 'NVD3', ->
             builder.build options, sampleData
             builder.$(".nv-historicalBarChart")[0].getBoundingClientRect().width.should.be.equal 500
 
-          # ideally it should be passed but...
+          # todo: ideally it should be passed but...
           xit 'height', ->
             options =
               margin:
