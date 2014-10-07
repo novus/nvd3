@@ -216,8 +216,14 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
+        var parentNode = that.parentNode;
         e.key = d.title;
-        if (tooltips) showTooltip(e, that.parentNode);
+        // Check to see if that.parentNode is a shadow root.
+        if( parentNode.host ) {
+          // if it is a shadow root, then get the parent of the host node.
+          parentNode = parentNode.host.parentNode;
+        }
+        if (tooltips) showTooltip(e, parentNode);
       });
 
       //============================================================
