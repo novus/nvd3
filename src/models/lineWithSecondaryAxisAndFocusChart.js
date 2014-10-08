@@ -50,12 +50,14 @@ nv.models.lineWithSecondaryAxisAndFocusChart = function() {
     ;
   linesPrimaryBottom
     .interactive(true)
+    .clipEdge(true)
     ;
   linesSecondary
     .clipEdge(true)
     ;
   linesSecondaryBottom
     .interactive(false)
+    .clipEdge(true)
     ;
 
   xAxis
