@@ -1767,7 +1767,7 @@ nv.models.bullet = function() {
     , orient = 'left' // TODO top & bottom
     , reverse = false
     , ranges = function(d) { return d.ranges }
-    , markers = function(d) { return d.markers }
+    , markers = function(d) { return d.markers ? d.markers : [0] }
     , measures = function(d) { return d.measures }
     , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
     , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
@@ -2154,7 +2154,7 @@ nv.models.bulletChart = function() {
     , reverse = false
     , margin = {top: 5, right: 40, bottom: 20, left: 120}
     , ranges = function(d) { return d.ranges }
-    , markers = function(d) { return d.markers }
+    , markers = function(d) { return d.markers ? d.markers : [0] }
     , measures = function(d) { return d.measures }
     , width = null
     , height = 55
@@ -2355,8 +2355,14 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
+        var parentNode = that.parentNode;
         e.key = d.title;
-        if (tooltips) showTooltip(e, that.parentNode);
+        // Check to see if that.parentNode is a shadow root.
+        if( parentNode.host ) {
+          // if it is a shadow root, then get the parent of the host node.
+          parentNode = parentNode.host.parentNode;
+        }
+        if (tooltips) showTooltip(e, parentNode);
       });
 
       //============================================================
@@ -4650,7 +4656,8 @@ nv.models.indentedTree = function() {
 
             d3.select(this).select('span')
               .attr('class', d3.functor(column.classes) )
-              .text(function(d) { return column.format ? (d[column.key] ? column.format(d[column.key]) : '-') :  (d[column.key] || '-'); });
+              .text(function(d) { return column.format ? column.format(d) :
+                                        (d[column.key] || '-') });
           });
 
         if  (column.showCount) {
@@ -4958,7 +4965,7 @@ nv.models.indentedTree = function() {
               var legendText = d3.select(this).select('text');
               var nodeTextLength;
               try {
-                nodeTextLength = legendText.getComputedTextLength();
+                nodeTextLength = legendText.node().getComputedTextLength();
                 // If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
                 if(nodeTextLength <= 0) throw Error();
               }
@@ -6687,6 +6694,7 @@ nv.models.lineWithFocusChart = function() {
                 .map(function(d,i) {
                   return {
                     key: d.key,
+                    area: d.area,
                     values: d.values.filter(function(d,i) {
                       return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                     })
@@ -10265,6 +10273,7 @@ nv.models.pie = function() {
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , color = nv.utils.defaultColor()
     , valueFormat = d3.format(',.2f')
+    , labelFormat = d3.format('%')
     , showLabels = true
     , pieLabelsOutside = true
     , donutLabelsOutside = false
@@ -10472,11 +10481,13 @@ nv.models.pie = function() {
                       Adjust the label's y-position to remove the overlap.
                       */
                       var center = labelsArc.centroid(d);
-                      var hashKey = createHashKey(center);
-                      if (labelLocationHash[hashKey]) {
-                        center[1] -= avgHeight;
+                      if(d.value){
+                        var hashKey = createHashKey(center);
+                        if (labelLocationHash[hashKey]) {
+                          center[1] -= avgHeight;
+                        }
+                        labelLocationHash[createHashKey(center)] = true;
                       }
-                      labelLocationHash[createHashKey(center)] = true;
                       return 'translate(' + center + ')'
                     }
                 });
@@ -10487,7 +10498,7 @@ nv.models.pie = function() {
                   var labelTypes = {
                     "key" : getX(d.data),
                     "value": getY(d.data),
-                    "percent": d3.format('%')(percent)
+                    "percent": labelFormat(percent)
                   };
                   return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                 });
@@ -10646,6 +10657,12 @@ nv.models.pie = function() {
   chart.valueFormat = function(_) {
     if (!arguments.length) return valueFormat;
     valueFormat = _;
+    return chart;
+  };
+
+  chart.labelFormat = function(_) {
+    if (!arguments.length) return labelFormat;
+    labelFormat = _;
     return chart;
   };
 
@@ -10878,9 +10895,9 @@ nv.models.pieChart = function() {
   chart.dispatch = dispatch;
   chart.pie = pie;
 
-  d3.rebind(chart, pie, 'valueFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
+  d3.rebind(chart, pie, 'valueFormat', 'labelFormat', 'values', 'x', 'y', 'description', 'id', 'showLabels', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -14365,4 +14382,128 @@ nv.models.stackedAreaChart = function() {
 
   return chart;
 }
-})();
+nv.models.sumoUtilization = function() {
+  "use strict";
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 10, right: 10, bottom: 10, left: 10}
+    , width  = 470
+    , height = 65
+    , id = Math.floor(Math.random() * 10000) // Create a semi-unique ID in case the user doesn't select one
+    , colors = ['#c07a78', '#c68a6f', '#cc9873', '#d8b973', '#ded575', '#89c793' ]
+    , bands = [10, 20, 30, 40, 50]
+    ;
+
+  //============================================================
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
+
+
+  //============================================================
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
+      
+      //------------------------------------------------------------
+      // Setup Scales
+
+
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-sumoutilization').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sumoutilization');
+      var gEnter = wrapEnter.append('g');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+
+      var threshold = d3.scale.threshold()
+                        .domain(bands)
+                        .range(colors);
+
+      var x = d3.scale.linear()
+                .domain([0,100])
+                .range([0, availableWidth]);
+
+      var xAxis = nv.models.axis()
+                    .scale(x)
+                    .ticks(10)
+                    .tickSize(-44)                          
+                    .orient("bottom");
+
+      gEnter.selectAll('rect').data(threshold.range().map(function(color) {
+         var d = threshold.invertExtent(color);
+        
+         if(d[0] == null) d[0] = x.domain()[0];
+         if(d[1] == null) d[1] = x.domain()[1];
+         return d;
+      })).enter().append('rect')
+         .attr('height', availableHeight)
+         .attr('x', function(d) { return x(d[0]); })
+         .attr('width', function(d) { return x(d[1]) - x(d[0]); })
+         .style('fill', function(d) { return threshold(d[0]); })
+         .style('border-top', '1px #000 top');
+
+      gEnter.append('g')
+           .attr('transform', 'translate(0,' + (availableWidth / 10) +  ')')                 
+           .call(xAxis);
+
+      gEnter.select('.tick').append('g')
+            .append('line')
+            .attr('x1',0)
+            .attr('x2', availableWidth+1)
+            .attr('y1',-45)
+            .attr('y2',-45);
+
+      gEnter.selectAll('.cpu')
+           .data(data)
+           .enter().append('circle')
+           .attr('class', 'cpu')
+           .attr('r', 6)
+           .attr('cy', 35)
+           .attr('cx', availableWidth * (data[0]/100))
+           .style('fill','#ff6600')
+           .style('stroke','black')
+           .style('stroke-width','2px');
+
+      gEnter.selectAll('.mem')
+           .data(data)
+           .enter().append('circle')
+           .attr('class', 'cpu')
+           .attr('r', 6)
+           .attr('cy', 10)
+           .attr('cx', availableWidth * (data[1]/100))
+           .style('fill','#5787b7')
+           .style('stroke','black')
+           .style('stroke-width','2px');           
+      
+      //------------------------------------------------------------
+
+    });
+
+    return chart;
+  }
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+
+
+
+  //============================================================
+
+
+  return chart;
+}})();
