@@ -8025,6 +8025,7 @@ nv.models.multiBarChart = function() {
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
     , controlWidth = function() { return showControls ? 180 : 0 }
+    , controlLabels = {}
     , transitionDuration = 250
     ;
 
@@ -8172,8 +8173,16 @@ nv.models.multiBarChart = function() {
 
       if (showControls) {
         var controlsData = [
-          { key: 'Grouped', disabled: multibar.stacked() },
-          { key: 'Stacked', disabled: !multibar.stacked() }
+          {
+            key: controlLabels.grouped || 'Grouped',
+            metaKey: 'Grouped',
+            disabled: multibar.stacked()
+          },
+          {
+            key: controlLabels.stacked || 'Stacked',
+            metaKey: 'Stacked',
+            disabled: !multibar.stacked()
+          }
         ];
 
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -8305,7 +8314,7 @@ nv.models.multiBarChart = function() {
         });
         d.disabled = false;
 
-        switch (d.key) {
+        switch (d.metaKey) {
           case 'Grouped':
             multibar.stacked(false);
             break;
@@ -8503,6 +8512,13 @@ nv.models.multiBarChart = function() {
   chart.transitionDuration = function(_) {
     if (!arguments.length) return transitionDuration;
     transitionDuration = _;
+    return chart;
+  };
+
+  chart.controlLabels = function(_) {
+    if (!arguments.length) return controlLabels;
+    if (typeof _ !== 'object') return controlLabels;
+    controlLabels = _;
     return chart;
   };
 
