@@ -176,13 +176,18 @@ window.nv.tooltip.* also has various helper methods.
         //Draw the tooltip onto the DOM.
         function nvtooltip() {
             if (!enabled) return;
-            if (!dataSeriesExists(data)) return;
+            if (!dataSeriesExists(data) && !content) {
+                console.error("The data is not in the expected format and content was not defined.");
+                return;
+            }        
+
+            // If custom HTML content has been passed in, then give that priority over the data-generated tooltip.
+            var container = content ? getTooltipContainer(content) : getTooltipContainer(contentGenerator(data));
 
             convertViewBoxRatio();
 
             var left = position.left;
             var top = (fixedTop != null) ? fixedTop : position.top;
-            var container = getTooltipContainer(contentGenerator(data));
             tooltipElem = container;
             if (chartContainer) {
                 var svgComp = chartContainer.getElementsByTagName("svg")[0];
@@ -329,7 +334,7 @@ window.nv.tooltip.* also has various helper methods.
         container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
 
         var body = parentContainer;
-        if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
+        if ( !parentContainer || (parentContainer.tagName && parentContainer.tagName.match(/g|svg/i))) {
             //If the parent element is an SVG element, place tooltip in the <body> element.
             body = document.getElementsByTagName('body')[0];
         }
@@ -469,13 +474,13 @@ window.nv.tooltip.* also has various helper methods.
     nv.tooltip.cleanup = function() {
 
               // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
-              var tooltips = document.getElementsByClassName('nvtooltip');
+              var tooltips = document.querySelectorAll('body /deep/ .nvtooltip');
               var purging = [];
-              while(tooltips.length) {
-                purging.push(tooltips[0]);
-                tooltips[0].style.transitionDelay = '0 !important';
-                tooltips[0].style.opacity = 0;
-                tooltips[0].className = 'nvtooltip-pending-removal';
+              for(var i = 0; i < tooltips.length; ++i) {
+                purging.push(tooltips[i]);
+                tooltips[i].style.transitionDelay = '0 !important';
+                tooltips[i].style.opacity = 0;
+                tooltips[i].className = 'nvtooltip-pending-removal';
               }
 
               setTimeout(function() {
