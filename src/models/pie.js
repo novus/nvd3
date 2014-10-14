@@ -100,7 +100,8 @@ nv.models.pie = function() {
                     point: d.data,
                     pointIndex: i,
                     pos: [d3.event.pageX, d3.event.pageY],
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
               })
               .on('mouseout', function(d,i){
@@ -110,7 +111,8 @@ nv.models.pie = function() {
                     value: getY(d.data),
                     point: d.data,
                     index: i,
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
               })
               .on('click', function(d,i) {
@@ -120,7 +122,8 @@ nv.models.pie = function() {
                     point: d.data,
                     index: i,
                     pos: d3.event,
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
                 d3.event.stopPropagation();
               })
@@ -131,7 +134,8 @@ nv.models.pie = function() {
                     point: d.data,
                     index: i,
                     pos: d3.event,
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
                 d3.event.stopPropagation();
               });
