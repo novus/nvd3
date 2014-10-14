@@ -4522,8 +4522,8 @@ nv.models.indentedTree = function() {
     , childIndent = 20
     , columns = [{key:'key', label: 'Name', type:'text'}] //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
     , tableClass = null
-    , iconOpen = 'http://png.findicons.com/files/icons/1155/diagona/16/129.png' //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
-    , iconClose = 'http://png.findicons.com/files/icons/1155/diagona/16/130.png'
+    , iconOpen = 'icon-plus' //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
+    , iconClose = 'icon-minus'
     , iconAdd = 'assets/styles/images/add.png'
     , iconBlock = 'assets/styles/images/block.png'
     , dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout')
@@ -4604,9 +4604,10 @@ nv.models.indentedTree = function() {
       node.exit().remove();
 
 
-      node.select('img.nv-treeicon')
-          .attr('src', icon)
-          .classed('folded', folded);
+      node.select('i.nv-treeicon')
+          .attr("class", icon)
+          .classed('folded', folded)
+          .classed('nv-treeicon', true);
 
       var nodeEnter = node.enter().append('tr');
 
@@ -4619,10 +4620,10 @@ nv.models.indentedTree = function() {
 
 
         if (index == 0) {
-          nodeName.append('img')
+          nodeName.append('i')
+              .attr("class", icon)
               .classed('nv-treeicon', true)
               .classed('nv-folded', folded)
-              .attr('src', icon)
               .style('width', '14px')
               .style('height', '14px')
               .style('padding', '0 1px')
@@ -4758,11 +4759,11 @@ nv.models.indentedTree = function() {
       }
 
       function iconPlus(d) {
-        return (d._values && d._values.length) ? true : (d.values && d.values.length) ? true : true;
+        return (d._values != undefined && d._values.length == 0) ? iconAdd : (d._values != undefined && d._values.length == 0) ? iconAdd : '';
       }
 
       function iconMinus(d) {
-        return (d._values && d._values.length) ? false : (d.values && d.values.length) ? true : '';
+        return (d._values != undefined && d._values.length == 0) ? iconBlock : (d._values != undefined && d._values.length == 0) ? iconBlock : '';
       }
 
       function iconAd(d) {
