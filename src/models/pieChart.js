@@ -8,16 +8,14 @@ nv.models.pieChart = function() {
     , legend = nv.models.legend()
     ;
 
+  var tip = nv.models.tooltip().gravity('s').distance(23);
+
   var margin = {top: 30, right: 20, bottom: 20, left: 20}
     , width = null
     , height = null
     , showLegend = true
     , color = nv.utils.defaultColor()
     , tooltips = true
-    , tooltip = function(key, y, e, graph) {
-        return '<h3>' + key + '</h3>' +
-               '<p>' +  y + '</p>'
-      }
     , state = {}
     , defaultState = null
     , noData = "No Data Available."
@@ -32,13 +30,16 @@ nv.models.pieChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var tooltipLabel = pie.description()(e.point) || pie.x()(e.point)
-    var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
-        top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
-        y = pie.valueFormat()(pie.y()(e.point)),
-        content = tooltip(tooltipLabel, y, e, chart);
+    var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 )
+      , top  = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0)
+      , y    = pie.valueFormat()(pie.y()(e.point))
+      , tipContent = '<h3>' + e.label + '</h3><p>' + y + '</p>';
+      ;
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+    tip.chartContainer(e.owningSVG.parentElement)
+         .content(tipContent)
+         .position({left: left, top: top})
+         .call(tip);
   };
 
   //============================================================
@@ -56,6 +57,8 @@ nv.models.pieChart = function() {
 
       chart.update = function() { container.transition().call(chart); };
       chart.container = this;
+
+      
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
@@ -193,11 +196,11 @@ nv.models.pieChart = function() {
   //------------------------------------------------------------
 
   pie.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];  
     dispatch.tooltipShow(e);
   });
 
-  dispatch.on('tooltipShow', function(e) {
+  dispatch.on('tooltipShow', function(e) {    
     if (tooltips) showTooltip(e);
   });
 
