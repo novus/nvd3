@@ -552,13 +552,18 @@ window.nv.tooltip.* also has various helper methods.
         //Draw the tooltip onto the DOM.
         function nvtooltip() {
             if (!enabled) return;
-            if (!dataSeriesExists(data)) return;
+            if (!dataSeriesExists(data) && !content) {
+                console.error("The data is not in the expected format and content was not defined.");
+                return;
+            }        
+
+            // If custom HTML content has been passed in, then give that priority over the data-generated tooltip.
+            var container = content ? getTooltipContainer(content) : getTooltipContainer(contentGenerator(data));
 
             convertViewBoxRatio();
 
             var left = position.left;
             var top = (fixedTop != null) ? fixedTop : position.top;
-            var container = getTooltipContainer(contentGenerator(data));
             tooltipElem = container;
             if (chartContainer) {
                 var svgComp = chartContainer.getElementsByTagName("svg")[0];
@@ -705,7 +710,7 @@ window.nv.tooltip.* also has various helper methods.
         container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
 
         var body = parentContainer;
-        if ( !parentContainer || parentContainer.tagName.match(/g|svg/i)) {
+        if ( !parentContainer || (parentContainer.tagName && parentContainer.tagName.match(/g|svg/i))) {
             //If the parent element is an SVG element, place tooltip in the <body> element.
             body = document.getElementsByTagName('body')[0];
         }
@@ -845,13 +850,13 @@ window.nv.tooltip.* also has various helper methods.
     nv.tooltip.cleanup = function() {
 
               // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
-              var tooltips = document.getElementsByClassName('nvtooltip');
+              var tooltips = document.querySelectorAll('body /deep/ .nvtooltip');
               var purging = [];
-              while(tooltips.length) {
-                purging.push(tooltips[0]);
-                tooltips[0].style.transitionDelay = '0 !important';
-                tooltips[0].style.opacity = 0;
-                tooltips[0].className = 'nvtooltip-pending-removal';
+              for(var i = 0; i < tooltips.length; ++i) {
+                purging.push(tooltips[i]);
+                tooltips[i].style.transitionDelay = '0 !important';
+                tooltips[i].style.opacity = 0;
+                tooltips[i].className = 'nvtooltip-pending-removal';
               }
 
               setTimeout(function() {
@@ -10351,7 +10356,8 @@ nv.models.pie = function() {
                     point: d.data,
                     pointIndex: i,
                     pos: [d3.event.pageX, d3.event.pageY],
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
               })
               .on('mouseout', function(d,i){
@@ -10361,7 +10367,8 @@ nv.models.pie = function() {
                     value: getY(d.data),
                     point: d.data,
                     index: i,
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
               })
               .on('click', function(d,i) {
@@ -10371,7 +10378,8 @@ nv.models.pie = function() {
                     point: d.data,
                     index: i,
                     pos: d3.event,
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
                 d3.event.stopPropagation();
               })
@@ -10382,7 +10390,8 @@ nv.models.pie = function() {
                     point: d.data,
                     index: i,
                     pos: d3.event,
-                    id: id
+                    id: id,
+                    owningSVG: this.ownerSVGElement
                 });
                 d3.event.stopPropagation();
               });
@@ -10669,16 +10678,14 @@ nv.models.pieChart = function() {
     , legend = nv.models.legend()
     ;
 
+  var tip = nv.models.tooltip().gravity('s').distance(23);
+
   var margin = {top: 30, right: 20, bottom: 20, left: 20}
     , width = null
     , height = null
     , showLegend = true
     , color = nv.utils.defaultColor()
     , tooltips = true
-    , tooltip = function(key, y, e, graph) {
-        return '<h3>' + key + '</h3>' +
-               '<p>' +  y + '</p>'
-      }
     , state = {}
     , defaultState = null
     , noData = "No Data Available."
@@ -10693,13 +10700,16 @@ nv.models.pieChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var tooltipLabel = pie.description()(e.point) || pie.x()(e.point)
-    var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
-        top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
-        y = pie.valueFormat()(pie.y()(e.point)),
-        content = tooltip(tooltipLabel, y, e, chart);
+    var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 )
+      , top  = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0)
+      , y    = pie.valueFormat()(pie.y()(e.point))
+      , tipContent = '<h3>' + e.label + '</h3><p>' + y + '</p>';
+      ;
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+    tip.chartContainer(e.owningSVG.parentElement)
+         .content(tipContent)
+         .position({left: left, top: top})
+         .call(tip);
   };
 
   //============================================================
@@ -10717,6 +10727,8 @@ nv.models.pieChart = function() {
 
       chart.update = function() { container.transition().call(chart); };
       chart.container = this;
+
+      
 
       //set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
@@ -10854,11 +10866,11 @@ nv.models.pieChart = function() {
   //------------------------------------------------------------
 
   pie.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];  
     dispatch.tooltipShow(e);
   });
 
-  dispatch.on('tooltipShow', function(e) {
+  dispatch.on('tooltipShow', function(e) {    
     if (tooltips) showTooltip(e);
   });
 
@@ -14365,4 +14377,193 @@ nv.models.stackedAreaChart = function() {
 
   return chart;
 }
+<<<<<<< HEAD
 })();
+=======
+nv.models.sumoUtilization = function() {
+  "use strict";
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var sumoUtilization = this;
+
+  var margin = {top: 10, right: 10, bottom: 10, left: 10}
+    , width  = 470
+    , height = 65
+    , id = Math.floor(Math.random() * 10000) // Create a semi-unique ID in case the user doesn't select one
+    , colors = ['#c07a78', '#c68a6f', '#cc9873', '#d8b973', '#ded575', '#89c793' ]
+    , bands = [10, 20, 30, 40, 50]
+    , tooltips = true
+    , tooltip = function(key, x, y, e, graph) {
+        return '<h3>' + x + '</h3>' +
+               '<p>' + y + '</p>'
+      }
+    , dispatch = d3.dispatch('elementMouseover')
+    ;
+
+  //============================================================
+
+  var tip = nv.models.tooltip().data([{key: "CPU", value: 42, color: "#00f"}]);
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
+
+  var showTooltip = function(e, offsetElement) {
+    console.log("Inside showTooltop()");
+    var left = e.pos[0] + ( offsetElement && offsetElement.offsetLeft || 0 ) + margin.left,
+        top = e.pos[1] + ( offsetElement && offsetElement.offsetTop || 0) + margin.top,
+        content = tooltip(e.key, e.label, e.value, e, chart);
+
+     tip();
+    //nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
+  };
+
+
+  //============================================================
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var availableWidth = width - margin.left - margin.right,
+          availableHeight = height - margin.top - margin.bottom,
+          container = d3.select(this);
+      
+      //------------------------------------------------------------
+      // Setup Scales
+
+      var threshold = d3.scale.threshold()
+                        .domain(bands)
+                        .range(colors);
+
+      var x = d3.scale.linear()
+                .domain([0,100])
+                .range([0, availableWidth]);
+
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-sumoutilization').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sumoutilization');
+      var gEnter = wrapEnter.append('g');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+
+      var xAxis = nv.models.axis()
+                    .scale(x)
+                    .ticks(10)
+                    .tickSize(-44)                          
+                    .orient("bottom");
+
+      gEnter.selectAll('rect').data(threshold.range().map(function(color) {
+         var d = threshold.invertExtent(color);
+        
+         if(d[0] == null) d[0] = x.domain()[0];
+         if(d[1] == null) d[1] = x.domain()[1];
+         return d;
+      })).enter().append('rect')
+         .attr('height', availableHeight)
+         .attr('x', function(d) { return x(d[0]); })
+         .attr('width', function(d) { return x(d[1]) - x(d[0]); })
+         .style('fill', function(d) { return threshold(d[0]); })
+         .style('border-top', '1px #000 top');
+
+      gEnter.append('g')
+           .attr('transform', 'translate(0,' + (availableWidth / 10) +  ')')                 
+           .call(xAxis);
+
+      gEnter.select('.tick').append('g')
+            .append('line')
+            .attr('x1',0)
+            .attr('x2', availableWidth+1)
+            .attr('y1',-45)
+            .attr('y2',-45);
+
+      //var dots = wrap.select()
+
+      gEnter.selectAll('.cpu')
+           .data(data)
+           .enter().append('circle')
+           .attr('class', 'cpu')
+           .attr('r', 6)
+           .attr('cy', 35)
+           .attr('cx', availableWidth * (data[0]/100))
+           .style('fill','#ff6600')
+           .style('stroke','black')
+           .style('stroke-width','2px')
+           .on("mouseover", function(d,i) {
+             d3.select(this).classed('hover', true);
+             dispatch.elementMouseover({               
+               label: 'CPU',
+               value: d,
+               point: d.data,
+               pointIndex: i,
+               pos: [d3.event.pageX, d3.event.pageY],
+               id: id
+             });
+             d3.event.stopPropagation();
+           });
+
+      // gEnter.selectAll('.mem')
+      //      .data(data)
+      //      .enter().append('circle')
+      //      .attr('class', 'mem')
+      //      .attr('r', 6)
+      //      .attr('cy', 10)
+      //      .attr('cx', availableWidth * (data[1]/100))
+      //      .style('fill','#5787b7')
+      //      .style('stroke','black')
+      //      .style('stroke-width','2px');
+      
+      //------------------------------------------------------------
+
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
+
+      dispatch.on('elementMouseover', function(e) {
+        showTooltip(e);
+      });
+
+
+      //============================================================      
+      
+
+    });
+
+    return chart;
+  }
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+  
+
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+
+  chart.tooltips = function(_) {
+    if (!arguments.length) return tooltip;
+    tooltip = _;
+    return chart;
+  }
+
+  chart.x = function(_) {
+     if (!arguments.length) return getX;
+     getX = _;
+     return chart;
+  }
+
+
+  //============================================================
+
+
+  return chart;
+}})();
+>>>>>>> 0dbfc04... Shadow DOM compatibility
