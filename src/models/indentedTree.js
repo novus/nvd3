@@ -260,12 +260,13 @@ nv.models.indentedTree = function() {
       }
 
       function iconAd(d) {
-        return (d._values != undefined && d._values.length == 0) ? iconAdd : (d._values != undefined && d._values.length == 0) ? iconAdd : '';
+        return (d.size > 0) ? iconAdd : (d._values != undefined && d._values.length == 0) ? iconAdd : '';
       }
 
       function iconRemove(d) {
-        return (d._values != undefined && d._values.length == 0) ? iconBlock : (d._values != undefined && d._values.length == 0) ? iconBlock : '';
+        return (d.size > 0) ? iconBlock : (d._values != undefined && d._values.length == 0) ? iconBlock : '';
       }
+
 
       function folded(d) {
         return (d._values && d._values.length);
