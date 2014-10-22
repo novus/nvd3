@@ -1133,7 +1133,7 @@ nv.utils.optionsFunc = function(args) {
           if (rotateLabels%360) {
             //Calculate the longest xTick width
             xTicks.each(function(d,i){
-              var width = this.getBBox().width;
+              var width = this.getBoundingClientRect().width;
               if(width > maxTextWidth) maxTextWidth = width;
             });
             //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
