@@ -24,7 +24,7 @@ text {
 <script src="../src/models/historicalBarChart.js"></script>
 <script src="../src/utils.js"></script>
 
-<script> 
+<script>
 
 var chart;
 nv.addGraph(function() {
@@ -32,6 +32,7 @@ nv.addGraph(function() {
   chart
     .margin({left: 100, bottom: 100})
     .x(function(d,i) { return i })
+    .useInteractiveGuideline(true)
     .transitionDuration(250)
     ;
 

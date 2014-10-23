@@ -9,6 +9,7 @@ nv.models.historicalBarChart = function() {
     , xAxis = nv.models.axis()
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
+    , interactiveLayer = nv.interactiveGuideline()
     ;
 
 
@@ -20,6 +21,7 @@ nv.models.historicalBarChart = function() {
     , showXAxis = true
     , showYAxis = true
     , rightAlignYAxis = false
+    , useInteractiveGuideline = false
     , tooltips = true
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
@@ -154,6 +156,7 @@ nv.models.historicalBarChart = function() {
       gEnter.append('g').attr('class', 'nv-y nv-axis');
       gEnter.append('g').attr('class', 'nv-barsWrap');
       gEnter.append('g').attr('class', 'nv-legendWrap');
+      gEnter.append('g').attr('class', 'nv-interactive');
 
       //------------------------------------------------------------
 
@@ -190,6 +193,18 @@ nv.models.historicalBarChart = function() {
 
       //------------------------------------------------------------
       // Main Chart Component(s)
+
+      //------------------------------------------------------------
+      //Set up interactive layer
+      if (useInteractiveGuideline) {
+        interactiveLayer
+           .width(availableWidth)
+           .height(availableHeight)
+           .margin({left:margin.left, top:margin.top})
+           .svgContainer(container)
+           .xScale(x);
+        wrap.select(".nv-interactive").call(interactiveLayer);
+      }
 
       bars
         .width(availableWidth)
@@ -238,6 +253,53 @@ nv.models.historicalBarChart = function() {
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
+
+      interactiveLayer.dispatch.on('elementMousemove', function(e) {
+          bars.clearHighlights()
+
+          var singlePoint, pointIndex, pointXLocation, allData = [];
+          data
+          .filter(function(series, i) {
+            series.seriesIndex = i;
+            return !series.disabled;
+          })
+          .forEach(function(series,i) {
+              pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+              bars.highlightPoint(pointIndex,true);
+              var point = series.values[pointIndex];
+              if (typeof point === 'undefined') return;
+              if (typeof singlePoint === 'undefined') singlePoint = point;
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+              allData.push({
+                  key: series.key,
+                  value: chart.y()(point, pointIndex),
+                  color: color(series,series.seriesIndex)
+              });
+          });
+
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          interactiveLayer.tooltip
+                  .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                  .chartContainer(that.parentNode)
+                  .enabled(tooltips)
+                  .valueFormatter(function(d,i) {
+                     return yAxis.tickFormat()(d);
+                  })
+                  .data(
+                      {
+                        value: xValue,
+                        series: allData
+                      }
+                  )();
+
+          interactiveLayer.renderGuideLine(pointXLocation);
+
+      });
+
+      interactiveLayer.dispatch.on("elementMouseout",function(e) {
+          dispatch.tooltipHide();
+          bars.clearHighlights();
+      });
 
       legend.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
@@ -325,9 +387,10 @@ nv.models.historicalBarChart = function() {
   chart.legend = legend;
   chart.xAxis = xAxis;
   chart.yAxis = yAxis;
+  chart.interactiveLayer = interactiveLayer;
 
   d3.rebind(chart, bars, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale',
-    'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate','highlightPoint','clearHighlights', 'interactive');
+    'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id', 'interpolate','highlightPoint','clearHighlights');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -417,6 +480,15 @@ nv.models.historicalBarChart = function() {
   chart.transitionDuration = function(_) {
     if (!arguments.length) return transitionDuration;
     transitionDuration = _;
+    return chart;
+  };
+
+  chart.useInteractiveGuideline = function(_) {
+    if(!arguments.length) return useInteractiveGuideline;
+    useInteractiveGuideline = _;
+    if (_ === true) {
+       chart.interactive(false);
+    }
     return chart;
   };
 
