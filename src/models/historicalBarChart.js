@@ -30,7 +30,7 @@ nv.models.historicalBarChart = function() {
     , state = {}
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
     , transitionDuration = 250
     ;
 
@@ -72,11 +72,18 @@ nv.models.historicalBarChart = function() {
     nv.tooltip.show([left, top], content, null, null, offsetElement);
   };
 
+  var renderWatch = nv.utils.renderWatch(dispatch, 0);
+
   //============================================================
 
 
   function chart(selection) {
     selection.each(function(data) {
+      renderWatch.reset();
+      renderWatch.models(bars);
+      if (showXAxis) renderWatch.models(xAxis);
+      if (showYAxis) renderWatch.models(yAxis);
+
       var container = d3.select(this),
           that = this;
 
@@ -283,6 +290,7 @@ nv.models.historicalBarChart = function() {
 
     });
 
+    renderWatch.renderEnd('historicalBarChart immediate');
     return chart;
   }
 

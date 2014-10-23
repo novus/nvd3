@@ -22,15 +22,16 @@ nv.models.historicalBar = function() {
     , yDomain
     , xRange
     , yRange
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     , interactive = true
     ;
 
   //============================================================
-
+  var renderWatch = nv.utils.renderWatch(dispatch, 0);
 
   function chart(selection) {
     selection.each(function(data) {
+      renderWatch.reset();
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
@@ -114,7 +115,7 @@ nv.models.historicalBar = function() {
           .attr('x', 0 )
           .attr('y', function(d,i) {  return nv.utils.NaNtoZero(y(Math.max(0, getY(d,i)))) })
           .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.abs(y(getY(d,i)) - y(0))) })
-          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; }) 
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
           .on('mouseover', function(d,i) {
             if (!interactive) return;
             d3.select(this).classed('hover', true);
@@ -169,13 +170,13 @@ nv.models.historicalBar = function() {
       bars
           .attr('fill', function(d,i) { return color(d, i); })
           .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
-          .transition()
-          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; }) 
+          .watchTransition(renderWatch, 'bars')
+          .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
            //TODO: better width calculations that don't assume always uniform data spacing;w
           .attr('width', (availableWidth / data[0].values.length) * .9 );
 
 
-      bars.transition()
+      bars.watchTransition(renderWatch, 'bars')
           .attr('y', function(d,i) {
             var rval = getY(d,i) < 0 ?
                     y(0) :
@@ -188,6 +189,7 @@ nv.models.historicalBar = function() {
 
     });
 
+    renderWatch.renderEnd('historicalBar immediate');
     return chart;
   }
 
@@ -212,7 +214,7 @@ nv.models.historicalBar = function() {
   chart.dispatch = dispatch;
 
   chart.options = nv.utils.optionsFunc.bind(chart);
-  
+
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
