@@ -10,6 +10,7 @@ nv.models.multiBarChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
     , controls = nv.models.legend()
+    , tip = nv.models.tooltip().gravity('s').distance(23);
     ;
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -69,7 +70,10 @@ nv.models.multiBarChart = function() {
         y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+    tip.chartContainer(e.owningSVG.parentElement)
+         .content(tipContent)
+         .position({left: left, top: top})
+         .call(tip);   
   };
 
   //============================================================
