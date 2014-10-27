@@ -10732,7 +10732,7 @@ nv.models.pieChart = function() {
       ;
 
     tip.chartContainer(e.owningSVG.parentElement)
-         .content(tipContent);
+         .content(tipContent)
          .position({left: left, top: top})
          .call(tip);
   };
