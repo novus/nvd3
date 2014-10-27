@@ -8015,7 +8015,7 @@ nv.models.multiBarChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend()
     , controls = nv.models.legend()
-    , tip = nv.models.tooltip().gravity('s').distance(23);
+    , tip = nv.models.tooltip().gravity('w').distance(5);
     ;
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -8040,7 +8040,7 @@ nv.models.multiBarChart = function() {
     , state = { stacked: false }
     , defaultState = null
     , noData = "No Data Available."
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'elementClick')
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
     ;
@@ -8069,11 +8069,11 @@ nv.models.multiBarChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0] || 0,
+        top = e.pos[1] || 0,
         x = xAxis.tickFormat()(multibar.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
-        content = tooltip(e.series.key, x, y, e, chart);
+        tipContent = tooltip(e.series.key, x, y, e, chart);
 
     tip.chartContainer(e.owningSVG.parentElement)
          .content(tipContent)
@@ -10732,7 +10732,7 @@ nv.models.pieChart = function() {
       ;
 
     tip.chartContainer(e.owningSVG.parentElement)
-         .content(tipContent)
+         .content(tipContent);
          .position({left: left, top: top})
          .call(tip);
   };
