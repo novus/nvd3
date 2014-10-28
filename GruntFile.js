@@ -22,6 +22,7 @@ module.exports = function(grunt) {
                      'src/models/discreteBar.js',
                      'src/models/discreteBarChart.js',
                      'src/models/distribution.js',
+                     'src/models/gradientChart.js',
                      'src/models/historicalBar.js',
                      'src/models/historicalBarChart.js',
                      'src/models/indentedTree.js',
@@ -46,7 +47,6 @@ module.exports = function(grunt) {
                      'src/models/sparklinePlus.js',
                      'src/models/stackedArea.js',
                      'src/models/stackedAreaChart.js',
-                     'src/models/sumoUtilization.js',
                      'src/outro.js'
                      ],
                 dest: 'nv.d3.js'

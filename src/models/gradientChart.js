@@ -1,10 +1,10 @@
-nv.models.sumoUtilization = function() {
+nv.models.gradientChart = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var sumoUtilization = this
+  var gradientChart = this
     , legend = nv.models.legend()
     ;
 
