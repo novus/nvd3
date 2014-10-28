@@ -10,6 +10,9 @@ _site
 *~
 *.log
 
+# Minified / Uglified files #
+#############################
+*.min.*
 
 # Private Test Data #
 #####################
