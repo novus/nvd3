@@ -132,6 +132,7 @@ nv.models.lineWithFocusChart = function() {
       // Display No Data message if there's nothing to show.
 
       if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+        container.selectAll('g.nv-wrap.nv-lineWithFocusChart').remove();
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
