@@ -1,23 +1,16 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
-
-body {
-  overflow-y:scroll;
-}
-
-</style>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+</head>
 <body>
-
-<br> <br> <br> <br> <br>
 
 <div class="gallery" id="chart"></div>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/bullet.js"></script>
+
+
 <script>
 
 var width = 960,
@@ -95,3 +88,5 @@ d3.select('body').on('click', window.transition);
 
 
 </script>
+</body>
+</html>

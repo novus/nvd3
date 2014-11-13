@@ -1,28 +1,32 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
 
-body {
-  overflow-y:scroll;
-}
 
-text {
-  font: 12px sans-serif;
-}
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
-</style>
+        svg {
+            display: block;
+        }
+        html, body, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
 <body class='with-3d-shadow with-transitions'>
 
-<div style="width: 100%; height: 400px;">
+
 <svg id="test1"></svg>
-</div>
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/historicalBar.js"></script>
-<script src="../src/models/historicalBarChart.js"></script>
-<script src="../src/utils.js"></script>
 
 <script>
 
@@ -105,3 +109,4 @@ function sinData() {
 }
 
 </script>
+</body></html>

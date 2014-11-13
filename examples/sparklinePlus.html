@@ -1,17 +1,31 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
 
-svg.sparkline {
-  width: 500px;
-  height: 70px;
-  font-size: 14px;
-  margin-top: -6px;
-}
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
-
-</style>
+        svg {
+            display: block;
+        }
+        html, body {
+            margin: 0px;
+            padding: 0px;
+        }
+        svg.sparkline {
+          width: 500px;
+          height: 70px;
+          font-size: 14px;
+          margin-top: -6px;
+        }
+    </style>
+</head>
 <body class='with-3d-shadow with-transitions'>
 
 <h2>SparklinePlus:</h2>

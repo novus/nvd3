@@ -1,47 +1,32 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
 
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
-<style>
-
-body {
-  overflow-y:scroll;
-}
-
-text {
-  font: 12px sans-serif;
-}
-
-#chart1 svg {
-  height: 500px;
-  margin: 10px;
-  min-width: 100px;
-  min-height: 100px;
-/*
-  Minimum height and width is a good idea to prevent negative SVG dimensions...
-  For example width should be =< margin.left + margin.right + 1,
-  of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
-*/
-}
-
-</style>
+        svg {
+            display: block;
+        }
+        html, body, #chart1, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
 <body>
 
   <div id="chart1" class='with-3d-shadow with-transitions'>
     <svg> </svg>
   </div>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/historicalBar.js"></script>
-<script src="../src/models/linePlusBarChart.js"></script>
 <script>
 
 

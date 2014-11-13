@@ -1,38 +1,33 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
 <html>
 <head>
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
 
-body {
-  overflow-y: scroll;
-}
 
-.chart {
-  padding: 0;
-}
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
-svg {
-  position: relative;
-  overflow: hidden;
-  width: 960px;
-  height: 500px;
-  font: 10px sans-serif;
-}
-
-</style>
+        svg {
+            display: block;
+        }
+        html, body, #chart1, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
 <div id="chart1" class="chart">
   <svg></svg>
 </div>
-
-<script type="text/javascript" src="../lib/d3.v3.js"></script>
-<script type="text/javascript" src="../nv.d3.js"></script>
-<script type="text/javascript" src="../src/utils.js"></script>
-<script type="text/javascript" src="../src/models/parallelCoordinates.js"></script>
 
 <script>
   var chart;

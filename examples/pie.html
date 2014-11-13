@@ -1,27 +1,37 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script src="lib/stream_layers.js"></script>
 
-body {
-  overflow-y:scroll;
-}
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
-text {
-  font: 12px sans-serif;
-}
-
-</style>
+        svg {
+            display: block;
+            float: left;
+            height: 300px;
+            width: 300px;
+        }
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
 <body>
 
 <svg id="test1"></svg>
 
 <svg id="test2"></svg>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/pie.js"></script>
 <script> 
 
   var testdata = [
@@ -51,10 +61,11 @@ text {
     }
   ];
 
+var width = 300;
+var height = 300;
 
 nv.addGraph(function() {
-    var width = nv.utils.windowSize().width - 40,
-        height = nv.utils.windowSize().height / 2 - 40;
+
 
     var chart = nv.models.pie()
         .values(function(d) { return d })
@@ -72,8 +83,6 @@ nv.addGraph(function() {
 });
 
 nv.addGraph(function() {
-    var width = nv.utils.windowSize().width - 40,
-        height = nv.utils.windowSize().height / 2 - 40;
 
     var chart = nv.models.pie()
         .values(function(d) { return d })

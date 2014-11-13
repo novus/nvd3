@@ -1,22 +1,30 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
 
-body {
-  overflow-y:scroll;
-}
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
-</style>
+        svg {
+            display: block;
+        }
+        html, body, #example1, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
 <body>
 
   <div id="example1" style="width:600px"></div>
 
-
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/indentedTree.js"></script>
 <script>
 
 // THIS API WILL BE CHANGING!!  this was ported from a different graphing collection, its only been halfway ported to the nvd3 style
@@ -125,3 +133,4 @@ nv.addGraph(function() {
 
 
 </script>
+</body></html>

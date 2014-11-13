@@ -1,44 +1,34 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
 
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
 
-<style>
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
-body {
-  overflow-y:scroll;
-}
-
-text {
-  font: 12px sans-serif;
-}
-
-#chart1, #chart2 {
-  height: 500px;
-}
-
-</style>
+        svg {
+            display: block;
+        }
+        html, body, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
 <body class='with-3d-shadow with-transitions'>
 
-  <div>
+
     <svg id="chart1"></svg>
-  </div>
 
-  <div>
-    <!--<svg id="chart2"></svg>-->
-  </div>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/interactiveLayer.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/stackedArea.js"></script>
-<script src="../src/models/stackedAreaChart.js"></script>
 <script>
 
 
@@ -84,53 +74,6 @@ var histcatexplong = [
     "values" : [ [ 1138683600000 , 0] , [ 1141102800000 , 0] , [ 1143781200000 , 0] , [ 1146369600000 , 0] , [ 1149048000000 , 0] , [ 1151640000000 , 0] , [ 1154318400000 , 0] , [ 1156996800000 , 0] , [ 1159588800000 , 0] , [ 1162270800000 , 0] , [ 1164862800000 , 0] , [ 1167541200000 , 0] , [ 1170219600000 , 0] , [ 1172638800000 , 0] , [ 1175313600000 , 0] , [ 1177905600000 , 0] , [ 1180584000000 , 0] , [ 1183176000000 , 0] , [ 1185854400000 , 0] , [ 1188532800000 , 0] , [ 1191124800000 , 0] , [ 1193803200000 , 0] , [ 1196398800000 , 0] , [ 1199077200000 , 0] , [ 1201755600000 , 0] , [ 1204261200000 , 0] , [ 1206936000000 , 0] , [ 1209528000000 , 0] , [ 1212206400000 , 0] , [ 1214798400000 , 0] , [ 1217476800000 , 0] , [ 1220155200000 , 0] , [ 1222747200000 , 0] , [ 1225425600000 , 0] , [ 1228021200000 , 0] , [ 1230699600000 , 0] , [ 1233378000000 , 0] , [ 1235797200000 , 0] , [ 1238472000000 , 0] , [ 1241064000000 , 0] , [ 1243742400000 , 0] , [ 1246334400000 , 0] , [ 1249012800000 , 0] , [ 1251691200000 , 0] , [ 1254283200000 , 0] , [ 1256961600000 , 0] , [ 1259557200000 , 0] , [ 1262235600000 , 0] , [ 1264914000000 , 0] , [ 1267333200000 , 0] , [ 1270008000000 , 0] , [ 1272600000000 , 0] , [ 1275278400000 , 0] , [ 1277870400000 , 0] , [ 1280548800000 , 0] , [ 1283227200000 , 0] , [ 1285819200000 , 0] , [ 1288497600000 , 0] , [ 1291093200000 , 0] , [ 1293771600000 , 0] , [ 1296450000000 , 0] , [ 1298869200000 , 0] , [ 1301544000000 , 0] , [ 1304136000000 , 0] , [ 1306814400000 , 0] , [ 1309406400000 , 0] , [ 1312084800000 , 0] , [ 1314763200000 , 0] , [ 1317355200000 , 0] , [ 1320033600000 , 0] , [ 1322629200000 , 0] , [ 1325307600000 , 0] , [ 1327986000000 , 0] , [ 1330491600000 , 0] , [ 1333166400000 , 0] , [ 1335758400000 , 0] , [ 1338436800000 , 0]]
   }
 ];
-
-/*
-// for testing single data point
-var histcatexplong = [
-  {
-    "key" : "Consumer Discretionary" ,
-    "values" : [ [ 1138683600000 , 27.38478809681]]
-  } ,
-  {
-    "key" : "Consumer Staples" ,
-    "values" : [ [ 1138683600000 , 7.2800122043237]]
-  } ,
-  {
-    "key" : "Energy" ,
-    "values" : [ [ 1138683600000 , 1.544303464167]]
-  } ,
-  {
-    "key" : "Financials" ,
-    "values" : [ [ 1138683600000 , 13.356778764352]]
-  } ,
-  {
-    "key" : "Health Care" ,
-    "values" : [ [ 1138683600000 , 14.212410956029]]
-  } ,
-  {
-    "key" : "Industrials" ,
-    "values" : [ [ 1138683600000 , 7.1590087090398]]
-  } ,
-  {
-    "key" : "Information Technology" ,
-    "values" : [ [ 1138683600000 , 13.242301508051]]
-  } ,
-  {
-    "key" : "Materials" ,
-    "values" : [ [ 1138683600000 , 5.5806167415681]]
-  } ,
-  {
-    "key" : "Telecommunication Services" ,
-    "values" : [ [ 1138683600000 , 3.7056975170243]]
-  } ,
-  {
-    "key" : "Utilities" ,
-    "values" : [ [ 1138683600000 , 0]]
-  }
-];
-*/
-
 
 
 var histcatexpshort = [
@@ -275,3 +218,4 @@ nv.addGraph(function() {
 
 
 </script>
+</body></html>

@@ -1,68 +1,56 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script src="lib/horizon.js"></script>
 
-  /*
-* {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-*/
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
 
+        svg {
+            display: block;
+        }
+        html, body, #chart1, svg {
+            margin: 0px;
+            padding: 0px;
+        }
 
-body {
-  font-family: sans-serif;
-}
+        svg > g > path {
+          pointer-events: none;
+        }
 
-svg {
-  top: 10px;
-  left: 10px;
-  position: absolute;
-}
+        .nv-horizonBackground {
+          fill: none;
+          stroke: none;
+          pointer-events: all;
+        }
 
-svg > g > path {
-  pointer-events: none;
-}
+        #horizon-controls {
+          position: absolute;
+          width: 95%;
+          margin: 10px;
+          z-index: 1;
+          box-sizing: border-box;
+        }
 
-.nv-horizonBackground {
-  fill: none;
-  stroke: none;
-  pointer-events: all;
-}
-
-#horizon-controls {
-  position: absolute;
-  width: 940px;
-  padding: 10px;
-  z-index: 1;
-}
-
-#horizon-bands {
-  float: right;
-}
+        #horizon-bands {
+          float: right;
+        }
 
 
-</style>
+    </style>
+</head>
 <body>
-
-  <div id="wrap">
-
     <div id="horizon-controls">
       <input name="mode" type="radio" value="mirror" id="horizon-mode-mirror" checked><label for="horizon-mode-mirror"> Mirror</label>
       <input name="mode" type="radio" value="offset" id="horizon-mode-offset"><label for="horizon-mode-offset"> Offset</label>
       <span id="horizon-bands"><span id="horizon-bands-value">1</span> <button class="first">&#x2212;</button><button class="last">+</button></span>
     </div>
-    <div><svg id="chart1"></svg></div>
-
-  </div>
-
-
-<script src="../lib/d3.v2.js"></script>
-<script src="../lib/horizon.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
+    <svg id="chart1"></svg>
 <script>
 
 
@@ -71,7 +59,7 @@ svg > g > path {
 // the horizontChart model should have a "tooltip" like functionality that shows a point over the 
 // current value based on the mouse's x position
 
-var width = 960,
+var width = 595,
     height = 300;
 
 nv.addGraph(function() {
@@ -121,10 +109,10 @@ nv.addGraph(function() {
     var i = Math.round( scales.x.invert(x) );
     //var y = (data[i][1] < 0 || chart.mode() == 'mirror' ? height : 0) - scales.y(chart.mode() == 'mirror' ? Math.abs(data[i][1]) : data[i][1] );
     var y = height - scales.y(chart.mode() == 'mirror' ? Math.abs(data[i][1]) : data[i][1] ) - (chart.mode() == 'offset' && data[i][1] < 0 ? height : 0  );
-    var t = scales.t(data[i][1]);
-    var bandRange = scales.y.range()[1];
+    //var t = scales.t(data[i][1]);
+    //var bandRange = scales.y.range()[1];
 
-    y = y % (height / chart.bands());
+    //y = y % (height / chart.bands());
     //nv.log(y, height, y % height);
 
     //nv.log(scales.y.range(), scales.y.domain());
@@ -134,10 +122,7 @@ nv.addGraph(function() {
 
     point
       .attr('cx', scales.x(i))
-      .attr('cy', y)
-      .attr('transform',
-        'translate(0,' + chart.bands + ')'
-      );
+      .attr('cy', y);
 
     //var m2 = d3.mouse(d3.select('body').node());
     //nv.log(m1, m2);
