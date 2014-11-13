@@ -1,3 +1,6 @@
+
+var version = '1.5.16';
+
 module.exports = function(grunt) {
 
     //Project configuration.
@@ -7,9 +10,9 @@ module.exports = function(grunt) {
             options: {
                 separator: '',
                 // wrap output in a function block.
-                banner: '/* nvd3 version 1.5.16 (https://github.com/liquidpele/nvd3) ' +
+                banner: '/* nvd3 version ' + version + '(https://github.com/liquidpele/nvd3) ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
-                footer: '\n})();'
+                footer: '\nnv.version = "' + version + '";\n})();'
             },
             dist: {
                 src: [
@@ -29,7 +32,7 @@ module.exports = function(grunt) {
         },
         uglify: {
             options: {
-                banner: '/* nvd3 version 1.5.16 (https://github.com/liquidpele/nvd3) ' +
+                banner: '/* nvd3 version ' + version + ' (https://github.com/liquidpele/nvd3) ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
             js: {
