@@ -6,6 +6,8 @@ last maintainer said he does not have time anymore.  Thanks to both of them for 
 great work put into the project thus far, and with the magic of open source licensing
 we can keep on improving it!
 
+Download the latest version 1.5.16 here: [Version 1.5.16](https://github.com/liquidpele/nvd3/tree/1.5.16/build)
+
 ## Overview
 A reusable chart library for d3.js
 
