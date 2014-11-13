@@ -5,7 +5,10 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         concat: {
             options: {
-                separator: ''
+                separator: '',
+                // wrap output in a function block.
+                banner: '(function(){',
+                footer: '})();'
             },
             dist: {
                 src: [
@@ -23,7 +26,6 @@ module.exports = function(grunt) {
                     'src/outro.js'
                      ],
                 dest: 'build/nv.d3.js'
->>>>>>> master
             }
         },
         uglify: {

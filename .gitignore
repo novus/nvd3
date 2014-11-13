@@ -8,7 +8,6 @@ ehthumbs.db
 Icon?
 Thumbs.db
 node_modules
-build
 bower_components
 coverage
 test-results.xml
