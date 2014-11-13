@@ -12,7 +12,6 @@ module.exports = function(grunt) {
             },
             dist: {
                 src: [
-                    'src/intro.js',
                     'src/core.js',
                     'src/interactiveLayer.js',
                     'src/tooltip.js',
@@ -22,8 +21,7 @@ module.exports = function(grunt) {
                     'src/models/*.js',
                     '!src/models/lineWithFisheye*',
                     '!src/models/parallelCoordinates*',
-                    '!src/models/multiBarTime*',
-                    'src/outro.js'
+                    '!src/models/multiBarTime*'
                      ],
                 dest: 'build/nv.d3.js'
             }
