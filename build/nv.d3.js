@@ -1,4 +1,6 @@
+/* nvd3 version 1.5.16 (https://github.com/liquidpele/nvd3) 2014-11-13 */
 (function(){
+
 var nv = window.nv || {};
 
 
@@ -15398,4 +15400,5 @@ nv.models.stackedAreaChart = function() {
 
   return chart;
 };
+
 })();

@@ -7,8 +7,9 @@ module.exports = function(grunt) {
             options: {
                 separator: '',
                 // wrap output in a function block.
-                banner: '(function(){',
-                footer: '})();'
+                banner: '/* nvd3 version 1.5.16 (https://github.com/liquidpele/nvd3) ' +
+                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
+                footer: '\n})();'
             },
             dist: {
                 src: [
@@ -28,8 +29,8 @@ module.exports = function(grunt) {
         },
         uglify: {
             options: {
-                banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
-                    '<%= grunt.template.today("yyyy-mm-dd") %> */'
+                banner: '/* nvd3 version 1.5.16 (https://github.com/liquidpele/nvd3) ' +
+                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
             js: {
                 files: {
