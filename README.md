@@ -6,13 +6,13 @@ last maintainer said he does not have time anymore.  Thanks to both of them for 
 great work put into the project thus far, and with the magic of open source licensing
 we can keep on improving it!
 
-Latest version is 1.5.16 ([view](https://github.com/liquidpele/nvd3/tree/1.5.16/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.5.16) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.5.16))
+Latest version is 1.5.16 ( [view](https://github.com/liquidpele/nvd3/tree/1.5.16/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.5.16) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.5.16) )
 
 ## Overview
 A reusable chart library for d3.js
 
 You can also check out the [examples page](http://nvd3.org/ghpages/examples.html).
-**Note:** The examples on nvd3.org may be outdated.
+**Note:** The examples on nvd3.org may be outdated and the download button there links to the outdated repo.
 
 For examples on how to use the latest NVD3, please checkout the **examples/** directory in the repository.
 
@@ -25,7 +25,7 @@ For examples on how to use the latest NVD3, please checkout the **examples/** di
 
 ---
 
-If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models)
+If one of [the existing models](https://github.com/liquidpele/nvd3/tree/development/src/models)
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
 
