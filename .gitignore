@@ -12,3 +12,4 @@ build
 bower_components
 coverage
 test-results.xml
+*.orig
