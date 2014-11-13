@@ -25,16 +25,17 @@ For examples on how to use the latest NVD3, please checkout the **examples/** di
 
 ---
 
+# Contributing
+
 If one of [the existing models](https://github.com/liquidpele/nvd3/tree/development/src/models)
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
 
+Make sure you commit your changes to the development branch and not master!
+
 We cannot honor all pull requests, but we will review all of them.
 
 Please do not aggregate pull requests. Aggregated pull requests are actually more difficult to review.
-
-We are currently changing our branch structure so that master will be gauranteed stable. In addition,
-there is now a "development" branch. This branch reflects the latest changes to NVD3 and is not necessarily stable.
 
 ---
 
@@ -46,6 +47,8 @@ there is now a "development" branch. This branch reflects the latest changes to 
 4. build with:  grunt production
 
 You should now have a "build" directory with the js and css files within.
+
+---
 
 ## Supported Browsers
 NVD3 runs best on WebKit based browsers.
