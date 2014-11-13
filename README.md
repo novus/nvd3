@@ -1,89 +1,55 @@
-# NVD3 - v1.1.15-beta
-## Release notes for version 1.1.15 beta
-* Various fixes across the board
+
+## Latest version of nvd3 can be found here as the original project was abandoned.
+
+Sadly the original developer of nvd3 has long since moved on to other things, and the
+last maintainer said he does not have time anymore.  Thanks to both of them for all the
+great work put into the project thus far, and with the magic of open source licensing
+we can keep on improving it!
 
 ## Overview
-A reusable chart library for d3.js.
-
-NVD3 may change from its current state, but will always try to follow the style of d3.js.
+A reusable chart library for d3.js
 
 You can also check out the [examples page](http://nvd3.org/ghpages/examples.html).
-**Note:** The examples on nvd3.org are outdated.  For examples on how to use the latest NVD3, please checkout the **examples/** directory in the repository.
+**Note:** The examples on nvd3.org may be outdated.
+
+For examples on how to use the latest NVD3, please checkout the **examples/** directory in the repository.
 
 ---
 
 # Current development focus
-- Better unit test coverage
-- bug fixes.
+
+- Clean things up
+- Merge in pull requests and bugfixes
 
 ---
 
-# Installation Instructions
-
-`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include in in your project, then:
-Add a script tag to include `nv.d3.js` OR `nv.d3.min.js` in your project.
-Also add a link to the `nv.d3.css` file.
-
-See wiki -> Documentation for more detail
-
----
-
-If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models) doesn't meet your needs, fork the project, implement the model and an example using it, send us a pull request, for consideration for inclusion in the project.
+If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models)
+doesn't meet your needs, fork the project, implement the model and an example using it,
+send us a pull request, for consideration for inclusion in the project.
 
 We cannot honor all pull requests, but we will review all of them.
 
 Please do not aggregate pull requests. Aggregated pull requests are actually more difficult to review.
 
-We are currently changing our branch structure so that master will be gauranteed stable. In addition, there is now a "development" branch. This branch reflects the latest changes to NVD3 and is not necessarily stable.
+We are currently changing our branch structure so that master will be gauranteed stable. In addition,
+there is now a "development" branch. This branch reflects the latest changes to NVD3 and is not necessarily stable.
 
 ---
 
-## Minifying your fork:
+## Building latest
 
-### Using Make
-** Note: we would like people to use Grunt going forward **
-The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS) and [CSSMin](https://github.com/jbleuzen/node-cssmin)
+1. First check out the testing branch, e.g.:  git clone https://github.com/liquidpele/nvd3.git
+2. make sure nodejs is installed via your system's package manager.
+3. have node download it's required modules with:  npm install
+4. build with:  grunt production
 
-The easiest way to install UglifyJS and CSSMin is via npm. Run `npm install -g uglify-js cssmin`. After installing verify the setup by running `uglifyjs --version` and `cssmin --help`.
-
-Once you have the `uglifyjs` and `cssmin` commands available, running `make` from your
-fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
-
-    make # build nv.d3.js and nv.d3.css and minify
-    make nv.d3.js # Build nv.d3.js
-    make nv.d3.min.js # Minify nv.d3.js into nv.d3.min.js
-    make nv.d3.css # Build nv.d3.css
-    make nv.d3.min.css # Minify nv.d3.css into nv.d3.min.css
-    make clean # Delete nv.d3.*js and nv.d3.*css
-
-
-*Without UglifyJS or CSSMin, you won't get the minified versions when running make.**
-
-### Using Grunt (preferred)
-
-You can use grunt instead of makefile to build js file. See more about [grunt](http://gruntjs.com/).
-***[Nodejs](http://nodejs.org/) must be installed before you can use grunt.***
-Run `npm install` in root dir to install grunt and it's dependencies.
-
-Then, you can use these commands:
-
-    grunt # build nv.d3.js and run unit tests
-    grunt production # build nv.d3.js and nv.d3.min.js
-    grunt watch # watch file changes in src/, and rebuild nv.d3.js, it's very helpful when delevop NVD3
-    grunt lint # run jshint on src/**/*.js
-
-**We ask that you DO NOT minify pull requests...
-If you need to minify please build pull request in separate branch, and
-merge and minify in your master.
-
-**Please run grunt before making a pull request.
-**Please add a unit test if adding a new feature.
+You should now have a "build" directory with the js and css files within.
 
 ## Supported Browsers
 NVD3 runs best on WebKit based browsers.
 
-* **Google Chrome: latest version (preferred)**
-* **Opera 15+ (preferred)**
+* Google Chrome: latest version
+* Opera 15+ (i.e. webkit version)
 * Safari: latest version
 * Firefox: latest version
-* Internet Explorer: 9 and 10
+* Internet Explorer: 10+

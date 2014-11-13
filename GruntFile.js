@@ -21,8 +21,9 @@ module.exports = function(grunt) {
                     '!src/models/parallelCoordinates*',
                     '!src/models/multiBarTime*',
                     'src/outro.js'
-                ],
-                dest: 'nv.d3.js'
+                     ],
+                dest: 'build/nv.d3.js'
+>>>>>>> master
             }
         },
         uglify: {
@@ -32,7 +33,7 @@ module.exports = function(grunt) {
             },
             js: {
                 files: {
-                    'nv.d3.min.js': ['nv.d3.js']
+                    'build/nv.d3.min.js': ['build/nv.d3.js']
                 }
             }
         },
@@ -53,7 +54,7 @@ module.exports = function(grunt) {
         copy: {
           css: {
             files: [
-              { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
+              { src: 'src/nv.d3.css', dest: 'build/nv.d3.css' }
             ]
           },
           d3: {
@@ -64,7 +65,7 @@ module.exports = function(grunt) {
         cssmin: {
           dist: {
             files: {
-              'nv.d3.min.css' : ['nv.d3.css']
+                'build/nv.d3.min.css' : ['build/nv.d3.css']
             }
           }
         },
