@@ -8,13 +8,7 @@ we can keep on improving it!
 
 Latest version is 1.5.16 ( [view](https://github.com/liquidpele/nvd3/tree/1.5.16/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.5.16) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.5.16) )
 
-## Overview
-A reusable chart library for d3.js
-
-You can also check out the [examples page](http://nvd3.org/ghpages/examples.html).
-**Note:** The examples on nvd3.org may be outdated and the download button there links to the outdated repo.
-
-For examples on how to use the latest NVD3, please checkout the **examples/** directory in the repository.
+You can demo the examples here:  http://liquidpele.github.io/nvd3/
 
 ---
 
