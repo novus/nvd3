@@ -8,7 +8,7 @@
     <script type="text/javascript">
         window.onload = function() {
             $('body').ready(function() {
-                $('a').each(function(i, elem) {
+                $('li a').each(function(i, elem) {
                     $(elem).click(function(evt) {
                         $('#show').prop('src', $(evt.target).prop('href'));
                         evt.stopPropagation();

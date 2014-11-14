@@ -1,0 +1,201 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Nvd3 - reusable charts for D3.js</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script>
+        var sectionHeight = function() {
+            var total    = $(window).height(),
+                    $section = $('section').css('height','auto');
+
+            if ($section.outerHeight(true) < total) {
+                var margin = $section.outerHeight(true) - $section.height();
+                $section.height(total - margin - 20);
+            } else {
+                $section.css('height','auto');
+            }
+        }
+
+        $(window).resize(sectionHeight);
+
+        $(document).ready(function(){
+            $("section h1, section h2").each(function(){
+                $("nav ul").append("<li class='tag-" + this.nodeName.toLowerCase() + "'><a href='#" + $(this).text().toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g,'') + "'>" + $(this).text() + "</a></li>");
+                $(this).attr("id",$(this).text().toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g,''));
+                $("nav ul li:first-child a").parent().addClass("active");
+            });
+
+            $("nav ul li").on("click", "a", function(event) {
+                var position = $($(this).attr("href")).offset().top - 190;
+                $("html, body").animate({scrollTop: position}, 400);
+                $("nav ul li a").parent().removeClass("active");
+                $(this).parent().addClass("active");
+                event.preventDefault();
+            });
+
+            sectionHeight();
+
+            $('img').load(sectionHeight);
+        });
+
+        fixScale = function(doc) {
+
+            var addEvent = 'addEventListener',
+                    type = 'gesturestart',
+                    qsa = 'querySelectorAll',
+                    scales = [1, 1],
+                    meta = qsa in doc ? doc[qsa]('meta[name=viewport]') : [];
+
+            function fix() {
+                meta.content = 'width=device-width,minimum-scale=' + scales[0] + ',maximum-scale=' + scales[1];
+                doc.removeEventListener(type, fix, true);
+            }
+
+            if ((meta = meta[meta.length - 1]) && addEvent in doc) {
+                fix();
+                scales = [.25, 1.6];
+                doc[addEvent](type, fix, true);
+            }
+        };
+    </script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+</head>
+<body>
+
+<header>
+    <h1>Nvd3</h1>
+    <p>A reusable chart library for d3.js</p>
+</header>
+
+<div id="banner">
+    <span id="logo"></span>
+
+    <a href="https://github.com/liquidpele/nvd3" class="button fork"><strong>View On GitHub</strong></a>
+    <div class="downloads">
+        <span>Downloads:</span>
+        <ul>
+            <li><a href="https://github.com/liquidpele/nvd3/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/liquidpele/nvd3/tarball/master" class="button">TAR</a></li>
+        </ul>
+    </div>
+</div><!-- end banner -->
+
+<div class="wrapper">
+    <nav>
+        <ul></ul>
+    </nav>
+    <section>
+        <h3>
+            Welcome to NVD3, reusable D3.js charts!
+        </h3>
+
+        <p>
+            View our examples below, and check out our repository or download our latest code
+            using the buttons above!
+        </p>
+
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            window.onload = function() {
+                $('body').ready(function() {
+                    $('.examplelinks a').each(function(i, elem) {
+                        $(elem).click(function(evt) {
+                            $('#show').prop('src', $(evt.target).prop('href'));
+                            evt.stopPropagation();
+                            evt.preventDefault();
+                            $('.examplelinks a').removeClass('selected');
+                            $(evt.target).addClass('selected');
+                            return false;
+                        });
+                    });
+                });
+            }
+        </script>
+        <style>
+            .examplelinks a {
+                text-decoration: none;
+                font-size: 12px;
+                font-family: arial;
+                outline: none;
+                padding: 3px;
+                padding-left: 6px;
+                padding-right: 6px;
+            }
+            .examplelinks a.selected {
+                border: 1px solid #666;
+                background-color: #FFFF88;
+                padding: 2px;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+
+            iframe {
+                display: inline-block;
+                width: 100%;
+                height: 100%;
+                border: 0px;
+            }
+            #show_wrapper {
+                border: 1px solid #666;
+                width: 100%;
+                margin-top: 10px;
+                height: 400px;
+            }
+
+        </style>
+
+        <div class="examplelinks">
+            <a href="bullet.html">Bullet</a> |
+            <a href="bulletChart.html">BulletChart</a> | 
+            <a href="crossfilter.html">Crossfilter</a> | 
+            <a href="crossfilterWithDimentions.html">CrossfilterWithDimentions</a> | 
+            <a href="crossfilterWithTables.html">CrossfilterWithTables</a> | 
+            <a href="cumulativeLineChart.html">CumulativeLineChart</a> | 
+            <a href="discreteBarChart.html">DiscreteBarChart</a> | 
+            <a href="historicalBar.html">HistoricalBar</a> | 
+            <a href="historicalBarChart.html">HistoricalBarChart</a> | 
+            <a href="horizon.html">Horizon</a> | 
+            <a href="indentedtree.html">Indentedtree</a> | 
+            <a href="legend.html">Legend</a> | 
+            <a href="line.html">Line</a> | 
+            <a href="lineChart.html">LineChart</a> | 
+            <a href="lineChartSVGResize.html">LineChartSVGResize</a> | 
+            <a href="linePlusBarChart.html">LinePlusBarChart</a> | 
+            <a href="linePlusBarWithFocusChart.html">LinePlusBarWithFocusChart</a> | 
+            <a href="lineWithFisheyeChart.html">LineWithFisheyeChart</a> | 
+            <a href="lineWithFocusChart.html">LineWithFocusChart</a> |
+            <a href="multiBar.html">MultiBar</a> | 
+            <a href="multiBarChart.html">MultiBarChart</a> | 
+            <a href="multiBarHorizontalChart.html">MultiBarHorizontalChart</a> | 
+            <a href="multiChart.html">MultiChart</a> | 
+            <a href="parallelCoordinates.html">ParallelCoordinates</a> | 
+            <a href="pie.html">Pie</a> | 
+            <a href="pieChart.html">PieChart</a> | 
+            <a href="scatter.html">Scatter</a> | 
+            <a href="scatterChart.html">ScatterChart</a> | 
+            <a href="scatterPlusLineChart.html">ScatterPlusLineChart</a> | 
+            <a href="sparkline.html">Sparkline</a> | 
+            <a href="sparklinePlus.html">SparklinePlus</a> | 
+            <a href="stackedArea.html">StackedArea</a> | 
+            <a href="stackedAreaChart.html">StackedAreaChart</a>
+        </div>
+
+        <div id="show_wrapper"><iframe id="show"></iframe></div>
+
+    </section>
+    <footer>
+
+    </footer>
+</div>
+<!--[if !IE]><script>fixScale(document);</script><![endif]-->
+
+</body>
+</html>
