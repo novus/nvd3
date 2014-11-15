@@ -15,25 +15,17 @@
         svg {
             display: block;
         }
-        html, body {
+        html, body, #chart1, svg {
             margin: 0px;
             padding: 0px;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 <body>
-  <div class='navigation'>
-      Tests:
-      <a href="../test/lineChartTest.html">Line Chart</a>
-      <a href="../test/stackedAreaChartTest.html">Stacked Area</a>
-      <a href="cumulativeLineChart.html">Cumulative Line</a>
-  </div>
-  <div id="chart1" class='chart with-transitions'>
-    <strong>Chart with new tooltips and guide line (with-transitions)</strong>
-    <svg></svg>
-  </div>
-  <div id="chart2" class='chart with-transitions'>
-    <strong>Chart with old tooltips (with-transitions)</strong>
+
+  <div id="chart1">
     <svg></svg>
   </div>
 
@@ -75,44 +67,6 @@ nv.addGraph(function() {
     nv.log('state', JSON.stringify(state));
   });
 
-  return chart;
-});
-
-nv.addGraph(function() {
-   var chart = nv.models.cumulativeLineChart()
-             .useInteractiveGuideline(false)
-             .rightAlignYAxis(true)
-             .margin({right:90})
-             .x(function(d) { return d[0] })
-             .y(function(d) { return d[1]/100 })
-             .color(d3.scale.category10().range())
-             .average(function(d) { return d.mean/100; })
-             .duration(300)
-             .clipVoronoi(false);
-
-  chart.dispatch.on('renderEnd', function() {
-    console.log('render complete: cumulative line without guide line');
-  });
-
-   chart.xAxis
-      .tickFormat(function(d) {
-          return d3.time.format('%m/%d/%y')(new Date(d))
-        });
-
-  chart.yAxis
-      .tickFormat(d3.format(',.1%'));
-
-  d3.select('#chart2 svg')
-      .datum(cumulativeTestData())
-      .call(chart);
-
-  //TODO: Figure out a good way to do this automatically
-  nv.utils.windowResize(chart.update);
-
-  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
-  chart.state.dispatch.on('change', function(state){
-    nv.log('state', JSON.stringify(state));
-  });
   return chart;
 });
 

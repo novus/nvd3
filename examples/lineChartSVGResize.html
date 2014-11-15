@@ -13,11 +13,16 @@
         svg {
             display: block;
         }
-        html, body {
+        html, body, #chart1, svg {
             margin: 0px;
             padding: 0px;
             height: 100%;
             width: 100%;
+        }
+        #chartZoom {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
@@ -57,9 +62,6 @@ nv.addGraph(function() {
   setChartViewBox();
   resizeChart();
 
-  // These resizes both do the same thing, and require recalculating the chart
-  //nv.utils.windowResize(chart.update);
-  //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
   nv.utils.windowResize(resizeChart);
 
   d3.select('#zoomIn').on('click', zoomIn);

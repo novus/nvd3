@@ -35,7 +35,6 @@ nv.addGraph(function() {
   chart = nv.models.historicalBarChart();
   chart
     .margin({left: 100, bottom: 100})
-    .x(function(d,i) { return i })
     .useInteractiveGuideline(true)
     .transitionDuration(250)
     ;
@@ -56,9 +55,7 @@ nv.addGraph(function() {
     .transition().duration(0)
     .call(chart);
 
-  //TODO: Figure out a good way to do this automatically
   nv.utils.windowResize(chart.update);
-  //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
 
   chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
@@ -96,7 +93,7 @@ function sinData() {
   var sin = [];
 
   for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
+    sin.push({x: i, y: Math.sin(i/10) * Math.random() * 100});
   }
 
   return [

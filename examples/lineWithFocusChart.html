@@ -14,7 +14,7 @@
         svg {
             display: block;
         }
-        html, body, #chart1, svg {
+        html, body, #chart, svg {
             margin: 0px;
             padding: 0px;
             height: 100%;
@@ -25,7 +25,7 @@
 <body>
 
   <div id="chart" class='with-3d-shadow with-transitions'>
-    <svg style="height: 500px;"></svg>
+    <svg></svg>
   </div>
 
 
@@ -35,7 +35,6 @@
 nv.addGraph(function() {
   var chart = nv.models.lineWithFocusChart();
 
- // chart.transitionDuration(500);
   chart.xAxis
       .tickFormat(d3.format(',f'));
   chart.x2Axis

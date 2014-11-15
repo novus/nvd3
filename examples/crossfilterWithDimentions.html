@@ -27,24 +27,23 @@
 <body>
 
   <div id="chart">
-    <svg style="height: 500px;"></svg>
+    <svg></svg>
   </div>
 
 
 <script>
 
-extend = function(destination, source) {
+var extend = function(destination, source) {
     for (var property in source) {
-    if (property in destination) { 
-      if ( typeof source[property] === "object" && 
-        typeof destination[property] === "object") {
-          destination[property] = extend(destination[property], source[property]);
-      } else {
-        continue; 
-      } 
-    } else {
-      destination[property] = source[property];
-    };
+        if (property in destination) {
+            if ( typeof source[property] === "object" && typeof destination[property] === "object") {
+                destination[property] = extend(destination[property], source[property]);
+            } else {
+                continue;
+            }
+        } else {
+            destination[property] = source[property];
+        }
     }
     return destination;
 };
@@ -52,15 +51,11 @@ extend = function(destination, source) {
 nv.addGraph(function() {
   var chart = nv.models.lineWithFocusChart();
 
-  chart.xAxis
-      .tickFormat(d3.format(',f'));
-  chart.x2Axis
-      .tickFormat(d3.format(',f'));
+  chart.xAxis.tickFormat(d3.format(',f'));
+  chart.x2Axis.tickFormat(d3.format(',f'));
 
-  chart.yAxis
-      .tickFormat(d3.format(',.2f'));
-  chart.y2Axis
-      .tickFormat(d3.format(',.2f'));
+  chart.yAxis.tickFormat(d3.format(',.2f'));
+  chart.y2Axis.tickFormat(d3.format(',.2f'));
 
   var rawData = testCrossfilterData();  
   var data = normalizeData(rawData.datum, 

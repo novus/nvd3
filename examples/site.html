@@ -113,6 +113,11 @@
                             evt.preventDefault();
                             $('.examplelinks a').removeClass('selected');
                             $(evt.target).addClass('selected');
+                            // add link to source
+                            var urlparts = $(evt.target).prop('href').split('/');
+                            var file = urlparts[urlparts.length - 1];
+                            var sourceurl = 'https://github.com/liquidpele/nvd3/blob/gh-pages/examples/' + file;
+                            $('#tosource').prop('href', sourceurl).fadeIn();
                             return false;
                         });
                     });
@@ -153,30 +158,21 @@
         </style>
 
         <div class="examplelinks">
-            <a href="bullet.html">Bullet</a> |
-            <a href="bulletChart.html">BulletChart</a> | 
-            <a href="crossfilter.html">Crossfilter</a> | 
-            <a href="crossfilterWithDimentions.html">CrossfilterWithDimentions</a> | 
-            <a href="crossfilterWithTables.html">CrossfilterWithTables</a> | 
+            <a href="bulletChart.html">BulletChart</a> |
+            <a href="crossfilter.html">CrossFilter</a> |
             <a href="cumulativeLineChart.html">CumulativeLineChart</a> | 
-            <a href="discreteBarChart.html">DiscreteBarChart</a> | 
-            <a href="historicalBar.html">HistoricalBar</a> | 
+            <a href="discreteBarChart.html">DiscreteBarChart</a> |
             <a href="historicalBarChart.html">HistoricalBarChart</a> | 
-            <a href="horizon.html">Horizon</a> | 
-            <a href="indentedtree.html">Indentedtree</a> | 
-            <a href="legend.html">Legend</a> | 
-            <a href="line.html">Line</a> | 
-            <a href="lineChart.html">LineChart</a> | 
-            <a href="lineChartSVGResize.html">LineChartSVGResize</a> | 
+            <a href="horizon.html">Horizon</a> |
+            <a href="legend.html">Legend</a> |
+            <a href="lineChartSVGResize.html">LineChartZoom</a> |
             <a href="linePlusBarChart.html">LinePlusBarChart</a> | 
-            <a href="linePlusBarWithFocusChart.html">LinePlusBarWithFocusChart</a> | 
-            <a href="lineWithFisheyeChart.html">LineWithFisheyeChart</a> | 
+            <a href="linePlusBarWithFocusChart.html">LinePlusBarWithFocusChart</a> |
             <a href="lineWithFocusChart.html">LineWithFocusChart</a> |
-            <a href="multiBar.html">MultiBar</a> | 
-            <a href="multiBarChart.html">MultiBarChart</a> | 
+            <a href="multiBar.html">MultiBarChart</a> |
+            <a href="multiBarChart.html">MultiBarChart2</a> |
             <a href="multiBarHorizontalChart.html">MultiBarHorizontalChart</a> | 
-            <a href="multiChart.html">MultiChart</a> | 
-            <a href="parallelCoordinates.html">ParallelCoordinates</a> | 
+            <a href="multiChart.html">MultiChart</a> |
             <a href="pie.html">Pie</a> | 
             <a href="pieChart.html">PieChart</a> | 
             <a href="scatter.html">Scatter</a> | 
@@ -189,6 +185,9 @@
         </div>
 
         <div id="show_wrapper"><iframe id="show"></iframe></div>
+        <div>
+            <a style="display: none;" target="source" id="tosource" href="#">View source for the example above!</a>
+        </div>
 
     </section>
     <footer>

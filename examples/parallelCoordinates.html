@@ -37,7 +37,7 @@
                   .dimensions(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"]);
 
     d3.select('#chart1 svg')
-        .datum(data)
+        .datum(data())
         .call(chart);
 
     // chart.dispatch.on('brush', function(e) {
