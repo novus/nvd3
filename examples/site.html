@@ -118,6 +118,10 @@
                             var file = urlparts[urlparts.length - 1];
                             var sourceurl = 'https://github.com/liquidpele/nvd3/blob/gh-pages/examples/' + file;
                             $('#tosource').prop('href', sourceurl).fadeIn();
+                            // also set link to view only the example
+                            $('#showonlythis').prop('href', $(evt.target).prop('href'));
+                            // done
+                            $('#example_options').attr('style', '');
                             return false;
                         });
                     });
@@ -185,8 +189,9 @@
         </div>
 
         <div id="show_wrapper"><iframe id="show"></iframe></div>
-        <div>
-            <a style="display: none;" target="source" id="tosource" href="#">View source for the example above!</a>
+        <div id="example_options" style="visibility: hidden;">
+            <a target="source" id="tosource" href="#">View source for the example above!</a> |
+            <a target="alone" id="showonlythis" href="#">View Just This</a>
         </div>
 
     </section>

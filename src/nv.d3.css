@@ -1,14 +1,4 @@
 
-/********************
- * HTML CSS
- */
-
-
-.chartWrap {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
 
 /********************
   Box shadow and border radius styling
@@ -18,9 +8,9 @@
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
   box-shadow: 0 5px 10px rgba(0,0,0,.2);
 
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
 }
 
 /********************
@@ -53,9 +43,9 @@
     putting a "with-transitions" class on the container div.
 */
 .nvtooltip.with-transitions, .with-transitions .nvtooltip {
-  transition: opacity 250ms linear;
-  -moz-transition: opacity 250ms linear;
-  -webkit-transition: opacity 250ms linear;
+  transition: opacity 100ms linear;
+  -moz-transition: opacity 100ms linear;
+  -webkit-transition: opacity 100ms linear;
 
   transition-delay: 250ms;
   -moz-transition-delay: 250ms;
@@ -79,7 +69,7 @@
 
   -webkit-border-radius: 5px 5px 0 0;
   -moz-border-radius: 5px 5px 0 0;
-  border-radius: 5px 5px 0 0;
+  border-radius: 1px 5px 0 0;
 }
 
 .nvtooltip p {
@@ -131,46 +121,18 @@
   text-align: center;
 }
 
-
 .nvtooltip-pending-removal {
   position: absolute;
   pointer-events: none;
 }
 
-
-/********************
- * SVG CSS
- */
-
-
-svg {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  /* Trying to get SVG to act like a greedy block in all browsers */
-  display: block;
-  width:100%;
-  height:100%;
-}
-
-
-svg text {
+.nvd3 text {
   font: normal 12px Arial;
-}
-
-svg .title {
- font: bold 14px Arial;
 }
 
 .nvd3 .nv-background {
   fill: white;
   fill-opacity: 0;
-  /*
-  pointer-events: none;
-  */
 }
 
 .nvd3.nv-noData {
@@ -189,7 +151,6 @@ svg .title {
 }
 
 
-
 /**********
 *  Legend
 */
@@ -201,7 +162,6 @@ svg .title {
 .nvd3 .nv-legend .disabled circle {
   fill-opacity: 0;
 }
-
 
 
 /**********
@@ -248,7 +208,6 @@ svg .title {
 }
 
 
-
 /**********
 *  Brush
 */
@@ -257,7 +216,6 @@ svg .title {
   fill: #eee;
   stroke: #666;
 }
-
 
 
 /**********
@@ -362,18 +320,6 @@ svg .title {
 .nvd3 .nv-groups path.nv-line {
   fill: none;
   stroke-width: 1.5px;
-  /*
-  stroke-linecap: round;
-  shape-rendering: geometricPrecision;
-
-  transition: stroke-width 250ms linear;
-  -moz-transition: stroke-width 250ms linear;
-  -webkit-transition: stroke-width 250ms linear;
-
-  transition-delay: 250ms
-  -moz-transition-delay: 250ms;
-  -webkit-transition-delay: 250ms;
-  */
 }
 
 .nvd3 .nv-groups path.nv-line.nv-thin-line {
@@ -383,31 +329,11 @@ svg .title {
 
 .nvd3 .nv-groups path.nv-area {
   stroke: none;
-  /*
-  stroke-linecap: round;
-  shape-rendering: geometricPrecision;
-
-  stroke-width: 2.5px;
-  transition: stroke-width 250ms linear;
-  -moz-transition: stroke-width 250ms linear;
-  -webkit-transition: stroke-width 250ms linear;
-
-  transition-delay: 250ms
-  -moz-transition-delay: 250ms;
-  -webkit-transition-delay: 250ms;
-  */
 }
 
 .nvd3 .nv-line.hover path {
   stroke-width: 6px;
 }
-
-/*
-.nvd3.scatter .groups .point {
-  fill-opacity: 0.1;
-  stroke-opacity: 0.1;
-}
-  */
 
 .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
   fill-opacity: 0;
@@ -458,15 +384,8 @@ svg .title {
 }
 
 
-
 /**********
 *  Scatter
-*/
-
-/* **Attempting to remove this for useVoronoi(false), need to see if it's required anywhere
-.nvd3 .nv-groups .nv-point {
-  pointer-events: none;
-}
 */
 
 .nvd3 .nv-groups .nv-point.hover {
@@ -478,12 +397,6 @@ svg .title {
   fill-opacity: 1;
 }
 
-/*
-.nv-group.hover .nv-point {
-  fill-opacity: 1;
-}
-*/
-
 
 /**********
 *  Stacked Area
@@ -491,50 +404,21 @@ svg .title {
 
 .nvd3.nv-stackedarea path.nv-area {
   fill-opacity: .7;
-  /*
-  stroke-opacity: .65;
-  fill-opacity: 1;
-  */
   stroke-opacity: 0;
-
   transition: fill-opacity 250ms linear, stroke-opacity 250ms linear;
   -moz-transition: fill-opacity 250ms linear, stroke-opacity 250ms linear;
   -webkit-transition: fill-opacity 250ms linear, stroke-opacity 250ms linear;
-
-  /*
-  transition-delay: 500ms;
-  -moz-transition-delay: 500ms;
-  -webkit-transition-delay: 500ms;
-  */
-
 }
 
 .nvd3.nv-stackedarea path.nv-area.hover {
   fill-opacity: .9;
-  /*
-  stroke-opacity: .85;
-  */
 }
-/*
-.d3stackedarea .groups path {
-  stroke-opacity: 0;
-}
-  */
-
 
 
 .nvd3.nv-stackedarea .nv-groups .nv-point {
   stroke-opacity: 0;
   fill-opacity: 0;
 }
-
-/*
-.nvd3.nv-stackedarea .nv-groups .nv-point.hover {
-  stroke-width: 20px;
-  stroke-opacity: .75;
-  fill-opacity: 1;
-}*/
-
 
 
 /**********
@@ -576,7 +460,6 @@ svg .title {
 }
 
 
-
 /**********
 * Sparkline
 */
@@ -606,9 +489,6 @@ svg .title {
 
 .nvd3.nv-sparklineplus .nv-xValue,
 .nvd3.nv-sparklineplus .nv-yValue {
-  /*
-  stroke: #666;
-  */
   stroke-width: 0;
   font-size: .9em;
   font-weight: normal;
@@ -629,10 +509,6 @@ svg .title {
 }
 
 .nvd3.nv-sparklineplus .nv-currentValue {
-  /*
-  stroke: #444;
-  fill: #000;
-  */
   font-weight: bold;
   font-size: 1.1em;
 }
@@ -668,9 +544,6 @@ svg .title {
 }
 
 .nvd3 .nv-brush .extent {
-  /*
-  cursor: ew-resize !important;
-  */
   fill-opacity: 0 !important;
 }
 
@@ -681,49 +554,6 @@ svg .title {
   fill-opacity: .7;
 }
 
-
-
-/**********
-* Indented Tree
-*/
-
-
-/**
- * TODO: the following 3 selectors are based on classes used in the example.  I should either make them standard and leave them here, or move to a CSS file not included in the library
- */
-.nvd3.nv-indentedtree .name {
-  margin-left: 5px;
-}
-
-.nvd3.nv-indentedtree .clickable {
-  color: #08C;
-  cursor: pointer;
-}
-
-.nvd3.nv-indentedtree span.clickable:hover {
-  color: #005580;
-  text-decoration: underline;
-}
-
-
-.nvd3.nv-indentedtree .nv-childrenCount {
-  display: inline-block;
-  margin-left: 5px;
-}
-
-.nvd3.nv-indentedtree .nv-treeicon {
-  cursor: pointer;
-  /*
-  cursor: n-resize;
-  */
-}
-
-.nvd3.nv-indentedtree .nv-treeicon.nv-folded {
-  cursor: pointer;
-  /*
-  cursor: s-resize;
-  */
-}
 
 /**********
 * Parallel Coordinates
