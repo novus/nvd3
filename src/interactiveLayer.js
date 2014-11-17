@@ -17,7 +17,7 @@ nv.interactiveGuideline = function() {
 	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
-	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick')
+	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
 	, showGuideLine = true
 	, svgContainer = null  
     //Must pass in the bounding chart's <svg> container.
@@ -116,7 +116,7 @@ nv.interactiveGuideline = function() {
                             pointXValue: pointXValue
                       });
 
-                      //If user double clicks the layer, fire a elementDblclick dispatch.
+                      //If user double clicks the layer, fire a elementDblclick
                       if (d3.event.type === "dblclick") {
                         dispatch.elementDblclick({
                             mouseX: mouseX,
@@ -124,12 +124,22 @@ nv.interactiveGuideline = function() {
                             pointXValue: pointXValue
                         });
                       }
+
+                      // if user single clicks the layer, fire elementClick
+                      if (d3.event.type === 'click') {
+                          dispatch.elementClick({
+                              mouseX: mouseX,
+                              mouseY: mouseY,
+                              pointXValue: pointXValue
+                          });
+                      }
                 }
 
 				svgContainer
 				      .on("mousemove",mouseHandler, true)
 				      .on("mouseout" ,mouseHandler,true)
                       .on("dblclick" ,mouseHandler)
+                      .on("click", mouseHandler)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.

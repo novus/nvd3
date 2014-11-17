@@ -49,6 +49,10 @@ nv.addGraph(function() {
   chart.xAxis
       .tickFormat(d3.format(',r'));
 
+  chart.lines.dispatch.on("elementClick", function(evt) {
+      console.log(evt);
+  });
+
   chart.yAxis
       .axisLabel('Voltage (v)')
       .tickFormat(d3.format(',.2f'));

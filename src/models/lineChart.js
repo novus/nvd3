@@ -324,6 +324,30 @@ nv.models.lineChart = function() {
 
       });
 
+      interactiveLayer.dispatch.on('elementClick', function(e) {
+        var pointXLocation, allData = [];
+
+        data.filter(function(series, i) {
+            series.seriesIndex = i;
+            return !series.disabled;
+        }).forEach(function(series) {
+            var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+            var point = series.values[pointIndex];
+            if (typeof point === 'undefined') return;
+            if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+            var yPos = chart.yScale()(chart.y()(point,pointIndex));
+            allData.push({
+                point: point,
+                pointIndex: pointIndex,
+                pos: [pointXLocation, yPos],
+                seriesIndex: series.seriesIndex,
+                series: series
+            });
+        });
+
+        lines.dispatch.elementClick(allData);
+      });
+
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
           dispatch.tooltipHide();
           lines.clearHighlights();

@@ -52,6 +52,10 @@ extend = function(destination, source) {
 nv.addGraph(function() {
   var chart = nv.models.lineWithFocusChart();
 
+  chart.lines.dispatch.on("elementClick", function(evt) {
+     console.log(evt);
+  });
+
   chart.xAxis
       .tickFormat(d3.format(',f'));
   chart.x2Axis
