@@ -1,4 +1,4 @@
-/* nvd3 version 1.5.16(https://github.com/liquidpele/nvd3) 2014-11-13 */
+/* nvd3 version 1.5.16(https://github.com/liquidpele/nvd3) 2014-11-17 */
 (function(){
 
 var nv = window.nv || {};
@@ -174,7 +174,7 @@ nv.interactiveGuideline = function() {
 	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
-	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick')
+	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
 	, showGuideLine = true
 	, svgContainer = null  
     //Must pass in the bounding chart's <svg> container.
@@ -273,7 +273,7 @@ nv.interactiveGuideline = function() {
                             pointXValue: pointXValue
                       });
 
-                      //If user double clicks the layer, fire a elementDblclick dispatch.
+                      //If user double clicks the layer, fire a elementDblclick
                       if (d3.event.type === "dblclick") {
                         dispatch.elementDblclick({
                             mouseX: mouseX,
@@ -281,12 +281,22 @@ nv.interactiveGuideline = function() {
                             pointXValue: pointXValue
                         });
                       }
+
+                      // if user single clicks the layer, fire elementClick
+                      if (d3.event.type === 'click') {
+                          dispatch.elementClick({
+                              mouseX: mouseX,
+                              mouseY: mouseY,
+                              pointXValue: pointXValue
+                          });
+                      }
                 }
 
 				svgContainer
 				      .on("mousemove",mouseHandler, true)
 				      .on("mouseout" ,mouseHandler,true)
                       .on("dblclick" ,mouseHandler)
+                      .on("click", mouseHandler)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.
@@ -369,7 +379,7 @@ Has the following known issues:
 */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
 	  "use strict";
-      if (! values instanceof Array) return null;
+      if (! (values instanceof Array)) return null;
       if (typeof xAccessor !== 'function') xAccessor = function(d,i) { return d.x;}
 
       var bisect = d3.bisector(xAccessor).left;
@@ -416,7 +426,7 @@ window.nv.tooltip.* also has various helper methods.
   window.nv.tooltip = {};
 
   /* Model which can be instantiated to handle tooltip rendering.
-    Example usage: 
+    Example usage:
     var tip = nv.models.tooltip().gravity('w').distance(23)
                 .data(myDataObject);
 
@@ -428,7 +438,7 @@ window.nv.tooltip.* also has various helper methods.
         Format of data:
         {
             key: "Date",
-            value: "August 2009", 
+            value: "August 2009",
             series: [
                     {
                         key: "Series 1",
@@ -546,7 +556,7 @@ window.nv.tooltip.* also has various helper methods.
               if (viewBox) {
                 viewBox = viewBox.split(' ');
                 var ratio = parseInt(svg.style('width')) / viewBox[2];
-                
+
                 position.left = position.left * ratio;
                 position.top  = position.top * ratio;
               }
@@ -569,7 +579,7 @@ window.nv.tooltip.* also has various helper methods.
                     .attr("id",id)
                     ;
             }
-        
+
 
             container.node().innerHTML = newContent;
             container.style("top",0).style("left",0).style("opacity",0);
@@ -578,7 +588,7 @@ window.nv.tooltip.* also has various helper methods.
             return container.node();
         }
 
-        
+
 
         //Draw the tooltip onto the DOM.
         function nvtooltip() {
@@ -599,14 +609,14 @@ window.nv.tooltip.* also has various helper methods.
                     var svgBound = svgComp.getBoundingClientRect();
                     var chartBound = chartContainer.getBoundingClientRect();
                     var svgBoundTop = svgBound.top;
-                    
+
                     //Defensive code. Sometimes, svgBoundTop can be a really negative
-                    //  number, like -134254. That's a bug. 
+                    //  number, like -134254. That's a bug.
                     //  If such a number is found, use zero instead. FireFox bug only
                     if (svgBoundTop < 0) {
                         var containerBound = chartContainer.getBoundingClientRect();
                         svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
-                    } 
+                    }
                     svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
                     svgOffset.left = Math.abs(svgBound.left - chartBound.left);
                 }
@@ -623,10 +633,10 @@ window.nv.tooltip.* also has various helper methods.
 
             nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
             return nvtooltip;
-        };
+        }
 
         nvtooltip.nvPointerEventsClass = nvPointerEventsClass;
-        
+
         nvtooltip.content = function(_) {
             if (!arguments.length) return content;
             content = _;
@@ -730,7 +740,7 @@ window.nv.tooltip.* also has various helper methods.
   //Original tooltip.show function. Kept for backward compatibility.
   // pos = [left,top]
   nv.tooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
-      
+
         //Create new tooltip div if it doesn't exist on DOM.
         var   container = document.createElement('div');
         container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
@@ -740,7 +750,7 @@ window.nv.tooltip.* also has various helper methods.
             //If the parent element is an SVG element, place tooltip in the <body> element.
             body = document.getElementsByTagName('body')[0];
         }
-   
+
         container.style.left = 0;
         container.style.top = 0;
         container.style.opacity = 0;
@@ -750,7 +760,7 @@ window.nv.tooltip.* also has various helper methods.
         else
             container.innerHTML = content;
         body.appendChild(container);
-        
+
         //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
         if (parentContainer) {
            pos[0] = pos[0] - parentContainer.scrollLeft;
@@ -771,7 +781,7 @@ window.nv.tooltip.* also has various helper methods.
   //Looks up the entire ancestry of an element, up to the first relatively positioned element.
   nv.tooltip.findTotalOffsetTop = function ( Elem, initialTop ) {
                 var offsetTop = initialTop;
-                
+
                 do {
                     if( !isNaN( Elem.offsetTop ) ) {
                         offsetTop += (Elem.offsetTop);
@@ -784,7 +794,7 @@ window.nv.tooltip.* also has various helper methods.
   //Looks up the entire ancestry of an element, up to the first relatively positioned element.
   nv.tooltip.findTotalOffsetLeft = function ( Elem, initialLeft) {
                 var offsetLeft = initialLeft;
-                
+
                 do {
                     if( !isNaN( Elem.offsetLeft ) ) {
                         offsetLeft += (Elem.offsetLeft);
@@ -871,7 +881,7 @@ window.nv.tooltip.* also has various helper methods.
             container.style.left = left+'px';
             container.style.top = top+'px';
             container.style.opacity = 1;
-            container.style.position = 'absolute'; 
+            container.style.position = 'absolute';
 
             return container;
     };
@@ -1301,7 +1311,14 @@ nv.models.axis = function() {
       switch (axis.orient()) {
         case 'top':
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+          var w;
+          if (scale.range().length < 2) {
+              w = 0;
+          } else if (scale.range().length === 2) {
+              w = scale.range()[1];
+          } else {
+              w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+          }
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', 0)
@@ -1348,7 +1365,14 @@ nv.models.axis = function() {
               .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
           }
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+          var w;
+          if (scale.range().length < 2) {
+            w = 0;
+          } else if (scale.range().length === 2) {
+            w = scale.range()[1];
+          } else {
+            w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+          }
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', xLabelMargin)
@@ -6125,6 +6149,30 @@ nv.models.lineChart = function() {
 
       });
 
+      interactiveLayer.dispatch.on('elementClick', function(e) {
+        var pointXLocation, allData = [];
+
+        data.filter(function(series, i) {
+            series.seriesIndex = i;
+            return !series.disabled;
+        }).forEach(function(series) {
+            var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+            var point = series.values[pointIndex];
+            if (typeof point === 'undefined') return;
+            if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+            var yPos = chart.yScale()(chart.y()(point,pointIndex));
+            allData.push({
+                point: point,
+                pointIndex: pointIndex,
+                pos: [pointXLocation, yPos],
+                seriesIndex: series.seriesIndex,
+                series: series
+            });
+        });
+
+        lines.dispatch.elementClick(allData);
+      });
+
       interactiveLayer.dispatch.on("elementMouseout",function(e) {
           dispatch.tooltipHide();
           lines.clearHighlights();
@@ -10212,7 +10260,9 @@ nv.models.multiChart = function() {
       x,
       y,
       yDomain1,
-      yDomain2
+      yDomain2,
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y }
       ; //can be accessed via chart.lines.[x/y]Scale()
 
   //============================================================
@@ -11819,7 +11869,7 @@ nv.models.scatter = function() {
     , sizeDomain   = null // Override point size domain
     , sizeRange    = null
     , singlePoint  = false
-    , dispatch     = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
+    , dispatch     = d3.dispatch('elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
     , useVoronoi   = true
     , duration     = 250
     ;
@@ -12023,7 +12073,7 @@ nv.models.scatter = function() {
           pointPaths.exit().remove();
           pointPaths
               .attr('d', function(d) {
-                if (d.data.length === 0)
+                if (!d || !d.data || d.data.length === 0)
                     return 'M 0 0'
                 else
                     return 'M' + d.data.join('L') + 'Z';
@@ -12048,6 +12098,9 @@ nv.models.scatter = function() {
           pointPaths
               .on('click', function(d) {
                 mouseEventCallback(d, dispatch.elementClick);
+              })
+              .on('dblclick', function(d) {
+                mouseEventCallback(d, dispatch.elementDblClick);
               })
               .on('mouseover', function(d) {
                 mouseEventCallback(d, dispatch.elementMouseover);
