@@ -157,15 +157,13 @@ nv.models.lineChart = function() {
 
       g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-
       var linesWrap = g.select('.nv-linesWrap')
           .datum(data.filter(function(d) { return !d.disabled }));
 
       d3.transition(linesWrap).call(lines);
 
       xAxis
-        //.scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight, 0);
 
       g.select('.nv-x.nv-axis')
@@ -175,8 +173,7 @@ nv.models.lineChart = function() {
 
 
       yAxis
-        //.scale(y)
-        .ticks( availableHeight / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.nv-y.nv-axis'))
@@ -184,8 +181,6 @@ nv.models.lineChart = function() {
 
       g.select('.nv-background').on('mousemove', updateFisheye);
       g.select('.nv-background').on('click', function() { pauseFisheye = !pauseFisheye; });
-      //g.select('.point-paths').on('mousemove', updateFisheye);
-
 
       function updateFisheye() {
         if (pauseFisheye) {

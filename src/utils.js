@@ -37,7 +37,7 @@ nv.utils.windowResize = function(fun){
     if (typeof oldresize == 'function') oldresize(e);
     fun(e);
   }
-}
+};
 
 // Backwards compatible way to implement more d3-like coloring of graphs.
 // If passed an array, wrap it in a function which implements the old default
@@ -50,13 +50,13 @@ nv.utils.getColor = function(color) {
     else
         return color;
         //can't really help it if someone passes rubbish as color
-}
+};
 
 // Default color chooser uses the index of an object as before.
 nv.utils.defaultColor = function() {
     var colors = d3.scale.category20().range();
     return function(d, i) { return d.color || colors[i % colors.length] };
-}
+};
 
 
 // Returns a color function that takes the result of 'getKey' for each series and
@@ -77,7 +77,7 @@ nv.utils.customTheme = function(dictionary, getKey, defaultColors) {
     else
       return defaultColors[--defIndex]; // no match in dictionary, use default color
   }
-}
+};
 
 
 
@@ -102,7 +102,7 @@ nv.utils.pjax = function(links, content) {
   d3.select(window).on("popstate", function() {
     if (d3.event.state) load(d3.event.state);
   });
-}
+};
 
 /* For situations where we want to approximate the width in pixels for an SVG:text element.
 Most common instance is when the element is in a display:none; container.
@@ -161,12 +161,12 @@ nv.utils.renderWatch = function(dispatch, duration) {
         renderStack.push(model);
     });
     return this;
-  }
+  };
 
   this.reset = function(duration) {
     if (duration !== undefined) _duration = duration;
     renderStack = [];
-  }
+  };
 
   this.transition = function(selection, args, duration) {
     args = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
@@ -229,7 +229,7 @@ nv.utils.deepExtend = function(dst){
         dst[key] = source[key];
     }
   });
-}
+};
 
 // Chart state utility
 nv.utils.state = function(){
@@ -316,3 +316,34 @@ nv.utils.optionsFunc = function(args) {
     return this;
 };
 
+/*
+numTicks:  requested number of ticks
+data:  the chart data
+
+returns the number of ticks to actually use based on chart data
+to avoid duplicate ticks with the same value
+ */
+nv.utils.calcTicksX = function(numTicks, data) {
+    // find max number of values from all data streams
+    var numValues = 1;
+    var i = 0;
+    for (i; i < data.length; i += 1) {
+        var stream_len = data[i] && data[i].values ? data[i].values.length : 0;
+        numValues = stream_len > numValues ? stream_len : numValues;
+    }
+    nv.log("Requested number of ticks: ", numTicks);
+    nv.log("Calculated max values to be: ", numValues);
+    // make sure we don't have more ticks than values to avoid duplicates
+    numTicks = numTicks > numValues ? numTicks = numValues - 1 : numTicks;
+    // make sure we have at least one tick
+    numTicks = numTicks < 1 ? 1 : numTicks;
+    // make sure it's an integer
+    numTicks = Math.floor(numTicks);
+    nv.log("Calculating tick count as: ", numTicks);
+    return numTicks;
+};
+
+nv.utils.calcTicksY = function(numTicks, data) {
+    // currently uses the same logic but we can adjust here if needed later
+    return nv.utils.calcTicksX(numTicks, data);
+};

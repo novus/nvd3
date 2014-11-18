@@ -306,7 +306,7 @@ nv.models.scatterChart = function() {
       if (showXAxis) {
         xAxis
             .scale(x)
-            .ticks( xAxis.ticks() && xAxis.ticks().length ? xAxis.ticks() : availableWidth / 100 )
+            .ticks( xAxis.ticks() && xAxis.ticks().length ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize( -availableHeight , 0);
 
         g.select('.nv-x.nv-axis')
@@ -318,7 +318,7 @@ nv.models.scatterChart = function() {
       if (showYAxis) {
         yAxis
             .scale(y)
-            .ticks( yAxis.ticks() && yAxis.ticks().length ? yAxis.ticks() : availableHeight / 36 )
+            .ticks( yAxis.ticks() && yAxis.ticks().length ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
             .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
