@@ -1,3 +1,5 @@
+For those interested in a fork of NVD3 that is being actively maintained by a community member, please see:  [ https://github.com/liquidpele/nvd3](https://github.com/liquidpele/nvd3)
+
 # MAJOR REFACTOR
 
 As of mid April, 2014, NVD3 is undergoing a major internal refactoring. While we wanted to make it in such a way that it would be a perfectly backwards compatible minor version release, we cannot do so. There are a half-dozen side and corner cases in the current code base, that, while we could call them "bugs", are just poorly implemented features. Because of this, we are announcing heavy development on the 2.0 NVD3 line, which will bring a sane internal structure and numerous API and development enhancements.
