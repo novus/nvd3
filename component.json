@@ -1,0 +1,9 @@
+{
+  "name": "nvd3",
+  "main": "nv.d3.js",
+  "scripts": ["nv.d3.js"],
+  "styles": ["nv.d3.css"],
+  "dependencies": {
+    "mbostock/d3": "~v3.4.9"
+  }
+}
