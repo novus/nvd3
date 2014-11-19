@@ -5,7 +5,7 @@ nv.models.multiChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       width = null, 
       height = null,
       showLegend = true,
@@ -19,8 +19,9 @@ nv.models.multiChart = function() {
       yDomain1,
       yDomain2,
       getX = function(d) { return d.x },
-      getY = function(d) { return d.y }
-      ; //can be accessed via chart.lines.[x/y]Scale()
+      getY = function(d) { return d.y},
+      interpolate = 'monotone'
+      ;
 
   //============================================================
   // Private Variables
@@ -134,15 +135,15 @@ nv.models.multiChart = function() {
       lines1
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
-        .color(data.map(function(d,i) {
+        .interpolate(interpolate)
+        .color(data.map(function(d, i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
 
       lines2
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
+        .interpolate(interpolate)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
@@ -449,6 +450,14 @@ nv.models.multiChart = function() {
     return chart;
   };
 
+  chart.interpolate = function(_) {
+      if(!arguments.length) {
+          return interpolate;
+      }
+      interpolate = _;
+      return chart;
+  };
+
   return chart;
-}
+};
 
