@@ -1,4 +1,4 @@
-/* nvd3 version 1.5.16(https://github.com/liquidpele/nvd3) 2014-11-17 */
+/* nvd3 version 1.5.16(https://github.com/liquidpele/nvd3) 2014-11-19 */
 (function(){
 
 var nv = window.nv || {};
@@ -910,6 +910,12 @@ window.nv.tooltip.* also has various helper methods.
 
 })();
 
+
+/*
+Gets the browser window size
+
+Returns object with height and width properties
+ */
 nv.utils.windowSize = function() {
     // Sane defaults
     var size = {width: 640, height: 480};
@@ -924,6 +930,7 @@ nv.utils.windowSize = function() {
     if (document.compatMode=='CSS1Compat' &&
         document.documentElement &&
         document.documentElement.offsetWidth ) {
+
         size.width = document.documentElement.offsetWidth;
         size.height = document.documentElement.offsetHeight;
     }
@@ -937,272 +944,339 @@ nv.utils.windowSize = function() {
 };
 
 
+/*
+Binds callback function to run when window is resized
+ */
+nv.utils.windowResize = function(handler) {
+    if (window.addEventListener) {
+        window.addEventListener('resize', handler);
+    } else {
+        nv.log("ERROR: Failed to bind to window.resize with: ", handler);
+    }
+    // return object with clear function to remove the single added callback.
+    return {
+        callback: handler,
+        clear: function() {
+            window.removeEventListener('resize', handler);
+        }
+    }
+};
 
-// Easy way to bind multiple functions to window.onresize
-// TODO: give a way to remove a function after its bound, other than removing all of them
-nv.utils.windowResize = function(fun){
-  if (fun === undefined) return;
-  var oldresize = window.onresize;
 
-  window.onresize = function(e) {
-    if (typeof oldresize == 'function') oldresize(e);
-    fun(e);
-  }
-}
-
-// Backwards compatible way to implement more d3-like coloring of graphs.
-// If passed an array, wrap it in a function which implements the old default
-// behavior
+/*
+Backwards compatible way to implement more d3-like coloring of graphs.
+If passed an array, wrap it in a function which implements the old behavior
+*/
 nv.utils.getColor = function(color) {
-    if (!arguments.length) return nv.utils.defaultColor(); //if you pass in nothing, get default colors back
+    //if you pass in nothing or not an array, get default colors back
+    if (!arguments.length || !(color instanceof Array)) {
+        return nv.utils.defaultColor();
+    } else {
+        return function (d, i) {
+            return d.color || color[i % color.length];
+        };
+    }
+};
 
-    if( Object.prototype.toString.call( color ) === '[object Array]' )
-        return function(d, i) { return d.color || color[i % color.length]; };
-    else
-        return color;
-        //can't really help it if someone passes rubbish as color
-}
 
-// Default color chooser uses the index of an object as before.
+/*
+Default color chooser uses the index of an object as before.
+ */
 nv.utils.defaultColor = function() {
     var colors = d3.scale.category20().range();
-    return function(d, i) { return d.color || colors[i % colors.length] };
-}
+    return function(d, i) {
+        return d.color || colors[i % colors.length]
+    };
+};
 
 
-// Returns a color function that takes the result of 'getKey' for each series and
-// looks for a corresponding color from the dictionary,
+/*
+Returns a color function that takes the result of 'getKey' for each series and
+looks for a corresponding color from the dictionary
+*/
 nv.utils.customTheme = function(dictionary, getKey, defaultColors) {
-  getKey = getKey || function(series) { return series.key }; // use default series.key if getKey is undefined
-  defaultColors = defaultColors || d3.scale.category20().range(); //default color function
+    // use default series.key if getKey is undefined
+    getKey = getKey || function(series) { return series.key };
+    defaultColors = defaultColors || d3.scale.category20().range();
 
-  var defIndex = defaultColors.length; //current default color (going in reverse)
+    // start at end of default color list and walk back to index 0
+    var defIndex = defaultColors.length;
 
-  return function(series, index) {
-    var key = getKey(series);
+    return function(series, index) {
+        var key = getKey(series);
+        if (typeof dictionary[key] === 'function') {
+            return dictionary[key]();
+        } else if (dictionary[key] !== undefined) {
+            return dictionary[key];
+        } else {
+            // no match in dictionary, use a default color
+            if (!defIndex) {
+                // used all the default colors, start over
+                defIndex = defaultColors.length;
+            }
+            defIndex = defIndex - 1;
+            return defaultColors[defIndex];
+        }
+    };
+};
 
-    if (!defIndex) defIndex = defaultColors.length; //used all the default colors, start over
 
-    if (typeof dictionary[key] !== "undefined")
-      return (typeof dictionary[key] === "function") ? dictionary[key]() : dictionary[key];
-    else
-      return defaultColors[--defIndex]; // no match in dictionary, use default color
-  }
-}
-
-
-
-// From the PJAX example on d3js.org, while this is not really directly needed
-// it's a very cool method for doing pjax, I may expand upon it a little bit,
-// open to suggestions on anything that may be useful
+/*
+From the PJAX example on d3js.org, while this is not really directly needed
+it's a very cool method for doing pjax, I may expand upon it a little bit,
+open to suggestions on anything that may be useful
+*/
 nv.utils.pjax = function(links, content) {
-  d3.selectAll(links).on("click", function() {
-    history.pushState(this.href, this.textContent, this.href);
-    load(this.href);
-    d3.event.preventDefault();
-  });
 
-  function load(href) {
-    d3.html(href, function(fragment) {
-      var target = d3.select(content).node();
-      target.parentNode.replaceChild(d3.select(fragment).select(content).node(), target);
-      nv.utils.pjax(links, content);
+    var load = function(href) {
+        d3.html(href, function(fragment) {
+            var target = d3.select(content).node();
+            target.parentNode.replaceChild(
+                d3.select(fragment).select(content).node(),
+                target);
+            nv.utils.pjax(links, content);
+        });
+    };
+
+    d3.selectAll(links).on("click", function() {
+        history.pushState(this.href, this.textContent, this.href);
+        load(this.href);
+        d3.event.preventDefault();
     });
-  }
 
-  d3.select(window).on("popstate", function() {
-    if (d3.event.state) load(d3.event.state);
-  });
-}
+    d3.select(window).on("popstate", function() {
+        if (d3.event.state) {
+            load(d3.event.state);
+        }
+    });
+};
 
-/* For situations where we want to approximate the width in pixels for an SVG:text element.
+
+/*
+For when we want to approximate the width in pixels for an SVG:text element.
 Most common instance is when the element is in a display:none; container.
 Forumla is : text.length * font-size * constant_factor
 */
 nv.utils.calcApproxTextWidth = function (svgTextElem) {
     if (typeof svgTextElem.style === 'function'
         && typeof svgTextElem.text === 'function') {
+
         var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""));
         var textLength = svgTextElem.text().length;
-
         return textLength * fontSize * 0.5;
     }
     return 0;
 };
 
-/* Numbers that are undefined, null or NaN, convert them to zeros.
+
+/*
+Numbers that are undefined, null or NaN, convert them to zeros.
 */
 nv.utils.NaNtoZero = function(n) {
     if (typeof n !== 'number'
         || isNaN(n)
         || n === null
         || n === Infinity
-        || n === -Infinity) return 0;
+        || n === -Infinity) {
 
+        return 0;
+    }
     return n;
 };
 
-// This utility class watches for d3 transition ends.
-
-(function(){
-  d3.selection.prototype.watchTransition = function(renderWatch){
+/*
+Add a way to watch for d3 transition ends to d3
+*/
+d3.selection.prototype.watchTransition = function(renderWatch){
     var args = [this].concat([].slice.call(arguments, 1));
     return renderWatch.transition.apply(renderWatch, args);
-  }
-})();
+};
 
+
+/*
+Helper object to watch when d3 has rendered something
+*/
 nv.utils.renderWatch = function(dispatch, duration) {
-  if (!(this instanceof nv.utils.renderWatch))
-    return new nv.utils.renderWatch(dispatch, duration);
-  var _duration = duration !== undefined ? duration : 250;
-  var renderStack = [];
-  var self = this;
-  this.models = function(models) {
-    models = [].slice.call(arguments, 0);
-    models.forEach(function(model){
-      model.__rendered = false;
-      (function(m){
-        m.dispatch.on('renderEnd', function(arg){
-          // nv.log('nv.utils renderEnd', arg);
-          m.__rendered = true;
-          self.renderEnd('model');
+    if (!(this instanceof nv.utils.renderWatch)) {
+        return new nv.utils.renderWatch(dispatch, duration);
+    }
+
+    var _duration = duration !== undefined ? duration : 250;
+    var renderStack = [];
+    var self = this;
+
+    this.models = function(models) {
+        models = [].slice.call(arguments, 0);
+        models.forEach(function(model){
+            model.__rendered = false;
+            (function(m){
+                m.dispatch.on('renderEnd', function(arg){
+                    m.__rendered = true;
+                    self.renderEnd('model');
+                });
+            })(model);
+
+            if (renderStack.indexOf(model) < 0) {
+                renderStack.push(model);
+            }
         });
-      })(model);
-      if (renderStack.indexOf(model) < 0)
-        renderStack.push(model);
-    });
     return this;
-  }
-
-  this.reset = function(duration) {
-    if (duration !== undefined) _duration = duration;
-    renderStack = [];
-  }
-
-  this.transition = function(selection, args, duration) {
-    args = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
-    duration = args.length > 1 ? args.pop() :
-               _duration !== undefined ? _duration :
-               250;
-    selection.__rendered = false;
-
-    if (renderStack.indexOf(selection) < 0)
-      renderStack.push(selection);
-
-    if (duration === 0)
-    {
-      selection.__rendered = true;
-      selection.delay = function(){return this;}
-      selection.duration = function(){return this;}
-      return selection;
-    }
-    else
-    {
-      selection.__rendered = selection.length === 0 ? true :
-                             selection.every( function(d){ return !d.length; }) ? true :
-                             false;
-      var n = 0;
-      return selection
-        .transition()
-        .duration(duration)
-        .each(function(){ ++n; })
-        .each('end', function(d, i){
-          if (--n === 0)
-          {
-            selection.__rendered = true;
-            self.renderEnd.apply(this, args);
-          }
-        });
-    }
-  };
-
-  this.renderEnd = function() {
-    if (renderStack.every( function(d){ return d.__rendered; } ))
-    {
-      renderStack.forEach( function(d){ d.__rendered = false; });
-      dispatch.renderEnd.apply(this, arguments);
-    }
-  }
-
-};
-
-
-nv.utils.deepExtend = function(dst){
-  var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
-  sources.forEach(function(source) {
-    for (key in source) {
-      var isArray = dst[key] instanceof Array;
-      var isObject = typeof dst[key] === 'object';
-      var srcObj = typeof source[key] === 'object';
-      if (isObject && !isArray && srcObj)
-        nv.utils.deepExtend(dst[key], source[key]);
-      else
-        dst[key] = source[key];
-    }
-  });
-}
-
-// Chart state utility
-nv.utils.state = function(){
-  if (!(this instanceof nv.utils.state))
-    return new nv.utils.state();
-  var state = {},
-    _self = this,
-    _setState = function(){},
-    _getState = function(){ return {};},
-    init = null,
-    changed = null;
-
-  this.dispatch = d3.dispatch('change', 'set');
-
-  this.dispatch.on('set', function(state){
-    _setState(state, true);
-  });
-
-  this.getter = function(fn){
-    _getState = fn;
-    return this;
-  };
-
-  this.setter = function(fn, callback) {
-    if (!callback) callback = function(){};
-    _setState = function(state, update){
-      fn(state);
-      if (update) callback();
     };
-    return this;
-  };
 
-  this.init = function(state){
-    init = init || {};
-    nv.utils.deepExtend(init, state);
-  };
+    this.reset = function(duration) {
+        if (duration !== undefined) {
+            _duration = duration;
+        }
+        renderStack = [];
+    };
 
-  var _set = function(){
-    var settings = _getState();
+    this.transition = function(selection, args, duration) {
+        args = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
 
-    if (JSON.stringify(settings) === JSON.stringify(state)) {
-      return false;
+        if (args.length > 1) {
+            duration = args.pop();
+        } else {
+            duration = _duration !== undefined ? _duration : 250;
+        }
+        selection.__rendered = false;
+
+        if (renderStack.indexOf(selection) < 0) {
+            renderStack.push(selection);
+        }
+
+        if (duration === 0) {
+            selection.__rendered = true;
+            selection.delay = function() { return this; };
+            selection.duration = function() { return this; };
+            return selection;
+        } else {
+            if (selection.length === 0) {
+                selection.__rendered = true;
+            } else if (selection.every( function(d){ return !d.length; } )) {
+                selection.__rendered = true;
+            } else {
+                selection.__rendered = false;
+            }
+
+            var n = 0;
+            return selection
+                .transition()
+                .duration(duration)
+                .each(function(){ ++n; })
+                .each('end', function(d, i) {
+                    if (--n === 0) {
+                        selection.__rendered = true;
+                        self.renderEnd.apply(this, args);
+                    }
+                });
+        }
+    };
+
+    this.renderEnd = function() {
+        if (renderStack.every( function(d){ return d.__rendered; } )) {
+            renderStack.forEach( function(d){ d.__rendered = false; });
+            dispatch.renderEnd.apply(this, arguments);
+        }
     }
-
-    for (var key in settings) {
-      if (state[key] === undefined) state[key] = {};
-      state[key] = settings[key];
-      changed = true;
-    }
-    return true;
-  };
-
-  this.update = function(){
-    if (init) {
-      _setState(init, false);
-      init = null;
-    }
-    if (_set.call(this))
-      this.dispatch.change(state);
-  }
 
 };
+
+
+/*
+Takes multiple objects and combines them into the first one (dst)
+example:  nv.utils.deepExtend({a: 1}, {a: 2, b: 3}, {c: 4});
+gives:  {a: 2, b: 3, c: 4}
+*/
+nv.utils.deepExtend = function(dst){
+    var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
+    sources.forEach(function(source) {
+        for (key in source) {
+            var isArray = dst[key] instanceof Array;
+            var isObject = typeof dst[key] === 'object';
+            var srcObj = typeof source[key] === 'object';
+
+            if (isObject && !isArray && srcObj) {
+                nv.utils.deepExtend(dst[key], source[key]);
+            } else {
+                dst[key] = source[key];
+            }
+        }
+    });
+};
+
+
+/*
+state utility object, used to track d3 states in the models
+*/
+nv.utils.state = function(){
+    if (!(this instanceof nv.utils.state)) {
+        return new nv.utils.state();
+    }
+    var state = {};
+    var _self = this;
+    var _setState = function(){};
+    var _getState = function(){ return {}; };
+    var init = null;
+    var changed = null;
+
+    this.dispatch = d3.dispatch('change', 'set');
+
+    this.dispatch.on('set', function(state){
+        _setState(state, true);
+    });
+
+    this.getter = function(fn){
+        _getState = fn;
+        return this;
+    };
+
+    this.setter = function(fn, callback) {
+        if (!callback) {
+            callback = function(){};
+        }
+        _setState = function(state, update){
+            fn(state);
+            if (update) {
+                callback();
+            }
+        };
+        return this;
+    };
+
+    this.init = function(state){
+        init = init || {};
+        nv.utils.deepExtend(init, state);
+    };
+
+    var _set = function(){
+        var settings = _getState();
+
+        if (JSON.stringify(settings) === JSON.stringify(state)) {
+            return false;
+        }
+
+        for (var key in settings) {
+            if (state[key] === undefined) {
+                state[key] = {};
+            }
+            state[key] = settings[key];
+            changed = true;
+        }
+        return true;
+    };
+
+    this.update = function(){
+        if (init) {
+            _setState(init, false);
+            init = null;
+        }
+        if (_set.call(this)) {
+            this.dispatch.change(state);
+        }
+    };
+
+};
+
 
 /*
 Snippet of code you can insert into each nv.models.* to give you the ability to
@@ -1218,23 +1292,58 @@ chart.options = nv.utils.optionsFunc.bind(chart);
 nv.utils.optionsFunc = function(args) {
     nv.deprecated('nv.utils.optionsFunc');
     if (args) {
-      d3.map(args).forEach((function(key,value) {
-        if (typeof this[key] === "function") {
-           this[key](value);
-        }
-      }).bind(this));
+        d3.map(args).forEach((function(key,value) {
+            if (typeof this[key] === "function") {
+                this[key](value);
+            }
+        }).bind(this));
     }
     return this;
 };
 
+
+/*
+numTicks:  requested number of ticks
+data:  the chart data
+
+returns the number of ticks to actually use on X axis, based on chart data
+to avoid duplicate ticks with the same value
+*/
+nv.utils.calcTicksX = function(numTicks, data) {
+    // find max number of values from all data streams
+    var numValues = 1;
+    var i = 0;
+    for (i; i < data.length; i += 1) {
+        var stream_len = data[i] && data[i].values ? data[i].values.length : 0;
+        numValues = stream_len > numValues ? stream_len : numValues;
+    }
+    nv.log("Requested number of ticks: ", numTicks);
+    nv.log("Calculated max values to be: ", numValues);
+    // make sure we don't have more ticks than values to avoid duplicates
+    numTicks = numTicks > numValues ? numTicks = numValues - 1 : numTicks;
+    // make sure we have at least one tick
+    numTicks = numTicks < 1 ? 1 : numTicks;
+    // make sure it's an integer
+    numTicks = Math.floor(numTicks);
+    nv.log("Calculating tick count as: ", numTicks);
+    return numTicks;
+};
+
+
+/*
+returns number of ticks to actually use on Y axis, based on chart data
+*/
+nv.utils.calcTicksY = function(numTicks, data) {
+    // currently uses the same logic but we can adjust here if needed later
+    return nv.utils.calcTicksX(numTicks, data);
+};
 nv.models.axis = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var axis = d3.svg.axis()
-    ;
+  var axis = d3.svg.axis();
 
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 75 //only used for tickLabel currently
@@ -1248,7 +1357,7 @@ nv.models.axis = function() {
     , staggerLabels = false
     , isOrdinal = false
     , ticks = null
-    , axisLabelDistance = 12 //The larger this number is, the closer the axis label is to the axis.
+    , axisLabelDistance = 0
     , duration = 250
     , dispatch = d3.dispatch('renderEnd')
     , axisRendered = false
@@ -1347,7 +1456,7 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-          var xLabelMargin = 36;
+          var xLabelMargin = axisLabelDistance + 36;
           var maxTextWidth = 30;
           var xTicks = g.selectAll('g').select("text");
           if (rotateLabels%360) {
@@ -1454,7 +1563,7 @@ nv.models.axis = function() {
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
-              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + axisLabelDistance) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 25 - (axisLabelDistance || 0)) : -10)
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -1629,7 +1738,7 @@ nv.models.axis = function() {
     if(!arguments.length) return rotateLabels;
     rotateLabels = _;
     return chart;
-  }
+  };
 
   chart.staggerLabels = function(_) {
     if (!arguments.length) return staggerLabels;
@@ -2815,8 +2924,7 @@ nv.models.cumulativeLineChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
-          .ticks( Math.min(data[0].values.length,availableWidth/70) )
+          .ticks( nv.utils.calcTicksX(availableWidth/70, data) )
           .tickSize(-availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -2829,7 +2937,7 @@ nv.models.cumulativeLineChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
@@ -3756,7 +3864,7 @@ nv.models.discreteBarChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableWidth / 100 )
+            .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize(-availableHeight, 0);
 
           g.select('.nv-x.nv-axis')
@@ -3777,7 +3885,7 @@ nv.models.discreteBarChart = function() {
       if (showYAxis) {
           yAxis
             .scale(y)
-            .ticks( availableHeight / 36 )
+            .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
             .tickSize( -availableWidth, 0);
 
           g.select('.nv-y.nv-axis').call(yAxis);
@@ -4671,7 +4779,7 @@ nv.models.historicalBarChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
@@ -4928,343 +5036,7 @@ nv.models.historicalBarChart = function() {
 
   return chart;
 }
-nv.models.indentedTree = function() {
-  "use strict";
-  //============================================================
-  // Public Variables with Default Settings
-  //------------------------------------------------------------
-
-  var margin = {top: 0, right: 0, bottom: 0, left: 0} //TODO: implement, maybe as margin on the containing div
-    , width = 960
-    , height = 500
-    , color = nv.utils.defaultColor()
-    , id = Math.floor(Math.random() * 10000)
-    , header = true
-    , filterZero = false
-    , noData = "No Data Available."
-    , childIndent = 20
-    , columns = [{key:'key', label: 'Name', type:'text'}] //TODO: consider functions like chart.addColumn, chart.removeColumn, instead of a block like this
-    , tableClass = null
-    , iconOpen = 'images/grey-plus.png' //TODO: consider removing this and replacing with a '+' or '-' unless user defines images
-    , iconClose = 'images/grey-minus.png'
-    , dispatch = d3.dispatch('elementClick', 'elementDblclick', 'elementMouseover', 'elementMouseout')
-    , getUrl = function(d) { return d.url }
-    ;
-
-  //============================================================
-
-  var idx = 0;
-
-  function chart(selection) {
-    selection.each(function(data) {
-      var depth = 1,
-          container = d3.select(this);
-
-      var tree = d3.layout.tree()
-          .children(function(d) { return d.values })
-          .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
-
-      chart.update = function() { container.transition().duration(600).call(chart) };
-
-
-      //------------------------------------------------------------
-      // Display No Data message if there's nothing to show.
-      if (!data[0]) data[0] = {key: noData};
-
-      //------------------------------------------------------------
-
-
-      var nodes = tree.nodes(data[0]);
-
-      // nodes.map(function(d) {
-      //   d.id = i++;
-      // })
-
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
-
-      var wrap = d3.select(this).selectAll('div').data([[nodes]]);
-      var wrapEnter = wrap.enter().append('div').attr('class', 'nvd3 nv-wrap nv-indentedtree');
-      var tableEnter = wrapEnter.append('table');
-      var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
-
-      //------------------------------------------------------------
-
-
-      if (header) {
-        var thead = tableEnter.append('thead');
-
-        var theadRow1 = thead.append('tr');
-
-        columns.forEach(function(column) {
-          theadRow1
-            .append('th')
-              .attr('width', column.width ? column.width : '10%')
-              .style('text-align', column.type == 'numeric' ? 'right' : 'left')
-            .append('span')
-              .text(column.label);
-        });
-      }
-
-
-      var tbody = table.selectAll('tbody')
-                    .data(function(d) { return d });
-      tbody.enter().append('tbody');
-
-
-
-      //compute max generations
-      depth = d3.max(nodes, function(node) { return node.depth });
-      tree.size([height, depth * childIndent]); //TODO: see if this is necessary at all
-
-
-      // Update the nodes…
-      var node = tbody.selectAll('tr')
-          // .data(function(d) { return d; }, function(d) { return d.id || (d.id == ++i)});
-          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; } )}, function(d,i) { return d.id || (d.id || ++idx)});
-          //.style('display', 'table-row'); //TODO: see if this does anything
-
-      node.exit().remove();
-
-      node.select('img.nv-treeicon')
-          .attr('src', icon)
-          .classed('folded', folded);
-
-      var nodeEnter = node.enter().append('tr');
-
-
-      columns.forEach(function(column, index) {
-
-        var nodeName = nodeEnter.append('td')
-            .style('padding-left', function(d) { return (index ? 0 : d.depth * childIndent + 12 + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
-            .style('text-align', column.type == 'numeric' ? 'right' : 'left');
-
-
-        if (index == 0) {
-          nodeName.append('img')
-              .classed('nv-treeicon', true)
-              .classed('nv-folded', folded)
-              .attr('src', icon)
-              .style('width', '14px')
-              .style('height', '14px')
-              .style('padding', '0 1px')
-              .style('display', function(d) { return icon(d) ? 'inline-block' : 'none'; })
-              .on('click', click);
-        }
-
-
-        nodeName.each(function(d) {
-          if (!index && getUrl(d))
-            d3.select(this)
-              .append('a')
-              .attr('href',getUrl)
-              .attr('class', d3.functor(column.classes))
-              .append('span')
-          else
-            d3.select(this)
-              .append('span')
-
-            d3.select(this).select('span')
-              .attr('class', d3.functor(column.classes) )
-              .text(function(d) { return column.format ? column.format(d) :
-                                        (d[column.key] || '-') });
-          });
-
-        if  (column.showCount) {
-          nodeName.append('span')
-              .attr('class', 'nv-childrenCount');
-
-          node.selectAll('span.nv-childrenCount').text(function(d) {
-                return ((d.values && d.values.length) || (d._values && d._values.length)) ?                                   //If this is a parent
-                    '(' + ((d.values && (d.values.filter(function(d) { return filterZero ? filterZero(d) :  true; }).length)) //If children are in values check its children and filter
-                    || (d._values && d._values.filter(function(d) { return filterZero ? filterZero(d) :  true; }).length)     //Otherwise, do the same, but with the other name, _values...
-                    || 0) + ')'                                                                                               //This is the catch-all in case there are no children after a filter
-                    : ''                                                                                                     //If this is not a parent, just give an empty string
-            });
-        }
-
-        // if (column.click)
-        //   nodeName.select('span').on('click', column.click);
-
-      });
-
-      node
-        .order()
-        .on('click', function(d) { 
-          dispatch.elementClick({
-            row: this, //TODO: decide whether or not this should be consistent with scatter/line events or should be an html link (a href)
-            data: d,
-            pos: [d.x, d.y]
-          });
-        })
-        .on('dblclick', function(d) { 
-          dispatch.elementDblclick({
-            row: this,
-            data: d,
-            pos: [d.x, d.y]
-          });
-        })
-        .on('mouseover', function(d) { 
-          dispatch.elementMouseover({
-            row: this,
-            data: d,
-            pos: [d.x, d.y]
-          });
-        })
-        .on('mouseout', function(d) { 
-          dispatch.elementMouseout({
-            row: this,
-            data: d,
-            pos: [d.x, d.y]
-          });
-        });
-
-
-
-
-      // Toggle children on click.
-      function click(d, _, unshift) {
-        d3.event.stopPropagation();
-
-        if(d3.event.shiftKey && !unshift) {
-          //If you shift-click, it'll toggle fold all the children, instead of itself
-          d3.event.shiftKey = false;
-          d.values && d.values.forEach(function(node){
-            if (node.values || node._values) {
-              click(node, 0, true);
-            }
-          });
-          return true;
-        }
-        if(!hasChildren(d)) {
-          //download file
-          //window.location.href = d.url;
-          return true;
-        }
-        if (d.values) {
-          d._values = d.values;
-          d.values = null;
-        } else {
-          d.values = d._values;
-          d._values = null;
-        }
-        chart.update();
-      }
-
-
-      function icon(d) {
-        return (d._values && d._values.length) ? iconOpen : (d.values && d.values.length) ? iconClose : '';
-      }
-
-      function folded(d) {
-        return (d._values && d._values.length);
-      }
-
-      function hasChildren(d) {
-        var values = d.values || d._values;
-
-        return (values && values.length);
-      }
-
-
-    });
-
-    return chart;
-  }
-
-
-  //============================================================
-  // Expose Public Variables
-  //------------------------------------------------------------
-  chart.options = nv.utils.optionsFunc.bind(chart);
-  
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = nv.utils.getColor(_);
-    scatter.color(color);
-    return chart;
-  };
-
-  chart.id = function(_) {
-    if (!arguments.length) return id;
-    id = _;
-    return chart;
-  };
-
-  chart.header = function(_) {
-    if (!arguments.length) return header;
-    header = _;
-    return chart;
-  };
-
-  chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
-    return chart;
-  };
-
-  chart.filterZero = function(_) {
-    if (!arguments.length) return filterZero;
-    filterZero = _;
-    return chart;
-  };
-
-  chart.columns = function(_) {
-    if (!arguments.length) return columns;
-    columns = _;
-    return chart;
-  };
-
-  chart.tableClass = function(_) {
-    if (!arguments.length) return tableClass;
-    tableClass = _;
-    return chart;
-  };
-
-  chart.iconOpen = function(_){
-     if (!arguments.length) return iconOpen;
-    iconOpen = _;
-    return chart;
-  }
-
-  chart.iconClose = function(_){
-     if (!arguments.length) return iconClose;
-    iconClose = _;
-    return chart;
-  }
-
-  chart.getUrl = function(_){
-     if (!arguments.length) return getUrl;
-    getUrl = _;
-    return chart;
-  }
-
-  //============================================================
-
-
-  return chart;
-};nv.models.legend = function() {
+nv.models.legend = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
@@ -6067,7 +5839,7 @@ nv.models.lineChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
+          .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
           .tickSize(-availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -6079,7 +5851,7 @@ nv.models.lineChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
@@ -6613,7 +6385,7 @@ nv.models.linePlusBarChart = function() {
 
       xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight, 0);
 
       g.select('.nv-x.nv-axis')
@@ -6624,7 +6396,7 @@ nv.models.linePlusBarChart = function() {
 
       y1Axis
         .scale(y1)
-        .ticks( availableHeight / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
         .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.nv-y1.nv-axis'))
@@ -6634,7 +6406,7 @@ nv.models.linePlusBarChart = function() {
 
       y2Axis
         .scale(y2)
-        .ticks( availableHeight / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
       g.select('.nv-y2.nv-axis')
@@ -7173,7 +6945,7 @@ nv.models.linePlusBarWithFocusChart = function() {
       // Setup Secondary (Context) Axes
 
       x2Axis
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight2, 0);
 
       g.select('.nv-context .nv-x.nv-axis')
@@ -7344,7 +7116,7 @@ nv.models.linePlusBarWithFocusChart = function() {
         
         xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight1, 0);
 
         xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
@@ -7372,7 +7144,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         y1Axis
         .scale(y1)
-        .ticks( availableHeight1 / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
         .tickSize(-availableWidth, 0);
 
         g.select('.nv-focus .nv-y1.nv-axis')
@@ -7381,7 +7153,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         y2Axis
         .scale(y2)
-        .ticks( availableHeight1 / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
         g.select('.nv-focus .nv-y2.nv-axis')
@@ -7822,12 +7594,12 @@ nv.models.lineWithFocusChart = function() {
 
       xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight1, 0);
 
       yAxis
         .scale(y)
-        .ticks( availableHeight1 / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
         .tickSize( -availableWidth, 0);
 
       g.select('.nv-focus .nv-x.nv-axis')
@@ -7886,7 +7658,7 @@ nv.models.lineWithFocusChart = function() {
 
       x2Axis
         .scale(x2)
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight2, 0);
 
       g.select('.nv-context .nv-x.nv-axis')
@@ -7896,7 +7668,7 @@ nv.models.lineWithFocusChart = function() {
 
       y2Axis
         .scale(y2)
-        .ticks( availableHeight2 / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.nv-context .nv-y.nv-axis'))
@@ -8953,7 +8725,7 @@ nv.models.multiBarChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableWidth / 100 )
+            .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize(-availableHeight, 0);
 
           g.select('.nv-x.nv-axis')
@@ -9009,7 +8781,7 @@ nv.models.multiBarChart = function() {
       if (showYAxis) {
           yAxis
             .scale(y)
-            .ticks( availableHeight / 36 )
+            .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
             .tickSize( -availableWidth, 0);
 
           g.select('.nv-y.nv-axis')
@@ -9990,7 +9762,7 @@ nv.models.multiBarHorizontalChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableHeight / 24 )
+            .ticks( nv.utils.calcTicksY(availableHeight/24, data) )
             .tickSize(-availableWidth, 0);
 
           g.select('.nv-x.nv-axis').call(xAxis);
@@ -10004,7 +9776,7 @@ nv.models.multiBarHorizontalChart = function() {
       if (showYAxis) {
           yAxis
             .scale(y)
-            .ticks( availableWidth / 100 )
+            .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize( -availableHeight, 0);
 
           g.select('.nv-y.nv-axis')
@@ -10248,7 +10020,7 @@ nv.models.multiChart = function() {
   //------------------------------------------------------------
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60},
-      color = d3.scale.category20().range(),
+      color = nv.utils.defaultColor(),
       width = null, 
       height = null,
       showLegend = true,
@@ -10262,8 +10034,9 @@ nv.models.multiChart = function() {
       yDomain1,
       yDomain2,
       getX = function(d) { return d.x },
-      getY = function(d) { return d.y }
-      ; //can be accessed via chart.lines.[x/y]Scale()
+      getY = function(d) { return d.y},
+      interpolate = 'monotone'
+      ;
 
   //============================================================
   // Private Variables
@@ -10377,15 +10150,15 @@ nv.models.multiChart = function() {
       lines1
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
-        .color(data.map(function(d,i) {
+        .interpolate(interpolate)
+        .color(data.map(function(d, i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
 
       lines2
         .width(availableWidth)
         .height(availableHeight)
-        .interpolate("monotone")
+        .interpolate(interpolate)
         .color(data.map(function(d,i) {
           return d.color || color[i % color.length];
         }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
@@ -10468,7 +10241,7 @@ nv.models.multiChart = function() {
 
 
       xAxis
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
@@ -10477,7 +10250,7 @@ nv.models.multiChart = function() {
           .call(xAxis);
 
       yAxis1
-        .ticks( availableHeight / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
         .tickSize( -availableWidth, 0);
 
 
@@ -10485,7 +10258,7 @@ nv.models.multiChart = function() {
           .call(yAxis1);
 
       yAxis2
-        .ticks( availableHeight / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.y2.axis'))
@@ -10692,8 +10465,16 @@ nv.models.multiChart = function() {
     return chart;
   };
 
+  chart.interpolate = function(_) {
+      if(!arguments.length) {
+          return interpolate;
+      }
+      interpolate = _;
+      return chart;
+  };
+
   return chart;
-}
+};
 
 
 nv.models.ohlcBar = function() {
@@ -12826,7 +12607,7 @@ nv.models.scatterChart = function() {
       if (showXAxis) {
         xAxis
             .scale(x)
-            .ticks( xAxis.ticks() && xAxis.ticks().length ? xAxis.ticks() : availableWidth / 100 )
+            .ticks( xAxis.ticks() && xAxis.ticks().length ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize( -availableHeight , 0);
 
         g.select('.nv-x.nv-axis')
@@ -12838,7 +12619,7 @@ nv.models.scatterChart = function() {
       if (showYAxis) {
         yAxis
             .scale(y)
-            .ticks( yAxis.ticks() && yAxis.ticks().length ? yAxis.ticks() : availableHeight / 36 )
+            .ticks( yAxis.ticks() && yAxis.ticks().length ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
             .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
@@ -13520,7 +13301,7 @@ nv.models.scatterPlusLineChart = function() {
       if (showXAxis) {
         xAxis
             .scale(x)
-            .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
+            .ticks( xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize( -availableHeight , 0);
 
         g.select('.nv-x.nv-axis')
@@ -13531,7 +13312,7 @@ nv.models.scatterPlusLineChart = function() {
       if (showYAxis) {
         yAxis
             .scale(y)
-            .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
+            .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
             .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
@@ -14406,6 +14187,9 @@ nv.models.stackedArea = function() {
     , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout','renderEnd')
     ;
 
+  // scatter is interactive by default, but this chart isn't so must disable
+  scatter.interactive(false);
+
   scatter
     .size(2.2) // default size
     .sizeDomain([2.2,2.2]) // all the same size by default
@@ -14880,7 +14664,7 @@ nv.models.stackedAreaChart = function() {
         .getter(stateGetter(data))
         .update();
 
-      // DEPRECATED set state.disableddisabled
+      // DEPRECATED set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -15068,7 +14852,7 @@ nv.models.stackedAreaChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
+          .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
           .tickSize( -availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -15082,7 +14866,7 @@ nv.models.stackedAreaChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
+          .ticks(stacked.offset() == 'wiggle' ? 0 : nv.utils.calcTicksY(availableHeight/36, data) )
           .tickSize(-availableWidth, 0)
           .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent')
                 ? d3.format('%') : yAxisTickFormat);
