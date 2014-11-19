@@ -4,8 +4,7 @@ nv.models.axis = function() {
   // Public Variables with Default Settings
   //------------------------------------------------------------
 
-  var axis = d3.svg.axis()
-    ;
+  var axis = d3.svg.axis();
 
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 75 //only used for tickLabel currently
@@ -19,7 +18,7 @@ nv.models.axis = function() {
     , staggerLabels = false
     , isOrdinal = false
     , ticks = null
-    , axisLabelDistance = 12 //The larger this number is, the closer the axis label is to the axis.
+    , axisLabelDistance = 0
     , duration = 250
     , dispatch = d3.dispatch('renderEnd')
     , axisRendered = false
@@ -118,7 +117,7 @@ nv.models.axis = function() {
           }
           break;
         case 'bottom':
-          var xLabelMargin = 36;
+          var xLabelMargin = axisLabelDistance || 36;
           var maxTextWidth = 30;
           var xTicks = g.selectAll('g').select("text");
           if (rotateLabels%360) {
@@ -225,7 +224,7 @@ nv.models.axis = function() {
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'end')
               .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
-              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + axisLabelDistance) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 25 - (axisLabelDistance || 0)) : -10)
               .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -400,7 +399,7 @@ nv.models.axis = function() {
     if(!arguments.length) return rotateLabels;
     rotateLabels = _;
     return chart;
-  }
+  };
 
   chart.staggerLabels = function(_) {
     if (!arguments.length) return staggerLabels;
