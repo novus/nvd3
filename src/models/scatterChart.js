@@ -33,7 +33,7 @@ nv.models.scatterChart = function() {
     , tooltips     = true
     , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
     , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-    , tooltip      = null
+    , tooltip      = function(key, x, y) { return '<h3>' + key + '</h3>'}
     , state = {}
     , defaultState = null
     , dispatch     = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
@@ -457,6 +457,7 @@ nv.models.scatterChart = function() {
     d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
         .attr('x2', distY.size());
   });
+  
   dispatch.on('tooltipHide', function() {
     if (tooltips) nv.tooltip.cleanup();
   });

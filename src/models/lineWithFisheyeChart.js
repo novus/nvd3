@@ -189,8 +189,11 @@ nv.models.lineChart = function() {
         x.distortion(fisheye).focus(mouse[0]);
       }
 
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
 
-      controls.dispatch.on('legendClick', function(d,i) { 
+      controls.dispatch.on('legendClick', function(d,i) {
         d.disabled = !d.disabled;
 
         fisheye = d.disabled ? 0 : 5;
@@ -211,27 +214,39 @@ nv.models.lineChart = function() {
 
         chart.update();
       });
-
+      
+      dispatch.on('tooltipShow', function(e) {
+          if (tooltips) showTooltip(e, that.parentNode);
+      });
 
       legend.dispatch.on('stateChange', function(newState) { 
         chart.update();
       });
 
-      lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-      });
-      if (tooltips) dispatch.on('tooltipShow', function(e) { showTooltip(e, that.parentNode) } ); // TODO: maybe merge with above?
-
-      lines.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
-      if (tooltips) dispatch.on('tooltipHide', nv.tooltip.cleanup);
-
+      //============================================================
     });
 
     return chart;
   }
+  
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  	lines.dispatch.on('elementMouseover.tooltip', function(e) {
+  		e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+  		dispatch.tooltipShow(e);
+    });
+
+    lines.dispatch.on('elementMouseout.tooltip', function(e) {
+    	dispatch.tooltipHide(e);
+    });
+
+    dispatch.on('tooltipHide', function() {
+    	if (tooltips) nv.tooltip.cleanup();
+    });
+
+  //============================================================
 
 
   chart.dispatch = dispatch;

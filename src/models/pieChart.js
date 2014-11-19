@@ -162,9 +162,6 @@ nv.models.pieChart = function() {
         chart.update();
       });
 
-      pie.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-      });
 
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
@@ -178,6 +175,10 @@ nv.models.pieChart = function() {
         }
 
         chart.update();
+      });
+      
+      dispatch.on('tooltipShow', function(e) {
+    	    if (tooltips) showTooltip(e, that.parentNode);
       });
 
       //============================================================
@@ -196,9 +197,9 @@ nv.models.pieChart = function() {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
   });
-
-  dispatch.on('tooltipShow', function(e) {
-    if (tooltips) showTooltip(e);
+  
+  pie.dispatch.on('elementMouseout.tooltip', function(e) {
+      dispatch.tooltipHide(e);
   });
 
   dispatch.on('tooltipHide', function() {
