@@ -25,6 +25,8 @@ nv.models.pie = function() {
     , endAngle = false
     , donutRatio = 0.5
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , explodeMultiplier = false
+    , maxExplodeAmount = 30
     ;
 
   //============================================================
@@ -149,6 +151,21 @@ nv.models.pie = function() {
             .attr('d', arc)
             .attrTween('d', arcTween);
 
+        if (explodeMultiplier)
+            slices.select('path')
+                .transition()
+                .attrTween('d', arcTween)
+                .attr('transform', function (d) {
+                    var c = arc.centroid(d),
+                        x = c[0],
+                        y = c[1],
+                        h = Math.sqrt(x * x + y * y),
+                        eAmount = (d.endAngle - d.startAngle) * explodeMultiplier;
+
+                    eAmount = eAmount > maxExplodeAmount ? maxExplodeAmount : eAmount;
+                    return "translate(" + (x / h * eAmount) + ',' + (y / h * eAmount) + ")";
+                });
+
         if (showLabels) {
           // This does the normal label
           var labelsArc = d3.svg.arc().innerRadius(0);
@@ -215,12 +232,25 @@ nv.models.pie = function() {
                       d.outerRadius = radius + 10; // Set Outer Coordinate
                       d.innerRadius = radius + 15; // Set Inner Coordinate
 
+                      var center = labelsArc.centroid(d);
+
+                      if(explodeMultiplier){
+                        var x = center[0],
+                            y = center[1],
+                            h = Math.sqrt(x * x + y * y),
+                            eAmount = (d.endAngle - d.startAngle) * explodeMultiplier;
+
+                        eAmount = eAmount > maxExplodeAmount ? maxExplodeAmount : eAmount;
+
+                        center[0] += (x / h * eAmount);
+                        center[1] += (y / h * eAmount);
+                      }
+
                       /*
                       Overlapping pie labels are not good. What this attempts to do is, prevent overlapping.
                       Each label location is hashed, and if a hash collision occurs, we assume an overlap.
                       Adjust the label's y-position to remove the overlap.
                       */
-                      var center = labelsArc.centroid(d);
                       if(d.value){
                         var hashKey = createHashKey(center);
                         if (labelLocationHash[hashKey]) {
@@ -409,6 +439,12 @@ nv.models.pie = function() {
   chart.labelThreshold = function(_) {
     if (!arguments.length) return labelThreshold;
     labelThreshold = _;
+    return chart;
+  };
+
+  chart.explodeMultiplier = function(_) {
+    if(!arguments.length) return explodeMultiplier;
+    explodeMultiplier = _;
     return chart;
   };
   //============================================================
