@@ -117,7 +117,7 @@ nv.models.stackedAreaChart = function() {
         .getter(stateGetter(data))
         .update();
 
-      // DEPRECATED set state.disableddisabled
+      // DEPRECATED set state.disabled
       state.disabled = data.map(function(d) { return !!d.disabled });
 
       if (!defaultState) {
@@ -305,7 +305,7 @@ nv.models.stackedAreaChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
+          .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
           .tickSize( -availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -319,7 +319,7 @@ nv.models.stackedAreaChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks(stacked.offset() == 'wiggle' ? 0 : availableHeight / 36)
+          .ticks(stacked.offset() == 'wiggle' ? 0 : nv.utils.calcTicksY(availableHeight/36, data) )
           .tickSize(-availableWidth, 0)
           .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent')
                 ? d3.format('%') : yAxisTickFormat);

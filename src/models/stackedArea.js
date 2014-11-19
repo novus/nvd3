@@ -24,6 +24,9 @@ nv.models.stackedArea = function() {
     , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout','renderEnd')
     ;
 
+  // scatter is interactive by default, but this chart isn't so must disable
+  scatter.interactive(false);
+
   scatter
     .size(2.2) // default size
     .sizeDomain([2.2,2.2]) // all the same size by default

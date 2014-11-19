@@ -40,8 +40,8 @@
 
 nv.addGraph({
   generate: function() {
-      var width = nv.utils.windowSize().width - 40,
-      height = nv.utils.windowSize().height - 40;
+      var width = nv.utils.windowSize().width,
+      height = nv.utils.windowSize().height;
 
       var chart = nv.models.multiBarChart()
                 .width(width)
@@ -54,43 +54,25 @@ nv.addGraph({
       });
 
 
-    var svg = d3.select('#test1 svg')
-      .attr('width', width)
-      .attr('height', height)
-      .datum(test_data);
+    var svg = d3.select('#test1 svg').datum(test_data);
     console.log('calling chart');
     svg.transition().duration(0).call(chart);
 
     return chart;
   },
   callback: function(graph) {
+      nv.utils.windowResize(function() {
+          var width = nv.utils.windowSize().width;
+          var height = nv.utils.windowSize().height;
+          graph.width(width).height(height);
 
+          d3.select('#test1 svg')
+            .attr('width', width)
+            .attr('height', height)
+            transition().duration(0)
+            .call(graph);
 
-    window.onresize = function() {
-    var width = nv.utils.windowSize().width - 40,
-        height = nv.utils.windowSize().height - 40,
-        margin = graph.margin();
-
-
-      if (width < margin.left + margin.right + 20)
-        width = margin.left + margin.right + 20;
-
-      if (height < margin.top + margin.bottom + 20)
-        height = margin.top + margin.bottom + 20;
-
-
-      graph
-         .width(width)
-         .height(height);
-
-      console.log('calling chart');
-      d3.select('#test1 svg')
-        .attr('width', width)
-        .attr('height', height)
-        transition().duration(0)
-        .call(graph);
-
-      };
+      });
   }
 });
 

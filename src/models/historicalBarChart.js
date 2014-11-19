@@ -240,7 +240,7 @@ nv.models.historicalBarChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')

@@ -315,7 +315,7 @@ nv.models.scatterPlusLineChart = function() {
       if (showXAxis) {
         xAxis
             .scale(x)
-            .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
+            .ticks( xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize( -availableHeight , 0);
 
         g.select('.nv-x.nv-axis')
@@ -326,7 +326,7 @@ nv.models.scatterPlusLineChart = function() {
       if (showYAxis) {
         yAxis
             .scale(y)
-            .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
+            .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
             .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')

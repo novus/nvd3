@@ -260,7 +260,7 @@ nv.models.multiBarHorizontalChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableHeight / 24 )
+            .ticks( nv.utils.calcTicksY(availableHeight/24, data) )
             .tickSize(-availableWidth, 0);
 
           g.select('.nv-x.nv-axis').call(xAxis);
@@ -274,7 +274,7 @@ nv.models.multiBarHorizontalChart = function() {
       if (showYAxis) {
           yAxis
             .scale(y)
-            .ticks( availableWidth / 100 )
+            .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
             .tickSize( -availableHeight, 0);
 
           g.select('.nv-y.nv-axis')

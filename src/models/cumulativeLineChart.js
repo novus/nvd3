@@ -430,8 +430,7 @@ nv.models.cumulativeLineChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
-          .ticks( Math.min(data[0].values.length,availableWidth/70) )
+          .ticks( nv.utils.calcTicksX(availableWidth/70, data) )
           .tickSize(-availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -444,7 +443,7 @@ nv.models.cumulativeLineChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')

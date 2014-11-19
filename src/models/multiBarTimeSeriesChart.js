@@ -196,7 +196,7 @@ nv.models.multiBarTimeSeriesChart = function() {
 
       xAxis
         .scale(x)
-        .ticks(availableWidth / 100)        
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight, 0);
 
       g.select('.nv-x.nv-axis')
@@ -226,7 +226,7 @@ nv.models.multiBarTimeSeriesChart = function() {
 
       yAxis
         .scale(y)
-        .ticks( availableHeight / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.nv-y.nv-axis'))

@@ -56,34 +56,29 @@ var chart;
 nv.addGraph(function() {
     chart = nv.models.multiBarChart()
       .barColor(d3.scale.category20().range())
-      .margin({bottom: 100})
       .duration(300)
+      .margin({bottom: 100, left: 70})
       .rotateLabels(45)
       .groupSpacing(0.1)
       ;
 
-    chart.multibar
-      .hideable(true)
-      // .duration(4000)
-      ;
-
-
     chart.reduceXTicks(false).staggerLabels(true);
 
     chart.xAxis
-        .axisLabel("Current Index")
-        .showMaxMin(true)
+        .axisLabel("ID of Furry Cat Households")
+        .axisLabelDistance(35)
+        .showMaxMin(false)
         .tickFormat(d3.format(',.6f'))
         ;
 
-
     chart.yAxis
-        .tickFormat(d3.format(',.1f'))
-        // .duration(2000)
+        .axisLabel("Change in Furry Cat Population")
+        .axisLabelDistance(-5)
+        .tickFormat(d3.format(',.01f'))
         ;
 
     chart.dispatch.on('renderEnd', function(){
-      nv.log('Render Complete');
+        nv.log('Render Complete');
     });
 
     d3.select('#chart1 svg')
@@ -92,23 +87,16 @@ nv.addGraph(function() {
 
     nv.utils.windowResize(chart.update);
 
-    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+    chart.dispatch.on('stateChange', function(e) {
+        nv.log('New State:', JSON.stringify(e));
+    });
     chart.state.dispatch.on('change', function(state){
-      nv.log('state', JSON.stringify(state));
+        nv.log('state', JSON.stringify(state));
     });
 
     return chart;
 });
 
-// setTimeout(function(){
-//   negative_test_data.forEach(function(d){
-//     d.values.forEach(function(e){
-//       e.y = 10;
-//     });
-//   });
-//   chart.update();
-// }, 2000);
-
-
 
 </script>
+</body></html>

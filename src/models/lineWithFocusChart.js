@@ -267,12 +267,12 @@ nv.models.lineWithFocusChart = function() {
 
       xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight1, 0);
 
       yAxis
         .scale(y)
-        .ticks( availableHeight1 / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
         .tickSize( -availableWidth, 0);
 
       g.select('.nv-focus .nv-x.nv-axis')
@@ -331,7 +331,7 @@ nv.models.lineWithFocusChart = function() {
 
       x2Axis
         .scale(x2)
-        .ticks( availableWidth / 100 )
+        .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
         .tickSize(-availableHeight2, 0);
 
       g.select('.nv-context .nv-x.nv-axis')
@@ -341,7 +341,7 @@ nv.models.lineWithFocusChart = function() {
 
       y2Axis
         .scale(y2)
-        .ticks( availableHeight2 / 36 )
+        .ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.nv-context .nv-y.nv-axis'))
