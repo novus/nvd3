@@ -2871,7 +2871,7 @@ nv.models.cumulativeLineChart = function() {
         xAxis
           .scale(x)
           //Suggest how many ticks based on the chart width and D3 should listen (70 is the optimal number for MM/DD/YY dates)
-          .ticks( Math.min(data[0].values.length,availableWidth/70) )
+          .ticks( xAxis.ticks() ? xAxis.ticks() : Math.min(data[0].values.length,availableWidth/70) )
           .tickSize(-availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -2884,7 +2884,7 @@ nv.models.cumulativeLineChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
         d3.transition(g.select('.nv-y.nv-axis'))
@@ -3773,7 +3773,7 @@ nv.models.discreteBarChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableWidth / 100 )
+            .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
             .tickSize(-availableHeight, 0);
 
           g.select('.nv-x.nv-axis')
@@ -3795,7 +3795,7 @@ nv.models.discreteBarChart = function() {
       if (showYAxis) {
           yAxis
             .scale(y)
-            .ticks( availableHeight / 36 )
+            .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
           g.select('.nv-y.nv-axis').transition()
@@ -4313,7 +4313,7 @@ nv.models.historicalBarChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
@@ -5605,7 +5605,7 @@ nv.models.lineChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
+          .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
           .tickSize(-availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
@@ -5618,7 +5618,7 @@ nv.models.lineChart = function() {
       if (showYAxis) {
         yAxis
           .scale(y)
-          .ticks( availableHeight / 36 )
+          .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-y.nv-axis')
@@ -6087,7 +6087,7 @@ nv.models.linePlusBarChart = function() {
 
       xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
       g.select('.nv-x.nv-axis')
@@ -6098,7 +6098,7 @@ nv.models.linePlusBarChart = function() {
 
       y1Axis
         .scale(y1)
-        .ticks( availableHeight / 36 )
+        .ticks( y1Axis.ticks() ? y1Axis.ticks() : availableHeight / 36 )
         .tickSize(-availableWidth, 0);
 
       d3.transition(g.select('.nv-y1.nv-axis'))
@@ -6108,7 +6108,7 @@ nv.models.linePlusBarChart = function() {
 
       y2Axis
         .scale(y2)
-        .ticks( availableHeight / 36 )
+        .ticks( y2Axis.ticks() ? y2Axis.ticks() : availableHeight / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
       g.select('.nv-y2.nv-axis')
@@ -6525,12 +6525,12 @@ nv.models.lineWithFocusChart = function() {
 
       xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight1, 0);
 
       yAxis
         .scale(y)
-        .ticks( availableHeight1 / 36 )
+        .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight1 / 36 )
         .tickSize( -availableWidth, 0);
 
       g.select('.nv-focus .nv-x.nv-axis')
@@ -6589,7 +6589,7 @@ nv.models.lineWithFocusChart = function() {
 
       x2Axis
         .scale(x2)
-        .ticks( availableWidth / 100 )
+        .ticks( x2Axis.ticks() ? x2Axis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
       g.select('.nv-context .nv-x.nv-axis')
@@ -6600,7 +6600,7 @@ nv.models.lineWithFocusChart = function() {
 
       y2Axis
         .scale(y2)
-        .ticks( availableHeight2 / 36 )
+        .ticks( y2Axis.ticks() ? y2Axis.ticks() : availableHeight2 / 36 )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.nv-context .nv-y.nv-axis'))
@@ -7175,7 +7175,7 @@ nv.models.linePlusBarWithFocusChart = function() {
       // Setup Secondary (Context) Axes
 
       x2Axis
-        .ticks( availableWidth / 100 )
+        .ticks( x2Axis.ticks() ? x2Axis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight2, 0);
 
       g.select('.nv-context .nv-x.nv-axis')
@@ -7186,7 +7186,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
       y3Axis
         .scale(y3)
-        .ticks( availableHeight2 / 36 )
+        .ticks( y3Axis.ticks() ? y3Axis.ticks() : availableHeight2 / 36 )
         .tickSize( -availableWidth, 0);
 
       g.select('.nv-context .nv-y1.nv-axis')
@@ -7199,7 +7199,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
       y4Axis
         .scale(y4)
-        .ticks( availableHeight2 / 36 )
+        .ticks( y4Axis.ticks() ? y4Axis.ticks() : availableHeight2 / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
       g.select('.nv-context .nv-y2.nv-axis')
@@ -7332,7 +7332,7 @@ nv.models.linePlusBarWithFocusChart = function() {
         
         xAxis
         .scale(x)
-        .ticks( availableWidth / 100 )
+        .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight1, 0);
 
         xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
@@ -7360,7 +7360,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         y1Axis
         .scale(y1)
-        .ticks( availableHeight1 / 36 )
+        .ticks( y1Axis.ticks() ? y1Axis.ticks() : availableHeight1 / 36 )
         .tickSize(-availableWidth, 0);
 
         g.select('.nv-focus .nv-y1.nv-axis')
@@ -7369,7 +7369,7 @@ nv.models.linePlusBarWithFocusChart = function() {
 
         y2Axis
         .scale(y2)
-        .ticks( availableHeight1 / 36 )
+        .ticks( y2Axis.ticks() ? y2Axis.ticks() : availableHeight1 / 36 )
         .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
         g.select('.nv-focus .nv-y2.nv-axis')
@@ -8218,7 +8218,7 @@ nv.models.multiBarChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableWidth / 100 )
+            .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
             .tickSize(-availableHeight, 0);
 
           g.select('.nv-x.nv-axis')
@@ -8274,7 +8274,7 @@ nv.models.multiBarChart = function() {
       if (showYAxis) {      
           yAxis
             .scale(y)
-            .ticks( availableHeight / 36 )
+            .ticks( yAxis.ticks() ? yAxis.ticks() : availableHeight / 36 )
             .tickSize( -availableWidth, 0);
 
           g.select('.nv-y.nv-axis').transition()
@@ -9185,7 +9185,7 @@ nv.models.multiBarHorizontalChart = function() {
       if (showXAxis) {
           xAxis
             .scale(x)
-            .ticks( availableHeight / 24 )
+            .ticks( xAxis.ticks() ? xAxis.ticks() : availableHeight / 24 )
             .tickSize(-availableWidth, 0);
 
           g.select('.nv-x.nv-axis').transition()
@@ -9200,7 +9200,7 @@ nv.models.multiBarHorizontalChart = function() {
       if (showYAxis) {
           yAxis
             .scale(y)
-            .ticks( availableWidth / 100 )
+            .ticks( yAxis.ticks() ? yAxis.ticks() : availableWidth / 100 )
             .tickSize( -availableHeight, 0);
 
           g.select('.nv-y.nv-axis')
@@ -9643,7 +9643,7 @@ nv.models.multiChart = function() {
 
 
       xAxis
-        .ticks( availableWidth / 100 )
+        .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
         .tickSize(-availableHeight, 0);
 
       g.select('.x.axis')
@@ -9652,7 +9652,7 @@ nv.models.multiChart = function() {
           .call(xAxis);
 
       yAxis1
-        .ticks( availableHeight / 36 )
+        .ticks( yAxis1.ticks() ? yAxis1.ticks() : availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
 
@@ -9660,7 +9660,7 @@ nv.models.multiChart = function() {
           .call(yAxis1);
 
       yAxis2
-        .ticks( availableHeight / 36 )
+        .ticks( yAxis2.ticks() ? yAxis2.ticks() : availableHeight / 36 )
         .tickSize( -availableWidth, 0);
 
       d3.transition(g.select('.y2.axis'))
@@ -14003,7 +14003,7 @@ nv.models.stackedAreaChart = function() {
       if (showXAxis) {
         xAxis
           .scale(x)
-          .ticks( availableWidth / 100 )
+          .ticks( xAxis.ticks() ? xAxis.ticks() : availableWidth / 100 )
           .tickSize( -availableHeight, 0);
 
         g.select('.nv-x.nv-axis')
