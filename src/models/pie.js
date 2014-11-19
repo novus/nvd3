@@ -1,3 +1,4 @@
+
 nv.models.pie = function() {
   "use strict";
   //============================================================
@@ -94,12 +95,13 @@ nv.models.pie = function() {
               .attr('class', 'nv-slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
+
                 dispatch.elementMouseover({
                     label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     pointIndex: i,
-                    pos: [d3.event.pageX, d3.event.pageY],
+                    pos: [d3.mouse(this)[0] + margin.left + availableWidth / 2, d3.mouse(this)[1] + margin.top + availableHeight / 2],
                     id: id
                 });
               })

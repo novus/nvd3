@@ -37,8 +37,8 @@ nv.models.bulletChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
-        top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
+    var left = e.pos[0] + margin.left,
+        top = e.pos[1] + margin.top,
         content = tooltip(e.key, e.label, e.value, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);

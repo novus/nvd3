@@ -63,8 +63,8 @@ nv.models.historicalBarChart = function() {
       }
     }
 
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);

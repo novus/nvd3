@@ -1,3 +1,4 @@
+
 nv.models.pieChart = function() {
   "use strict";
   //============================================================
@@ -33,8 +34,8 @@ nv.models.pieChart = function() {
 
   var showTooltip = function(e, offsetElement) {
     var tooltipLabel = pie.description()(e.point) || pie.x()(e.point)
-    var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
-        top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
+    var left = e.pos[0],
+        top = e.pos[1],
         y = pie.valueFormat()(pie.y()(e.point)),
         content = tooltip(tooltipLabel, y, e, chart);
 
@@ -166,6 +167,11 @@ nv.models.pieChart = function() {
         dispatch.tooltipHide(e);
       });
 
+    dispatch.on('tooltipShow', function(e) {
+      if (tooltips) showTooltip(e, that.parentNode);
+    });
+
+
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
 
@@ -195,10 +201,6 @@ nv.models.pieChart = function() {
   pie.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
     dispatch.tooltipShow(e);
-  });
-
-  dispatch.on('tooltipShow', function(e) {
-    if (tooltips) showTooltip(e);
   });
 
   dispatch.on('tooltipHide', function() {
