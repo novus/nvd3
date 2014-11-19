@@ -340,11 +340,23 @@ window.nv.tooltip.* also has various helper methods.
         container.innerHTML = content;
         body.appendChild(container);
         
-        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
+        //Subtract the scroll offsets of all parent elements.
         if (parentContainer) {
-           pos[0] = pos[0] - parentContainer.scrollLeft;
-           pos[1] = pos[1] - parentContainer.scrollTop;
+            
+           var currentParent = parentContainer,
+               totalScrollLeft = 0,
+               totalScrollTop = 0;
+            
+           while (currentParent !== document) {
+             totalScrollLeft += currentParent.scrollLeft;
+             totalScrollTop += currentParent.scrollTop;
+             currentParent = currentParent.parentNode;
+           }
+            
+           pos[0] = pos[0] - totalScrollLeft;
+           pos[1] = pos[1] - totalScrollTop;
         }
+        
         nv.tooltip.calcTooltipPosition(pos, gravity, dist, container);
   };
 
