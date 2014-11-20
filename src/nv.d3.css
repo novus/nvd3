@@ -43,13 +43,13 @@
     putting a "with-transitions" class on the container div.
 */
 .nvtooltip.with-transitions, .with-transitions .nvtooltip {
-  transition: opacity 100ms linear;
-  -moz-transition: opacity 100ms linear;
-  -webkit-transition: opacity 100ms linear;
+  transition: opacity 50ms linear;
+  -moz-transition: opacity 50ms linear;
+  -webkit-transition: opacity 50ms linear;
 
-  transition-delay: 250ms;
-  -moz-transition-delay: 250ms;
-  -webkit-transition-delay: 250ms;
+  transition-delay: 200ms;
+  -moz-transition-delay: 200ms;
+  -webkit-transition-delay: 200ms;
 }
 
 .nvtooltip.x-nvtooltip,
@@ -289,6 +289,11 @@
   -moz-transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
   -webkit-transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
 
+}
+
+.nvd3.nv-pie .nv-pie-title {
+    font-size: 24px;
+    fill: rgba(19, 196, 249, 0.59);
 }
 
 .nvd3.nv-pie .nv-slice text {

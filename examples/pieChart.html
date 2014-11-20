@@ -111,9 +111,9 @@ nv.addGraph(function() {
         .donut(true);
 
     // MAKES IT HALF CIRCLE
-    //chart.pie
-    //    .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
-    //    .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
+    chart.pie
+        .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
+        .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
 
     // MAKES LABELS OUTSIDE OF DONUT
     //chart.pie.donutLabelsOutside(true).donut(true);

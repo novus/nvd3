@@ -48,9 +48,10 @@ nv.models.pie = function() {
       var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
-
+      var title_g = g.append('g').attr('class', 'nv-pie');
       gEnter.append('g').attr('class', 'nv-pie');
       gEnter.append('g').attr('class', 'nv-pieLabels');
+
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
       g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
@@ -58,7 +59,14 @@ nv.models.pie = function() {
 
       //------------------------------------------------------------
 
-
+      if (donut) {
+          title_g.append("text")
+              .style("text-anchor", "middle")
+              .attr('class', 'nv-pie-title')
+              .text(function (d) {
+                  return 'testing';
+              });
+      }
       container
           .on('click', function(d,i) {
               dispatch.chartClick({
@@ -70,12 +78,21 @@ nv.models.pie = function() {
           });
 
 
-      var arc = d3.svg.arc()
-                  .outerRadius(arcRadius);
+      var arc = d3.svg.arc().outerRadius(arcRadius);
+      var arcOver = d3.svg.arc().outerRadius(arcRadius + 5);
 
-      if (startAngle) arc.startAngle(startAngle)
-      if (endAngle) arc.endAngle(endAngle);
-      if (donut) arc.innerRadius(radius * donutRatio);
+      if (startAngle) {
+          arc.startAngle(startAngle);
+          arcOver.startAngle(startAngle);
+      }
+      if (endAngle) {
+          arc.endAngle(endAngle);
+          arcOver.endAngle(endAngle);
+      }
+      if (donut) {
+          arc.innerRadius(radius * donutRatio);
+          arcOver.innerRadius(radius * donutRatio);
+      }
 
       // Setup the Pie chart and choose the data element
       var pie = d3.layout.pie()
@@ -95,17 +112,24 @@ nv.models.pie = function() {
               .attr('class', 'nv-slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
+                d3.select(this).select("path").transition()
+                  .duration(100)
+                  .attr("d", arcOver);
                 dispatch.elementMouseover({
                     label: getX(d.data),
                     value: getY(d.data),
                     point: d.data,
                     pointIndex: i,
                     pos: [d3.event.pageX, d3.event.pageY],
-                    id: id
+                    id: id,
+                    color: d3.select(this).style("fill")
                 });
               })
               .on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
+                d3.select(this).select("path").transition()
+                  .duration(100)
+                  .attr("d", arc);
                 dispatch.elementMouseout({
                     label: getX(d.data),
                     value: getY(d.data),
@@ -143,20 +167,23 @@ nv.models.pie = function() {
 
         var paths = ae.append('path')
             .each(function(d) { this._current = d; });
-            //.attr('d', arc);
 
         slices.select('path')
           .transition()
-            .attr('d', arc)
-            .attrTween('d', arcTween);
+          .attr('d', arc)
+          .attrTween('d', arcTween);
 
         if (showLabels) {
           // This does the normal label
           var labelsArc = d3.svg.arc().innerRadius(0);
 
-          if (pieLabelsOutside){ labelsArc = arc; }
+          if (pieLabelsOutside){
+              var labelsArc = arc;
+          }
 
-          if (donutLabelsOutside) { labelsArc = d3.svg.arc().outerRadius(arc.outerRadius()); }
+          if (donutLabelsOutside) {
+              labelsArc = d3.svg.arc().outerRadius(arc.outerRadius());
+          }
 
           pieLabels.enter().append("g").classed("nv-label",true)
             .each(function(d,i) {
@@ -262,15 +289,6 @@ nv.models.pie = function() {
             return arc(i(t));
           };
         }
-
-        function tweenPie(b) {
-          b.innerRadius = 0;
-          var i = d3.interpolate({startAngle: 0, endAngle: 0}, b);
-          return function(t) {
-              return arc(i(t));
-          };
-        }
-
     });
 
     renderWatch.renderEnd('pie immediate');
@@ -418,4 +436,4 @@ nv.models.pie = function() {
 
 
   return chart;
-}
+};

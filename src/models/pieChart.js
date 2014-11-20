@@ -15,7 +15,7 @@ nv.models.pieChart = function() {
     , color = nv.utils.defaultColor()
     , tooltips = true
     , tooltip = function(key, y, e, graph) {
-        return '<h3>' + key + '</h3>' +
+        return '<h3 style="background-color: ' + e.color + '">' + key + '</h3>' +
                '<p>' +  y + '</p>'
       }
     , state = nv.utils.state()
