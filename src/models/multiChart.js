@@ -17,7 +17,9 @@ nv.models.multiChart = function() {
       x,
       y,
       yDomain1,
-      yDomain2
+      yDomain2,
+      getX = function(d) { return d.x },
+      getY = function(d) { return d.y }
       ; //can be accessed via chart.lines.[x/y]Scale()
 
   //============================================================
