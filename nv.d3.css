@@ -235,6 +235,7 @@ svg .title {
 .nvd3 .nv-axis .zero line,
 /*this selector may not be necessary*/ .nvd3 .nv-axis line.zero {
   stroke-opacity: .75;
+  stroke: #000; /* Color zero-line so that it is distinguishable from the other lines. */
 }
 
 .nvd3 .nv-axis .nv-axisMaxMin text {
