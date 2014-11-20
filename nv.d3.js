@@ -1148,7 +1148,7 @@ nv.utils.optionsFunc = function(args) {
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('text-anchor', 'middle')
-              .attr('y', xLabelMargin)
+              .attr('y', xLabelMargin + (axisLabelDistance * -1))
               .attr('x', w/2);
           if (showMaxMin) {
           //if (showMaxMin && !isOrdinal) {
@@ -1187,7 +1187,7 @@ nv.utils.optionsFunc = function(args) {
           axisLabel
               .style('text-anchor', rotateYLabel ? 'middle' : 'begin')
               .attr('transform', rotateYLabel ? 'rotate(90)' : '')
-              .attr('y', rotateYLabel ? (-Math.max(margin.right,width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+              .attr('y', rotateYLabel ? (-Math.max(margin.right,width) + axisLabelDistance) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
               .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
           if (showMaxMin) {
             var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -10345,14 +10345,16 @@ nv.models.pie = function() {
               .attr('class', 'nv-slice')
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
-                dispatch.elementMouseover({
-                    label: getX(d.data),
-                    value: getY(d.data),
-                    point: d.data,
-                    pointIndex: i,
-                    pos: [d3.event.pageX, d3.event.pageY],
-                    id: id
-                });
+                if(d3.event){
+                    dispatch.elementMouseover({
+                        label: getX(d.data),
+                        value: getY(d.data),
+                        point: d.data,
+                        pointIndex: i,
+                        pos: [d3.event.pageX, d3.event.pageY],
+                        id: id
+                    });
+                }
               })
               .on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
@@ -11198,6 +11200,9 @@ nv.models.scatter = function() {
 
           var mouseEventCallback = function(d,mDispatch) {
                 if (needsUpdate) return 0;
+                
+                if (typeof d == 'undefined') return;
+                
                 var series = data[d.series];
                 if (typeof series === 'undefined') return;
 
@@ -13520,30 +13525,36 @@ nv.models.stackedArea = function() {
           })
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
-            dispatch.areaMouseover({
-              point: d,
-              series: d.key,
-              pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: d.seriesIndex
-            });
+            if (d3.event) {
+              dispatch.areaMouseover({
+                point: d,
+                series: d.key,
+                pos: [d3.event.pageX, d3.event.pageY],
+                seriesIndex: d.seriesIndex
+              });
+            }
           })
           .on('mouseout', function(d,i) {
             d3.select(this).classed('hover', false);
-            dispatch.areaMouseout({
-              point: d,
-              series: d.key,
-              pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: d.seriesIndex
-            });
+            if (d3.event) {
+              dispatch.areaMouseout({
+                point: d,
+                series: d.key,
+                pos: [d3.event.pageX, d3.event.pageY],
+                seriesIndex: d.seriesIndex
+              });
+            }
           })
           .on('click', function(d,i) {
             d3.select(this).classed('hover', false);
-            dispatch.areaClick({
-              point: d,
-              series: d.key,
-              pos: [d3.event.pageX, d3.event.pageY],
-              seriesIndex: d.seriesIndex
-            });
+            if (d3.event) {
+              dispatch.areaClick({
+                point: d,
+                series: d.key,
+                pos: [d3.event.pageX, d3.event.pageY],
+                seriesIndex: d.seriesIndex
+              });
+            }
           })
 
       path.exit().remove();
