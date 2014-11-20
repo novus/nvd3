@@ -24,6 +24,17 @@
             height: 100%;
             width: 100%;
         }
+
+        .nvd3.nv-pie.nv-chart-donut2 .nv-pie-title {
+            transform: translate(0, -10px);
+        }
+
+        .nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {
+            font-size: 45px;
+            fill: rgba(224, 116, 76, 0.91);
+            transform: translate(0, 15px);
+        }
+
     </style>
 </head>
 <body class='with-3d-shadow with-transitions'>
@@ -76,10 +87,16 @@ nv.addGraph(function() {
         .x(function(d) { return d.key })
         .y(function(d) { return d.y })
         .color(nv.utils.defaultColor())
+        .donut(true)
         .width(width)
-        .height(height);
+        .height(height)
+        .id('donut1'); // allow custom CSS for this one svg
 
-      d3.select("#test1")
+    chart.title("100%");
+
+    chart.pie.donutLabelsOutside(true).donut(true);
+
+    d3.select("#test1")
           .datum(testdata)
           .transition().duration(1200)
           .attr('width', width)
@@ -107,16 +124,15 @@ nv.addGraph(function() {
         //.showLabels(false)
         .color(nv.utils.defaultColor())
         .width(width)
-        .height(height);
+        .height(height)
+        .donut(true)
+        .id('donut2')
+        .title("woot");
 
     // MAKES IT HALF CIRCLE
     chart.pie
         .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
         .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
-
-    // MAKES LABELS OUTSIDE OF DONUT
-    //chart.pie.donutLabelsOutside(true).donut(true);
-
 
       d3.select("#test2")
           //.datum(historicalBarChart)

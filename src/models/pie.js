@@ -19,6 +19,7 @@ nv.models.pie = function() {
     , labelType = "key"
     , labelThreshold = .02 //if slice percentage is under this, don't show label
     , donut = false
+    , title = false
     , labelSunbeamLayout = false
     , startAngle = false
     , endAngle = false
@@ -48,8 +49,8 @@ nv.models.pie = function() {
       var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
-      var title_g = g.append('g').attr('class', 'nv-pie');
-      gEnter.append('g').attr('class', 'nv-pie');
+
+      var g_pie = gEnter.append('g').attr('class', 'nv-pie');
       gEnter.append('g').attr('class', 'nv-pieLabels');
 
 
@@ -59,14 +60,6 @@ nv.models.pie = function() {
 
       //------------------------------------------------------------
 
-      if (donut) {
-          title_g.append("text")
-              .style("text-anchor", "middle")
-              .attr('class', 'nv-pie-title')
-              .text(function (d) {
-                  return 'testing';
-              });
-      }
       container
           .on('click', function(d,i) {
               dispatch.chartClick({
@@ -99,6 +92,17 @@ nv.models.pie = function() {
           .sort(null)
           .value(function(d) { return d.disabled ? 0 : getY(d) });
 
+      // if title is specified and donut, put it in the middle
+      if (donut && title) {
+        var title_g = g_pie.append('g').attr('class', 'nv-pie');
+        title_g.append("text")
+            .style("text-anchor", "middle")
+            .attr('class', 'nv-pie-title')
+            .text(function (d) {
+                return title;
+            });
+      }
+
       var slices = wrap.select('.nv-pie').selectAll('.nv-slice')
           .data(pie);
 
@@ -113,7 +117,7 @@ nv.models.pie = function() {
               .on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
                 d3.select(this).select("path").transition()
-                  .duration(100)
+                  .duration(70)
                   .attr("d", arcOver);
                 dispatch.elementMouseover({
                     label: getX(d.data),
@@ -128,7 +132,7 @@ nv.models.pie = function() {
               .on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
                 d3.select(this).select("path").transition()
-                  .duration(100)
+                  .duration(50)
                   .attr("d", arc);
                 dispatch.elementMouseout({
                     label: getX(d.data),
@@ -423,6 +427,12 @@ nv.models.pie = function() {
   chart.labelThreshold = function(_) {
     if (!arguments.length) return labelThreshold;
     labelThreshold = _;
+    return chart;
+  };
+
+  chart.title = function(_) {
+    if (!arguments.length) return title;
+    title = _;
     return chart;
   };
 
