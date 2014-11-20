@@ -28,20 +28,27 @@ If one of [the existing models](https://github.com/liquidpele/nvd3/tree/developm
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
 
-Make sure you commit your changes to the development branch and not master!
+A few rules for pull requests to help my sanity ;)
 
-We cannot honor all pull requests, but we will review all of them.
+1. Please commit to the "development" branch
+2. ONLY edit things under the "src" and "examples" directories!
+3. Do NOT check in anything under the "build" directory, it clutters up the commit and just gets overwritten later.
 
-Please do not aggregate pull requests. Aggregated pull requests are actually more difficult to review.
+After you make changes, run "grunt production" to build the items into the "build" directory.
+You must do this before your changes how up in the examples, as they link to the build directory
+in order to properly show off the finished product.
+
+I'll do my best to review all pull requests within a few days.
 
 ---
 
 ## Building latest
 
-1. First check out the testing branch, e.g.:  git clone https://github.com/liquidpele/nvd3.git
+1. First clone the repository and checkout the "development" branch
 2. make sure nodejs is installed via your system's package manager.
 3. have node download it's required modules with:  npm install
-4. build with:  grunt production
+4. install grunt globally:  sudo npm install -g grunt
+5. build with:  grunt production
 
 You should now have a "build" directory with the js and css files within.
 
