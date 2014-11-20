@@ -10,6 +10,9 @@ Latest version is 1.5.17 ( [view](https://github.com/liquidpele/nvd3/tree/1.5.17
 
 You can demo the examples here:  http://liquidpele.github.io/nvd3/
 
+**NOTE**: The announced 2.0.0 refactor from the original project was never finished and wasn't brought over.
+Robin suggested I start with his development branch, which I did.
+
 ---
 
 # Current development focus
