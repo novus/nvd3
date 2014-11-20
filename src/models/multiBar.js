@@ -28,6 +28,7 @@ nv.models.multiBar = function() {
     , yRange
     , groupSpacing = 0.1
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , normalized = false
     ;
 
   //============================================================
@@ -58,7 +59,24 @@ nv.models.multiBar = function() {
           size: 0.01
         };}
       )}];
-
+      // internal copy so that org data is NEVER modified.
+      // necessary since we are calculating new y values for normalized state
+      
+      var data = JSON.parse(JSON.stringify(data));
+      if (normalized && data.length>0) {
+          data[0].values.forEach(function(val,i){
+              var values = [];
+              for (var c=0;c<data.length;c++){
+                  values.push(data[c].values[i].y);
+              }
+              var sum = d3.sum(values);
+              
+              data.forEach(function(d){
+                  d.values[i].y = sum>0 ? d.values[i].y/sum :0;
+              });
+          });
+      }
+      
       if (stacked)
         data = d3.layout.stack()
                  .offset(stackOffset)
@@ -109,7 +127,7 @@ nv.models.multiBar = function() {
           .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
       //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
-      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
+      y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (getY(d) > 0 ? d.y1 : d.y1 + getY(d) ) : getY(d) }).concat(forceY)))
           .range(yRange || [availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -454,6 +472,12 @@ nv.models.multiBar = function() {
     return chart;
   };
 
+
+chart.normalized = function(_) {
+    if (!arguments.length) return normalized;
+    normalized = _;
+    return chart;
+  };
   //============================================================
 
 

@@ -35,8 +35,11 @@ nv.models.multiBarChart = function() {
     , defaultState = null
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
-    , controlWidth = function() { return showControls ? 180 : 0 }
+    , controlWidth = function() { return showControls ? (allowNormalized? 290 : 180) : 0 }
     , transitionDuration = 250
+    // new stuff from pschoepf
+    , orgYTickFormat = null // used to store original tick format before switching to normalized % view
+    , allowNormalized = false // enables control for normalized stacked
     ;
 
   multibar
@@ -182,10 +185,16 @@ nv.models.multiBarChart = function() {
       // Controls
 
       if (showControls) {
-        var controlsData = [
+         var controlsData = [
           { key: 'Grouped', disabled: multibar.stacked() },
-          { key: 'Stacked', disabled: !multibar.stacked() }
+          { key: 'Stacked', disabled: !multibar.stacked() || (multibar.stacked()&& multibar.normalized())}
+           
         ];
+        // add normalized 100% control switch if enabled by property
+        if (allowNormalized) {
+           controlsData.push({ key: 'Stacked normalized', disabled: !multibar.stacked() ||(multibar.stacked() && !multibar.normalized()) });
+        }
+        
 
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
         g.select('.nv-controlsWrap')
@@ -304,7 +313,7 @@ nv.models.multiBarChart = function() {
 
       legend.dispatch.on('stateChange', function(newState) { 
         state = newState;
-        dispatch.stateChange(state);
+        dispatch.stateChange(state);     
         chart.update();
       });
 
@@ -319,13 +328,29 @@ nv.models.multiBarChart = function() {
         switch (d.key) {
           case 'Grouped':
             multibar.stacked(false);
+            multibar.normalized(false);
             break;
           case 'Stacked':
             multibar.stacked(true);
+            multibar.normalized(false);
+            break;
+          case 'Stacked normalized':
+            multibar.stacked(true);
+            multibar.normalized(true);
             break;
         }
 
         state.stacked = multibar.stacked();
+        state.normalized = multibar.normalized();
+        if (multibar.normalized()) {
+            orgYTickFormat = yAxis.tickFormat();
+            yAxis
+            .tickFormat(d3.format('.0%'))
+        } else if (orgYTickFormat) {
+            yAxis
+            .tickFormat(orgYTickFormat)
+        }
+        
         dispatch.stateChange(state);
 
         chart.update();
@@ -348,7 +373,9 @@ nv.models.multiBarChart = function() {
 
         if (typeof e.stacked !== 'undefined') {
           multibar.stacked(e.stacked);
+          multibar.normalized(e.normalized);
           state.stacked = e.stacked;
+          state.normalized = e.normalized;    
         }
 
         chart.update();
@@ -394,7 +421,7 @@ nv.models.multiBarChart = function() {
   chart.yAxis = yAxis;
 
   d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge',
-   'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing');
+   'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing','normalized');
 
   chart.options = nv.utils.optionsFunc.bind(chart);
   
@@ -496,6 +523,7 @@ nv.models.multiBarChart = function() {
   chart.state = function(_) {
     if (!arguments.length) return state;
     state = _;
+    dispatch.changeState(_);
     return chart;
   };
 
@@ -517,6 +545,11 @@ nv.models.multiBarChart = function() {
     return chart;
   };
 
+  chart.allowNormalized = function(_) {
+    if (!arguments.length) return allowNormalized;
+    allowNormalized = _;
+    return chart;
+  };
   //============================================================
 
 
