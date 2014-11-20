@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+#chart1 svg text {
+  font: 18px sans-serif;
+}
+
+svg {
+  display: block;
+}
+
+#chart1 svg{
+  width: 95%;
+  height: 600px;
+  min-width: 100px;
+  min-height: 100px;
+}
+
+</style>
+<body>
+
+  <div id="chart1">
+    <svg></svg>
+  </div>
+<script>
+  window.addEventListener('resize', function(event){
+    if(!!chart) {
+      chart.update();
+    }
+    console.log('Resize');
+  });
+</script>
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<!-- including all the components so I don't have to minify every time I test in development -->
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/horizontalBar.js"></script>
+<script src="../src/models/horizontalBarChart.js"></script>
+<script>
+
+var dataset = [{
+  key: "Test Data 1",
+  values: [] 
+}];
+
+(function() {
+  var set = [];
+  for(var index = 0; index < 10; ){
+    var obj = {},
+        labels = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N',
+                  'O','P','Q','R','S','T','U','V','W','X','Y','Z']; 
+    if(index == 0) {
+      obj.label = (++index);
+    } else {
+      obj.label = labels.slice(0, Math.floor(Math.random()*10) ).toString().replace(/,/g,'') + (++index);
+    }
+    obj.value = 50 + index * Math.floor(Math.random() * 50);
+    set.push(obj)
+  }
+  dataset[0].values = set;
+
+})()
+
+var chart;
+
+nv.addGraph(function() {  
+    chart = nv.models.horizontalBarChart()
+      .x(function(d) { return d.value })
+      .y(function(d) { return d.label })
+      .tooltips(true)
+      .margin({top: 15, right: 100, bottom: 70, left: 300})
+      .showValues(true)
+      .transitionDuration(250)
+      ;
+  
+    chart
+      .xAxis()
+      .tickValues([0,100,200,300,400]);
+
+  d3.select('#chart1 svg')
+      .datum(dataset)
+      .call(chart);
+
+  nv.utils.windowResize(chart.update);
+
+  return chart;
+});
+
+
+</script>

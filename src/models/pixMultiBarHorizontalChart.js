@@ -1,5 +1,5 @@
 
-nv.models.multiBarHorizontalChart = function() {
+nv.models.pixMultiBarHorizontalChart = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
@@ -10,6 +10,7 @@ nv.models.multiBarHorizontalChart = function() {
     , yAxis = nv.models.axis()
     , legend = nv.models.legend().height(30)
     , controls = nv.models.legend().height(30)
+    , gAxis = nv.models.axis() //group axis
     ;
 
   var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -28,12 +29,16 @@ nv.models.multiBarHorizontalChart = function() {
       }
     , x //can be accessed via chart.xScale()
     , y //can be accessed via chart.yScale()
+    , gScale //group scale
+    , gdomain //group domain set 
     , state = { stacked: stacked }
+    , gstate ={}
     , defaultState = null
     , noData = 'No Data Available.'
-    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState')
+    , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'groupClick' )
     , controlWidth = function() { return showControls ? 180 : 0 }
     , transitionDuration = 250
+    , showGAxis = true //show group axis
     ;
 
   multibar
@@ -44,11 +49,24 @@ nv.models.multiBarHorizontalChart = function() {
     .tickPadding(5)
     .highlightZero(false)
     .showMaxMin(false)
-    .tickFormat(function(d) { return d })
+    .tickFormat(function(d) { 
+      if(typeof d == "string")
+        return d.split("_")[1];
+      else
+        return d; 
+    })
     ;
   yAxis
     .orient('bottom')
     .tickFormat(d3.format(',.1f'))
+    ;
+  gAxis
+    .orient('left')
+    .tickPadding(5)
+    .highlightZero(false)
+    .showMaxMin(false).tickFormat(function(d) {
+      return d
+    })
     ;
 
   controls.updateState(false);
@@ -60,8 +78,8 @@ nv.models.multiBarHorizontalChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ('relative' === d3.select(offsetElement).style('position') ? 0 : offsetElement.offsetLeft),
-        top = e.pos[1] + ('relative' === d3.select(offsetElement).style('position') ? 0 : offsetElement.offsetTop),
+    var left = e.pos[0],
+        top = e.pos[1],
         x = xAxis.tickFormat()(multibar.x()(e.point, e.pointIndex)),
         y = yAxis.tickFormat()(multibar.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
@@ -121,14 +139,29 @@ nv.models.multiBarHorizontalChart = function() {
       }
 
       //------------------------------------------------------------
-
-
+      // create group domain set & state
+      if(typeof gdomain == "undefined") {
+        gdomain = [];
+        data.forEach(function(series, i) {
+          series.values.forEach(function(pointer) {
+            var glabel = pointer.label.split("_")[0];
+            if(gdomain.indexOf(glabel) == -1) {
+              gdomain.push(glabel);
+            } else { }
+          });
+        });
+      }
+      if(typeof gstate.disabled == "undefined") {
+        gstate.disabled = gdomain.map(function(d) { return !d; });
+        gstate.set = gdomain.map(function(d) { return d }); //to restore gdomain
+        gdomain.forEach(function(d) { gstate[d] = {}; });
+      }
       //------------------------------------------------------------
       // Setup Scales
 
       x = multibar.xScale();
       y = multibar.yScale();
-
+      gScale = d3.scale.ordinal().domain(gdomain).rangeBands( [0, availableHeight] );
       //------------------------------------------------------------
 
 
@@ -147,6 +180,8 @@ nv.models.multiBarHorizontalChart = function() {
       gEnter.append('g').attr('class', 'nv-legendWrap');
       gEnter.append('g').attr('class', 'nv-controlsWrap');
 
+      // Append Group 
+      gEnter.append('g').attr('class', 'nv-g nv-axis');
       //------------------------------------------------------------
 
 
@@ -250,6 +285,18 @@ nv.models.multiBarHorizontalChart = function() {
               .call(yAxis);
       }
 
+      // Group Axes
+      if(showGAxis) {
+        gAxis
+          .scale(gScale)
+          .ticks( gdomain.length );
+
+        g.select('.nv-g.nv-axis')
+         .attr('transform', 'translate('+ 0.5*(-margin.left) +',0)');
+        g.select('.nv-g.nv-axis')
+         .call(gAxis);
+
+      }
       // Zero line
       g.select(".nv-zeroLine line")
         .attr("x1", y(0))
@@ -301,7 +348,6 @@ nv.models.multiBarHorizontalChart = function() {
 
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
-
         if (typeof e.disabled !== 'undefined') {
           data.forEach(function(series,i) {
             series.disabled = e.disabled[i];
@@ -317,9 +363,47 @@ nv.models.multiBarHorizontalChart = function() {
 
         chart.update();
       });
+
+      //sidebar group was clicked then set the group on/off (  show / hide )
+      //because NVD3 is not supported , implemented myself
+      dispatch.on('groupClick', function(e) {
+        if (typeof e.groupIndex !== 'undefined') {
+          var groupIndex = e.groupIndex;
+          if (gstate.disabled[groupIndex]) {
+            for (var args in gstate[gstate.set[groupIndex]]) {
+
+              if (typeof gstate[gstate.set[groupIndex]][args] !== "undefined" ) {
+                var dest = parseInt( args.charAt(args.length - 1) );
+                for (var index = gstate[gstate.set[groupIndex]][args].length - 1; index >= 0; index--) {
+                   data[dest].values.push( gstate[ gstate.set[groupIndex] ][args].splice(index, 1)[0]);
+                }
+              }
+
+            }
+            gdomain.push( gstate.set[groupIndex] );
+            gstate.disabled[groupIndex] = false;
+          }
+          else{
+            //remove selected group from dataset 
+              data.forEach(function(series,i) {
+                for (var index = series.values.length - 1; index >= 0; index--) {
+                  var d = series.values[index];
+                  if(gstate.set.indexOf( d.label.split("_")[0] ) == e.groupIndex){
+                    if(typeof gstate[ gstate.set[groupIndex] ][ "series" + i ] == "undefined"){
+                      gstate[ gstate.set[groupIndex] ][ "series" + i ] = [];
+                    }
+                    gstate[ gstate.set[groupIndex] ][ "series" + i ].push(series.values.splice(index,1)[0]);      
+                  }
+                }
+              });
+              gdomain.splice( gdomain.indexOf(gstate.set[groupIndex]), 1);
+              gstate.disabled[groupIndex] = true;
+          }
+        }
+        chart.update();
+      });
+
       //============================================================
-
-
     });
 
     return chart;
@@ -338,6 +422,14 @@ nv.models.multiBarHorizontalChart = function() {
   multibar.dispatch.on('elementMouseout.tooltip', function(e) {
     dispatch.tooltipHide(e);
   });
+
+  // Add click event
+  multibar.dispatch.on('elementClick', function(e) {
+    var nColor = (e.seriesIndex == 0)?"info":"error";
+
+    alert(e.point.label+" : "+e.value+"\n("+e.series.key+")");
+  });
+
   dispatch.on('tooltipHide', function() {
     if (tooltips) nv.tooltip.cleanup();
   });
@@ -452,6 +544,11 @@ nv.models.multiBarHorizontalChart = function() {
   chart.transitionDuration = function(_) {
     if (!arguments.length) return transitionDuration;
     transitionDuration = _;
+    return chart;
+  };
+  chart.gdomain = function(_) {
+    if (!arguments.length) return gdomain;
+    gdomain = _;
     return chart;
   };
   //============================================================

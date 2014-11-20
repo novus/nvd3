@@ -300,7 +300,8 @@ svg .title {
 
 .nvd3 .nv-multibar .nv-groups rect,
 .nvd3 .nv-multibarHorizontal .nv-groups rect,
-.nvd3 .nv-discretebar .nv-groups rect {
+.nvd3 .nv-discretebar .nv-groups rect,
+.nvd3 .nv-horizontalbar .nv-groups rect {
   stroke-opacity: 0;
 
   transition: fill-opacity 250ms linear;
@@ -310,12 +311,14 @@ svg .title {
 
 .nvd3 .nv-multibar .nv-groups rect:hover,
 .nvd3 .nv-multibarHorizontal .nv-groups rect:hover,
-.nvd3 .nv-discretebar .nv-groups rect:hover {
+.nvd3 .nv-discretebar .nv-groups rect:hover,
+.nvd3 .nv-horizontalbar .nv-groups rect:hover {
   fill-opacity: 1;
 }
 
 .nvd3 .nv-discretebar .nv-groups text,
-.nvd3 .nv-multibarHorizontal .nv-groups text {
+.nvd3 .nv-multibarHorizontal .nv-groups text,
+.nvd3 .nv-horizontalbar .nv-groups text {
   font-weight: bold;
   fill: rgba(0,0,0,1);
   stroke: rgba(0,0,0,0);
