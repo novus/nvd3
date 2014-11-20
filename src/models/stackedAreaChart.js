@@ -19,11 +19,15 @@ nv.models.stackedAreaChart = function() {
     , color = nv.utils.defaultColor() // a function that takes in d, i and returns color
     , showControls = true
     , showLegend = true
+    , translateLegendX = undefined
+    , translateLegendY = undefined
     , showXAxis = true
     , showYAxis = true
     , rightAlignYAxis = false
     , useInteractiveGuideline = false
     , tooltips = true
+    , tooltipXFormat = undefined
+    , tooltipYFormat = undefined
     , tooltip = function(key, x, y, e, graph) {
         return '<h3>' + key + '</h3>' +
                '<p>' +  y + ' on ' + x + '</p>'
@@ -58,14 +62,16 @@ nv.models.stackedAreaChart = function() {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-        top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(stacked.x()(e.point, e.pointIndex)),
-        y = yAxis.tickFormat()(stacked.y()(e.point, e.pointIndex)),
+      tooltipXFormat = tooltipXFormat === undefined ? xAxis.tickFormat() : tooltipXFormat;
+      tooltipYFormat = tooltipYFormat === undefined ? yAxis.tickFormat() : tooltipYFormat;
+      var left = e.pos[0] + (offsetElement.offsetLeft || 0),
+        top = e.pos[1] + (offsetElement.offsetTop || 0),
+        x = tooltipXFormat(stacked.x()(e.point, e.pointIndex)),
+        y = tooltipYFormat(stacked.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-  };
+      nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+    };
 
   //============================================================
 
@@ -164,8 +170,14 @@ nv.models.stackedAreaChart = function() {
                              - margin.top - margin.bottom;
         }
 
+        // if no translate set, use default
+        if ((translateLegendX === undefined) && (translateLegendY === undefined)) {
+          translateLegendX = availableWidth - legendWidth;
+          translateLegendY = -margin.top;
+        }
+
         g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
+          .attr('transform', 'translate(' + translateLegendX + ',' + translateLegendY + ')');
       }
 
       //------------------------------------------------------------
@@ -535,6 +547,18 @@ nv.models.stackedAreaChart = function() {
     showLegend = _;
     return chart;
   };
+  
+  chart.translateLegendX = function(_) {
+    if (!arguments.length) return translateLegendX;
+    translateLegendX = _;
+    return chart;
+  };
+
+  chart.translateLegendY = function(_) {
+    if (!arguments.length) return translateLegendY;
+    translateLegendY = _;
+    return chart;
+  };
 
   chart.showXAxis = function(_) {
     if (!arguments.length) return showXAxis;
@@ -568,6 +592,18 @@ nv.models.stackedAreaChart = function() {
   chart.tooltip = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;
+    return chart;
+  };
+  
+  chart.tooltipXFormat = function(_) {
+    if (!arguments.length) return tooltipXFormat;
+    tooltipXFormat = _;
+    return chart;
+  };
+
+  chart.tooltipYFormat = function(_) {
+    if (!arguments.length) return tooltipYFormat;
+    tooltipYFormat = _;
     return chart;
   };
 
