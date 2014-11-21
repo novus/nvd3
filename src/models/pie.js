@@ -20,6 +20,7 @@ nv.models.pie = function() {
     , labelThreshold = .02 //if slice percentage is under this, don't show label
     , donut = false
     , title = false
+    , titleOffset = 0
     , labelSunbeamLayout = false
     , startAngle = false
     , endAngle = false
@@ -95,12 +96,18 @@ nv.models.pie = function() {
       // if title is specified and donut, put it in the middle
       if (donut && title) {
         var title_g = g_pie.append('g').attr('class', 'nv-pie');
+
         title_g.append("text")
             .style("text-anchor", "middle")
             .attr('class', 'nv-pie-title')
             .text(function (d) {
                 return title;
+            })
+            .attr("dy", "0.35em") // trick to vertically center the text
+            .attr('transform', function(d, i) {
+                  return 'translate(0, '+ titleOffset + ')';
             });
+
       }
 
       var slices = wrap.select('.nv-pie').selectAll('.nv-slice')
@@ -313,6 +320,7 @@ nv.models.pie = function() {
       height:     {enumerable: true, get: function(){return height;}, set: function(_){height=_;}},
       showLabels: {enumerable: true, get: function(){return showLabels;}, set: function(_){showLabels=_;}},
       title:      {enumerable: true, get: function(){return title;}, set: function(_){title=_;}},
+      titleOffset:    {enumerable: true, get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
       labelThreshold: {enumerable: true, get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
       labelFormat:    {enumerable: true, get: function(){return labelFormat;}, set: function(_){labelFormat=_;}},
       valueFormat:    {enumerable: true, get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},

@@ -26,13 +26,13 @@
         }
 
         .nvd3.nv-pie.nv-chart-donut2 .nv-pie-title {
-            transform: translate(0, -10px);
+            fill: #8eff8e;
         }
 
         .nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {
             font-size: 45px;
+            opacity: 0.4;
             fill: rgba(224, 116, 76, 0.91);
-            transform: translate(0, 15px);
         }
 
     </style>
@@ -127,6 +127,7 @@ nv.addGraph(function() {
         .height(height)
         .donut(true)
         .id('donut2')
+        .titleOffset(-30)
         .title("woot");
 
     // MAKES IT HALF CIRCLE
