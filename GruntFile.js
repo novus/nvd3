@@ -30,6 +30,7 @@ module.exports = function(grunt) {
                      'src/models/lineChart.js',
                      'src/models/linePlusBarChart.js',
                      'src/models/lineWithFocusChart.js',
+                     'src/models/lineWithSecondaryAxisAndFocusChart.js',
                      'src/models/linePlusBarWithFocusChart.js',
                      'src/models/multiBar.js',
                      'src/models/multiBarChart.js',
