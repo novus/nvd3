@@ -426,3 +426,30 @@ nv.utils.calcTicksY = function(numTicks, data) {
     // currently uses the same logic but we can adjust here if needed later
     return nv.utils.calcTicksX(numTicks, data);
 };
+
+
+/*
+Add a particular option from an options object onto chart
+Options exposed on a chart are a getter/setter function that returns chart
+on set to mimic typical d3 option chaining, e.g. svg.option1('a').option2('b');
+
+option objects should be generated via Object.create() to provide
+the option of manipulating data via get/set functions.
+*/
+nv.utils.addOption = function(options, chart, name) {
+    chart[name] = function (_) {
+        if (!arguments.length) return options[name];
+        options[name] = _;
+        return chart;
+    };
+};
+
+
+/*
+Add all options in an options object to the chart
+*/
+nv.utils.addOptions = function(options, chart) {
+    for (var name in options) {
+        nv.utils.addOption(options, chart, name);
+    }
+};

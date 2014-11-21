@@ -307,143 +307,43 @@ nv.models.pie = function() {
   chart.dispatch = dispatch;
   chart.options = nv.utils.optionsFunc.bind(chart);
 
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    return chart;
-  };
+  var options = Object.create({}, {
+      // simple options, just get/set the necessary values
+      width:      {enumerable: true, get: function(){return width;}, set: function(_){width=_;}},
+      height:     {enumerable: true, get: function(){return height;}, set: function(_){height=_;}},
+      showLabels: {enumerable: true, get: function(){return showLabels;}, set: function(_){showLabels=_;}},
+      title:      {enumerable: true, get: function(){return title;}, set: function(_){title=_;}},
+      labelThreshold: {enumerable: true, get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
+      labelFormat:    {enumerable: true, get: function(){return labelFormat;}, set: function(_){labelFormat=_;}},
+      valueFormat:    {enumerable: true, get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
+      x: {enumerable: true, get: function(){return getX;}, set: function(_){getX=_;}},
+      id:    {enumerable: true, get: function(){return id;}, set: function(_){id=_;}},
+      endAngle:   {enumerable: true, get: function(){return endAngle;}, set: function(_){endAngle=_;}},
+      startAngle: {enumerable: true, get: function(){return startAngle;}, set: function(_){startAngle=_;}},
+      donutRatio: {enumerable: true, get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
+      pieLabelsOutside:   {enumerable: true, get: function(){return pieLabelsOutside;}, set: function(_){pieLabelsOutside=_;}},
+      donutLabelsOutside: {enumerable: true, get: function(){return donutLabelsOutside;}, set: function(_){donutLabelsOutside=_;}},
+      labelSunbeamLayout: {enumerable: true, get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},
+      donut:              {enumerable: true, get: function(){return donut;}, set: function(_){donut=_;}},
 
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
+      // options that require extra logic in the setter
+      margin: {enumerable: true, get: function(){return margin;}, set: function(_){
+          margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+          margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+          margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+          margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+      }},
+      y: {enumerable: true, get: function(){return getY;}, set: function(_){
+          getY=d3.functor(_);
+      }},
+      color: {enumerable: true, get: function(){return color;}, set: function(_){
+          color=nv.utils.getColor(_);
+      }},
+      labelType:          {enumerable: true, get: function(){return labelType;}, set: function(_){
+          labelType=_||'key';
+      }}
+  });
 
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
-  chart.values = function(_) {
-    nv.log("pie.values() is no longer supported.");
-    return chart;
-  };
-
-  chart.x = function(_) {
-    if (!arguments.length) return getX;
-    getX = _;
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    getY = d3.functor(_);
-    return chart;
-  };
-
-  chart.showLabels = function(_) {
-    if (!arguments.length) return showLabels;
-    showLabels = _;
-    return chart;
-  };
-
-  chart.labelSunbeamLayout = function(_) {
-    if (!arguments.length) return labelSunbeamLayout;
-    labelSunbeamLayout = _;
-    return chart;
-  };
-
-  chart.donutLabelsOutside = function(_) {
-    if (!arguments.length) return donutLabelsOutside;
-    donutLabelsOutside = _;
-    return chart;
-  };
-
-  chart.pieLabelsOutside = function(_) {
-    if (!arguments.length) return pieLabelsOutside;
-    pieLabelsOutside = _;
-    return chart;
-  };
-
-  chart.labelType = function(_) {
-    if (!arguments.length) return labelType;
-    labelType = _;
-    labelType = labelType || "key";
-    return chart;
-  };
-
-  chart.donut = function(_) {
-    if (!arguments.length) return donut;
-    donut = _;
-    return chart;
-  };
-
-  chart.donutRatio = function(_) {
-    if (!arguments.length) return donutRatio;
-    donutRatio = _;
-    return chart;
-  };
-
-  chart.startAngle = function(_) {
-    if (!arguments.length) return startAngle;
-    startAngle = _;
-    return chart;
-  };
-
-  chart.endAngle = function(_) {
-    if (!arguments.length) return endAngle;
-    endAngle = _;
-    return chart;
-  };
-
-  chart.id = function(_) {
-    if (!arguments.length) return id;
-    id = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = nv.utils.getColor(_);
-    return chart;
-  };
-
-  chart.valueFormat = function(_) {
-    if (!arguments.length) return valueFormat;
-    valueFormat = _;
-    return chart;
-  };
-
-  chart.labelFormat = function(_) {
-    if (!arguments.length) return labelFormat;
-    labelFormat = _;
-    return chart;
-  };
-
-  chart.labelThreshold = function(_) {
-    if (!arguments.length) return labelThreshold;
-    labelThreshold = _;
-    return chart;
-  };
-
-  chart.title = function(_) {
-    if (!arguments.length) return title;
-    title = _;
-    return chart;
-  };
-
-  chart.duration = function(_) {
-    if (!arguments.length) return duration;
-    duration = _;
-    renderWatch.reset(duration);
-    return chart;
-  };
-  //============================================================
-
-
+  nv.utils.addOptions(options, chart);
   return chart;
 };
