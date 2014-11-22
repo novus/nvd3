@@ -68,7 +68,6 @@ nv.addGraph(function() {
 
 
     var chart = nv.models.pie()
-        .values(function(d) { return d })
         .width(width)
         .height(height);
 
@@ -85,7 +84,6 @@ nv.addGraph(function() {
 nv.addGraph(function() {
 
     var chart = nv.models.pie()
-        .values(function(d) { return d })
         .width(width)
         .height(height)
         .donut(true);

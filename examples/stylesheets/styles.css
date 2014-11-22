@@ -614,7 +614,6 @@ dt {
 
 header {
     margin: 0;
-    position: fixed;
     top: 0;
     left: 0;
     right: 0;
@@ -652,7 +651,6 @@ header p {
     left: 0;
     height: 50px;
     width: 100%;
-    position: fixed;
     top: 75px;
     background: #ffcc00;
     border: 1px solid #f0b500;
@@ -707,18 +705,18 @@ header p {
     background-color: #ffeca0;
 }
 #banner .fork {
-    position: fixed;
     left: 50%;
-    margin-left: -325px;
     padding: 10px 12px;
     margin-top: 6px;
+    margin-left: 0px;
     line-height: 14px;
     font-size: 14px;
     background-color: #FFE788;
 }
 #banner .downloads {
     float: right;
-    margin: 0 45px 0 0;
+    margin: 0 0 0 0;
+    margin-right: 2px;
 }
 #banner .downloads span {
     float: left;
@@ -745,17 +743,20 @@ header p {
     position: absolute;
     height: 36px;
     width: 36px;
-    right: 7px;
+    right: -60px;
     top: 7px;
     display: block;
     background: url(../images/octocat-logo.png);
 }
-
+#banner > div {
+    width: 900px;
+    margin: 0 auto;
+    position: relative;
+}
 section {
     width: 100%;
-    padding: 30px 30px 50px 30px;
-    margin: 20px 0;
-    margin-top: 120px !important;
+    box-sizing: border-box;
+    padding: 15px 30px 50px 30px;
     position: relative;
     background: #fbfbfb;
     -moz-border-radius: 3px;
@@ -777,7 +778,6 @@ small {
 
 nav {
     width: 230px;
-    position: fixed;
     top: 220px;
     left: 50%;
     margin-left: -580px;
@@ -824,7 +824,7 @@ footer {
     width: 100%;
 }
 #banner .downloads {
-    margin-right: 60px;
+    margin-right: 0px;
 }
 #banner #logo {
     margin-right: 15px;
@@ -832,14 +832,18 @@ footer {
 
 #banner .fork {
     float: left;
-    display: inline-block;
     margin-left: 0px;
-    position: fixed;
+    display: inline-block;
     left: 20px;
 }
 
 @media print, screen and (max-width: 1060px) {
     div.wrapper {
+        width: auto;
+        margin: 0;
+    }
+
+    #banner > div {
         width: auto;
         margin: 0;
     }
@@ -863,7 +867,7 @@ footer {
         width: 100%;
     }
     #banner .downloads {
-        margin-right: 60px;
+        margin-right: 30px;
     }
     #banner #logo {
         margin-right: 15px;
@@ -897,15 +901,14 @@ footer {
     #banner .fork {
         float: left;
         display: inline-block;
-        margin-left: 0px;
-        position: fixed;
+        margin-left: 30px;
         left: 20px;
     }
 
     section {
-        margin-top: 130px;
         margin-bottom: 0px;
         width: auto;
+        box-sizing: border-box;
     }
 
     header ul, header p.view {
@@ -929,6 +932,7 @@ footer {
 
     section {
         margin-top: 5px !important;
+        box-sizing: border-box;
     }
 
     #banner {
@@ -937,6 +941,11 @@ footer {
 
     header ul {
         display: none;
+    }
+
+    .showcharts, .showbases {
+        position: relative !important;
+
     }
 }
 @media print {

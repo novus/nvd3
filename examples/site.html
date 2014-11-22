@@ -18,7 +18,7 @@
             } else {
                 $section.css('height','auto');
             }
-        }
+        };
 
         $(window).resize(sectionHeight);
 
@@ -76,15 +76,17 @@
 </header>
 
 <div id="banner">
-    <span id="logo"></span>
+    <div>
+        <span id="logo"></span>
 
-    <a href="https://github.com/liquidpele/nvd3" class="button fork"><strong>View On GitHub</strong></a>
-    <div class="downloads">
-        <span>Downloads:</span>
-        <ul>
-            <li><a href="https://github.com/liquidpele/nvd3/zipball/master" class="button">ZIP</a></li>
-            <li><a href="https://github.com/liquidpele/nvd3/tarball/master" class="button">TAR</a></li>
-        </ul>
+        <a href="https://github.com/liquidpele/nvd3" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+            <span>Downloads:</span>
+            <ul>
+                <li><a href="https://github.com/liquidpele/nvd3/zipball/master" class="button">ZIP</a></li>
+                <li><a href="https://github.com/liquidpele/nvd3/tarball/master" class="button">TAR</a></li>
+            </ul>
+        </div>
     </div>
 </div><!-- end banner -->
 
@@ -106,6 +108,24 @@
         <script type="text/javascript">
             window.onload = function() {
                 $('body').ready(function() {
+                    $('.showbases').click(function(evt){
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        $(evt.target).fadeOut();
+                        $('.chartlinks').stop().slideUp({complete: function() {
+                            $('.showcharts').fadeIn();
+                            $('.baselinks').slideDown();
+                        }});
+                    });
+                    $('.showcharts').click(function(evt){
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        $(evt.target).fadeOut();
+                        $('.baselinks').stop().slideUp({complete: function() {
+                            $('.showbases').fadeIn();
+                            $('.chartlinks').slideDown();
+                        }});
+                    });
                     $('.examplelinks a').each(function(i, elem) {
                         $(elem).click(function(evt) {
                             $('#show').prop('src', $(evt.target).prop('href'));
@@ -129,6 +149,29 @@
             }
         </script>
         <style>
+
+            .showcharts, .showbases {
+                display: inline-block;
+                font-family: arial;
+                font-size: 14px;
+                color: #666;
+                padding: 2px;
+                padding-right: 5px;
+                padding-left: 5px;
+                background-color: #EEE;
+                border: 1px solid #CCC;
+                border-radius: 5px;
+                position: absolute;
+                right: 0;
+                margin: 10px;
+                top: 0;
+            }
+            .baselinks, .showcharts {
+                display: none;
+            }
+            .showcharts:hover, .showbases:hover {
+                background-color: #ffffcc;
+            }
             .examplelinks a {
                 text-decoration: none;
                 font-size: 12px;
@@ -160,15 +203,16 @@
             }
 
         </style>
-
-        <div class="examplelinks">
+        <div>
+            <a href="#" class="showcharts">Show Chart Examples</a>
+            <a href="#" class="showbases">Show Base Examples</a>
+        </div>
+        <div class="examplelinks chartlinks">
             <a href="bulletChart.html">BulletChart</a> |
             <a href="crossfilter.html">CrossFilter</a> |
             <a href="cumulativeLineChart.html">CumulativeLineChart</a> | 
             <a href="discreteBarChart.html">DiscreteBarChart</a> |
-            <a href="historicalBarChart.html">HistoricalBarChart</a> | 
-            <a href="horizon.html">Horizon</a> |
-            <a href="legend.html">Legend</a> |
+            <a href="historicalBarChart.html">HistoricalBarChart</a> |
             <a href="lineChartSVGResize.html">LineChartZoom</a> |
             <a href="linePlusBarChart.html">LinePlusBarChart</a> | 
             <a href="linePlusBarWithFocusChart.html">LinePlusBarWithFocusChart</a> |
@@ -179,13 +223,21 @@
             <a href="multiChart.html">MultiChart</a> |
             <a href="donutChart.html">DonutCharts</a> |
             <a href="pieChart.html">PieCharts</a> |
-            <a href="scatter.html">Scatter</a> | 
             <a href="scatterChart.html">ScatterChart</a> | 
-            <a href="scatterPlusLineChart.html">ScatterPlusLineChart</a> | 
-            <a href="sparkline.html">Sparkline</a> | 
-            <a href="sparklinePlus.html">SparklinePlus</a> | 
-            <a href="stackedArea.html">StackedArea</a> | 
+            <a href="scatterPlusLineChart.html">ScatterPlusLineChart</a> |
+            <a href="sparklinePlus.html">SparklinePlus</a> |
             <a href="stackedAreaChart.html">StackedAreaChart</a>
+        </div>
+
+        <div class="examplelinks baselinks">
+            <a href="sparkline.html">Sparkline</a> |
+            <a href="scatter.html">Scatter</a> |
+            <a href="pie.html">Pie</a> |
+            <a href="legend.html">Legend</a> |
+            <a href="horizon.html">Horizon</a> |
+            <a href="bullet.html">Bullet</a> |
+            <a href="line.html">Line</a> |
+            <a href="stackedArea.html">StackedArea</a>
         </div>
 
         <div id="show_wrapper"><iframe id="show"></iframe></div>
