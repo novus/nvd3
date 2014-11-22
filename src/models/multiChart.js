@@ -61,6 +61,7 @@ nv.models.multiChart = function() {
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
+      nv.utils.initSVG(container);
 
       chart.update = function() { container.transition().call(chart); };
       chart.container = this;

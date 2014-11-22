@@ -41,7 +41,7 @@ nv.models.line = function() {
       var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+      var g = wrap.select('g');
 
       wrapEnter.append('g').attr('class', 'nv-scatterWrap');
       var scatterWrap = wrap.select('.nv-scatterWrap').datum(data);

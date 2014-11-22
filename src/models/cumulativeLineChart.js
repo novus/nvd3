@@ -106,8 +106,10 @@ nv.models.cumulativeLineChart = function() {
     if (showXAxis) renderWatch.models(xAxis);
     if (showYAxis) renderWatch.models(yAxis);
     selection.each(function(data) {
-      var container = d3.select(this).classed('nv-chart-' + id, true),
-          that = this;
+      var container = d3.select(this);
+      nv.utils.initSVG(container);
+      container.classed('nv-chart-' + id, true);
+      var that = this;
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,

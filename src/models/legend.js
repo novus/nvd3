@@ -23,7 +23,7 @@ nv.models.legend = function() {
     selection.each(function(data) {
       var availableWidth = width - margin.left - margin.right,
           container = d3.select(this);
-
+      nv.utils.initSVG(container);
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart

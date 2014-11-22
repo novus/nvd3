@@ -28,7 +28,7 @@ nv.models.sparkline = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
-
+      nv.utils.initSVG(container);
 
       //------------------------------------------------------------
       // Setup Scales

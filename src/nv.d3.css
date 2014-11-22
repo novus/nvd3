@@ -1,4 +1,18 @@
 
+/********************
+  Default CSS for an svg element nvd3 used
+*/
+svg.nvd3-svg {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    display: block;
+    height: 100%;
+    width: 100%;
+}
 
 /********************
   Box shadow and border radius styling

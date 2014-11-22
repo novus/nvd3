@@ -465,3 +465,11 @@ nv.utils.inheritOptions = function(target, source) {
     args.unshift(target);
     d3.rebind.apply(this, args);
 };
+
+
+/*
+Runs common initialize code on the svg before the chart builds
+*/
+nv.utils.initSVG = function(svg) {
+    svg.classed({'nvd3-svg':true});
+};

@@ -40,7 +40,7 @@ nv.models.pie = function() {
           radius = Math.min(availableWidth, availableHeight) / 2,
           arcRadius = radius-(radius / 5),
           container = d3.select(this);
-
+      nv.utils.initSVG(container);
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart

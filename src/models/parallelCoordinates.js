@@ -38,6 +38,7 @@ nv.models.parallelCoordinates = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
+      nv.utils.initSVG(container);
 
       active = data; //set all active before first brush call
 

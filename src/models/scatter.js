@@ -63,6 +63,7 @@ nv.models.scatter = function() {
       var availableWidth = width - margin.left - margin.right,
           availableHeight = height - margin.top - margin.bottom,
           container = d3.select(this);
+      nv.utils.initSVG(container);
 
       //add series index to each data point for reference
       data.forEach(function(series, i) {

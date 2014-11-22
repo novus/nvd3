@@ -128,6 +128,7 @@ nv.models.scatterChart = function() {
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
+      nv.utils.initSVG(container);
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,

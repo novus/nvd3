@@ -99,7 +99,7 @@ nv.models.lineWithFocusChart = function() {
     selection.each(function(data) {
       var container = d3.select(this),
           that = this;
-
+      nv.utils.initSVG(container);
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight1 = (height || parseInt(container.style('height')) || 400)

@@ -36,7 +36,7 @@ nv.models.distribution = function() {
       var availableLength = width - (axis === 'x' ? margin.left + margin.right : margin.top + margin.bottom),
           naxis = axis == 'x' ? 'y' : 'x',
           container = d3.select(this);
-
+        nv.utils.initSVG(container);
 
       //------------------------------------------------------------
       // Setup Scales

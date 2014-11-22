@@ -47,6 +47,7 @@ nv.models.axis = function() {
     renderWatch.reset();
     selection.each(function(data) {
       var container = d3.select(this);
+      nv.utils.initSVG(container);
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
