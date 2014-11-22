@@ -35,36 +35,23 @@
 <script>
 
   var testdata = [
-    {
-      key: "One",
-      y: 5
-    },
-    {
-      key: "Two",
-      y: 2
-    },
-    {
-      key: "Three",
-      y: 9
-    },
-    {
-      key: "Four",
-      y: 7
-    },
-    {
-      key: "Five",
-      y: 4
-    },
-    {
-      key: "Six",
-      y: 3
-    },
-    {
-      key: "Seven",
-      y: .5
-    }
+      {key: "One", y: 5},
+      {key: "Two", y: 2},
+      {key: "Three", y: 9},
+      {key: "Four", y: 7},
+      {key: "Five", y: 4},
+      {key: "Six", y: 3},
+      {key: "Seven", y: 0.5},
   ];
-
+  var testdata2 = [
+      {key: "One", y: 5},
+      {key: "Two", y: 2},
+      {key: "Three", y: 9},
+      {key: "Four", y: 7},
+      {key: "Five", y: 4},
+      {key: "Six", y: 3},
+      {key: "Seven", y: 0.5},
+  ];
 
 var height = 350;
 var width = 350;
@@ -79,11 +66,18 @@ nv.addGraph(function() {
         .height(height);
 
       d3.select("#test1")
-          .datum(testdata)
+          .datum(testdata2)
           .transition().duration(1200)
           .attr('width', width)
           .attr('height', height)
           .call(chart);
+
+    // update chart data values randomly
+    setInterval(function() {
+        testdata2[0].y = Math.floor(Math.random() * 10);
+        testdata2[1].y = Math.floor(Math.random() * 10);
+        chart.update();
+    }, 4000);
 
     return chart;
 
@@ -101,7 +95,7 @@ nv.addGraph(function() {
         .width(width)
         .height(height);
 
-    // MAKES IT HALF CIRCLE
+    // make it a half circle
     chart.pie
         .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
         .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
@@ -118,7 +112,17 @@ nv.addGraph(function() {
           .attr('height', height)
           .call(chart);
 
+    var is_disabled = false;
+
+    // disable and enable some of the sections
+    setInterval(function() {
+        chart.dispatch.changeState({disabled: {2: !is_disabled, 4: !is_disabled}});
+        is_disabled = !is_disabled;
+    }, 3000);
+
     return chart;
 });
 
 </script>
+</body>
+</html>
