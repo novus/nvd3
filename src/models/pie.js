@@ -314,7 +314,7 @@ nv.models.pie = function() {
   chart.dispatch = dispatch;
   chart.options = nv.utils.optionsFunc.bind(chart);
 
-  var options = Object.create({}, {
+  chart._options = Object.create({}, {
       // simple options, just get/set the necessary values
       width:      {enumerable: true, get: function(){return width;}, set: function(_){width=_;}},
       height:     {enumerable: true, get: function(){return height;}, set: function(_){height=_;}},
@@ -352,6 +352,6 @@ nv.models.pie = function() {
       }}
   });
 
-  nv.utils.addOptions(options, chart);
+  nv.utils.initOptions(chart);
   return chart;
 };

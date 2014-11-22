@@ -436,10 +436,10 @@ on set to mimic typical d3 option chaining, e.g. svg.option1('a').option2('b');
 option objects should be generated via Object.create() to provide
 the option of manipulating data via get/set functions.
 */
-nv.utils.addOption = function(options, chart, name) {
+nv.utils.initOption = function(chart, name) {
     chart[name] = function (_) {
-        if (!arguments.length) return options[name];
-        options[name] = _;
+        if (!arguments.length) return chart._options[name];
+        chart._options[name] = _;
         return chart;
     };
 };
@@ -448,8 +448,20 @@ nv.utils.addOption = function(options, chart, name) {
 /*
 Add all options in an options object to the chart
 */
-nv.utils.addOptions = function(options, chart) {
-    for (var name in options) {
-        nv.utils.addOption(options, chart, name);
+nv.utils.initOptions = function(chart) {
+    for (var name in chart._options) {
+        nv.utils.initOption(chart, name);
     }
+};
+
+
+/*
+Inherit option getter/setter functions from source to target
+d3.rebind makes calling the function on target actually call it on source
+*/
+nv.utils.inheritOptions = function(target, source) {
+    var args = Object.keys(source._options);
+    args.unshift(source);
+    args.unshift(target);
+    d3.rebind.apply(this, args);
 };

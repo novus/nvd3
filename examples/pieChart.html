@@ -75,7 +75,6 @@ nv.addGraph(function() {
     var chart = nv.models.pieChart()
         .x(function(d) { return d.key })
         .y(function(d) { return d.y })
-        .color(nv.utils.defaultColor())
         .width(width)
         .height(height);
 
@@ -85,13 +84,6 @@ nv.addGraph(function() {
           .attr('width', width)
           .attr('height', height)
           .call(chart);
-
-    chart.dispatch.on('stateChange', function(e) {
-        nv.log('New State:', JSON.stringify(e));
-    });
-    chart.state.dispatch.on('change', function(state){
-        nv.log('state', JSON.stringify(state));
-    });
 
     return chart;
 
@@ -105,7 +97,7 @@ nv.addGraph(function() {
         .y(function(d) { return d.y })
         //.labelThreshold(.08)
         //.showLabels(false)
-        .color(nv.utils.defaultColor())
+        .color(d3.scale.category20().range().slice(8))
         .width(width)
         .height(height);
 
@@ -125,10 +117,6 @@ nv.addGraph(function() {
           .attr('width', width)
           .attr('height', height)
           .call(chart);
-
-    chart.state.dispatch.on('change', function(state){
-      nv.log('state', JSON.stringify(state));
-    });
 
     return chart;
 });

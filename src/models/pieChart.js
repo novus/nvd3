@@ -241,95 +241,31 @@ nv.models.pieChart = function() {
   // Expose Public Variables
   //------------------------------------------------------------
 
-  // expose chart's sub-components
-  chart.legend = legend;
-  chart.dispatch = dispatch;
-  chart.pie = pie;
+    // expose chart's sub-components
+    chart.legend = legend;
+    chart.dispatch = dispatch;
+    chart.pie = pie;
+    chart.options = nv.utils.optionsFunc.bind(chart);
 
-  d3.rebind(chart, pie, 'valueFormat', 'labelFormat', 'x', 'y', 'id', 'showLabels', 'title', 'titleOffset', 'donutLabelsOutside', 'pieLabelsOutside', 'labelType', 'donut', 'donutRatio', 'labelThreshold');
-  chart.options = nv.utils.optionsFunc.bind(chart);
-
-  chart.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        noData:         {enumerable: true, get: function(){return noData;},         set: function(_){noData=_;}},
+        tooltipContent: {enumerable: true, get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
+        tooltips:       {enumerable: true, get: function(){return tooltips;},       set: function(_){tooltips=_;}},
+        showLegend:     {enumerable: true, get: function(){return showLegend;},     set: function(_){showLegend=_;}},
+        defaultState:   {enumerable: true, get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+        // options that require extra logic in the setter
+        color: {enumerable: true, get: function(){return color;}, set: function(_){
+            color = _;
+            legend.color(color);
+            pie.color(color);
+        }},
+        duration: {enumerable: true, get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+        }}
+    });
+    nv.utils.inheritOptions(chart, pie);
+    nv.utils.initOptions(chart);
     return chart;
-  };
-
-  chart.width = function(_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.height = function(_) {
-    if (!arguments.length) return height;
-    height = _;
-    return chart;
-  };
-
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = nv.utils.getColor(_);
-    legend.color(color);
-    pie.color(color);
-    return chart;
-  };
-
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
-    return chart;
-  };
-
-  chart.tooltips = function(_) {
-    if (!arguments.length) return tooltips;
-    tooltips = _;
-    return chart;
-  };
-
-  chart.tooltipContent = function(_) {
-    if (!arguments.length) return tooltip;
-    tooltip = _;
-    return chart;
-  };
-
-  // DEPRECATED
-  chart.state = function(_) {
-    nv.deprecated('pieChart.state');
-    if (!arguments.length) return state;
-    state = _;
-    return chart;
-  };
-  for (var key in state) {
-    chart.state[key] = state[key];
-  }
-  // END DEPRECATED
-
-  chart.defaultState = function(_) {
-    if (!arguments.length) return defaultState;
-    defaultState = _;
-    return chart;
-  };
-
-  chart.noData = function(_) {
-    if (!arguments.length) return noData;
-    noData = _;
-    return chart;
-  };
-
-  chart.duration = function(_) {
-    if (!arguments.length) return duration;
-    duration = _;
-    renderWatch.reset(duration);
-    pie.duration(duration);
-    return chart;
-  };
-
-  //============================================================
-
-
-  return chart;
-}
+};
