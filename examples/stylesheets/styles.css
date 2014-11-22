@@ -651,6 +651,7 @@ header p {
     left: 0;
     height: 50px;
     width: 100%;
+    box-sizing: border-box;
     top: 75px;
     background: #ffcc00;
     border: 1px solid #f0b500;
@@ -664,7 +665,6 @@ header p {
     -ms-border-radius: 0px 2px 2px 0px;
     -khtml-border-radius: 0px 2px 2px 0px;
     border-radius: 0px 2px 2px 0px;
-    padding-right: 10px;
 }
 #banner .button {
     border: 1px solid #dba500;
