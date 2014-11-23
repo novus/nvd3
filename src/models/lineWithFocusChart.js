@@ -403,6 +403,8 @@ nv.models.lineWithFocusChart = function() {
 
 
         // Update Main (Focus) Axes
+        xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
+
         g.select('.nv-focus .nv-x.nv-axis').transition().duration(transitionDuration)
             .call(xAxis);
         g.select('.nv-focus .nv-y.nv-axis').transition().duration(transitionDuration)
