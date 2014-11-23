@@ -18,7 +18,7 @@ nv.models.pieChart = function() {
             return '<h3 style="background-color: '
                 + e.color + '">' + key + '</h3>'
                 + '<p>' +  y + '</p>';
-          }
+        }
         , state = nv.utils.state()
         , defaultState = null
         , noData = "No Data Available."
@@ -74,9 +74,9 @@ nv.models.pieChart = function() {
 
             var that = this;
             var availableWidth = (width || parseInt(container.style('width'), 10) || 960)
-                             - margin.left - margin.right,
+                    - margin.left - margin.right,
                 availableHeight = (height || parseInt(container.style('height'), 10) || 400)
-                             - margin.top - margin.bottom
+                    - margin.top - margin.bottom
                 ;
 
             chart.update = function() { container.transition().call(chart); };
@@ -138,7 +138,7 @@ nv.models.pieChart = function() {
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
                     availableHeight = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom;
+                        - margin.top - margin.bottom;
                 }
 
                 wrap.select('.nv-legendWrap')
