@@ -11,7 +11,6 @@
         text {
             font: 12px sans-serif;
         }
-
         svg {
             display: block;
             float: left;
@@ -29,100 +28,91 @@
 <body class='with-3d-shadow with-transitions'>
 
 <svg id="test1" class="mypiechart"></svg>
-
 <svg id="test2" class="mypiechart"></svg>
 
 <script>
 
-  var testdata = [
-      {key: "One", y: 5},
-      {key: "Two", y: 2},
-      {key: "Three", y: 9},
-      {key: "Four", y: 7},
-      {key: "Five", y: 4},
-      {key: "Six", y: 3},
-      {key: "Seven", y: 0.5},
-  ];
-  var testdata2 = [
-      {key: "One", y: 5},
-      {key: "Two", y: 2},
-      {key: "Three", y: 9},
-      {key: "Four", y: 7},
-      {key: "Five", y: 4},
-      {key: "Six", y: 3},
-      {key: "Seven", y: 0.5},
-  ];
+    var testdata = [
+        {key: "One", y: 5},
+        {key: "Two", y: 2},
+        {key: "Three", y: 9},
+        {key: "Four", y: 7},
+        {key: "Five", y: 4},
+        {key: "Six", y: 3},
+        {key: "Seven", y: 0.5},
+    ];
+    var testdata2 = [
+        {key: "One", y: 5},
+        {key: "Two", y: 2},
+        {key: "Three", y: 9},
+        {key: "Four", y: 7},
+        {key: "Five", y: 4},
+        {key: "Six", y: 3},
+        {key: "Seven", y: 0.5},
+    ];
 
-var height = 350;
-var width = 350;
+    var height = 350;
+    var width = 350;
 
-nv.addGraph(function() {
+    nv.addGraph(function() {
+        var chart = nv.models.pieChart()
+            .x(function(d) { return d.key })
+            .y(function(d) { return d.y })
+            .width(width)
+            .height(height);
 
+        d3.select("#test1")
+            .datum(testdata2)
+            .transition().duration(1200)
+            .attr('width', width)
+            .attr('height', height)
+            .call(chart);
 
-    var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .y(function(d) { return d.y })
-        .width(width)
-        .height(height);
+        // update chart data values randomly
+        setInterval(function() {
+            testdata2[0].y = Math.floor(Math.random() * 10);
+            testdata2[1].y = Math.floor(Math.random() * 10);
+            chart.update();
+        }, 4000);
 
-      d3.select("#test1")
-          .datum(testdata2)
-          .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
+        return chart;
+    });
 
-    // update chart data values randomly
-    setInterval(function() {
-        testdata2[0].y = Math.floor(Math.random() * 10);
-        testdata2[1].y = Math.floor(Math.random() * 10);
-        chart.update();
-    }, 4000);
+    nv.addGraph(function() {
+        var chart = nv.models.pieChart()
+            .x(function(d) { return d.key })
+            .y(function(d) { return d.y })
+            //.labelThreshold(.08)
+            //.showLabels(false)
+            .color(d3.scale.category20().range().slice(8))
+            .growOnHover(false)
+            .width(width)
+            .height(height);
 
-    return chart;
+        // make it a half circle
+        chart.pie
+            .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
+            .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
 
-});
+        // MAKES LABELS OUTSIDE OF DONUT
+        //chart.pie.donutLabelsOutside(true).donut(true);
 
-nv.addGraph(function() {
+        d3.select("#test2")
+            .datum(testdata)
+            .transition().duration(1200)
+            .attr('width', width)
+            .attr('height', height)
+            .call(chart);
 
+        // disable and enable some of the sections
+        var is_disabled = false;
+        setInterval(function() {
+            chart.dispatch.changeState({disabled: {2: !is_disabled, 4: !is_disabled}});
+            is_disabled = !is_disabled;
+        }, 3000);
 
-    var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .y(function(d) { return d.y })
-        //.labelThreshold(.08)
-        //.showLabels(false)
-        .color(d3.scale.category20().range().slice(8))
-        .growOnHover(false)
-        .width(width)
-        .height(height);
-
-    // make it a half circle
-    chart.pie
-        .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
-        .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
-
-    // MAKES LABELS OUTSIDE OF DONUT
-    //chart.pie.donutLabelsOutside(true).donut(true);
-
-
-      d3.select("#test2")
-          //.datum(historicalBarChart)
-          .datum(testdata)
-          .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
-
-    var is_disabled = false;
-
-    // disable and enable some of the sections
-    setInterval(function() {
-        chart.dispatch.changeState({disabled: {2: !is_disabled, 4: !is_disabled}});
-        is_disabled = !is_disabled;
-    }, 3000);
-
-    return chart;
-});
+        return chart;
+    });
 
 </script>
 </body>

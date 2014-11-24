@@ -10,7 +10,6 @@
         text {
             font: 12px sans-serif;
         }
-
         svg {
             display: block;
         }
@@ -28,76 +27,68 @@
 
 <script>
 
+    nv.addGraph({
+        generate: function() {
+            var width = nv.utils.windowSize().width - 40,
+                height = nv.utils.windowSize().height - 40;
 
-//Format A
-nv.addGraph({
-  generate: function() {
-      var width = nv.utils.windowSize().width - 40,
-          height = nv.utils.windowSize().height - 40;
-
-      var chart = nv.models.scatter()
+            var chart = nv.models.scatter()
                 .width(width)
                 .height(height)
                 .margin({top: 20, right: 20, bottom: 20, left: 20})
                 .size(function(d) { return d.z })
-                .useVoronoi(false)
-                //.interactive(false)
+                .useVoronoi(false);
 
-    d3.select('#test1')
-      .attr('width', width)
-      .attr('height', height)
-      .datum(randomData())
-    .transition().duration(500)
-      .call(chart);
+            d3.select('#test1')
+                .attr('width', width)
+                .attr('height', height)
+                .datum(randomData())
+                .transition().duration(500)
+                .call(chart);
 
-    return chart;
-  },
-  callback: function(graph) {
-    window.onresize = function() {
-        var width = nv.utils.windowSize().width - 40,
-             height = nv.utils.windowSize().height - 40,
-        margin = graph.margin();
-
-
-      if (width < margin.left + margin.right + 20)
-        width = margin.left + margin.right + 20;
-
-      if (height < margin.top + margin.bottom + 20)
-        height = margin.top + margin.bottom + 20;
+            return chart;
+        },
+        callback: function(graph) {
+            window.onresize = function() {
+                var width = nv.utils.windowSize().width - 40,
+                    height = nv.utils.windowSize().height - 40,
+                    margin = graph.margin();
 
 
-      graph
-         .width(width)
-         .height(height);
+                if (width < margin.left + margin.right + 20)
+                    width = margin.left + margin.right + 20;
 
-      d3.select('#test1')
-        .attr('width', width)
-        .attr('height', height)
-        .call(graph);
+                if (height < margin.top + margin.bottom + 20)
+                    height = margin.top + margin.bottom + 20;
 
-    };
-  }
-});
+                graph.width(width).height(height);
 
+                d3.select('#test1')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .call(graph);
 
-
-
-function randomData() {
-  var data = [];
-
-  for (i = 0; i < 2; i++) {
-    data.push({
-      key: 'Group ' + i,
-      values: []
+            };
+        }
     });
 
-    for (j = 0; j < 100; j++) {
-      data[i].values.push({x: Math.random(), y: Math.random(), z: Math.random()});
+    function randomData() {
+        var data = [];
+
+        for (i = 0; i < 2; i++) {
+            data.push({
+                key: 'Group ' + i,
+                values: []
+            });
+
+            for (j = 0; j < 100; j++) {
+                data[i].values.push({x: Math.random(), y: Math.random(), z: Math.random()});
+            }
+        }
+
+        return data;
     }
-  }
-
-  return data;
-}
-
 
 </script>
+</body>
+</html>

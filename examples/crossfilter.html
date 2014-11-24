@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
@@ -11,7 +12,6 @@
         text {
             font: 12px sans-serif;
         }
-
         svg {
             display: block;
         }
@@ -26,130 +26,105 @@
 </head>
 <body>
 
-  <div id="chart">
+<div id="chart">
     <svg></svg>
-  </div>
-
+</div>
 
 <script>
 
-extend = function(destination, source) {
-    for (var property in source) {
-    if (property in destination) { 
-      if ( typeof source[property] === "object" && 
-        typeof destination[property] === "object") {
-          destination[property] = extend(destination[property], source[property]);
-      } else {
-        continue; 
-      } 
-    } else {
-      destination[property] = source[property];
-    };
-    }
-    return destination;
-};
-
-nv.addGraph(function() {
-  var chart = nv.models.lineWithFocusChart();
-
-  chart.lines.dispatch.on("elementClick", function(evt) {
-     console.log(evt);
-  });
-
-  chart.xAxis
-      .tickFormat(d3.format(',f'));
-  chart.x2Axis
-      .tickFormat(d3.format(',f'));
-
-  chart.yAxis
-      .tickFormat(d3.format(',.2f'));
-  chart.y2Axis
-      .tickFormat(d3.format(',.2f'));
-
-  var dimension = testCrossfilterData().data; 
-
-   var data = normalizeData(dimension.top(Infinity), 
-        [
-        { 
-          name: 'Stream #1',
-          key: 'stream1'
-        },
-        { 
-          name: 'Stream #2',
-          key: 'stream2'
-        },
-        { 
-          name: 'Stream #3',
-          key: 'stream3'
+    var extend = function(destination, source) {
+        for (var property in source) {
+            if (property in destination) {
+                if ( typeof source[property] === "object" &&
+                        typeof destination[property] === "object") {
+                    destination[property] = extend(destination[property], source[property]);
+                } else {
+                    continue;
+                }
+            } else {
+                destination[property] = source[property];
+            };
         }
-        ], 'x');  
-    
-  d3.select('#chart svg')
-      .datum(data)
-    .transition().duration(500)
-      .call(chart);
+        return destination;
+    };
 
-  nv.utils.windowResize(chart.update);
+    nv.addGraph(function() {
+        var chart = nv.models.lineWithFocusChart();
 
-  return chart;
-});
+        chart.lines.dispatch.on("elementClick", function(evt) {
+            console.log(evt);
+        });
 
-function normalizeData(data, series, xAxis)
-  {
-    var sort = crossfilter.quicksort.by(function(d) { return d[xAxis]; });
-    var sorted = sort(data, 0, data.length);
-    
-    var result = [];
+        chart.xAxis.tickFormat(d3.format(',f'));
+        chart.x2Axis.tickFormat(d3.format(',f'));
+        chart.yAxis.tickFormat(d3.format(',.2f'));
+        chart.y2Axis.tickFormat(d3.format(',.2f'));
 
-    series.forEach(function(serie, index)
-    {
-      result.push({key: serie.name, values: [], color: serie.color});
+        var dimension = testCrossfilterData().data;
+        var data = normalizeData(dimension.top(Infinity), [
+            {name: 'Stream #1', key: 'stream1'},
+            {name: 'Stream #2', key: 'stream2'},
+            {name: 'Stream #3', key: 'stream3'}
+        ], 'x');
+
+        d3.select('#chart svg')
+            .datum(data)
+            .transition().duration(500)
+            .call(chart);
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
     });
-    
-    data.forEach(function(data, dataIndex)
-    {
-      series.forEach(function(serie, serieIndex)
-      {
-        result[serieIndex].values.push({x: data[xAxis],  y: data[serie.key]});
-      });
-    });
-    
-    return result;
-  };
 
-function testCrossfilterData() {
-  var data = crossfilter(testData());
-  
-  try 
-  {
-    data.data = data.dimension(function(d) { return d.y; });
-  } catch (e) 
-  {
-    console.log(e.stack);
-  }
-  
-  return data;
-}
+    function normalizeData(data, series, xAxis) {
+        var sort = crossfilter.quicksort.by(function(d) { return d[xAxis]; });
+        var sorted = sort(data, 0, data.length);
+        var result = [];
 
-function testData() {
-  
-  var data1 = [];
-  var data2 = [];
-  var data3 = [];
-  
-  stream_layers(3,128,.1).map(function(layer, index) {
-    layer.forEach(function(item, i) {
-    var object = { x: item.x };
-    object['stream' + (index + 1)] = item.y;
-    eval('data' + (index + 1)).push(object);
-  });
-  });
-  
-  var data = extend(data1, data2);
-  var result = extend(data, data3);
-  
-  return result;
-}
+        series.forEach(function(serie, index) {
+            result.push({key: serie.name, values: [], color: serie.color});
+        });
 
+        data.forEach(function(data, dataIndex) {
+            series.forEach(function(serie, serieIndex) {
+                result[serieIndex].values.push({x: data[xAxis],  y: data[serie.key]});
+            });
+        });
+
+        return result;
+    }
+
+    function testCrossfilterData() {
+        var data = crossfilter(testData());
+
+        try {
+            data.data = data.dimension(function(d) { return d.y; });
+        } catch (e) {
+            console.log(e.stack);
+        }
+        return data;
+    }
+
+    function testData() {
+        var data1 = [];
+        var data2 = [];
+        var data3 = [];
+
+        stream_layers(3,128,.1).map(function(layer, index) {
+            layer.forEach(function(item, i) {
+                var object = { x: item.x };
+                object['stream' + (index + 1)] = item.y;
+                eval('data' + (index + 1)).push(object);
+            });
+        });
+
+        var data = extend(data1, data2);
+        var result = extend(data, data3);
+
+        return result;
+    }
 
 </script>
+</body>
+</html>

@@ -11,7 +11,6 @@
         text {
             font: 12px sans-serif;
         }
-
         svg {
             display: block;
             float: left;
@@ -29,73 +28,54 @@
 <body>
 
 <svg id="test1"></svg>
-
 <svg id="test2"></svg>
 
-<script> 
+<script>
 
-  var testdata = [
-    { 
-      key: "One",
-      y: 5
-    },
-    { 
-      key: "Two",
-      y: 2
-    },
-    { 
-      key: "Three",
-      y: 9
-    },
-    { 
-      key: "Four",
-      y: 7
-    },
-    { 
-      key: "Five",
-      y: 4
-    },
-    {
-        key: "Six",
-        y: 3
-    }
-  ];
+    var testdata = [
+        {key: "One", y: 5},
+        {key: "Two", y: 2},
+        {key: "Three", y: 9},
+        {key: "Four", y: 7},
+        {key: "Five", y: 4},
+        {key: "Six", y: 3},
+        {key: "Seven", y: 0.5},
+    ];
 
-var width = 300;
-var height = 300;
+    var width = 300;
+    var height = 300;
 
-nv.addGraph(function() {
+    nv.addGraph(function() {
+        var chart = nv.models.pie()
+                .width(width)
+                .height(height);
 
+        d3.select("#test1")
+                .datum([testdata])
+                .transition().duration(1200)
+                .attr('width', width)
+                .attr('height', height)
+                .call(chart);
 
-    var chart = nv.models.pie()
-        .width(width)
-        .height(height);
+        return chart;
+    });
 
-    d3.select("#test1")
-        .datum([testdata])
-      .transition().duration(1200)
-        .attr('width', width)
-        .attr('height', height)
-        .call(chart);
+    nv.addGraph(function() {
+        var chart = nv.models.pie()
+                .width(width)
+                .height(height)
+                .donut(true);
 
-    return chart;
-});
+        d3.select("#test2")
+                .datum([testdata])
+                .transition().duration(1200)
+                .attr('width', width)
+                .attr('height', height)
+                .call(chart);
 
-nv.addGraph(function() {
-
-    var chart = nv.models.pie()
-        .width(width)
-        .height(height)
-        .donut(true);
-
-    d3.select("#test2")
-        .datum([testdata])
-      .transition().duration(1200)
-        .attr('width', width)
-        .attr('height', height)
-        .call(chart);
-
-    return chart;
-});
+        return chart;
+    });
 
 </script>
+</body>
+</html>

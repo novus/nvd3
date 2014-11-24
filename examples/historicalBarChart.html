@@ -6,12 +6,10 @@
     <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
 
-
     <style>
         text {
             font: 12px sans-serif;
         }
-
         svg {
             display: block;
         }
@@ -25,85 +23,70 @@
 </head>
 <body class='with-3d-shadow with-transitions'>
 
-
 <svg id="test1"></svg>
 
 <script>
 
-var chart;
-nv.addGraph(function() {
-  chart = nv.models.historicalBarChart();
-  chart
-    .margin({left: 100, bottom: 100})
-    .useInteractiveGuideline(true)
-    .transitionDuration(250)
-    ;
+    var chart;
+    nv.addGraph(function() {
+        chart = nv.models.historicalBarChart();
+        chart
+            .margin({left: 100, bottom: 100})
+            .useInteractiveGuideline(true)
+            .transitionDuration(250)
+            ;
 
-  // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
-  chart.xAxis
-    .axisLabel("Time (s)")
-    .tickFormat(d3.format(',.1f'));
+        // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+        chart.xAxis
+            .axisLabel("Time (s)")
+            .tickFormat(d3.format(',.1f'));
 
-  chart.yAxis
-    .axisLabel('Voltage (v)')
-    .tickFormat(d3.format(',.2f'));
+        chart.yAxis
+            .axisLabel('Voltage (v)')
+            .tickFormat(d3.format(',.2f'));
 
-  chart.showXAxis(true);
+        chart.showXAxis(true);
 
-  d3.select('#test1')
-    .datum(sinData())
-    .transition().duration(0)
-    .call(chart);
+        d3.select('#test1')
+            .datum(sinData())
+            .transition().duration(0)
+            .call(chart);
 
-  nv.utils.windowResize(chart.update);
+        nv.utils.windowResize(chart.update);
+        chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+        return chart;
+    });
 
-  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+    //Simple test data generators
+    function sinAndCos() {
+        var sin = [],
+            cos = [];
 
-  return chart;
-});
+        for (var i = 0; i < 100; i++) {
+            sin.push({x: i, y: Math.sin(i/10)});
+            cos.push({x: i, y: .5 * Math.cos(i/10)});
+        }
 
-
-//Simple test data generators
-
-function sinAndCos() {
-  var sin = [],
-      cos = [];
-
-  for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
-    cos.push({x: i, y: .5 * Math.cos(i/10)});
-  }
-
-  return [
-    {
-      values: sin,
-      key: "Sine Wave",
-      color: "#ff7f0e"
-    },
-    {
-      values: cos,
-      key: "Cosine Wave",
-      color: "#2ca02c"
+        return [
+            {values: sin, key: "Sine Wave", color: "#ff7f0e"},
+            {values: cos, key: "Cosine Wave", color: "#2ca02c"}
+        ];
     }
-  ];
-}
 
+    function sinData() {
+        var sin = [];
 
-function sinData() {
-  var sin = [];
+        for (var i = 0; i < 100; i++) {
+            sin.push({x: i, y: Math.sin(i/10) * Math.random() * 100});
+        }
 
-  for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10) * Math.random() * 100});
-  }
-
-  return [
-    {
-      values: sin,
-      key: "Sine Wave",
-      color: "#ff7f0e"
+        return [{
+            values: sin,
+            key: "Sine Wave",
+            color: "#ff7f0e"
+        }];
     }
-  ];
-}
 
 </script>
-</body></html>
+</body>
+</html>
