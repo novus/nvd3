@@ -1,4 +1,4 @@
-/* nvd3 version 1.5.17(https://github.com/liquidpele/nvd3) 2014-11-23 */
+/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-11-23 */
 (function(){
 
 // set up main nv object on window
@@ -15015,5 +15015,5 @@ nv.models.stackedAreaChart = function() {
     return chart;
 };
 
-nv.version = "1.5.17";
+nv.version = "1.6.0";
 })();
