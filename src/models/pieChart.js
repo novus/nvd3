@@ -212,7 +212,7 @@ nv.models.pieChart = function() {
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
-        tooltipContent: {get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
+        tooltipContent: {get: function(){return tooltip;},        set: function(_){tooltip=_;}},
         tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},

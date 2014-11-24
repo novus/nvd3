@@ -322,8 +322,8 @@ nv.models.pie = function() {
         labelThreshold: {get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
         labelFormat:    {get: function(){return labelFormat;}, set: function(_){labelFormat=_;}},
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
-        x: {get: function(){return getX;}, set: function(_){getX=_;}},
-        id:    {get: function(){return id;}, set: function(_){id=_;}},
+        x:          {get: function(){return getX;}, set: function(_){getX=_;}},
+        id:         {get: function(){return id;}, set: function(_){id=_;}},
         endAngle:   {get: function(){return endAngle;}, set: function(_){endAngle=_;}},
         startAngle: {get: function(){return startAngle;}, set: function(_){startAngle=_;}},
         donutRatio: {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
@@ -347,7 +347,7 @@ nv.models.pie = function() {
             color=nv.utils.getColor(_);
         }},
         labelType:          {get: function(){return labelType;}, set: function(_){
-            labelType=_||'key';
+            labelType= _ || 'key';
         }}
     });
 
