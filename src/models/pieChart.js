@@ -211,18 +211,18 @@ nv.models.pieChart = function() {
     // use Object get/set functionality to map between vars and chart functions
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        noData:         {enumerable: true, get: function(){return noData;},         set: function(_){noData=_;}},
-        tooltipContent: {enumerable: true, get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
-        tooltips:       {enumerable: true, get: function(){return tooltips;},       set: function(_){tooltips=_;}},
-        showLegend:     {enumerable: true, get: function(){return showLegend;},     set: function(_){showLegend=_;}},
-        defaultState:   {enumerable: true, get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+        noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
+        tooltipContent: {get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
+        tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
+        showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
+        defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
         // options that require extra logic in the setter
-        color: {enumerable: true, get: function(){return color;}, set: function(_){
+        color: {get: function(){return color;}, set: function(_){
             color = _;
             legend.color(color);
             pie.color(color);
         }},
-        duration: {enumerable: true, get: function(){return duration;}, set: function(_){
+        duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
         }}

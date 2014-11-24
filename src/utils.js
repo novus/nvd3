@@ -449,8 +449,9 @@ nv.utils.initOption = function(chart, name) {
 Add all options in an options object to the chart
 */
 nv.utils.initOptions = function(chart) {
-    for (var name in chart._options) {
-        nv.utils.initOption(chart, name);
+    var ops = Object.getOwnPropertyNames(chart._options);
+    for (var i in ops) {
+        nv.utils.initOption(chart, ops[i]);
     }
 };
 
@@ -460,7 +461,7 @@ Inherit option getter/setter functions from source to target
 d3.rebind makes calling the function on target actually call it on source
 */
 nv.utils.inheritOptions = function(target, source) {
-    var args = Object.keys(source._options);
+    var args = Object.getOwnPropertyNames(source._options);
     args.unshift(source);
     args.unshift(target);
     d3.rebind.apply(this, args);

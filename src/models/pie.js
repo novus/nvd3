@@ -314,39 +314,39 @@ nv.models.pie = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        width:      {enumerable: true, get: function(){return width;}, set: function(_){width=_;}},
-        height:     {enumerable: true, get: function(){return height;}, set: function(_){height=_;}},
-        showLabels: {enumerable: true, get: function(){return showLabels;}, set: function(_){showLabels=_;}},
-        title:      {enumerable: true, get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:    {enumerable: true, get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
-        labelThreshold: {enumerable: true, get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
-        labelFormat:    {enumerable: true, get: function(){return labelFormat;}, set: function(_){labelFormat=_;}},
-        valueFormat:    {enumerable: true, get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
-        x: {enumerable: true, get: function(){return getX;}, set: function(_){getX=_;}},
-        id:    {enumerable: true, get: function(){return id;}, set: function(_){id=_;}},
-        endAngle:   {enumerable: true, get: function(){return endAngle;}, set: function(_){endAngle=_;}},
-        startAngle: {enumerable: true, get: function(){return startAngle;}, set: function(_){startAngle=_;}},
-        donutRatio: {enumerable: true, get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
-        pieLabelsOutside:   {enumerable: true, get: function(){return pieLabelsOutside;}, set: function(_){pieLabelsOutside=_;}},
-        donutLabelsOutside: {enumerable: true, get: function(){return donutLabelsOutside;}, set: function(_){donutLabelsOutside=_;}},
-        labelSunbeamLayout: {enumerable: true, get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},
-        donut:              {enumerable: true, get: function(){return donut;}, set: function(_){donut=_;}},
-        growOnHover:        {enumerable: true, get: function(){return growOnHover;}, set: function(_){growOnHover=_;}},
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showLabels: {get: function(){return showLabels;}, set: function(_){showLabels=_;}},
+        title:      {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset:    {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
+        labelThreshold: {get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
+        labelFormat:    {get: function(){return labelFormat;}, set: function(_){labelFormat=_;}},
+        valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
+        x: {get: function(){return getX;}, set: function(_){getX=_;}},
+        id:    {get: function(){return id;}, set: function(_){id=_;}},
+        endAngle:   {get: function(){return endAngle;}, set: function(_){endAngle=_;}},
+        startAngle: {get: function(){return startAngle;}, set: function(_){startAngle=_;}},
+        donutRatio: {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
+        pieLabelsOutside:   {get: function(){return pieLabelsOutside;}, set: function(_){pieLabelsOutside=_;}},
+        donutLabelsOutside: {get: function(){return donutLabelsOutside;}, set: function(_){donutLabelsOutside=_;}},
+        labelSunbeamLayout: {get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},
+        donut:              {get: function(){return donut;}, set: function(_){donut=_;}},
+        growOnHover:        {get: function(){return growOnHover;}, set: function(_){growOnHover=_;}},
 
         // options that require extra logic in the setter
-        margin: {enumerable: true, get: function(){return margin;}, set: function(_){
+        margin: {get: function(){return margin;}, set: function(_){
             margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
             margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
             margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
             margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
         }},
-        y: {enumerable: true, get: function(){return getY;}, set: function(_){
+        y: {get: function(){return getY;}, set: function(_){
             getY=d3.functor(_);
         }},
-        color: {enumerable: true, get: function(){return color;}, set: function(_){
+        color: {get: function(){return color;}, set: function(_){
             color=nv.utils.getColor(_);
         }},
-        labelType:          {enumerable: true, get: function(){return labelType;}, set: function(_){
+        labelType:          {get: function(){return labelType;}, set: function(_){
             labelType=_||'key';
         }}
     });
