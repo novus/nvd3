@@ -21,6 +21,7 @@ nv.models.pie = function() {
         , labelThreshold = .02 //if slice percentage is under this, don't show label
         , donut = false
         , title = false
+        , growOnHover = true
         , titleOffset = 0
         , labelSunbeamLayout = false
         , startAngle = false
@@ -118,9 +119,11 @@ nv.models.pie = function() {
             ae.attr('class', 'nv-slice')
             ae.on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
-                d3.select(this).select("path").transition()
-                    .duration(70)
-                    .attr("d", arcOver);
+                if (growOnHover) {
+                    d3.select(this).select("path").transition()
+                        .duration(70)
+                        .attr("d", arcOver);
+                }
                 dispatch.elementMouseover({
                     label: getX(d.data),
                     value: getY(d.data),
@@ -133,9 +136,11 @@ nv.models.pie = function() {
             });
             ae.on('mouseout', function(d,i){
                 d3.select(this).classed('hover', false);
-                d3.select(this).select("path").transition()
-                    .duration(50)
-                    .attr("d", arc);
+                if (growOnHover) {
+                    d3.select(this).select("path").transition()
+                        .duration(50)
+                        .attr("d", arc);
+                }
                 dispatch.elementMouseout({
                     label: getX(d.data),
                     value: getY(d.data),
@@ -326,6 +331,7 @@ nv.models.pie = function() {
         donutLabelsOutside: {enumerable: true, get: function(){return donutLabelsOutside;}, set: function(_){donutLabelsOutside=_;}},
         labelSunbeamLayout: {enumerable: true, get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},
         donut:              {enumerable: true, get: function(){return donut;}, set: function(_){donut=_;}},
+        growOnHover:        {enumerable: true, get: function(){return growOnHover;}, set: function(_){growOnHover=_;}},
 
         // options that require extra logic in the setter
         margin: {enumerable: true, get: function(){return margin;}, set: function(_){
