@@ -211,7 +211,8 @@ nv.models.multiBar = function() {
               pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
               pointIndex: i,
               seriesIndex: d.series,
-              e: d3.event
+              e: d3.event,
+              owningSVG: this.ownerSVGElement
             });
           })
           .on('mouseout', function(d,i) {
@@ -222,7 +223,8 @@ nv.models.multiBar = function() {
               series: data[d.series],
               pointIndex: i,
               seriesIndex: d.series,
-              e: d3.event
+              e: d3.event,
+              owningSVG: this.ownerSVGElement
             });
           })
           .on('click', function(d,i) {
@@ -233,7 +235,8 @@ nv.models.multiBar = function() {
               pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
               pointIndex: i,
               seriesIndex: d.series,
-              e: d3.event
+              e: d3.event,
+              owningSVG: this.ownerSVGElement
             });
             d3.event.stopPropagation();
           })
@@ -245,7 +248,8 @@ nv.models.multiBar = function() {
               pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
               pointIndex: i,
               seriesIndex: d.series,
-              e: d3.event
+              e: d3.event,
+              owningSVG: this.ownerSVGElement
             });
             d3.event.stopPropagation();
           });

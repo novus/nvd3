@@ -143,7 +143,11 @@
  */
 
 
-svg {
+<<<<<<< HEAD
+.nvd3 svg {
+=======
+svg.nvd3 {
+>>>>>>> 1d89415d1802aa524acfbd43338b18c10e645848
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -156,12 +160,20 @@ svg {
   height:100%;
 }
 
+<<<<<<< HEAD
 
-svg text {
+.nvd3 svg text {
   font: normal 12px Arial;
 }
 
-svg .title {
+.nvd3 svg .title {
+=======
+svg.nvd3 text {
+  font: normal 12px Arial;
+}
+
+svg.nvd3 .title {
+>>>>>>> 1d89415d1802aa524acfbd43338b18c10e645848
  font: bold 14px Arial;
 }
 
@@ -549,6 +561,11 @@ svg .title {
   fill-opacity: 1;
 }
 
+/******************
+*  Sumo Utilization
+*/
+
+.nv-sumoutilization .tick line { stroke: #000; }
 
 /**********
 *  Bullet
