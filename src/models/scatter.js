@@ -96,7 +96,7 @@ nv.models.scatter = function() {
           .range(sizeRange || [16, 256]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
-      if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
+      singlePoint = x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1];
       if (x.domain()[0] === x.domain()[1])
         x.domain()[0] ?
             x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
@@ -127,7 +127,7 @@ nv.models.scatter = function() {
       // Setup containers and skeleton of chart
 
       var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id + (singlePoint ? ' nv-single-point' : ''));
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id);
       var defsEnter = wrapEnter.append('defs');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
@@ -148,7 +148,8 @@ nv.models.scatter = function() {
           .attr('width', availableWidth)
           .attr('height', (availableHeight > 0) ? availableHeight : 0);
 
-      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '')
+          .classed('nv-single-point', singlePoint);
 
 
       function updateInteractiveLayer() {
