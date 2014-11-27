@@ -394,7 +394,7 @@ nv.models.multiBarHorizontalChart = function() {
     // until deprecated portions are removed.
     chart.state = state;
 
-    d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
+    d3.rebind(chart, multibar, 'x', 'y', 'yErr', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
         'clipEdge', 'id', 'delay', 'showValues','showBarLabels', 'valueFormat', 'stacked', 'barColor');
 
     chart.options = nv.utils.optionsFunc.bind(chart);
