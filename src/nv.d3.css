@@ -152,8 +152,12 @@ svg {
   user-select: none;
   /* Trying to get SVG to act like a greedy block in all browsers */
   display: block;
-  width:100%;
-  height:100%;
+  /* 
+     It is inappropriate to apply such stylings to _ALL_ svgs on the page.  Not everything is a nvd3 chart,
+     and the user may not want the svg the chart is being drawn in to behave this way.
+   */
+/*  width:100%;
+  height:100%;*/
 }
 
 
@@ -228,7 +232,8 @@ svg .title {
 
 .nvd3 .nv-axis line {
   fill: none;
-  stroke: #e5e5e5;
+  stroke: #000;
+  stroke-opacity: .25;
   shape-rendering: crispEdges;
 }
 

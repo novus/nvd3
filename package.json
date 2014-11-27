@@ -9,5 +9,8 @@
     "grunt-contrib-concat": "~0.2.0",
     "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-cssmin": "~0.6.2"
+  },
+  "dependencies": {
+    "grunt-contrib-watch": "~0.5.3"
   }
 }

@@ -17,8 +17,8 @@ nv.models.scatterChart = function() {
     , width        = null
     , height       = null
     , color        = nv.utils.defaultColor()
-    , x            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.xScale()
-    , y            = d3.fisheye ? d3.fisheye.scale(d3.scale.linear).distortion(0) : scatter.yScale()
+    , x //Don't want to set these scales here, we pull them from scatter.
+    , y
     , xPadding     = 0
     , yPadding     = 0
     , showDistX    = false
@@ -41,10 +41,8 @@ nv.models.scatterChart = function() {
     , transitionDuration = 250
     ;
 
-  scatter
-    .xScale(x)
-    .yScale(y)
-    ;
+    //no point in setting scatters scales anymore, instead we pull the scales from scatter (like all the other charts)
+
   xAxis
     .orient('bottom')
     .tickPadding(10)
@@ -140,7 +138,8 @@ nv.models.scatterChart = function() {
           .attr('x', margin.left + availableWidth / 2)
           .attr('y', margin.top + availableHeight / 2)
           .text(function(d) { return d });
-
+        //remove potentially existing old chart data, it shouldn't be shown if we have no data.
+        container.selectAll('.nv-wrap').remove();
         return chart;
       } else {
         container.selectAll('.nv-noData').remove();
@@ -151,6 +150,11 @@ nv.models.scatterChart = function() {
 
       //------------------------------------------------------------
       // Setup Scales
+      
+      // Pull scales from scatter, this way if they have been modified/reset between creation and running of the chart, 
+      // we get what is actually set
+      x = scatter.xScale();
+      y = scatter.yScale();
 
       x0 = x0 || x;
       y0 = y0 || y;

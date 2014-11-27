@@ -95,6 +95,8 @@ nv.models.discreteBarChart = function() {
           .attr('y', margin.top + availableHeight / 2)
           .text(function(d) { return d });
 
+        //remove potentially existing old chart data, it shouldn't be shown if we have no data.
+        container.selectAll('.nv-wrap').remove();
         return chart;
       } else {
         container.selectAll('.nv-noData').remove();
@@ -105,7 +107,6 @@ nv.models.discreteBarChart = function() {
 
       //------------------------------------------------------------
       // Setup Scales
-
       x = discretebar.xScale();
       y = discretebar.yScale().clamp(true);
 
@@ -213,7 +214,6 @@ nv.models.discreteBarChart = function() {
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
       //------------------------------------------------------------
-
       dispatch.on('tooltipShow', function(e) {
         if (tooltips) showTooltip(e, that.parentNode);
       });

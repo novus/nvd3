@@ -3,6 +3,7 @@ module.exports = function(grunt) {
     //Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+
         concat: {
             options: {
                 separator: ''
@@ -21,6 +22,8 @@ module.exports = function(grunt) {
                      'src/models/cumulativeLineChart.js',
                      'src/models/discreteBar.js',
                      'src/models/discreteBarChart.js',
+                     'src/models/discreteBarHorizontal.js',
+                     'src/models/discreteBarHorizontalChart.js',
                      'src/models/distribution.js',
                      'src/models/historicalBar.js',
                      'src/models/historicalBarChart.js',
@@ -74,12 +77,17 @@ module.exports = function(grunt) {
             js: {
                 files: ["src/**/*.js"],
                 tasks: ['concat']
+            },
+            css: {
+                files: ["nv.d3.css"],
+                tasks: ['cssmin']
             }
         },
         copy: {
           css: {
             files: [
-              { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
+              { src: 'src/nv.d3.css', dest: 'nv.d3.css' },
+              { src: 'src/nv.d3.css', dest: 'nv.d3.less' }
             ]
           }
         },
@@ -99,7 +107,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
 
-    grunt.registerTask('default', ['concat', 'copy']);
+    grunt.registerTask('default', ['concat', 'cssmin', 'copy','watch']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);

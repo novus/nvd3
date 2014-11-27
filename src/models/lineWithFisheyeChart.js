@@ -69,6 +69,8 @@ nv.models.lineChart = function() {
           .attr('dy', '-.7em')
           .style('text-anchor', 'middle')
           .text(noData);
+          //remove potentially existing old chart data, it shouldn't be shown if we have no data.
+          container.selectAll('.nv-wrap').remove();
           return chart;
       } else {
         container.select('.nv-noData').remove();
