@@ -395,12 +395,11 @@ window.nv.tooltip.* also has various helper methods.
                 windowHeight = nv.utils.windowSize().height,
                 scrollTop = window.pageYOffset,
                 scrollLeft = window.pageXOffset,
-                left, top;
+                left, top, _gravity;
 
             windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
             windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
 
-            gravity = gravity || 's';
             dist = dist || 20;
 
             var tooltipTop = function ( Elem ) {
@@ -411,7 +410,12 @@ window.nv.tooltip.* also has various helper methods.
                 return nv.tooltip.findTotalOffsetLeft(Elem,left);
             };
 
-            switch (gravity) {
+            if (gravity instanceof Function)
+              _gravity = gravity(pos, [height, width], container);
+            else
+              _gravity = gravity || 's';
+
+            switch (_gravity) {
               case 'e':
                 left = pos[0] - width - dist;
                 top = pos[1] - (height / 2);
