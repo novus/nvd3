@@ -111,7 +111,12 @@ nv.models.multiChart = function() {
 
             var g = wrap.select('g');
 
+            var color_array = data.map(function(d,i) {
+                return data[i].color || color(d, i);
+            });
+
             if (showLegend) {
+                legend.color(color_array);
                 legend.width( availableWidth / 2 );
 
                 g.select('.legendWrap')
@@ -132,50 +137,37 @@ nv.models.multiChart = function() {
                     .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
             }
 
-
             lines1
                 .width(availableWidth)
                 .height(availableHeight)
                 .interpolate(interpolate)
-                .color(data.map(function(d, i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
 
             lines2
                 .width(availableWidth)
                 .height(availableHeight)
                 .interpolate(interpolate)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
 
             bars1
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'bar'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'bar'}));
 
             bars2
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'bar'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'bar'}));
 
             stack1
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'area'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'area'}));
 
             stack2
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'area'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'area'}));
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -428,8 +420,7 @@ nv.models.multiChart = function() {
 
     chart.color = function(_) {
         if (!arguments.length) return color;
-        color = _;
-        legend.color(_);
+        color = nv.utils.getColor(_);
         return chart;
     };
 
