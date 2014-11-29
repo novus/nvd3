@@ -183,7 +183,7 @@ nv.models.axis = function() {
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale(d) + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale(d)) + ')'
                             })
                             .select('text')
                             .attr('dy', '.32em')
@@ -196,7 +196,7 @@ nv.models.axis = function() {
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale.range()[i] + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale.range()[i]) + ')'
                             })
                             .select('text')
                             .style('opacity', 1);
@@ -225,7 +225,7 @@ nv.models.axis = function() {
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale0(d) + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale0(d)) + ')'
                             })
                             .select('text')
                             .attr('dy', '.32em')
@@ -238,7 +238,7 @@ nv.models.axis = function() {
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale.range()[i] + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale.range()[i]) + ')'
                             })
                             .select('text')
                             .style('opacity', 1);
