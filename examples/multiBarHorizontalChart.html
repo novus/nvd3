@@ -338,6 +338,7 @@
         chart = nv.models.multiBarHorizontalChart()
             .x(function(d) { return d.label })
             .y(function(d) { return d.value })
+            .yErr(function(d) { return [-Math.abs(d.value * 0.5), Math.abs(0.5*d.value)] })
             .barColor(d3.scale.category20().range())
             .transitionDuration(250)
             .stacked(true);

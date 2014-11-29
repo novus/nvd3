@@ -13,6 +13,7 @@ nv.models.multiBarHorizontal = function() {
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
+        , getYerr = function(d) { return d.yErr }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , color = nv.utils.defaultColor()
         , barColor = null // adding the ability to set the color for each rather than the whole group
@@ -219,6 +220,24 @@ nv.models.multiBarHorizontal = function() {
                     d3.event.stopPropagation();
                 });
 
+            if (getYerr(data[0],0)) {
+                barsEnter.append('polyline');
+
+                bars.select('polyline')
+                    .attr('fill', 'none')
+                    .attr('points', function(d,i) {
+                        var xerr = getYerr(d,i)
+                            , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
+                        xerr = xerr.length ? xerr : [-Math.abs(xerr), Math.abs(xerr)];
+                        xerr = xerr.map(function(e) { return y(e) - y(0); });
+                        var a = [[xerr[0],-mid], [xerr[0],mid], [xerr[0],0], [xerr[1],0], [xerr[1],-mid], [xerr[1],mid]];
+                        return a.map(function (path) { return path.join(',') }).join(' ');
+                    })
+                    .attr('transform', function(d,i) {
+                        var mid = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
+                        return 'translate(' + (getY(d,i) < 0 ? 0 : y(getY(d,i)) - y(0)) + ', ' + mid + ')'
+                    });
+            }
 
             barsEnter.append('text');
 
@@ -227,7 +246,15 @@ nv.models.multiBarHorizontal = function() {
                     .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'end' : 'start' })
                     .attr('y', x.rangeBand() / (data.length * 2))
                     .attr('dy', '.32em')
-                    .text(function(d,i) { return valueFormat(getY(d,i)) })
+                    .html(function(d,i) {
+                        var t = valueFormat(getY(d,i))
+                            , yerr = getYerr(d,i);
+                        if (yerr === undefined)
+                            return t;
+                        if (!yerr.length)
+                            return t + '&plusmn;' + valueFormat(Math.abs(yerr));
+                        return t + '+' + valueFormat(Math.abs(yerr[1])) + '-' + valueFormat(Math.abs(yerr[0]));
+                    })
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .select('text')
                     .attr('x', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
@@ -317,6 +344,12 @@ nv.models.multiBarHorizontal = function() {
     chart.y = function(_) {
         if (!arguments.length) return getY;
         getY = _;
+        return chart;
+    };
+
+    chart.yErr = function(_) {
+        if (!arguments.length) return getYerr;
+        getYerr = _;
         return chart;
     };
 
