@@ -48,6 +48,9 @@ nv.models.legend = function() {
           })
           .on('click', function(d,i) {
             dispatch.legendClick(d,i);
+
+            var data = series.data();
+
             if (updateState) {
                if (radioButtonMode) {
                    //Radio button mode: set every series to disabled,
@@ -70,6 +73,9 @@ nv.models.legend = function() {
           })
           .on('dblclick', function(d,i) {
             dispatch.legendDblclick(d,i);
+
+            var data = series.data();
+
             if (updateState) {
                 //the default behavior of NVD3 legends, when double clicking one,
                 // is to set all other series' to false, and make the double clicked series enabled.
