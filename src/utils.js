@@ -63,7 +63,7 @@ nv.utils.getColor = function(color) {
         return nv.utils.defaultColor();
 
     //if passed an array, wrap it in a function
-    } else if( Object.prototype.toString.call( color ) === '[object Array]' ) {
+    } else if(color instanceof Array) {
         return function(d, i) { return d.color || color[i % color.length]; };
 
     //if passed a function, return the function, or whatever it may be
@@ -469,6 +469,8 @@ d3.rebind makes calling the function on target actually call it on source
 */
 nv.utils.inheritOptions = function(target, source) {
     var args = Object.getOwnPropertyNames(source._options);
+    target._inherited = target._inherited || [];
+    target._inherited.push(source);
     args.unshift(source);
     args.unshift(target);
     d3.rebind.apply(this, args);

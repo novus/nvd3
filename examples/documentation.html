@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Nvd3 - reusable charts for D3.js</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script>
+
+        function parse_options(container, chart, inherited) {
+            if (chart._options) {
+                var options = Object.getOwnPropertyNames(chart._options);
+                for (var i in options) {
+                    var op = $('<li>');
+                    var t = options[i];
+                    if (inherited) {
+                        t += ' <span class="inherited">(Inherited)</span>';
+                    }
+                    op.html(t);
+                    container.append(op);
+                }
+            }
+        }
+
+        $('body').ready(function () {
+            var charts = [
+                'pieChart',
+                'scatterChart',
+                'stackedAreaChart',
+                'scatterPlusLineChart',
+                'sparklinePlus',
+                'multiChart',
+                'multiBarHorizontalChart',
+                'multiBarChart',
+                'lineWithFocusChart',
+                'linePlusBarWithFocusChart',
+                'linePlusBarChart',
+                'historicalBarChart',
+                'discreteBarChart',
+                'cumulativeLineChart',
+                'bulletChart',
+                'lineChart'
+            ];
+            var c = $('#optionlist');
+            for (var i in charts) {
+                var name = charts[i];
+                if (nv.models[name]) {
+                    var chart = nv.models[name]();
+                    c.append("<h3>" + name + "</h3>");
+                    var ul = $('<ul>');
+                    parse_options(ul, chart);
+                    if (chart._inherited) {
+                        for (var j in chart._inherited) {
+                            parse_options(ul, chart._inherited[j], true);
+                        }
+                    }
+                    c.append(ul);
+                } else {
+                    console.log('Chart missing: ', name);
+                }
+            }
+        });
+    </script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+</head>
+<body>
+
+<header>
+    <h1>Nvd3</h1>
+    <p>A reusable chart library for d3.js</p>
+</header>
+
+<div id="banner">
+    <div>
+        <span id="logo"></span>
+
+        <a href="http://github.com/liquidpele/nvd3" target="github" class="button fork"><strong>GitHub</strong></a>
+        <a href="site.html" class="button fork docs"><strong>Examples</strong></a>
+        <a href="documentation.html" class="button fork docs selected"><strong>Documentation</strong></a>
+        <div class="downloads">
+            <span>Downloads:</span>
+            <ul>
+                <li><a href="https://github.com/liquidpele/nvd3/zipball/master" class="button">ZIP</a></li>
+                <li><a href="https://github.com/liquidpele/nvd3/tarball/master" class="button">TAR</a></li>
+            </ul>
+        </div>
+    </div>
+</div><!-- end banner -->
+
+<div class="wrapper">
+    <nav>
+        <ul></ul>
+    </nav>
+    <section>
+        <h3>
+            NVD3 Documentation
+        </h3>
+
+        <p>
+            This page lists out all options available to the charts and is generated programatically using
+            the new options object model.  All options can be called as functions on the chart object
+            to get the option vaue (if no argument given) or to set the value.   Alternatively,
+            you can use the options() method on the chart object and pass in a dictionary of the
+            option names and values to set them all at once.
+        </p>
+
+        Example:
+        <pre>
+            var chart = nv.models.pieChart();
+            chart.width(500);
+            chart.title('stuff');
+            chart.options({height: 500, donut: true, titleOffset: -10});
+        </pre>
+
+        <div id="optionlist"></div>
+
+    </section>
+</div>
+<!--[if !IE]><script>fixScale(document);</script><![endif]-->
+
+</body>
+</html>
