@@ -25,7 +25,9 @@ nv.models.pie = function() {
         , titleOffset = 0
         , labelSunbeamLayout = false
         , startAngle = false
+        , padAngle = false
         , endAngle = false
+        , cornerRadius = 0
         , donutRatio = 0.5
         , duration = 250
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -92,6 +94,16 @@ nv.models.pie = function() {
             var pie = d3.layout.pie()
                 .sort(null)
                 .value(function(d) { return d.disabled ? 0 : getY(d) });
+
+            // padAngle added in d3 3.5
+            if (pie.padAngle && padAngle) {
+                pie.padAngle(padAngle);
+            }
+
+            if (arc.cornerRadius && cornerRadius) {
+                arc.cornerRadius(cornerRadius);
+                arcOver.cornerRadius(cornerRadius);
+            }
 
             // if title is specified and donut, put it in the middle
             if (donut && title) {
@@ -326,7 +338,9 @@ nv.models.pie = function() {
         id:         {get: function(){return id;}, set: function(_){id=_;}},
         endAngle:   {get: function(){return endAngle;}, set: function(_){endAngle=_;}},
         startAngle: {get: function(){return startAngle;}, set: function(_){startAngle=_;}},
-        donutRatio: {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
+        padAngle:   {get: function(){return padAngle;}, set: function(_){padAngle=_;}},
+        cornerRadius: {get: function(){return cornerRadius;}, set: function(_){cornerRadius=_;}},
+        donutRatio:   {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
         pieLabelsOutside:   {get: function(){return pieLabelsOutside;}, set: function(_){pieLabelsOutside=_;}},
         donutLabelsOutside: {get: function(){return donutLabelsOutside;}, set: function(_){donutLabelsOutside=_;}},
         labelSunbeamLayout: {get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},

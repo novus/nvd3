@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <!-- <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script> -->
+    <script src="http://cdn.rawgit.com/mbostock/d3/3.5/d3.js"></script>
     <script src="../build/nv.d3.js"></script>
     <script src="lib/stream_layers.js"></script>
 
@@ -65,6 +66,8 @@
             .donut(true)
             .width(width)
             .height(height)
+            .padAngle(.08)
+            .cornerRadius(5)
             .id('donut1'); // allow custom CSS for this one svg
 
         chart.title("100%");
