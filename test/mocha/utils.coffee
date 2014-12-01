@@ -30,3 +30,16 @@ describe 'NVD3', ->
       nv.utils.NaNtoZero(1).should.be.equal 1
       nv.utils.NaNtoZero(0).should.be.equal 0
       nv.utils.NaNtoZero(-1).should.be.equal -1
+
+    it 'should return a function if passing a function into nv.utils.getColor', ->
+      uno = (d,i) -> 1
+      nv.utils.getColor(uno).should.be.equal uno
+
+    it 'should return a function wrapping an array if passing an array into nv.utils.getColor', ->
+      arr = ['#fff', '#ccc', '#aaa', '#000']
+      returnedFunction = nv.utils.getColor(arr)
+
+      returnedFunction({},0).should.be.equal '#fff'
+      returnedFunction({},1).should.be.equal '#ccc'
+      returnedFunction({},2).should.be.equal '#aaa'
+      returnedFunction({},3).should.be.equal '#000'

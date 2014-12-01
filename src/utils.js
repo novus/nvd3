@@ -55,15 +55,22 @@ nv.utils.windowResize = function(handler) {
 /*
 Backwards compatible way to implement more d3-like coloring of graphs.
 If passed an array, wrap it in a function which implements the old behavior
+Else return what was passed in
 */
 nv.utils.getColor = function(color) {
-    //if you pass in nothing or not an array, get default colors back
-    if (!arguments.length || !(color instanceof Array)) {
+    //if you pass in nothing, get default colors back
+    if (!arguments.length) {
         return nv.utils.defaultColor();
+
+    //if passed an array, wrap it in a function
+    } else if( Object.prototype.toString.call( color ) === '[object Array]' ) {
+        return function(d, i) { return d.color || color[i % color.length]; };
+
+    //if passed a function, return the function, or whatever it may be
+    //external libs, such as angularjs-
     } else {
-        return function (d, i) {
-            return d.color || color[i % color.length];
-        };
+        //can't really help it if someone passes rubbish as color
+        return color;
     }
 };
 
