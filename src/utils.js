@@ -67,7 +67,7 @@ nv.utils.getColor = function(color) {
         return function(d, i) { return d.color || color[i % color.length]; };
 
     //if passed a function, return the function, or whatever it may be
-    //external libs, such as angularjs-
+    //external libs, such as angularjs-nvd3-directives use this
     } else {
         //can't really help it if someone passes rubbish as color
         return color;
