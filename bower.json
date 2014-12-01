@@ -1,12 +1,13 @@
 {
   "name": "nvd3",
   "version": "1.6.0",
-  "homepage": "http://www.nvd3.org",
+  "homepage": "http://liquidpele.github.io/nvd3/",
   "authors": [
     "Bob Monteverde",
     "Tyler Wolf",
     "Robin Hu",
-    "Frank Shao"
+    "Frank Shao",
+    "liquidpele"
   ],
   "description": "Re-usable charts and chart components for d3.",
   "main": ["build/nv.d3.js", "build/nv.d3.css"],
@@ -25,11 +26,13 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests",
-    "src/models/*",
-    "src/*.js",
-    "lib",
+    "src",
     "examples",
-    "deprecated"
+    "GruntFile.js",
+    "*.html",
+    "*.log",
+    "*.xml",
+    "*.json",
+    "*.md"
   ]
 }
