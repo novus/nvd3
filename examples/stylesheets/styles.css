@@ -273,6 +273,11 @@ nav ol {
     list-style-image: none;
 }
 
+li span.inherited {
+    display: inline-block;
+    color: #CCC;
+}
+
 /* =============================================================================
    Embedded content
    ========================================================================== */
@@ -561,7 +566,7 @@ code {
 
 pre {
     padding: 8px 15px;
-    background: #333333;
+    background: #EEE;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     -o-border-radius: 3px;
@@ -713,6 +718,18 @@ header p {
     font-size: 14px;
     background-color: #FFE788;
 }
+#banner .docs {
+    margin-left: 10px !important;
+}
+#banner .button.selected {
+    background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffe788), color-stop(100%, #ffe788));
+    background: -webkit-linear-gradient(#ffe788, #ffe788);
+    background: -moz-linear-gradient(#ffe788, #ffe788);
+    background: -o-linear-gradient(#ffe788, #ffe788);
+    background: -ms-linear-gradient(#ffe788, #ffe788);
+    background: linear-gradient(#ffe788, #ffe788);
+    background-color: #ffeca0;
+}
 #banner .downloads {
     float: right;
     margin: 0 0 0 0;
@@ -835,6 +852,59 @@ footer {
     margin-left: 0px;
     display: inline-block;
     left: 20px;
+}
+
+
+.showcharts, .showbases {
+    display: inline-block;
+    font-family: arial;
+    font-size: 14px;
+    color: #666;
+    padding: 2px;
+    padding-right: 5px;
+    padding-left: 5px;
+    background-color: #EEE;
+    border: 1px solid #CCC;
+    border-radius: 5px;
+    position: absolute;
+    right: 0;
+    margin: 10px;
+    top: 0;
+}
+.baselinks, .showcharts {
+    display: none;
+}
+.showcharts:hover, .showbases:hover {
+    background-color: #ffffcc;
+}
+.examplelinks a {
+    text-decoration: none;
+    font-size: 12px;
+    font-family: arial;
+    outline: none;
+    padding: 3px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+.examplelinks a.selected {
+    border: 1px solid #666;
+    background-color: #FFFF88;
+    padding: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+iframe {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    border: 0px;
+}
+#show_wrapper {
+    border: 1px solid #666;
+    width: 100%;
+    margin-top: 10px;
+    height: 400px;
 }
 
 @media print, screen and (max-width: 1060px) {
