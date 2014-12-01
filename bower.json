@@ -10,7 +10,10 @@
     "liquidpele"
   ],
   "description": "Re-usable charts and chart components for d3.",
-  "main": ["build/nv.d3.js", "build/nv.d3.css"],
+  "main": [
+    "build/nv.d3.js",
+    "build/nv.d3.css"
+  ],
   "keywords": [
     "d3",
     "visualization",
@@ -21,7 +24,7 @@
   "dependencies": {
     "d3": "~3.3.13"
   },
-  "ignore" : [
+  "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
@@ -34,5 +37,11 @@
     "*.xml",
     "*.json",
     "*.md"
-  ]
+  ],
+  "resolutions": {
+    "d3": "~3.3.13"
+  },
+  "devDependencies": {
+    "d3": "~3.3.13"
+  }
 }

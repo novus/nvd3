@@ -83,7 +83,7 @@ module.exports = function(grunt) {
                         'test/mocha/*.coffee': ['coffee']
                     },
                     files: [
-                        'lib/d3.v3.js',
+                        'bower_components/d3/d3.js',
                         'src/*.js',
                         'src/models/*.js',
                         'test/mocha/*.coffee'
