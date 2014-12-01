@@ -1,4 +1,4 @@
-/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-11-27 */
+/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-11-30 */
 (function(){
 
 // set up main nv object on window
@@ -894,7 +894,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
 Gets the browser window size
 
 Returns object with height and width properties
- */
+*/
 nv.utils.windowSize = function() {
     // Sane defaults
     var size = {width: 640, height: 480};
@@ -925,7 +925,7 @@ nv.utils.windowSize = function() {
 
 /*
 Binds callback function to run when window is resized
- */
+*/
 nv.utils.windowResize = function(handler) {
     if (window.addEventListener) {
         window.addEventListener('resize', handler);
@@ -947,20 +947,21 @@ Backwards compatible way to implement more d3-like coloring of graphs.
 If passed an array, wrap it in a function which implements the old behavior
 */
 nv.utils.getColor = function(color) {
-    //if you pass in nothing or not an array, get default colors back
-    if (!arguments.length || !(color instanceof Array)) {
-        return nv.utils.defaultColor();
-    } else {
+    if (typeof color === 'function') {
+        return color;
+    } else if (arguments.length && (color instanceof Array)){
         return function (d, i) {
             return d.color || color[i % color.length];
         };
+    } else {
+        return nv.utils.defaultColor();
     }
 };
 
 
 /*
 Default color chooser uses the index of an object as before.
- */
+*/
 nv.utils.defaultColor = function() {
     var colors = d3.scale.category20().range();
     return function(d, i) {
@@ -1365,16 +1366,17 @@ nv.utils.initSVG = function(svg) {
     svg.classed({'nvd3-svg':true});
 };nv.models.axis = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
     var axis = d3.svg.axis();
+    var scale = d3.scale.linear();
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 75 //only used for tickLabel currently
         , height = 60 //only used for tickLabel currently
-        , scale = d3.scale.linear()
         , axisLabelText = null
         , showMaxMin = true //TODO: showMaxMin should be disabled on all ordinal scaled axes
         , highlightZero = true
@@ -1396,17 +1398,11 @@ nv.utils.initSVG = function(svg) {
     ;
 
     //============================================================
-
-
-    //============================================================
     // Private Variables
     //------------------------------------------------------------
 
-    var scale0
-        , renderWatch = nv.utils.renderWatch(dispatch, duration)
-        ;
-
-    //============================================================
+    var scale0;
+    var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
     function chart(selection) {
         renderWatch.reset();
@@ -1414,22 +1410,16 @@ nv.utils.initSVG = function(svg) {
             var container = d3.select(this);
             nv.utils.initSVG(container);
 
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-axis').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-axis');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g')
 
-            //------------------------------------------------------------
-
-
             if (ticks !== null)
                 axis.ticks(ticks);
             else if (axis.orient() == 'top' || axis.orient() == 'bottom')
                 axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
-
 
             //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
             g.watchTransition(renderWatch, 'axis').call(axis);
@@ -1444,6 +1434,7 @@ nv.utils.initSVG = function(svg) {
             var axisLabel = g.selectAll('text.nv-axislabel')
                 .data([axisLabelText || null]);
             axisLabel.exit().remove();
+
             switch (axis.orient()) {
                 case 'top':
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
@@ -1558,7 +1549,7 @@ nv.utils.initSVG = function(svg) {
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale(d) + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale(d)) + ')'
                             })
                             .select('text')
                             .attr('dy', '.32em')
@@ -1571,7 +1562,7 @@ nv.utils.initSVG = function(svg) {
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale.range()[i] + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale.range()[i]) + ')'
                             })
                             .select('text')
                             .style('opacity', 1);
@@ -1600,7 +1591,7 @@ nv.utils.initSVG = function(svg) {
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale0(d) + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale0(d)) + ')'
                             })
                             .select('text')
                             .attr('dy', '.32em')
@@ -1613,16 +1604,14 @@ nv.utils.initSVG = function(svg) {
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
                             .attr('transform', function(d,i) {
-                                return 'translate(0,' + scale.range()[i] + ')'
+                                return 'translate(0,' + nv.utils.NaNtoZero(scale.range()[i]) + ')'
                             })
                             .select('text')
                             .style('opacity', 1);
                     }
                     break;
             }
-            axisLabel
-                .text(function(d) { return d });
-
+            axisLabel.text(function(d) { return d });
 
             if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
                 //check if max and min overlap other values, if so, hide the values that overlap
@@ -1638,10 +1627,11 @@ nv.utils.initSVG = function(svg) {
                     });
 
                 //if Max and Min = 0 only show min, Issue #281
-                if (scale.domain()[0] == scale.domain()[1] && scale.domain()[0] == 0)
-                    wrap.selectAll('g.nv-axisMaxMin')
-                        .style('opacity', function(d,i) { return !i ? 1 : 0 });
-
+                if (scale.domain()[0] == scale.domain()[1] && scale.domain()[0] == 0) {
+                    wrap.selectAll('g.nv-axisMaxMin').style('opacity', function (d, i) {
+                        return !i ? 1 : 0
+                    });
+                }
             }
 
             if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
@@ -1660,24 +1650,25 @@ nv.utils.initSVG = function(svg) {
                                 maxMinRange.push(scale(d) + 4)
                         }
                     });
-                g.selectAll('g') // the g's wrapping each tick
-                    .each(function(d,i) {
-                        if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
-                            if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
-                                d3.select(this).remove();
-                            else
-                                d3.select(this).select('text').remove(); // Don't remove the ZERO line!!
-                        }
-                    });
+                // the g's wrapping each tick
+                g.selectAll('g').each(function(d,i) {
+                    if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
+                        if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
+                            d3.select(this).remove();
+                        else
+                            d3.select(this).select('text').remove(); // Don't remove the ZERO line!!
+                    }
+                });
             }
 
-
             //highlight zero line ... Maybe should not be an option and should just be in CSS?
-            if (highlightZero)
+            if (highlightZero) {
                 g.selectAll('.tick')
-                    .filter(function(d) { return !parseFloat(Math.round(this.__data__*100000)/1000000) && (this.__data__ !== undefined) }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
+                    .filter(function (d) {
+                        return !parseFloat(Math.round(this.__data__ * 100000) / 1000000) && (this.__data__ !== undefined)
+                    }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
                     .classed('zero', true);
-
+            }
             //store old scales for use in transitions on update
             scale0 = scale.copy();
 
@@ -1687,13 +1678,13 @@ nv.utils.initSVG = function(svg) {
         return chart;
     }
 
-
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
 
     // expose chart's sub-components
     chart.axis = axis;
+    chart.scale = scale;
     chart.dispatch = dispatch;
 
     d3.rebind(chart, axis, 'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
@@ -1701,97 +1692,41 @@ nv.utils.initSVG = function(svg) {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.margin = function(_) {
-        if(!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    }
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        axisLabelDistance: {get: function(){return axisLabelDistance;}, set: function(_){axisLabelDistance=_;}},
+        staggerLabels:     {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
+        rotateLabels:      {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
+        rotateYLabel:      {get: function(){return rotateYLabel;}, set: function(_){rotateYLabel=_;}},
+        highlightZero:     {get: function(){return highlightZero;}, set: function(_){highlightZero=_;}},
+        showMaxMin:        {get: function(){return showMaxMin;}, set: function(_){showMaxMin=_;}},
+        axisLabel:         {get: function(){return axisLabelText;}, set: function(_){axisLabelText=_;}},
+        height:            {get: function(){return height;}, set: function(_){height=_;}},
+        ticks:             {get: function(){return ticks;}, set: function(_){ticks=_;}},
+        width:             {get: function(){return width;}, set: function(_){width=_;}},
 
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top !== undefined    ? _.top    : margin.top;
+            margin.right  = _.right !== undefined  ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left !== undefined   ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration=_;
+            renderWatch.reset(duration);
+        }},
+        scale: {get: function(){return scale;}, set: function(_){
+            scale = _;
+            axis.scale(scale);
+            isOrdinal = typeof scale.rangeBands === 'function';
+            d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
+        }}
+    });
 
-    chart.ticks = function(_) {
-        if (!arguments.length) return ticks;
-        ticks = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.axisLabel = function(_) {
-        if (!arguments.length) return axisLabelText;
-        axisLabelText = _;
-        return chart;
-    }
-
-    chart.showMaxMin = function(_) {
-        if (!arguments.length) return showMaxMin;
-        showMaxMin = _;
-        return chart;
-    }
-
-    chart.highlightZero = function(_) {
-        if (!arguments.length) return highlightZero;
-        highlightZero = _;
-        return chart;
-    }
-
-    chart.scale = function(_) {
-        if (!arguments.length) return scale;
-        scale = _;
-        axis.scale(scale);
-        isOrdinal = typeof scale.rangeBands === 'function';
-        d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
-        return chart;
-    }
-
-    chart.rotateYLabel = function(_) {
-        if(!arguments.length) return rotateYLabel;
-        rotateYLabel = _;
-        return chart;
-    }
-
-    chart.rotateLabels = function(_) {
-        if(!arguments.length) return rotateLabels;
-        rotateLabels = _;
-        return chart;
-    };
-
-    chart.staggerLabels = function(_) {
-        if (!arguments.length) return staggerLabels;
-        staggerLabels = _;
-        return chart;
-    };
-
-    chart.axisLabelDistance = function(_) {
-        if (!arguments.length) return axisLabelDistance;
-        axisLabelDistance = _;
-        return chart;
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        return chart;
-    };
-
-
-    //============================================================
-
-
+    nv.utils.initOptions(chart);
     return chart;
-}
+};
 
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
@@ -7770,7 +7705,7 @@ nv.models.lineWithFocusChart = function() {
     // until deprecated portions are removed.
     chart.state = state;
 
-    d3.rebind(chart, lines, 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+    d3.rebind(chart, lines, 'useVoronoi', 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -10098,7 +10033,12 @@ nv.models.multiChart = function() {
 
             var g = wrap.select('g');
 
+            var color_array = data.map(function(d,i) {
+                return data[i].color || color(d, i);
+            });
+
             if (showLegend) {
+                legend.color(color_array);
                 legend.width( availableWidth / 2 );
 
                 g.select('.legendWrap')
@@ -10119,50 +10059,37 @@ nv.models.multiChart = function() {
                     .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
             }
 
-
             lines1
                 .width(availableWidth)
                 .height(availableHeight)
                 .interpolate(interpolate)
-                .color(data.map(function(d, i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'line'}));
 
             lines2
                 .width(availableWidth)
                 .height(availableHeight)
                 .interpolate(interpolate)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
 
             bars1
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'bar'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'bar'}));
 
             bars2
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'bar'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'bar'}));
 
             stack1
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'area'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'area'}));
 
             stack2
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(data.map(function(d,i) {
-                    return d.color || color[i % color.length];
-                }).filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'area'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'area'}));
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -10415,8 +10342,7 @@ nv.models.multiChart = function() {
 
     chart.color = function(_) {
         if (!arguments.length) return color;
-        color = _;
-        legend.color(_);
+        color = nv.utils.getColor(_);
         return chart;
     };
 
@@ -10856,7 +10782,9 @@ nv.models.pie = function() {
         , titleOffset = 0
         , labelSunbeamLayout = false
         , startAngle = false
+        , padAngle = false
         , endAngle = false
+        , cornerRadius = 0
         , donutRatio = 0.5
         , duration = 250
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -10923,6 +10851,16 @@ nv.models.pie = function() {
             var pie = d3.layout.pie()
                 .sort(null)
                 .value(function(d) { return d.disabled ? 0 : getY(d) });
+
+            // padAngle added in d3 3.5
+            if (pie.padAngle && padAngle) {
+                pie.padAngle(padAngle);
+            }
+
+            if (arc.cornerRadius && cornerRadius) {
+                arc.cornerRadius(cornerRadius);
+                arcOver.cornerRadius(cornerRadius);
+            }
 
             // if title is specified and donut, put it in the middle
             if (donut && title) {
@@ -11157,7 +11095,9 @@ nv.models.pie = function() {
         id:         {get: function(){return id;}, set: function(_){id=_;}},
         endAngle:   {get: function(){return endAngle;}, set: function(_){endAngle=_;}},
         startAngle: {get: function(){return startAngle;}, set: function(_){startAngle=_;}},
-        donutRatio: {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
+        padAngle:   {get: function(){return padAngle;}, set: function(_){padAngle=_;}},
+        cornerRadius: {get: function(){return cornerRadius;}, set: function(_){cornerRadius=_;}},
+        donutRatio:   {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
         pieLabelsOutside:   {get: function(){return pieLabelsOutside;}, set: function(_){pieLabelsOutside=_;}},
         donutLabelsOutside: {get: function(){return donutLabelsOutside;}, set: function(_){donutLabelsOutside=_;}},
         labelSunbeamLayout: {get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},
@@ -11631,11 +11571,10 @@ nv.models.scatter = function() {
 
 
                     if(vertices.length) {
-                        // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
-                        vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
-                        vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
-                        vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
-                        vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
+                        vertices.push([x.range()[0] - 20, y.range()[0] - 20]);
+                        vertices.push([x.range()[1] + 20, y.range()[1] + 20]);
+                        vertices.push([x.range()[0] - 20, y.range()[0] + 20]);
+                        vertices.push([x.range()[1] + 20, y.range()[1] - 20]);
                     }
 
                     var bounds = d3.geom.polygon([
@@ -11647,7 +11586,7 @@ nv.models.scatter = function() {
 
                     var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
                         return {
-                            'data': bounds.clip(d),
+                            'data': d,
                             'series': vertices[i][2],
                             'point': vertices[i][3]
                         }
