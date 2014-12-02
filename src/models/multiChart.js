@@ -261,6 +261,10 @@ nv.models.multiChart = function() {
             d3.transition(g.select('.y2.axis'))
                 .call(yAxis2);
 
+            g.select('.y1.axis')
+                .style('opacity', series1.length ? 1 : 0)
+                .attr('transform', 'translate(' + x.range()[0] + ',0)');
+
             g.select('.y2.axis')
                 .style('opacity', series2.length ? 1 : 0)
                 .attr('transform', 'translate(' + x.range()[1] + ',0)');
