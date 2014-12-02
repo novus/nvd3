@@ -1,4 +1,4 @@
-/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-11-30 */
+/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-12-01 */
 (function(){
 
 // set up main nv object on window
@@ -894,7 +894,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
 Gets the browser window size
 
 Returns object with height and width properties
-*/
+ */
 nv.utils.windowSize = function() {
     // Sane defaults
     var size = {width: 640, height: 480};
@@ -925,7 +925,7 @@ nv.utils.windowSize = function() {
 
 /*
 Binds callback function to run when window is resized
-*/
+ */
 nv.utils.windowResize = function(handler) {
     if (window.addEventListener) {
         window.addEventListener('resize', handler);
@@ -945,23 +945,29 @@ nv.utils.windowResize = function(handler) {
 /*
 Backwards compatible way to implement more d3-like coloring of graphs.
 If passed an array, wrap it in a function which implements the old behavior
+Else return what was passed in
 */
 nv.utils.getColor = function(color) {
-    if (typeof color === 'function') {
-        return color;
-    } else if (arguments.length && (color instanceof Array)){
-        return function (d, i) {
-            return d.color || color[i % color.length];
-        };
-    } else {
+    //if you pass in nothing, get default colors back
+    if (!arguments.length) {
         return nv.utils.defaultColor();
+
+    //if passed an array, wrap it in a function
+    } else if(color instanceof Array) {
+        return function(d, i) { return d.color || color[i % color.length]; };
+
+    //if passed a function, return the function, or whatever it may be
+    //external libs, such as angularjs-nvd3-directives use this
+    } else {
+        //can't really help it if someone passes rubbish as color
+        return color;
     }
 };
 
 
 /*
 Default color chooser uses the index of an object as before.
-*/
+ */
 nv.utils.defaultColor = function() {
     var colors = d3.scale.category20().range();
     return function(d, i) {
@@ -1328,11 +1334,16 @@ option objects should be generated via Object.create() to provide
 the option of manipulating data via get/set functions.
 */
 nv.utils.initOption = function(chart, name) {
-    chart[name] = function (_) {
-        if (!arguments.length) return chart._options[name];
-        chart._options[name] = _;
-        return chart;
-    };
+    // if it's a call option, just call it directly, otherwise do get/set
+    if (chart._calls && chart._calls[name]) {
+        chart[name] = chart._calls[name];
+    } else {
+        chart[name] = function (_) {
+            if (!arguments.length) return chart._options[name];
+            chart._options[name] = _;
+            return chart;
+        };
+    }
 };
 
 
@@ -1340,7 +1351,9 @@ nv.utils.initOption = function(chart, name) {
 Add all options in an options object to the chart
 */
 nv.utils.initOptions = function(chart) {
-    var ops = Object.getOwnPropertyNames(chart._options);
+    var ops = Object.getOwnPropertyNames(chart._options || {});
+    var calls = Object.getOwnPropertyNames(chart._calls || {});
+    ops = ops.concat(calls);
     for (var i in ops) {
         nv.utils.initOption(chart, ops[i]);
     }
@@ -1348,14 +1361,36 @@ nv.utils.initOptions = function(chart) {
 
 
 /*
+Inherit options from a D3 object
+d3.rebind makes calling the function on target actually call it on source
+Also use _d3options so we can track what we inherit for documentation and chained inheritance
+*/
+nv.utils.inheritOptionsD3 = function(target, d3_source, oplist) {
+    target._d3options = oplist.concat(target._d3options || []);
+    oplist.unshift(d3_source);
+    oplist.unshift(target);
+    d3.rebind.apply(this, oplist);
+};
+
+/*
 Inherit option getter/setter functions from source to target
 d3.rebind makes calling the function on target actually call it on source
+Also track via _inherited and _d3options so we can track what we inherit
+for documentation generation purposes and chained inheritance
 */
 nv.utils.inheritOptions = function(target, source) {
-    var args = Object.getOwnPropertyNames(source._options);
+    // inherit all the things
+    var ops = Object.getOwnPropertyNames(source._options || {});
+    var calls = Object.getOwnPropertyNames(source._calls || {});
+    var inherited = source._inherited || [];
+    var d3ops = source._d3options || [];
+    var args = ops.concat(calls).concat(inherited).concat(d3ops);
     args.unshift(source);
     args.unshift(target);
     d3.rebind.apply(this, args);
+    // pass along the lists to keep track of them!
+    target._inherited = ops.concat(calls).concat(target._inherited || []);
+    target._d3options = d3ops.concat(target._d3options || []);
 };
 
 
@@ -1684,14 +1719,9 @@ nv.utils.initSVG = function(svg) {
 
     // expose chart's sub-components
     chart.axis = axis;
-    chart.scale = scale;
     chart.dispatch = dispatch;
 
-    d3.rebind(chart, axis, 'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
-    d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
-
     chart.options = nv.utils.optionsFunc.bind(chart);
-
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         axisLabelDistance: {get: function(){return axisLabelDistance;}, set: function(_){axisLabelDistance=_;}},
@@ -1720,11 +1750,14 @@ nv.utils.initSVG = function(svg) {
             scale = _;
             axis.scale(scale);
             isOrdinal = typeof scale.rangeBands === 'function';
-            d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
+            nv.utils.inheritOptionsD3(chart, scale, ['domain', 'range', 'rangeBand', 'rangeBands']);
         }}
     });
 
     nv.utils.initOptions(chart);
+    nv.utils.inheritOptionsD3(chart, axis, ['orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat']);
+    nv.utils.inheritOptionsD3(chart, scale, ['domain', 'range', 'rangeBand', 'rangeBands']);
+
     return chart;
 };
 
@@ -5385,90 +5418,51 @@ nv.models.line = function() {
     scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); })
     scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); })
 
-    d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
-        'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData','highlightPoint','clearHighlights');
-
+    chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        defined: {get: function(){return defined;}, set: function(_){defined=_;}},
+        interpolate:      {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
+        clipEdge:    {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
 
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+            scatter.duration(duration);
+        }},
+        isArea: {get: function(){return isArea;}, set: function(_){
+            isArea = d3.functor(_);
+        }},
+        x: {get: function(){return getX;}, set: function(_){
+            getX = _;
+            scatter.x(_);
+        }},
+        y: {get: function(){return getY;}, set: function(_){
+            getY = _;
+            scatter.y(_);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            scatter.color(color);
+        }}
+    });
 
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.x = function(_) {
-        if (!arguments.length) return getX;
-        getX = _;
-        scatter.x(_);
-        return chart;
-    };
-
-    chart.y = function(_) {
-        if (!arguments.length) return getY;
-        getY = _;
-        scatter.y(_);
-        return chart;
-    };
-
-    chart.clipEdge = function(_) {
-        if (!arguments.length) return clipEdge;
-        clipEdge = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        scatter.color(color);
-        return chart;
-    };
-
-    chart.interpolate = function(_) {
-        if (!arguments.length) return interpolate;
-        interpolate = _;
-        return chart;
-    };
-
-    chart.defined = function(_) {
-        if (!arguments.length) return defined;
-        defined = _;
-        return chart;
-    };
-
-    chart.isArea = function(_) {
-        if (!arguments.length) return isArea;
-        isArea = d3.functor(_);
-        return chart;
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        scatter.duration(duration);
-        return chart;
-    };
-
-    //============================================================
-
+    nv.utils.inheritOptions(chart, scatter);
+    nv.utils.initOptions(chart);
 
     return chart;
-}
+};
 nv.models.lineChart = function() {
     "use strict";
 
@@ -5883,130 +5877,56 @@ nv.models.lineChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.interactiveLayer = interactiveLayer;
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
-    chart.state = state;
 
-    d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange'
-        , 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'useVoronoi','id', 'interpolate');
-
+    chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+            lines.duration(duration);
+            xAxis.duration(duration);
+            yAxis.duration(duration);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            legend.color(color);
+            lines.color(color);
+        }},
+        rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
+            rightAlignYAxis = _;
+            yAxis.orient( rightAlignYAxis ? 'right' : 'left');
+        }},
+        useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
+            useInteractiveGuideline = _;
+            if (useInteractiveGuideline) {
+                lines.interactive(false);
+                lines.useVoronoi(false);
+            }
+        }}
+    });
 
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        legend.color(color);
-        return chart;
-    };
-
-    chart.showLegend = function(_) {
-        if (!arguments.length) return showLegend;
-        showLegend = _;
-        return chart;
-    };
-
-    chart.showXAxis = function(_) {
-        if (!arguments.length) return showXAxis;
-        showXAxis = _;
-        return chart;
-    };
-
-    chart.showYAxis = function(_) {
-        if (!arguments.length) return showYAxis;
-        showYAxis = _;
-        return chart;
-    };
-
-    chart.rightAlignYAxis = function(_) {
-        if(!arguments.length) return rightAlignYAxis;
-        rightAlignYAxis = _;
-        yAxis.orient( (_) ? 'right' : 'left');
-        return chart;
-    };
-
-    chart.useInteractiveGuideline = function(_) {
-        if(!arguments.length) return useInteractiveGuideline;
-        useInteractiveGuideline = _;
-        if (_ === true) {
-            chart.interactive(false);
-            chart.useVoronoi(false);
-        }
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    // DEPRECATED
-    chart.state = function(_) {
-        nv.deprecated('lineChart.state');
-        if (!arguments.length) return state;
-        state = _;
-        return chart;
-    };
-    for (var key in state) {
-        chart.state[key] = state[key];
-    }
-    // END DEPRECATED
-
-    chart.defaultState = function(_) {
-        if (!arguments.length) return defaultState;
-        defaultState = _;
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_) {
-        nv.deprecated('lineChart.transitionDuration');
-        return chart.duration(_);
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        lines.duration(duration);
-        xAxis.duration(duration);
-        yAxis.duration(duration);
-        return chart;
-    };
-
-    //============================================================
+    nv.utils.inheritOptions(chart, lines);
+    nv.utils.initOptions(chart);
 
     return chart;
 };
@@ -7705,7 +7625,7 @@ nv.models.lineWithFocusChart = function() {
     // until deprecated portions are removed.
     chart.state = state;
 
-    d3.rebind(chart, lines, 'useVoronoi', 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
+    d3.rebind(chart, lines, 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -10324,9 +10244,13 @@ nv.models.multiChart = function() {
 
     chart.margin = function(_) {
         if (!arguments.length) return margin;
-        margin = _;
+        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
         return chart;
     };
+
 
     chart.width = function(_) {
         if (!arguments.length) return width;
@@ -11361,6 +11285,7 @@ nv.models.pieChart = function() {
 
 nv.models.scatter = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -11401,8 +11326,6 @@ nv.models.scatter = function() {
         , duration     = 250
         ;
 
-    //============================================================
-
 
     //============================================================
     // Private Variables
@@ -11413,9 +11336,6 @@ nv.models.scatter = function() {
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         ;
-
-    //============================================================
-
 
     function chart(selection) {
         renderWatch.reset();
@@ -11432,9 +11352,7 @@ nv.models.scatter = function() {
                 });
             });
 
-            //------------------------------------------------------------
             // Setup Scales
-
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -11479,17 +11397,11 @@ nv.models.scatter = function() {
                 y.domain([-1,1]);
             }
 
-
             x0 = x0 || x;
             y0 = y0 || y;
             z0 = z0 || z;
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id + (singlePoint ? ' nv-single-point' : ''));
             var defsEnter = wrapEnter.append('defs');
@@ -11501,9 +11413,6 @@ nv.models.scatter = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            //------------------------------------------------------------
-
-
             defsEnter.append('clipPath')
                 .attr('id', 'nv-edge-clip-' + id)
                 .append('rect');
@@ -11512,8 +11421,7 @@ nv.models.scatter = function() {
                 .attr('width', availableWidth)
                 .attr('height', (availableHeight > 0) ? availableHeight : 0);
 
-            g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
-
+            g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
             function updateInteractiveLayer() {
 
@@ -11542,8 +11450,6 @@ nv.models.scatter = function() {
                     })
                 );
 
-
-
                 //inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
 
@@ -11571,10 +11477,11 @@ nv.models.scatter = function() {
 
 
                     if(vertices.length) {
-                        vertices.push([x.range()[0] - 20, y.range()[0] - 20]);
-                        vertices.push([x.range()[1] + 20, y.range()[1] + 20]);
-                        vertices.push([x.range()[0] - 20, y.range()[0] + 20]);
-                        vertices.push([x.range()[1] + 20, y.range()[1] - 20]);
+                        // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
+                        vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
+                        vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
+                        vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
+                        vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
                     }
 
                     var bounds = d3.geom.polygon([
@@ -11586,7 +11493,7 @@ nv.models.scatter = function() {
 
                     var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
                         return {
-                            'data': d,
+                            'data': bounds.clip(d),
                             'series': vertices[i][2],
                             'point': vertices[i][3]
                         }
@@ -11802,32 +11709,6 @@ nv.models.scatter = function() {
         return chart;
     }
 
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-    chart.clearHighlights = function() {
-        //Remove the 'hover' class from all highlighted points.
-        d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover",false);
-    };
-
-    chart.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) {
-        d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-            .classed("hover",isHoverOver);
-    };
-
-
-    dispatch.on('elementMouseover.point', function(d) {
-        if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,true);
-    });
-
-    dispatch.on('elementMouseout.point', function(d) {
-        if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,false);
-    });
-
-    //============================================================
-
-
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
@@ -11835,216 +11716,87 @@ nv.models.scatter = function() {
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.x = function(_) {
-        if (!arguments.length) return getX;
-        getX = d3.functor(_);
-        return chart;
+    // utility function calls provided by this chart
+    chart._calls = new function() {
+        this.clearHighlights = function () {
+            d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+            return null;
+        };
+        this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
+            d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+                .classed("hover", isHoverOver);
+        };
     };
 
-    chart.y = function(_) {
-        if (!arguments.length) return getY;
-        getY = d3.functor(_);
-        return chart;
-    };
+    // trigger calls from events too
+    dispatch.on('elementMouseover.point', function(d) {
+        if (interactive) chart._calls.highlightPoint(d.seriesIndex,d.pointIndex,true);
+    });
 
-    chart.size = function(_) {
-        if (!arguments.length) return getSize;
-        getSize = d3.functor(_);
-        return chart;
-    };
+    dispatch.on('elementMouseout.point', function(d) {
+        if (interactive) chart._calls.highlightPoint(d.seriesIndex,d.pointIndex,false);
+    });
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.xScale = function(_) {
-        if (!arguments.length) return x;
-        x = _;
-        return chart;
-    };
-
-    chart.yScale = function(_) {
-        if (!arguments.length) return y;
-        y = _;
-        return chart;
-    };
-
-    chart.zScale = function(_) {
-        if (!arguments.length) return z;
-        z = _;
-        return chart;
-    };
-
-    chart.xDomain = function(_) {
-        if (!arguments.length) return xDomain;
-        xDomain = _;
-        return chart;
-    };
-
-    chart.yDomain = function(_) {
-        if (!arguments.length) return yDomain;
-        yDomain = _;
-        return chart;
-    };
-
-    chart.sizeDomain = function(_) {
-        if (!arguments.length) return sizeDomain;
-        sizeDomain = _;
-        return chart;
-    };
-
-    chart.xRange = function(_) {
-        if (!arguments.length) return xRange;
-        xRange = _;
-        return chart;
-    };
-
-    chart.yRange = function(_) {
-        if (!arguments.length) return yRange;
-        yRange = _;
-        return chart;
-    };
-
-    chart.sizeRange = function(_) {
-        if (!arguments.length) return sizeRange;
-        sizeRange = _;
-        return chart;
-    };
-
-    chart.forceX = function(_) {
-        if (!arguments.length) return forceX;
-        forceX = _;
-        return chart;
-    };
-
-    chart.forceY = function(_) {
-        if (!arguments.length) return forceY;
-        forceY = _;
-        return chart;
-    };
-
-    chart.forceSize = function(_) {
-        if (!arguments.length) return forceSize;
-        forceSize = _;
-        return chart;
-    };
-
-    chart.interactive = function(_) {
-        if (!arguments.length) return interactive;
-        interactive = _;
-        return chart;
-    };
-
-    chart.pointKey = function(_) {
-        if (!arguments.length) return pointKey;
-        pointKey = _;
-        return chart;
-    };
-
-    chart.pointActive = function(_) {
-        if (!arguments.length) return pointActive;
-        pointActive = _;
-        return chart;
-    };
-
-    chart.padData = function(_) {
-        if (!arguments.length) return padData;
-        padData = _;
-        return chart;
-    };
-
-    chart.padDataOuter = function(_) {
-        if (!arguments.length) return padDataOuter;
-        padDataOuter = _;
-        return chart;
-    };
-
-    chart.clipEdge = function(_) {
-        if (!arguments.length) return clipEdge;
-        clipEdge = _;
-        return chart;
-    };
-
-    chart.clipVoronoi= function(_) {
-        if (!arguments.length) return clipVoronoi;
-        clipVoronoi = _;
-        return chart;
-    };
-
-    chart.useVoronoi= function(_) {
-        if (!arguments.length) return useVoronoi;
-        useVoronoi = _;
-        if (useVoronoi === false) {
-            clipVoronoi = false;
-        }
-        return chart;
-    };
-
-    chart.clipRadius = function(_) {
-        if (!arguments.length) return clipRadius;
-        clipRadius = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.shape = function(_) {
-        if (!arguments.length) return getShape;
-        getShape = _;
-        return chart;
-    };
-
-    chart.onlyCircles = function(_) {
-        if (!arguments.length) return onlyCircles;
-        onlyCircles = _;
-        return chart;
-    };
-
-    chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
-    };
-
-    chart.singlePoint = function(_) {
-        if (!arguments.length) return singlePoint;
-        singlePoint = _;
-        return chart;
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        return chart;
-    };
-
-    //============================================================
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:        {get: function(){return width;}, set: function(_){width=_;}},
+        height:       {get: function(){return height;}, set: function(_){height=_;}},
+        xScale:       {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:       {get: function(){return y;}, set: function(_){y=_;}},
+        zScale:       {get: function(){return z;}, set: function(_){z=_;}},
+        xDomain:      {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain:      {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        sizeDomain:   {get: function(){return sizeDomain;}, set: function(_){sizeDomain=_;}},
+        xRange:       {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:       {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        sizeRange:    {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
+        forceX:       {get: function(){return forceX;}, set: function(_){forceX=_;}},
+        forceY:       {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        forceSize:    {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
+        interactive:  {get: function(){return interactive;}, set: function(_){interactive=_;}},
+        pointKey:     {get: function(){return pointKey;}, set: function(_){pointKey=_;}},
+        pointActive:  {get: function(){return pointActive;}, set: function(_){pointActive=_;}},
+        padDataOuter: {get: function(){return padDataOuter;}, set: function(_){padDataOuter=_;}},
+        padData:      {get: function(){return padData;}, set: function(_){padData=_;}},
+        clipEdge:     {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
+        clipVoronoi:  {get: function(){return clipVoronoi;}, set: function(_){clipVoronoi=_;}},
+        clipRadius:   {get: function(){return clipRadius;}, set: function(_){clipRadius=_;}},
+        onlyCircles:  {get: function(){return onlyCircles;}, set: function(_){onlyCircles=_;}},
+        id:           {get: function(){return id;}, set: function(_){id=_;}},
+        singlePoint:  {get: function(){return singlePoint;}, set: function(_){singlePoint=_;}},
 
 
+        // simple functor options
+        x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},
+        y:     {get: function(){return getY;}, set: function(_){getY = d3.functor(_);}},
+        size:  {get: function(){return getSize;}, set: function(_){getSize = d3.functor(_);}},
+        shape: {get: function(){return getShape;}, set: function(_){getShape = d3.functor(_);}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+        }},
+        color: {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }},
+        useVoronoi: {get: function(){return useVoronoi;}, set: function(_){
+            useVoronoi = _;
+            if (useVoronoi === false) {
+                clipVoronoi = false;
+            }
+        }}
+    });
+
+    nv.utils.initOptions(chart);
     return chart;
-}
+};
 nv.models.scatterChart = function() {
     "use strict";
     //============================================================
