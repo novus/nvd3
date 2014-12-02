@@ -1,6 +1,7 @@
 
 nv.models.scatter = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -41,8 +42,6 @@ nv.models.scatter = function() {
         , duration     = 250
         ;
 
-    //============================================================
-
 
     //============================================================
     // Private Variables
@@ -53,9 +52,6 @@ nv.models.scatter = function() {
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         ;
-
-    //============================================================
-
 
     function chart(selection) {
         renderWatch.reset();
@@ -72,9 +68,7 @@ nv.models.scatter = function() {
                 });
             });
 
-            //------------------------------------------------------------
             // Setup Scales
-
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -119,17 +113,11 @@ nv.models.scatter = function() {
                 y.domain([-1,1]);
             }
 
-
             x0 = x0 || x;
             y0 = y0 || y;
             z0 = z0 || z;
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id + (singlePoint ? ' nv-single-point' : ''));
             var defsEnter = wrapEnter.append('defs');
@@ -141,9 +129,6 @@ nv.models.scatter = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            //------------------------------------------------------------
-
-
             defsEnter.append('clipPath')
                 .attr('id', 'nv-edge-clip-' + id)
                 .append('rect');
@@ -152,8 +137,7 @@ nv.models.scatter = function() {
                 .attr('width', availableWidth)
                 .attr('height', (availableHeight > 0) ? availableHeight : 0);
 
-            g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
-
+            g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
             function updateInteractiveLayer() {
 
@@ -181,8 +165,6 @@ nv.models.scatter = function() {
                             })
                     })
                 );
-
-
 
                 //inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
@@ -443,32 +425,6 @@ nv.models.scatter = function() {
         return chart;
     }
 
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-    chart.clearHighlights = function() {
-        //Remove the 'hover' class from all highlighted points.
-        d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover",false);
-    };
-
-    chart.highlightPoint = function(seriesIndex,pointIndex,isHoverOver) {
-        d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-            .classed("hover",isHoverOver);
-    };
-
-
-    dispatch.on('elementMouseover.point', function(d) {
-        if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,true);
-    });
-
-    dispatch.on('elementMouseout.point', function(d) {
-        if (interactive) chart.highlightPoint(d.seriesIndex,d.pointIndex,false);
-    });
-
-    //============================================================
-
-
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
@@ -476,213 +432,84 @@ nv.models.scatter = function() {
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.x = function(_) {
-        if (!arguments.length) return getX;
-        getX = d3.functor(_);
-        return chart;
+    // utility function calls provided by this chart
+    chart._calls = new function() {
+        this.clearHighlights = function () {
+            d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+            return null;
+        };
+        this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
+            d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+                .classed("hover", isHoverOver);
+        };
     };
 
-    chart.y = function(_) {
-        if (!arguments.length) return getY;
-        getY = d3.functor(_);
-        return chart;
-    };
+    // trigger calls from events too
+    dispatch.on('elementMouseover.point', function(d) {
+        if (interactive) chart._calls.highlightPoint(d.seriesIndex,d.pointIndex,true);
+    });
 
-    chart.size = function(_) {
-        if (!arguments.length) return getSize;
-        getSize = d3.functor(_);
-        return chart;
-    };
+    dispatch.on('elementMouseout.point', function(d) {
+        if (interactive) chart._calls.highlightPoint(d.seriesIndex,d.pointIndex,false);
+    });
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.xScale = function(_) {
-        if (!arguments.length) return x;
-        x = _;
-        return chart;
-    };
-
-    chart.yScale = function(_) {
-        if (!arguments.length) return y;
-        y = _;
-        return chart;
-    };
-
-    chart.zScale = function(_) {
-        if (!arguments.length) return z;
-        z = _;
-        return chart;
-    };
-
-    chart.xDomain = function(_) {
-        if (!arguments.length) return xDomain;
-        xDomain = _;
-        return chart;
-    };
-
-    chart.yDomain = function(_) {
-        if (!arguments.length) return yDomain;
-        yDomain = _;
-        return chart;
-    };
-
-    chart.sizeDomain = function(_) {
-        if (!arguments.length) return sizeDomain;
-        sizeDomain = _;
-        return chart;
-    };
-
-    chart.xRange = function(_) {
-        if (!arguments.length) return xRange;
-        xRange = _;
-        return chart;
-    };
-
-    chart.yRange = function(_) {
-        if (!arguments.length) return yRange;
-        yRange = _;
-        return chart;
-    };
-
-    chart.sizeRange = function(_) {
-        if (!arguments.length) return sizeRange;
-        sizeRange = _;
-        return chart;
-    };
-
-    chart.forceX = function(_) {
-        if (!arguments.length) return forceX;
-        forceX = _;
-        return chart;
-    };
-
-    chart.forceY = function(_) {
-        if (!arguments.length) return forceY;
-        forceY = _;
-        return chart;
-    };
-
-    chart.forceSize = function(_) {
-        if (!arguments.length) return forceSize;
-        forceSize = _;
-        return chart;
-    };
-
-    chart.interactive = function(_) {
-        if (!arguments.length) return interactive;
-        interactive = _;
-        return chart;
-    };
-
-    chart.pointKey = function(_) {
-        if (!arguments.length) return pointKey;
-        pointKey = _;
-        return chart;
-    };
-
-    chart.pointActive = function(_) {
-        if (!arguments.length) return pointActive;
-        pointActive = _;
-        return chart;
-    };
-
-    chart.padData = function(_) {
-        if (!arguments.length) return padData;
-        padData = _;
-        return chart;
-    };
-
-    chart.padDataOuter = function(_) {
-        if (!arguments.length) return padDataOuter;
-        padDataOuter = _;
-        return chart;
-    };
-
-    chart.clipEdge = function(_) {
-        if (!arguments.length) return clipEdge;
-        clipEdge = _;
-        return chart;
-    };
-
-    chart.clipVoronoi= function(_) {
-        if (!arguments.length) return clipVoronoi;
-        clipVoronoi = _;
-        return chart;
-    };
-
-    chart.useVoronoi= function(_) {
-        if (!arguments.length) return useVoronoi;
-        useVoronoi = _;
-        if (useVoronoi === false) {
-            clipVoronoi = false;
-        }
-        return chart;
-    };
-
-    chart.clipRadius = function(_) {
-        if (!arguments.length) return clipRadius;
-        clipRadius = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.shape = function(_) {
-        if (!arguments.length) return getShape;
-        getShape = _;
-        return chart;
-    };
-
-    chart.onlyCircles = function(_) {
-        if (!arguments.length) return onlyCircles;
-        onlyCircles = _;
-        return chart;
-    };
-
-    chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
-    };
-
-    chart.singlePoint = function(_) {
-        if (!arguments.length) return singlePoint;
-        singlePoint = _;
-        return chart;
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        return chart;
-    };
-
-    //============================================================
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:        {get: function(){return width;}, set: function(_){width=_;}},
+        height:       {get: function(){return height;}, set: function(_){height=_;}},
+        xScale:       {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:       {get: function(){return y;}, set: function(_){y=_;}},
+        zScale:       {get: function(){return z;}, set: function(_){z=_;}},
+        xDomain:      {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain:      {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        sizeDomain:   {get: function(){return sizeDomain;}, set: function(_){sizeDomain=_;}},
+        xRange:       {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:       {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        sizeRange:    {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
+        forceX:       {get: function(){return forceX;}, set: function(_){forceX=_;}},
+        forceY:       {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        forceSize:    {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
+        interactive:  {get: function(){return interactive;}, set: function(_){interactive=_;}},
+        pointKey:     {get: function(){return pointKey;}, set: function(_){pointKey=_;}},
+        pointActive:  {get: function(){return pointActive;}, set: function(_){pointActive=_;}},
+        padDataOuter: {get: function(){return padDataOuter;}, set: function(_){padDataOuter=_;}},
+        padData:      {get: function(){return padData;}, set: function(_){padData=_;}},
+        clipEdge:     {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
+        clipVoronoi:  {get: function(){return clipVoronoi;}, set: function(_){clipVoronoi=_;}},
+        clipRadius:   {get: function(){return clipRadius;}, set: function(_){clipRadius=_;}},
+        onlyCircles:  {get: function(){return onlyCircles;}, set: function(_){onlyCircles=_;}},
+        id:           {get: function(){return id;}, set: function(_){id=_;}},
+        singlePoint:  {get: function(){return singlePoint;}, set: function(_){singlePoint=_;}},
 
 
+        // simple functor options
+        x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},
+        y:     {get: function(){return getY;}, set: function(_){getY = d3.functor(_);}},
+        size:  {get: function(){return getSize;}, set: function(_){getSize = d3.functor(_);}},
+        shape: {get: function(){return getShape;}, set: function(_){getShape = d3.functor(_);}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+        }},
+        color: {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }},
+        useVoronoi: {get: function(){return useVoronoi;}, set: function(_){
+            useVoronoi = _;
+            if (useVoronoi === false) {
+                clipVoronoi = false;
+            }
+        }}
+    });
+
+    nv.utils.initOptions(chart);
     return chart;
-}
+};

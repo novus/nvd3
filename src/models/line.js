@@ -201,87 +201,48 @@ nv.models.line = function() {
     scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); })
     scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); })
 
-    d3.rebind(chart, scatter, 'id', 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange',
-        'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'useVoronoi', 'clipRadius', 'padData','highlightPoint','clearHighlights');
-
+    chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        defined: {get: function(){return defined;}, set: function(_){defined=_;}},
+        interpolate:      {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
+        clipEdge:    {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
 
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+            scatter.duration(duration);
+        }},
+        isArea: {get: function(){return isArea;}, set: function(_){
+            isArea = d3.functor(_);
+        }},
+        x: {get: function(){return getX;}, set: function(_){
+            getX = _;
+            scatter.x(_);
+        }},
+        y: {get: function(){return getY;}, set: function(_){
+            getY = _;
+            scatter.y(_);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            scatter.color(color);
+        }}
+    });
 
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.x = function(_) {
-        if (!arguments.length) return getX;
-        getX = _;
-        scatter.x(_);
-        return chart;
-    };
-
-    chart.y = function(_) {
-        if (!arguments.length) return getY;
-        getY = _;
-        scatter.y(_);
-        return chart;
-    };
-
-    chart.clipEdge = function(_) {
-        if (!arguments.length) return clipEdge;
-        clipEdge = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        scatter.color(color);
-        return chart;
-    };
-
-    chart.interpolate = function(_) {
-        if (!arguments.length) return interpolate;
-        interpolate = _;
-        return chart;
-    };
-
-    chart.defined = function(_) {
-        if (!arguments.length) return defined;
-        defined = _;
-        return chart;
-    };
-
-    chart.isArea = function(_) {
-        if (!arguments.length) return isArea;
-        isArea = d3.functor(_);
-        return chart;
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        scatter.duration(duration);
-        return chart;
-    };
-
-    //============================================================
-
+    nv.utils.inheritOptions(chart, scatter);
+    nv.utils.initOptions(chart);
 
     return chart;
-}
+};

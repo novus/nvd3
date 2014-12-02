@@ -11,24 +11,32 @@
     <script src="../build/nv.d3.js"></script>
     <script>
 
-        function parse_options(container, chart, inherited) {
-            if (chart._options) {
-                var options = Object.getOwnPropertyNames(chart._options);
-                for (var i in options) {
-                    var op = $('<li>');
-                    var t = options[i];
-                    if (inherited) {
-                        t += ' <span class="inherited">(Inherited)</span>';
-                    }
-                    op.html(t);
-                    container.append(op);
+        function parse_options(container, obj, extra) {
+            var options = [];
+            // must check Array first, because Array is an Object as well.
+            if (obj instanceof Array) {
+                options = obj;
+            } else if (obj instanceof Object && obj._options) {
+                options = Object.getOwnPropertyNames(obj._options);
+            }
+            for (var i in options) {
+                var op = $('<li>');
+                var t = options[i];
+                if (extra !== undefined) {
+                    t += ' <span class="inherited">' + extra + '</span>';
                 }
+                op.html(t);
+                container.append(op);
             }
         }
 
         $('body').ready(function () {
             var charts = [
                 'pieChart',
+                'lineChart',
+                'line',
+                'scatter',
+                'axis',
                 'scatterChart',
                 'stackedAreaChart',
                 'scatterPlusLineChart',
@@ -42,8 +50,7 @@
                 'historicalBarChart',
                 'discreteBarChart',
                 'cumulativeLineChart',
-                'bulletChart',
-                'lineChart'
+                'bulletChart'
             ];
             var c = $('#optionlist');
             for (var i in charts) {
@@ -54,9 +61,10 @@
                     var ul = $('<ul>');
                     parse_options(ul, chart);
                     if (chart._inherited) {
-                        for (var j in chart._inherited) {
-                            parse_options(ul, chart._inherited[j], true);
-                        }
+                        parse_options(ul, chart._inherited, '(inherited)');
+                    }
+                    if (chart._d3options) {
+                        parse_options(ul, chart._d3options, '(inherited from D3)');
                     }
                     c.append(ul);
                 } else {
@@ -116,8 +124,8 @@
         <pre>
             var chart = nv.models.pieChart();
             chart.width(500);
-            chart.title('stuff');
-            chart.options({height: 500, donut: true, titleOffset: -10});
+            chart.title('stuff').titleOffset(-10);
+            chart.options({height: 500, donut: true});
         </pre>
 
         <div id="optionlist"></div>

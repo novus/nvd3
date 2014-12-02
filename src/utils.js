@@ -444,11 +444,16 @@ option objects should be generated via Object.create() to provide
 the option of manipulating data via get/set functions.
 */
 nv.utils.initOption = function(chart, name) {
-    chart[name] = function (_) {
-        if (!arguments.length) return chart._options[name];
-        chart._options[name] = _;
-        return chart;
-    };
+    // if it's a call option, just call it directly, otherwise do get/set
+    if (chart._calls && chart._calls[name]) {
+        chart[name] = chart._calls[name];
+    } else {
+        chart[name] = function (_) {
+            if (!arguments.length) return chart._options[name];
+            chart._options[name] = _;
+            return chart;
+        };
+    }
 };
 
 
@@ -456,7 +461,9 @@ nv.utils.initOption = function(chart, name) {
 Add all options in an options object to the chart
 */
 nv.utils.initOptions = function(chart) {
-    var ops = Object.getOwnPropertyNames(chart._options);
+    var ops = Object.getOwnPropertyNames(chart._options || {});
+    var calls = Object.getOwnPropertyNames(chart._calls || {});
+    ops = ops.concat(calls);
     for (var i in ops) {
         nv.utils.initOption(chart, ops[i]);
     }
@@ -464,16 +471,36 @@ nv.utils.initOptions = function(chart) {
 
 
 /*
+Inherit options from a D3 object
+d3.rebind makes calling the function on target actually call it on source
+Also use _d3options so we can track what we inherit for documentation and chained inheritance
+*/
+nv.utils.inheritOptionsD3 = function(target, d3_source, oplist) {
+    target._d3options = oplist.concat(target._d3options || []);
+    oplist.unshift(d3_source);
+    oplist.unshift(target);
+    d3.rebind.apply(this, oplist);
+};
+
+/*
 Inherit option getter/setter functions from source to target
 d3.rebind makes calling the function on target actually call it on source
+Also track via _inherited and _d3options so we can track what we inherit
+for documentation generation purposes and chained inheritance
 */
 nv.utils.inheritOptions = function(target, source) {
-    var args = Object.getOwnPropertyNames(source._options);
-    target._inherited = target._inherited || [];
-    target._inherited.push(source);
+    // inherit all the things
+    var ops = Object.getOwnPropertyNames(source._options || {});
+    var calls = Object.getOwnPropertyNames(source._calls || {});
+    var inherited = source._inherited || [];
+    var d3ops = source._d3options || [];
+    var args = ops.concat(calls).concat(inherited).concat(d3ops);
     args.unshift(source);
     args.unshift(target);
     d3.rebind.apply(this, args);
+    // pass along the lists to keep track of them!
+    target._inherited = ops.concat(calls).concat(target._inherited || []);
+    target._d3options = d3ops.concat(target._d3options || []);
 };
 
 

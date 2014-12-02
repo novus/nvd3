@@ -318,14 +318,9 @@ nv.models.axis = function() {
 
     // expose chart's sub-components
     chart.axis = axis;
-    chart.scale = scale;
     chart.dispatch = dispatch;
 
-    d3.rebind(chart, axis, 'orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat');
-    d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands'); //these are also accessible by chart.scale(), but added common ones directly for ease of use
-
     chart.options = nv.utils.optionsFunc.bind(chart);
-
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         axisLabelDistance: {get: function(){return axisLabelDistance;}, set: function(_){axisLabelDistance=_;}},
@@ -354,10 +349,13 @@ nv.models.axis = function() {
             scale = _;
             axis.scale(scale);
             isOrdinal = typeof scale.rangeBands === 'function';
-            d3.rebind(chart, scale, 'domain', 'range', 'rangeBand', 'rangeBands');
+            nv.utils.inheritOptionsD3(chart, scale, ['domain', 'range', 'rangeBand', 'rangeBands']);
         }}
     });
 
     nv.utils.initOptions(chart);
+    nv.utils.inheritOptionsD3(chart, axis, ['orient', 'tickValues', 'tickSubdivide', 'tickSize', 'tickPadding', 'tickFormat']);
+    nv.utils.inheritOptionsD3(chart, scale, ['domain', 'range', 'rangeBand', 'rangeBands']);
+
     return chart;
 };
