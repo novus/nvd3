@@ -71,13 +71,6 @@ nv.models.multiChart = function() {
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
 
-            // var dataLines1 = data.filter(function(d) {return !d.disabled && d.type == 'line' && d.yAxis == 1})
-            // var dataLines2 = data.filter(function(d) {return !d.disabled && d.type == 'line' && d.yAxis == 2})
-            // var dataBars1 = data.filter(function(d) {return !d.disabled && d.type == 'bar' && d.yAxis == 1})
-            // var dataBars2 = data.filter(function(d) {return !d.disabled && d.type == 'bar' && d.yAxis == 2})
-            // var dataStack1 = data.filter(function(d) {return !d.disabled && d.type == 'area' && d.yAxis == 1})
-            // var dataStack2 = data.filter(function(d) {return !d.disabled && d.type == 'area' && d.yAxis == 2})
-
             var dataLines1 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 1})
             var dataLines2 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 2})
             var dataBars1 =  data.filter(function(d) {return d.type == 'bar'  && d.yAxis == 1})
