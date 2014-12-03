@@ -134,7 +134,7 @@
                             info += "<div class='part'>Input Type(s):</div>";
                             info += "<div>" + inputs.join(' or ') + "</div>";
                         }
-                        if (def) {
+                        if (def !== undefined) {
                             info += "<div class='part'>Default:</div>";
                             info += "<div>" + def + "</div>";
                         }
@@ -287,6 +287,39 @@
             desc: "The height the graph created inside the SVG should be made.",
             default: "The height of the container element (normally the svg itself)",
             examples: [600]
+        },
+        donut: {
+            desc: "Whether to make a pie graph a donut graph or not",
+            default: false,
+            examples: [true]
+        },
+        margin: {
+            desc: "Object containing the margins for the chart inside the svg container.  You can specify only certain margins in the object too.",
+            default: "0 for all margins",
+            examples: [
+                {top: 10, bottom: 10},
+                {left: 5, right: 5, top: 10, bottom: 10}
+            ]
+        },
+        growOnHover: {
+            desc: "For pie/donut charts, whether to increase slice radius on hover or not",
+            default: true,
+            examples: [true]
+        },
+        donutLabelsOutside: {
+            desc: "Whether donut labels should be outside or inside the slices",
+            default: true,
+            examples: [true]
+        },
+        cornerRadius: {
+            desc: "D3 3.4+, For donut charts only, the corner radius of the slices.  Typically used with padAngle.",
+            default: false,
+            examples: [true]
+        },
+        padAngle: {
+            desc: "D3 3.4+, For donut charts only, the percent of the chart that should be spacing between slices.",
+            default: 0,
+            examples: [0.05]
         }
     };
 </script>
