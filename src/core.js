@@ -4,7 +4,7 @@ var nv = window.nv || {};
 window.nv = nv;
 
 // the major global objects under the nv namespace
-nv.dev = true; //set false when in production
+nv.dev = false; //set false when in production
 nv.tooltip = nv.tooltip || {}; // For the tooltip system
 nv.utils = nv.utils || {}; // Utility subsystem
 nv.models = nv.models || {}; //stores all the possible models/components
