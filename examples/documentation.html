@@ -307,7 +307,12 @@
             examples: [true]
         },
         donutLabelsOutside: {
-            desc: "Whether donut labels should be outside or inside the slices",
+            desc: "Whether donut chart labels should be outside or inside the slices",
+            default: true,
+            examples: [true]
+        },
+        pieLabelsOutside: {
+            desc: "Whether pie chart labels should be outside or inside the slices",
             default: true,
             examples: [true]
         },
@@ -320,6 +325,52 @@
             desc: "D3 3.4+, For donut charts only, the percent of the chart that should be spacing between slices.",
             default: 0,
             examples: [0.05]
+        },
+        labelThreshold: {
+            desc: "Pie/donut charts: The slice threshold size to not display the label because it woudl be too small of a space",
+            default: 0.02,
+            examples: [0.05]
+        },
+        startAngle: {
+            desc: "Function used to manage the starting angle of the pie/donut chart",
+            default: "Ignored unless set",
+            examples: [
+                function(d) {
+                    return d.startAngle/2 - Math.PI/2;
+                }
+            ]
+        },
+        endAngle: {
+            desc: "Function used to manage the ending angle of the pie/donut chart",
+            default: "Ignored unless set",
+            examples: [
+                function(d) {
+                    return d.endAngle/2 - Math.PI/2;
+                }
+            ]
+        },
+        labelType: {
+            desc: "pie/donut charts only: what kind of data to display for the slice labels.  Options are key, value, or percent. ",
+            default: 'key',
+            examples: ['key', 'value', 'percent']
+        },
+        x: {
+            desc: "Proxy function to return the X value so adjustments can be made if needed.  For pie/donut chart this returns the key for the slice.",
+            default: "function(d){ return d.x; }",
+            examples: [
+                function(d){
+                    return d.x;
+                }
+            ]
+        },
+        y: {
+            desc: "Proxy function to return the Y value so adjustments can be made if needed.  For pie/donut chart this returns the value for the slice.",
+            default: "function(d){ return d.y; }",
+            examples: [
+                function(d){
+                    return d.y < 10 ? 0 : d.y;
+                }
+            ]
         }
     };
 </script>
