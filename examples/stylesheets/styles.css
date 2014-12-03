@@ -458,6 +458,43 @@ textarea {
     /* 2 */
 }
 
+li.option {
+    cursor: pointer;
+}
+li.option:hover {
+    color: #FF9900;
+}
+li.option-selected {
+    color: #FF9900;
+    border-top: 1px solid #AAA;
+    border-bottom: 1px solid #AAA;
+}
+li.option div.option-info{
+    color: #999;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding-left: 30px;
+}
+li.option div.option-info .part {
+    font-weight: bold;
+    color: #666;
+}
+li.option div.option-info .example {
+    display: inline-block;
+    border: 1px solid #CCC;
+    background: #EEE;
+    margin-top: 3px;
+    color: #666;
+    width: 100%;
+    box-sizing: border-box;
+}
+li.option div.option-info .example code {
+    white-space: pre;
+    padding: 5px;
+    font-family: "Courier New";
+    background: inherit ! important;
+}
+
 /* =============================================================================
    Tables
    ========================================================================== */
@@ -548,22 +585,6 @@ blockquote {
     font-style: italic;
 }
 
-code {
-    font-family: "Lucida Sans", Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
-    font-size: 13px;
-    color: #efefef;
-    text-shadow: 0px 1px 0px #000;
-    margin: 0 4px;
-    padding: 2px 6px;
-    background: #333;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-    -o-border-radius: 2px;
-    -ms-border-radius: 2px;
-    -khtml-border-radius: 2px;
-    border-radius: 2px;
-}
-
 pre {
     padding: 8px 15px;
     background: #EEE;
@@ -576,10 +597,6 @@ pre {
     border: 1px solid #c7c7c7;
     overflow: auto;
     overflow-y: hidden;
-}
-pre code {
-    margin: 0px;
-    padding: 0px;
 }
 
 table {
