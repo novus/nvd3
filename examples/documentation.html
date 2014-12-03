@@ -368,7 +368,8 @@
             default: "function(d){ return d.y; }",
             examples: [
                 function(d){
-                    return d.y < 10 ? 0 : d.y;
+                    // don't show negative values
+                    return d.y < 0 ? 0 : d.y;
                 }
             ]
         }
