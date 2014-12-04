@@ -255,11 +255,11 @@ nv.models.multiChart = function() {
                 .call(yAxis2);
 
             g.select('.y1.axis')
-                .classed('disabled', series1.length ? false : true)
+                .classed('nv-disabled', series1.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[0] + ',0)');
 
             g.select('.y2.axis')
-                .classed('disabled', series2.length ? false : true)
+                .classed('nv-disabled', series2.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
             legend.dispatch.on('stateChange', function(newState) {
