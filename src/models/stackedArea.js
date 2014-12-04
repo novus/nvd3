@@ -28,8 +28,8 @@ nv.models.stackedArea = function() {
     scatter.interactive(false);
 
     scatter
-        .size(2.2) // default size
-        .sizeDomain([2.2,2.2]) // all the same size by default
+        .pointSize(2.2) // default size
+        .pointDomain([2.2, 2.2]) // all the same size by default
     ;
 
     /************************************
