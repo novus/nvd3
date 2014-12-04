@@ -255,11 +255,11 @@ nv.models.multiChart = function() {
                 .call(yAxis2);
 
             g.select('.y1.axis')
-                .style('opacity', series1.length ? 1 : 0)
+                .classed('nv-disabled', series1.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[0] + ',0)');
 
             g.select('.y2.axis')
-                .style('opacity', series2.length ? 1 : 0)
+                .classed('nv-disabled', series2.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
             legend.dispatch.on('stateChange', function(newState) {
@@ -457,6 +457,7 @@ nv.models.multiChart = function() {
     };
 
     chart.tooltipContent = function(_) {
+        console.log('Tooltip Content');
         if (!arguments.length) return tooltip;
         tooltip = _;
         return chart;

@@ -91,7 +91,7 @@ nv.models.legend = function() {
                 .attr('class','nv-legend-text')
                 .attr('dy', '.32em')
                 .attr('dx', '8');
-            series.classed('disabled', function(d) { return d.disabled });
+            series.classed('nv-disabled', function(d) { return d.disabled });
             series.exit().remove();
             series.select('circle')
                 .style('fill', function(d,i) { return d.color || color(d,i)})
