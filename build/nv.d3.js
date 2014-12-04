@@ -1,4 +1,4 @@
-/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-12-01 */
+/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-12-04 */
 (function(){
 
 // set up main nv object on window
@@ -6,7 +6,7 @@ var nv = window.nv || {};
 window.nv = nv;
 
 // the major global objects under the nv namespace
-nv.dev = true; //set false when in production
+nv.dev = false; //set false when in production
 nv.tooltip = nv.tooltip || {}; // For the tooltip system
 nv.utils = nv.utils || {}; // Utility subsystem
 nv.models = nv.models || {}; //stores all the possible models/components
@@ -1372,6 +1372,16 @@ nv.utils.inheritOptionsD3 = function(target, d3_source, oplist) {
     d3.rebind.apply(this, oplist);
 };
 
+
+/*
+Remove duplicates from an array
+*/
+nv.utils.arrayUnique = function(a) {
+    return a.sort().filter(function(item, pos) {
+        return !pos || item != a[pos - 1];
+    });
+};
+
 /*
 Inherit option getter/setter functions from source to target
 d3.rebind makes calling the function on target actually call it on source
@@ -1388,9 +1398,9 @@ nv.utils.inheritOptions = function(target, source) {
     args.unshift(source);
     args.unshift(target);
     d3.rebind.apply(this, args);
-    // pass along the lists to keep track of them!
-    target._inherited = ops.concat(calls).concat(target._inherited || []);
-    target._d3options = d3ops.concat(target._d3options || []);
+    // pass along the lists to keep track of them, don't allow duplicates
+    target._inherited = nv.utils.arrayUnique(ops.concat(calls).concat(inherited).concat(ops).concat(target._inherited || []));
+    target._d3options = nv.utils.arrayUnique(d3ops.concat(target._d3options || []));
 };
 
 
@@ -5242,8 +5252,8 @@ nv.models.line = function() {
         ;
 
     scatter
-        .size(16) // default size
-        .sizeDomain([16,256]) //set to speed up calculation, needs to be unset if there is a custom size accessor
+        .pointSize(16) // default size
+        .pointDomain([16,256]) //set to speed up calculation, needs to be unset if there is a custom size accessor
     ;
 
     //============================================================
@@ -9913,12 +9923,12 @@ nv.models.multiChart = function() {
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
 
-            var dataLines1 = data.filter(function(d) {return !d.disabled && d.type == 'line' && d.yAxis == 1})
-            var dataLines2 = data.filter(function(d) {return !d.disabled && d.type == 'line' && d.yAxis == 2})
-            var dataBars1 = data.filter(function(d) {return !d.disabled && d.type == 'bar' && d.yAxis == 1})
-            var dataBars2 = data.filter(function(d) {return !d.disabled && d.type == 'bar' && d.yAxis == 2})
-            var dataStack1 = data.filter(function(d) {return !d.disabled && d.type == 'area' && d.yAxis == 1})
-            var dataStack2 = data.filter(function(d) {return !d.disabled && d.type == 'area' && d.yAxis == 2})
+            var dataLines1 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 1})
+            var dataLines2 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 2})
+            var dataBars1 =  data.filter(function(d) {return d.type == 'bar'  && d.yAxis == 1})
+            var dataBars2 =  data.filter(function(d) {return d.type == 'bar'  && d.yAxis == 2})
+            var dataStack1 = data.filter(function(d) {return d.type == 'area' && d.yAxis == 1})
+            var dataStack2 = data.filter(function(d) {return d.type == 'area' && d.yAxis == 2})
 
             var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
                 .map(function(d) {
@@ -10015,18 +10025,30 @@ nv.models.multiChart = function() {
 
 
             var lines1Wrap = g.select('.lines1Wrap')
-                .datum(dataLines1)
+                .datum(
+                    dataLines1.filter(function(d){return !d.disabled})
+                )
             var bars1Wrap = g.select('.bars1Wrap')
-                .datum(dataBars1)
+                .datum(
+                    dataBars1.filter(function(d){return !d.disabled})
+                )
             var stack1Wrap = g.select('.stack1Wrap')
-                .datum(dataStack1)
+                .datum(
+                    dataStack1.filter(function(d){return !d.disabled})
+                )
 
             var lines2Wrap = g.select('.lines2Wrap')
-                .datum(dataLines2)
+                .datum(
+                    dataLines2.filter(function(d){return !d.disabled})
+                )
             var bars2Wrap = g.select('.bars2Wrap')
-                .datum(dataBars2)
+                .datum(
+                    dataBars2.filter(function(d){return !d.disabled})
+                )
             var stack2Wrap = g.select('.stack2Wrap')
-                .datum(dataStack2)
+                .datum(
+                    dataStack2.filter(function(d){return !d.disabled})
+                )
 
             var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
@@ -10083,6 +10105,10 @@ nv.models.multiChart = function() {
 
             d3.transition(g.select('.y2.axis'))
                 .call(yAxis2);
+
+            g.select('.y1.axis')
+                .style('opacity', series1.length ? 1 : 0)
+                .attr('transform', 'translate(' + x.range()[0] + ',0)');
 
             g.select('.y2.axis')
                 .style('opacity', series2.length ? 1 : 0)
@@ -11743,16 +11769,16 @@ nv.models.scatter = function() {
         height:       {get: function(){return height;}, set: function(_){height=_;}},
         xScale:       {get: function(){return x;}, set: function(_){x=_;}},
         yScale:       {get: function(){return y;}, set: function(_){y=_;}},
-        zScale:       {get: function(){return z;}, set: function(_){z=_;}},
+        pointScale:   {get: function(){return z;}, set: function(_){z=_;}},
         xDomain:      {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         yDomain:      {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
-        sizeDomain:   {get: function(){return sizeDomain;}, set: function(_){sizeDomain=_;}},
+        pointDomain:  {get: function(){return sizeDomain;}, set: function(_){sizeDomain=_;}},
         xRange:       {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:       {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        sizeRange:    {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
+        pointRange:   {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
         forceX:       {get: function(){return forceX;}, set: function(_){forceX=_;}},
         forceY:       {get: function(){return forceY;}, set: function(_){forceY=_;}},
-        forceSize:    {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
+        forcePoint:   {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
         interactive:  {get: function(){return interactive;}, set: function(_){interactive=_;}},
         pointKey:     {get: function(){return pointKey;}, set: function(_){pointKey=_;}},
         pointActive:  {get: function(){return pointActive;}, set: function(_){pointActive=_;}},
@@ -11761,16 +11787,14 @@ nv.models.scatter = function() {
         clipEdge:     {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
         clipVoronoi:  {get: function(){return clipVoronoi;}, set: function(_){clipVoronoi=_;}},
         clipRadius:   {get: function(){return clipRadius;}, set: function(_){clipRadius=_;}},
-        onlyCircles:  {get: function(){return onlyCircles;}, set: function(_){onlyCircles=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
-        singlePoint:  {get: function(){return singlePoint;}, set: function(_){singlePoint=_;}},
 
 
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},
         y:     {get: function(){return getY;}, set: function(_){getY = d3.functor(_);}},
-        size:  {get: function(){return getSize;}, set: function(_){getSize = d3.functor(_);}},
-        shape: {get: function(){return getShape;}, set: function(_){getShape = d3.functor(_);}},
+        pointSize: {get: function(){return getSize;}, set: function(_){getSize = d3.functor(_);}},
+        pointShape: {get: function(){return getShape;}, set: function(_){getShape = d3.functor(_);}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -12320,7 +12344,7 @@ nv.models.scatterChart = function() {
     // until deprecated portions are removed.
     chart.state = state;
 
-    d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
+    d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'pointShape', 'pointSize', 'xScale', 'yScale', 'pointScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'pointDomain', 'pointRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart.margin = function(_) {
@@ -13692,8 +13716,8 @@ nv.models.stackedArea = function() {
     scatter.interactive(false);
 
     scatter
-        .size(2.2) // default size
-        .sizeDomain([2.2,2.2]) // all the same size by default
+        .pointSize(2.2) // default size
+        .pointDomain([2.2, 2.2]) // all the same size by default
     ;
 
     /************************************
