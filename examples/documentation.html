@@ -439,6 +439,136 @@ as well as used to print out examples using those example inputs.
                     return !!d.myCustomAttribute;
                 }
             ]
+        },
+        useVoronoi: {
+            desc: "Use voronoi diagram to select nearest point to display tooltip instead of requiring a hover over the specific point itself.  Setting this to false will also set clipVoronoi to false.",
+            refs: [
+                "https://github.com/mbostock/d3/wiki/Voronoi-Geom",
+                "http://bl.ocks.org/njvack/1405439",
+                "http://bl.ocks.org/mbostock/8033015"],
+            default: true,
+            examples: [false]
+        },
+        clipVoronoi: {
+            desc: "When useVoronoi is on, this masks each voronoi section with a circle to limit selection to smaller area.  If you're seeing performance issues, you can try to turn this off to see if it helps.",
+            refs: [
+                "https://github.com/mbostock/d3/wiki/Voronoi-Geom",
+                "http://bl.ocks.org/njvack/1405439",
+                "http://bl.ocks.org/mbostock/8033015"],
+            default: true,
+            examples: [false]
+        },
+        xScale: {
+            desc: "Override the default scale type for the X axis",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear"],
+            default: "d3.scale.linear()"
+        },
+        yScale: {
+            desc: "Override the default scale type for the Y axis",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear"],
+            default: "d3.scale.linear()"
+        },
+        pointScale: {
+            desc: "Override the default scale type for the shapes used in the scatter plot. Scatter is also used to make the hover points on lines.",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear"],
+            default: "d3.scale.linear()"
+        },
+        pointSize: {
+            desc: "Specifies the size of the points in a scatter.  Scatter is also used to make the hover points on lines.",
+            default: "function(d) { return d.size || 1}",
+            refs: ["https://github.com/mbostock/d3/wiki/SVG-Shapes#symbol_size"],
+            examples: [
+                0.5,
+                function(d) {
+                    // use function attached to the data to calculate size
+                    return d.calculateSymbolSize();
+                }
+            ]
+        },
+        forcePoint: {
+            desc: "Like forceX and forceY, this forces certain values onto the point scale",
+            default: "[]",
+            examples: [1,2,3,4]
+        },
+        pointDomain: {
+            desc: "Like xDomain and yDomain, this sets the range for the point scale.  Scatter is also used to make the hover points on lines.",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear_domain"],
+            default: "The scale is dynamically calculated based on graph data",
+            examples: [
+                [-20, -10, 0, 10, 20],
+                [-1, -0.5, 0.5, 1]
+            ]
+        },
+        pointRange: {
+            desc: "Like xRange and yRange, this sets the range for the point scale.  Scatter is also used to make the hover points on lines.",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear_range"],
+            default: "The range is dynamically calculated based on graph data",
+            examples: [
+                [-20, -10, 0, 10, 20],
+                [-1, -0.5, 0.5, 1]
+            ]
+        },
+        pointShape: {
+            desc: "Specify the shape of the points in a scatter.  Scatter is also used to make the hover points on lines.",
+            refs: ["https://github.com/mbostock/d3/wiki/SVG-Shapes#symbol_type"],
+            default: "function(d) { return d.shape || 'circle' }",
+            examples: [
+                'circle',
+                'cross',
+                function (d) {
+                    return d.calculateSymbolType();
+                }
+            ]
+        },
+        xDomain: {
+            desc: "Defines the whole X scale's domain.  Using this will disable calculating the domain based on the data.",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear_domain"],
+            default: "The scale is dynamically calculated based on graph data",
+            examples: [
+                [-20, -10, 0, 10, 20],
+                [-1, -0.5, 0.5, 1]
+            ]
+        },
+        yDomain: {
+            desc: "Defines the whole Y scale's domain.  Using this will disable calculating the domain based on the data.",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear_domain"],
+            default: "The scale is dynamically calculated based on graph data",
+            examples: [
+                [-20, -10, 0, 10, 20],
+                [-1, -0.5, 0.5, 1]
+            ]
+        },
+        xRange: {
+            desc: "Override the X scale's range.  Using this will disable calculating the range based on the data and chart width/height.",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear_range"],
+            default: "The range is dynamically calculated based on graph data",
+            examples: [
+                [-20, -10, 0, 10, 20],
+                [-1, -0.5, 0.5, 1]
+            ]
+        },
+        yRange: {
+            desc: "Override the Y scale's range.  Using this will disable calculating the range based on the data and chart width/height.",
+            refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear_range"],
+            default: "The range is dynamically calculated based on graph data",
+            examples: [
+                [-20, -10, 0, 10, 20],
+                [-1, -0.5, 0.5, 1]
+            ]
+        },
+        forceX: {
+            desc: "List of numbers to Force into the X scale (ie. 0, or a max / min, etc.).  This ensures the numbers are in the X domain but doesn't override the whole domain.  This option only applies if you have not overridden the whole domain with the xDomain option.",
+            default: "[]",
+            examples: [
+                [-50, 0, 50]
+            ]
+        },
+        forceY: {
+            desc: "List of numbers to Force into the Y scale (ie. 0, or a max / min, etc.).  This ensures the numbers are in the Y domain but doesn't override the whole domain.  This option only applies if you have not overridden the whole domain with the yDomain option.",
+            default: "[]",
+            examples: [
+                [-50, 0, 50]
+            ]
         }
     };
 </script>
