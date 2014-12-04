@@ -482,6 +482,16 @@ nv.utils.inheritOptionsD3 = function(target, d3_source, oplist) {
     d3.rebind.apply(this, oplist);
 };
 
+
+/*
+Remove duplicates from an array
+*/
+nv.utils.arrayUnique = function(a) {
+    return a.sort().filter(function(item, pos) {
+        return !pos || item != a[pos - 1];
+    });
+};
+
 /*
 Inherit option getter/setter functions from source to target
 d3.rebind makes calling the function on target actually call it on source
@@ -498,9 +508,9 @@ nv.utils.inheritOptions = function(target, source) {
     args.unshift(source);
     args.unshift(target);
     d3.rebind.apply(this, args);
-    // pass along the lists to keep track of them!
-    target._inherited = ops.concat(calls).concat(target._inherited || []);
-    target._d3options = d3ops.concat(target._d3options || []);
+    // pass along the lists to keep track of them, don't allow duplicates
+    target._inherited = nv.utils.arrayUnique(ops.concat(calls).concat(inherited).concat(ops).concat(target._inherited || []));
+    target._d3options = nv.utils.arrayUnique(d3ops.concat(target._d3options || []));
 };
 
 
