@@ -521,7 +521,7 @@ nv.models.scatterChart = function() {
     // until deprecated portions are removed.
     chart.state = state;
 
-    d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
+    d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'pointShape', 'pointSize', 'xScale', 'yScale', 'pointScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'pointDomain', 'pointRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart.margin = function(_) {

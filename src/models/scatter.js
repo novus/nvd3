@@ -459,16 +459,16 @@ nv.models.scatter = function() {
         height:       {get: function(){return height;}, set: function(_){height=_;}},
         xScale:       {get: function(){return x;}, set: function(_){x=_;}},
         yScale:       {get: function(){return y;}, set: function(_){y=_;}},
-        zScale:       {get: function(){return z;}, set: function(_){z=_;}},
+        pointScale:   {get: function(){return z;}, set: function(_){z=_;}},
         xDomain:      {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         yDomain:      {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
-        sizeDomain:   {get: function(){return sizeDomain;}, set: function(_){sizeDomain=_;}},
+        pointDomain:  {get: function(){return sizeDomain;}, set: function(_){sizeDomain=_;}},
         xRange:       {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:       {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        sizeRange:    {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
+        pointRange:   {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
         forceX:       {get: function(){return forceX;}, set: function(_){forceX=_;}},
         forceY:       {get: function(){return forceY;}, set: function(_){forceY=_;}},
-        forceSize:    {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
+        forcePoint:   {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
         interactive:  {get: function(){return interactive;}, set: function(_){interactive=_;}},
         pointKey:     {get: function(){return pointKey;}, set: function(_){pointKey=_;}},
         pointActive:  {get: function(){return pointActive;}, set: function(_){pointActive=_;}},
@@ -477,16 +477,14 @@ nv.models.scatter = function() {
         clipEdge:     {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
         clipVoronoi:  {get: function(){return clipVoronoi;}, set: function(_){clipVoronoi=_;}},
         clipRadius:   {get: function(){return clipRadius;}, set: function(_){clipRadius=_;}},
-        onlyCircles:  {get: function(){return onlyCircles;}, set: function(_){onlyCircles=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
-        singlePoint:  {get: function(){return singlePoint;}, set: function(_){singlePoint=_;}},
 
 
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},
         y:     {get: function(){return getY;}, set: function(_){getY = d3.functor(_);}},
-        size:  {get: function(){return getSize;}, set: function(_){getSize = d3.functor(_);}},
-        shape: {get: function(){return getShape;}, set: function(_){getShape = d3.functor(_);}},
+        pointSize: {get: function(){return getSize;}, set: function(_){getSize = d3.functor(_);}},
+        pointShape: {get: function(){return getShape;}, set: function(_){getShape = d3.functor(_);}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
