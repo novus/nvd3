@@ -1,4 +1,4 @@
-/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-12-01 */
+/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-12-04 */
 (function(){
 
 // set up main nv object on window
@@ -9913,12 +9913,12 @@ nv.models.multiChart = function() {
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
 
-            var dataLines1 = data.filter(function(d) {return !d.disabled && d.type == 'line' && d.yAxis == 1})
-            var dataLines2 = data.filter(function(d) {return !d.disabled && d.type == 'line' && d.yAxis == 2})
-            var dataBars1 = data.filter(function(d) {return !d.disabled && d.type == 'bar' && d.yAxis == 1})
-            var dataBars2 = data.filter(function(d) {return !d.disabled && d.type == 'bar' && d.yAxis == 2})
-            var dataStack1 = data.filter(function(d) {return !d.disabled && d.type == 'area' && d.yAxis == 1})
-            var dataStack2 = data.filter(function(d) {return !d.disabled && d.type == 'area' && d.yAxis == 2})
+            var dataLines1 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 1})
+            var dataLines2 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 2})
+            var dataBars1 =  data.filter(function(d) {return d.type == 'bar'  && d.yAxis == 1})
+            var dataBars2 =  data.filter(function(d) {return d.type == 'bar'  && d.yAxis == 2})
+            var dataStack1 = data.filter(function(d) {return d.type == 'area' && d.yAxis == 1})
+            var dataStack2 = data.filter(function(d) {return d.type == 'area' && d.yAxis == 2})
 
             var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
                 .map(function(d) {
@@ -10015,18 +10015,30 @@ nv.models.multiChart = function() {
 
 
             var lines1Wrap = g.select('.lines1Wrap')
-                .datum(dataLines1)
+                .datum(
+                    dataLines1.filter(function(d){return !d.disabled})
+                )
             var bars1Wrap = g.select('.bars1Wrap')
-                .datum(dataBars1)
+                .datum(
+                    dataBars1.filter(function(d){return !d.disabled})
+                )
             var stack1Wrap = g.select('.stack1Wrap')
-                .datum(dataStack1)
+                .datum(
+                    dataStack1.filter(function(d){return !d.disabled})
+                )
 
             var lines2Wrap = g.select('.lines2Wrap')
-                .datum(dataLines2)
+                .datum(
+                    dataLines2.filter(function(d){return !d.disabled})
+                )
             var bars2Wrap = g.select('.bars2Wrap')
-                .datum(dataBars2)
+                .datum(
+                    dataBars2.filter(function(d){return !d.disabled})
+                )
             var stack2Wrap = g.select('.stack2Wrap')
-                .datum(dataStack2)
+                .datum(
+                    dataStack2.filter(function(d){return !d.disabled})
+                )
 
             var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
@@ -10084,8 +10096,12 @@ nv.models.multiChart = function() {
             d3.transition(g.select('.y2.axis'))
                 .call(yAxis2);
 
+            g.select('.y1.axis')
+                .classed('disabled', series1.length ? false : true)
+                .attr('transform', 'translate(' + x.range()[0] + ',0)');
+
             g.select('.y2.axis')
-                .style('opacity', series2.length ? 1 : 0)
+                .classed('disabled', series2.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
             legend.dispatch.on('stateChange', function(newState) {
@@ -10283,6 +10299,7 @@ nv.models.multiChart = function() {
     };
 
     chart.tooltipContent = function(_) {
+        console.log('Tooltip Content');
         if (!arguments.length) return tooltip;
         tooltip = _;
         return chart;

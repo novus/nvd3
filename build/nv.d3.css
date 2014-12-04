@@ -179,6 +179,15 @@ svg.nvd3-svg {
 /**********
 *  Axes
 */
+
+.axis {
+  opacity: 1;
+}
+
+.axis.disabled {
+  opacity: 0;
+}
+
 .nvd3 .nv-axis {
   pointer-events:none;
 }
