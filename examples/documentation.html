@@ -458,6 +458,16 @@ as well as used to print out examples using those example inputs.
             default: true,
             examples: [false]
         },
+        clipRadius: {
+            desc: "When useVoronoi and clipVoronoi are true, you can control the clip radius with this option.  Essentially this lets you set how far away from the actual point you can put the mouse for it to select the point.",
+            default: 25,
+            examples: [
+                20,
+                function(d) {
+                    return 20;
+                }
+            ]
+        },
         xScale: {
             desc: "Override the default scale type for the X axis",
             refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear"],
@@ -520,6 +530,17 @@ as well as used to print out examples using those example inputs.
                 }
             ]
         },
+        pointActive: {
+            desc: "Function used to determine if scatter points are active or not, returns false to denote them as inactive and true for active.",
+            default: "function(d) { return !d.notActive }",
+            examples: [
+                function(d) {
+                    // d has x, y, size, shape, and series attributes.
+                    // here, we disable all points that are not a circle
+                    return d.shape !== 'circle';
+                }
+            ]
+        },
         xDomain: {
             desc: "Defines the whole X scale's domain.  Using this will disable calculating the domain based on the data.",
             refs: ["https://github.com/mbostock/d3/wiki/Quantitative-Scales#linear_domain"],
@@ -569,6 +590,29 @@ as well as used to print out examples using those example inputs.
             examples: [
                 [-50, 0, 50]
             ]
+        },
+        valueFormat: {
+            desc: "D3 Format object for the value of a pie/donut chart.",
+            default: "d3.format(',.2f')"
+        },
+        labelFormat: {
+            desc: "D3 Format object for the label of a pie/donut chart.",
+            default: "d3.format('%')"
+        },
+        donutRatio: {
+            desc: "Percent of pie radius to cut out of the middle to make the donut.  It is multiplied by the outer radius to calculate the inner radius, thus it should be between 0 and 1.",
+            default: "0.5",
+            examples: [0.75]
+        },
+        labelSunbeamLayout: {
+            desc: "?",
+            default: false,
+            examples: [true]
+        },
+        interactive: {
+            desc: "A master flag for turning chart interaction on and off.  This overrides all tooltip, voronoi, and guideline options.",
+            default: true,
+            examples: [false]
         }
     };
 </script>
