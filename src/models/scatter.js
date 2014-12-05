@@ -225,7 +225,7 @@ nv.models.scatter = function() {
                             .append("svg:circle")
                             .attr('cx', function(d) { return d[0]; })
                             .attr('cy', function(d) { return d[1]; })
-                            .attr('r', 20);
+                            .attr('r', clipRadius);
                     }
 
                     var mouseEventCallback = function(d,mDispatch) {
