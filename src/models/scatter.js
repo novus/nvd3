@@ -344,7 +344,7 @@ nv.models.scatter = function() {
                     return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
                 })
                 .attr('d',
-                d3.svg.symbol()
+                    nv.utils.symbol()
                     .type(getShape)
                     .size(function(d,i) { return z(getSize(d,i)) })
             );
@@ -369,7 +369,7 @@ nv.models.scatter = function() {
                     return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
                 })
                 .attr('d',
-                d3.svg.symbol()
+                    nv.utils.symbol()
                     .type(getShape)
                     .size(function(d,i) { return z(getSize(d,i)) })
             );

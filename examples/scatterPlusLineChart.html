@@ -56,7 +56,7 @@
 
     function randomData(groups, points) { //# groups,# points per group
         var data = [],
-            shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
+            shapes = ['circle'],
             random = d3.random.normal();
 
         for (i = 0; i < groups; i++) {
@@ -72,7 +72,7 @@
                     x: random(),
                     y: random(),
                     size: Math.random(),
-                    shape: shapes[j % 6]
+                    shape: shapes[j % shapes.length]
                 });
             }
         }

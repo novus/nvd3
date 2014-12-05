@@ -492,6 +492,44 @@ nv.utils.arrayUnique = function(a) {
     });
 };
 
+
+/*
+Keeps a list of custom symbols to draw from in addition to d3.svg.symbol
+Necessary since d3 doesn't let you extend its list -_-
+Add new symbols by doing nv.utils.symbols.set('name', function(size){...});
+*/
+nv.utils.symbolMap = d3.map();
+
+
+/*
+Replaces d3.svg.symbol so that we can look both there and our own map
+ */
+nv.utils.symbol = function() {
+    var type,
+        size = 64;
+    function symbol(d,i) {
+        var t = type.call(this,d,i);
+        var s = size.call(this,d,i);
+        if (d3.svg.symbolTypes.indexOf(t) !== -1) {
+            return d3.svg.symbol().type(t).size(s)();
+        } else {
+            return nv.utils.symbolMap.get(t)(s);
+        }
+    }
+    symbol.type = function(_) {
+        if (!arguments.length) return type;
+        type = d3.functor(_);
+        return symbol;
+    };
+    symbol.size = function(_) {
+        if (!arguments.length) return size;
+        size = d3.functor(_);
+        return symbol;
+    };
+    return symbol;
+};
+
+
 /*
 Inherit option getter/setter functions from source to target
 d3.rebind makes calling the function on target actually call it on source
