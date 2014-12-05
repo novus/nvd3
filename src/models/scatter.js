@@ -18,7 +18,6 @@ nv.models.scatter = function() {
         , getY         = function(d) { return d.y } // accessor to get the y value
         , getSize      = function(d) { return d.size || 1} // accessor to get the point size
         , getShape     = function(d) { return d.shape || 'circle' } // accessor to get point shape
-        , onlyCircles  = true // Set to false to use shapes
         , forceX       = [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
         , forceY       = [] // List of numbers to Force into the Y scale
         , forceSize    = [] // List of numbers to Force into the Size scale
@@ -335,77 +334,45 @@ nv.models.scatter = function() {
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', .5);
 
-
-            if (onlyCircles) {
-                var points = groups.selectAll('circle.nv-point')
-                    .data(function(d) { return d.values });
-                points.enter().append('circle')
-                    .style('fill', function (d,i) { return d.color })
-                    .style('stroke', function (d,i) { return d.color })
-                    .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
-                    .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
-                    .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
-                points.exit().remove();
-                groups.exit().selectAll('path.nv-point')
-                    .watchTransition(renderWatch, 'scatter exit')
-                    .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-                    .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-                    .remove();
-                points.each(function(d,i) {
-                    d3.select(this)
-                        .classed('nv-point', true)
-                        .classed('nv-point-' + i, true)
-                        .classed('hover',false)
-                    ;
-                });
-                points
-                    .watchTransition(renderWatch, 'scatter points')
-                    .attr('cx', function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-                    .attr('cy', function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-                    .attr('r', function(d,i) { return Math.sqrt(z(getSize(d,i))/Math.PI) });
-
-            } else {
-
-                var points = groups.selectAll('path.nv-point')
-                    .data(function(d) { return d.values });
-                points.enter().append('path')
-                    .style('fill', function (d,i) { return d.color })
-                    .style('stroke', function (d,i) { return d.color })
-                    .attr('transform', function(d,i) {
-                        return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
-                    })
-                    .attr('d',
-                    d3.svg.symbol()
-                        .type(getShape)
-                        .size(function(d,i) { return z(getSize(d,i)) })
-                );
-                points.exit().remove();
-                groups.exit().selectAll('path.nv-point')
-                    .watchTransition(renderWatch, 'scatter exit')
-                    .attr('transform', function(d,i) {
-                        return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
-                    })
-                    .remove();
-                points.each(function(d,i) {
-                    d3.select(this)
-                        .classed('nv-point', true)
-                        .classed('nv-point-' + i, true)
-                        .classed('hover',false)
-                    ;
-                });
-                points
-                    .watchTransition(renderWatch, 'scatter points')
-                    .attr('transform', function(d,i) {
-                        //nv.log(d,i,getX(d,i), x(getX(d,i)));
-                        return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
-                    })
-                    .attr('d',
-                    d3.svg.symbol()
-                        .type(getShape)
-                        .size(function(d,i) { return z(getSize(d,i)) })
-                );
-            }
-
+            // create the points
+            var points = groups.selectAll('path.nv-point')
+                .data(function(d) { return d.values });
+            points.enter().append('path')
+                .style('fill', function (d,i) { return d.color })
+                .style('stroke', function (d,i) { return d.color })
+                .attr('transform', function(d,i) {
+                    return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
+                })
+                .attr('d',
+                d3.svg.symbol()
+                    .type(getShape)
+                    .size(function(d,i) { return z(getSize(d,i)) })
+            );
+            points.exit().remove();
+            groups.exit().selectAll('path.nv-point')
+                .watchTransition(renderWatch, 'scatter exit')
+                .attr('transform', function(d,i) {
+                    return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+                })
+                .remove();
+            points.each(function(d,i) {
+                d3.select(this)
+                    .classed('nv-point', true)
+                    .classed('nv-point-' + i, true)
+                    .classed('hover',false)
+                ;
+            });
+            points
+                .watchTransition(renderWatch, 'scatter points')
+                .attr('transform', function(d,i) {
+                    //nv.log(d,i,getX(d,i), x(getX(d,i)));
+                    return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+                })
+                .attr('d',
+                d3.svg.symbol()
+                    .type(getShape)
+                    .size(function(d,i) { return z(getSize(d,i)) })
+            );
 
             // Delay updating the invisible interactive layer for smoother animation
             clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
