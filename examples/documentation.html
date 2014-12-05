@@ -519,7 +519,7 @@ as well as used to print out examples using those example inputs.
             ]
         },
         pointShape: {
-            desc: "Specify the shape of the points in a scatter.  Scatter is also used to make the hover points on lines.",
+            desc: "Specify the shape of the points in a scatter.  Scatter is also used to make the hover points on lines.  You can also create your own symbols and set them onto nv.utils.symbolMap if you want, then just reference them by name like the others (see scatterGraph example for a demo)",
             refs: ["https://github.com/mbostock/d3/wiki/SVG-Shapes#symbol_type"],
             default: "function(d) { return d.shape || 'circle' }",
             examples: [
