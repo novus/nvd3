@@ -168,30 +168,7 @@ nv.models.scatter = function() {
                 //inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
 
-                    if (clipVoronoi) {
-                        var pointClipsEnter = wrap.select('defs').selectAll('.nv-point-clips')
-                            .data([id])
-                            .enter();
-
-                        pointClipsEnter.append('clipPath')
-                            .attr('class', 'nv-point-clips')
-                            .attr('id', 'nv-points-clip-' + id);
-
-                        var pointClips = wrap.select('#nv-points-clip-' + id).selectAll('circle')
-                            .data(vertices);
-                        pointClips.enter().append('circle')
-                            .attr('r', clipRadius);
-                        pointClips.exit().remove();
-                        pointClips
-                            .attr('cx', function(d) { return d[0] })
-                            .attr('cy', function(d) { return d[1] });
-
-                        wrap.select('.nv-point-paths')
-                            .attr('clip-path', 'url(#nv-points-clip-' + id + ')');
-                    }
-
-
-                    if(vertices.length) {
+                    if(vertices.length < 3) {
                         // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
                         vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
                         vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
@@ -199,6 +176,8 @@ nv.models.scatter = function() {
                         vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
                     }
 
+                    // keep voronoi sections from going more than 10 outside of graph
+                    // to avoid overlap with other things like legend etc
                     var bounds = d3.geom.polygon([
                         [-10,-10],
                         [-10,height + 10],
@@ -214,25 +193,45 @@ nv.models.scatter = function() {
                         }
                     });
 
-
-                    var pointPaths = wrap.select('.nv-point-paths').selectAll('path')
-                        .data(voronoi);
-                    pointPaths.enter().append('path')
-                        .attr('class', function(d,i) { return 'nv-path-'+i; });
-                    pointPaths.exit().remove();
+                    // nuke all voronoi paths on reload and recreate them
+                    wrap.select('.nv-point-paths').selectAll('path').remove();
+                    var pointPaths = wrap.select('.nv-point-paths').selectAll('path').data(voronoi);
                     pointPaths
-                        .attr('d', function(d) {
+                        .enter().append("svg:path")
+                        .attr("d", function(d) {
                             if (!d || !d.data || d.data.length === 0)
-                                return 'M 0 0'
+                                return 'M 0 0';
                             else
-                                return 'M' + d.data.join('L') + 'Z';
-                        });
+                                return "M" + d.data.join(",") + "Z";
+                        })
+                        .attr("id", function(d,i) {
+                            return "nv-path-"+i; })
+                        .attr("clip-path", function(d,i) { return "url(#nv-clip-"+i+")"; })
+                        ;
+                        // chain these to above to see the voronoi elements (good for debugging)
+                        //.style("fill", d3.rgb(230, 230, 230))
+                        //.style('fill-opacity', 0.4)
+                        //.style('stroke-opacity', 1)
+                        //.style("stroke", d3.rgb(200,200,200));
+
+                    if (clipVoronoi) {
+                        // voronoi sections are already set to clip,
+                        // just create the circles with the IDs they expect
+                        var clips = wrap.append("svg:g").attr("id", "nv-point-clips");
+                        clips.selectAll("clipPath")
+                            .data(vertices)
+                            .enter().append("svg:clipPath")
+                            .attr("id", function(d, i) { return "nv-clip-"+i;})
+                            .append("svg:circle")
+                            .attr('cx', function(d) { return d[0]; })
+                            .attr('cy', function(d) { return d[1]; })
+                            .attr('r', 20);
+                    }
 
                     var mouseEventCallback = function(d,mDispatch) {
                         if (needsUpdate) return 0;
                         var series = data[d.series];
                         if (typeof series === 'undefined') return;
-
                         var point  = series.values[d.point];
 
                         mDispatch({
@@ -257,7 +256,6 @@ nv.models.scatter = function() {
                         .on('mouseout', function(d, i) {
                             mouseEventCallback(d, dispatch.elementMouseout);
                         });
-
 
                 } else {
                     /*
