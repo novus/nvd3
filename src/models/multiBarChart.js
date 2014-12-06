@@ -1,6 +1,7 @@
 
 nv.models.multiBarChart = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -57,12 +58,11 @@ nv.models.multiBarChart = function() {
     ;
 
     controls.updateState(false);
-    //============================================================
-
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
+
     var renderWatch = nv.utils.renderWatch(dispatch);
     var stacked = false;
 
@@ -94,9 +94,7 @@ nv.models.multiBarChart = function() {
                     series.disabled = !state.active[i];
                 });
         }
-    }
-
-    //============================================================
+    };
 
 
     function chart(selection) {
@@ -142,9 +140,8 @@ nv.models.multiBarChart = function() {
                         defaultState[key] = state[key];
                 }
             }
-            //------------------------------------------------------------
-            // Display noData message if there's nothing to show.
 
+            // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -163,21 +160,11 @@ nv.models.multiBarChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Scales
-
             x = multibar.xScale();
             y = multibar.yScale();
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-multiBarWithLegend').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multiBarWithLegend').append('g');
             var g = wrap.select('g');
@@ -188,19 +175,14 @@ nv.models.multiBarChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Legend
-
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
 
                 if (multibar.barColor())
                     data.forEach(function(series,i) {
                         series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
-                    })
+                    });
 
                 g.select('.nv-legendWrap')
                     .datum(data)
@@ -216,12 +198,7 @@ nv.models.multiBarChart = function() {
                     .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Controls
-
             if (showControls) {
                 var controlsData = [
                     { key: 'Grouped', disabled: multibar.stacked() },
@@ -235,39 +212,28 @@ nv.models.multiBarChart = function() {
                     .call(controls);
             }
 
-            //------------------------------------------------------------
-
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-            //------------------------------------------------------------
             // Main Chart Component(s)
-
             multibar
                 .disabled(data.map(function(series) { return series.disabled }))
                 .width(availableWidth)
                 .height(availableHeight)
                 .color(data.map(function(d,i) {
                     return d.color || color(d, i);
-                }).filter(function(d,i) { return !data[i].disabled }))
+                }).filter(function(d,i) { return !data[i].disabled }));
 
 
             var barsWrap = g.select('.nv-barsWrap')
-                .datum(data.filter(function(d) { return !d.disabled }))
+                .datum(data.filter(function(d) { return !d.disabled }));
 
             barsWrap.call(multibar);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Axes
-
             if (showXAxis) {
                 xAxis
                     .scale(x)
@@ -334,11 +300,6 @@ nv.models.multiBarChart = function() {
                     .call(yAxis);
             }
 
-
-            //------------------------------------------------------------
-
-
-
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
@@ -396,14 +357,9 @@ nv.models.multiBarChart = function() {
 
                 chart.update();
             });
-
-            //============================================================
-
-
         });
 
         renderWatch.renderEnd('multibarchart immediate');
-
         return chart;
     }
 
@@ -423,10 +379,6 @@ nv.models.multiBarChart = function() {
     dispatch.on('tooltipHide', function() {
         if (tooltips) nv.tooltip.cleanup();
     });
-
-
-    //============================================================
-
 
     //============================================================
     // Expose Public Variables
@@ -581,10 +533,7 @@ nv.models.multiBarChart = function() {
         yAxis.duration(duration);
         renderWatch.reset(duration);
         return chart;
-    }
-
-    //============================================================
-
+    };
 
     return chart;
-}
+};
