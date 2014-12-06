@@ -7,8 +7,8 @@ nv.models.scatter = function() {
     //------------------------------------------------------------
 
     var margin       = {top: 0, right: 0, bottom: 0, left: 0}
-        , width        = 960
-        , height       = 500
+        , width        = null
+        , height       = null
         , color        = nv.utils.defaultColor() // chooses color
         , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
         , x            = d3.scale.linear()
@@ -54,9 +54,12 @@ nv.models.scatter = function() {
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+            var container = d3.select(this);
+            var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                - margin.left - margin.right;
+            var availableHeight = (height || parseInt(container.style('height')) || 400)
+                - margin.top - margin.bottom;
+
             nv.utils.initSVG(container);
 
             //add series index to each data point for reference
