@@ -587,14 +587,13 @@ svg.nvd3-svg {
 
 .nvd3 .background path {
   fill: none;
-  stroke: #ccc;
+  stroke: #EEE;
   stroke-opacity: .4;
   shape-rendering: crispEdges;
 }
 
 .nvd3 .foreground path {
   fill: none;
-  stroke: steelblue;
   stroke-opacity: .7;
 }
 

@@ -23,8 +23,6 @@ module.exports = function(grunt) {
                     //Include all files in src/models, excluding some charts
                     //that are no longer supported.
                     'src/models/*.js',
-                    '!src/models/lineWithFisheye*',
-                    '!src/models/parallelCoordinates*',
                     '!src/models/multiBarTime*'
                      ],
                 dest: 'build/nv.d3.js'

@@ -32,10 +32,6 @@
     nv.addGraph(function() {
         chart = nv.models.lineChart()
             .options({
-                margin: {left: 100, bottom: 100},
-                x: function(d,i) { return i},
-                showXAxis: true,
-                showYAxis: true,
                 transitionDuration: 300,
                 useInteractiveGuideline: true
             })
@@ -51,22 +47,13 @@
             .axisLabel('Voltage (v)')
             .tickFormat(d3.format(',.2f'))
         ;
-        chart.dispatch.on('renderEnd', function(){
-            console.log('render complete');
-        });
 
         d3.select('#chart1').append('svg')
             .datum(sinAndCos())
             .call(chart);
 
-        //TODO: Figure out a good way to do this automatically
         nv.utils.windowResize(chart.update);
-        //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
 
-        chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
-        chart.state.dispatch.on('change', function(state){
-            nv.log('state', JSON.stringify(state));
-        });
         return chart;
     });
 
