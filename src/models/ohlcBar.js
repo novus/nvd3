@@ -1,13 +1,14 @@
 
 nv.models.ohlcBar = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
-        , width = 960
-        , height = 500
+        , width = null
+        , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , x = d3.scale.linear()
         , y = d3.scale.linear()
@@ -30,38 +31,32 @@ nv.models.ohlcBar = function() {
         ;
 
     //============================================================
-
-    //============================================================
     // Private Variables
     //------------------------------------------------------------
 
-    //TODO: store old scales for transitions
-
-    //============================================================
-
-
     function chart(selection) {
         selection.each(function(data) {
-            var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+            var container = d3.select(this);
+            var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                - margin.left - margin.right;
+            var availableHeight = (height || parseInt(container.style('height')) || 400)
+                - margin.top - margin.bottom;
+
             nv.utils.initSVG(container);
 
-            //------------------------------------------------------------
             // Setup Scales
-
-            x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
+            x.domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
 
             if (padData)
                 x.range(xRange || [availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
             else
                 x.range(xRange || [0, availableWidth]);
 
-            y   .domain(yDomain || [
-                d3.min(data[0].values.map(getLow).concat(forceY)),
-                d3.max(data[0].values.map(getHigh).concat(forceY))
-            ])
-                .range(yRange || [availableHeight, 0]);
+            y.domain(yDomain || [
+                    d3.min(data[0].values.map(getLow).concat(forceY)),
+                    d3.max(data[0].values.map(getHigh).concat(forceY))
+                ]
+            ).range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
             if (x.domain()[0] === x.domain()[1])
@@ -74,12 +69,7 @@ nv.models.ohlcBar = function() {
                     y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
                     : y.domain([-1,1]);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = d3.select(this).selectAll('g.nv-wrap.nv-ohlcBar').data([data[0].values]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-ohlcBar');
             var defsEnter = wrapEnter.append('defs');
@@ -89,9 +79,6 @@ nv.models.ohlcBar = function() {
             gEnter.append('g').attr('class', 'nv-ticks');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            //------------------------------------------------------------
-
 
             container
                 .on('click', function(d,i) {
@@ -103,7 +90,6 @@ nv.models.ohlcBar = function() {
                     });
                 });
 
-
             defsEnter.append('clipPath')
                 .attr('id', 'nv-chart-clip-path-' + id)
                 .append('rect');
@@ -114,13 +100,9 @@ nv.models.ohlcBar = function() {
 
             g   .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
-
-
             var ticks = wrap.select('.nv-ticks').selectAll('.nv-tick')
                 .data(function(d) { return d });
-
             ticks.exit().remove();
-
 
             var ticksEnter = ticks.enter().append('path')
                 .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
@@ -197,8 +179,10 @@ nv.models.ohlcBar = function() {
                     d3.event.stopPropagation();
                 });
 
-            ticks
-                .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
+            ticks.attr('class', function(d,i,j) {
+                return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i;
+            });
+
             d3.transition(ticks)
                 .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
                 .attr('d', function(d,i) {
@@ -221,160 +205,54 @@ nv.models.ohlcBar = function() {
                         + ',0l'
                         + (-w/2)
                         + ',0z';
-                })
-            //.attr('width', (availableWidth / data[0].values.length) * .9 )
-
-
-            //d3.transition(ticks)
-            //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-            //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
-            //.order();  // not sure if this makes any sense for this model
-
+                });
         });
 
         return chart;
     }
-
 
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
 
     chart.dispatch = dispatch;
-
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.x = function(_) {
-        if (!arguments.length) return getX;
-        getX = _;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:    {get: function(){return width;}, set: function(_){width=_;}},
+        height:   {get: function(){return height;}, set: function(_){height=_;}},
+        xScale:   {get: function(){return xScale;}, set: function(_){xScale=_;}},
+        yScale:   {get: function(){return yScale;}, set: function(_){yScale=_;}},
+        xDomain:  {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain:  {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        xRange:   {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:   {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        forceX:   {get: function(){return forceX;}, set: function(_){forceX=_;}},
+        forceY:   {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        padData:  {get: function(){return padData;}, set: function(_){padData=_;}},
+        clipEdge: {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
+        id:       {get: function(){return id;}, set: function(_){id=_;}},
 
-    chart.y = function(_) {
-        if (!arguments.length) return getY;
-        getY = _;
-        return chart;
-    };
+        x:     {get: function(){return getX;}, set: function(_){getX=_;}},
+        y:     {get: function(){return getY;}, set: function(_){getY=_;}},
+        open:  {get: function(){return getOpen();}, set: function(_){getOpen=_;}},
+        close: {get: function(){return getClose();}, set: function(_){getClose=_;}},
+        high:  {get: function(){return getHigh;}, set: function(_){getHigh=_;}},
+        low:   {get: function(){return getLow;}, set: function(_){getLow=_;}},
 
-    chart.open = function(_) {
-        if (!arguments.length) return getOpen;
-        getOpen = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }}
+    });
 
-    chart.close = function(_) {
-        if (!arguments.length) return getClose;
-        getClose = _;
-        return chart;
-    };
-
-    chart.high = function(_) {
-        if (!arguments.length) return getHigh;
-        getHigh = _;
-        return chart;
-    };
-
-    chart.low = function(_) {
-        if (!arguments.length) return getLow;
-        getLow = _;
-        return chart;
-    };
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.xScale = function(_) {
-        if (!arguments.length) return x;
-        x = _;
-        return chart;
-    };
-
-    chart.yScale = function(_) {
-        if (!arguments.length) return y;
-        y = _;
-        return chart;
-    };
-
-    chart.xDomain = function(_) {
-        if (!arguments.length) return xDomain;
-        xDomain = _;
-        return chart;
-    };
-
-    chart.yDomain = function(_) {
-        if (!arguments.length) return yDomain;
-        yDomain = _;
-        return chart;
-    };
-
-    chart.xRange = function(_) {
-        if (!arguments.length) return xRange;
-        xRange = _;
-        return chart;
-    };
-
-    chart.yRange = function(_) {
-        if (!arguments.length) return yRange;
-        yRange = _;
-        return chart;
-    };
-
-    chart.forceX = function(_) {
-        if (!arguments.length) return forceX;
-        forceX = _;
-        return chart;
-    };
-
-    chart.forceY = function(_) {
-        if (!arguments.length) return forceY;
-        forceY = _;
-        return chart;
-    };
-
-    chart.padData = function(_) {
-        if (!arguments.length) return padData;
-        padData = _;
-        return chart;
-    };
-
-    chart.clipEdge = function(_) {
-        if (!arguments.length) return clipEdge;
-        clipEdge = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
-    };
-
-    //============================================================
-
-
+    nv.utils.initOptions(chart);
     return chart;
-}
+};
