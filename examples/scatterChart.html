@@ -66,9 +66,6 @@
         nv.utils.windowResize(chart.update);
 
         chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
-        chart.state.dispatch.on('change', function(state){
-            nv.log('state', JSON.stringify(state));
-        });
         return chart;
     });
 
