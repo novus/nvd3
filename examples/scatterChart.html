@@ -47,7 +47,7 @@
             .showDistY(true)
             .useVoronoi(true)
             .color(d3.scale.category10().range())
-            .transitionDuration(300)
+            .duration(300)
         ;
         chart.dispatch.on('renderEnd', function(){
             console.log('render complete');

@@ -193,12 +193,7 @@ nv.models.scatterChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Legend
-
             if (showLegend) {
                 legend.width( availableWidth / 2 );
 
@@ -402,123 +397,43 @@ nv.models.scatterChart = function() {
     chart.distX = distX;
     chart.distY = distY;
 
-    d3.rebind(chart, scatter, 'id', 'interactive', 'pointActive', 'x', 'y', 'shape', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'sizeRange', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius', 'useVoronoi');
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showDistX:  {get: function(){return showDistX;}, set: function(_){showDistX=_;}},
+        showDistY:  {get: function(){return showDistY;}, set: function(_){showDistY=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        showXAxis:  {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis:  {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        tooltips:   {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:   {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        tooltipXContent:  {get: function(){return tooltipX;}, set: function(_){tooltipX=_;}},
+        tooltipYContent:  {get: function(){return tooltipY;}, set: function(_){tooltipY=_;}},
+        defaultState:     {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        noData:     {get: function(){return noData;}, set: function(_){noData=_;}},
+        duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
 
-    chart.options = nv.utils.optionsFunc.bind(chart);
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
+            rightAlignYAxis = _;
+            yAxis.orient( (_) ? 'right' : 'left');
+        }},
+        color: {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            legend.color(color);
+            distX.color(color);
+            distY.color(color);
+        }}
+    });
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        legend.color(color);
-        distX.color(color);
-        distY.color(color);
-        return chart;
-    };
-
-    chart.showDistX = function(_) {
-        if (!arguments.length) return showDistX;
-        showDistX = _;
-        return chart;
-    };
-
-    chart.showDistY = function(_) {
-        if (!arguments.length) return showDistY;
-        showDistY = _;
-        return chart;
-    };
-
-    chart.showLegend = function(_) {
-        if (!arguments.length) return showLegend;
-        showLegend = _;
-        return chart;
-    };
-
-    chart.showXAxis = function(_) {
-        if (!arguments.length) return showXAxis;
-        showXAxis = _;
-        return chart;
-    };
-
-    chart.showYAxis = function(_) {
-        if (!arguments.length) return showYAxis;
-        showYAxis = _;
-        return chart;
-    };
-
-    chart.rightAlignYAxis = function(_) {
-        if(!arguments.length) return rightAlignYAxis;
-        rightAlignYAxis = _;
-        yAxis.orient( (_) ? 'right' : 'left');
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    chart.tooltipXContent = function(_) {
-        if (!arguments.length) return tooltipX;
-        tooltipX = _;
-        return chart;
-    };
-
-    chart.tooltipYContent = function(_) {
-        if (!arguments.length) return tooltipY;
-        tooltipY = _;
-        return chart;
-    };
-
-    chart.defaultState = function(_) {
-        if (!arguments.length) return defaultState;
-        defaultState = _;
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_) {
-        nv.deprecated('scatterPlusLineChart.transitionDuration');
-        return chart.duration(_);
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        return chart;
-    };
-
+    nv.utils.inheritOptions(chart, scatter);
+    nv.utils.initOptions(chart);
     return chart;
 };

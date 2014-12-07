@@ -34,7 +34,7 @@
         chart = nv.models.scatterChart()
             .showDistX(true)
             .showDistY(true)
-            .transitionDuration(300)
+            .duration(300)
             .color(d3.scale.category10().range());
 
         chart.dispatch.on('renderEnd', function(){
