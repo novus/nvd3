@@ -5,6 +5,7 @@
 
 nv.models.bullet = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -26,9 +27,6 @@ nv.models.bullet = function() {
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout')
         ;
 
-    //============================================================
-
-
     function chart(selection) {
         selection.each(function(d, i) {
             var availableWidth = width - margin.left - margin.right,
@@ -43,10 +41,7 @@ nv.models.bullet = function() {
                 markerLabelz = markerLabels.call(this, d, i).slice(),
                 measureLabelz = measureLabels.call(this, d, i).slice();
 
-
-            //------------------------------------------------------------
             // Setup Scales
-
             // Compute the new x-scale.
             var x1 = d3.scale.linear()
                 .domain( d3.extent(d3.merge([forceX, rangez])) )
@@ -60,17 +55,11 @@ nv.models.bullet = function() {
             // Stash the new scale.
             this.__chart__ = x1;
 
-
             var rangeMin = d3.min(rangez), //rangez[2]
                 rangeMax = d3.max(rangez), //rangez[0]
                 rangeAvg = rangez[1];
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-bullet').data([d]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
             var gEnter = wrapEnter.append('g');
@@ -84,42 +73,22 @@ nv.models.bullet = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            //------------------------------------------------------------
-
-
-
             var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
                 w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
             var xp0 = function(d) { return d < 0 ? x0(d) : x0(0) },
                 xp1 = function(d) { return d < 0 ? x1(d) : x1(0) };
-
 
             g.select('rect.nv-rangeMax')
                 .attr('height', availableHeight)
                 .attr('width', w1(rangeMax > 0 ? rangeMax : rangeMin))
                 .attr('x', xp1(rangeMax > 0 ? rangeMax : rangeMin))
                 .datum(rangeMax > 0 ? rangeMax : rangeMin)
-            /*
-             .attr('x', rangeMin < 0 ?
-             rangeMax > 0 ?
-             x1(rangeMin)
-             : x1(rangeMax)
-             : x1(0))
-             */
 
             g.select('rect.nv-rangeAvg')
                 .attr('height', availableHeight)
                 .attr('width', w1(rangeAvg))
                 .attr('x', xp1(rangeAvg))
                 .datum(rangeAvg)
-            /*
-             .attr('width', rangeMax <= 0 ?
-             x1(rangeMax) - x1(rangeAvg)
-             : x1(rangeAvg) - x1(rangeMin))
-             .attr('x', rangeMax <= 0 ?
-             x1(rangeAvg)
-             : x1(rangeMin))
-             */
 
             g.select('rect.nv-rangeMin')
                 .attr('height', availableHeight)
@@ -128,14 +97,6 @@ nv.models.bullet = function() {
                 .attr('width', w1(rangeMax > 0 ? rangeMin : rangeMax))
                 .attr('x', xp1(rangeMax > 0 ? rangeMin : rangeMax))
                 .datum(rangeMax > 0 ? rangeMin : rangeMax)
-            /*
-             .attr('width', rangeMax <= 0 ?
-             x1(rangeAvg) - x1(rangeMin)
-             : x1(rangeMax) - x1(rangeAvg))
-             .attr('x', rangeMax <= 0 ?
-             x1(rangeMin)
-             : x1(rangeAvg))
-             */
 
             g.select('rect.nv-measure')
                 .style('fill', color)
@@ -157,7 +118,7 @@ nv.models.bullet = function() {
                         value: measurez[0],
                         label: measureLabelz[0] || 'Current'
                     })
-                })
+                });
 
             var h3 =  availableHeight / 6;
             if (markerz[0]) {
@@ -181,7 +142,6 @@ nv.models.bullet = function() {
                 g.selectAll('path.nv-markerTriangle').remove();
             }
 
-
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
                     var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
@@ -202,91 +162,43 @@ nv.models.bullet = function() {
                 });
         });
 
-        // d3.timer.flush();  // Not needed?
-
         return chart;
     }
-
 
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
 
     chart.dispatch = dispatch;
-
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    // left, right, top, bottom
-    chart.orient = function(_) {
-        if (!arguments.length) return orient;
-        orient = _;
-        reverse = orient == 'right' || orient == 'bottom';
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        ranges:      {get: function(){return ranges;}, set: function(_){ranges=_;}}, // ranges (bad, satisfactory, good)
+        markers:     {get: function(){return markers;}, set: function(_){markers=_;}}, // markers (previous, goal)
+        measures: {get: function(){return measures;}, set: function(_){measures=_;}}, // measures (actual, forecast)
+        forceX:      {get: function(){return forceX;}, set: function(_){forceX=_;}},
+        width:    {get: function(){return width;}, set: function(_){width=_;}},
+        height:    {get: function(){return height;}, set: function(_){height=_;}},
+        tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
 
-    // ranges (bad, satisfactory, good)
-    chart.ranges = function(_) {
-        if (!arguments.length) return ranges;
-        ranges = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        orient: {get: function(){return orient;}, set: function(_){ // left, right, top, bottom
+            orient = _;
+            reverse = orient == 'right' || orient == 'bottom';
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }}
+    });
 
-    // markers (previous, goal)
-    chart.markers = function(_) {
-        if (!arguments.length) return markers;
-        markers = _;
-        return chart;
-    };
-
-    // measures (actual, forecast)
-    chart.measures = function(_) {
-        if (!arguments.length) return measures;
-        measures = _;
-        return chart;
-    };
-
-    chart.forceX = function(_) {
-        if (!arguments.length) return forceX;
-        forceX = _;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.tickFormat = function(_) {
-        if (!arguments.length) return tickFormat;
-        tickFormat = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        return chart;
-    };
-
-    //============================================================
-
-
+    nv.utils.initOptions(chart);
     return chart;
 };
 

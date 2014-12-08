@@ -4,6 +4,7 @@
 // http://projects.instantcognition.com/protovis/bulletchart/
 nv.models.bulletChart = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -30,9 +31,6 @@ nv.models.bulletChart = function() {
         ;
 
     //============================================================
-
-
-    //============================================================
     // Private Variables
     //------------------------------------------------------------
 
@@ -44,9 +42,6 @@ nv.models.bulletChart = function() {
         nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
     };
 
-    //============================================================
-
-
     function chart(selection) {
         selection.each(function(d, i) {
             var container = d3.select(this);
@@ -57,11 +52,9 @@ nv.models.bulletChart = function() {
                 availableHeight = height - margin.top - margin.bottom,
                 that = this;
 
-
             chart.update = function() { chart(selection) };
             chart.container = this;
 
-            //------------------------------------------------------------
             // Display No Data message if there's nothing to show.
             if (!d || !ranges.call(this, d, i)) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
@@ -81,18 +74,11 @@ nv.models.bulletChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            //------------------------------------------------------------
-
-
-
             var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
                 markerz = markers.call(this, d, i).slice().sort(d3.descending),
                 measurez = measures.call(this, d, i).slice().sort(d3.descending);
 
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-bulletChart').data([d]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bulletChart');
             var gEnter = wrapEnter.append('g');
@@ -102,9 +88,6 @@ nv.models.bulletChart = function() {
             gEnter.append('g').attr('class', 'nv-titles');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            //------------------------------------------------------------
-
 
             // Compute the new x-scale.
             var x1 = d3.scale.linear()
@@ -119,28 +102,8 @@ nv.models.bulletChart = function() {
             // Stash the new scale.
             this.__chart__ = x1;
 
-            /*
-             // Derive width-scales from the x-scales.
-             var w0 = bulletWidth(x0),
-             w1 = bulletWidth(x1);
-
-             function bulletWidth(x) {
-             var x0 = x(0);
-             return function(d) {
-             return Math.abs(x(d) - x(0));
-             };
-             }
-
-             function bulletTranslate(x) {
-             return function(d) {
-             return 'translate(' + x(d) + ',0)';
-             };
-             }
-             */
-
             var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
                 w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
-
 
             var title = gEnter.select('.nv-titles').append('g')
                 .attr('text-anchor', 'end')
@@ -154,17 +117,12 @@ nv.models.bulletChart = function() {
                 .attr('dy', '1em')
                 .text(function(d) { return d.subtitle; });
 
-
-
             bullet
                 .width(availableWidth)
                 .height(availableHeight)
 
             var bulletWrap = g.select('.nv-bulletWrap');
-
             d3.transition(bulletWrap).call(bullet);
-
-
 
             // Compute the tick format.
             var format = tickFormat || x1.tickFormat( availableWidth / 100 );
@@ -191,7 +149,6 @@ nv.models.bulletChart = function() {
                 .attr('y', availableHeight * 7 / 6)
                 .text(format);
 
-
             // Transition the updating ticks to the new scale, x1.
             var tickUpdate = d3.transition(tick)
                 .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
@@ -210,7 +167,6 @@ nv.models.bulletChart = function() {
                 .style('opacity', 1e-6)
                 .remove();
 
-
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
@@ -220,15 +176,11 @@ nv.models.bulletChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
-            //============================================================
-
         });
 
         d3.timer.flush();
-
         return chart;
     }
-
 
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
@@ -247,95 +199,40 @@ nv.models.bulletChart = function() {
     });
 
     //============================================================
-
-
-    //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
 
-    chart.dispatch = dispatch;
     chart.bullet = bullet;
-
-    d3.rebind(chart, bullet, 'color');
-
+    chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    // left, right, top, bottom
-    chart.orient = function(x) {
-        if (!arguments.length) return orient;
-        orient = x;
-        reverse = orient == 'right' || orient == 'bottom';
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        ranges:      {get: function(){return ranges;}, set: function(_){ranges=_;}}, // ranges (bad, satisfactory, good)
+        markers:     {get: function(){return markers;}, set: function(_){markers=_;}}, // markers (previous, goal)
+        measures: {get: function(){return measures;}, set: function(_){measures=_;}}, // measures (actual, forecast)
+        width:    {get: function(){return width;}, set: function(_){width=_;}},
+        height:    {get: function(){return height;}, set: function(_){height=_;}},
+        tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
-    // ranges (bad, satisfactory, good)
-    chart.ranges = function(x) {
-        if (!arguments.length) return ranges;
-        ranges = x;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        orient: {get: function(){return orient;}, set: function(_){ // left, right, top, bottom
+            orient = _;
+            reverse = orient == 'right' || orient == 'bottom';
+        }}
+    });
 
-    // markers (previous, goal)
-    chart.markers = function(x) {
-        if (!arguments.length) return markers;
-        markers = x;
-        return chart;
-    };
-
-    // measures (actual, forecast)
-    chart.measures = function(x) {
-        if (!arguments.length) return measures;
-        measures = x;
-        return chart;
-    };
-
-    chart.width = function(x) {
-        if (!arguments.length) return width;
-        width = x;
-        return chart;
-    };
-
-    chart.height = function(x) {
-        if (!arguments.length) return height;
-        height = x;
-        return chart;
-    };
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.tickFormat = function(x) {
-        if (!arguments.length) return tickFormat;
-        tickFormat = x;
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    //============================================================
-
+    nv.utils.inheritOptions(chart, bullet);
+    nv.utils.initOptions(chart);
 
     return chart;
 };
