@@ -126,7 +126,7 @@
             .x(function(d) { return d[0] })
             .y(function(d) { return d[1] })
             .color(keyColor)
-            .transitionDuration(300);
+            .duration(300);
 
         // chart.stacked.scatter.clipVoronoi(false);
         chart.xAxis.tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });

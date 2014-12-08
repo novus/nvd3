@@ -1,6 +1,7 @@
 
 nv.models.stackedAreaChart = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -16,7 +17,7 @@ nv.models.stackedAreaChart = function() {
     var margin = {top: 30, right: 25, bottom: 50, left: 60}
         , width = null
         , height = null
-        , color = nv.utils.defaultColor() // a function that takes in d, i and returns color
+        , color = nv.utils.defaultColor()
         , showControls = true
         , showLegend = true
         , showXAxis = true
@@ -42,22 +43,15 @@ nv.models.stackedAreaChart = function() {
         ;
 
     state.style = stacked.style();
-
-    xAxis
-        .orient('bottom')
-        .tickPadding(7)
-    ;
-    yAxis
-        .orient((rightAlignYAxis) ? 'right' : 'left')
-    ;
+    xAxis.orient('bottom').tickPadding(7);
+    yAxis.orient((rightAlignYAxis) ? 'right' : 'left');
 
     controls.updateState(false);
-    //============================================================
-
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
+
     var renderWatch = nv.utils.renderWatch(dispatch);
     var style = stacked.style();
 
@@ -90,9 +84,6 @@ nv.models.stackedAreaChart = function() {
                 });
         }
     };
-
-    //============================================================
-
 
     function chart(selection) {
         renderWatch.reset();
@@ -132,9 +123,7 @@ nv.models.stackedAreaChart = function() {
                 }
             }
 
-            //------------------------------------------------------------
             // Display No Data message if there's nothing to show.
-
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -153,21 +142,11 @@ nv.models.stackedAreaChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Scales
-
             x = stacked.xScale();
             y = stacked.yScale();
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-stackedAreaChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedAreaChart').append('g');
             var g = wrap.select('g');
@@ -181,17 +160,13 @@ nv.models.stackedAreaChart = function() {
             gEnter.append('g').attr('class', 'nv-interactive');
 
             g.select("rect").attr("width",availableWidth).attr("height",availableHeight);
-            //------------------------------------------------------------
-            // Legend
 
+            // Legend
             if (showLegend) {
                 var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
-                legend
-                    .width(legendWidth);
 
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
+                legend.width(legendWidth);
+                g.select('.nv-legendWrap').datum(data).call(legend);
 
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
@@ -203,12 +178,7 @@ nv.models.stackedAreaChart = function() {
                     .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Controls
-
             if (showControls) {
                 var controlsData = [
                     {
@@ -238,7 +208,6 @@ nv.models.stackedAreaChart = function() {
                 ];
 
                 controlWidth = (cData.length/3) * 260;
-
                 controlsData = controlsData.filter(function(d) {
                     return cData.indexOf(d.metaKey) !== -1;
                 });
@@ -251,20 +220,15 @@ nv.models.stackedAreaChart = function() {
                     .datum(controlsData)
                     .call(controls);
 
-
                 if ( margin.top != Math.max(controls.height(), legend.height()) ) {
                     margin.top = Math.max(controls.height(), legend.height());
                     availableHeight = (height || parseInt(container.style('height')) || 400)
                         - margin.top - margin.bottom;
                 }
 
-
                 g.select('.nv-controlsWrap')
                     .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
-
-            //------------------------------------------------------------
-
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -273,10 +237,6 @@ nv.models.stackedAreaChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-            //------------------------------------------------------------
-            // Main Chart Component(s)
-
-            //------------------------------------------------------------
             //Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
@@ -297,15 +257,9 @@ nv.models.stackedAreaChart = function() {
 
             stackedWrap.transition().call(stacked);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Axes
-
             if (showXAxis) {
-                xAxis
-                    .scale(x)
+                xAxis.scale(x)
                     .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight, 0);
 
@@ -318,8 +272,7 @@ nv.models.stackedAreaChart = function() {
             }
 
             if (showYAxis) {
-                yAxis
-                    .scale(y)
+                yAxis.scale(y)
                     .ticks(stacked.offset() == 'wiggle' ? 0 : nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize(-availableWidth, 0)
                     .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent')
@@ -329,9 +282,6 @@ nv.models.stackedAreaChart = function() {
                     .transition().duration(0)
                     .call(yAxis);
             }
-
-            //------------------------------------------------------------
-
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -377,7 +327,6 @@ nv.models.stackedAreaChart = function() {
 
                 chart.update();
             });
-
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
@@ -485,21 +434,11 @@ nv.models.stackedAreaChart = function() {
         return chart;
     }
 
-
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
     stacked.dispatch.on('tooltipShow', function(e) {
-        //disable tooltips when value ~= 0
-        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-        /*
-         if (!Math.round(stacked.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
-         setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
-         return false;
-         }
-         */
-
         e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
         dispatch.tooltipShow(e);
     });
@@ -511,9 +450,6 @@ nv.models.stackedAreaChart = function() {
     dispatch.on('tooltipHide', function() {
         if (tooltips) nv.tooltip.cleanup();
     });
-
-    //============================================================
-
 
     //============================================================
     // Expose Public Variables
@@ -528,164 +464,60 @@ nv.models.stackedAreaChart = function() {
     chart.yAxis = yAxis;
     chart.interactiveLayer = interactiveLayer;
 
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
-    chart.state = state;
-
-    d3.rebind(chart, stacked, 'x', 'y', 'size', 'xScale', 'yScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'interactive', 'useVoronoi', 'offset', 'order', 'style', 'clipEdge', 'forceX', 'forceY', 'forceSize', 'interpolate');
-
-    chart.options = nv.utils.optionsFunc.bind(chart);
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        legend.color(color);
-        stacked.color(color);
-        return chart;
-    };
-
-    chart.showControls = function(_) {
-        if (!arguments.length) return showControls;
-        showControls = _;
-        return chart;
-    };
-
-    chart.showLegend = function(_) {
-        if (!arguments.length) return showLegend;
-        showLegend = _;
-        return chart;
-    };
-
-    chart.showXAxis = function(_) {
-        if (!arguments.length) return showXAxis;
-        showXAxis = _;
-        return chart;
-    };
-
-    chart.showYAxis = function(_) {
-        if (!arguments.length) return showYAxis;
-        showYAxis = _;
-        return chart;
-    };
-
-    chart.rightAlignYAxis = function(_) {
-        if(!arguments.length) return rightAlignYAxis;
-        rightAlignYAxis = _;
-        yAxis.orient( (_) ? 'right' : 'left');
-        return chart;
-    };
-
-    chart.useInteractiveGuideline = function(_) {
-        if(!arguments.length) return useInteractiveGuideline;
-        useInteractiveGuideline = _;
-        if (_ === true) {
-            chart.interactive(false);
-            chart.useVoronoi(false);
-        }
-        return chart;
-    };
-
-    chart.tooltip = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    // DEPRECATED
-    chart.state = function(_) {
-        nv.deprecated('stackedAreaChart.state');
-        if (!arguments.length) return state;
-        state = _;
-        return chart;
-    };
-    for (var key in state) {
-        chart.state[key] = state[key];
-    }
-    // END DEPRECATED
-
-    chart.defaultState = function(_) {
-        if (!arguments.length) return defaultState;
-        defaultState = _;
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_) {
-        nv.deprecated('lineChart.transitionDuration');
-        return chart.duration(_);
-    };
-
-    chart.controlsData = function(_) {
-        if (!arguments.length) return cData;
-        cData = _;
-        return chart;
-    };
-
-    chart.controlLabels = function(_) {
-        if (!arguments.length) return controlLabels;
-        if (typeof _ !== 'object') return controlLabels;
-        controlLabels = _;
-        return chart;
-    };
-
     yAxis.setTickFormat = yAxis.tickFormat;
 
-    yAxis.tickFormat = function(_) {
-        if (!arguments.length) return yAxisTickFormat;
-        yAxisTickFormat = _;
-        return yAxis;
-    };
+    chart.dispatch = dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        stacked.duration(duration);
-        xAxis.duration(duration);
-        yAxis.duration(duration);
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
+        yAxisTickFormat:    {get: function(){return yAxisTickFormat;}, set: function(_){yAxisTickFormat=_;}},
 
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+            stacked.duration(duration);
+            xAxis.duration(duration);
+            yAxis.duration(duration);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            legend.color(color);
+            stacked.color(color);
+        }},
+        rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
+            rightAlignYAxis = _;
+            yAxis.orient( rightAlignYAxis ? 'right' : 'left');
+        }},
+        useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
+            useInteractiveGuideline = !!_;
+            if (_) {
+                chart.interactive(false);
+                chart.useVoronoi(false);
+            }
+        }}
+    });
 
-    //============================================================
+    nv.utils.inheritOptions(chart, stacked);
+    nv.utils.initOptions(chart);
 
     return chart;
 };
