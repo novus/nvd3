@@ -20,10 +20,17 @@
             height: 100%;
             width: 100%;
         }
+        button {
+            margin: 2px;
+            margin-left: 70px;
+        }
     </style>
 </head>
 <body>
-
+<div style="position:absolute; top: 0; left: 0;">
+    <button onclick="chart.focusEnable(!chart.focusEnable()); chart.update();">toggle focus</button>
+    <span style="color: #C60;">&lt;-- turn focus on or off!</span>
+</div>
 <div id="chart1" class='with-3d-shadow with-transitions'>
     <svg> </svg>
 </div>
@@ -45,9 +52,10 @@
             return series;
         });
 
+    var chart;
     nv.addGraph(function() {
-        var chart = nv.models.linePlusBarChart()
-            .margin({top: 30, right: 60, bottom: 50, left: 70})
+        chart = nv.models.linePlusBarChart()
+            .margin({top: 50, right: 60, bottom: 30, left: 70})
             .x(function(d,i) { return i })
             .color(d3.scale.category10().range());
 
@@ -60,6 +68,9 @@
         chart.y1Axis.tickFormat(d3.format(',f'));
         chart.y2Axis.tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
         chart.bars.forceY([0]).padData(false);
+
+        chart.xAxis.showMaxMin(false);
+        chart.x2Axis.showMaxMin(false);
 
         d3.select('#chart1 svg')
             .datum(testdata)
