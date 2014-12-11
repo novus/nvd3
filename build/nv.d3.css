@@ -544,19 +544,19 @@ svg.nvd3-svg {
 */
 
 .nvd3.nv-ohlcBar .nv-ticks .nv-tick {
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
 
 .nvd3.nv-ohlcBar .nv-ticks .nv-tick.hover {
-  stroke-width: 4px;
+  stroke-width: 2px;
 }
 
 .nvd3.nv-ohlcBar .nv-ticks .nv-tick.positive {
- stroke: #2ca02c;
+    stroke: #2ca02c;
 }
 
 .nvd3.nv-ohlcBar .nv-ticks .nv-tick.negative {
- stroke: #d62728;
+    stroke: #d62728;
 }
 
 .nvd3.nv-historicalStockChart .nv-axis .nv-axislabel {
