@@ -65,8 +65,7 @@
             })
             .showMaxMin(false);
 
-        chart.y1Axis.tickFormat(d3.format(',f'));
-        chart.y2Axis.tickFormat(function(d) { return '$' + d3.format(',.2f')(d) });
+        chart.y1Axis.tickFormat(function(d) { return '$' + d3.format(',f')(d) });
         chart.bars.forceY([0]).padData(false);
 
         chart.xAxis.showMaxMin(false);
