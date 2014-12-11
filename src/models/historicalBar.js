@@ -1,13 +1,14 @@
 //TODO: consider deprecating and using multibar with single series for this
 nv.models.historicalBar = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
-        , width = 960
-        , height = 500
+        , width = null
+        , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , x = d3.scale.linear()
         , y = d3.scale.linear()
@@ -26,32 +27,32 @@ nv.models.historicalBar = function() {
         , interactive = true
         ;
 
-    //============================================================
     var renderWatch = nv.utils.renderWatch(dispatch, 0);
 
     function chart(selection) {
         selection.each(function(data) {
             renderWatch.reset();
-            var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+
+            var container = d3.select(this);
+            var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                - margin.left - margin.right;
+            var availableHeight = (height || parseInt(container.style('height')) || 400)
+                - margin.top - margin.bottom;
+
             nv.utils.initSVG(container);
 
-            //------------------------------------------------------------
             // Setup Scales
-
-            x   .domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ))
+            x.domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
 
             if (padData)
                 x.range(xRange || [availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
             else
                 x.range(xRange || [0, availableWidth]);
 
-            y   .domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) ))
+            y.domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) ))
                 .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
-
             if (x.domain()[0] === x.domain()[1])
                 x.domain()[0] ?
                     x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
@@ -62,12 +63,7 @@ nv.models.historicalBar = function() {
                     y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
                     : y.domain([-1,1]);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-historicalBar-' + id).data([data[0].values]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-historicalBar-' + id);
             var defsEnter = wrapEnter.append('defs');
@@ -75,11 +71,7 @@ nv.models.historicalBar = function() {
             var g = wrap.select('g');
 
             gEnter.append('g').attr('class', 'nv-bars');
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            //------------------------------------------------------------
-
 
             container
                 .on('click', function(d,i) {
@@ -91,7 +83,6 @@ nv.models.historicalBar = function() {
                     });
                 });
 
-
             defsEnter.append('clipPath')
                 .attr('id', 'nv-chart-clip-path-' + id)
                 .append('rect');
@@ -100,18 +91,13 @@ nv.models.historicalBar = function() {
                 .attr('width', availableWidth)
                 .attr('height', availableHeight);
 
-            g   .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
-
-
+            g.attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
             var bars = wrap.select('.nv-bars').selectAll('.nv-bar')
                 .data(function(d) { return d }, function(d,i) {return getX(d,i)});
-
             bars.exit().remove();
 
-
             var barsEnter = bars.enter().append('rect')
-                //.attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
                 .attr('x', 0 )
                 .attr('y', function(d,i) {  return nv.utils.NaNtoZero(y(Math.max(0, getY(d,i)))) })
                 .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.abs(y(getY(d,i)) - y(0))) })
@@ -175,7 +161,6 @@ nv.models.historicalBar = function() {
                 //TODO: better width calculations that don't assume always uniform data spacing;w
                 .attr('width', (availableWidth / data[0].values.length) * .9 );
 
-
             bars.watchTransition(renderWatch, 'bars')
                 .attr('y', function(d,i) {
                     var rval = getY(d,i) < 0 ?
@@ -207,6 +192,7 @@ nv.models.historicalBar = function() {
             .classed("hover", false)
         ;
     };
+
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------

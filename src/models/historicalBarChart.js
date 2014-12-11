@@ -1,11 +1,12 @@
 
-nv.models.historicalBarChart = function() {
+nv.models.historicalBarChart = function(bar_model) {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var bars = nv.models.historicalBar()
+    var bars = bar_model || nv.models.historicalBar()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
         , legend = nv.models.legend()
@@ -45,9 +46,6 @@ nv.models.historicalBarChart = function() {
     ;
 
     //============================================================
-
-
-    //============================================================
     // Private Variables
     //------------------------------------------------------------
 
@@ -73,11 +71,7 @@ nv.models.historicalBarChart = function() {
 
         nv.tooltip.show([left, top], content, null, null, offsetElement);
     };
-
     var renderWatch = nv.utils.renderWatch(dispatch, 0);
-
-    //============================================================
-
 
     function chart(selection) {
         selection.each(function(data) {
@@ -112,9 +106,7 @@ nv.models.historicalBarChart = function() {
                 }
             }
 
-            //------------------------------------------------------------
             // Display noData message if there's nothing to show.
-
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -133,21 +125,11 @@ nv.models.historicalBarChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Scales
-
             x = bars.xScale();
             y = bars.yScale();
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-historicalBarChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-historicalBarChart').append('g');
             var g = wrap.select('g');
@@ -158,12 +140,7 @@ nv.models.historicalBarChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-interactive');
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Legend
-
             if (showLegend) {
                 legend.width(availableWidth);
 
@@ -180,9 +157,6 @@ nv.models.historicalBarChart = function() {
                 wrap.select('.nv-legendWrap')
                     .attr('transform', 'translate(0,' + (-margin.top) +')')
             }
-
-            //------------------------------------------------------------
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
@@ -190,11 +164,6 @@ nv.models.historicalBarChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-
-            //------------------------------------------------------------
-            // Main Chart Component(s)
-
-            //------------------------------------------------------------
             //Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
@@ -205,7 +174,6 @@ nv.models.historicalBarChart = function() {
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
             }
-
             bars
                 .width(availableWidth)
                 .height(availableHeight)
@@ -213,18 +181,11 @@ nv.models.historicalBarChart = function() {
                     return d.color || color(d, i);
                 }).filter(function(d,i) { return !data[i].disabled }));
 
-
             var barsWrap = g.select('.nv-barsWrap')
-                .datum(data.filter(function(d) { return !d.disabled }))
-
+                .datum(data.filter(function(d) { return !d.disabled }));
             barsWrap.transition().call(bars);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Axes
-
             if (showXAxis) {
                 xAxis
                     .scale(x)
@@ -247,15 +208,13 @@ nv.models.historicalBarChart = function() {
                     .transition()
                     .call(yAxis);
             }
-            //------------------------------------------------------------
-
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
-                bars.clearHighlights()
+                bars.clearHighlights();
 
                 var singlePoint, pointIndex, pointXLocation, allData = [];
                 data
@@ -273,7 +232,8 @@ nv.models.historicalBarChart = function() {
                         allData.push({
                             key: series.key,
                             value: chart.y()(point, pointIndex),
-                            color: color(series,series.seriesIndex)
+                            color: color(series,series.seriesIndex),
+                            data: series.values[pointIndex]
                         });
                     });
 
@@ -334,7 +294,6 @@ nv.models.historicalBarChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
-
             dispatch.on('changeState', function(e) {
 
                 if (typeof e.disabled !== 'undefined') {
@@ -347,15 +306,11 @@ nv.models.historicalBarChart = function() {
 
                 chart.update();
             });
-
-            //============================================================
-
         });
 
         renderWatch.renderEnd('historicalBarChart immediate');
         return chart;
     }
-
 
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
@@ -373,9 +328,6 @@ nv.models.historicalBarChart = function() {
     dispatch.on('tooltipHide', function() {
         if (tooltips) nv.tooltip.cleanup();
     });
-
-    //============================================================
-
 
     //============================================================
     // Expose Public Variables
@@ -496,4 +448,28 @@ nv.models.historicalBarChart = function() {
 
 
     return chart;
-}
+};
+
+
+// ohlcChart is just a historical chart with oclc bars and some tweaks
+nv.models.ohlcBarChart = function() {
+    var chart = nv.models.historicalBarChart(nv.models.ohlcBar());
+
+    // special default tooltip since we show multiple values per x
+    chart.useInteractiveGuideline(true);
+    chart.interactiveLayer.tooltip.contentGenerator(function(data) {
+        // we assume only one series exists for this chart
+        var d = data.series[0].data;
+        // match line colors as defined in nv.d3.css
+        var color = d.open < d.close ? "2ca02c" : "d62728";
+        return '' +
+            '<h3 style="color: #' + color + '">' + data.value + '</h3>' +
+            '<table>' +
+            '<tr><td>open:</td><td>' + chart.yAxis.tickFormat()(d.open) + '</td></tr>' +
+            '<tr><td>close:</td><td>' + chart.yAxis.tickFormat()(d.close) + '</td></tr>' +
+            '<tr><td>high</td><td>' + chart.yAxis.tickFormat()(d.high) + '</td></tr>' +
+            '<tr><td>low:</td><td>' + chart.yAxis.tickFormat()(d.low) + '</td></tr>' +
+            '</table>';
+    });
+    return chart;
+};

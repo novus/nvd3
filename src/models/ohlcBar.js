@@ -23,11 +23,12 @@ nv.models.ohlcBar = function() {
         , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
         , clipEdge = true
         , color = nv.utils.defaultColor()
+        , interactive = false
         , xDomain
         , yDomain
         , xRange
         , yRange
-        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
         ;
 
     //============================================================
@@ -127,58 +128,13 @@ nv.models.ohlcBar = function() {
                         + ',0z';
                 })
                 .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
-                //.attr('fill', function(d,i) { return color[0]; })
-                //.attr('stroke', function(d,i) { return color[0]; })
-                //.attr('x', 0 )
-                //.attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-                //.attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) })
-                .on('mouseover', function(d,i) {
-                    d3.select(this).classed('hover', true);
-                    dispatch.elementMouseover({
-                        point: d,
-                        series: data[0],
-                        pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
-                        pointIndex: i,
-                        seriesIndex: 0,
-                        e: d3.event
-                    });
+                .attr('fill', function(d,i) { return color[0]; })
+                .attr('stroke', function(d,i) { return color[0]; })
+                .attr('x', 0 )
+                .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
+                .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
 
-                })
-                .on('mouseout', function(d,i) {
-                    d3.select(this).classed('hover', false);
-                    dispatch.elementMouseout({
-                        point: d,
-                        series: data[0],
-                        pointIndex: i,
-                        seriesIndex: 0,
-                        e: d3.event
-                    });
-                })
-                .on('click', function(d,i) {
-                    dispatch.elementClick({
-                        //label: d[label],
-                        value: getY(d,i),
-                        data: d,
-                        index: i,
-                        pos: [x(getX(d,i)), y(getY(d,i))],
-                        e: d3.event,
-                        id: id
-                    });
-                    d3.event.stopPropagation();
-                })
-                .on('dblclick', function(d,i) {
-                    dispatch.elementDblClick({
-                        //label: d[label],
-                        value: getY(d,i),
-                        data: d,
-                        index: i,
-                        pos: [x(getX(d,i)), y(getY(d,i))],
-                        e: d3.event,
-                        id: id
-                    });
-                    d3.event.stopPropagation();
-                });
-
+            // the bar colors are controlled by CSS currently
             ticks.attr('class', function(d,i,j) {
                 return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i;
             });
@@ -211,6 +167,21 @@ nv.models.ohlcBar = function() {
         return chart;
     }
 
+
+    //Create methods to allow outside functions to highlight a specific bar.
+    chart.highlightPoint = function(pointIndex, isHoverOver) {
+        chart.clearHighlights();
+        d3.select(".nv-ohlcBar .nv-tick-0-" + pointIndex)
+            .classed("hover", isHoverOver)
+        ;
+    };
+
+    chart.clearHighlights = function() {
+        d3.select(".nv-ohlcBar .nv-tick.hover")
+            .classed("hover", false)
+        ;
+    };
+
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
@@ -222,8 +193,8 @@ nv.models.ohlcBar = function() {
         // simple options, just get/set the necessary values
         width:    {get: function(){return width;}, set: function(_){width=_;}},
         height:   {get: function(){return height;}, set: function(_){height=_;}},
-        xScale:   {get: function(){return xScale;}, set: function(_){xScale=_;}},
-        yScale:   {get: function(){return yScale;}, set: function(_){yScale=_;}},
+        xScale:   {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:   {get: function(){return y;}, set: function(_){y=_;}},
         xDomain:  {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         yDomain:  {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:   {get: function(){return xRange;}, set: function(_){xRange=_;}},
@@ -233,6 +204,7 @@ nv.models.ohlcBar = function() {
         padData:  {get: function(){return padData;}, set: function(_){padData=_;}},
         clipEdge: {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
         id:       {get: function(){return id;}, set: function(_){id=_;}},
+        interactive: {get: function(){return interactive;}, set: function(_){interactive=_;}},
 
         x:     {get: function(){return getX;}, set: function(_){getX=_;}},
         y:     {get: function(){return getY;}, set: function(_){getY=_;}},
@@ -243,10 +215,10 @@ nv.models.ohlcBar = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+            margin.top    = _.top    != undefined ? _.top    : margin.top;
+            margin.right  = _.right  != undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom != undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   != undefined ? _.left   : margin.left;
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
