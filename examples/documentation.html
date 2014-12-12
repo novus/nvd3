@@ -16,6 +16,10 @@
 
     <script>
 
+        function expandall(name) {
+            $('#ul_' + name).find("li").click();
+        }
+
         function parse_options(container, obj, extra) {
             var options = [];
             // must check Array first, because Array is an Object as well.
@@ -58,19 +62,33 @@
                 'discreteBarChart',
                 'cumulativeLineChart',
                 'bulletChart',
+                'ohlcBarChart'
+            ].sort();
+            var parts = [
                 'line',
                 'axis',
                 'bullet',
                 'scatter',
-                'ohlcBar'
-            ];
+                'ohlcBar',
+                'pie',
+                'historicalBar',
+                'multiBarHorizontal',
+                'multiBar',
+                'legend',
+                'axis',
+                'sparkline',
+                'discreteBar'
+            ].sort();
             var c = $('#optionlist');
+            var jump = $('#optionjump');
+            charts = charts.concat(parts);
             for (var i in charts) {
                 var name = charts[i];
                 if (nv.models[name]) {
                     var chart = nv.models[name]();
-                    c.append("<h3>" + name + "</h3>");
-                    var ul = $('<ul>');
+                    c.append("<h3 class='option' id='" + name + "'>" + name + " <span class='expand'>[ <a href=\"javascript:expandall('" + name + "')\">toggle</a> | <a href='#'>Top</a> ]</span></h3>");
+                    jump.append("<div><a href='#" + name + "'>" + name + "</a></div>");
+                    var ul = $('<ul id="ul_' + name +'">');
                     parse_options(ul, chart);
                     if (chart._inherited) {
                         for (var j in chart._inherited) {
@@ -214,7 +232,10 @@
             chart.title('stuff').titleOffset(-10);
             chart.options({height: 500, donut: true});
         </pre>
+        <h3>Shortcuts to Charts and Chart Parts</h3>
+        <div id="optionjump"></div>
 
+        <div style="height: 50px"></div>
         <div id="optionlist"></div>
 
     </section>

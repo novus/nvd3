@@ -466,8 +466,10 @@ li.option:hover {
 }
 li.option-selected {
     color: #FF9900;
-    border-top: 1px solid #AAA;
     border-bottom: 1px solid #AAA;
+}
+li.option-selected:last-child {
+    border-bottom: 0px;
 }
 li.option div.option-info{
     color: #999;
@@ -544,6 +546,19 @@ h3, h4, h5, h6 {
 h3 {
     font-size: 18px;
     line-height: 24px;
+}
+h3.option {
+    background-color: #F2F2F2;
+    padding: 5px;
+    padding-left: 10px;
+    border-top: 5px solid #CCC;
+}
+h3 .expand {
+    font-size: 14px;
+    position: relative;
+    margin-right: 10px;
+    float: right;
+    font-weight: normal;
 }
 
 a {
