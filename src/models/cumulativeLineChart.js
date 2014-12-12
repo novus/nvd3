@@ -1,6 +1,7 @@
 
 nv.models.cumulativeLineChart = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -53,7 +54,6 @@ nv.models.cumulativeLineChart = function() {
         .orient((rightAlignYAxis) ? 'right' : 'left')
     ;
 
-    //============================================================
     controls.updateState(false);
 
     //============================================================
@@ -98,8 +98,6 @@ nv.models.cumulativeLineChart = function() {
         }
     };
 
-    //============================================================
-
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(lines);
@@ -115,7 +113,6 @@ nv.models.cumulativeLineChart = function() {
                     - margin.left - margin.right,
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
-
 
             chart.update = function() {
                 if (duration === 0)
@@ -170,9 +167,7 @@ nv.models.cumulativeLineChart = function() {
                 dispatch.stateChange(state);
             }
 
-            //------------------------------------------------------------
             // Display No Data message if there's nothing to show.
-
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -191,15 +186,9 @@ nv.models.cumulativeLineChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Scales
-
             x = lines.xScale();
             y = lines.yScale();
-
 
             if (!rescaleY) {
                 var seriesDomains = data
@@ -226,18 +215,12 @@ nv.models.cumulativeLineChart = function() {
                 lines.yDomain(null);
             }
 
-
-            dx  .domain([0, data[0].values.length - 1]) //Assumes all series have same length
+            dx.domain([0, data[0].values.length - 1]) //Assumes all series have same length
                 .range([0, availableWidth])
                 .clamp(true);
 
-            //------------------------------------------------------------
-
-
             var data = indexify(index.i, data);
 
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
             var interactivePointerEvents = (useInteractiveGuideline) ? "none" : "all";
             var wrap = container.selectAll('g.nv-wrap.nv-cumulativeLine').data([data]);
@@ -253,10 +236,7 @@ nv.models.cumulativeLineChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-
-            //------------------------------------------------------------
             // Legend
-
             if (showLegend) {
                 legend.width(availableWidth);
 
@@ -274,12 +254,7 @@ nv.models.cumulativeLineChart = function() {
                     .attr('transform', 'translate(0,' + (-margin.top) +')')
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Controls
-
             if (showControls) {
                 var controlsData = [
                     { key: 'Re-scale y-axis', disabled: !rescaleY }
@@ -297,9 +272,6 @@ nv.models.cumulativeLineChart = function() {
                     .attr('transform', 'translate(0,' + (-margin.top) +')')
                     .call(controls);
             }
-
-            //------------------------------------------------------------
-
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -320,10 +292,6 @@ nv.models.cumulativeLineChart = function() {
                     .text(tempDisabled.map(function(d) { return d.key }).join(', ') + ' values cannot be calculated for this time period.');
             }
 
-            //------------------------------------------------------------
-            // Main Chart Component(s)
-
-            //------------------------------------------------------------
             //Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
@@ -351,15 +319,10 @@ nv.models.cumulativeLineChart = function() {
                     return d.color || color(d, i);
                 }).filter(function(d,i) { return !data[i].disabled && !data[i].tempDisabled; }));
 
-
-
             var linesWrap = g.select('.nv-linesWrap')
                 .datum(data.filter(function(d) { return  !d.disabled && !d.tempDisabled }));
 
-            //d3.transition(linesWrap).call(lines);
             linesWrap.call(lines);
-
-            /*Handle average lines [AN-612] ----------------------------*/
 
             //Store a series index number in the data array.
             data.forEach(function(d,i) {
@@ -407,8 +370,7 @@ nv.models.cumulativeLineChart = function() {
 
             avgLines.exit().remove();
 
-            //Create index line -----------------------------------------
-
+            //Create index line
             var indexLine = linesWrap.selectAll('.nv-indexLine')
                 .data([index]);
             indexLine.enter().append('rect').attr('class', 'nv-indexLine')
@@ -423,12 +385,7 @@ nv.models.cumulativeLineChart = function() {
                 .attr('transform', function(d) { return 'translate(' + dx(d.i) + ',0)' })
                 .attr('height', availableHeight);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Axes
-
             if (showXAxis) {
                 xAxis
                     .scale(x)
@@ -441,7 +398,6 @@ nv.models.cumulativeLineChart = function() {
                     .call(xAxis);
             }
 
-
             if (showYAxis) {
                 yAxis
                     .scale(y)
@@ -451,13 +407,10 @@ nv.models.cumulativeLineChart = function() {
                 g.select('.nv-y.nv-axis')
                     .call(yAxis);
             }
-            //------------------------------------------------------------
-
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
-
 
             function updateZero() {
                 indexLine
@@ -502,7 +455,6 @@ nv.models.cumulativeLineChart = function() {
                 dispatch.stateChange(state);
                 chart.update();
             });
-
 
             legend.dispatch.on('stateChange', function(newState) {
                 for (var key in newState)
@@ -560,7 +512,6 @@ nv.models.cumulativeLineChart = function() {
                 )();
 
                 interactiveLayer.renderGuideLine(pointXLocation);
-
             });
 
             interactiveLayer.dispatch.on("elementMouseout",function(e) {
@@ -572,7 +523,6 @@ nv.models.cumulativeLineChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
-
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -583,7 +533,6 @@ nv.models.cumulativeLineChart = function() {
 
                     state.disabled = e.disabled;
                 }
-
 
                 if (typeof e.index !== 'undefined') {
                     index.i = e.index;
@@ -602,15 +551,12 @@ nv.models.cumulativeLineChart = function() {
                 chart.update();
             });
 
-            //============================================================
-
         });
 
         renderWatch.renderEnd('cumulativeLineChart immediate');
 
         return chart;
     }
-
 
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
@@ -628,170 +574,6 @@ nv.models.cumulativeLineChart = function() {
     dispatch.on('tooltipHide', function() {
         if (tooltips) nv.tooltip.cleanup();
     });
-
-    //============================================================
-
-
-    //============================================================
-    // Expose Public Variables
-    //------------------------------------------------------------
-
-    // expose chart's sub-components
-    chart.dispatch = dispatch;
-    chart.lines = lines;
-    chart.legend = legend;
-    chart.xAxis = xAxis;
-    chart.yAxis = yAxis;
-    chart.interactiveLayer = interactiveLayer;
-
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
-    chart.state = state;
-
-    d3.rebind(chart, lines, 'defined', 'isArea', 'x', 'y', 'xScale','yScale', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi','useVoronoi',  'id');
-
-    chart.options = nv.utils.optionsFunc.bind(chart);
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        legend.color(color);
-        return chart;
-    };
-
-    chart.rescaleY = function(_) {
-        if (!arguments.length) return rescaleY;
-        rescaleY = _;
-        return chart;
-    };
-
-    chart.showControls = function(_) {
-        if (!arguments.length) return showControls;
-        showControls = _;
-        return chart;
-    };
-
-    chart.useInteractiveGuideline = function(_) {
-        if(!arguments.length) return useInteractiveGuideline;
-        useInteractiveGuideline = _;
-        if (_ === true) {
-            chart.interactive(false);
-            chart.useVoronoi(false);
-        }
-        return chart;
-    };
-
-    chart.showLegend = function(_) {
-        if (!arguments.length) return showLegend;
-        showLegend = _;
-        return chart;
-    };
-
-    chart.showXAxis = function(_) {
-        if (!arguments.length) return showXAxis;
-        showXAxis = _;
-        return chart;
-    };
-
-    chart.showYAxis = function(_) {
-        if (!arguments.length) return showYAxis;
-        showYAxis = _;
-        return chart;
-    };
-
-    chart.rightAlignYAxis = function(_) {
-        if(!arguments.length) return rightAlignYAxis;
-        rightAlignYAxis = _;
-        yAxis.orient( (_) ? 'right' : 'left');
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    // DEPRECATED
-    chart.state = function(_) {
-        nv.deprecated('cululativeLineChart.state');
-        if (!arguments.length) return state;
-        state = _;
-        return chart;
-    };
-    for (var key in state) {
-        chart.state[key] = state[key];
-    }
-    // END DEPRECATED
-
-    chart.defaultState = function(_) {
-        if (!arguments.length) return defaultState;
-        defaultState = _;
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    chart.average = function(_) {
-        if(!arguments.length) return average;
-        average = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_) {
-        nv.deprecated('cumulativeLineChart.transitionDuration');
-        return chart.duration(_);
-    };
-
-    chart.duration = function(_) {
-        if(!arguments.length) return duration;
-        duration = _;
-        lines.duration(duration);
-        xAxis.duration(duration);
-        yAxis.duration(duration);
-        renderWatch.reset(duration);
-        return chart;
-    };
-
-    chart.noErrorCheck = function(_) {
-        if (!arguments.length) return noErrorCheck;
-        noErrorCheck = _;
-        return chart;
-    };
-
-    //============================================================
-
 
     //============================================================
     // Functions
@@ -831,7 +613,69 @@ nv.models.cumulativeLineChart = function() {
     }
 
     //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
 
+    // expose chart's sub-components
+    chart.dispatch = dispatch;
+    chart.lines = lines;
+    chart.legend = legend;
+    chart.xAxis = xAxis;
+    chart.yAxis = yAxis;
+    chart.interactiveLayer = interactiveLayer;
+    chart.state = state;
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        rescaleY:     {get: function(){return rescaleY;}, set: function(_){rescaleY=_;}},
+        showControls:     {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        average: {get: function(){return average;}, set: function(_){average=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        showXAxis:    {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        noErrorCheck:    {get: function(){return noErrorCheck;}, set: function(_){noErrorCheck=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            legend.color(color);
+        }},
+        useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
+            useInteractiveGuideline = _;
+            if (_ === true) {
+                chart.interactive(false);
+                chart.useVoronoi(false);
+            }
+        }},
+        rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
+            rightAlignYAxis = _;
+            yAxis.orient( (_) ? 'right' : 'left');
+        }},
+        duration:    {get: function(){return duration;}, set: function(_){
+            duration = _;
+            lines.duration(duration);
+            xAxis.duration(duration);
+            yAxis.duration(duration);
+            renderWatch.reset(duration);
+        }}
+    });
+
+    nv.utils.inheritOptions(chart, lines);
+    nv.utils.initOptions(chart);
 
     return chart;
 };

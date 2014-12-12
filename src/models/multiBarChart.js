@@ -96,7 +96,6 @@ nv.models.multiBarChart = function() {
         }
     };
 
-
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(multibar);
@@ -289,7 +288,6 @@ nv.models.multiBarChart = function() {
                     .style('opacity', 1);
             }
 
-
             if (showYAxis) {
                 yAxis
                     .scale(y)
@@ -363,7 +361,6 @@ nv.models.multiBarChart = function() {
         return chart;
     }
 
-
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
@@ -390,150 +387,52 @@ nv.models.multiBarChart = function() {
     chart.legend = legend;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
     chart.state = state;
-
-    d3.rebind(chart, multibar, 'x', 'y', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'clipEdge',
-        'id', 'stacked', 'stackOffset', 'delay', 'barColor','groupSpacing');
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        reduceXTicks:    {get: function(){return reduceXTicks;}, set: function(_){reduceXTicks=_;}},
+        rotateLabels:    {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
+        staggerLabels:    {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
 
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            multibar.duration(duration);
+            xAxis.duration(duration);
+            yAxis.duration(duration);
+            renderWatch.reset(duration);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            legend.color(color);
+        }},
+        rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
+            rightAlignYAxis = _;
+            yAxis.orient( rightAlignYAxis ? 'right' : 'left');
+        }}
+    });
 
-    chart.height = function(_) {
-
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        legend.color(color);
-        return chart;
-    };
-
-    chart.showControls = function(_) {
-        if (!arguments.length) return showControls;
-        showControls = _;
-        return chart;
-    };
-
-    chart.showLegend = function(_) {
-        if (!arguments.length) return showLegend;
-        showLegend = _;
-        return chart;
-    };
-
-    chart.showXAxis = function(_) {
-        if (!arguments.length) return showXAxis;
-        showXAxis = _;
-        return chart;
-    };
-
-    chart.showYAxis = function(_) {
-        if (!arguments.length) return showYAxis;
-        showYAxis = _;
-        return chart;
-    };
-
-    chart.rightAlignYAxis = function(_) {
-        if(!arguments.length) return rightAlignYAxis;
-        rightAlignYAxis = _;
-        yAxis.orient( (_) ? 'right' : 'left');
-        return chart;
-    };
-
-    chart.reduceXTicks= function(_) {
-        if (!arguments.length) return reduceXTicks;
-        reduceXTicks = _;
-        return chart;
-    };
-
-    chart.rotateLabels = function(_) {
-        if (!arguments.length) return rotateLabels;
-        rotateLabels = _;
-        return chart;
-    }
-
-    chart.staggerLabels = function(_) {
-        if (!arguments.length) return staggerLabels;
-        staggerLabels = _;
-        return chart;
-    };
-
-    chart.tooltip = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    // DEPRECATED
-    chart.state = function(_) {
-        nv.deprecated('multiBarChart.state');
-        if (!arguments.length) return state;
-        state = _;
-        return chart;
-    };
-    for (var key in state) {
-        chart.state[key] = state[key];
-    }
-    // END DEPRECATED
-
-    chart.defaultState = function(_) {
-        if (!arguments.length) return defaultState;
-        defaultState = _;
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_) {
-        nv.deprecated('multiBarChart.transitionDuration');
-        return chart.duration(_);
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        multibar.duration(duration);
-        xAxis.duration(duration);
-        yAxis.duration(duration);
-        renderWatch.reset(duration);
-        return chart;
-    };
+    nv.utils.inheritOptions(chart, multibar);
+    nv.utils.initOptions(chart);
 
     return chart;
 };

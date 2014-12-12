@@ -561,7 +561,6 @@ nv.models.linePlusBarChart = function() {
     chart.y3Axis = y3Axis;
     chart.y4Axis = y4Axis;
 
-    chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart._options = Object.create({}, {

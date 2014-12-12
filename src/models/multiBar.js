@@ -1,6 +1,7 @@
 
 nv.models.multiBar = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -31,9 +32,6 @@ nv.models.multiBar = function() {
         ;
 
     //============================================================
-
-
-    //============================================================
     // Private Variables
     //------------------------------------------------------------
 
@@ -42,11 +40,6 @@ nv.models.multiBar = function() {
         ;
 
     var last_datalength = 0;
-
-
-    //============================================================
-
-
 
     function chart(selection) {
         renderWatch.reset();
@@ -61,8 +54,7 @@ nv.models.multiBar = function() {
                 if (d.series === data.length - 1 && i === data[0].values.length - 1)
                     return true;
                 return false;
-            }
-
+            };
 
             if(hideable && data.length) hideable = [{
                 values: data[0].values.map(function(d) {
@@ -89,8 +81,6 @@ nv.models.multiBar = function() {
                 });
             });
 
-
-            //------------------------------------------------------------
             // HACK for negative value stacking
             if (stacked)
                 data[0].values.map(function(d,i) {
@@ -109,9 +99,7 @@ nv.models.multiBar = function() {
                     });
                 });
 
-            //------------------------------------------------------------
             // Setup Scales
-
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d) {
@@ -120,11 +108,10 @@ nv.models.multiBar = function() {
                     })
                 });
 
-            x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
+            x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-            //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
-            y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
                 .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -138,16 +125,10 @@ nv.models.multiBar = function() {
                     y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
                     : y.domain([-1,1]);
 
-
             x0 = x0 || x;
             y0 = y0 || y;
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-multibar').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
             var defsEnter = wrapEnter.append('defs');
@@ -155,12 +136,7 @@ nv.models.multiBar = function() {
             var g = wrap.select('g')
 
             gEnter.append('g').attr('class', 'nv-groups');
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            //------------------------------------------------------------
-
-
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-edge-clip-' + id)
@@ -169,7 +145,7 @@ nv.models.multiBar = function() {
                 .attr('width', availableWidth)
                 .attr('height', availableHeight);
 
-            g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+            g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
             var groups = wrap.select('.nv-groups').selectAll('.nv-group')
                 .data(function(d) { return d }, function(d,i) { return i });
@@ -196,12 +172,9 @@ nv.models.multiBar = function() {
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', 0.75);
 
-
             var bars = groups.selectAll('rect.nv-bar')
                 .data(function(d) { return (hideable && !data.length) ? hideable.values : d.values });
-
             bars.exit().remove();
-
 
             var barsEnter = bars.enter().append('rect')
                     .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
@@ -328,163 +301,51 @@ nv.models.multiBar = function() {
     // Expose Public Variables
     //------------------------------------------------------------
 
-    // As a getter, returns a new instance of d3 dispatch and sets appropriate vars.
-    // As a setter, sets dispatch.
-    // Useful when same chart instance is used to render several data models.
-    // Since dispatch is instance-specific, it cannot be contained inside chart model.
-
     chart.dispatch = dispatch;
-
-    chart.x = function(_) {
-        if (!arguments.length) return getX;
-        getX = _;
-        return chart;
-    };
-
-    chart.y = function(_) {
-        if (!arguments.length) return getY;
-        getY = _;
-        return chart;
-    };
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.xScale = function(_) {
-        if (!arguments.length) return x;
-        x = _;
-        return chart;
-    };
-
-    chart.yScale = function(_) {
-        if (!arguments.length) return y;
-        y = _;
-        return chart;
-    };
-
-    chart.xDomain = function(_) {
-        if (!arguments.length) return xDomain;
-        xDomain = _;
-        return chart;
-    };
-
-    chart.yDomain = function(_) {
-        if (!arguments.length) return yDomain;
-        yDomain = _;
-        return chart;
-    };
-
-    chart.xRange = function(_) {
-        if (!arguments.length) return xRange;
-        xRange = _;
-        return chart;
-    };
-
-    chart.yRange = function(_) {
-        if (!arguments.length) return yRange;
-        yRange = _;
-        return chart;
-    };
-
-    chart.forceY = function(_) {
-        if (!arguments.length) return forceY;
-        forceY = _;
-        return chart;
-    };
-
-    chart.stacked = function(_) {
-        if (!arguments.length) return stacked;
-        stacked = _;
-        return chart;
-    };
-
-    chart.stackOffset = function(_) {
-        if (!arguments.length) return stackOffset;
-        stackOffset = _;
-        return chart;
-    };
-
-    chart.clipEdge = function(_) {
-        if (!arguments.length) return clipEdge;
-        clipEdge = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.barColor = function(_) {
-        if (!arguments.length) return barColor;
-        barColor = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.disabled = function(_) {
-        if (!arguments.length) return disabled;
-        disabled = _;
-        return chart;
-    };
-
-    chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
-    };
-
-    chart.hideable = function(_) {
-        if (!arguments.length) return hideable;
-        hideable = _;
-        return chart;
-    };
-
-    chart.groupSpacing = function(_) {
-        if (!arguments.length) return groupSpacing;
-        groupSpacing = _;
-        return chart;
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        return chart;
-    }
-
-
-
-    //============================================================
-    // Deprecated Methods
-    //------------------------------------------------------------
-
-    chart.delay = function(_) {
-        nv.deprecated('multiBar.delay');
-        return chart.duration(_);
-    };
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    //============================================================
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:   {get: function(){return width;}, set: function(_){width=_;}},
+        height:  {get: function(){return height;}, set: function(_){height=_;}},
+        x:       {get: function(){return getX;}, set: function(_){getX=_;}},
+        y:       {get: function(){return getY;}, set: function(_){getY=_;}},
+        xScale:  {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:  {get: function(){return y;}, set: function(_){y=_;}},
+        xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        stacked: {get: function(){return stacked;}, set: function(_){stacked=_;}},
+        stackOffset: {get: function(){return stackOffset;}, set: function(_){stackOffset=_;}},
+        clipEdge:    {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
+        disabled:    {get: function(){return disabled;}, set: function(_){disabled=_;}},
+        id:          {get: function(){return id;}, set: function(_){id=_;}},
+        hideable:    {get: function(){return hideable;}, set: function(_){hideable=_;}},
+        groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }},
+        barColor:  {get: function(){return color;}, set: function(_){
+            barColor = nv.utils.getColor(_);
+        }}
+    });
+
+    nv.utils.initOptions(chart);
 
     return chart;
-}
+};
