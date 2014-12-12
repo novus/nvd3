@@ -91,7 +91,7 @@ nv.models.axis = function() {
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
-                                return 'translate(' + scale(d) + ',0)'
+                                return 'translate(' + nv.utils.NaNtoZero(scale(d)) + ',0)'
                             })
                             .select('text')
                             .attr('dy', '-0.5em')
@@ -103,7 +103,7 @@ nv.models.axis = function() {
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max top')
                             .attr('transform', function(d,i) {
-                                return 'translate(' + scale.range()[i] + ',0)'
+                                return 'translate(' + nv.utils.NaNtoZero(scale.range()[i]) + ',0)'
                             });
                     }
                     break;
@@ -147,7 +147,7 @@ nv.models.axis = function() {
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
-                                return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
+                                return 'translate(' + nv.utils.NaNtoZero((scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0))) + ',0)'
                             })
                             .select('text')
                             .attr('dy', '.71em')
@@ -160,12 +160,12 @@ nv.models.axis = function() {
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max bottom')
                             .attr('transform', function(d,i) {
-                                return 'translate(' + (scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0)) + ',0)'
+                                return 'translate(' + nv.utils.NaNtoZero((scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0))) + ',0)'
                             });
                     }
                     if (staggerLabels)
                         xTicks
-                            .attr('transform', function(d,i) { return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')' });
+                            .attr('transform', function(d,i) { return 'translate(0,' + nv.utils.NaNtoZero((i % 2 == 0 ? '0' : '12')) + ')' });
 
                     break;
                 case 'right':
@@ -279,9 +279,9 @@ nv.models.axis = function() {
                                 maxMinRange.push(scale(d) + this.getBoundingClientRect().width + 4)
                         }catch (err) {
                             if (i) // i== 1, max position
-                                maxMinRange.push(scale(d) - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+                                maxMinRange.push(scale(d) - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
                             else // i==0, min position
-                                maxMinRange.push(scale(d) + 4)
+                                maxMinRange.push(scale(d) + 4);
                         }
                     });
                 // the g's wrapping each tick

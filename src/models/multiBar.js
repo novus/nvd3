@@ -21,7 +21,7 @@ nv.models.multiBar = function() {
         , hideable = false
         , barColor = null // adding the ability to set the color for each rather than the whole group
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-        , duration = 1000
+        , duration = 500
         , xDomain
         , yDomain
         , xRange
@@ -40,6 +40,8 @@ nv.models.multiBar = function() {
     var x0, y0 //used to store previous scales
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         ;
+
+    var last_datalength = 0;
 
 
     //============================================================
@@ -176,13 +178,14 @@ nv.models.multiBar = function() {
                 .style('fill-opacity', 1e-6);
 
             var exitTransition = renderWatch
-                .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(250, duration))
-                .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
+                .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(100, duration))
+                .attr('y', function(d) { return (stacked ? y0(d.y0) : y0(0)) || 0 })
                 .attr('height', 0)
                 .remove();
             if (exitTransition.delay)
                 exitTransition.delay(function(d,i) {
-                    return i * duration / data[0].values.length;
+                    var delay = i * (duration / (last_datalength + 1)) - i;
+                    return delay;
                 });
             groups
                 .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
@@ -205,7 +208,7 @@ nv.models.multiBar = function() {
                     .attr('x', function(d,i,j) {
                         return stacked ? 0 : (j * x.rangeBand() / data.length )
                     })
-                    .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
+                    .attr('y', function(d) { return y0(stacked ? d.y0 : 0) || 0 })
                     .attr('height', 0)
                     .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
                     .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
@@ -308,6 +311,11 @@ nv.models.multiBar = function() {
             //store old scales for use in transitions on update
             x0 = x.copy();
             y0 = y.copy();
+
+            // keep track of the last data value length for transition calculations
+            if (data[0] && data[0].values) {
+                last_datalength = data[0].values.length;
+            }
 
         });
 
