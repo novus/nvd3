@@ -1,6 +1,7 @@
 
 nv.models.multiBarHorizontal = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -33,18 +34,11 @@ nv.models.multiBarHorizontal = function() {
         ;
 
     //============================================================
-
-
-    //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var x0, y0; //used to store previous scales
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-
-
-    //============================================================
-
 
     function chart(selection) {
         renderWatch.reset();
@@ -61,7 +55,6 @@ nv.models.multiBarHorizontal = function() {
                     .y(getY)
                 (data);
 
-
             //add series index to each data point for reference
             data.forEach(function(series, i) {
                 series.values.forEach(function(point) {
@@ -69,9 +62,6 @@ nv.models.multiBarHorizontal = function() {
                 });
             });
 
-
-
-            //------------------------------------------------------------
             // HACK for negative value stacking
             if (stacked)
                 data[0].values.map(function(d,i) {
@@ -90,11 +80,7 @@ nv.models.multiBarHorizontal = function() {
                     });
                 });
 
-
-
-            //------------------------------------------------------------
             // Setup Scales
-
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d) {
@@ -103,11 +89,10 @@ nv.models.multiBarHorizontal = function() {
                     })
                 });
 
-            x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
+            x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableHeight], .1);
 
-            //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y0 : 0) }).concat(forceY)))
-            y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
 
             if (showValues && !stacked)
                 y.range(yRange || [(y.domain()[0] < 0 ? valuePadding : 0), availableWidth - (y.domain()[1] > 0 ? valuePadding : 0) ]);
@@ -117,12 +102,7 @@ nv.models.multiBarHorizontal = function() {
             x0 = x0 || x;
             y0 = y0 || d3.scale.linear().domain(y.domain()).range([y(0),y(0)]);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibarHorizontal').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibarHorizontal');
             var defsEnter = wrapEnter.append('defs');
@@ -130,12 +110,7 @@ nv.models.multiBarHorizontal = function() {
             var g = wrap.select('g');
 
             gEnter.append('g').attr('class', 'nv-groups');
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            //------------------------------------------------------------
-
-
 
             var groups = wrap.select('.nv-groups').selectAll('.nv-group')
                 .data(function(d) { return d }, function(d,i) { return i });
@@ -155,12 +130,9 @@ nv.models.multiBarHorizontal = function() {
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', .75);
 
-
             var bars = groups.selectAll('g.nv-bar')
                 .data(function(d) { return d.values });
-
             bars.exit().remove();
-
 
             var barsEnter = bars.enter().append('g')
                 .attr('transform', function(d,i,j) {
@@ -254,7 +226,7 @@ nv.models.multiBarHorizontal = function() {
                         if (!yerr.length)
                             return t + '&plusmn;' + valueFormat(Math.abs(yerr));
                         return t + '+' + valueFormat(Math.abs(yerr[1])) + '-' + valueFormat(Math.abs(yerr[0]));
-                    })
+                    });
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .select('text')
                     .attr('x', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
@@ -315,7 +287,6 @@ nv.models.multiBarHorizontal = function() {
                         return Math.max(Math.abs(y(getY(d,i)) - y(0)),1)
                     });
 
-
             //store old scales for use in transitions on update
             x0 = x.copy();
             y0 = y.copy();
@@ -326,7 +297,6 @@ nv.models.multiBarHorizontal = function() {
         return chart;
     }
 
-
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
@@ -335,157 +305,48 @@ nv.models.multiBarHorizontal = function() {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.x = function(_) {
-        if (!arguments.length) return getX;
-        getX = _;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:   {get: function(){return width;}, set: function(_){width=_;}},
+        height:  {get: function(){return height;}, set: function(_){height=_;}},
+        x:       {get: function(){return getX;}, set: function(_){getX=_;}},
+        y:       {get: function(){return getY;}, set: function(_){getY=_;}},
+        yErr:       {get: function(){return getYerr;}, set: function(_){getYerr=_;}},
+        xScale:  {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:  {get: function(){return y;}, set: function(_){y=_;}},
+        xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        stacked: {get: function(){return stacked;}, set: function(_){stacked=_;}},
+        showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
+        showBarLabels:    {get: function(){return showBarLabels;}, set: function(_){showBarLabels=_;}},
+        disabled:     {get: function(){return disabled;}, set: function(_){disabled=_;}},
+        id:           {get: function(){return id;}, set: function(_){id=_;}},
+        valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
+        valuePadding: {get: function(){return valuePadding;}, set: function(_){valuePadding=_;}},
 
-    chart.y = function(_) {
-        if (!arguments.length) return getY;
-        getY = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }},
+        barColor:  {get: function(){return color;}, set: function(_){
+            barColor = nv.utils.getColor(_);
+        }}
+    });
 
-    chart.yErr = function(_) {
-        if (!arguments.length) return getYerr;
-        getYerr = _;
-        return chart;
-    };
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.xScale = function(_) {
-        if (!arguments.length) return x;
-        x = _;
-        return chart;
-    };
-
-    chart.yScale = function(_) {
-        if (!arguments.length) return y;
-        y = _;
-        return chart;
-    };
-
-    chart.xDomain = function(_) {
-        if (!arguments.length) return xDomain;
-        xDomain = _;
-        return chart;
-    };
-
-    chart.yDomain = function(_) {
-        if (!arguments.length) return yDomain;
-        yDomain = _;
-        return chart;
-    };
-
-    chart.xRange = function(_) {
-        if (!arguments.length) return xRange;
-        xRange = _;
-        return chart;
-    };
-
-    chart.yRange = function(_) {
-        if (!arguments.length) return yRange;
-        yRange = _;
-        return chart;
-    };
-
-    chart.forceY = function(_) {
-        if (!arguments.length) return forceY;
-        forceY = _;
-        return chart;
-    };
-
-    chart.stacked = function(_) {
-        if (!arguments.length) return stacked;
-        stacked = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.barColor = function(_) {
-        if (!arguments.length) return barColor;
-        barColor = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.disabled = function(_) {
-        if (!arguments.length) return disabled;
-        disabled = _;
-        return chart;
-    };
-
-    chart.id = function(_) {
-        if (!arguments.length) return id;
-        id = _;
-        return chart;
-    };
-
-    chart.delay = function(_) {
-        if (!arguments.length) return delay;
-        delay = _;
-        return chart;
-    };
-
-    chart.showValues = function(_) {
-        if (!arguments.length) return showValues;
-        showValues = _;
-        return chart;
-    };
-
-    chart.showBarLabels = function(_) {
-        if (!arguments.length) return showBarLabels;
-        showBarLabels = _;
-        return chart;
-    };
-
-
-    chart.valueFormat= function(_) {
-        if (!arguments.length) return valueFormat;
-        valueFormat = _;
-        return chart;
-    };
-
-    chart.valuePadding = function(_) {
-        if (!arguments.length) return valuePadding;
-        valuePadding = _;
-        return chart;
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        return chart;
-    };
-
-    //============================================================
-
+    nv.utils.initOptions(chart);
 
     return chart;
-}
+};

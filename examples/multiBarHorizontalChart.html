@@ -167,7 +167,7 @@
             .y(function(d) { return d.value })
             .yErr(function(d) { return [-Math.abs(d.value * Math.random() * 0.3), Math.abs(d.value * Math.random() * 0.3)] })
             .barColor(d3.scale.category20().range())
-            .transitionDuration(250)
+            .duration(250)
             .stacked(true);
 
         chart.yAxis.tickFormat(d3.format(',.2f'));

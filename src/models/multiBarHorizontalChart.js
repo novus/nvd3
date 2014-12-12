@@ -1,6 +1,7 @@
 
 nv.models.multiBarHorizontalChart = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -54,13 +55,10 @@ nv.models.multiBarHorizontalChart = function() {
     ;
 
     controls.updateState(false);
-    //============================================================
-
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
-
 
     var showTooltip = function(e, offsetElement) {
         var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -92,7 +90,6 @@ nv.models.multiBarHorizontalChart = function() {
         }
     };
 
-    //============================================================
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
     function chart(selection) {
@@ -134,9 +131,7 @@ nv.models.multiBarHorizontalChart = function() {
                 }
             }
 
-            //------------------------------------------------------------
             // Display No Data message if there's nothing to show.
-
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -155,21 +150,11 @@ nv.models.multiBarHorizontalChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Scales
-
             x = multibar.xScale();
             y = multibar.yScale();
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-multiBarHorizontalChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multiBarHorizontalChart').append('g');
             var g = wrap.select('g');
@@ -182,12 +167,7 @@ nv.models.multiBarHorizontalChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Legend
-
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
 
@@ -210,12 +190,7 @@ nv.models.multiBarHorizontalChart = function() {
                     .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Controls
-
             if (showControls) {
                 var controlsData = [
                     { key: 'Grouped', disabled: multibar.stacked() },
@@ -229,15 +204,9 @@ nv.models.multiBarHorizontalChart = function() {
                     .call(controls);
             }
 
-            //------------------------------------------------------------
-
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-
-            //------------------------------------------------------------
             // Main Chart Component(s)
-
             multibar
                 .disabled(data.map(function(series) { return series.disabled }))
                 .width(availableWidth)
@@ -251,12 +220,7 @@ nv.models.multiBarHorizontalChart = function() {
 
             barsWrap.transition().call(multibar);
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Axes
-
             if (showXAxis) {
                 xAxis
                     .scale(x)
@@ -289,10 +253,6 @@ nv.models.multiBarHorizontalChart = function() {
                 .attr("y1", 0)
                 .attr("y2", -availableHeight)
             ;
-
-            //------------------------------------------------------------
-
-
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -352,13 +312,10 @@ nv.models.multiBarHorizontalChart = function() {
 
                 chart.update();
             });
-            //============================================================
-
         });
         renderWatch.renderEnd('multibar horizontal chart immediate');
         return chart;
     }
-
 
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
@@ -377,9 +334,6 @@ nv.models.multiBarHorizontalChart = function() {
     });
 
     //============================================================
-
-
-    //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
 
@@ -389,125 +343,45 @@ nv.models.multiBarHorizontalChart = function() {
     chart.legend = legend;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
-
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
     chart.state = state;
-
-    d3.rebind(chart, multibar, 'x', 'y', 'yErr', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY',
-        'clipEdge', 'id', 'delay', 'showValues','showBarLabels', 'valueFormat', 'stacked', 'barColor');
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+            multibar.duration(duration);
+            xAxis.duration(duration);
+            yAxis.duration(duration);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            legend.color(color);
+        }}
+    });
 
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        legend.color(color);
-        return chart;
-    };
-
-    chart.showControls = function(_) {
-        if (!arguments.length) return showControls;
-        showControls = _;
-        return chart;
-    };
-
-    chart.showLegend = function(_) {
-        if (!arguments.length) return showLegend;
-        showLegend = _;
-        return chart;
-    };
-
-    chart.showXAxis = function(_) {
-        if (!arguments.length) return showXAxis;
-        showXAxis = _;
-        return chart;
-    };
-
-    chart.showYAxis = function(_) {
-        if (!arguments.length) return showYAxis;
-        showYAxis = _;
-        return chart;
-    };
-
-    chart.tooltip = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    // DEPRECATED
-    chart.state = function(_) {
-        nv.deprecated('multiBarHorizontalChart.state');
-        if (!arguments.length) return state;
-        state = _;
-        return chart;
-    };
-    for (var key in state) {
-        chart.state[key] = state[key];
-    }
-    // END DEPRECATED
-
-    chart.defaultState = function(_) {
-        if (!arguments.length) return defaultState;
-        defaultState = _;
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_) {
-        nv.deprecated('multiBarHorizontalChart.transitionDuration');
-        return chart.duration(_);
-    };
-
-    chart.duration = function(_) {
-        if (!arguments.length) return duration;
-        duration = _;
-        renderWatch.reset(duration);
-        multibar.duration(duration);
-        xAxis.duration(duration);
-        yAxis.duration(duration);
-        return chart;
-    };
-    //============================================================
+    nv.utils.inheritOptions(chart, multibar);
+    nv.utils.initOptions(chart);
 
     return chart;
 };
