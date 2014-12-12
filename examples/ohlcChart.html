@@ -207,7 +207,7 @@
         var chart = nv.models.ohlcBarChart()
             .x(function(d) { return d['date'] })
             .y(function(d) { return d['close'] })
-            .transitionDuration(250)
+            .duration(250)
             .margin({left: 75, bottom: 50});
 
         // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
