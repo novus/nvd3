@@ -1,5 +1,6 @@
 nv.models.legend = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -16,26 +17,18 @@ nv.models.legend = function() {
         , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
         ;
 
-    //============================================================
-
-
     function chart(selection) {
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
                 container = d3.select(this);
             nv.utils.initSVG(container);
 
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-legend').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
             var g = wrap.select('g');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            //------------------------------------------------------------
-
 
             var series = g.selectAll('.nv-series')
                 .data(function(d) { return d });
@@ -98,9 +91,7 @@ nv.models.legend = function() {
                 .style('stroke', function(d,i) { return d.color || color(d, i) });
             series.select('text').text(getKey);
 
-
             //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
-
             // NEW ALIGNING CODE, TODO: clean up
             if (align) {
 
@@ -129,7 +120,6 @@ nv.models.legend = function() {
                     legendWidth += seriesWidths[seriesPerRow++];
                 }
                 if (seriesPerRow === 0) seriesPerRow = 1; //minimum of one series per row
-
 
                 while ( legendWidth > availableWidth && seriesPerRow > 1 ) {
                     columnWidths = [];
@@ -192,14 +182,11 @@ nv.models.legend = function() {
                 g.attr('transform', 'translate(' + (width - margin.right - maxwidth) + ',' + margin.top + ')');
 
                 height = margin.top + margin.bottom + ypos + 15;
-
             }
-
         });
 
         return chart;
     }
-
 
     //============================================================
     // Expose Public Variables
@@ -208,65 +195,29 @@ nv.models.legend = function() {
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        key: {get: function(){return getKey;}, set: function(_){getKey=_;}},
+        align:      {get: function(){return align;}, set: function(_){align=_;}},
+        rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
+        updateState:    {get: function(){return updateState;}, set: function(_){updateState=_;}},
+        radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
 
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }}
+    });
 
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.key = function(_) {
-        if (!arguments.length) return getKey;
-        getKey = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color = nv.utils.getColor(_);
-        return chart;
-    };
-
-    chart.align = function(_) {
-        if (!arguments.length) return align;
-        align = _;
-        return chart;
-    };
-
-    chart.rightAlign = function(_) {
-        if (!arguments.length) return rightAlign;
-        rightAlign = _;
-        return chart;
-    };
-
-    chart.updateState = function(_) {
-        if (!arguments.length) return updateState;
-        updateState = _;
-        return chart;
-    };
-
-    chart.radioButtonMode = function(_) {
-        if (!arguments.length) return radioButtonMode;
-        radioButtonMode = _;
-        return chart;
-    };
-
-    //============================================================
-
+    nv.utils.initOptions(chart);
 
     return chart;
-}
+};

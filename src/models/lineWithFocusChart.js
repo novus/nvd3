@@ -1,5 +1,6 @@
 nv.models.lineWithFocusChart = function() {
     "use strict";
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -58,8 +59,6 @@ nv.models.lineWithFocusChart = function() {
     y2Axis
         .orient('left')
     ;
-    //============================================================
-
 
     //============================================================
     // Private Variables
@@ -91,9 +90,6 @@ nv.models.lineWithFocusChart = function() {
                 });
         }
     };
-
-    //============================================================
-
 
     function chart(selection) {
         selection.each(function(data) {
@@ -128,9 +124,7 @@ nv.models.lineWithFocusChart = function() {
                 }
             }
 
-            //------------------------------------------------------------
             // Display No Data message if there's nothing to show.
-
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -149,23 +143,13 @@ nv.models.lineWithFocusChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Scales
-
             x = lines.xScale();
             y = lines.yScale();
             x2 = lines2.xScale();
             y2 = lines2.yScale();
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup containers and skeleton of chart
-
             var wrap = container.selectAll('g.nv-wrap.nv-lineWithFocusChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineWithFocusChart').append('g');
             var g = wrap.select('g');
@@ -184,12 +168,7 @@ nv.models.lineWithFocusChart = function() {
             contextEnter.append('g').attr('class', 'nv-brushBackground');
             contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Legend
-
             if (showLegend) {
                 legend.width(availableWidth);
 
@@ -207,15 +186,9 @@ nv.models.lineWithFocusChart = function() {
                     .attr('transform', 'translate(0,' + (-margin.top) +')')
             }
 
-            //------------------------------------------------------------
-
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-
-            //------------------------------------------------------------
             // Main Chart Component(s)
-
             lines
                 .width(availableWidth)
                 .height(availableHeight1)
@@ -251,20 +224,7 @@ nv.models.lineWithFocusChart = function() {
 
             d3.transition(contextLinesWrap).call(lines2);
 
-            //------------------------------------------------------------
-
-
-            /*
-             var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-             .datum(data.filter(function(d) { return !d.disabled }))
-
-             d3.transition(focusLinesWrap).call(lines);
-             */
-
-
-            //------------------------------------------------------------
             // Setup Main (Focus) Axes
-
             xAxis
                 .scale(x)
                 .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
@@ -278,12 +238,7 @@ nv.models.lineWithFocusChart = function() {
             g.select('.nv-focus .nv-x.nv-axis')
                 .attr('transform', 'translate(0,' + availableHeight1 + ')');
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Brush
-
             brush
                 .x(x2)
                 .on('brush', function() {
@@ -323,12 +278,7 @@ nv.models.lineWithFocusChart = function() {
 
             onBrush();
 
-            //------------------------------------------------------------
-
-
-            //------------------------------------------------------------
             // Setup Secondary (Context) Axes
-
             x2Axis
                 .scale(x2)
                 .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
@@ -349,9 +299,6 @@ nv.models.lineWithFocusChart = function() {
 
             g.select('.nv-context .nv-x.nv-axis')
                 .attr('transform', 'translate(0,' + y2.range()[0] + ')');
-
-            //------------------------------------------------------------
-
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -376,9 +323,6 @@ nv.models.lineWithFocusChart = function() {
                 }
                 chart.update();
             });
-
-            //============================================================
-
 
             //============================================================
             // Functions
@@ -456,15 +400,10 @@ nv.models.lineWithFocusChart = function() {
                 g.select('.nv-focus .nv-y.nv-axis').transition().duration(transitionDuration)
                     .call(yAxis);
             }
-
-            //============================================================
-
-
         });
 
         return chart;
     }
-
 
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
@@ -484,9 +423,6 @@ nv.models.lineWithFocusChart = function() {
     });
 
     //============================================================
-
-
-    //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
 
@@ -500,146 +436,62 @@ nv.models.lineWithFocusChart = function() {
     chart.x2Axis = x2Axis;
     chart.y2Axis = y2Axis;
 
-    // DO NOT DELETE. This is currently overridden below
-    // until deprecated portions are removed.
-    chart.state = state;
-
-    d3.rebind(chart, lines, 'defined', 'isArea', 'size', 'xDomain', 'yDomain', 'xRange', 'yRange', 'forceX', 'forceY', 'interactive', 'clipEdge', 'clipVoronoi', 'id');
-
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.x = function(_) {
-        if (!arguments.length) return lines.x;
-        lines.x(_);
-        lines2.x(_);
-        return chart;
-    };
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        focusHeight:     {get: function(){return height2;}, set: function(_){height2=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        brushExtent: {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
-    chart.y = function(_) {
-        if (!arguments.length) return lines.y;
-        lines.y(_);
-        lines2.y(_);
-        return chart;
-    };
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            legend.color(color);
+            // line color is handled above?
+        }},
+        interpolate: {get: function(){return lines.interpolate();}, set: function(_){
+            lines.interpolate(_);
+            lines2.interpolate(_);
+        }},
+        xTickFormat: {get: function(){return xAxis.xTickFormat();}, set: function(_){
+            xAxis.xTickFormat(_);
+            x2Axis.xTickFormat(_);
+        }},
+        yTickFormat: {get: function(){return yAxis.yTickFormat();}, set: function(_){
+            yAxis.yTickFormat(_);
+            y2Axis.yTickFormat(_);
+        }},
+        duration:    {get: function(){return transitionDuration;}, set: function(_){
+            transitionDuration=_;
+            renderWatch.reset(transitionDuration);
+            yAxis.duration(transitionDuration);
+            xAxis.duration(transitionDuration);
+        }},
+        x: {get: function(){return lines.x();}, set: function(_){
+            lines.x(_);
+            lines2.x(_);
+        }},
+        y: {get: function(){return lines.y();}, set: function(_){
+            lines.y(_);
+            lines2.y(_);
+        }}
+    });
 
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.margin2 = function(_) {
-        if (!arguments.length) return margin2;
-        margin2 = _;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.height2 = function(_) {
-        if (!arguments.length) return height2;
-        height2 = _;
-        return chart;
-    };
-
-    chart.color = function(_) {
-        if (!arguments.length) return color;
-        color =nv.utils.getColor(_);
-        legend.color(color);
-        return chart;
-    };
-
-    chart.showLegend = function(_) {
-        if (!arguments.length) return showLegend;
-        showLegend = _;
-        return chart;
-    };
-
-    chart.tooltips = function(_) {
-        if (!arguments.length) return tooltips;
-        tooltips = _;
-        return chart;
-    };
-
-    chart.tooltipContent = function(_) {
-        if (!arguments.length) return tooltip;
-        tooltip = _;
-        return chart;
-    };
-
-    // DEPRECATED
-    chart.state = function(_) {
-        nv.deprecated('lineWithFocusChart.state');
-        if (!arguments.length) return state;
-        state = _;
-        return chart;
-    };
-    for (var key in state) {
-        chart.state[key] = state[key];
-    }
-    // END DEPRECATED
-
-    chart.defaultState = function(_) {
-        if (!arguments.length) return defaultState;
-        defaultState = _;
-        return chart;
-    };
-
-    chart.interpolate = function(_) {
-        if (!arguments.length) return lines.interpolate();
-        lines.interpolate(_);
-        lines2.interpolate(_);
-        return chart;
-    };
-
-    chart.noData = function(_) {
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    // Chart has multiple similar Axes, to prevent code duplication, probably need to link all axis functions manually like below
-    chart.xTickFormat = function(_) {
-        if (!arguments.length) return xAxis.tickFormat();
-        xAxis.tickFormat(_);
-        x2Axis.tickFormat(_);
-        return chart;
-    };
-
-    chart.yTickFormat = function(_) {
-        if (!arguments.length) return yAxis.tickFormat();
-        yAxis.tickFormat(_);
-        y2Axis.tickFormat(_);
-        return chart;
-    };
-
-    chart.brushExtent = function(_) {
-        if (!arguments.length) return brushExtent;
-        brushExtent = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_) {
-        if (!arguments.length) return transitionDuration;
-        transitionDuration = _;
-        return chart;
-    };
-
-    //============================================================
-
+    nv.utils.inheritOptions(chart, lines);
+    nv.utils.initOptions(chart);
 
     return chart;
-}
+};
