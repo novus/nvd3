@@ -585,7 +585,7 @@ nv.models.linePlusBarChart = function() {
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
         }},
-        duration: {get: function(){return duration;}, set: function(_){
+        duration: {get: function(){return transitionDuration;}, set: function(_){
             transitionDuration = _;
         }},
         color:  {get: function(){return color;}, set: function(_){
