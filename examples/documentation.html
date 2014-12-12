@@ -20,6 +20,10 @@
             $('#ul_' + name).find("li").click();
         }
 
+        function expandchart(name) {
+            $('#ul_' + name).toggle();
+        }
+
         function parse_options(container, obj, extra) {
             var options = [];
             // must check Array first, because Array is an Object as well.
@@ -82,12 +86,41 @@
             var c = $('#optionlist');
             var jump = $('#optionjump');
             charts = charts.concat(parts);
+
+            // loop through chart options, build the list of options for each
             for (var i in charts) {
                 var name = charts[i];
                 if (nv.models[name]) {
                     var chart = nv.models[name]();
-                    c.append("<h3 class='option' id='" + name + "'>" + name + " <span class='expand'>[ <a href=\"javascript:expandall('" + name + "')\">toggle</a> | <a href='#'>Top</a> ]</span></h3>");
+
+                    // add the chart object name, and jump link to it
+                    c.append("<h3 class='option' id='" + name + "'>" + name + " <span class='expand'>[ <a href=\"javascript:expandchart('" + name + "')\">toggle</a> | <a href=\"javascript:expandall('" + name + "')\">toggle options</a> | <a href='#'>Top</a> ]</span></h3>");
                     jump.append("<div><a href='#" + name + "'>" + name + "</a></div>");
+
+                    // build list of sub-components for this chart object
+                    var props = Object.getOwnPropertyNames(chart);
+                    var propdom = $('<div></div>');
+                    var proplist = {};
+                    for (var p in props) {
+                        try {
+                            var prop = chart[props[p]];
+                            if ((prop instanceof Object) && !(prop instanceof Array) && prop._options) {
+                                proplist[props[p]] = props[p];
+                            }
+                        }catch(e) {}
+                    }
+                    // only add sub-component list if some exist.
+                    if (Object.keys(proplist).length > 0) {
+                        propdom.append($('<span>Components: </span>'));
+                        var pstrings = [];
+                        for (var p in proplist) {
+                            pstrings.push('<span class="prop">' + p + '</span>');
+                        }
+                        propdom.append($(pstrings.join(', ')));
+                        c.append(propdom);
+                    }
+
+                    // build the list of options for this chart object
                     var ul = $('<ul id="ul_' + name +'">');
                     parse_options(ul, chart);
                     if (chart._inherited) {
@@ -107,7 +140,7 @@
                 }
             }
 
-            console.log($('.option'));
+            // set each option so if it's clicked, it will build and display the option information
             $('.option').click(function(evt) {
                 var a = $(evt.target);
                 var name = a.prop('name');
