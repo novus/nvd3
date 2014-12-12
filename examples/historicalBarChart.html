@@ -33,7 +33,7 @@
         chart
             .margin({left: 100, bottom: 100})
             .useInteractiveGuideline(true)
-            .transitionDuration(250)
+            .duration(250)
             ;
 
         // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
@@ -49,7 +49,7 @@
 
         d3.select('#test1')
             .datum(sinData())
-            .transition().duration(0)
+            .transition()
             .call(chart);
 
         nv.utils.windowResize(chart.update);
