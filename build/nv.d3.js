@@ -1,4 +1,4 @@
-/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-12-12 */
+/* nvd3 version 1.6.0(https://github.com/liquidpele/nvd3) 2014-12-13 */
 (function(){
 
 // set up main nv object on window
@@ -5996,10 +5996,10 @@ nv.models.lineWithFocusChart = function() {
                 .x(x2)
                 .on('brush', function() {
                     //When brushing, turn off transitions because chart needs to change immediately.
-                    var oldTransition = chart.transitionDuration();
-                    chart.transitionDuration(0);
+                    var oldTransition = chart.duration();
+                    chart.duration(0);
                     onBrush();
-                    chart.transitionDuration(oldTransition);
+                    chart.duration(oldTransition);
                 });
 
             if (brushExtent) brush.extent(brushExtent);
@@ -6229,7 +6229,7 @@ nv.models.lineWithFocusChart = function() {
         }},
         duration:    {get: function(){return transitionDuration;}, set: function(_){
             transitionDuration=_;
-            renderWatch.reset(transitionDuration);
+            //renderWatch.reset(duration);
             yAxis.duration(transitionDuration);
             xAxis.duration(transitionDuration);
         }},
@@ -7360,7 +7360,8 @@ nv.models.multiBarHorizontal = function() {
         forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
         stacked: {get: function(){return stacked;}, set: function(_){stacked=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
-        showBarLabels:    {get: function(){return showBarLabels;}, set: function(_){showBarLabels=_;}},
+        // this shows the group name, seems pointless?
+        //showBarLabels:    {get: function(){return showBarLabels;}, set: function(_){showBarLabels=_;}},
         disabled:     {get: function(){return disabled;}, set: function(_){disabled=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
@@ -8724,7 +8725,7 @@ nv.models.pie = function() {
             if (pie.padAngle && padAngle) {
                 pie.padAngle(padAngle);
             }
-
+            // cornerRadius added in d3 3.5
             if (arc.cornerRadius && cornerRadius) {
                 arc.cornerRadius(cornerRadius);
                 arcOver.cornerRadius(cornerRadius);
@@ -8752,8 +8753,8 @@ nv.models.pie = function() {
             slices.exit().remove();
             pieLabels.exit().remove();
 
-            var ae = slices.enter().append('g')
-            ae.attr('class', 'nv-slice')
+            var ae = slices.enter().append('g');
+            ae.attr('class', 'nv-slice');
             ae.on('mouseover', function(d,i){
                 d3.select(this).classed('hover', true);
                 if (growOnHover) {
