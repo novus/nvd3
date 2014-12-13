@@ -8,7 +8,7 @@ we can keep on improving it!
 
 Latest version is 1.7.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.7.0/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.7.0) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.7.0) )
 
-Previous version was 1.6.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.6.0/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.6.0) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.6.0) )
+[View Examples](http://liquidpele.github.io/nvd3/) | [NEW Documentation!](http://liquidpele.github.io/nvd3/examples/documentation.html)
 
 **1.7.0** Changes:
 
@@ -24,13 +24,13 @@ loads the latest d3 from their 3.5 branch so keep that in mind.
 * Added an example of the parallelCoordinates chart.
 * Fixed up the half-done ohlc bar chart, and made an example for it as well.
 
+Previous version was 1.6.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.6.0/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.6.0) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.6.0) )
+
 **1.6.0** Changes:
 
 * includes about a dozen bug fixes and pull requests I fixed and merged in
 from the issues/pulls from the original project.
 * It also standardized all indention
-
-[View Examples](http://liquidpele.github.io/nvd3/) | [NEW Documentation!](http://liquidpele.github.io/nvd3/examples/documentation.html)
 
 **NOTE**: The announced 2.0.0 refactor from the original project was never finished and wasn't brought over.
 Robin suggested I start with his development branch, which I did.
