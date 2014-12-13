@@ -30,7 +30,7 @@ loads the latest d3 from their 3.5 branch so keep that in mind.
 from the issues/pulls from the original project.
 * It also standardized all indention
 
-You can demo the examples here:  http://liquidpele.github.io/nvd3/
+[View Examples](http://liquidpele.github.io/nvd3/) | [NEW Documentation!](http://liquidpele.github.io/nvd3/examples/documentation.html)
 
 **NOTE**: The announced 2.0.0 refactor from the original project was never finished and wasn't brought over.
 Robin suggested I start with his development branch, which I did.
@@ -45,6 +45,13 @@ Robin suggested I start with his development branch, which I did.
 
 ---
 
+# Bugs
+
+Found a bug?  Check out the development branch and make sure it's not already fixed first!
+I fix anything I find myself, so there is a fair chance it's already fixed! 
+
+---
+
 # Contributing
 
 If one of [the existing models](https://github.com/liquidpele/nvd3/tree/development/src/models)
@@ -54,8 +61,7 @@ send us a pull request, for consideration for inclusion in the project.
 **A few rules for pull requests to help my sanity ;)**
 
 1. Please commit to the "development" branch
-2. ONLY edit things under the "src" and "examples" directories!
-3. Do NOT check in anything under the "build" directory, it clutters up the commit and just gets overwritten later.
+2. Do NOT check in anything under the "build" directory, it clutters up the commit and just gets overwritten later.
 
 If you want to test your changes using the example pages,
 you'll have to run "grunt production" to build the items into the "build" directory.
