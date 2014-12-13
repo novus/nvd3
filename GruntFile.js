@@ -1,5 +1,5 @@
 
-var version = '1.6.0';
+var version = '1.7.0';
 
 module.exports = function(grunt) {
 
