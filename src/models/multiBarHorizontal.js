@@ -321,7 +321,8 @@ nv.models.multiBarHorizontal = function() {
         forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
         stacked: {get: function(){return stacked;}, set: function(_){stacked=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
-        showBarLabels:    {get: function(){return showBarLabels;}, set: function(_){showBarLabels=_;}},
+        // this shows the group name, seems pointless?
+        //showBarLabels:    {get: function(){return showBarLabels;}, set: function(_){showBarLabels=_;}},
         disabled:     {get: function(){return disabled;}, set: function(_){disabled=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},

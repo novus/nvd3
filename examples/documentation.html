@@ -310,13 +310,18 @@ as well as used to print out examples using those example inputs.
             default: true,
             examples: [true]
         },
+        showControls: {
+            desc: "Whether to show extra controls or not.  Extra controls include things like making mulitBar charts stacked or side by side.",
+            default: true,
+            examples: [true]
+        },
         tooltips: {
             desc: "Whether to display tooltips or not",
             default: true,
             examples: [true]
         },
         tooltipContent: {
-            desc: "Function used to build the tooltip content",
+            desc: "Function used to build the tooltip content.  The variables passed to the function can depend on the chart (i.e. it depends on what makes sense for the chart) so you might want to console.log stuff when playing with this to see what's available.",
             default: "Depends on graph type",
             examples: [
                 function(key, y, e, graph) {
@@ -333,7 +338,7 @@ as well as used to print out examples using those example inputs.
             examples: ["There is no Data to display"]
         },
         duration: {
-            desc: "Duration in ms to take when updating chart",
+            desc: "Duration in ms to take when updating chart.  For things like bar charts, each bar can animate by itself but the total time taken should be this value.",
             default: 250,
             examples: [1000]
         },
@@ -346,22 +351,22 @@ as well as used to print out examples using those example inputs.
             examples: [true]
         },
         width: {
-            desc: "The width the graph created inside the SVG should be made.",
+            desc: "The width the graph or component created inside the SVG should be made.",
             default: "The width of the container element (normally the svg itself)",
             examples: [900]
         },
         height: {
-            desc: "The height the graph created inside the SVG should be made.",
+            desc: "The height the graph or component created inside the SVG should be made.",
             default: "The height of the container element (normally the svg itself)",
             examples: [600]
         },
         donut: {
-            desc: "Whether to make a pie graph a donut graph or not",
+            desc: "Whether to make a pie graph a donut graph or not.",
             default: false,
             examples: [true]
         },
         margin: {
-            desc: "Object containing the margins for the chart inside the svg container.  You can specify only certain margins in the object too.",
+            desc: "Object containing the margins for the chart or component.  You can specify only certain margins in the object to change just those parts.",
             default: "0 for all margins",
             examples: [
                 {top: 10, bottom: 10},
@@ -507,7 +512,7 @@ as well as used to print out examples using those example inputs.
             examples: [false]
         },
         clipVoronoi: {
-            desc: "When useVoronoi is on, this masks each voronoi section with a circle to limit selection to smaller area.  If you're seeing performance issues, you can try to turn this off to see if it helps.",
+            desc: "When useVoronoi is on, this masks each voronoi section with a circle to limit selection to smaller area.",
             refs: [
                 "https://github.com/mbostock/d3/wiki/Voronoi-Geom",
                 "http://bl.ocks.org/njvack/1405439",
@@ -670,6 +675,38 @@ as well as used to print out examples using those example inputs.
             desc: "A master flag for turning chart interaction on and off.  This overrides all tooltip, voronoi, and guideline options.",
             default: true,
             examples: [false]
+        },
+        staggerLabels: {
+            desc: "Makes the X labels stagger at different distances from the axis so they're less likely to overlap.",
+            default: false,
+            examples: [true]
+        },
+        showValues: {
+            desc: "Prints the Y values on the top of the bars.  Only recommended to use if there aren't many bars.",
+            default: false,
+            examples: [true]
+
+        },
+        padData: {
+            desc: "?",
+            default: false,
+            examples: [true]
+        },
+        barColor: {
+            desc: "For bar charts, the 'color' option makes each bar a different color.  For multibar, this option lets you specific a color for each bar group to have the same color but differentiated by shading.",
+            default: "Not Enabled",
+            examples: [
+                ['#FF0000', '#00FF00', '#0000FF'],
+                function (d, i) {
+                    var colors = d3.scale.category20().range().slice(10);
+                    return colors[i % colors.length-1];
+                }
+            ]
+        },
+        rotateLabels: {
+            desc: "Rotates the X axis labels by the specified degree.",
+            default: 0,
+            examples: [90, -45]
         }
     };
 </script>
