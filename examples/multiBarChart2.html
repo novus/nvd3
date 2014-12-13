@@ -47,12 +47,11 @@
                 .width(width)
                 .height(height)
                 .stacked(true)
-                .delay(0);
+                ;
 
             chart.dispatch.on('renderEnd', function(){
                 console.log('Render Complete');
             });
-
 
             var svg = d3.select('#test1 svg').datum(test_data);
             console.log('calling chart');
