@@ -243,10 +243,10 @@ nv.models.lineWithFocusChart = function() {
                 .x(x2)
                 .on('brush', function() {
                     //When brushing, turn off transitions because chart needs to change immediately.
-                    var oldTransition = chart.transitionDuration();
-                    chart.transitionDuration(0);
+                    var oldTransition = chart.duration();
+                    chart.duration(0);
                     onBrush();
-                    chart.transitionDuration(oldTransition);
+                    chart.duration(oldTransition);
                 });
 
             if (brushExtent) brush.extent(brushExtent);
@@ -476,7 +476,6 @@ nv.models.lineWithFocusChart = function() {
         }},
         duration:    {get: function(){return transitionDuration;}, set: function(_){
             transitionDuration=_;
-            renderWatch.reset(transitionDuration);
             yAxis.duration(transitionDuration);
             xAxis.duration(transitionDuration);
         }},
