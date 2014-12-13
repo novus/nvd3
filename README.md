@@ -15,7 +15,7 @@ Latest version is 1.7.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.7.0/b
 * Fixes like 20 small bugs... I lost track of what.
 * Fixed the notorious slowness of line charts and scatter plots on chrome
 * Combined the scatterChart and scatterChartWithLines models
-* Combined the barChartWithLinePlusFocus and barChartWithLine models.
+* Combined the linePlusBarChart and linePlusBarChartWithFocus models.
 * renamed some of the options (see the new documentation for what options are available for each chart)
 * Completed the migration of the option functions to an object format which allows the generation of
 the documentation in an automated way.  Not everything has a description yet, but check it out!
