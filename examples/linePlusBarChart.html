@@ -57,6 +57,7 @@
         chart = nv.models.linePlusBarChart()
             .margin({top: 50, right: 60, bottom: 30, left: 70})
             .x(function(d,i) { return i })
+            .legendRightAxisHint(' [Using Right Axis]')
             .color(d3.scale.category10().range());
 
         chart.xAxis.tickFormat(function(d) {
