@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.0(https://github.com/liquidpele/nvd3) 2014-12-17 */
+/* nvd3 version 1.7.0(https://github.com/liquidpele/nvd3) 2014-12-18 */
 (function(){
 
 // set up main nv object on window
@@ -6622,6 +6622,7 @@ nv.models.multiBarChart = function() {
         , height = null
         , color = nv.utils.defaultColor()
         , showControls = true
+        , controlLabels = {}
         , showLegend = true
         , showXAxis = true
         , showYAxis = true
@@ -6804,8 +6805,8 @@ nv.models.multiBarChart = function() {
             // Controls
             if (showControls) {
                 var controlsData = [
-                    { key: 'Grouped', disabled: multibar.stacked() },
-                    { key: 'Stacked', disabled: !multibar.stacked() }
+                    { key: controlLabels.grouped || 'Grouped', disabled: multibar.stacked() },
+                    { key: controlLabels.stacked || 'Stacked', disabled: !multibar.stacked() }
                 ];
 
                 controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -7001,6 +7002,7 @@ nv.models.multiBarChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        controlLabels: {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
@@ -7412,6 +7414,7 @@ nv.models.multiBarHorizontalChart = function() {
         , height = null
         , color = nv.utils.defaultColor()
         , showControls = true
+        , controlLabels = {}
         , showLegend = true
         , showXAxis = true
         , showYAxis = true
@@ -7587,8 +7590,8 @@ nv.models.multiBarHorizontalChart = function() {
             // Controls
             if (showControls) {
                 var controlsData = [
-                    { key: 'Grouped', disabled: multibar.stacked() },
-                    { key: 'Stacked', disabled: !multibar.stacked() }
+                    { key: controlLabels.grouped || 'Grouped', disabled: multibar.stacked() },
+                    { key: controlLabels.stacked || 'Stacked', disabled: !multibar.stacked() }
                 ];
 
                 controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -7747,6 +7750,7 @@ nv.models.multiBarHorizontalChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        controlLabels: {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
