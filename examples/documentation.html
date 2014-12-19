@@ -727,6 +727,14 @@ as well as used to print out examples using those example inputs.
             desc: "The extra text after the label in the legend that tells what axis the series belongs to, for any seris on the right axis.",
             default: " (right axis)",
             examples: [" (R)", " [RIGHT]"]
+        },
+        controlLabels: {
+            desc: "Object that defines the labels for control items in the graph.  For instance, in the stackedAreaChart, there are controls for making it stacked, expanded, or stream.  For stacked bar charts, there is stacked and grouped.",
+            default: "Depends on chart type",
+            examples: [
+                {stacked: "Stack It", stream: "Stream dat", expanded: "Xpand"},
+                {grouped: "Group em", stacked: "Stack em"}
+            ]
         }
     };
 </script>
