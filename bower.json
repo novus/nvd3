@@ -1,7 +1,7 @@
 {
-  "name": "nvd3",
+  "name": "nvd3-community",
   "version": "1.7.0",
-  "homepage": "http://liquidpele.github.io/nvd3/",
+  "homepage": "http://nvd3-community.github.io/nvd3/",
   "authors": [
     "Bob Monteverde",
     "Tyler Wolf",

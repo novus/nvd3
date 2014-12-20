@@ -6,9 +6,9 @@ Sadly the [original developer](https://github.com/bobmonteverde) of nvd3 has lon
 great work put into the project thus far, and with the magic of open source licensing
 we can keep on improving it!
 
-Latest version is 1.7.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.7.0/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.7.0) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.7.0) )
+Latest version is 1.7.0 ( [view](https://github.com/nvd3-community/nvd3/tree/1.7.0/build) | [zip](https://github.com/nvd3-community/nvd3/zipball/1.7.0) | [tar.gz](https://github.com/nvd3-community/nvd3/tarball/1.7.0) )
 
-[View Examples](http://liquidpele.github.io/nvd3/) | [NEW Documentation!](http://liquidpele.github.io/nvd3/examples/documentation.html)
+[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html)
 
 **1.7.0** Changes:
 
@@ -24,7 +24,7 @@ loads the latest d3 from their 3.5 branch so keep that in mind.
 * Added an example of the parallelCoordinates chart.
 * Fixed up the half-done ohlc bar chart, and made an example for it as well.
 
-Previous version was 1.6.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.6.0/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.6.0) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.6.0) )
+Previous version was 1.6.0 ( [view](https://github.com/nvd3-community/nvd3/tree/1.6.0/build) | [zip](https://github.com/nvd3-community/nvd3/zipball/1.6.0) | [tar.gz](https://github.com/nvd3-community/nvd3/tarball/1.6.0) )
 
 **1.6.0** Changes:
 
@@ -54,9 +54,11 @@ I fix anything I find myself, so there is a fair chance it's already fixed!
 
 # Contributing
 
-If one of [the existing models](https://github.com/liquidpele/nvd3/tree/development/src/models)
+If one of [the existing models](https://github.com/nvd3-community/nvd3/tree/development/src/models)
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
+
+If you'd like to contribute consistently, show me what you've got with some good pull requests and you may get added to the nvd3-community org!
 
 **A few rules for pull requests to help my sanity ;)**
 
