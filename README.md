@@ -1,12 +1,10 @@
+## Introducing the nvd3-community organization! 
 
-## Latest version of nvd3 can be found here as the original project was abandoned.
+https://github.com/nvd3-community/nvd3/
 
-Sadly the [original developer](https://github.com/bobmonteverde) of nvd3 has long since moved on to other things, and the
-[last maintainer](https://github.com/robinfhu) said he does not have time anymore.  Thanks to both of them for all the
-great work put into the project thus far, and with the magic of open source licensing
-we can keep on improving it!
+All further development will be done there instead of my personal repo.  Yes, it's way ahead of novus, they abandoned development.  
 
-Latest version is 1.7.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.7.0/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.7.0) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.7.0) )
+This repo's last version was 1.7.0 ( [view](https://github.com/liquidpele/nvd3/tree/1.7.0/build) | [zip](https://github.com/liquidpele/nvd3/zipball/1.7.0) | [tar.gz](https://github.com/liquidpele/nvd3/tarball/1.7.0) )
 
 [View Examples](http://liquidpele.github.io/nvd3/) | [NEW Documentation!](http://liquidpele.github.io/nvd3/examples/documentation.html)
 
@@ -47,6 +45,8 @@ Robin suggested I start with his development branch, which I did.
 
 # Bugs
 
+Submit it to https://github.com/nvd3-community/nvd3/, not here please! 
+
 Found a bug?  Check out the development branch and make sure it's not already fixed first!
 I fix anything I find myself, so there is a fair chance it's already fixed! 
 
@@ -54,7 +54,9 @@ I fix anything I find myself, so there is a fair chance it's already fixed!
 
 # Contributing
 
-If one of [the existing models](https://github.com/liquidpele/nvd3/tree/development/src/models)
+Clone https://github.com/nvd3-community/nvd3/ not this repo!  
+
+If one of [the existing models](https://github.com/nvd3-community/nvd3/tree/development/src/models)
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
 
