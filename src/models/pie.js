@@ -161,7 +161,15 @@ nv.models.pie = function() {
                     id: id
                 });
             });
-            ae.on('click', function(d,i) {
+
+            slices.attr('fill', function(d,i) { return color(d, i); })
+            slices.attr('stroke', function(d,i) { return color(d, i); });
+
+            var paths = ae.append('path').each(function(d) {
+                this._current = d;
+            });
+
+            paths.on('click', function(d,i) {
                 dispatch.elementClick({
                     label: getX(d.data),
                     value: getY(d.data),
@@ -172,7 +180,7 @@ nv.models.pie = function() {
                 });
                 d3.event.stopPropagation();
             });
-            ae.on('dblclick', function(d,i) {
+            paths.on('dblclick', function(d,i) {
                 dispatch.elementDblClick({
                     label: getX(d.data),
                     value: getY(d.data),
@@ -183,14 +191,6 @@ nv.models.pie = function() {
                 });
                 d3.event.stopPropagation();
             });
-
-            slices.attr('fill', function(d,i) { return color(d, i); })
-            slices.attr('stroke', function(d,i) { return color(d, i); });
-
-            var paths = ae.append('path').each(function(d) {
-                this._current = d;
-            });
-
             slices.select('path')
                 .transition()
                 .attr('d', arc)
