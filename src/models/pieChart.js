@@ -12,6 +12,7 @@ nv.models.pieChart = function() {
         , width = null
         , height = null
         , showLegend = true
+        , legendPosition = "top"
         , color = nv.utils.defaultColor()
         , tooltips = true
         , tooltip = function(key, y, e, graph) {
@@ -129,8 +130,7 @@ nv.models.pieChart = function() {
 
             // Legend
             if (showLegend) {
-                if (canvasWidth <= canvasHeight) {
-                    // Legend on top
+                if (legendPosition === "top") {
                     legend.width( availableWidth ).key(pie.x());
 
                     wrap.select('.nv-legendWrap')
@@ -145,8 +145,7 @@ nv.models.pieChart = function() {
 
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + (-margin.top) +')');
-                } else {
-                    // Legend on the side
+                } else if (legendPosition === "right") {
                     legend.height(availableHeight).width(availableWidth - availableHeight).key(pie.x());
 
                     wrap.select('.nv-legendWrap')
@@ -234,6 +233,7 @@ nv.models.pieChart = function() {
         tooltipContent: {get: function(){return tooltip;},        set: function(_){tooltip=_;}},
         tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
+        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
