@@ -2,11 +2,9 @@
   Rounded top bars.
   This chart was written by me (Douglas Mak @dagumak) for Moneytree's web application Dec 31 2014 to January 1st 2015. 
   It uses svg pathing to creaating a rounded top bar, and then is hooked into the nvd3's existing charting. 
-
-
-  
 */
-nv.models.multiBar = function() {
+
+nv.models.mtMultiBar = function() {
   "use strict";
   //============================================================
   // Public Variables with Default Settings
