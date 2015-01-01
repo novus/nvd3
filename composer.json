@@ -1,0 +1,8 @@
+{
+"name": "mohammadhosain/nvd3",
+"description": "A way to install nvd3 via composer",
+"license": "Apache v2",
+"require": {
+"mbostock/d3": "@stable"
+}
+}
