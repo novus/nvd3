@@ -25,3 +25,6 @@ Thumbs.db
 #  nodejs packages   #
 ######################
 node_modules
+
+
+bower_components
