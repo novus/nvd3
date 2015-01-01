@@ -31,6 +31,7 @@ module.exports = function(grunt) {
                      'src/models/linePlusBarChart.js',
                      'src/models/lineWithFocusChart.js',
                      'src/models/linePlusBarWithFocusChart.js',
+                     'src/models/mtMultiBar.js',
                      'src/models/multiBar.js',
                      'src/models/multiBarChart.js',
                      'src/models/multiBarHorizontal.js',
@@ -48,7 +49,7 @@ module.exports = function(grunt) {
                      'src/models/stackedAreaChart.js',
                      'src/outro.js'
                      ],
-                dest: 'nv.d3.js'
+                dest: 'mt.nv.d3.js'
             }
         },
         uglify: {
@@ -58,7 +59,7 @@ module.exports = function(grunt) {
             },
             js: {
                 files: {
-                    'nv.d3.min.js': ['nv.d3.js']
+                    'mt.nv.d3.min.js': ['mt.nv.d3.js']
                 }
             }
         },
