@@ -97,7 +97,8 @@ nv.interactiveGuideline = function() {
                     if (isMSIE) {
                         if (d3.event.relatedTarget
                             && d3.event.relatedTarget.ownerSVGElement === undefined
-                            && d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass)) {
+                            && (d3.event.relatedTarget.className === undefined
+                                || d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass))) {
 
                             return;
                         }
@@ -143,23 +144,24 @@ nv.interactiveGuideline = function() {
                 .on("click", mouseHandler)
             ;
 
+            layer.guideLine = null;
             //Draws a vertical guideline at the given X postion.
             layer.renderGuideLine = function(x) {
                 if (!showGuideLine) return;
-                var line = wrap.select(".nv-interactiveGuideLine")
-                    .selectAll("line")
-                    .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
-
-                line.enter()
-                    .append("line")
-                    .attr("class", "nv-guideline")
-                    .attr("x1", function(d) { return d;})
-                    .attr("x2", function(d) { return d;})
-                    .attr("y1", availableHeight)
-                    .attr("y2",0)
-                ;
-                line.exit().remove();
-
+                if (layer.guideLine && layer.guideLine.attr("x1") === x) return;
+                nv.dom.write(function() {
+                    var line = wrap.select(".nv-interactiveGuideLine")
+                        .selectAll("line")
+                        .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
+                    line.enter()
+                        .append("line")
+                        .attr("class", "nv-guideline")
+                        .attr("x1", function(d) { return d;})
+                        .attr("x2", function(d) { return d;})
+                        .attr("y1", availableHeight)
+                        .attr("y2",0);
+                    line.exit().remove();
+                });
             }
         });
     }

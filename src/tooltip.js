@@ -62,11 +62,11 @@
         //By default, the tooltip model renders a beautiful table inside a DIV.
         //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
-            if (content != null) {
+            if (content !== null) {
                 return content;
             }
 
-            if (d == null) {
+            if (d === null) {
                 return '';
             }
 
@@ -141,7 +141,7 @@
                 var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
                 if (viewBox) {
                     viewBox = viewBox.split(' ');
-                    var ratio = parseInt(svg.style('width')) / viewBox[2];
+                    var ratio = parseInt(svg.style('width'), 10) / viewBox[2];
 
                     position.left = position.left * ratio;
                     position.top  = position.top * ratio;
@@ -150,28 +150,35 @@
         }
 
         //Creates new tooltip container, or uses existing one on DOM.
-        function getTooltipContainer(newContent) {
-            var body;
-            if (chartContainer) {
-                body = d3.select(chartContainer);
-            } else {
-                body = d3.select("body");
-            }
-
-            var container = body.select(".nvtooltip");
-            if (container.node() === null) {
+        function getTooltipContainer() {
+            var container = document.getElementById(id);
+            if (container === null) {
+                var body;
+                if (chartContainer) {
+                    body = chartContainer;
+                } else {
+                    body = document.body;
+                }
                 //Create new tooltip div if it doesn't exist on DOM.
-                container = body.append("div")
-                    .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
-                    .attr("id",id)
-                ;
+                var t = d3.select(body).append("div")
+                          .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
+                          .attr("id",id);
+                t.style("top",0).style("left",0).style("opacity",0);
+                t.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
+                t.classed(nvPointerEventsClass,true);
+                container = t.node();
             }
 
-            container.node().innerHTML = newContent;
-            container.style("top",0).style("left",0).style("opacity",0);
-            container.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
-            container.classed(nvPointerEventsClass,true);
-            return container.node();
+            // Bonus - If you override contentGenerator and return falsey you can use something like
+            //         React or Knockout to bind the data for your tooltip
+            var newContent = contentGenerator(data);
+            if (newContent) container.innerHTML = newContent;
+
+            var hidden = document.querySelector("#" + id + ".nvtooltip-pending-removal");
+            if (hidden)
+                hidden.className = "nvtooltip " + (classes? classes: "xy-tooltip");
+
+            return container;
         }
 
         //Draw the tooltip onto the DOM.
@@ -182,40 +189,47 @@
             convertViewBoxRatio();
 
             var left = position.left;
-            var top = (fixedTop != null) ? fixedTop : position.top;
-            var container = getTooltipContainer(contentGenerator(data));
-            tooltipElem = container;
-            if (chartContainer) {
-                var svgComp = chartContainer.getElementsByTagName("svg")[0];
-                var boundRect = (svgComp) ? svgComp.getBoundingClientRect() : chartContainer.getBoundingClientRect();
-                var svgOffset = {left:0,top:0};
-                if (svgComp) {
-                    var svgBound = svgComp.getBoundingClientRect();
-                    var chartBound = chartContainer.getBoundingClientRect();
-                    var svgBoundTop = svgBound.top;
+            var top = (fixedTop !== null) ? fixedTop : position.top;
 
-                    //Defensive code. Sometimes, svgBoundTop can be a really negative
-                    //  number, like -134254. That's a bug.
-                    //  If such a number is found, use zero instead. FireFox bug only
-                    if (svgBoundTop < 0) {
-                        var containerBound = chartContainer.getBoundingClientRect();
-                        svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
-                    }
-                    svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
-                    svgOffset.left = Math.abs(svgBound.left - chartBound.left);
+            nv.dom.write(function () {
+                var container = getTooltipContainer(contentGenerator(data));
+                tooltipElem = container;
+                if (chartContainer) {
+                    nv.dom.read(function() {
+                        var svgComp = chartContainer.getElementsByTagName("svg")[0];
+                        var boundRect = (svgComp) ? svgComp.getBoundingClientRect() : chartContainer.getBoundingClientRect();
+                        var svgOffset = {left:0,top:0};
+                        if (svgComp) {
+                            var svgBound = svgComp.getBoundingClientRect();
+                            var chartBound = chartContainer.getBoundingClientRect();
+                            var svgBoundTop = svgBound.top;
+
+                            //Defensive code. Sometimes, svgBoundTop can be a really negative
+                            //  number, like -134254. That's a bug.
+                            //  If such a number is found, use zero instead. FireFox bug only
+                            if (svgBoundTop < 0) {
+                                var containerBound = chartContainer.getBoundingClientRect();
+                                svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
+                            }
+                            svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
+                            svgOffset.left = Math.abs(svgBound.left - chartBound.left);
+                        }
+                        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
+                        //You need to also add any offset between the <svg> element and its containing <div>
+                        //Finally, add any offset of the containing <div> on the whole page.
+                        left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
+                        top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
+                        if (snapDistance && snapDistance > 0) {
+                            top = Math.floor(top/snapDistance) * snapDistance;
+                        }
+
+                        nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
+                    });
+                } else {
+                    nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
                 }
-                //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
-                //You need to also add any offset between the <svg> element and its containing <div>
-                //Finally, add any offset of the containing <div> on the whole page.
-                left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
-                top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
-            }
+            });
 
-            if (snapDistance && snapDistance > 0) {
-                top = Math.floor(top/snapDistance) * snapDistance;
-            }
-
-            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
             return nvtooltip;
         }
 
@@ -368,7 +382,7 @@
             if( !isNaN( Elem.offsetTop ) ) {
                 offsetTop += (Elem.offsetTop);
             }
-        } while( Elem = Elem.offsetParent );
+        } while( Elem === Elem.offsetParent );
         return offsetTop;
     };
 
@@ -381,7 +395,7 @@
             if( !isNaN( Elem.offsetLeft ) ) {
                 offsetLeft += (Elem.offsetLeft);
             }
-        } while( Elem = Elem.offsetParent );
+        } while( Elem === Elem.offsetParent );
         return offsetLeft;
     };
 
@@ -391,102 +405,96 @@
     //dist = how far away from the mouse to place tooltip
     //container = tooltip DIV
     nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
+        nv.dom.read(function() {
+            var height = parseInt(container.offsetHeight, 10),
+                width = parseInt(container.offsetWidth, 10),
+                windowWidth = nv.utils.windowSize().width,
+                windowHeight = nv.utils.windowSize().height,
+                scrollTop = window.pageYOffset,
+                scrollLeft = window.pageXOffset,
+                left, top;
 
-        var height = parseInt(container.offsetHeight),
-            width = parseInt(container.offsetWidth),
-            windowWidth = nv.utils.windowSize().width,
-            windowHeight = nv.utils.windowSize().height,
-            scrollTop = window.pageYOffset,
-            scrollLeft = window.pageXOffset,
-            left, top;
+            windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
+            windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
 
-        windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
-        windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
+            gravity = gravity || 's';
+            dist = dist || 20;
 
-        gravity = gravity || 's';
-        dist = dist || 20;
+            var tooltipTop = function ( Elem ) {
+                return nv.tooltip.findTotalOffsetTop(Elem, top);
+            };
 
-        var tooltipTop = function ( Elem ) {
-            return nv.tooltip.findTotalOffsetTop(Elem, top);
-        };
+            var tooltipLeft = function ( Elem ) {
+                return nv.tooltip.findTotalOffsetLeft(Elem,left);
+            };
 
-        var tooltipLeft = function ( Elem ) {
-            return nv.tooltip.findTotalOffsetLeft(Elem,left);
-        };
+            var tLeft, tTop;
+            switch (gravity) {
+                case 'e':
+                    left = pos[0] - width - dist;
+                    top = pos[1] - (height / 2);
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft < scrollLeft) left = pos[0] + dist > scrollLeft ? pos[0] + dist : scrollLeft - tLeft + left;
+                    if (tTop < scrollTop) top = scrollTop - tTop + top;
+                    if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                    break;
+                case 'w':
+                    left = pos[0] + dist;
+                    top = pos[1] - (height / 2);
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft + width > windowWidth) left = pos[0] - width - dist;
+                    if (tTop < scrollTop) top = scrollTop + 5;
+                    if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                    break;
+                case 'n':
+                    left = pos[0] - (width / 2) - 5;
+                    top = pos[1] + dist;
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft < scrollLeft) left = scrollLeft + 5;
+                    if (tLeft + width > windowWidth) left = left - width/2 + 5;
+                    if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                    break;
+                case 's':
+                    left = pos[0] - (width / 2);
+                    top = pos[1] - height - dist;
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft < scrollLeft) left = scrollLeft + 5;
+                    if (tLeft + width > windowWidth) left = left - width/2 + 5;
+                    if (scrollTop > tTop) top = scrollTop;
+                    break;
+                case 'none':
+                    left = pos[0];
+                    top = pos[1] - dist;
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    break;
+            }
 
-        switch (gravity) {
-            case 'e':
-                left = pos[0] - width - dist;
-                top = pos[1] - (height / 2);
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = pos[0] + dist > scrollLeft ? pos[0] + dist : scrollLeft - tLeft + left;
-                if (tTop < scrollTop) top = scrollTop - tTop + top;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                break;
-            case 'w':
-                left = pos[0] + dist;
-                top = pos[1] - (height / 2);
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft + width > windowWidth) left = pos[0] - width - dist;
-                if (tTop < scrollTop) top = scrollTop + 5;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                break;
-            case 'n':
-                left = pos[0] - (width / 2) - 5;
-                top = pos[1] + dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = scrollLeft + 5;
-                if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                break;
-            case 's':
-                left = pos[0] - (width / 2);
-                top = pos[1] - height - dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = scrollLeft + 5;
-                if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                if (scrollTop > tTop) top = scrollTop;
-                break;
-            case 'none':
-                left = pos[0];
-                top = pos[1] - dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                break;
-        }
-
-        container.style.left = left+'px';
-        container.style.top = top+'px';
-        container.style.opacity = 1;
-        container.style.position = 'absolute';
+            var opacity = container.style.opacity;
+            nv.dom.write(function() {
+                var translate = 'translate(' + left + 'px, ' + top + 'px)';
+                container.style.transform = translate;
+                if (opacity != 1) container.style.opacity = 1;
+            });
+        });
 
         return container;
     };
 
     //Global utility function to remove tooltips from the DOM.
     nv.tooltip.cleanup = function() {
-
         // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
-        var tooltips = document.getElementsByClassName('nvtooltip');
-        var purging = [];
-        while(tooltips.length) {
-            purging.push(tooltips[0]);
-            tooltips[0].style.transitionDelay = '0 !important';
-            tooltips[0].style.opacity = 0;
-            tooltips[0].className = 'nvtooltip-pending-removal';
+        var tooltips = document.querySelectorAll('.nvtooltip');
+        if (tooltips) {
+            nv.dom.write(function() {
+                for (var i = 0; i < tooltips.length; i++) {
+                    tooltips[i].className = 'nvtooltip-pending-removal';
+                }
+            });
         }
-
-        setTimeout(function() {
-
-            while (purging.length) {
-                var removeMe = purging.pop();
-                removeMe.parentNode.removeChild(removeMe);
-            }
-        }, 500);
     };
-
 })();
