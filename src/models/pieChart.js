@@ -12,6 +12,7 @@ nv.models.pieChart = function() {
         , width = null
         , height = null
         , showLegend = true
+        , legendPosition = "top"
         , color = nv.utils.defaultColor()
         , tooltips = true
         , tooltip = function(key, y, e, graph) {
@@ -73,10 +74,10 @@ nv.models.pieChart = function() {
             nv.utils.initSVG(container);
 
             var that = this;
-            var availableWidth = (width || parseInt(container.style('width'), 10) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height'), 10) || 400)
-                    - margin.top - margin.bottom
+            var canvasWidth = (width || parseInt(container.style('width'), 10) || 960),
+                canvasHeight = (height || parseInt(container.style('height'), 10) || 400),
+                availableWidth = canvasWidth - margin.left - margin.right,
+                availableHeight = canvasHeight - margin.top - margin.bottom
                 ;
 
             chart.update = function() { container.transition().call(chart); };
@@ -129,20 +130,37 @@ nv.models.pieChart = function() {
 
             // Legend
             if (showLegend) {
-                legend.width( availableWidth ).key(pie.x());
+                if (legendPosition === "top") {
+                    legend.width( availableWidth ).key(pie.x());
 
-                wrap.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
+                    wrap.select('.nv-legendWrap')
+                        .datum(data)
+                        .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = (height || parseInt(container.style('height')) || 400)
-                        - margin.top - margin.bottom;
+                    if ( margin.top != legend.height()) {
+                        margin.top = legend.height();
+                        availableHeight = (height || parseInt(container.style('height')) || 400)
+                            - margin.top - margin.bottom;
+                    }
+
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(0,' + (-margin.top) +')');
+                } else if (legendPosition === "right") {
+                    legend.height(availableHeight).width(availableWidth - availableHeight).key(pie.x());
+
+                    wrap.select('.nv-legendWrap')
+                        .datum(data)
+                        .call(legend);
+
+                    if ( margin.right != legend.width()) {
+                        margin.right = legend.width();
+                        availableWidth = (width || parseInt(container.style('width')) || 600)
+                            - margin.right - margin.left;
+                    }
+
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(' + (margin.left + availableHeight) +',0)');
                 }
-
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -215,6 +233,7 @@ nv.models.pieChart = function() {
         tooltipContent: {get: function(){return tooltip;},        set: function(_){tooltip=_;}},
         tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
+        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){

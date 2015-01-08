@@ -290,6 +290,19 @@ nv.models.scatter = function() {
                                 pointIndex: i
                             });
                         })
+                        .on('dblclick', function(d,i) {
+                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
+                            var series = data[d.series],
+                                point  = series.values[i];
+
+                            dispatch.elementDblClick({
+                                point: point,
+                                series: series,
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                seriesIndex: d.series,
+                                pointIndex: i
+                            });
+                        })
                         .on('mouseover', function(d,i) {
                             if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                             var series = data[d.series],
@@ -402,12 +415,16 @@ nv.models.scatter = function() {
     // utility function calls provided by this chart
     chart._calls = new function() {
         this.clearHighlights = function () {
-            d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+            nv.dom.write(function() {
+                d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+            });
             return null;
         };
         this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
-            d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-                .classed("hover", isHoverOver);
+            nv.dom.write(function() {
+                var node = document.querySelector(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex);
+                d3.select(node).classed("hover", isHoverOver);
+            });
         };
     };
 

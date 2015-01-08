@@ -553,6 +553,7 @@ h3.option {
     padding-left: 10px;
     border-top: 5px solid #CCC;
     margin-top: 10px;
+	min-height: 24px;
 }
 h3 .expand {
     font-size: 14px;

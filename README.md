@@ -52,6 +52,12 @@ I fix anything I find myself, so there is a fair chance it's already fixed!
 
 ---
 
+# Optional dependencies
+
+Including [Fastdom](https://github.com/wilsonpage/fastdom) in your project can greatly increase the performance of the line chart (particularly in Firefox and Internet Explorer) by batching DOM read and write operations to avoid [layout thrashing](http://wilsonpage.co.uk/preventing-layout-thrashing/). NVD3 will take advantage of Fastdom if present.
+
+---
+
 # Contributing
 
 If one of [the existing models](https://github.com/nvd3-community/nvd3/tree/development/src/models)

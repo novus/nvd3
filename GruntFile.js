@@ -17,6 +17,7 @@ module.exports = function(grunt) {
             dist: {
                 src: [
                     'src/core.js',
+                    'src/dom.js',
                     'src/interactiveLayer.js',
                     'src/tooltip.js',
                     'src/utils.js',
