@@ -23,6 +23,7 @@ nv.models.multiBarHorizontal = function() {
         , showValues = false
         , showBarLabels = false
         , valuePadding = 60
+        , groupSpacing = 0.1
         , valueFormat = d3.format(',.2f')
         , delay = 1200
         , xDomain
@@ -90,7 +91,7 @@ nv.models.multiBarHorizontal = function() {
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-                .rangeBands(xRange || [0, availableHeight], .1);
+                .rangeBands(xRange || [0, availableHeight], groupSpacing);
 
             y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
 
@@ -327,6 +328,7 @@ nv.models.multiBarHorizontal = function() {
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         valuePadding: {get: function(){return valuePadding;}, set: function(_){valuePadding=_;}},
+        groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
