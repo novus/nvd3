@@ -20,7 +20,7 @@ nv.models.multiBar = function() {
         , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
         , color = nv.utils.defaultColor()
         , hideable = false
-        , barColor = undefined // adding the ability to set the color for each rather than the whole group
+        , barColor = null // adding the ability to set the color for each rather than the whole group
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
         , duration = 500
         , xDomain
@@ -341,10 +341,7 @@ nv.models.multiBar = function() {
             color = nv.utils.getColor(_);
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
-            barColor = nv.utils.getColor(_);
-        }},
-        disableBarColor:  {get: function(){return barColor === undefined;}, set: function(_){
-            barColor = _?undefined:nv.utils.getColor();
+            barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 

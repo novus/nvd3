@@ -17,7 +17,7 @@ nv.models.multiBarHorizontal = function() {
         , getYerr = function(d) { return d.yErr }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , color = nv.utils.defaultColor()
-        , barColor = undefined // adding the ability to set the color for each rather than the whole group
+        , barColor = null // adding the ability to set the color for each rather than the whole group
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
         , stacked = false
         , showValues = false
@@ -343,10 +343,7 @@ nv.models.multiBarHorizontal = function() {
             color = nv.utils.getColor(_);
         }},
         barColor:  {get: function(){return color;}, set: function(_){
-            barColor = nv.utils.getColor(_);
-        }},
-        disableBarColor:  {get: function(){return barColor === undefined;}, set: function(_){
-            barColor = _?undefined:nv.utils.getColor();
+            barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 
