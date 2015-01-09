@@ -172,7 +172,7 @@ nv.models.multiBarHorizontalChart = function() {
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
 
-                if (multibar.barColor())
+                if (multibar.barColor)
                     data.forEach(function(series,i) {
                         series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
                     });
@@ -379,6 +379,9 @@ nv.models.multiBarHorizontalChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             legend.color(color);
+        }},
+        disableBarColor:  {get: function(){return multibar.barColor === undefined;}, set: function(_){
+            multibar.barColor = _?undefined:nv.utils.getColor();
         }}
     });
 
