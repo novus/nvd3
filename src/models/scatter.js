@@ -49,6 +49,7 @@ nv.models.scatter = function() {
         , timeoutID
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
+        , _sizeRange_def = [16, 256]
         ;
 
     function chart(selection) {
@@ -92,7 +93,7 @@ nv.models.scatter = function() {
                 .range(yRange || [availableHeight, 0]);
 
             z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
-                .range(sizeRange || [16, 256]);
+                .range(sizeRange || _sizeRange_def);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
             if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
@@ -159,7 +160,7 @@ nv.models.scatter = function() {
                                 return [x(pX)+ Math.random() * 1e-7,
                                         y(pY)+ Math.random() * 1e-7,
                                     groupIndex,
-                                    pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
+                                    pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
                             })
                             .filter(function(pointArray, pointIndex) {
                                 return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
