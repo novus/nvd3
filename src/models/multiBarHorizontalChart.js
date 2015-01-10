@@ -16,7 +16,7 @@ nv.models.multiBarHorizontalChart = function() {
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
         , width = null
         , height = null
-        , color = nv.utils.getColor(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
+        , color = nv.utils.defaultColor()
         , showControls = true
         , controlLabels = {}
         , showLegend = true
@@ -40,8 +40,6 @@ nv.models.multiBarHorizontalChart = function() {
 
     state.stacked = false; // DEPRECATED Maintained for backward compatibility
     
-    legend.color(color);
-
     multibar
         .stacked(stacked)
     ;
@@ -376,6 +374,10 @@ nv.models.multiBarHorizontalChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             legend.color(color);
+        }},
+        barColor:  {get: function(){return multibar.barColor;}, set: function(_){
+            multibar.barColor(_);
+            legend.color(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
         }}
     });
 

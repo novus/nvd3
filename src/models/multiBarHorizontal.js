@@ -342,7 +342,7 @@ nv.models.multiBarHorizontal = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
         }},
-        barColor:  {get: function(){return color;}, set: function(_){
+        barColor:  {get: function(){return barColor;}, set: function(_){
             barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });

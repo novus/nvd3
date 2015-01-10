@@ -16,7 +16,7 @@ nv.models.multiBarChart = function() {
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
         , width = null
         , height = null
-        , color = nv.utils.getColor(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
+        , color = nv.utils.defaultColor()
         , showControls = true
         , controlLabels = {}
         , showLegend = true
@@ -42,8 +42,6 @@ nv.models.multiBarChart = function() {
         ;
 
     state.stacked = false // DEPRECATED Maintained for backward compatibility
-
-    legend.color(color);
     
     multibar
         .stacked(false)
@@ -427,6 +425,10 @@ nv.models.multiBarChart = function() {
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( rightAlignYAxis ? 'right' : 'left');
+        }},
+        barColor:  {get: function(){return multibar.barColor;}, set: function(_){
+            multibar.barColor(_);
+            legend.color(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
         }}
     });
 
