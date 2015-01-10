@@ -16,7 +16,7 @@ nv.models.multiBarChart = function() {
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
         , width = null
         , height = null
-        , color = nv.utils.defaultColor()
+        , color = nv.utils.getColor(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
         , showControls = true
         , controlLabels = {}
         , showLegend = true
@@ -43,6 +43,8 @@ nv.models.multiBarChart = function() {
 
     state.stacked = false // DEPRECATED Maintained for backward compatibility
 
+    legend.color(color);
+    
     multibar
         .stacked(false)
     ;
