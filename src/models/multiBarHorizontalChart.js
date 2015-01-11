@@ -39,7 +39,7 @@ nv.models.multiBarHorizontalChart = function() {
         ;
 
     state.stacked = false; // DEPRECATED Maintained for backward compatibility
-
+    
     multibar
         .stacked(stacked)
     ;
@@ -171,11 +171,6 @@ nv.models.multiBarHorizontalChart = function() {
             // Legend
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
-
-                if (multibar.barColor())
-                    data.forEach(function(series,i) {
-                        series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
-                    });
 
                 g.select('.nv-legendWrap')
                     .datum(data)
@@ -379,6 +374,10 @@ nv.models.multiBarHorizontalChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             legend.color(color);
+        }},
+        barColor:  {get: function(){return multibar.barColor;}, set: function(_){
+            multibar.barColor(_);
+            legend.color(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
         }}
     });
 

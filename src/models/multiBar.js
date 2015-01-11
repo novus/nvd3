@@ -341,7 +341,7 @@ nv.models.multiBar = function() {
             color = nv.utils.getColor(_);
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
-            barColor = nv.utils.getColor(_);
+            barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 
