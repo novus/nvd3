@@ -167,7 +167,7 @@ nv.models.scatterChart = function() {
       var g = wrap.select('g');
 
       // background for pointer events
-      gEnter.append('rect').attr('class', 'nvd3 nv-background');
+      gEnter.append('rect').attr('class', 'nvd3 nv-background').style("pointer-events","none");
 
       gEnter.append('g').attr('class', 'nv-x nv-axis');
       gEnter.append('g').attr('class', 'nv-y nv-axis');
@@ -354,6 +354,7 @@ nv.models.scatterChart = function() {
         y.distortion(fisheye).focus(mouse[1]);
 
         g.select('.nv-scatterWrap')
+            .datum(data.filter(function(d) { return !d.disabled }))
             .call(scatter);
 
         if (showXAxis)
