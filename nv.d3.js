@@ -4758,20 +4758,12 @@ nv.models.indentedTree = function() {
         return (d._values && d._values.length) ? iconOpen : (d.values && d.values.length) ? iconClose : '';
       }
 
-      function iconPlus(d) {
-        return (d._values != undefined && d._values.length == 0) ? iconAdd : (d._values != undefined && d._values.length == 0) ? iconAdd : '';
-      }
-
-      function iconMinus(d) {
-        return (d._values != undefined && d._values.length == 0) ? iconBlock : (d._values != undefined && d._values.length == 0) ? iconBlock : '';
-      }
-
       function iconAd(d) {
-        return (d._values != undefined && d._values.length == 0) ? iconAdd : (d._values != undefined && d._values.length == 0) ? iconAdd : '';
+        return (d._values != undefined && d._values.length == 0) ? iconAdd : (d.size > 0) ? iconAdd : '';
       }
 
       function iconRemove(d) {
-        return (d._values != undefined && d._values.length == 0) ? iconBlock : (d._values != undefined && d._values.length == 0) ? iconBlock : '';
+        return (d._values != undefined && d._values.length == 0) ? iconBlock : (d.size > 0) ? iconAdd : '';
       }
 
       function folded(d) {
