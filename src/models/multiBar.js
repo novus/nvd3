@@ -10,10 +10,13 @@ nv.models.multiBar = function() {
     , height = 500
     , x = d3.scale.ordinal()
     , y = d3.scale.linear()
+    , y2 = d3.scale.linear()
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
+    , getY2 = function(d) { return d.y2 }
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
+    , forceY2 = [0]
     , clipEdge = true
     , stacked = false
     , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
@@ -24,6 +27,7 @@ nv.models.multiBar = function() {
     , delay = 1200
     , xDomain
     , yDomain
+    , y2Domain
     , xRange
     , yRange
     , groupSpacing = 0.1
@@ -37,7 +41,7 @@ nv.models.multiBar = function() {
   // Private Variables
   //------------------------------------------------------------
 
-  var x0, y0 //used to store previous scales
+  var x0, y0, y02 //used to store previous scales
       ;
 
   //============================================================
@@ -71,6 +75,9 @@ nv.models.multiBar = function() {
       data.forEach(function(series, i) {
         series.values.forEach(function(point) {
           point.series = i;
+          if (point.series == 1){
+            point.y2 = point.y;
+          }
         });
       });
 
@@ -101,7 +108,7 @@ nv.models.multiBar = function() {
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function(d) {
               return d.values.map(function(d,i) {
-                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
+                return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, yAxis: d.series + 1  }
               })
             });
 
@@ -111,6 +118,9 @@ nv.models.multiBar = function() {
       //y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y + (stacked ? d.y1 : 0) }).concat(forceY)))
       y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
           .range(yRange || [availableHeight, 0]);
+
+      y2   .domain(y2Domain || d3.extent(d3.merge(seriesData).map(function(d) { if (d.yAxis == 2) { return d.y + (stacked ? d.y1 : 0) }}).concat(forceY2)))
+          .range([availableHeight, 0]);
 
       // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
       if (x.domain()[0] === x.domain()[1])
@@ -126,6 +136,7 @@ nv.models.multiBar = function() {
 
       x0 = x0 || x;
       y0 = y0 || y;
+      y02 = y02 || y;
 
       //------------------------------------------------------------
 
@@ -289,14 +300,30 @@ nv.models.multiBar = function() {
             })
             .attr('width', x.rangeBand() / data.length)
             .attr('y', function(d,i) {
+              if (d.series == 0){
                 return getY(d,i) < 0 ?
                         y(0) :
                         y(0) - y(getY(d,i)) < 1 ?
                           y(0) - 1 :
                         y(getY(d,i)) || 0;
+              }
+              else
+              {
+                return getY(d,i) < 0 ?
+                        y2(0) :
+                        y2(0) - y2(getY(d,i)) < 1 ?
+                          y2(0) - 1 :
+                          y2(getY(d,i))
+              }
             })
             .attr('height', function(d,i) {
+              if (d.series == 0){
                 return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+              }
+              else
+              {
+                return Math.max(Math.abs(y2(getY2(d,i)) - y2(0)),1);
+              }
             });
 
 
@@ -361,6 +388,12 @@ nv.models.multiBar = function() {
   chart.yScale = function(_) {
     if (!arguments.length) return y;
     y = _;
+    return chart;
+  };
+
+  chart.y2Scale = function(_) {
+    if (!arguments.length) return y2;
+    y2 = _;
     return chart;
   };
 
