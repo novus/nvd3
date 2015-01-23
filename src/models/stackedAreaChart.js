@@ -35,7 +35,7 @@ nv.models.stackedAreaChart = function() {
         , state = nv.utils.state()
         , defaultState = null
         , noData = 'No Data Available.'
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
+        , dispatch = d3.dispatch('tooltipHide', 'stateChange', 'changeState','renderEnd')
         , controlWidth = 250
         , cData = ['Stacked','Stream','Expanded']
         , controlLabels = {}
@@ -54,16 +54,6 @@ nv.models.stackedAreaChart = function() {
 
     var renderWatch = nv.utils.renderWatch(dispatch);
     var style = stacked.style();
-
-    var showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(stacked.x()(e.point, e.pointIndex)),
-            y = yAxis.tickFormat()(stacked.y()(e.point, e.pointIndex)),
-            content = tooltip(e.series.key, x, y, e, chart);
-
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-    };
 
     var stateGetter = function(data) {
         return function(){
@@ -404,11 +394,6 @@ nv.models.stackedAreaChart = function() {
                 stacked.clearHighlights();
             });
 
-
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -437,15 +422,6 @@ nv.models.stackedAreaChart = function() {
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
-
-    stacked.dispatch.on('tooltipShow', function(e) {
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    stacked.dispatch.on('tooltipHide', function(e) {
-        dispatch.tooltipHide(e);
-    });
 
     dispatch.on('tooltipHide', function() {
         if (tooltips) nv.tooltip.cleanup();
