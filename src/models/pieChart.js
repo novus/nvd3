@@ -33,8 +33,8 @@ nv.models.pieChart = function() {
 
     var showTooltip = function(e, offsetElement) {
         var tooltipLabel = pie.x()(e.point);
-        var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
-            top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
+        var left = e.pos[0],
+            top = e.pos[1],
             y = pie.valueFormat()(pie.y()(e.point)),
             content = tooltip(tooltipLabel, y, e, chart)
             ;
@@ -169,17 +169,16 @@ nv.models.pieChart = function() {
             var pieWrap = g.select('.nv-pieWrap').datum([data]);
             d3.transition(pieWrap).call(pie);
 
+            //============================================================
             // Event Handling/Dispatching (in chart's scope)
+            //------------------------------------------------------------
+
             legend.dispatch.on('stateChange', function(newState) {
                 for (var key in newState) {
                     state[key] = newState[key];
                 }
                 dispatch.stateChange(state);
                 chart.update();
-            });
-
-            pie.dispatch.on('elementMouseout.tooltip', function(e) {
-                dispatch.tooltipHide(e);
             });
 
             // Update chart from a state object passed to event handler
@@ -191,6 +190,10 @@ nv.models.pieChart = function() {
                     state.disabled = e.disabled;
                 }
                 chart.update();
+            });
+
+            dispatch.on('tooltipShow', function(e) {
+                if (tooltips) showTooltip(e, that.parentNode);
             });
 
         });
@@ -208,8 +211,8 @@ nv.models.pieChart = function() {
         dispatch.tooltipShow(e);
     });
 
-    dispatch.on('tooltipShow', function(e) {
-        if (tooltips) showTooltip(e);
+    pie.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
     });
 
     dispatch.on('tooltipHide', function() {
