@@ -37,7 +37,7 @@ nv.models.cumulativeLineChart = function() {
         , defaultState = null
         , noData = 'No Data Available.'
         , average = function(d) { return d.average }
-        , dispatch = d3.dispatch('tooltipHide', 'stateChange', 'changeState', 'renderEnd')
+        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , transitionDuration = 250
         , duration = 250
         , noErrorCheck = false  //if set to TRUE, will bypass an error check in the indexify function.
@@ -64,6 +64,16 @@ nv.models.cumulativeLineChart = function() {
         , index = {i: 0, x: 0}
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         ;
+
+    var showTooltip = function(e, offsetElement) {
+        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+            top = e.pos[1] + ( offsetElement.offsetTop || 0),
+            x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+            y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
+            content = tooltip(e.series.key, x, y, e, chart);
+
+        nv.tooltip.show([left, top], content, null, null, offsetElement);
+    };
 
     var stateGetter = function(data) {
         return function(){
@@ -509,6 +519,10 @@ nv.models.cumulativeLineChart = function() {
                 lines.clearHighlights();
             });
 
+            dispatch.on('tooltipShow', function(e) {
+                if (tooltips) showTooltip(e, that.parentNode);
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -547,6 +561,15 @@ nv.models.cumulativeLineChart = function() {
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
+
+    lines.dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+    });
+
+    lines.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+    });
 
     dispatch.on('tooltipHide', function() {
         if (tooltips) nv.tooltip.cleanup();

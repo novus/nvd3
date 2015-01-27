@@ -31,7 +31,7 @@ nv.models.lineChart = function() {
         , state = nv.utils.state()
         , defaultState = null
         , noData = 'No Data Available.'
-        , dispatch = d3.dispatch('tooltipHide', 'stateChange', 'changeState', 'renderEnd')
+        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , duration = 250
         ;
 
@@ -46,6 +46,16 @@ nv.models.lineChart = function() {
     //============================================================
     // Private Variables
     //------------------------------------------------------------
+
+    var showTooltip = function(e, offsetElement) {
+        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+            top = e.pos[1] + ( offsetElement.offsetTop || 0),
+            x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+            y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
+            content = tooltip(e.series.key, x, y, e, chart);
+
+        nv.tooltip.show([left, top], content, null, null, offsetElement);
+    };
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -95,7 +105,7 @@ nv.models.lineChart = function() {
                 .getter(stateGetter(data))
                 .update();
 
-            // DEPRECATED set state.disabled
+            // DEPRECATED set state.disableddisabled
             state.disabled = data.map(function(d) { return !!d.disabled });
 
             if (!defaultState) {
@@ -311,6 +321,10 @@ nv.models.lineChart = function() {
                 lines.clearHighlights();
             });
 
+            dispatch.on('tooltipShow', function(e) {
+                if (tooltips) showTooltip(e, that.parentNode);
+            });
+
             dispatch.on('changeState', function(e) {
 
                 if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
@@ -333,6 +347,15 @@ nv.models.lineChart = function() {
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
+
+    lines.dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+    });
+
+    lines.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+    });
 
     dispatch.on('tooltipHide', function() {
         if (tooltips) nv.tooltip.cleanup();
