@@ -22,7 +22,8 @@ nv.models.multiChart = function() {
         yDomain2,
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
-        interpolate = 'monotone'
+        interpolate = 'monotone',
+        useVoronoi = true
         ;
 
     //============================================================
@@ -430,7 +431,14 @@ nv.models.multiChart = function() {
             getY = _;
             lines1.y(_);
             bars1.y(_);
-        }}
+        }},
+        useVoronoi: {get: function(){return useVoronoi;}, set: function(_){
+            useVoronoi=_;
+            lines1.useVoronoi(_);
+            lines2.useVoronoi(_);
+            stack1.useVoronoi(_);
+            stack2.useVoronoi(_);
+        }},
     });
 
     nv.utils.initOptions(chart);
