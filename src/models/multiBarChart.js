@@ -42,7 +42,7 @@ nv.models.multiBarChart = function() {
         ;
 
     state.stacked = false // DEPRECATED Maintained for backward compatibility
-    
+
     multibar
         .stacked(false)
     ;
@@ -332,6 +332,10 @@ nv.models.multiBarChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode)
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -368,9 +372,6 @@ nv.models.multiBarChart = function() {
 
     multibar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================

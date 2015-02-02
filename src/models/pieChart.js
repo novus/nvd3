@@ -196,6 +196,9 @@ nv.models.pieChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
         });
 
         renderWatch.renderEnd('pieChart immediate');
@@ -213,10 +216,6 @@ nv.models.pieChart = function() {
 
     pie.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================

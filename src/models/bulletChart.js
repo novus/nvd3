@@ -176,6 +176,9 @@ nv.models.bulletChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
         });
 
         d3.timer.flush();
@@ -192,10 +195,6 @@ nv.models.bulletChart = function() {
 
     bullet.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================

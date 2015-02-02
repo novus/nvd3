@@ -523,9 +523,12 @@ nv.models.cumulativeLineChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
-
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
@@ -569,10 +572,6 @@ nv.models.cumulativeLineChart = function() {
 
     lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================

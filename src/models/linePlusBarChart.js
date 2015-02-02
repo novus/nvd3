@@ -368,6 +368,10 @@ nv.models.linePlusBarChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined') {
@@ -536,10 +540,6 @@ nv.models.linePlusBarChart = function() {
 
     bars.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
