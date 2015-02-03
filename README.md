@@ -12,7 +12,9 @@ For those interested in a fork of NVD3 that is being actively maintained by a co
 - nv.utils.optionsFunc has been deprecated. Will be removed on next release. It not really a 'd3' way of handling chart settings, and it also introduced compatibility issues with Internet Explorer and PhantomJS.
 - transitionDuration has been deprecated. It will be removed on next release. On supported charts, it has been replaced with 'duration'.
 - pie.description is no longer a valid option.
-
+- 'renderWatch' functionality added to supported charts.
+    - What is 'renderWatch'? Basically, it's a dispatch fired from the chart when all its components are done transitioning. This feature is useful for printing charts in headless browsers, like PhantomJS. See an example of it being used in examples/lineChart.html.
+- Basic unit tests added. They are in the test/mocha folder.
 
 ## Overview
 A reusable chart library for d3.js.
