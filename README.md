@@ -11,6 +11,7 @@ For those interested in a fork of NVD3 that is being actively maintained by a co
 - We will keep these charts in the library, but won't continue updating them. Pull requests for them will be ignored.
 - nv.utils.optionsFunc has been deprecated. Will be removed on next release. It not really a 'd3' way of handling chart settings, and it also introduced compatibility issues with Internet Explorer and PhantomJS.
 - transitionDuration has been deprecated. It will be removed on next release. On supported charts, it has been replaced with 'duration'.
+- pie.description is no longer a valid option.
 
 
 ## Overview
