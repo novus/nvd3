@@ -12024,7 +12024,7 @@ nv.models.scatter = function() {
           pointPaths.exit().remove();
           pointPaths
               .attr('d', function(d) {
-                if (d.data.length === 0)
+                if (d == null || d.data.length === 0)
                     return 'M 0 0'
                 else
                     return 'M' + d.data.join('L') + 'Z';
