@@ -16,6 +16,8 @@ For those interested in a fork of NVD3 that is being actively maintained by a co
 - 'renderWatch' functionality added to supported charts.
     - What is 'renderWatch'? Basically, it's a dispatch fired from the chart when all its components are done transitioning. This feature is useful for printing charts in headless browsers, like PhantomJS. See an example of it being used in examples/lineChart.html.
 - Basic unit tests added. They are in the test/mocha folder.
+- Removed d3.v2.js from the lib/ folder.
+- Removed everything from the deprecated/ folder. If you need something from it, checkout an older version.
 
 ## Overview
 A reusable chart library for d3.js.
