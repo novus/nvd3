@@ -27,7 +27,6 @@
           <a href="pieChartTest.html">Pie chart</a>
           <a href="realTimeChartTest.html">Real time test</a>
           <a href="polylinearTest.html">Polylinear test</a>
-          <a href="interactiveBisectTest.html">nv.interactiveBisect unit tests</a>
       </div>
       <div class='chart full' id='chart1'>
         Example of chart with many series', and new interactive guideline plus tooltip. A chunk of data was purposely removed
@@ -142,7 +141,7 @@ d3.select("body").on("keydown",function() {
      alert("keydowned");
   }
 });
-//------------ CHART 1 
+//------------ CHART 1
 defaultChartConfig("chart1", dummyStocks(),true, true, {forceY:false});
 
 //-------------- CHART 2  --- Chart without the interactive guideline.
@@ -202,17 +201,17 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
     chart = nv.models.lineChart().useInteractiveGuideline(guideline);
 
     chart
-        .x(function(d,i) { 
+        .x(function(d,i) {
           return d.x;
         });
 
-    if (auxOptions.width) 
+    if (auxOptions.width)
       chart.width(auxOptions.width);
 
     if (auxOptions.height)
       chart.height(auxOptions.height);
 
-    if (auxOptions.forceY) 
+    if (auxOptions.forceY)
       chart.forceY([0]);
 
     var formatter;
