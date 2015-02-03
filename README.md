@@ -1,8 +1,17 @@
 For those interested in a fork of NVD3 that is being actively maintained by a community member, please see:  [ https://github.com/liquidpele/nvd3](https://github.com/liquidpele/nvd3)
 
-# NVD3 - v1.1.15-beta
-## Release notes for version 1.1.15 beta
-* Various fixes across the board
+# NVD3 - v1.2.0
+## Release Notes
+- The following charts are no longer being actively supported in NVD3:
+    - indentedTree
+    - linePlusBar, linePlusBarWithFocus, lineWithFishEye, lineWithFocus
+    - multiChart
+    - ohlcBar
+    - parallelCoordinates
+- We will keep these charts in the library, but won't continue updating them. Pull requests for them will be ignored.
+- nv.utils.optionsFunc has been deprecated. Will be removed on next release. It not really a 'd3' way of handling chart settings, and it also introduced compatibility issues with Internet Explorer and PhantomJS.
+- transitionDuration has been deprecated. It will be removed on next release. On supported charts, it has been replaced with 'duration'.
+
 
 ## Overview
 A reusable chart library for d3.js.
@@ -11,12 +20,6 @@ NVD3 may change from its current state, but will always try to follow the style 
 
 You can also check out the [examples page](http://nvd3.org/ghpages/examples.html).
 **Note:** The examples on nvd3.org are outdated.  For examples on how to use the latest NVD3, please checkout the **examples/** directory in the repository.
-
----
-
-# Current development focus
-- Better unit test coverage
-- bug fixes.
 
 ---
 
