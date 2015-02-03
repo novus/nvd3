@@ -1,4 +1,5 @@
-For those interested in a fork of NVD3 that is being actively maintained by a community member, please see:  [ https://github.com/liquidpele/nvd3](https://github.com/liquidpele/nvd3)
+We recognize that there is a community version of NVD3 being maintained: [ https://github.com/liquidpele/nvd3](https://github.com/liquidpele/nvd3). Due to higher priority projects at Novus,
+we do not have the time to process every community request.  We encourage people to use whichever fork of NVD3 suits them best.
 
 # NVD3 - v1.2.0
 ## Release Notes
