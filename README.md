@@ -4,6 +4,7 @@ For those interested in a fork of NVD3 that is being actively maintained by a co
 ## Release Notes
 - The following charts are no longer being actively supported in NVD3:
     - indentedTree
+    - horizon
     - linePlusBar, linePlusBarWithFocus, lineWithFishEye, lineWithFocus
     - multiChart
     - ohlcBar
