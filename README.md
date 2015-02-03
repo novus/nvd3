@@ -1,3 +1,5 @@
+For those interested in a fork of NVD3 that is being actively maintained by a community member, please see:  [ https://github.com/liquidpele/nvd3](https://github.com/liquidpele/nvd3)
+
 # NVD3 - v1.1.15-beta
 ## Release notes for version 1.1.15 beta
 * Various fixes across the board
