@@ -17,9 +17,9 @@ nv.interactiveGuideline = function() {
 	, margin = {left: 0, top: 0}
 	, xScale = d3.scale.linear()
 	, yScale = d3.scale.linear()
-	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick')
+	, dispatch = d3.dispatch('elementMousemove', 'elementMouseout','elementDblclick', 'elementClick')
 	, showGuideLine = true
-	, svgContainer = null  
+	, svgContainer = null
     //Must pass in the bounding chart's <svg> container.
     //The mousemove event is attached to this container.
 	;
@@ -32,16 +32,16 @@ nv.interactiveGuideline = function() {
 	function layer(selection) {
 		selection.each(function(data) {
 				var container = d3.select(this);
-				
+
 				var availableWidth = (width || 960), availableHeight = (height || 400);
 
 				var wrap = container.selectAll("g.nv-wrap.nv-interactiveLineLayer").data([data]);
 				var wrapEnter = wrap.enter()
 								.append("g").attr("class", " nv-wrap nv-interactiveLineLayer");
-								
-				
+
+
 				wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
-				
+
 				if (!svgContainer) {
 					return;
 				}
@@ -58,7 +58,7 @@ nv.interactiveGuideline = function() {
                             d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
                             over a rect in IE 10.
                             However, d3.event.offsetX/Y also returns the mouse coordinates
-                            relative to the triggering <rect>. So we use offsetX/Y on IE.  
+                            relative to the triggering <rect>. So we use offsetX/Y on IE.
                          */
                          mouseX = d3.event.offsetX;
                          mouseY = d3.event.offsetY;
@@ -69,7 +69,7 @@ nv.interactiveGuideline = function() {
                             When this happens on IE, the offsetX/Y is set to where ever the child element
                             is located.
                             As a result, we do NOT need to subtract margins to figure out the mouse X/Y
-                            position under this scenario. Removing the line below *will* cause 
+                            position under this scenario. Removing the line below *will* cause
                             the interactive layer to not work right on IE.
                          */
                          if(d3.event.target.tagName !== "svg")
@@ -77,7 +77,7 @@ nv.interactiveGuideline = function() {
 
                          if (d3.event.target.className.baseVal.match("nv-legend"))
                          	mouseOutAnyReason = true;
-                          
+
                       }
 
                       if(subtractMargin) {
@@ -88,14 +88,14 @@ nv.interactiveGuideline = function() {
                       /* If mouseX/Y is outside of the chart's bounds,
                       trigger a mouseOut event.
                       */
-                      if (mouseX < 0 || mouseY < 0 
+                      if (mouseX < 0 || mouseY < 0
                         || mouseX > availableWidth || mouseY > availableHeight
                         || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
                         || mouseOutAnyReason
-                        ) 
+                        )
                       {
                       		if (isMSIE) {
-                      			if (d3.event.relatedTarget 
+                      			if (d3.event.relatedTarget
                       				&& d3.event.relatedTarget.ownerSVGElement === undefined
                       				&& d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass)) {
                       				return;
@@ -108,7 +108,7 @@ nv.interactiveGuideline = function() {
                             layer.renderGuideLine(null); //hide the guideline
                             return;
                       }
-                      
+
                       var pointXValue = xScale.invert(mouseX);
                       dispatch.elementMousemove({
                             mouseX: mouseX,
@@ -124,12 +124,21 @@ nv.interactiveGuideline = function() {
                             pointXValue: pointXValue
                         });
                       }
+
+                      if (d3.event.type === 'click') {
+                        dispatch.elementClick({
+                          mouseX: mouseX,
+                          mouseY: mouseY,
+                          pointXValue: pointXValue
+                        });
+                      }
                 }
 
 				svgContainer
 				      .on("mousemove",mouseHandler, true)
 				      .on("mouseout" ,mouseHandler,true)
-                      .on("dblclick" ,mouseHandler)
+              .on("dblclick" ,mouseHandler)
+              .on('click', mouseHandler)
 				      ;
 
 				 //Draws a vertical guideline at the given X postion.
@@ -200,7 +209,7 @@ nv.interactiveGuideline = function() {
 /* Utility class that uses d3.bisect to find the index in a given array, where a search value can be inserted.
 This is different from normal bisectLeft; this function finds the nearest index to insert the search value.
 
-For instance, lets say your array is [1,2,3,5,10,30], and you search for 28. 
+For instance, lets say your array is [1,2,3,5,10,30], and you search for 28.
 Normal d3.bisectLeft will return 4, because 28 is inserted after the number 10.  But interactiveBisect will return 5
 because 28 is closer to 30 than 10.
 

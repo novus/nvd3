@@ -217,6 +217,57 @@ nv.models.lineChart = function() {
            .svgContainer(container)
            .xScale(x);
         wrap.select(".nv-interactive").call(interactiveLayer);
+
+        interactiveLayer.dispatch.on('elementClick', function(e) {
+         var singlePoint, pointIndex, pointXLocation, allData = [];
+          data
+          .filter(function(series, i) {
+            series.seriesIndex = i;
+            return !series.disabled;
+          })
+          .forEach(function(series,i) {
+              pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+              lines.highlightPoint(i, pointIndex, true);
+              var point = series.values[pointIndex];
+              if (typeof point === 'undefined') return;
+              if (typeof singlePoint === 'undefined') singlePoint = point;
+              if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+              allData.push({
+                  key: series.key,
+                  value: chart.y()(point, pointIndex),
+                  color: color(series,series.seriesIndex)
+              });
+          });
+          //Highlight the tooltip entry based on which point the mouse is closest to.
+          if (allData.length > 2) {
+            var yValue = chart.yScale().invert(e.mouseY);
+            var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+            var threshold = 0.03 * domainExtent;
+            var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+            if (indexToHighlight !== null)
+              allData[indexToHighlight].highlight = true;
+          }
+
+          var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+          var yPos = chart.yScale()(chart.y()(singlePoint,pointIndex));
+
+          /*
+           * If indexToHighlight is null, then the user
+           * hasn't actually clicked a line. So we make sure
+           * they clicked an actual line
+           */
+          if (indexToHighlight != null) {
+            lines.dispatch.elementClick({
+              point       : singlePoint,
+              pointIndex  : pointIndex,
+              pos         : [pointXLocation, yPos],
+              seriesIndex : indexToHighlight,
+              series      : data[indexToHighlight]
+            });
+          }
+
+
+        });
       }
 
 
