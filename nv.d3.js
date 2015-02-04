@@ -1300,7 +1300,12 @@ nv.models.axis = function() {
       switch (axis.orient()) {
         case 'top':
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+
+          var w = scale.range()[0];
+          if (scale.range().length > 1){
+             w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+          }
+
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', 0)
@@ -1347,7 +1352,12 @@ nv.models.axis = function() {
               .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
           }
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-          var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+
+          var w = scale.range()[0];
+          if (scale.range().length > 1){
+             w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
+          }
+          
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', xLabelMargin)
