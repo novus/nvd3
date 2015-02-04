@@ -138,8 +138,11 @@ nv.models.multiChart = function() {
             });
 
             if (showLegend) {
+                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
+                var legendXPosition = legend.align() ? legendWidth : 0;
+
+                legend.width(legendWidth);
                 legend.color(color_array);
-                legend.width( availableWidth / 2 );
 
                 g.select('.legendWrap')
                     .datum(data.map(function(series) {
@@ -156,7 +159,7 @@ nv.models.multiChart = function() {
                 }
 
                 g.select('.legendWrap')
-                    .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }
 
             lines1
