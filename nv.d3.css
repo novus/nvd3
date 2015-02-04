@@ -1,3 +1,20 @@
+/********************
+ * SVG CSS
+ */
+
+
+svg {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Trying to get SVG to act like a greedy block in all browsers */
+  display: block;
+  width:100%;
+  height:100%;
+}
 
 /********************
  * HTML CSS
@@ -137,40 +154,17 @@
   pointer-events: none;
 }
 
-
-/********************
- * SVG CSS
- */
-
-
-svg {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  /* Trying to get SVG to act like a greedy block in all browsers */
-  display: block;
-  width:100%;
-  height:100%;
-}
-
-
-svg text {
+.nvd3 text {
   font: normal 12px Arial;
 }
 
-svg .title {
+.nvd3 .title {
  font: bold 14px Arial;
 }
 
 .nvd3 .nv-background {
   fill: white;
   fill-opacity: 0;
-  /*
-  pointer-events: none;
-  */
 }
 
 .nvd3.nv-noData {

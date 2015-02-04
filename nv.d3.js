@@ -368,7 +368,7 @@ Has the following known issues:
 */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
 	  "use strict";
-      if (! values instanceof Array) return null;
+      if (!(values instanceof Array)) return null;
       if (typeof xAccessor !== 'function') xAccessor = function(d,i) { return d.x;}
 
       var bisect = d3.bisector(xAccessor).left;
@@ -404,7 +404,8 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
          }
       });
       return indexToHighlight;
-};/* Tooltip rendering model for nvd3 charts.
+};
+/* Tooltip rendering model for nvd3 charts.
 window.nv.models.tooltip is the updated,new way to render tooltips.
 
 window.nv.tooltip.show is the old tooltip code.
@@ -1305,7 +1306,7 @@ nv.models.axis = function() {
           if (scale.range().length > 1){
              w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           }
-
+                    
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', 0)
@@ -1357,7 +1358,7 @@ nv.models.axis = function() {
           if (scale.range().length > 1){
              w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           }
-          
+
           axisLabel
               .attr('text-anchor', 'middle')
               .attr('y', xLabelMargin)
@@ -1656,7 +1657,7 @@ nv.models.bullet = function() {
     , orient = 'left' // TODO top & bottom
     , reverse = false
     , ranges = function(d) { return d.ranges }
-    , markers = function(d) { return d.markers }
+    , markers = function(d) { return d.markers ? d.markers : [0] }
     , measures = function(d) { return d.measures }
     , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
     , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
@@ -2043,7 +2044,7 @@ nv.models.bulletChart = function() {
     , reverse = false
     , margin = {top: 5, right: 40, bottom: 20, left: 120}
     , ranges = function(d) { return d.ranges }
-    , markers = function(d) { return d.markers }
+    , markers = function(d) { return d.markers ? d.markers : [0] }
     , measures = function(d) { return d.measures }
     , width = null
     , height = 55
