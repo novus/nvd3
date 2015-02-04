@@ -228,7 +228,7 @@ nv.models.linePlusBarChart = function() {
             //------------------------------------------------------------
 
             if (showLegend) {
-                legend.width( availableWidth / 2 );
+                legend.width(legend.align() ? availableWidth / 2 : availableWidth);
 
                 g.select('.nv-legendWrap')
                     .datum(data.map(function(series) {
@@ -245,7 +245,7 @@ nv.models.linePlusBarChart = function() {
                 }
 
                 g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + (legend.align() ? availableWidth / 2 : 0) + ',' + (-margin.top) +')');
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');

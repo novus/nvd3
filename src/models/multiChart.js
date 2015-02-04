@@ -139,7 +139,7 @@ nv.models.multiChart = function() {
 
             if (showLegend) {
                 legend.color(color_array);
-                legend.width( availableWidth / 2 );
+                legend.width(legend.align() ? availableWidth / 2 : availableWidth);
 
                 g.select('.legendWrap')
                     .datum(data.map(function(series) {
@@ -156,7 +156,7 @@ nv.models.multiChart = function() {
                 }
 
                 g.select('.legendWrap')
-                    .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + (legend.align() ? availableWidth / 2 : 0) + ',' + (-margin.top) +')');
             }
 
             lines1

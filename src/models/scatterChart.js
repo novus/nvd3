@@ -195,13 +195,7 @@ nv.models.scatterChart = function() {
 
             // Legend
             if (showLegend) {
-                var xOffset = 0;
-                if (legend.align()) {
-                    legend.width(availableWidth / 2 );
-                    xOffset = availableWidth / 2
-                } else {
-                    legend.width(availableWidth);
-                }
+                legend.width(legend.align() ? availableWidth / 2 : availableWidth);
 
                 wrap.select('.nv-legendWrap')
                     .datum(data)
@@ -214,7 +208,7 @@ nv.models.scatterChart = function() {
                 }
 
                 wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + xOffset + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + (legend.align() ? availableWidth / 2 : 0) + ',' + (-margin.top) +')');
             }
 
             // Main Chart Component(s)
