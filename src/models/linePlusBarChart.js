@@ -228,7 +228,10 @@ nv.models.linePlusBarChart = function() {
             //------------------------------------------------------------
 
             if (showLegend) {
-                legend.width(legend.align() ? availableWidth / 2 : availableWidth);
+                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
+                var legendXPosition = legend.align() ? legendWidth : 0;
+
+                legend.width(legendWidth);
 
                 g.select('.nv-legendWrap')
                     .datum(data.map(function(series) {
@@ -245,7 +248,7 @@ nv.models.linePlusBarChart = function() {
                 }
 
                 g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + (legend.align() ? availableWidth / 2 : 0) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
