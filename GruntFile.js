@@ -81,8 +81,7 @@ module.exports = function(grunt) {
                     },
                     files: [
                         'bower_components/d3/d3.js',
-                        'src/*.js',
-                        'src/models/*.js',
+                        'build/nv.d3.js',
                         'test/mocha/*.coffee'
                     ],
                     exclude: [
