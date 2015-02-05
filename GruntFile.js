@@ -1,3 +1,6 @@
+
+var version = '1.7.0';
+
 module.exports = function(grunt) {
 
     //Project configuration.
@@ -5,34 +8,33 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         concat: {
             options: {
-                separator: ''
+                separator: '',
+                // wrap output in a function block.
+                banner: '/* nvd3 version ' + version + '(https://github.com/liquidpele/nvd3) ' +
+                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
+                footer: '\nnv.version = "' + version + '";\n})();'
             },
             dist: {
                 src: [
-                    'src/intro.js',
                     'src/core.js',
                     'src/interactiveLayer.js',
                     'src/tooltip.js',
                     'src/utils.js',
-                    //Include all files in src/models, excluding some charts
-                    //that are no longer supported.
-                    'src/models/*.js',
-                    '!src/models/lineWithFisheye*',
-                    '!src/models/parallelCoordinates*',
-                    '!src/models/multiBarTime*',
-                    'src/outro.js'
-                ],
-                dest: 'nv.d3.js'
+                    //Include all files in src/models
+                    'src/models/*.js'
+                    // example to exclude files: '!src/models/excludeMe*'
+                     ],
+                dest: 'build/nv.d3.js'
             }
         },
         uglify: {
             options: {
-                banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
-                    '<%= grunt.template.today("yyyy-mm-dd") %> */'
+                banner: '/* nvd3 version ' + version + ' (https://github.com/liquidpele/nvd3) ' +
+                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
             js: {
                 files: {
-                    'nv.d3.min.js': ['nv.d3.js']
+                    'build/nv.d3.min.js': ['build/nv.d3.js']
                 }
             }
         },
@@ -53,18 +55,14 @@ module.exports = function(grunt) {
         copy: {
           css: {
             files: [
-              { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
+              { src: 'src/nv.d3.css', dest: 'build/nv.d3.css' }
             ]
-          },
-          d3: {
-            src: 'bower_components/d3/d3.js',
-            dest: 'lib/d3.v3.js'
           }
         },
         cssmin: {
           dist: {
             files: {
-              'nv.d3.min.css' : ['nv.d3.css']
+                'build/nv.d3.min.css' : ['build/nv.d3.css']
             }
           }
         },
@@ -82,7 +80,7 @@ module.exports = function(grunt) {
                         'test/mocha/*.coffee': ['coffee']
                     },
                     files: [
-                        'lib/d3.v3.js',
+                        'bower_components/d3/d3.js',
                         'src/*.js',
                         'src/models/*.js',
                         'test/mocha/*.coffee'
@@ -112,7 +110,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
 
-    grunt.registerTask('default', ['concat', 'copy', 'karma:unit']);
+    grunt.registerTask('default', ['concat', 'karma:unit']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
