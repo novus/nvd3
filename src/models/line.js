@@ -105,7 +105,7 @@ nv.models.line = function() {
                 .style('stroke', function(d,i){ return color(d, i)});
             groups.watchTransition(renderWatch, 'line: groups')
                 .style('stroke-opacity', 1)
-                .style('fill-opacity', .5);
+                .style('fill-opacity', function(d) { return d.fillOpacity ? d.fillOpacity : .5});
 
             var areaPaths = groups.selectAll('path.nv-area')
                 .data(function(d) { return isArea(d) ? [d] : [] }); // this is done differently than lines because I need to check if series is an area
