@@ -1,6 +1,6 @@
 {
   "name": "nvd3",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.3.0",

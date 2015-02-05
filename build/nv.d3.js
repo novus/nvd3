@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.0(https://github.com/liquidpele/nvd3) 2015-02-05 */
+/* nvd3 version 1.7.1(https://github.com/novus/nvd3) 2015-02-05 */
 (function(){
 
 // set up main nv object on window
@@ -11345,5 +11345,5 @@ nv.models.stackedAreaChart = function() {
     return chart;
 };
 
-nv.version = "1.7.0";
+nv.version = "1.7.1";
 })();
