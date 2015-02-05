@@ -1614,7 +1614,9 @@ nv.utils.initSVG = function(svg) {
                     }
                     if (staggerLabels)
                         xTicks
-                            .attr('transform', function(d,i) { return 'translate(0,' + nv.utils.NaNtoZero((i % 2 == 0 ? '0' : '12')) + ')' });
+                            .attr('transform', function(d,i) {
+                                return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')'
+                            });
 
                     break;
                 case 'right':
