@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.1(https://github.com/novus/nvd3) 2015-02-05 */
+/* nvd3 version 1.7.1 (https://github.com/novus/nvd3) 2015-02-05 */
 (function(){
 
 // set up main nv object on window
@@ -13,6 +13,7 @@ nv.models = nv.models || {}; //stores all the possible models/components
 nv.charts = {}; //stores all the ready to use charts
 nv.graphs = []; //stores all the graphs currently on the page
 nv.logs = {}; //stores some statistics and potential error messages
+nv.dom = {}; //DOM manipulation functions
 
 nv.dispatch = d3.dispatch('render_start', 'render_end');
 
@@ -120,6 +121,30 @@ nv.addGraph = function(obj) {
     if (!nv.render.active) {
         nv.render();
     }
+};/* Facade for queueing DOM write operations
+ * with Fastdom (https://github.com/wilsonpage/fastdom)
+ * if available.
+ * This could easily be extended to support alternate
+ * implementations in the future.
+ */
+nv.dom.write = function(callback) {
+	if (window.fastdom !== undefined) {
+		return fastdom.write(callback);
+	}
+	return callback();
+};
+
+/* Facade for queueing DOM read operations
+ * with Fastdom (https://github.com/wilsonpage/fastdom)
+ * if available.
+ * This could easily be extended to support alternate
+ * implementations in the future.
+ */
+nv.dom.read = function(callback) {
+	if (window.fastdom !== undefined) {
+		return fastdom.read(callback);
+	}
+	return callback();
 };/* Utility class to handle creation of an interactive layer.
  This places a rectangle on top of the chart. When you mouse move over it, it sends a dispatch
  containing the X-coordinate. It can also render a vertical line where the mouse is located.
@@ -219,7 +244,8 @@ nv.interactiveGuideline = function() {
                     if (isMSIE) {
                         if (d3.event.relatedTarget
                             && d3.event.relatedTarget.ownerSVGElement === undefined
-                            && d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass)) {
+                            && (d3.event.relatedTarget.className === undefined
+                                || d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass))) {
 
                             return;
                         }
@@ -265,23 +291,24 @@ nv.interactiveGuideline = function() {
                 .on("click", mouseHandler)
             ;
 
+            layer.guideLine = null;
             //Draws a vertical guideline at the given X postion.
             layer.renderGuideLine = function(x) {
                 if (!showGuideLine) return;
-                var line = wrap.select(".nv-interactiveGuideLine")
-                    .selectAll("line")
-                    .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
-
-                line.enter()
-                    .append("line")
-                    .attr("class", "nv-guideline")
-                    .attr("x1", function(d) { return d;})
-                    .attr("x2", function(d) { return d;})
-                    .attr("y1", availableHeight)
-                    .attr("y2",0)
-                ;
-                line.exit().remove();
-
+                if (layer.guideLine && layer.guideLine.attr("x1") === x) return;
+                nv.dom.write(function() {
+                    var line = wrap.select(".nv-interactiveGuideLine")
+                        .selectAll("line")
+                        .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
+                    line.enter()
+                        .append("line")
+                        .attr("class", "nv-guideline")
+                        .attr("x1", function(d) { return d;})
+                        .attr("x2", function(d) { return d;})
+                        .attr("y1", availableHeight)
+                        .attr("y2",0);
+                    line.exit().remove();
+                });
             }
         });
     }
@@ -460,11 +487,11 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
         //By default, the tooltip model renders a beautiful table inside a DIV.
         //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
-            if (content != null) {
+            if (content !== null) {
                 return content;
             }
 
-            if (d == null) {
+            if (d === null) {
                 return '';
             }
 
@@ -539,7 +566,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                 var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
                 if (viewBox) {
                     viewBox = viewBox.split(' ');
-                    var ratio = parseInt(svg.style('width')) / viewBox[2];
+                    var ratio = parseInt(svg.style('width'), 10) / viewBox[2];
 
                     position.left = position.left * ratio;
                     position.top  = position.top * ratio;
@@ -548,27 +575,34 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
         }
 
         //Creates new tooltip container, or uses existing one on DOM.
-        function getTooltipContainer(newContent) {
+        function getTooltipContainer() {
             var body;
             if (chartContainer) {
                 body = d3.select(chartContainer);
             } else {
-                body = d3.select("body");
+                body = d3.select('body');
             }
-
             var container = body.select(".nvtooltip");
             if (container.node() === null) {
                 //Create new tooltip div if it doesn't exist on DOM.
                 container = body.append("div")
-                    .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
-                    .attr("id",id)
-                ;
+                          .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
+                          .attr("id",id);
             }
 
-            container.node().innerHTML = newContent;
             container.style("top",0).style("left",0).style("opacity",0);
             container.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
             container.classed(nvPointerEventsClass,true);
+
+            // Bonus - If you override contentGenerator and return falsey you can use something like
+            //         React or Knockout to bind the data for your tooltip
+            var newContent = contentGenerator(data);
+            if (newContent) container.node().innerHTML = newContent;
+
+            var hidden = document.querySelector("#" + id + ".nvtooltip-pending-removal");
+            if (hidden)
+                hidden.className = "nvtooltip " + (classes? classes: "xy-tooltip");
+
             return container.node();
         }
 
@@ -580,40 +614,47 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             convertViewBoxRatio();
 
             var left = position.left;
-            var top = (fixedTop != null) ? fixedTop : position.top;
-            var container = getTooltipContainer(contentGenerator(data));
-            tooltipElem = container;
-            if (chartContainer) {
-                var svgComp = chartContainer.getElementsByTagName("svg")[0];
-                var boundRect = (svgComp) ? svgComp.getBoundingClientRect() : chartContainer.getBoundingClientRect();
-                var svgOffset = {left:0,top:0};
-                if (svgComp) {
-                    var svgBound = svgComp.getBoundingClientRect();
-                    var chartBound = chartContainer.getBoundingClientRect();
-                    var svgBoundTop = svgBound.top;
+            var top = (fixedTop !== null) ? fixedTop : position.top;
 
-                    //Defensive code. Sometimes, svgBoundTop can be a really negative
-                    //  number, like -134254. That's a bug.
-                    //  If such a number is found, use zero instead. FireFox bug only
-                    if (svgBoundTop < 0) {
-                        var containerBound = chartContainer.getBoundingClientRect();
-                        svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
-                    }
-                    svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
-                    svgOffset.left = Math.abs(svgBound.left - chartBound.left);
+            nv.dom.write(function () {
+                var container = getTooltipContainer(contentGenerator(data));
+                tooltipElem = container;
+                if (chartContainer) {
+                    nv.dom.read(function() {
+                        var svgComp = chartContainer.getElementsByTagName("svg")[0];
+                        var boundRect = (svgComp) ? svgComp.getBoundingClientRect() : chartContainer.getBoundingClientRect();
+                        var svgOffset = {left:0,top:0};
+                        if (svgComp) {
+                            var svgBound = svgComp.getBoundingClientRect();
+                            var chartBound = chartContainer.getBoundingClientRect();
+                            var svgBoundTop = svgBound.top;
+
+                            //Defensive code. Sometimes, svgBoundTop can be a really negative
+                            //  number, like -134254. That's a bug.
+                            //  If such a number is found, use zero instead. FireFox bug only
+                            if (svgBoundTop < 0) {
+                                var containerBound = chartContainer.getBoundingClientRect();
+                                svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
+                            }
+                            svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
+                            svgOffset.left = Math.abs(svgBound.left - chartBound.left);
+                        }
+                        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
+                        //You need to also add any offset between the <svg> element and its containing <div>
+                        //Finally, add any offset of the containing <div> on the whole page.
+                        left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
+                        top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
+                        if (snapDistance && snapDistance > 0) {
+                            top = Math.floor(top/snapDistance) * snapDistance;
+                        }
+
+                        nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
+                    });
+                } else {
+                    nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
                 }
-                //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
-                //You need to also add any offset between the <svg> element and its containing <div>
-                //Finally, add any offset of the containing <div> on the whole page.
-                left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
-                top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
-            }
+            });
 
-            if (snapDistance && snapDistance > 0) {
-                top = Math.floor(top/snapDistance) * snapDistance;
-            }
-
-            nv.tooltip.calcTooltipPosition([left,top], gravity, distance, container);
             return nvtooltip;
         }
 
@@ -766,7 +807,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             if( !isNaN( Elem.offsetTop ) ) {
                 offsetTop += (Elem.offsetTop);
             }
-        } while( Elem = Elem.offsetParent );
+        } while( Elem === Elem.offsetParent );
         return offsetTop;
     };
 
@@ -779,7 +820,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             if( !isNaN( Elem.offsetLeft ) ) {
                 offsetLeft += (Elem.offsetLeft);
             }
-        } while( Elem = Elem.offsetParent );
+        } while( Elem === Elem.offsetParent );
         return offsetLeft;
     };
 
@@ -789,104 +830,112 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
     //dist = how far away from the mouse to place tooltip
     //container = tooltip DIV
     nv.tooltip.calcTooltipPosition = function(pos, gravity, dist, container) {
+        nv.dom.read(function() {
+            var height = parseInt(container.offsetHeight, 10),
+                width = parseInt(container.offsetWidth, 10),
+                windowWidth = nv.utils.windowSize().width,
+                windowHeight = nv.utils.windowSize().height,
+                scrollTop = window.pageYOffset,
+                scrollLeft = window.pageXOffset,
+                left, top;
 
-        var height = parseInt(container.offsetHeight),
-            width = parseInt(container.offsetWidth),
-            windowWidth = nv.utils.windowSize().width,
-            windowHeight = nv.utils.windowSize().height,
-            scrollTop = window.pageYOffset,
-            scrollLeft = window.pageXOffset,
-            left, top;
+            windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
+            windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
 
-        windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
-        windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
+            gravity = gravity || 's';
+            dist = dist || 20;
 
-        gravity = gravity || 's';
-        dist = dist || 20;
+            var tooltipTop = function ( Elem ) {
+                return nv.tooltip.findTotalOffsetTop(Elem, top);
+            };
 
-        var tooltipTop = function ( Elem ) {
-            return nv.tooltip.findTotalOffsetTop(Elem, top);
-        };
+            var tooltipLeft = function ( Elem ) {
+                return nv.tooltip.findTotalOffsetLeft(Elem,left);
+            };
 
-        var tooltipLeft = function ( Elem ) {
-            return nv.tooltip.findTotalOffsetLeft(Elem,left);
-        };
+            var tLeft, tTop;
+            switch (gravity) {
+                case 'e':
+                    left = pos[0] - width - dist;
+                    top = pos[1] - (height / 2);
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft < scrollLeft) left = pos[0] + dist > scrollLeft ? pos[0] + dist : scrollLeft - tLeft + left;
+                    if (tTop < scrollTop) top = scrollTop - tTop + top;
+                    if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                    break;
+                case 'w':
+                    left = pos[0] + dist;
+                    top = pos[1] - (height / 2);
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft + width > windowWidth) left = pos[0] - width - dist;
+                    if (tTop < scrollTop) top = scrollTop + 5;
+                    if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                    break;
+                case 'n':
+                    left = pos[0] - (width / 2) - 5;
+                    top = pos[1] + dist;
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft < scrollLeft) left = scrollLeft + 5;
+                    if (tLeft + width > windowWidth) left = left - width/2 + 5;
+                    if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
+                    break;
+                case 's':
+                    left = pos[0] - (width / 2);
+                    top = pos[1] - height - dist;
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    if (tLeft < scrollLeft) left = scrollLeft + 5;
+                    if (tLeft + width > windowWidth) left = left - width/2 + 5;
+                    if (scrollTop > tTop) top = scrollTop;
+                    break;
+                case 'none':
+                    left = pos[0];
+                    top = pos[1] - dist;
+                    tLeft = tooltipLeft(container);
+                    tTop = tooltipTop(container);
+                    break;
+            }
 
-        switch (gravity) {
-            case 'e':
-                left = pos[0] - width - dist;
-                top = pos[1] - (height / 2);
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = pos[0] + dist > scrollLeft ? pos[0] + dist : scrollLeft - tLeft + left;
-                if (tTop < scrollTop) top = scrollTop - tTop + top;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                break;
-            case 'w':
-                left = pos[0] + dist;
-                top = pos[1] - (height / 2);
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft + width > windowWidth) left = pos[0] - width - dist;
-                if (tTop < scrollTop) top = scrollTop + 5;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                break;
-            case 'n':
-                left = pos[0] - (width / 2) - 5;
-                top = pos[1] + dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = scrollLeft + 5;
-                if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                break;
-            case 's':
-                left = pos[0] - (width / 2);
-                top = pos[1] - height - dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                if (tLeft < scrollLeft) left = scrollLeft + 5;
-                if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                if (scrollTop > tTop) top = scrollTop;
-                break;
-            case 'none':
-                left = pos[0];
-                top = pos[1] - dist;
-                var tLeft = tooltipLeft(container);
-                var tTop = tooltipTop(container);
-                break;
-        }
-
-        container.style.left = left+'px';
-        container.style.top = top+'px';
-        container.style.opacity = 1;
-        container.style.position = 'absolute';
+            var opacity = container.style.opacity;
+            nv.dom.write(function() {
+                var translate = 'translate(' + left + 'px, ' + top + 'px)';
+                container.style.transform = translate;
+                if (opacity != 1) container.style.opacity = 1;
+            });
+        });
 
         return container;
     };
 
     //Global utility function to remove tooltips from the DOM.
     nv.tooltip.cleanup = function() {
-
         // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
-        var tooltips = document.getElementsByClassName('nvtooltip');
+        var tooltips = document.querySelectorAll('.nvtooltip');
         var purging = [];
-        while(tooltips.length) {
-            purging.push(tooltips[0]);
-            tooltips[0].style.transitionDelay = '0 !important';
-            tooltips[0].style.opacity = 0;
-            tooltips[0].className = 'nvtooltip-pending-removal';
+        if (tooltips) {
+            nv.dom.write(function() {
+                for (var i = 0; i < tooltips.length; i++) {
+                    purging.push(tooltips[i]);
+                    tooltips[i].style.transitionDelay = '0 !important';
+                    tooltips[i].style.opacity = 0;
+                    tooltips[i].className = 'nvtooltip-pending-removal';
+                }
+            });
+
+            setTimeout(function() {
+                nv.dom.write(function() {
+                    while (purging.length) {
+                        var removeMe = purging.pop();
+                        removeMe.parentNode.removeChild(removeMe);
+                    }
+                });
+            }, 500);
+
         }
-
-        setTimeout(function() {
-
-            while (purging.length) {
-                var removeMe = purging.pop();
-                removeMe.parentNode.removeChild(removeMe);
-            }
-        }, 500);
     };
-
 })();
 
 
@@ -899,10 +948,11 @@ nv.utils.windowSize = function() {
     // Sane defaults
     var size = {width: 640, height: 480};
 
-    // Earlier IE uses Doc.body
-    if (document.body && document.body.offsetWidth) {
-        size.width = document.body.offsetWidth;
-        size.height = document.body.offsetHeight;
+    // Most recent browsers use
+    if (window.innerWidth && window.innerHeight) {
+        size.width = window.innerWidth;
+        size.height = window.innerHeight;
+        return (size);
     }
 
     // IE can use depending on mode it is in
@@ -912,16 +962,18 @@ nv.utils.windowSize = function() {
 
         size.width = document.documentElement.offsetWidth;
         size.height = document.documentElement.offsetHeight;
+        return (size);
     }
 
-    // Most recent browsers use
-    if (window.innerWidth && window.innerHeight) {
-        size.width = window.innerWidth;
-        size.height = window.innerHeight;
+    // Earlier IE uses Doc.body
+    if (document.body && document.body.offsetWidth) {
+        size.width = document.body.offsetWidth;
+        size.height = document.body.offsetHeight;
+        return (size);
     }
+
     return (size);
 };
-
 
 /*
 Binds callback function to run when window is resized
@@ -1047,7 +1099,7 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
     if (typeof svgTextElem.style === 'function'
         && typeof svgTextElem.text === 'function') {
 
-        var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""));
+        var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""), 10);
         var textLength = svgTextElem.text().length;
         return textLength * fontSize * 0.5;
     }
@@ -1176,7 +1228,7 @@ gives:  {a: 2, b: 3, c: 4}
 nv.utils.deepExtend = function(dst){
     var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
     sources.forEach(function(source) {
-        for (key in source) {
+        for (var key in source) {
             var isArray = dst[key] instanceof Array;
             var isObject = typeof dst[key] === 'object';
             var srcObj = typeof source[key] === 'object';
@@ -2193,6 +2245,9 @@ nv.models.bulletChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
         });
 
         d3.timer.flush();
@@ -2209,10 +2264,6 @@ nv.models.bulletChart = function() {
 
     bullet.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -2780,9 +2831,12 @@ nv.models.cumulativeLineChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
-
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
@@ -2826,10 +2880,6 @@ nv.models.cumulativeLineChart = function() {
 
     lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -2935,7 +2985,8 @@ nv.models.cumulativeLineChart = function() {
     nv.utils.initOptions(chart);
 
     return chart;
-};//TODO: consider deprecating by adding necessary features to multiBar model
+};
+//TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
     "use strict";
 
@@ -3380,6 +3431,9 @@ nv.models.discreteBarChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
         });
 
         renderWatch.renderEnd('discreteBar chart immediate');
@@ -3397,10 +3451,6 @@ nv.models.discreteBarChart = function() {
 
     discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -4147,8 +4197,11 @@ nv.models.historicalBarChart = function(bar_model) {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
-            dispatch.on('changeState', function(e) {
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
 
+            dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
@@ -4176,10 +4229,6 @@ nv.models.historicalBarChart = function(bar_model) {
 
     bars.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -4266,7 +4315,8 @@ nv.models.ohlcBarChart = function() {
             '</table>';
     });
     return chart;
-};nv.models.legend = function() {
+};
+nv.models.legend = function() {
     "use strict";
 
     //============================================================
@@ -5039,8 +5089,11 @@ nv.models.lineChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
-            dispatch.on('changeState', function(e) {
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
 
+            dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
@@ -5069,10 +5122,6 @@ nv.models.lineChart = function() {
 
     lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -5369,7 +5418,10 @@ nv.models.linePlusBarChart = function() {
             //------------------------------------------------------------
 
             if (showLegend) {
-                legend.width( availableWidth / 2 );
+                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
+                var legendXPosition = legend.align() ? legendWidth : 0;
+
+                legend.width(legendWidth);
 
                 g.select('.nv-legendWrap')
                     .datum(data.map(function(series) {
@@ -5386,7 +5438,7 @@ nv.models.linePlusBarChart = function() {
                 }
 
                 g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -5509,6 +5561,10 @@ nv.models.linePlusBarChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined') {
@@ -5596,6 +5652,7 @@ nv.models.linePlusBarChart = function() {
                         dataLines
                             .map(function(d,i) {
                                 return {
+                                    area: d.area,
                                     key: d.key,
                                     values: d.values.filter(function(d,i) {
                                         return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
@@ -5677,10 +5734,6 @@ nv.models.linePlusBarChart = function() {
 
     bars.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -6074,6 +6127,10 @@ nv.models.lineWithFocusChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
@@ -6176,11 +6233,6 @@ nv.models.lineWithFocusChart = function() {
     lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
     });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
-    });
-
     //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
@@ -6596,7 +6648,7 @@ nv.models.multiBar = function() {
             color = nv.utils.getColor(_);
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
-            barColor = nv.utils.getColor(_);
+            barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 
@@ -6785,11 +6837,6 @@ nv.models.multiBarChart = function() {
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
 
-                if (multibar.barColor())
-                    data.forEach(function(series,i) {
-                        series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
-                    });
-
                 g.select('.nv-legendWrap')
                     .datum(data)
                     .call(legend);
@@ -6943,6 +6990,10 @@ nv.models.multiBarChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode)
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -6979,9 +7030,6 @@ nv.models.multiBarChart = function() {
 
     multibar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -7036,6 +7084,10 @@ nv.models.multiBarChart = function() {
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( rightAlignYAxis ? 'right' : 'left');
+        }},
+        barColor:  {get: function(){return multibar.barColor;}, set: function(_){
+            multibar.barColor(_);
+            legend.color(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
         }}
     });
 
@@ -7069,6 +7121,7 @@ nv.models.multiBarHorizontal = function() {
         , showValues = false
         , showBarLabels = false
         , valuePadding = 60
+        , groupSpacing = 0.1
         , valueFormat = d3.format(',.2f')
         , delay = 1200
         , xDomain
@@ -7136,7 +7189,7 @@ nv.models.multiBarHorizontal = function() {
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-                .rangeBands(xRange || [0, availableHeight], .1);
+                .rangeBands(xRange || [0, availableHeight], groupSpacing);
 
             y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
 
@@ -7264,13 +7317,13 @@ nv.models.multiBarHorizontal = function() {
                     .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'end' : 'start' })
                     .attr('y', x.rangeBand() / (data.length * 2))
                     .attr('dy', '.32em')
-                    .html(function(d,i) {
+                    .text(function(d,i) {
                         var t = valueFormat(getY(d,i))
                             , yerr = getYerr(d,i);
                         if (yerr === undefined)
                             return t;
                         if (!yerr.length)
-                            return t + '&plusmn;' + valueFormat(Math.abs(yerr));
+                            return t + '±' + valueFormat(Math.abs(yerr));
                         return t + '+' + valueFormat(Math.abs(yerr[1])) + '-' + valueFormat(Math.abs(yerr[0]));
                     });
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
@@ -7373,6 +7426,7 @@ nv.models.multiBarHorizontal = function() {
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         valuePadding: {get: function(){return valuePadding;}, set: function(_){valuePadding=_;}},
+        groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -7388,8 +7442,8 @@ nv.models.multiBarHorizontal = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
         }},
-        barColor:  {get: function(){return color;}, set: function(_){
-            barColor = nv.utils.getColor(_);
+        barColor:  {get: function(){return barColor;}, set: function(_){
+            barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 
@@ -7570,11 +7624,6 @@ nv.models.multiBarHorizontalChart = function() {
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
 
-                if (multibar.barColor())
-                    data.forEach(function(series,i) {
-                        series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
-                    });
-
                 g.select('.nv-legendWrap')
                     .datum(data)
                     .call(legend);
@@ -7692,6 +7741,10 @@ nv.models.multiBarHorizontalChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -7727,9 +7780,6 @@ nv.models.multiBarHorizontalChart = function() {
 
     multibar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -7777,6 +7827,10 @@ nv.models.multiBarHorizontalChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             legend.color(color);
+        }},
+        barColor:  {get: function(){return multibar.barColor;}, set: function(_){
+            multibar.barColor(_);
+            legend.color(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
         }}
     });
 
@@ -7809,7 +7863,8 @@ nv.models.multiChart = function() {
         yDomain2,
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
-        interpolate = 'monotone'
+        interpolate = 'monotone',
+        useVoronoi = true
         ;
 
     //============================================================
@@ -7924,8 +7979,11 @@ nv.models.multiChart = function() {
             });
 
             if (showLegend) {
+                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
+                var legendXPosition = legend.align() ? legendWidth : 0;
+
+                legend.width(legendWidth);
                 legend.color(color_array);
-                legend.width( availableWidth / 2 );
 
                 g.select('.legendWrap')
                     .datum(data.map(function(series) {
@@ -7942,7 +8000,7 @@ nv.models.multiChart = function() {
                 }
 
                 g.select('.legendWrap')
-                    .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }
 
             lines1
@@ -8217,7 +8275,14 @@ nv.models.multiChart = function() {
             getY = _;
             lines1.y(_);
             bars1.y(_);
-        }}
+        }},
+        useVoronoi: {get: function(){return useVoronoi;}, set: function(_){
+            useVoronoi=_;
+            lines1.useVoronoi(_);
+            lines2.useVoronoi(_);
+            stack1.useVoronoi(_);
+            stack2.useVoronoi(_);
+        }},
     });
 
     nv.utils.initOptions(chart);
@@ -9017,6 +9082,7 @@ nv.models.pieChart = function() {
         , width = null
         , height = null
         , showLegend = true
+        , legendPosition = "top"
         , color = nv.utils.defaultColor()
         , tooltips = true
         , tooltip = function(key, y, e, graph) {
@@ -9037,8 +9103,8 @@ nv.models.pieChart = function() {
 
     var showTooltip = function(e, offsetElement) {
         var tooltipLabel = pie.x()(e.point);
-        var left = e.pos[0] + ( (offsetElement && offsetElement.offsetLeft) || 0 ),
-            top = e.pos[1] + ( (offsetElement && offsetElement.offsetTop) || 0),
+        var left = e.pos[0],
+            top = e.pos[1],
             y = pie.valueFormat()(pie.y()(e.point)),
             content = tooltip(tooltipLabel, y, e, chart)
             ;
@@ -9078,10 +9144,10 @@ nv.models.pieChart = function() {
             nv.utils.initSVG(container);
 
             var that = this;
-            var availableWidth = (width || parseInt(container.style('width'), 10) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height'), 10) || 400)
-                    - margin.top - margin.bottom
+            var canvasWidth = (width || parseInt(container.style('width'), 10) || 960),
+                canvasHeight = (height || parseInt(container.style('height'), 10) || 400),
+                availableWidth = canvasWidth - margin.left - margin.right,
+                availableHeight = canvasHeight - margin.top - margin.bottom
                 ;
 
             chart.update = function() { container.transition().call(chart); };
@@ -9134,20 +9200,37 @@ nv.models.pieChart = function() {
 
             // Legend
             if (showLegend) {
-                legend.width( availableWidth ).key(pie.x());
+                if (legendPosition === "top") {
+                    legend.width( availableWidth ).key(pie.x());
 
-                wrap.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
+                    wrap.select('.nv-legendWrap')
+                        .datum(data)
+                        .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = (height || parseInt(container.style('height')) || 400)
-                        - margin.top - margin.bottom;
+                    if ( margin.top != legend.height()) {
+                        margin.top = legend.height();
+                        availableHeight = (height || parseInt(container.style('height')) || 400)
+                            - margin.top - margin.bottom;
+                    }
+
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(0,' + (-margin.top) +')');
+                } else if (legendPosition === "right") {
+                    legend.height(availableHeight).width(availableWidth - availableHeight).key(pie.x());
+
+                    wrap.select('.nv-legendWrap')
+                        .datum(data)
+                        .call(legend);
+
+                    if ( margin.right != legend.width()) {
+                        margin.right = legend.width();
+                        availableWidth = (width || parseInt(container.style('width')) || 600)
+                            - margin.right - margin.left;
+                    }
+
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(' + (margin.left + availableHeight) +',0)');
                 }
-
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -9156,17 +9239,16 @@ nv.models.pieChart = function() {
             var pieWrap = g.select('.nv-pieWrap').datum([data]);
             d3.transition(pieWrap).call(pie);
 
+            //============================================================
             // Event Handling/Dispatching (in chart's scope)
+            //------------------------------------------------------------
+
             legend.dispatch.on('stateChange', function(newState) {
                 for (var key in newState) {
                     state[key] = newState[key];
                 }
                 dispatch.stateChange(state);
                 chart.update();
-            });
-
-            pie.dispatch.on('elementMouseout.tooltip', function(e) {
-                dispatch.tooltipHide(e);
             });
 
             // Update chart from a state object passed to event handler
@@ -9180,6 +9262,13 @@ nv.models.pieChart = function() {
                 chart.update();
             });
 
+            dispatch.on('tooltipShow', function(e) {
+                if (tooltips) showTooltip(e, that.parentNode);
+            });
+
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
         });
 
         renderWatch.renderEnd('pieChart immediate');
@@ -9195,12 +9284,8 @@ nv.models.pieChart = function() {
         dispatch.tooltipShow(e);
     });
 
-    dispatch.on('tooltipShow', function(e) {
-        if (tooltips) showTooltip(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
+    pie.dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
     });
 
     //============================================================
@@ -9220,6 +9305,7 @@ nv.models.pieChart = function() {
         tooltipContent: {get: function(){return tooltip;},        set: function(_){tooltip=_;}},
         tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
+        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
@@ -9230,6 +9316,12 @@ nv.models.pieChart = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+        }},
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
         }}
     });
     nv.utils.inheritOptions(chart, pie);
@@ -9287,6 +9379,7 @@ nv.models.scatter = function() {
         , timeoutID
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
+        , _sizeRange_def = [16, 256]
         ;
 
     function chart(selection) {
@@ -9330,7 +9423,7 @@ nv.models.scatter = function() {
                 .range(yRange || [availableHeight, 0]);
 
             z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
-                .range(sizeRange || [16, 256]);
+                .range(sizeRange || _sizeRange_def);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
             if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
@@ -9379,6 +9472,7 @@ nv.models.scatter = function() {
             g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
             function updateInteractiveLayer() {
+                needsUpdate = false;
 
                 if (!interactive) return false;
 
@@ -9397,7 +9491,7 @@ nv.models.scatter = function() {
                                 return [x(pX)+ Math.random() * 1e-7,
                                         y(pY)+ Math.random() * 1e-7,
                                     groupIndex,
-                                    pointIndex, point]; //temp hack to add noise untill I think of a better way so there are no duplicates
+                                    pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
                             })
                             .filter(function(pointArray, pointIndex) {
                                 return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
@@ -9405,10 +9499,11 @@ nv.models.scatter = function() {
                     })
                 );
 
-                //inject series and point index for reference into voronoi
+                // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
 
-                    if(vertices.length < 3) {
+                    if (vertices.length == 0) return false;  // No active points, we're done
+                    if (vertices.length < 3) {
                         // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
                         vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
                         vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
@@ -9528,6 +9623,19 @@ nv.models.scatter = function() {
                                 pointIndex: i
                             });
                         })
+                        .on('dblclick', function(d,i) {
+                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
+                            var series = data[d.series],
+                                point  = series.values[i];
+
+                            dispatch.elementDblClick({
+                                point: point,
+                                series: series,
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                seriesIndex: d.series,
+                                pointIndex: i
+                            });
+                        })
                         .on('mouseover', function(d,i) {
                             if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
                             var series = data[d.series],
@@ -9554,8 +9662,6 @@ nv.models.scatter = function() {
                             });
                         });
                 }
-
-                needsUpdate = false;
             }
 
             needsUpdate = true;
@@ -9575,44 +9681,52 @@ nv.models.scatter = function() {
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', .5);
 
-            // create the points
+            // create the points, maintaining their IDs from the original data set
             var points = groups.selectAll('path.nv-point')
-                .data(function(d) { return d.values });
+                .data(function(d) {
+                    return d.values.map(
+                        function (point, pointIndex) {
+                            return [point, pointIndex]
+                        }).filter(
+                            function(pointArray, pointIndex) {
+                                return pointActive(pointArray[0], pointIndex)
+                            })
+                    });
             points.enter().append('path')
-                .style('fill', function (d,i) { return d.color })
-                .style('stroke', function (d,i) { return d.color })
-                .attr('transform', function(d,i) {
-                    return 'translate(' + x0(getX(d,i)) + ',' + y0(getY(d,i)) + ')'
+                .style('fill', function (d) { return d.color })
+                .style('stroke', function (d) { return d.color })
+                .attr('transform', function(d) {
+                    return 'translate(' + x0(getX(d[0],d[1])) + ',' + y0(getY(d[0],d[1])) + ')'
                 })
                 .attr('d',
                     nv.utils.symbol()
                     .type(getShape)
-                    .size(function(d,i) { return z(getSize(d,i)) })
+                    .size(function(d) { return z(getSize(d[0],d[1])) })
             );
             points.exit().remove();
             groups.exit().selectAll('path.nv-point')
                 .watchTransition(renderWatch, 'scatter exit')
-                .attr('transform', function(d,i) {
-                    return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+                .attr('transform', function(d) {
+                    return 'translate(' + x(getX(d[0],d[1])) + ',' + y(getY(d[0],d[1])) + ')'
                 })
                 .remove();
-            points.each(function(d,i) {
+            points.each(function(d) {
                 d3.select(this)
                     .classed('nv-point', true)
-                    .classed('nv-point-' + i, true)
+                    .classed('nv-point-' + d[1], true)
                     .classed('hover',false)
                 ;
             });
             points
                 .watchTransition(renderWatch, 'scatter points')
-                .attr('transform', function(d,i) {
-                    //nv.log(d,i,getX(d,i), x(getX(d,i)));
-                    return 'translate(' + x(getX(d,i)) + ',' + y(getY(d,i)) + ')'
+                .attr('transform', function(d) {
+                    //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
+                    return 'translate(' + x(getX(d[0],d[1])) + ',' + y(getY(d[0],d[1])) + ')'
                 })
                 .attr('d',
                     nv.utils.symbol()
                     .type(getShape)
-                    .size(function(d,i) { return z(getSize(d,i)) })
+                    .size(function(d) { return z(getSize(d[0],d[1])) })
             );
 
             // Delay updating the invisible interactive layer for smoother animation
@@ -9640,12 +9754,16 @@ nv.models.scatter = function() {
     // utility function calls provided by this chart
     chart._calls = new function() {
         this.clearHighlights = function () {
-            d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+            nv.dom.write(function() {
+                d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+            });
             return null;
         };
         this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
-            d3.select(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-                .classed("hover", isHoverOver);
+            nv.dom.write(function() {
+                var node = document.querySelector(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex);
+                d3.select(node).classed("hover", isHoverOver);
+            });
         };
     };
 
@@ -9912,7 +10030,10 @@ nv.models.scatterChart = function() {
 
             // Legend
             if (showLegend) {
-                legend.width( availableWidth / 2 );
+                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
+                var legendXPosition = legend.align() ? legendWidth : 0;
+
+                legend.width(legendWidth);
 
                 wrap.select('.nv-legendWrap')
                     .datum(data)
@@ -9925,7 +10046,7 @@ nv.models.scatterChart = function() {
                 }
 
                 wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }
 
             // Main Chart Component(s)
@@ -10061,6 +10182,10 @@ nv.models.scatterChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -10096,9 +10221,6 @@ nv.models.scatterChart = function() {
             .attr('y1', 0);
         d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
             .attr('x2', distY.size());
-    });
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -11240,6 +11362,10 @@ nv.models.stackedAreaChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -11276,10 +11402,6 @@ nv.models.stackedAreaChart = function() {
 
     stacked.dispatch.on('tooltipHide', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================

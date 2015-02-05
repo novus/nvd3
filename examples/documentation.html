@@ -17,7 +17,7 @@
     <script>
 
         function expandall(name) {
-            $('#ul_' + name).find("li").click();
+            $('#ul_' + name).show().find("li").click();
         }
 
         function expandchart(name) {
@@ -70,7 +70,6 @@
                 'multiBarHorizontal',
                 'multiBar',
                 'legend',
-                'axis',
                 'sparkline',
                 'discreteBar'
             ].sort();
@@ -238,14 +237,14 @@
     <div>
         <span id="logo"></span>
 
-        <a href="https://github.com/liquidpele/nvd3" target="github" class="button fork"><strong>GitHub</strong></a>
+        <a href="https://github.com/nvd3-community/nvd3" target="github" class="button fork"><strong>GitHub</strong></a>
         <a href="site.html" class="button fork docs"><strong>Examples</strong></a>
         <a href="documentation.html" class="button fork docs selected"><strong>Documentation</strong></a>
         <div class="downloads">
             <span>Downloads:</span>
             <ul>
-                <li><a href="https://github.com/liquidpele/nvd3/zipball/master" class="button">ZIP</a></li>
-                <li><a href="https://github.com/liquidpele/nvd3/tarball/master" class="button">TAR</a></li>
+                <li><a href="https://github.com/nvd3-community/nvd3/zipball/master" class="button">ZIP</a></li>
+                <li><a href="https://github.com/nvd3-community/nvd3/tarball/master" class="button">TAR</a></li>
             </ul>
         </div>
     </div>
@@ -279,6 +278,9 @@
         <div id="optionjump"></div>
 
         <div style="height: 50px"></div>
+		
+		<h3 class="option"><span class="expand all">[ <a href="javascript:$('#optionlist>ul').toggle()">toggle all</a> ]</span></h3>
+		
         <div id="optionlist"></div>
 
     </section>
@@ -676,6 +678,11 @@ as well as used to print out examples using those example inputs.
             default: "0.5",
             examples: [0.75]
         },
+        legendPosition: {
+            desc: "Position of the legend (top or right)",
+            default: "top",
+            examples: ["top", "right"]
+        },
         labelSunbeamLayout: {
             desc: "?",
             default: false,
@@ -735,6 +742,12 @@ as well as used to print out examples using those example inputs.
                 {stacked: "Stack It", stream: "Stream dat", expanded: "Xpand"},
                 {grouped: "Group em", stacked: "Stack em"}
             ]
+        },
+        groupSpacing: {
+            desc: "The padding between bar groups, this is passed as the padding attribute of rangeBands",
+            refs: ["https://github.com/mbostock/d3/wiki/Ordinal-Scales#ordinal_rangeBands"],
+            default: 0.1,
+            examples: [0.5]
         }
     };
 </script>

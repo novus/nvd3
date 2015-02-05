@@ -172,11 +172,6 @@ nv.models.multiBarHorizontalChart = function() {
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
 
-                if (multibar.barColor())
-                    data.forEach(function(series,i) {
-                        series.color = d3.rgb('#ccc').darker(i * 1.5).toString();
-                    });
-
                 g.select('.nv-legendWrap')
                     .datum(data)
                     .call(legend);
@@ -294,6 +289,10 @@ nv.models.multiBarHorizontalChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
 
@@ -329,9 +328,6 @@ nv.models.multiBarHorizontalChart = function() {
 
     multibar.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -379,6 +375,10 @@ nv.models.multiBarHorizontalChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             legend.color(color);
+        }},
+        barColor:  {get: function(){return multibar.barColor;}, set: function(_){
+            multibar.barColor(_);
+            legend.color(function(d,i) {return d3.rgb('#ccc').darker(i * 1.5).toString();})
         }}
     });
 

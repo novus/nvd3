@@ -23,6 +23,7 @@ nv.models.multiBarHorizontal = function() {
         , showValues = false
         , showBarLabels = false
         , valuePadding = 60
+        , groupSpacing = 0.1
         , valueFormat = d3.format(',.2f')
         , delay = 1200
         , xDomain
@@ -90,7 +91,7 @@ nv.models.multiBarHorizontal = function() {
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-                .rangeBands(xRange || [0, availableHeight], .1);
+                .rangeBands(xRange || [0, availableHeight], groupSpacing);
 
             y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
 
@@ -218,13 +219,13 @@ nv.models.multiBarHorizontal = function() {
                     .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'end' : 'start' })
                     .attr('y', x.rangeBand() / (data.length * 2))
                     .attr('dy', '.32em')
-                    .html(function(d,i) {
+                    .text(function(d,i) {
                         var t = valueFormat(getY(d,i))
                             , yerr = getYerr(d,i);
                         if (yerr === undefined)
                             return t;
                         if (!yerr.length)
-                            return t + '&plusmn;' + valueFormat(Math.abs(yerr));
+                            return t + '±' + valueFormat(Math.abs(yerr));
                         return t + '+' + valueFormat(Math.abs(yerr[1])) + '-' + valueFormat(Math.abs(yerr[0]));
                     });
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
@@ -327,6 +328,7 @@ nv.models.multiBarHorizontal = function() {
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         valuePadding: {get: function(){return valuePadding;}, set: function(_){valuePadding=_;}},
+        groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -342,8 +344,8 @@ nv.models.multiBarHorizontal = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
         }},
-        barColor:  {get: function(){return color;}, set: function(_){
-            barColor = nv.utils.getColor(_);
+        barColor:  {get: function(){return barColor;}, set: function(_){
+            barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 

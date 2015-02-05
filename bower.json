@@ -22,7 +22,7 @@
   ],
   "license": "Apache License, v2.0",
   "dependencies": {
-    "d3": "~3.3.13"
+    "d3": "^3.3.13"
   },
   "ignore": [
     "**/.*",
@@ -39,9 +39,9 @@
     "*.md"
   ],
   "resolutions": {
-    "d3": "~3.3.13"
+    "d3": "^3.3.13"
   },
   "devDependencies": {
-    "d3": "~3.3.13"
+    "d3": "^3.3.13"
   }
 }
