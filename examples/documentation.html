@@ -6,13 +6,13 @@
     <title>Nvd3 - reusable charts for D3.js</title>
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
 
-    <link rel="stylesheet" href="http://cdn.rawgit.com/isagalaev/highlight.js/8.4/src/styles/tomorrow.css">
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/languages/javascript.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.rawgit.com/isagalaev/highlight.js/8.4/src/styles/tomorrow.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/languages/javascript.min.js"></script>
 
     <script>
 
@@ -24,27 +24,18 @@
             $('#ul_' + name).toggle();
         }
 
-        function parse_options(container, obj, extra) {
-            var options = [];
-            // must check Array first, because Array is an Object as well.
-            if (obj instanceof Array) {
-                options = obj;
-            } else if (obj instanceof Object && obj._options) {
-                options = Object.getOwnPropertyNames(obj._options);
-            } else if (typeof obj === 'string') {
-                options = [obj];
+        function parse_options(container, obj) {
+            var t = obj.name;
+            var extra = obj.note;
+
+            var op = $('<li>');
+            if (extra !== undefined) {
+                t += ' <span class="inherited">' + extra + '</span>';
             }
-            for (var i in options) {
-                var op = $('<li>');
-                var t = options[i];
-                if (extra !== undefined) {
-                    t += ' <span class="inherited">' + extra + '</span>';
-                }
-                op.addClass('option');
-                op.prop('name', options[i]);
-                op.html(t);
-                container.append(op);
-            }
+            op.addClass('option');
+            op.prop('name', obj.name);
+            op.html(t);
+            container.append(op);
         }
 
         $('body').ready(function () {
@@ -122,18 +113,37 @@
 
                     // build the list of options for this chart object
                     var ul = $('<ul id="ul_' + name +'">');
-                    parse_options(ul, chart);
+
+                    // collect all the options
+                    var alloptions = {};
+                    if (chart._options) {
+                        var ops = Object.getOwnPropertyNames(chart._options);
+                        for (var t in ops) {
+                            alloptions[ops[t]] = {name: ops[t]}
+                        }
+                    }
                     if (chart._inherited) {
-                        for (var j in chart._inherited) {
-                            var op = chart._inherited[j];
+                        for (var j2 in chart._inherited) {
+                            var op = chart._inherited[j2];
                             if (chart._options[op] === undefined) {
-                                parse_options(ul, op, '(inherited)');
+                                alloptions[op] = {name: op, note: '(inherited)'};
                             }
                         }
                     }
                     if (chart._d3options) {
-                        parse_options(ul, chart._d3options, '(inherited from D3)');
+                        for (var j3 in chart._d3options) {
+                            var op2 = chart._d3options[j3];
+                            alloptions[op2] = {name: op2, note: '(inherited from D3)'}
+                        }
                     }
+
+                    // now print the all out in alphabetical order
+                    var alpha = Object.keys(alloptions).sort();
+                    for (var j4 in alpha) {
+                        parse_options(ul, alloptions[alpha[j4]]);
+                    }
+
+                    // append the list of options to the dom
                     c.append(ul);
                 } else {
                     console.log('Chart missing: ', name);
@@ -228,7 +238,7 @@
     <div>
         <span id="logo"></span>
 
-        <a href="http://github.com/liquidpele/nvd3" target="github" class="button fork"><strong>GitHub</strong></a>
+        <a href="https://github.com/liquidpele/nvd3" target="github" class="button fork"><strong>GitHub</strong></a>
         <a href="site.html" class="button fork docs"><strong>Examples</strong></a>
         <a href="documentation.html" class="button fork docs selected"><strong>Documentation</strong></a>
         <div class="downloads">
@@ -707,6 +717,24 @@ as well as used to print out examples using those example inputs.
             desc: "Rotates the X axis labels by the specified degree.",
             default: 0,
             examples: [90, -45]
+        },
+        legendLeftAxisHint: {
+            desc: "The extra text after the label in the legend that tells what axis the series belongs to, for any series on the left axis.",
+            default: " (left axis)",
+            examples: [" (L)", " [LEFT]"]
+        },
+        legendRightAxisHint: {
+            desc: "The extra text after the label in the legend that tells what axis the series belongs to, for any seris on the right axis.",
+            default: " (right axis)",
+            examples: [" (R)", " [RIGHT]"]
+        },
+        controlLabels: {
+            desc: "Object that defines the labels for control items in the graph.  For instance, in the stackedAreaChart, there are controls for making it stacked, expanded, or stream.  For stacked bar charts, there is stacked and grouped.",
+            default: "Depends on chart type",
+            examples: [
+                {stacked: "Stack It", stream: "Stream dat", expanded: "Xpand"},
+                {grouped: "Group em", stacked: "Stack em"}
+            ]
         }
     };
 </script>

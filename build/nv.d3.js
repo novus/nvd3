@@ -5190,6 +5190,8 @@ nv.models.linePlusBarChart = function() {
         , transitionDuration = 0
         , state = nv.utils.state()
         , defaultState = null
+        , legendLeftAxisHint = ' (left axis)'
+        , legendRightAxisHint = ' (right axis)'
         ;
 
     lines
@@ -5372,7 +5374,7 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-legendWrap')
                     .datum(data.map(function(series) {
                         series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
-                        series.key = series.originalKey + (series.bar ? ' (left axis)' : ' (right axis)');
+                        series.key = series.originalKey + (series.bar ? legendLeftAxisHint : legendRightAxisHint);
                         return series;
                     }))
                     .call(legend);
@@ -5717,6 +5719,8 @@ nv.models.linePlusBarChart = function() {
         focusHeight:    {get: function(){return focusHeight;}, set: function(_){focusHeight=_;}},
         focusShowAxisX:    {get: function(){return focusShowAxisX;}, set: function(_){focusShowAxisX=_;}},
         focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
+        legendLeftAxisHint:    {get: function(){return legendLeftAxisHint;}, set: function(_){legendLeftAxisHint=_;}},
+        legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -6620,6 +6624,7 @@ nv.models.multiBarChart = function() {
         , height = null
         , color = nv.utils.defaultColor()
         , showControls = true
+        , controlLabels = {}
         , showLegend = true
         , showXAxis = true
         , showYAxis = true
@@ -6802,8 +6807,8 @@ nv.models.multiBarChart = function() {
             // Controls
             if (showControls) {
                 var controlsData = [
-                    { key: 'Grouped', disabled: multibar.stacked() },
-                    { key: 'Stacked', disabled: !multibar.stacked() }
+                    { key: controlLabels.grouped || 'Grouped', disabled: multibar.stacked() },
+                    { key: controlLabels.stacked || 'Stacked', disabled: !multibar.stacked() }
                 ];
 
                 controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -6999,6 +7004,7 @@ nv.models.multiBarChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        controlLabels: {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
@@ -7410,6 +7416,7 @@ nv.models.multiBarHorizontalChart = function() {
         , height = null
         , color = nv.utils.defaultColor()
         , showControls = true
+        , controlLabels = {}
         , showLegend = true
         , showXAxis = true
         , showYAxis = true
@@ -7585,8 +7592,8 @@ nv.models.multiBarHorizontalChart = function() {
             // Controls
             if (showControls) {
                 var controlsData = [
-                    { key: 'Grouped', disabled: multibar.stacked() },
-                    { key: 'Stacked', disabled: !multibar.stacked() }
+                    { key: controlLabels.grouped || 'Grouped', disabled: multibar.stacked() },
+                    { key: controlLabels.stacked || 'Stacked', disabled: !multibar.stacked() }
                 ];
 
                 controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -7745,6 +7752,7 @@ nv.models.multiBarHorizontalChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        controlLabels: {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
