@@ -2,10 +2,12 @@
 
 **Big thanks for nvd3-community for helping to maintain library and improve documentation**
 
-
 Latest version is 1.7.0 ( [view](https://github.com/nvd3-community/nvd3/tree/1.7.0/build) | [zip](https://github.com/nvd3-community/nvd3/zipball/1.7.0) | [tar.gz](https://github.com/nvd3-community/nvd3/tarball/1.7.0) )
 
 [View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html)
+
+** D3 Versioning Note **
+NVD3 should work with the latest d3.js (version 3.5), but I did notice that the interactive guideline tooltip was broken for d3.js 3.5.  Changing it to d3.js 3.3.13 fixes it. This will need to be investigated.
 
 **1.7.0** Changes:
 
@@ -29,9 +31,6 @@ Previous version was 1.6.0 ( [view](https://github.com/nvd3-community/nvd3/tree/
 from the issues/pulls from the original project.
 * It also standardized all indention
 
-**NOTE**: The announced 2.0.0 refactor from the original project was never finished and wasn't brought over.
-Robin suggested I start with his development branch, which I did.
-
 ---
 
 # Current development focus
@@ -45,7 +44,7 @@ Robin suggested I start with his development branch, which I did.
 # Bugs
 
 Found a bug?  Check out the development branch and make sure it's not already fixed first!
-I fix anything I find myself, so there is a fair chance it's already fixed! 
+I fix anything I find myself, so there is a fair chance it's already fixed!
 
 ---
 

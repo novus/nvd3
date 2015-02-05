@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../build/nv.d3.js"></script>
 
 <body>
 <div style='position:relative;' class='with-transitions'>
@@ -98,17 +100,6 @@
 
 </div>
 
-<script src="../lib/d3.v3.js"></script>
-<!--<script src="../lib/fisheye.js"></script>-->
-<script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/distribution.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/scatterChart.js"></script>
-<script src="../src/models/scatterPlusLineChart.js"></script>
 <script src="testScript.js"></script>
 <script>
 
@@ -180,7 +171,7 @@ function defaultChartTest(container, data, margin) {
 function scatterPlusLineTest(container, data) {
   nv.addGraph(function() {
     var chart;
-    chart = nv.models.scatterPlusLineChart()
+    chart = nv.models.scatterChart()
                   .showDistX(true).showDistY(true);
     chart.xAxis.tickFormat(d3.format('.02f'));
     chart.yAxis.tickFormat(d3.format('.02f'));
