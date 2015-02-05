@@ -1,6 +1,3 @@
-We recognize that there is a community version of NVD3 being maintained: [ https://github.com/liquidpele/nvd3](https://github.com/liquidpele/nvd3). Due to higher priority projects at Novus,
-we do not have the time to process every community request.  We encourage people to use whichever fork of NVD3 suits them best.
-
 # NVD3 - v1.2.0
 ## Release Notes
 - The following charts are no longer being actively supported in NVD3:
@@ -99,3 +96,8 @@ NVD3 runs best on WebKit based browsers.
 * Safari: latest version
 * Firefox: latest version
 * Internet Explorer: 9 and 10
+
+## nvd3-community/nvd3
+We recognize that there is a [community fork](https://github.com/nvd3-community/nvd3/) of NVD3 being maintained, and that some folks are using versions from that repository. We're currently working on merging this into [our master branch](https://github.com/nvd3-community/nvd3/) to prevent this work from diverging further.
+
+See https://github.com/novus/nvd3/tree/massive-merge to track progress.
