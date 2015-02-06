@@ -21,6 +21,7 @@
     "karma-sinon-chai": "^0.2.0",
     "karma-junit-reporter": "^0.2.2",
     "karma-spec-reporter": "0.0.13",
-    "karma-coverage": "^0.2.6"
+    "karma-coverage": "^0.2.6",
+    "karma-firefox-launcher": "^0.1.4"
   }
 }
