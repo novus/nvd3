@@ -2,10 +2,8 @@
 
 Inspired by the work of [Mike Bostock](http://bost.ocks.org/mike/chart/)
 
-**
-Big thanks to [nvd3-community](https://github.com/nvd3-community/nvd3/) for helping to maintain the library and improve documentation.
-Novus has decided to keep the library in sync with what is in nvd3-community master.
-**
+**Big thanks to [nvd3-community](https://github.com/nvd3-community/nvd3/) for helping to maintain the library and improve documentation.
+Novus has decided to keep the library in sync with what is in nvd3-community master.**
 
 [View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html)
 
@@ -22,7 +20,7 @@ NVD3 should work with the latest d3.js (version 3.5), but I did notice that the 
 
 **1.7.0** Changes:
 
-* Fixes like 20 small bugs... I lost track of what.
+* Fixes around 20 small bugs.
 * Fixed the notorious slowness of line charts and scatter plots on chrome
 * Combined the scatterChart and scatterChartWithLines models
 * Combined the linePlusBarChart and linePlusBarChartWithFocus models.
@@ -32,7 +30,7 @@ the documentation in an automated way.  Not everything has a description yet, bu
 * Added extra options to the donut charts based on features that will be in d3 3.5.  The donut example page
 loads the latest d3 from their 3.5 branch so keep that in mind.
 * Added an example of the parallelCoordinates chart.
-* Fixed up the half-done ohlc bar chart, and made an example for it as well.
+* Fixed up the half-done OHLC bar chart, and made an example for it as well.
 
 **1.6.0** Changes:
 
@@ -44,7 +42,9 @@ from the issues/pulls from the original project.
 
 # Current development focus
 - For Novus, review outstanding pull requests and issues.
-- Try to find an easy way to actually document usage and all chart options
+- Try to find an easy way to actually document usage and all chart options.
+- Improve the testing framework.
+- Setup continuous integration.
 
 ---
 
