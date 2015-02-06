@@ -69,7 +69,7 @@ module.exports = function(grunt) {
             unit: {
                 options: {
                     logLevel: 'ERROR',
-                    browsers: ['Chrome'],
+                    browsers: ['Firefox'],
                     frameworks: [ 'mocha', 'sinon-chai' ],
                     reporters: [ 'spec', 'junit', 'coverage'],
                     singleRun: true,
