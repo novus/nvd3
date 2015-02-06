@@ -463,6 +463,7 @@ nv.models.linePlusBarChart = function() {
                             .map(function(d,i) {
                                 return {
                                     area: d.area,
+                                    fillOpacity: d.fillOpacity,
                                     key: d.key,
                                     values: d.values.filter(function(d,i) {
                                         return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
