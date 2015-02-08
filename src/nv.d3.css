@@ -367,20 +367,10 @@ svg.nvd3-svg {
 
 .nvd3 .nv-groups path.nv-line {
   fill: none;
-  stroke-width: 1.5px;
 }
-
-.nvd3 .nv-groups path.nv-line.nv-thin-line {
-  stroke-width: 1px;
-}
-
 
 .nvd3 .nv-groups path.nv-area {
   stroke: none;
-}
-
-.nvd3 .nv-line.hover path {
-  stroke-width: 6px;
 }
 
 .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
