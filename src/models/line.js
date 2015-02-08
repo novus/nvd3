@@ -11,6 +11,7 @@ nv.models.line = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 960
         , height = 500
+        , strokeWidth = 1.5
         , color = nv.utils.defaultColor() // a function that returns a color
         , getX = function(d) { return d.x } // accessor to get the x value from a data point
         , getY = function(d) { return d.y } // accessor to get the y value from a data point
@@ -94,6 +95,7 @@ nv.models.line = function() {
                 .data(function(d) { return d }, function(d) { return d.key });
             groups.enter().append('g')
                 .style('stroke-opacity', 1e-6)
+                .style('stroke-width', function(d) { return d.strokeWidth || strokeWidth })
                 .style('fill-opacity', 1e-6);
 
             groups.exit().remove();
@@ -138,6 +140,7 @@ nv.models.line = function() {
 
             var linePaths = groups.selectAll('path.nv-line')
                 .data(function(d) { return [d.values] });
+
             linePaths.enter().append('path')
                 .attr('class', 'nv-line')
                 .attr('d',
