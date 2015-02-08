@@ -95,7 +95,7 @@ nv.models.line = function() {
                 .data(function(d) { return d }, function(d) { return d.key });
             groups.enter().append('g')
                 .style('stroke-opacity', 1e-6)
-                .style('stroke-width', function(d) { return d.width || strokeWidth })
+                .style('stroke-width', function(d) { return d.strokeWidth || strokeWidth })
                 .style('fill-opacity', 1e-6);
 
             groups.exit().remove();
