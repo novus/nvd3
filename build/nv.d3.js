@@ -383,6 +383,15 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         _xAccessor = xAccessor;
     }
     var _cmp = function(d, v) {
+        // Accessors are no longer passed the index of the element along with
+        // the element itself when invoked by d3.bisector.
+        //
+        // Starting at D3 v3.4.4, d3.bisector() started inspecting the
+        // function passed to determine if it should consider it an accessor
+        // or a comparator. This meant that accessors that take two arguments
+        // (expecting an index as the second parameter) are treated as
+        // comparators where the second argument is the search value against
+        // which the first argument is compared.
         return _xAccessor(d) - v;
     }
 
@@ -582,34 +591,34 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
 
         //Creates new tooltip container, or uses existing one on DOM.
         function getTooltipContainer() {
-            var body;
-            if (chartContainer) {
-                body = d3.select(chartContainer);
-            } else {
-                body = d3.select('body');
-            }
-            var container = body.select(".nvtooltip");
-            if (container.node() === null) {
+            var container = document.getElementById(id);
+            if (container === null) {
+                var body;
+                if (chartContainer) {
+                    body = chartContainer;
+                } else {
+                    body = document.body;
+                }
                 //Create new tooltip div if it doesn't exist on DOM.
-                container = body.append("div")
+                var t = d3.select(body).append("div")
                           .attr("class", "nvtooltip " + (classes? classes: "xy-tooltip"))
                           .attr("id",id);
+                t.style("top",0).style("left",0).style("opacity",0);
+                t.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
+                t.classed(nvPointerEventsClass,true);
+                container = t.node();
             }
-
-            container.style("top",0).style("left",0).style("opacity",0);
-            container.selectAll("div, table, td, tr").classed(nvPointerEventsClass,true)
-            container.classed(nvPointerEventsClass,true);
 
             // Bonus - If you override contentGenerator and return falsey you can use something like
             //         React or Knockout to bind the data for your tooltip
             var newContent = contentGenerator(data);
-            if (newContent) container.node().innerHTML = newContent;
+            if (newContent) container.innerHTML = newContent;
 
             var hidden = document.querySelector("#" + id + ".nvtooltip-pending-removal");
             if (hidden)
                 hidden.className = "nvtooltip " + (classes? classes: "xy-tooltip");
 
-            return container.node();
+            return container;
         }
 
         //Draw the tooltip onto the DOM.
@@ -920,26 +929,12 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
     nv.tooltip.cleanup = function() {
         // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
         var tooltips = document.querySelectorAll('.nvtooltip');
-        var purging = [];
         if (tooltips) {
             nv.dom.write(function() {
                 for (var i = 0; i < tooltips.length; i++) {
-                    purging.push(tooltips[i]);
-                    tooltips[i].style.transitionDelay = '0 !important';
-                    tooltips[i].style.opacity = 0;
                     tooltips[i].className = 'nvtooltip-pending-removal';
                 }
             });
-
-            setTimeout(function() {
-                nv.dom.write(function() {
-                    while (purging.length) {
-                        var removeMe = purging.pop();
-                        removeMe.parentNode.removeChild(removeMe);
-                    }
-                });
-            }, 500);
-
         }
     };
 })();
