@@ -108,6 +108,9 @@ describe 'NVD3', ->
 
             builder.model.interactiveLayer.dispatch.elementMouseout()
 
+            tooltip = document.querySelector '.nvtooltip-pending-removal'
+            should.exist tooltip, 'hidden tooltip exists after mouseout'
+
         it 'has correct structure', ->
           cssClasses = [
             '.nv-x.nv-axis'
