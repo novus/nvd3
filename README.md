@@ -9,7 +9,7 @@ Novus has decided to keep the library in sync with what is in nvd3-community mas
 
 **D3 Versioning Note**
 
-NVD3 should work with the latest d3.js (version 3.5), but I did notice that the interactive guideline tooltip was broken for d3.js 3.5.  Changing it to d3.js 3.3.13 fixes it. This will need to be investigated.
+NVD3 should work with the latest d3.js version 3.5.3 and later.  Along with `pieChart` options `padAngle` and `cornerRadius`, the interactive guideline tooltip now requires these later versions of D3 (3.4.4+, specifically, to get interactive tooltips). The interactive guide lines rely on the more recent `d3.bisector()` method which treats accessors taking two parameters (the second being the element index) as comparators (see [d3.bisector()](https://github.com/mbostock/d3/wiki/Arrays#d3_bisector)).
 
 **1.7.1** Changes:
 
