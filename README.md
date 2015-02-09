@@ -28,9 +28,7 @@ NVD3 runs best on WebKit based browsers.
 * Firefox: latest version
 * Internet Explorer: 10+
 
-**D3 Versioning Note**
-
-NVD3 should work with the latest d3.js (version 3.5), but I did notice that the interactive guideline tooltip was broken for d3.js 3.5.  Changing it to d3.js 3.3.13 fixes it. This will need to be investigated.
+## Changelog
 
 **1.7.1** Changes:
 
