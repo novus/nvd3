@@ -60,6 +60,11 @@ text {
   <svg></svg>
 </div>
 
+<div class='chart third' id="test8">
+  <h2>Half donut pie chart with outside label</h2>
+  <svg></svg>
+</div>
+
 <script>
 
 var testdata = [
@@ -131,33 +136,50 @@ function defaultChart(containerId, data, labelType) {
 }
 
 //Adds donut pie chart.
-nv.addGraph(function() {
+function defaultDonutChart(containerId, data, options) {
+    options = options || {};
 
-    var width = 500,
-        height = 500;
+    nv.addGraph(function () {
 
-    var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .color(d3.scale.category10().range())
-        .width(width)
-        .height(height)
-        .donut(true);
+        var width = 500,
+                height = 500;
 
-    chart.pie
-        .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
-        .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
+        var chart = nv.models.pieChart()
+                .x(function (d) {
+                    return d.key
+                })
+                .color(d3.scale.category10().range())
+                .width(width)
+                .height(height)
+                .donut(true);
 
-      d3.select("#test2 svg")
-          .datum(testdata)
-        .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
-    nv.utils.windowResize(chart.update);
-    return chart;
-});
+        if (options.half){
+            chart.pie
+                    .startAngle(function (d) {
+                        return d.startAngle / 2 - Math.PI / 2
+                    })
+                    .endAngle(function (d) {
+                        return d.endAngle / 2 - Math.PI / 2
+                    });
+        }
+
+        if (options.donutLabelsOutside){
+            chart.pie.donutLabelsOutside(true);
+        }
+
+        d3.select("#" + containerId + " svg")
+                .datum(data)
+                .transition().duration(1200)
+                .attr('width', width)
+                .attr('height', height)
+                .call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+}
 
 defaultChart("test1", testdata);
+defaultDonutChart("test2", testdata, true);
 defaultChart("test3", thirtySeries());
 defaultChart("test4",[]);
 defaultChart("test5",[{key: "Zero series", y: 0}, {key: "Zero series 2", y: 0}]);
@@ -166,7 +188,8 @@ defaultChart("test6", [
       {key: "Nan", y: NaN},
       {key: "null", y: null},
       {key: "zero", y: 0}
-  ])
+  ]);
 
 defaultChart("test7",testdata, "percent");
+defaultDonutChart("test8", testdata, {half: true, donutLabelsOutside: true});
 </script>
