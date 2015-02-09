@@ -87,6 +87,8 @@ If you'd like to contribute consistently, show me what you've got with some good
 
 1. Please commit to the `development` branch
 2. Do NOT check in anything under the `build` directory, it clutters up the commit and just gets overwritten later.
+3. All new features must come with unit test coverage
+4. Bug fixes should come with unit tests that prove their fix
 
 If you want to test your changes using the example pages,
 you'll have to run `grunt production` to build the items into the `build` directory.
