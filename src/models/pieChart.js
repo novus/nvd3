@@ -153,7 +153,6 @@ nv.models.pieChart = function() {
 
                     if ( margin.right != legend.width()) {
                         margin.right = legend.width();
-                        // FIXME: Do we need the default of 600 different from 960?
                         availableWidth = nv.utils.availableWidth(width, container, margin);
                     }
 
