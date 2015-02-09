@@ -38,9 +38,6 @@
     "*.json",
     "*.md"
   ],
-  "resolutions": {
-    "d3": "~3.3.13"
-  },
   "devDependencies": {
     "d3": "~3.3.13"
   }
