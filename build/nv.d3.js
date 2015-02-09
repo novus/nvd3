@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.1 (https://github.com/novus/nvd3) 2015-02-05 */
+/* nvd3 version 1.7.1 (https://github.com/novus/nvd3) 2015-02-09 */
 (function(){
 
 // set up main nv object on window
@@ -374,15 +374,21 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
     if (! (values instanceof Array)) {
         return null;
     }
+    var _xAccessor;
     if (typeof xAccessor !== 'function') {
-        xAccessor = function(d,i) {
+        _xAccessor = function(d) {
             return d.x;
         }
+    } else {
+        _xAccessor = xAccessor;
+    }
+    var _cmp = function(d, v) {
+        return _xAccessor(d) - v;
     }
 
-    var bisect = d3.bisector(xAccessor).left;
+    var bisect = d3.bisector(_cmp).left;
     var index = d3.max([0, bisect(values,searchVal) - 1]);
-    var currentValue = xAccessor(values[index], index);
+    var currentValue = _xAccessor(values[index]);
 
     if (typeof currentValue === 'undefined') {
         currentValue = index;
@@ -393,7 +399,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
     }
 
     var nextIndex = d3.min([index+1, values.length - 1]);
-    var nextValue = xAccessor(values[nextIndex], nextIndex);
+    var nextValue = _xAccessor(values[nextIndex]);
 
     if (typeof nextValue === 'undefined') {
         nextValue = nextIndex;
@@ -4552,6 +4558,7 @@ nv.models.line = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 960
         , height = 500
+        , strokeWidth = 1.5
         , color = nv.utils.defaultColor() // a function that returns a color
         , getX = function(d) { return d.x } // accessor to get the x value from a data point
         , getY = function(d) { return d.y } // accessor to get the y value from a data point
@@ -4635,6 +4642,7 @@ nv.models.line = function() {
                 .data(function(d) { return d }, function(d) { return d.key });
             groups.enter().append('g')
                 .style('stroke-opacity', 1e-6)
+                .style('stroke-width', function(d) { return d.strokeWidth || strokeWidth })
                 .style('fill-opacity', 1e-6);
 
             groups.exit().remove();
@@ -4646,7 +4654,7 @@ nv.models.line = function() {
                 .style('stroke', function(d,i){ return color(d, i)});
             groups.watchTransition(renderWatch, 'line: groups')
                 .style('stroke-opacity', 1)
-                .style('fill-opacity', .5);
+                .style('fill-opacity', function(d) { return d.fillOpacity || .5});
 
             var areaPaths = groups.selectAll('path.nv-area')
                 .data(function(d) { return isArea(d) ? [d] : [] }); // this is done differently than lines because I need to check if series is an area
@@ -4679,6 +4687,7 @@ nv.models.line = function() {
 
             var linePaths = groups.selectAll('path.nv-line')
                 .data(function(d) { return [d.values] });
+
             linePaths.enter().append('path')
                 .attr('class', 'nv-line')
                 .attr('d',
@@ -5653,6 +5662,7 @@ nv.models.linePlusBarChart = function() {
                             .map(function(d,i) {
                                 return {
                                     area: d.area,
+                                    fillOpacity: d.fillOpacity,
                                     key: d.key,
                                     values: d.values.filter(function(d,i) {
                                         return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
@@ -6973,9 +6983,11 @@ nv.models.multiBarChart = function() {
 
                 switch (d.key) {
                     case 'Grouped':
+                    case controlLabels.grouped:
                         multibar.stacked(false);
                         break;
                     case 'Stacked':
+                    case controlLabels.stacked:
                         multibar.stacked(true);
                         break;
                 }
