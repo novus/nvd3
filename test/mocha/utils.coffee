@@ -45,6 +45,10 @@ describe 'NVD3', ->
       returnedFunction({},3).should.be.equal '#000'
 
   describe 'Interactive Bisect', ->
+    it 'no accessor', ->
+      list = [{ x:0 },{ x:1 },{ x:1 },{ x:2 },{ x:3 },{ x:5 },{ x:8 },{ x:13 },{ x:21 },{ x:34 }]
+      expect(nv.interactiveBisect(list,7)).to.equal 6
+
     runTest = (list, searchVal, accessor = null)->
       xAcc = unless accessor?
         (d)-> d
@@ -55,6 +59,9 @@ describe 'NVD3', ->
 
     it 'exists', ->
       expect(nv.interactiveBisect).to.exist
+
+    it 'returns null when no array', ->
+      expect(nv.interactiveBisect('bad', 'a')).to.equal null
 
     it 'basic test', ->
       expect(runTest([0,1,2,3,4,5], 3)).to.equal 3
@@ -88,21 +95,6 @@ describe 'NVD3', ->
     it 'fibonacci - inbetween item (right)', ->
       list = [0,1,1,2,3,5,8,13,21,34]
       expect(runTest(list,20)).to.equal 8
-
-    it 'accessor in index mode - existing item', ->
-      x = (d,i)-> i
-      list = [0,1,1,2,3,5,8,13,21,34]
-      expect(runTest(list,7,x)).to.equal 7
-
-    it 'accessor in index mode - inbetween item 1', ->
-      x = (d,i)-> i
-      list = [0,1,1,2,3,5,8,13,21,34]
-      expect(runTest(list,7.3,x)).to.equal 7
-
-    it 'accessor in index mode - inbetween item 2', ->
-      x = (d,i)-> i
-      list = [0,1,1,2,3,5,8,13,21,34]
-      expect(runTest(list,7.50001,x)).to.equal 8
 
     it 'empty array', ->
       expect(runTest([],4)).to.equal 0

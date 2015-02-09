@@ -227,15 +227,30 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
     if (! (values instanceof Array)) {
         return null;
     }
+    var _xAccessor;
     if (typeof xAccessor !== 'function') {
-        xAccessor = function(d,i) {
+        _xAccessor = function(d) {
             return d.x;
         }
+    } else {
+        _xAccessor = xAccessor;
+    }
+    var _cmp = function(d, v) {
+        // Accessors are no longer passed the index of the element along with
+        // the element itself when invoked by d3.bisector.
+        //
+        // Starting at D3 v3.4.4, d3.bisector() started inspecting the
+        // function passed to determine if it should consider it an accessor
+        // or a comparator. This meant that accessors that take two arguments
+        // (expecting an index as the second parameter) are treated as
+        // comparators where the second argument is the search value against
+        // which the first argument is compared.
+        return _xAccessor(d) - v;
     }
 
-    var bisect = d3.bisector(xAccessor).left;
+    var bisect = d3.bisector(_cmp).left;
     var index = d3.max([0, bisect(values,searchVal) - 1]);
-    var currentValue = xAccessor(values[index], index);
+    var currentValue = _xAccessor(values[index]);
 
     if (typeof currentValue === 'undefined') {
         currentValue = index;
@@ -246,7 +261,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
     }
 
     var nextIndex = d3.min([index+1, values.length - 1]);
-    var nextValue = xAccessor(values[nextIndex], nextIndex);
+    var nextValue = _xAccessor(values[nextIndex]);
 
     if (typeof nextValue === 'undefined') {
         nextValue = nextIndex;
