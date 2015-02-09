@@ -34,10 +34,8 @@ nv.models.historicalBar = function() {
             renderWatch.reset();
 
             var container = d3.select(this);
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                - margin.left - margin.right;
-            var availableHeight = (height || parseInt(container.style('height')) || 400)
-                - margin.top - margin.bottom;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
 
