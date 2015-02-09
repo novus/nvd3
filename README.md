@@ -7,9 +7,10 @@ Novus has decided to keep the library in sync with what is in nvd3-community mas
 
 [View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html)
 
-**D3 Versioning Note**
+**Minimum D3 version required: 3.4.4**
 
-NVD3 should work with the latest d3.js (version 3.5), but I did notice that the interactive guideline tooltip was broken for d3.js 3.5.  Changing it to d3.js 3.3.13 fixes it. This will need to be investigated.
+**Development Changes:**
+* D3.js minimum version is being increased. A change in the d3.bisector() api broke some tooltip functionality. See [here](https://github.com/portante/nvd3/commit/95fb79b82844f48c7497baa86ba7729e7a664284) for an explanation.
 
 **1.7.1** Changes:
 
