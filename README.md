@@ -16,7 +16,7 @@ Simply add the `nv.d3` assets to your project and include them in your HTML.
 * Prefer minified assets (`.min`) for production.
 
 ### Dependencies
-NVD3 depends on [d3.js](http://d3js.org/), and is tested on version 3.3.13. There is currently a minor bug associated with version 3.5.
+NVD3 depends on [d3.js](http://d3js.org/), and is tested on version 3.3.13. There is currently [a minor bug](https://github.com/novus/nvd3/issues/760) associated with version 3.5.
 
 
 ## Supported Browsers
