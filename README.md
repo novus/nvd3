@@ -4,6 +4,30 @@ Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ock
 
 [View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html)
 
+## Usage
+Simply add the `nv.d3` assets to your project and include them in your HTML.
+
+```
+<link href="nv.d3.min.css" rel="stylesheet">
+<script src="nv.d3.min.js"></script>
+```
+
+*  `nv.d3.js` should appear after `d3.js` is included.
+* Prefer minified assets (`.min`) for production.
+
+### Dependencies
+NVD3 depends on [d3.js](http://d3js.org/), and is tested on version 3.3.13. There is currently a minor bug associated with version 3.5.
+
+
+## Supported Browsers
+NVD3 runs best on WebKit based browsers.
+
+* Google Chrome: latest version
+* Opera 15+ (i.e. webkit version)
+* Safari: latest version
+* Firefox: latest version
+* Internet Explorer: 10+
+
 **D3 Versioning Note**
 
 NVD3 should work with the latest d3.js (version 3.5), but I did notice that the interactive guideline tooltip was broken for d3.js 3.5.  Changing it to d3.js 3.3.13 fixes it. This will need to be investigated.
@@ -38,7 +62,7 @@ from the issues/pulls from the original project.
 ---
 
 # Current development focus
-- For Novus, review outstanding pull requests and issues.
+- Review outstanding pull requests and issues.
 - Try to find an easy way to actually document usage and all chart options.
 - Improve the testing framework.
 - Setup continuous integration.
@@ -47,7 +71,7 @@ from the issues/pulls from the original project.
 
 # Bugs
 
-Found a bug?  Check out the **development** branch and make sure it's not already fixed first!
+Found a bug?  Check out the `development` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
 
 ---
 
@@ -61,11 +85,11 @@ If you'd like to contribute consistently, show me what you've got with some good
 
 ### A few rules for pull requests
 
-1. Please commit to the "development" branch
-2. Do NOT check in anything under the "build" directory, it clutters up the commit and just gets overwritten later.
+1. Please commit to the `development` branch
+2. Do NOT check in anything under the `build` directory, it clutters up the commit and just gets overwritten later.
 
 If you want to test your changes using the example pages,
-you'll have to run "grunt production" to build the items into the "build" directory.
+you'll have to run `grunt production` to build the items into the `build` directory.
 You must do this before your changes show up in the examples, as they link to the build directory
 in order to properly show off the finished product.
 Please remember to NOT include the build files in your commit though,
@@ -73,7 +97,7 @@ only include the source files you changed!
 
 ### Tips for Testing
 * Unit tests were written in Karma and Mocha. Follow instructions in ** Building Latest ** to get npm packages setup. This may not work on Windows machines.
-* Run 'grunt' to start the unit tests.
+* Run `grunt` to start the unit tests.
 * Also visually inspect the HTML pages in the **examples/ and test/ folders**.  Make sure there are no glaring errors.
 
 ---
@@ -89,15 +113,6 @@ only include the source files you changed!
 
 > build with:  grunt production
 
-You should now have a "build" directory with the js and css files within.
+You should now have a `build` directory with the js and css files within.
 
 ---
-
-## Supported Browsers
-NVD3 runs best on WebKit based browsers.
-
-* Google Chrome: latest version
-* Opera 15+ (i.e. webkit version)
-* Safari: latest version
-* Firefox: latest version
-* Internet Explorer: 10+
