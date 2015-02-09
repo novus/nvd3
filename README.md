@@ -1,9 +1,6 @@
 ## NVD3 - A reusable D3 charting library
 
-Inspired by the work of [Mike Bostock](http://bost.ocks.org/mike/chart/)
-
-**Big thanks to [nvd3-community](https://github.com/nvd3-community/nvd3/) for helping to maintain the library and improve documentation.
-Novus has decided to keep the library in sync with what is in nvd3-community master.**
+Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ocks.org/mike/chart/), and supported by a combined effort of [Novus](http://www.novus.com) and the NVD3 community.
 
 [View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html)
 
