@@ -1,3 +1,4 @@
+**Update**:  It looks like novus is trying to manage the library again, and they've added me to their repo so we'll probably merge everything back there :)
 
 ## Latest version of nvd3 can be found here as the original project was abandoned.
 
