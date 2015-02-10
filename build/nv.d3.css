@@ -52,7 +52,6 @@ svg.nvd3-svg {
   padding: 1px;
   border: 1px solid rgba(0,0,0,.2);
   z-index: 10000;
-  display: block;
 
   font-family: Arial;
   font-size: 13px;
@@ -152,8 +151,8 @@ svg.nvd3-svg {
 }
 
 .nvtooltip-pending-removal {
+  position: absolute;
   pointer-events: none;
-  display: none;
 }
 
 .nvd3 text {

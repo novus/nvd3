@@ -1,15 +1,38 @@
 ## NVD3 - A reusable D3 charting library
 
-Inspired by the work of [Mike Bostock](http://bost.ocks.org/mike/chart/)
-
-**Big thanks to [nvd3-community](https://github.com/nvd3-community/nvd3/) for helping to maintain the library and improve documentation.
-Novus has decided to keep the library in sync with what is in nvd3-community master.**
+Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ocks.org/mike/chart/), and supported by a combined effort of [Novus](http://www.novus.com) and the NVD3 community.
 
 [View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html)
 
 **Minimum D3 version required: 3.4.4**
 
 NVD3 should work with the latest d3.js version 3.5.3 and later.  Along with `pieChart` options `padAngle` and `cornerRadius`, the interactive guideline tooltip now requires these later versions of D3 (3.4.4+, specifically, to get interactive tooltips). The interactive guide lines rely on the more recent `d3.bisector()` method which treats accessors taking two parameters (the second being the element index) as comparators (see [d3.bisector()](https://github.com/mbostock/d3/wiki/Arrays#d3_bisector)).
+
+## Usage
+Simply add the `nv.d3` assets to your project and include them in your HTML.
+
+```
+<link href="nv.d3.min.css" rel="stylesheet">
+<script src="nv.d3.min.js"></script>
+```
+
+*  `nv.d3.js` should appear after `d3.js` is included.
+* Prefer minified assets (`.min`) for production.
+
+### Dependencies
+NVD3 depends on [d3.js](http://d3js.org/), and is tested on version 3.3.13. There is currently [a minor bug](https://github.com/novus/nvd3/issues/760) associated with version 3.5.
+
+
+## Supported Browsers
+NVD3 runs best on WebKit based browsers.
+
+* Google Chrome: latest version
+* Opera 15+ (i.e. webkit version)
+* Safari: latest version
+* Firefox: latest version
+* Internet Explorer: 10+
+
+## Changelog
 
 **1.7.1** Changes:
 
@@ -41,7 +64,7 @@ from the issues/pulls from the original project.
 ---
 
 # Current development focus
-- For Novus, review outstanding pull requests and issues.
+- Review outstanding pull requests and issues.
 - Try to find an easy way to actually document usage and all chart options.
 - Improve the testing framework.
 - Setup continuous integration.
@@ -50,7 +73,7 @@ from the issues/pulls from the original project.
 
 # Bugs
 
-Found a bug?  Check out the **development** branch and make sure it's not already fixed first!
+Found a bug?  Check out the `development` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
 
 ---
 
@@ -70,11 +93,13 @@ If you'd like to contribute consistently, show me what you've got with some good
 
 ### A few rules for pull requests
 
-1. Please commit to the "development" branch
-2. Do NOT check in anything under the "build" directory, it clutters up the commit and just gets overwritten later.
+1. Please commit to the `development` branch
+2. Do NOT check in anything under the `build` directory, it clutters up the commit and just gets overwritten later.
+3. All new features must come with unit test coverage
+4. Bug fixes should come with unit tests that prove their fix
 
 If you want to test your changes using the example pages,
-you'll have to run "grunt production" to build the items into the "build" directory.
+you'll have to run `grunt production` to build the items into the `build` directory.
 You must do this before your changes show up in the examples, as they link to the build directory
 in order to properly show off the finished product.
 Please remember to NOT include the build files in your commit though,
@@ -82,7 +107,7 @@ only include the source files you changed!
 
 ### Tips for Testing
 * Unit tests were written in Karma and Mocha. Follow instructions in ** Building Latest ** to get npm packages setup. This may not work on Windows machines.
-* Run 'grunt' to start the unit tests.
+* Run `grunt` to start the unit tests.
 * Also visually inspect the HTML pages in the **examples/ and test/ folders**.  Make sure there are no glaring errors.
 
 ---
@@ -91,6 +116,7 @@ only include the source files you changed!
 
 1. First clone the repository and checkout the "development" branch
 2. make sure nodejs is installed via your system's package manager.
+3. Install grunt-cli and bower: npm install -g bower grunt-cli
 
 > have node download it's required modules with:  npm install
 
@@ -98,15 +124,6 @@ only include the source files you changed!
 
 > build with:  grunt production
 
-You should now have a "build" directory with the js and css files within.
+You should now have a `build` directory with the js and css files within.
 
 ---
-
-## Supported Browsers
-NVD3 runs best on WebKit based browsers.
-
-* Google Chrome: latest version
-* Opera 15+ (i.e. webkit version)
-* Safari: latest version
-* Firefox: latest version
-* Internet Explorer: 10+
