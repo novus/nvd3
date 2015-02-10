@@ -110,19 +110,24 @@ nv.models.axis = function() {
                 case 'bottom':
                     var xLabelMargin = axisLabelDistance + 36;
                     var maxTextWidth = 30;
+                    var textHeight = 0;
                     var xTicks = g.selectAll('g').select("text");
+                    var rotateLabelsRule = '';
                     if (rotateLabels%360) {
                         //Calculate the longest xTick width
                         xTicks.each(function(d,i){
-                            var width = this.getBoundingClientRect().width;
+                            var box = this.getBoundingClientRect();
+                            var width = box.width;
+                            textHeight = box.height;
                             if(width > maxTextWidth) maxTextWidth = width;
                         });
+                        rotateLabelsRule = 'rotate(' + rotateLabels + ' 0,' + (textHeight/2 + axis.tickPadding()) + ')';
                         //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
                         var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
                         var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
                         //Rotate all xTicks
                         xTicks
-                            .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+                            .attr('transform', rotateLabelsRule)
                             .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
                     }
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
@@ -152,7 +157,7 @@ nv.models.axis = function() {
                             .select('text')
                             .attr('dy', '.71em')
                             .attr('y', axis.tickPadding())
-                            .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
+                            .attr('transform', rotateLabelsRule)
                             .style('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
                             .text(function(d,i) {
                                 var v = fmt(d);
