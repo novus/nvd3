@@ -205,7 +205,7 @@ nv.models.pie = function() {
                 }
 
                 if (donutLabelsOutside) {
-                    labelsArc = d3.svg.arc().outerRadius(arc.outerRadius());
+                    labelsArc = d3.svg.arc().outerRadius(arc.outerRadius()).startAngle(startAngle).endAngle(endAngle);
                 }
 
                 pieLabels.enter().append("g").classed("nv-label",true).each(function(d,i) {
