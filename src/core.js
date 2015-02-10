@@ -119,3 +119,7 @@ nv.addGraph = function(obj) {
         nv.render();
     }
 };
+
+if ('undefined' !== typeof exports && 'undefined' !== typeof module) {
+    module.exports = nv;
+}
