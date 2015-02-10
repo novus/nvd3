@@ -31,6 +31,11 @@ describe 'NVD3', ->
             tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             duration: 0
+            startAngle: false
+            endAngle: false
+            padAngle: false
+            cornerRadius: 0
+            labelSunbeamLayout: false
 
         builder = null
         beforeEach ->
@@ -56,6 +61,20 @@ describe 'NVD3', ->
             it '.nv-pieChart', ->
               should.exist wrap[0]
 
+            it 'can access margin', ->
+              builder.model.margin
+                top: 31
+                right: 21
+                bottom: 51
+                left: 76
+
+              m = builder.model.margin()
+              m.should.deep.equal 
+                top: 31
+                right: 21
+                bottom: 51
+                left: 76
+
             describe 'labels correctly', ->
               it "[#{sampleData1.length}] labels", ->
                 wrap[0].querySelectorAll('.nv-label').should.have.length sampleData1.length
@@ -75,3 +94,23 @@ describe 'NVD3', ->
           for cssClass in cssClasses
             do (cssClass) ->
               should.exist builder.$("g.nvd3.nv-pieChart #{cssClass}")[0]
+
+        it 'can handle donut mode and options', (done)->
+            builder.teardown()
+            options.donut = true
+            options.donutLabelsOutside = true
+            options.labelSunbeamLayout = true
+            options.startAngle = (d)-> d.startAngle/2 - Math.PI/2
+            options.endAngle = (d)-> d.endAngle/2 - Math.PI/2
+
+            builder.build options, sampleData1
+
+            done()
+
+        it 'can handle cornerRadius and padAngle options', (done)->
+            builder.teardown()
+            options.padAngle = 5
+            options.cornerRadius = 5
+
+            builder.build options, sampleData1
+            done() 

@@ -281,7 +281,10 @@ nv.models.pie = function() {
                 });
 
                 pieLabels.select(".nv-label text")
-                    .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
+                    .style('text-anchor', function(d,i) {
+                        //center the text on it's origin or begin/end if orthogonal aligned
+                        labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle';
+                    })
                     .text(function(d, i) {
                         var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
                         var labelTypes = {
