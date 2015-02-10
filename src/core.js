@@ -1,7 +1,6 @@
 
-// set up main nv object on window
-var nv = window.nv || {};
-window.nv = nv;
+// set up main nv object
+var nv = {};
 
 // the major global objects under the nv namespace
 nv.dev = false; //set false when in production
@@ -120,6 +119,10 @@ nv.addGraph = function(obj) {
     }
 };
 
-if ('undefined' !== typeof exports && 'undefined' !== typeof module) {
-    module.exports = nv;
+if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined') {
+  module.exports = nv;
+}
+
+if (typeof(window) !== 'undefined') {
+  window.nv = nv;
 }
