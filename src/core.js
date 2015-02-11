@@ -99,7 +99,7 @@ nv.render = function render(step) {
         nv.render.queue.splice(0, i);
 
         if (nv.render.queue.length) {
-            setTimeout(renderLoop, 0);
+            setTimeout(renderLoop);
         }
         else {
             nv.dispatch.render_end();
@@ -107,7 +107,7 @@ nv.render = function render(step) {
         }
     };
 
-    setTimeout(renderLoop,0);
+    setTimeout(renderLoop);
 };
 
 nv.render.active = false;
