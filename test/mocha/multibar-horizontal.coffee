@@ -63,6 +63,13 @@ describe 'NVD3', ->
             wrap = builder.$ 'g.nvd3.nv-multiBarHorizontalChart'
             should.exist wrap[0]
 
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.multiBarHorizontalChart()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
         it 'has correct structure', ->
           cssClasses = [
             '.nv-x.nv-axis'

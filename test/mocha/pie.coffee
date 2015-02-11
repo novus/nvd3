@@ -65,6 +65,13 @@ describe 'NVD3', ->
                   it "label '#{item.label}'", ->
                     item.label.should.be.equal labels[i].textContent
 
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.pieChart()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
         it 'has correct structure', ->
           cssClasses = [
             '.nv-pieWrap'

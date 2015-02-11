@@ -86,6 +86,14 @@ describe 'NVD3', ->
             noData = builder.$ '.nv-noData'
             noData[0].textContent.should.equal 'No Data Available'
 
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.lineChart()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
+
         it 'interactive tooltip', ->
             builder = new ChartBuilder nv.models.lineChart()
             builder.build options, sampleData2

@@ -139,6 +139,15 @@ describe 'NVD3', ->
             builder.build options, {}
             builder.svg.textContent.should.be.equal 'No Data Available'
 
+
+          it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.bulletChart()
+            builder.buildover options, sampleData, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
+
           it 'margin', ->
             options =
               margin:
