@@ -77,8 +77,9 @@ nv.deprecated = function(name) {
     }
 };
 
-// render function is used to queue up chart rendering
-// in non-blocking timeout functions
+// The nv.render function is used to queue up chart rendering
+// in non-blocking async functions.
+// When all queued charts are done rendering, nv.dispatch.render_end is invoked.
 nv.render = function render(step) {
     // number of graphs to generate in each timeout loop
     step = step || 1;
@@ -86,7 +87,7 @@ nv.render = function render(step) {
     nv.render.active = true;
     nv.dispatch.render_start();
 
-    setTimeout(function() {
+    var renderLoop = function() {
         var chart, graph;
 
         for (var i = 0; i < step && (graph = nv.render.queue[i]); i++) {
@@ -97,18 +98,38 @@ nv.render = function render(step) {
 
         nv.render.queue.splice(0, i);
 
-        if (nv.render.queue.length) setTimeout(arguments.callee, 0);
+        if (nv.render.queue.length) {
+            setTimeout(renderLoop);
+        }
         else {
             nv.dispatch.render_end();
             nv.render.active = false;
         }
-    }, 0);
+    };
+
+    setTimeout(renderLoop);
 };
 
 nv.render.active = false;
 nv.render.queue = [];
 
-// main function to use when adding a new graph, see examples
+/*
+Adds a chart to the async rendering queue. This method can take arguments in two forms:
+nv.addGraph({
+    generate: <Function>
+    callback: <Function>
+})
+
+or 
+
+nv.addGraph(<generate Function>, <callback Function>)
+
+The generate function should contain code that creates the NVD3 model, sets options
+on it, adds data to an SVG element, and invokes the chart model. The generate function
+should return the chart model.  See examples/lineChart.html for a usage example.
+
+The callback function is optional, and it is called when the generate function completes.
+*/
 nv.addGraph = function(obj) {
     if (typeof arguments[0] === typeof(Function)) {
         obj = {generate: arguments[0], callback: arguments[1]};
