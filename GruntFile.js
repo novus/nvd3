@@ -1,5 +1,4 @@
 var version = '1.7.1';
-var oldVersion = '1.7.1';
 module.exports = function(grunt) {
     var _pkg = grunt.file.readJSON('package.json');
 
@@ -45,8 +44,8 @@ module.exports = function(grunt) {
                 ],
                 overwrite: true,
                 replacements: [{
-                    from: oldVersion,
-                    to: version
+                    from: /(version?\s?=?\:?\s\')([\d\.]*)\'/gi,
+                    to: '$1' + _pkg.version + "'"
                 }]
             }
         },
