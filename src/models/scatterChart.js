@@ -145,23 +145,8 @@ nv.models.scatterChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                //Remove any previously created chart components
-                container.selectAll('g').remove()
-                
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container)
                 renderWatch.renderEnd('scatter immediate');
-
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -400,6 +385,8 @@ nv.models.scatterChart = function() {
     chart.yAxis = yAxis;
     chart.distX = distX;
     chart.distY = distY;
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart.options = nv.utils.optionsFunc.bind(chart);
     chart._options = Object.create({}, {
