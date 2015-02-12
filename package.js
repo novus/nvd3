@@ -13,4 +13,5 @@ Package.on_use(function (api) {
     api.use('d3js:d3@3.5.5', 'client');
     api.add_files('build/nv.d3.js', 'client');
     api.add_files('build/nv.d3.css', 'client');
+    api.export("nv");
 });
