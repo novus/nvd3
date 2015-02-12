@@ -67,8 +67,9 @@ describe 'NVD3', ->
             builder1.teardown()
 
         it 'api check', ->
-            for opt of options
-                should.exist builder1.model[opt](), "#{opt} can be called"
+          should.exist builder1.model.options, 'options exposed'
+          for opt of options
+              should.exist builder1.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
             wrap = builder1.$ 'g.nvd3.nv-cumulativeLine'

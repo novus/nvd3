@@ -39,6 +39,7 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
