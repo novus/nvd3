@@ -16,7 +16,7 @@
   "readmeFilename": "README.md",
   "license": "Apache-2.0",
   "peerDependencies": {
-    "d3": "<=3.3.13"
+    "d3": "<=3.4.4"
   },
   "devDependencies": {
     "grunt": "^0.4.5",

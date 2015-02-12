@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "d3": "<=3.3.13",
+    "d3": "<=3.4.4",
     "invariant": "1.0.2"
   },
   "devDependencies": {
