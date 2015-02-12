@@ -387,8 +387,6 @@ nv.models.scatterChart = function() {
     chart.distY = distY;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
-
-    chart.options = nv.utils.optionsFunc.bind(chart);
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
