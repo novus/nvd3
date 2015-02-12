@@ -74,11 +74,8 @@ nv.models.pieChart = function() {
             nv.utils.initSVG(container);
 
             var that = this;
-            var canvasWidth = (width || parseInt(container.style('width'), 10) || 960),
-                canvasHeight = (height || parseInt(container.style('height'), 10) || 400),
-                availableWidth = canvasWidth - margin.left - margin.right,
-                availableHeight = canvasHeight - margin.top - margin.bottom
-                ;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() { container.transition().call(chart); };
             chart.container = this;
@@ -142,8 +139,7 @@ nv.models.pieChart = function() {
 
                     if ( margin.top != legend.height()) {
                         margin.top = legend.height();
-                        availableHeight = (height || parseInt(container.style('height')) || 400)
-                            - margin.top - margin.bottom;
+                        availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
 
                     wrap.select('.nv-legendWrap')
@@ -157,8 +153,8 @@ nv.models.pieChart = function() {
 
                     if ( margin.right != legend.width()) {
                         margin.right = legend.width();
-                        availableWidth = (width || parseInt(container.style('width')) || 600)
-                            - margin.right - margin.left;
+                        // FIXME: Do we need the default of 600 different from 960?
+                        availableWidth = nv.utils.availableWidth(width, container, margin);
                     }
 
                     wrap.select('.nv-legendWrap')

@@ -13,6 +13,10 @@ describe 'NVD3', ->
       'nv.utils.deepExtend'
       'nv.utils.state'
       'nv.utils.optionsFunc'
+      'nv.utils.sanitizeHeight'
+      'nv.utils.sanitizeWidth'
+      'nv.utils.availableHeight'
+      'nv.utils.availableWidth'
     ]
 
     describe 'has ', ->
@@ -44,8 +48,52 @@ describe 'NVD3', ->
       returnedFunction({},2).should.be.equal '#aaa'
       returnedFunction({},3).should.be.equal '#000'
 
+  describe 'Sanitize Height and Width for a Container', ->
+    it 'provides default height', ->
+      h = (arg) -> return null
+      cont = { style: h }
+      expect(nv.utils.sanitizeHeight(null, cont)).to.equal 400
+      expect(nv.utils.sanitizeHeight(undefined, cont)).to.equal 400
+      expect(nv.utils.sanitizeHeight(0, cont)).to.equal 400
+    it 'provides default width', ->
+      w = (arg) -> return null
+      cont = { style: w }
+      expect(nv.utils.sanitizeWidth(null, cont)).to.equal 960
+      expect(nv.utils.sanitizeWidth(undefined, cont)).to.equal 960
+      expect(nv.utils.sanitizeWidth(0, cont)).to.equal 960
+    it 'uses container height', ->
+      h = (arg) -> return 404
+      cont = { style: h }
+      expect(nv.utils.sanitizeHeight(null, cont)).to.equal 404
+    it 'uses container width', ->
+      w = (arg) -> return 964
+      cont = { style: w }
+      expect(nv.utils.sanitizeWidth(null, cont)).to.equal 964
+    it 'uses given height', ->
+      h = (arg) -> return 404
+      cont = { style: h }
+      expect(nv.utils.sanitizeHeight(408, cont)).to.equal 408
+    it 'uses given width', ->
+      w = (arg) -> return 964
+      cont = { style: w }
+      expect(nv.utils.sanitizeWidth(968, cont)).to.equal 968
+
+  describe 'Available Container Height and Width', ->
+    it 'calculates height properly', ->
+      m = { left: 5, right: 6, top: 7, bottom: 8 }
+      h = (arg) -> return 404
+      cont = { style: h }
+      expect(nv.utils.availableHeight(300, cont, m)).to.equal 285
+      expect(nv.utils.availableHeight(0, cont, m)).to.equal 389
+    it 'calculates width properly', ->
+      m = { left: 5, right: 6, top: 7, bottom: 8 }
+      w = (arg) -> return 964
+      cont = { style: w }
+      expect(nv.utils.availableWidth(300, cont, m)).to.equal 289
+      expect(nv.utils.availableWidth(0, cont, m)).to.equal 953
+
   describe 'Interactive Bisect', ->
-    it 'no accessor', ->
+    it 'works with no accessor', ->
       list = [{ x:0 },{ x:1 },{ x:1 },{ x:2 },{ x:3 },{ x:5 },{ x:8 },{ x:13 },{ x:21 },{ x:34 }]
       expect(nv.interactiveBisect(list,7)).to.equal 6
 
