@@ -592,3 +592,39 @@ Calculate the available width for a chart.
 nv.utils.availableWidth = function(width, container, margin) {
     return nv.utils.sanitizeWidth(width, container) - margin.left - margin.right;
 }
+
+/*
+Clear any rendered chart components and display a chart's 'noData' message
+*/
+nv.utils.noData = function(chart, container) {
+    var opt = chart.options(),
+        margin = opt.margin(),
+        noData = opt.noData(),
+        height = nv.utils.availableHeight(opt.height(), container, margin),
+        width = nv.utils.availableWidth(opt.width(), container, margin),
+        x = margin.left + width/2,
+        y = margin.top + height/2;
+
+    //Remove any previously created chart components
+    container.selectAll('g').remove();
+
+    var noDataText = container.selectAll('.nv-noData').data([noData]);
+
+    noDataText.enter().append('text')
+        .attr('class', 'nvd3 nv-noData')
+        .attr('dy', '-.7em')
+        .style('text-anchor', 'middle');
+
+    noDataText
+        .attr('x', x)
+        .attr('y', y)
+        .text(nv.utils.identity);
+}
+
+/*
+Identity function
+*/
+nv.utils.identity = function(i) { 
+    return i; 
+}
+
