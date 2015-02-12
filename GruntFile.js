@@ -1,4 +1,5 @@
 var version = '1.7.1';
+var oldVersion = '1.7.1';
 module.exports = function(grunt) {
     var _pkg = grunt.file.readJSON('package.json');
 
@@ -35,6 +36,18 @@ module.exports = function(grunt) {
                 files: {
                     'build/nv.d3.min.js': ['build/nv.d3.js']
                 }
+            }
+        },
+        replace: {
+            version: {
+                src: [
+                    'package.js'
+                ],
+                overwrite: true,
+                replacements: [{
+                    from: oldVersion,
+                    to: version
+                }]
             }
         },
         jshint: {
@@ -108,9 +121,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-text-replace');
 
     grunt.registerTask('default', ['concat', 'karma:unit']);
-    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
+    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin', 'replace']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
 };
