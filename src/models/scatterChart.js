@@ -147,6 +147,9 @@ nv.models.scatterChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+                //Remove any previously created chart components
+                container.selectAll('g').remove()
+                
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
                 noDataText.enter().append('text')

@@ -78,6 +78,13 @@ describe 'NVD3', ->
           cumulativeLine = builder1.$ 'g.nvd3.nv-cumulativeLine'
           cumulativeLine[0].getAttribute('transform').should.be.equal "translate(40,30)"
 
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.cumulativeLineChart()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
         it 'has correct structure', ->
           cssClasses = [
             '.nv-interactive'

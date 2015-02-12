@@ -103,6 +103,9 @@ nv.models.pieChart = function() {
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
+                //Remove any previously created chart components
+                container.selectAll('g').remove()
+                
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
                 noDataText.enter().append('text')
