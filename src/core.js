@@ -141,7 +141,7 @@ nv.addGraph = function(obj) {
     }
 };
 
-// exports
+// Node/CommonJS exports
 if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined') {
   module.exports = nv;
 }
