@@ -276,7 +276,7 @@ nv.models.stackedAreaChart = function() {
                     .ticks(stacked.offset() == 'wiggle' ? 0 : nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize(-availableWidth, 0)
                     .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent')
-                        ? d3.format('%') : yAxisTickFormat);
+                        ? d3.format('%') : yAxis.tickFormat());
 
                 g.select('.nv-y.nv-axis')
                     .transition().duration(0)
