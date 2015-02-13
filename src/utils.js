@@ -618,13 +618,6 @@ nv.utils.noData = function(chart, container) {
     noDataText
         .attr('x', x)
         .attr('y', y)
-        .text(nv.utils.identity);
-}
-
-/*
-Identity function
-*/
-nv.utils.identity = function(i) { 
-    return i; 
+        .text(function(t){ return t; });
 }
 
