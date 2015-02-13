@@ -17,6 +17,7 @@ describe 'NVD3', ->
       'nv.utils.sanitizeWidth'
       'nv.utils.availableHeight'
       'nv.utils.availableWidth'
+      'nv.utils.noData'
     ]
 
     describe 'has ', ->
@@ -155,3 +156,53 @@ describe 'NVD3', ->
 
     it 'single element array - past the end', ->
       expect(runTest([0],1)).to.equal 0
+
+  describe 'NoData Chart Clearing', ->
+    sampleData1 = [
+            key: 'Series 1'
+            values: [
+                [-1,-1]
+                [0,0]
+                [1,1]
+                [2,2]
+            ]
+        ]
+
+    options =
+            x: (d)-> d[0]
+            y: (d)-> d[1]
+            margin:
+                top: 30
+                right: 20
+                bottom: 50
+                left: 75
+            color: nv.utils.defaultColor()
+            height: 400
+            width: 800
+            showLegend: true
+            showXAxis: true
+            showYAxis: true
+            rightAlignYAxis: true
+            useInteractiveGuideline: true
+            tooltips: true
+            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
+            noData: 'No Data Available'
+            duration: 0
+            clipEdge: false
+            isArea: (d)-> d.area
+            defined: (d)-> true
+            interpolate: 'linear'
+
+    it 'shows no data text', ->
+            builder = new ChartBuilder nv.models.lineChart()
+            builder.build options, []
+
+            noData = builder.$ '.nv-noData'
+            noData[0].textContent.should.equal 'No Data Available'
+
+    it 'clears chart objects for no data', ->
+        builder = new ChartBuilder nv.models.lineChart()
+        builder.buildover options, sampleData1, []
+        
+        groups = builder.$ 'g'
+        groups.length.should.equal 0, 'removes chart components'
