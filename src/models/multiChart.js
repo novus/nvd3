@@ -17,7 +17,7 @@ nv.models.multiChart = function() {
         },
         x,
         y,
-        noData = 'No Data Available.',
+        noData = null,
         yDomain1,
         yDomain2,
         getX = function(d) { return d.x },

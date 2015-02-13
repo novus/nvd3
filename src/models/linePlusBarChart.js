@@ -44,7 +44,7 @@ nv.models.linePlusBarChart = function() {
         , y2
         , y3
         , y4
-        , noData = "No Data Available."
+        , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
         , transitionDuration = 0
         , state = nv.utils.state()

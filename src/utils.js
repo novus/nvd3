@@ -600,6 +600,7 @@ nv.utils.noData = function(chart, container) {
     var opt = chart.options(),
         margin = opt.margin(),
         noData = opt.noData(),
+        data = (noData == null) ? ["No Data Available."] : [noData],
         height = nv.utils.availableHeight(opt.height(), container, margin),
         width = nv.utils.availableWidth(opt.width(), container, margin),
         x = margin.left + width/2,
@@ -608,7 +609,7 @@ nv.utils.noData = function(chart, container) {
     //Remove any previously created chart components
     container.selectAll('g').remove();
 
-    var noDataText = container.selectAll('.nv-noData').data([noData]);
+    var noDataText = container.selectAll('.nv-noData').data(data);
 
     noDataText.enter().append('text')
         .attr('class', 'nvd3 nv-noData')

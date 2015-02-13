@@ -22,7 +22,7 @@ nv.models.pieChart = function() {
         }
         , state = nv.utils.state()
         , defaultState = null
-        , noData = "No Data Available."
+        , noData = null
         , duration = 250
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
         ;

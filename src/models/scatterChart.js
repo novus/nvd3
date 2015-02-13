@@ -34,7 +34,7 @@ nv.models.scatterChart = function() {
         , state = nv.utils.state()
         , defaultState = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
-        , noData       = "No Data Available."
+        , noData       = null
         , duration = 250
         ;
 

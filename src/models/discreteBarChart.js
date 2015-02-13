@@ -26,7 +26,7 @@ nv.models.discreteBarChart = function() {
         }
         , x
         , y
-        , noData = "No Data Available."
+        , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate','renderEnd')
         , duration = 250
         ;

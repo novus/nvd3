@@ -32,7 +32,7 @@ nv.models.historicalBarChart = function(bar_model) {
         , y
         , state = {}
         , defaultState = null
-        , noData = 'No Data Available.'
+        , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , transitionDuration = 250
         ;

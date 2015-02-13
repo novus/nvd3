@@ -26,7 +26,7 @@ nv.models.bulletChart = function() {
             return '<h3>' + x + '</h3>' +
                 '<p>' + y + '</p>'
         }
-        , noData = 'No Data Available.'
+        , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
         ;
 

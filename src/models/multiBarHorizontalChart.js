@@ -32,7 +32,7 @@ nv.models.multiBarHorizontalChart = function() {
         , y //can be accessed via chart.yScale()
         , state = nv.utils.state()
         , defaultState = null
-        , noData = 'No Data Available.'
+        , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
         , controlWidth = function() { return showControls ? 180 : 0 }
         , duration = 250

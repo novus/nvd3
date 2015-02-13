@@ -20,7 +20,7 @@ nv.models.sparklinePlus = function() {
         , showValue = true
         , alignValue = true
         , rightAlignValue = false
-        , noData = "No Data Available."
+        , noData = null
         ;
 
     function chart(selection) {
