@@ -49,48 +49,36 @@ describe 'NVD3', ->
       returnedFunction({},2).should.be.equal '#aaa'
       returnedFunction({},3).should.be.equal '#000'
 
+  createCont = (wh = false)->
+    obj = document.createElement('div')
+    obj.style.cssText = 'width:964px;height:404px' if wh
+    d3.select(obj)
+
   describe 'Sanitize Height and Width for a Container', ->
-    it 'provides default height', ->
-      h = (arg) -> return null
-      cont = { style: h }
+    it 'provides default height and width', ->
+      cont = createCont()
       expect(nv.utils.sanitizeHeight(null, cont)).to.equal 400
-      expect(nv.utils.sanitizeHeight(undefined, cont)).to.equal 400
-      expect(nv.utils.sanitizeHeight(0, cont)).to.equal 400
-    it 'provides default width', ->
-      w = (arg) -> return null
-      cont = { style: w }
       expect(nv.utils.sanitizeWidth(null, cont)).to.equal 960
+      expect(nv.utils.sanitizeHeight(undefined, cont)).to.equal 400
       expect(nv.utils.sanitizeWidth(undefined, cont)).to.equal 960
+      expect(nv.utils.sanitizeHeight(0, cont)).to.equal 400
       expect(nv.utils.sanitizeWidth(0, cont)).to.equal 960
-    it 'uses container height', ->
-      h = (arg) -> return 404
-      cont = { style: h }
+    it 'uses container width and height', ->
+      cont = createCont(true)
       expect(nv.utils.sanitizeHeight(null, cont)).to.equal 404
-    it 'uses container width', ->
-      w = (arg) -> return 964
-      cont = { style: w }
       expect(nv.utils.sanitizeWidth(null, cont)).to.equal 964
-    it 'uses given height', ->
-      h = (arg) -> return 404
-      cont = { style: h }
+    it 'uses given width and height', ->
+      cont = createCont(true)
       expect(nv.utils.sanitizeHeight(408, cont)).to.equal 408
-    it 'uses given width', ->
-      w = (arg) -> return 964
-      cont = { style: w }
       expect(nv.utils.sanitizeWidth(968, cont)).to.equal 968
 
   describe 'Available Container Height and Width', ->
-    it 'calculates height properly', ->
+    it 'calculates height and width properly', ->
+      cont = createCont(true)
       m = { left: 5, right: 6, top: 7, bottom: 8 }
-      h = (arg) -> return 404
-      cont = { style: h }
       expect(nv.utils.availableHeight(300, cont, m)).to.equal 285
-      expect(nv.utils.availableHeight(0, cont, m)).to.equal 389
-    it 'calculates width properly', ->
-      m = { left: 5, right: 6, top: 7, bottom: 8 }
-      w = (arg) -> return 964
-      cont = { style: w }
       expect(nv.utils.availableWidth(300, cont, m)).to.equal 289
+      expect(nv.utils.availableHeight(0, cont, m)).to.equal 389
       expect(nv.utils.availableWidth(0, cont, m)).to.equal 953
 
   describe 'Interactive Bisect', ->
