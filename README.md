@@ -117,15 +117,13 @@ only include the source files you changed!
 
 ## Building latest
 
-1. First clone the repository and checkout the "development" branch
-2. make sure nodejs is installed via your system's package manager.
-3. Install grunt-cli and bower: npm install -g bower grunt-cli
+1. First clone the repository and checkout the `development` branch
+2. make sure `nodejs` is installed via your system's package manager.
+3. Install `grunt`, `grunt-cli`, and `bower`:  `npm install -g grunt grunt-cli bower`
 
-> have node download it's required modules with:  npm install
+> have node download nvd3's required modules with:  `npm install`
 
-> install grunt globally:  sudo npm install -g grunt
-
-> build with:  grunt production
+> build with:  `grunt production`
 
 You should now have a `build` directory with the js and css files within.
 
