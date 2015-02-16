@@ -37,6 +37,18 @@ module.exports = function(grunt) {
                 }
             }
         },
+        replace: {
+            version: {
+                src: [
+                    'package.js'
+                ],
+                overwrite: true,
+                replacements: [{
+                    from: /(version?\s?=?\:?\s\')([\d\.]*)\'/gi,
+                    to: '$1' + _pkg.version + "'"
+                }]
+            }
+        },
         jshint: {
             foo: {
                 src: "src/**/*.js"
@@ -108,9 +120,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-text-replace');
 
     grunt.registerTask('default', ['concat','copy','karma:unit']);
-    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
+    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin', 'replace']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
 };
