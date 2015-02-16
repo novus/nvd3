@@ -102,3 +102,11 @@ describe 'NVD3', ->
 
             for tick in yTicks
                 tick.textContent.should.match /<.*?>/
+
+            # Update chart to 'Expand' mode
+            chart.dispatch.changeState
+                style: 'expand'
+
+            chart.stacked.style().should.equal 'expand'
+            newTickFormat = chart.yAxis.tickFormat()
+            newTickFormat(1).should.equal '100%'
