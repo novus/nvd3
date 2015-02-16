@@ -115,13 +115,13 @@ describe 'NVD3', ->
 
             for tick in ticks
                 transform = tick.getAttribute 'transform'
-                transform.should.match /rotate\(30 0,\d+?\.\d+\)/
+                transform.should.match /rotate\(30 0,\d+?.*?\)/
 
             maxMin = builder.$ '.nv-x.nv-axis .nv-axisMaxMin text'
 
             for tick in maxMin
                 transform = tick.getAttribute 'transform'
-                transform.should.match /rotate\(30 0,\d+?\.\d+\)/
+                transform.should.match /rotate\(30 0,\d+?.*?\)/
 
         it 'axis stagger labels', ->
             axis = builder.model.xAxis
