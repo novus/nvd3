@@ -31,7 +31,6 @@ nv.models.stackedAreaChart = function() {
         }
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
-        , yAxisTickFormat = d3.format(',.2f')
         , state = nv.utils.state()
         , defaultState = null
         , noData = null
@@ -261,7 +260,7 @@ nv.models.stackedAreaChart = function() {
                     .ticks(stacked.offset() == 'wiggle' ? 0 : nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize(-availableWidth, 0)
                     .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent')
-                        ? d3.format('%') : yAxisTickFormat);
+                        ? d3.format('%') : yAxis.tickFormat());
 
                 g.select('.nv-y.nv-axis')
                     .transition().duration(0)
@@ -467,7 +466,6 @@ nv.models.stackedAreaChart = function() {
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
-        yAxisTickFormat:    {get: function(){return yAxisTickFormat;}, set: function(_){yAxisTickFormat=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
