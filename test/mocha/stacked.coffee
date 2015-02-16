@@ -72,7 +72,7 @@ describe 'NVD3', ->
         it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.stackedAreaChart()
             builder.buildover options, sampleData1, []
-            
+
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 
@@ -89,3 +89,16 @@ describe 'NVD3', ->
           for cssClass in cssClasses
             do (cssClass) ->
               should.exist builder.$("g.nvd3.nv-stackedAreaChart #{cssClass}")[0]
+
+        it 'formats y-Axis correctly depending on stacked style', ->
+            chart = nv.models.stackedAreaChart()
+            chart.yAxis.tickFormat (d)-> "<#{d}>"
+
+            builder = new ChartBuilder chart
+            builder.build options, sampleData1
+
+            yTicks = builder.$ '.nv-y.nv-axis .tick text'
+            yTicks.should.have.length.greaterThan 2
+
+            for tick in yTicks
+                tick.textContent.should.match /<.*?>/
