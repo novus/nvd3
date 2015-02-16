@@ -110,3 +110,10 @@ describe 'NVD3', ->
             chart.stacked.style().should.equal 'expand'
             newTickFormat = chart.yAxis.tickFormat()
             newTickFormat(1).should.equal '100%'
+
+            chart.dispatch.changeState
+                style: 'stacked'
+
+            chart.stacked.style().should.equal 'stacked'
+            newTickFormat = chart.yAxis.tickFormat()
+            newTickFormat(1).should.equal '<1>'
