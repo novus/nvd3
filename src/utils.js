@@ -567,31 +567,79 @@ nv.utils.initSVG = function(svg) {
 Sanitize and provide default for the container height.
 */
 nv.utils.sanitizeHeight = function(height, container) {
-    return (height || parseInt(container.style('height')) || 400);
-};
+    if (height < 0) {
+        debugger;
+    }
+    if (height > 0) {
+        console.log("height = ", height);
+        return height;
+    }
+    else {
+        var ch = parseInt(container.style('height'));
+        if (ch > 0) {
+            console.log("ch = ", ch);
+            return ch;
+        }
+        else {
+            return 400;
+        }
+    }
+    //return ((height > 0 ? height : 0) || parseInt(container.style('height')) || 400);
+}
 
 
 /*
 Sanitize and provide default for the container width.
 */
 nv.utils.sanitizeWidth = function(width, container) {
-    return (width || parseInt(container.style('width')) || 960);
-};
+    if (width < 0) {
+        debugger;
+    }
+    if (width > 0) {
+        console.log("width = ", width);
+        return width;
+    }
+    else {
+        var cw = parseInt(container.style('width'));
+        if (cw > 0) {
+            console.log("cw = ", cw);
+            return cw;
+        }
+        else {
+            return 960;
+        }
+    }
+    //return ((width > 0 ? width : 0) || parseInt(container.style('width')) || 960);
+}
 
 
 /*
 Calculate the available height for a chart.
 */
 nv.utils.availableHeight = function(height, container, margin) {
-    return nv.utils.sanitizeHeight(height, container) - margin.top - margin.bottom;
-};
+    var h = nv.utils.sanitizeHeight(height, container) - margin.top - margin.bottom;
+    if (h <= 0) {
+        debugger;
+    }
+    else {
+        console.log("h = ", h);
+    }
+    return (h > 0 ? h : 0);
+}
 
 /*
 Calculate the available width for a chart.
 */
 nv.utils.availableWidth = function(width, container, margin) {
-    return nv.utils.sanitizeWidth(width, container) - margin.left - margin.right;
-};
+    var w = nv.utils.sanitizeWidth(width, container) - margin.left - margin.right;
+    if (w <= 0) {
+        debugger;
+    }
+    else {
+        console.log("w = ", w);
+    }
+    return (w > 0 ? w : 0);
+}
 
 /*
 Clear any rendered chart components and display a chart's 'noData' message
