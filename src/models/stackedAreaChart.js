@@ -31,7 +31,6 @@ nv.models.stackedAreaChart = function() {
         }
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
-        , yAxisTickFormat = d3.format(',.2f')
         , state = nv.utils.state()
         , defaultState = null
         , noData = 'No Data Available.'
@@ -482,7 +481,6 @@ nv.models.stackedAreaChart = function() {
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
-        yAxisTickFormat:    {get: function(){return yAxisTickFormat;}, set: function(_){yAxisTickFormat=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
