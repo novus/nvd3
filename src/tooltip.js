@@ -382,7 +382,8 @@
             if( !isNaN( Elem.offsetTop ) ) {
                 offsetTop += (Elem.offsetTop);
             }
-        } while( Elem === Elem.offsetParent );
+            Elem = Elem.offsetParent;
+        } while( Elem );
         return offsetTop;
     };
 
@@ -395,7 +396,8 @@
             if( !isNaN( Elem.offsetLeft ) ) {
                 offsetLeft += (Elem.offsetLeft);
             }
-        } while( Elem === Elem.offsetParent );
+            Elem = Elem.offsetParent;
+        } while( Elem );
         return offsetLeft;
     };
 
