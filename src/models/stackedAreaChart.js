@@ -45,6 +45,7 @@ nv.models.stackedAreaChart = function() {
     xAxis.orient('bottom').tickPadding(7);
     yAxis.orient((rightAlignYAxis) ? 'right' : 'left');
 
+    var oldYTickFormat = null;
     controls.updateState(false);
 
     //============================================================
@@ -258,9 +259,16 @@ nv.models.stackedAreaChart = function() {
             if (showYAxis) {
                 yAxis.scale(y)
                     .ticks(stacked.offset() == 'wiggle' ? 0 : nv.utils.calcTicksY(availableHeight/36, data) )
-                    .tickSize(-availableWidth, 0)
-                    .setTickFormat( (stacked.style() == 'expand' || stacked.style() == 'stack_percent')
-                        ? d3.format('%') : yAxis.tickFormat());
+                    .tickSize(-availableWidth, 0);
+
+                    if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
+                        oldYTickFormat = yAxis.tickFormat();
+                        //Forces the yAxis to use percentage in 'expand' mode.
+                        yAxis.tickFormat(d3.format('%'));
+                    }
+                    else {
+                        if (oldYTickFormat) yAxis.tickFormat(oldYTickFormat);
+                    }
 
                 g.select('.nv-y.nv-axis')
                     .transition().duration(0)
@@ -447,8 +455,6 @@ nv.models.stackedAreaChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.interactiveLayer = interactiveLayer;
-
-    yAxis.setTickFormat = yAxis.tickFormat;
 
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
