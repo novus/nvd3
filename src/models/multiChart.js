@@ -15,8 +15,6 @@ nv.models.multiChart = function() {
             return '<h3>' + key + '</h3>' +
                 '<p>' +  y + ' at ' + x + '</p>'
         },
-        x,
-        y,
         noData = null,
         yDomain1,
         yDomain2,
@@ -81,7 +79,7 @@ nv.models.multiChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                nv.utils.noData(chart, container)
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -205,24 +203,24 @@ nv.models.multiChart = function() {
 
             var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-            }).concat([{x:0, y:0}]) : []
+            }).concat([{x:0, y:0}]) : [];
             var extraValue2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-            }).concat([{x:0, y:0}]) : []
+            }).concat([{x:0, y:0}]) : [];
 
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
-                .range([0, availableHeight])
+                .range([0, availableHeight]);
 
             yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
-                .range([0, availableHeight])
+                .range([0, availableHeight]);
 
-            lines1.yDomain(yScale1.domain())
-            bars1.yDomain(yScale1.domain())
-            stack1.yDomain(yScale1.domain())
+            lines1.yDomain(yScale1.domain());
+            bars1.yDomain(yScale1.domain());
+            stack1.yDomain(yScale1.domain());
 
-            lines2.yDomain(yScale2.domain())
-            bars2.yDomain(yScale2.domain())
-            stack2.yDomain(yScale2.domain())
+            lines2.yDomain(yScale2.domain());
+            bars2.yDomain(yScale2.domain());
+            stack2.yDomain(yScale2.domain());
 
             if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
             if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
@@ -326,8 +324,8 @@ nv.models.multiChart = function() {
             return false;
         }
 
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-            dispatch.tooltipShow(e);
+        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
     });
 
     stack1.dispatch.on('tooltipHide', function(e) {
@@ -342,8 +340,8 @@ nv.models.multiChart = function() {
             return false;
         }
 
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-            dispatch.tooltipShow(e);
+        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
     });
 
     stack2.dispatch.on('tooltipHide', function(e) {
@@ -427,7 +425,7 @@ nv.models.multiChart = function() {
             lines2.useVoronoi(_);
             stack1.useVoronoi(_);
             stack2.useVoronoi(_);
-        }},
+        }}
     });
 
     nv.utils.initOptions(chart);
