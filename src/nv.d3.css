@@ -49,6 +49,7 @@ svg.nvd3-svg {
 .nvtooltip {
   position: absolute;
   background-color: rgba(255,255,255,1.0);
+  color: rgba(0,0,0,1.0);
   padding: 1px;
   border: 1px solid rgba(0,0,0,.2);
   z-index: 10000;
@@ -93,6 +94,7 @@ svg.nvd3-svg {
   line-height: 18px;
   font-weight: normal;
   background-color: rgba(247,247,247,0.75);
+  color: rgba(0,0,0,1.0);
   text-align: center;
 
   border-bottom: 1px solid #ebebeb;
