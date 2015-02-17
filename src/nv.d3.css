@@ -204,16 +204,9 @@ svg.nvd3-svg {
 *  Axes
 */
 
-.axis {
-  opacity: 1;
-}
-
-.axis.nv-disabled {
-  opacity: 0;
-}
-
 .nvd3 .nv-axis {
   pointer-events:none;
+  opacity: 1;
 }
 
 .nvd3 .nv-axis path {
@@ -250,6 +243,10 @@ svg.nvd3-svg {
 .nvd3 .x2 .nv-axis .nv-axisMaxMin text,
 .nvd3 .x3 .nv-axis .nv-axisMaxMin text {
   text-anchor: middle
+}
+
+.nvd3 .nv-axis.nv-disabled {
+  opacity: 0;
 }
 
 
