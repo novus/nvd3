@@ -255,15 +255,15 @@ nv.models.multiBar = function() {
             if (stacked)
                 barSelection
                     .attr('y', function(d,i) {
-                        return y((stacked ? d.y1 : 0));
+                        return y(d.y1);
                     })
                     .attr('height', function(d,i) {
-                        return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
+                        return Math.max(Math.abs(y(d.y + d.y0) - y(d.y0)),1);
                     })
                     .attr('x', function(d,i) {
-                        return stacked ? 0 : (d.series * x.rangeBand() / data.length )
+                        return 0;
                     })
-                    .attr('width', x.rangeBand() / (stacked ? 1 : data.length) );
+                    .attr('width', x.rangeBand());
             else
                 barSelection
                     .attr('x', function(d,i) {
