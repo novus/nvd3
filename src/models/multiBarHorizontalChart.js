@@ -324,6 +324,7 @@ nv.models.multiBarHorizontalChart = function() {
     chart.dispatch = dispatch;
     chart.multibar = multibar;
     chart.legend = legend;
+    chart.controls = controls;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.state = state;
