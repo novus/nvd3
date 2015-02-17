@@ -181,9 +181,7 @@ nv.models.scatterChart = function() {
 
             // Legend
             if (showLegend) {
-                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
-                var legendXPosition = legend.align() ? legendWidth : 0;
-
+                var legendWidth = availableWidth;
                 legend.width(legendWidth);
 
                 wrap.select('.nv-legendWrap')
@@ -196,7 +194,7 @@ nv.models.scatterChart = function() {
                 }
 
                 wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(0' + ',' + (-margin.top) +')');
             }
 
             // Main Chart Component(s)
