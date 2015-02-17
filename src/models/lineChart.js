@@ -54,6 +54,13 @@ nv.models.lineChart = function() {
             y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
             content = tooltip(e.series.key, x, y, e, chart);
 
+        if (e.sibs) {
+            for (var i = 0; i < e.sibs.length; i++) {
+                x = xAxis.tickFormat()(lines.x()(e.sibs[i].point, e.sibs[i].pointIndex)),
+                y = yAxis.tickFormat()(lines.y()(e.sibs[i].point, e.sibs[i].pointIndex)),
+                content += tooltip(e.sibs[i].series.key, x, y, e.sibs[i], chart);
+            }
+        }
         nv.tooltip.show([left, top], content, null, null, offsetElement);
     };
 

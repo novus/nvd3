@@ -152,17 +152,19 @@ nv.models.scatter = function() {
                     var vertices = d3.merge(data.map(function(group, groupIndex) {
                             return group.values
                                 .map(function(point, pointIndex) {
-                                    // *Adding noise to make duplicates very unlikely
-                                    // *Injecting series and point index for reference
-                                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                                     */
-                                    var pX = getX(point,pointIndex);
-                                    var pY = getY(point,pointIndex);
-
-                                    return [x(pX)+ Math.random() * 1e-7,
-                                            y(pY)+ Math.random() * 1e-7,
+                                    return [
+                                        // First two entries in array must be
+                                        // x,y values so that bounds.clip()
+                                        // will work below.
+                                        x(getX(point,pointIndex)),
+                                        y(getY(point,pointIndex)),
+                                        // Third & fourth entries Needed for
+                                        // voronoi array map function below.
                                         groupIndex,
-                                        pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
+                                        pointIndex,
+                                        // Fifth entry only needed for
+                                        // filtering out in-active points.
+                                        point];
                                 })
                                 .filter(function(pointArray, pointIndex) {
                                     return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
@@ -173,10 +175,33 @@ nv.models.scatter = function() {
                     if (vertices.length == 0) return false;  // No active points, we're done
                     if (vertices.length < 3) {
                         // Issue #283 - Adding 2 dummy points to the voronoi b/c voronoi requires min 3 points to work
-                        vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null]);
-                        vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null]);
-                        vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null]);
-                        vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null]);
+                        vertices.push([x.range()[0] - 20, y.range()[0] - 20, null, null, null]);
+                        vertices.push([x.range()[1] + 20, y.range()[1] + 20, null, null, null]);
+                        vertices.push([x.range()[0] - 20, y.range()[0] + 20, null, null, null]);
+                        vertices.push([x.range()[1] + 20, y.range()[1] - 20, null, null, null]);
+                    }
+
+                    var epsilon = 1e-6; // d3 uses 1e-6 to determine equivalence.
+                    vertices = vertices.sort(function(a,b){return ((a[0] - b[0]) || (a[1] - b[1]))});
+                    for (var i = 0; i < vertices.length - 1; /* no auto increment */) {
+                        if ((Math.abs(vertices[i][0] - vertices[i+1][0]) < epsilon) &&
+                            (Math.abs(vertices[i][1] - vertices[i+1][1]) < epsilon)) {
+                            vertices.splice(i+1, 1);
+                            // We don't increment here since we want to
+                            // evaluate the current vertex against its new
+                            // neighbor.
+                            var sib = {
+                                "groupIndex": vertices[i+1][2],
+                                "pointIndex": vertices[i+1][3]
+                            };
+                            if (vertices[i].length == 5) {
+                                vertices[i].push([sib]);
+                            } else {
+                                vertices[i][5].push(sib);
+                            }
+                        } else {
+                            i++;
+                        }
                     }
 
                     // keep voronoi sections from going more than 10 outside of graph
@@ -188,13 +213,19 @@ nv.models.scatter = function() {
                         [width + 10,-10]
                     ]);
 
-                    var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
-                        return {
-                            'data': bounds.clip(d),
-                            'series': vertices[i][2],
-                            'point': vertices[i][3]
-                        }
-                    });
+                    var voronoi = d3.geom.voronoi(vertices)
+                        .filter(function(d, i) {
+                            // Filter out dummy points
+                            return vertices[i][4] !== null;
+                        })
+                        .map(function(d, i) {
+                            return {
+                                'data': bounds.clip(d),
+                                'series': vertices[i][2],
+                                'point': vertices[i][3],
+                                'sibs': (vertices[i].length >= 6) ? vertices[i][5] : null
+                            }
+                        });
 
                     // nuke all voronoi paths on reload and recreate them
                     wrap.select('.nv-point-paths').selectAll('path').remove();
@@ -245,14 +276,35 @@ nv.models.scatter = function() {
                         if (needsUpdate) return 0;
                         var series = data[d.series];
                         if (typeof series === 'undefined') return;
-                        var point  = series.values[d.point];
+                        var point = series.values[d.point];
+                        var sibs; 
+                        if (d.sibs) {
+                            sibs = [];
+                            for (var i = 0; i < d.sibs.length; i++) {
+                                var sib_series_idx = d.sibs[i].groupIndex;
+                                var sib_series = data[sib_series_idx];
+                                if (typeof sib_series === 'undefined') continue;
+                                var sib_point_idx = d.sibs[i].pointIndex;
+                                var sib_point = sib_series.values[sib_point_idx];
+                                sibs.push({
+                                    point: sib_point,
+                                    series: sib_series,
+                                    seriesIndex: sib_series_idx,
+                                    pointIndex: sib_point_idx
+                                });
+                            }
+                            if (sibs.length == 0) sibs = null;
+                        } else {
+                            sibs = null;
+                        }
 
                         mDispatch({
                             point: point,
                             series: series,
                             pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                             seriesIndex: d.series,
-                            pointIndex: d.point
+                            pointIndex: d.point,
+                            sibs: sibs
                         });
                     };
 
