@@ -107,9 +107,9 @@ nv.models.multiChart = function() {
             var wrap = container.selectAll('g.wrap.multiChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
 
-            gEnter.append('g').attr('class', 'x axis');
-            gEnter.append('g').attr('class', 'y1 axis');
-            gEnter.append('g').attr('class', 'y2 axis');
+            gEnter.append('g').attr('class', 'nv-x nv-axis');
+            gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+            gEnter.append('g').attr('class', 'nv-y2 nv-axis');
             gEnter.append('g').attr('class', 'lines1Wrap');
             gEnter.append('g').attr('class', 'lines2Wrap');
             gEnter.append('g').attr('class', 'bars1Wrap');
@@ -237,7 +237,7 @@ nv.models.multiChart = function() {
                 .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight, 0);
 
-            g.select('.x.axis')
+            g.select('.nv-x.nv-axis')
                 .attr('transform', 'translate(0,' + availableHeight + ')');
             d3.transition(g.select('.x.axis'))
                 .call(xAxis);
@@ -257,11 +257,11 @@ nv.models.multiChart = function() {
             d3.transition(g.select('.y2.axis'))
                 .call(yAxis2);
 
-            g.select('.y1.axis')
+            g.select('.nv-y1.nv-axis')
                 .classed('nv-disabled', series1.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[0] + ',0)');
 
-            g.select('.y2.axis')
+            g.select('.nv-y2.nv-axis')
                 .classed('nv-disabled', series2.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
