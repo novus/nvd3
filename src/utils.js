@@ -568,7 +568,7 @@ Sanitize and provide default for the container height.
 */
 nv.utils.sanitizeHeight = function(height, container) {
     return (height || parseInt(container.style('height')) || 400);
-}
+};
 
 
 /*
@@ -576,7 +576,7 @@ Sanitize and provide default for the container width.
 */
 nv.utils.sanitizeWidth = function(width, container) {
     return (width || parseInt(container.style('width')) || 960);
-}
+};
 
 
 /*
@@ -584,14 +584,14 @@ Calculate the available height for a chart.
 */
 nv.utils.availableHeight = function(height, container, margin) {
     return nv.utils.sanitizeHeight(height, container) - margin.top - margin.bottom;
-}
+};
 
 /*
 Calculate the available width for a chart.
 */
 nv.utils.availableWidth = function(width, container, margin) {
     return nv.utils.sanitizeWidth(width, container) - margin.left - margin.right;
-}
+};
 
 /*
 Clear any rendered chart components and display a chart's 'noData' message
@@ -620,5 +620,5 @@ nv.utils.noData = function(chart, container) {
         .attr('x', x)
         .attr('y', y)
         .text(function(t){ return t; });
-}
+};
 
