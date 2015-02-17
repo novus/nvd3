@@ -172,8 +172,6 @@ nv.models.scatterChart = function() {
             gEnter.append('g').attr('class', 'nv-distWrap');
             gEnter.append('g').attr('class', 'nv-legendWrap');
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
                     .attr("transform", "translate(" + availableWidth + ",0)");
@@ -196,6 +194,8 @@ nv.models.scatterChart = function() {
                 wrap.select('.nv-legendWrap')
                     .attr('transform', 'translate(0' + ',' + (-margin.top) +')');
             }
+
+            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             // Main Chart Component(s)
             scatter

@@ -164,3 +164,20 @@ describe 'NVD3', ->
         it 'sets legend.width same as availableWidth', ->
             builder.model.legend.width()
             .should.equal builder.model.scatter.width()
+
+        it 'translates nv-wrap after legend height calculated', ->
+            builder.teardown()
+            sampleData4 = []
+            for i in [0..40]
+                sampleData4.push
+                    key: "Series #{i}"
+                    values: [
+                        [Math.random(),Math.random()]
+                    ]
+
+            builder.build options, sampleData4
+
+            transform = builder.$('.nv-wrap')[0].getAttribute('transform')
+            transform.should.equal 'translate(75,830)'
+
+
