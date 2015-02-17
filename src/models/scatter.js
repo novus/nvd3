@@ -119,11 +119,12 @@ nv.models.scatter = function() {
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
-            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id + (singlePoint ? ' nv-single-point' : ''));
+            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id);
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
 
+            wrapEnter.classed('nv-single-point', singlePoint);
             gEnter.append('g').attr('class', 'nv-groups');
             gEnter.append('g').attr('class', 'nv-point-paths');
 
