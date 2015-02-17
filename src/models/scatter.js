@@ -203,8 +203,18 @@ nv.models.scatter = function() {
                     pointPaths
                         .enter().append("svg:path")
                         .attr("d", function(d) {
-                            if (!d || !d.data || d.data.length === 0)
+                            if (!d) {
+                                console.log("!d M 0 0");
                                 return 'M 0 0';
+                            }
+                            else if (!d.data) {
+                                console.log("!d.data M 0 0");
+                                return 'M 0 0';
+                            }
+                            if (d.data.length === 0) {
+                                console.log("d.data.length==0 M 0 0");
+                                return 'M 0 0';
+                            }
                             else
                                 return "M" + d.data.join(",") + "Z";
                         })
