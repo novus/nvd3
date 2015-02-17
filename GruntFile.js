@@ -6,13 +6,24 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: _pkg,
         concat: {
-            options: {
-                separator: '',
-                banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
-                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
-                footer: '\nnv.version = "' + _pkg.version + '";\n})();'
+            css: {
+                options: {
+                    separator: '\n',
+                    banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
+                        '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
+                },
+                src: [
+                    'src/css/*.css'
+                ],
+                dest: 'build/nv.d3.css'
             },
-            dist: {
+            js: {
+                options: {
+                    separator: '',
+                    banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
+                        '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
+                    footer: '\nnv.version = "' + _pkg.version + '";\n})();'
+                },
                 src: [
                     'src/core.js',
                     'src/dom.js',

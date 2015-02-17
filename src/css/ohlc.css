@@ -1,0 +1,28 @@
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick {
+    stroke-width: 1px;
+}
+
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick.hover {
+    stroke-width: 2px;
+}
+
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick.positive {
+    stroke: #2ca02c;
+}
+
+.nvd3.nv-ohlcBar .nv-ticks .nv-tick.negative {
+    stroke: #d62728;
+}
+
+/*
+.nvd3 .nv-brush .extent {
+    fill-opacity: 0 !important;
+}
+
+.nvd3 .nv-brushBackground rect {
+    stroke: #000;
+    stroke-width: .4;
+    fill: #fff;
+    fill-opacity: .7;
+}
+*/
