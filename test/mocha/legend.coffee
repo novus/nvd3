@@ -86,3 +86,26 @@ describe 'NVD3', ->
 
         sampleData1[1].disabled.should.equal true
         sampleData1[2].disabled.should.equal true
+
+      it 'updating legend data does not break double click (issue 784)', ->
+        sampleData2 = [
+          key: 'series 1'
+        ,
+          key: 'series 2'
+        ,
+          key: 'series 3'
+        ,
+          key: 'series 4'
+        ]
+
+        builder.updateData sampleData2
+
+        legendItems = builder.$ '.nv-legend .nv-series'
+
+        clickFn = d3.select(legendItems[0]).on 'dblclick'
+        clickFn(sampleData2[0])
+        sampleData2[0].disabled.should.equal false 
+
+        sampleData2[1].disabled.should.equal true
+        sampleData2[2].disabled.should.equal true
+        sampleData2[3].disabled.should.equal true

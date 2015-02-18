@@ -22,14 +22,14 @@
     </style>
 </head>
 <body>
-
+<button id="changeData">Click to Change Legend</button>
 <svg id="test1" class="nvd3"></svg>
 
 <script>
     var width = 500,
         height = 20;
 
-    var chart = nv.models.legend()
+    var legend = nv.models.legend()
         .width(width)
         .height(height);
 
@@ -39,13 +39,19 @@
         .datum(sinAndCos());
 
     var update = function() {
-        d3.select('#test1').call(chart);
+        d3.select('#test1').call(legend);
     }
 
     update();
-    chart.dispatch.on('stateChange', function(d) { 
+    legend.dispatch.on('stateChange', function(d) { 
         console.log(d);
         update();
+    });
+
+    d3.select('#changeData').on('click', function() {
+        d3.select('#test1')
+        .datum(differentData())
+        .call(legend);
     });
 
     function sinAndCos() {
@@ -56,6 +62,18 @@
             {key: "A Very Long Series Label"},
             {key: "Cosine Wave"},
             {key: "Another test label"}
+        ];
+    }
+
+    function differentData() {
+        return [
+            {key: "Fixed Income"},
+            {key: "Derivatives"},
+            {key: "Credit Default Swaps"},
+            {key: "Equities"},
+            {key: "Bonds"},
+            {key: "Stocks"},
+            {key: "Apple"}
         ];
     }
 
