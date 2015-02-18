@@ -111,6 +111,7 @@ defaultChartTest("test5", randomData(0,0));
 defaultChartTest("test6", randomData(1,1));
 defaultChartTest("test7", randomData(1,2));
 defaultChartTest("test8", randomData(3,1));
+
 defaultChartTest("test9", [
   {key: "Group 0", values: []},
   {key: "Group 1", values: [{x:1, y:1}]}
@@ -150,8 +151,8 @@ function defaultChartTest(container, data, margin) {
     chart = nv.models.scatterChart()
                   .showDistX(true).showDistY(true)
                   ;
-    chart.xAxis.tickFormat(d3.format('.02f'));
-    chart.yAxis.tickFormat(d3.format('.02f'));
+    chart.xAxis.tickFormat(d3.format('.02f')).ticks(10);
+    chart.yAxis.tickFormat(d3.format('.02f')).ticks(10);
     if (margin) {
       chart.margin(margin);
     }
