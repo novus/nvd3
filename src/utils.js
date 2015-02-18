@@ -582,7 +582,7 @@ nv.utils.initSVG = function(svg) {
 Sanitize and provide default for the container height.
 */
 nv.utils.sanitizeHeight = function(height, container) {
-    return (height || parseInt(container.style('height')) || 400);
+    return (height || parseInt(container.style('height'), 10) || 400);
 };
 
 
@@ -590,7 +590,7 @@ nv.utils.sanitizeHeight = function(height, container) {
 Sanitize and provide default for the container width.
 */
 nv.utils.sanitizeWidth = function(width, container) {
-    return (width || parseInt(container.style('width')) || 960);
+    return (width || parseInt(container.style('width'), 10) || 960);
 };
 
 
