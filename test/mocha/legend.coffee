@@ -60,3 +60,29 @@ describe 'NVD3', ->
             should.exist nvLegendSymbol
             should.exist nvLegendText
             nvLegendText.textContent.should.be.equal key
+
+    describe 'clicking and double clicking', ->
+      it 'clicking one legend turns it off', ->
+        legendItems = builder.$ '.nv-legend .nv-series'
+        legendItems.length.should.equal 3
+
+        clickFn = d3.select(legendItems[0]).on 'click'
+        clickFn(sampleData1[0])
+        sampleData1[0].disabled.should.equal true
+        clickFn(sampleData1[1])
+        sampleData1[1].disabled.should.equal true 
+
+        clickFn(sampleData1[2])
+        sampleData1[0].disabled.should.equal false
+        sampleData1[1].disabled.should.equal false
+        sampleData1[2].disabled.should.equal false
+
+      it 'double clicking legend keeps only one on', ->
+        legendItems = builder.$ '.nv-legend .nv-series'
+
+        clickFn = d3.select(legendItems[0]).on 'dblclick'
+        clickFn(sampleData1[0])
+        sampleData1[0].disabled.should.equal false
+
+        sampleData1[1].disabled.should.equal true
+        sampleData1[2].disabled.should.equal true
