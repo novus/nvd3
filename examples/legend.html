@@ -22,38 +22,36 @@
     </style>
 </head>
 <body>
-
-<svg id="test1"></svg>
+<button id="changeData">Click to Change Legend</button>
+<svg id="test1" class="nvd3"></svg>
 
 <script>
+    var width = 500,
+        height = 20;
 
-    nv.addGraph({
-        generate: function() {
-            var width = 500,
-                height = 20;
+    var legend = nv.models.legend()
+        .width(width)
+        .height(height);
 
-            var chart = nv.models.legend()
-                .width(width)
-                .height(height);
-            chart.dispatch.on('legendClick', function(d,i) { console.log(d,i) });
+    d3.select('#test1')
+        .attr('width', width)
+        .attr('height', height)
+        .datum(sinAndCos());
 
-            //chart.xaxis.tickFormat(d3.format(".02f"))
-            d3.select('#test1')
-                .attr('width', width)
-                .attr('height', height)
-                .datum(sinAndCos())
-                .call(chart);
+    var update = function() {
+        d3.select('#test1').call(legend);
+    }
 
-            return chart;
-        },
-        callback: function(graph) {
-            var chart = graph,
-                height = chart.height();
+    update();
+    legend.dispatch.on('stateChange', function(d) { 
+        console.log(d);
+        update();
+    });
 
-            d3.select('#test1')
-                .attr('height', height)
-                .call(chart)
-        }
+    d3.select('#changeData').on('click', function() {
+        d3.select('#test1')
+        .datum(differentData())
+        .call(legend);
     });
 
     function sinAndCos() {
@@ -64,6 +62,18 @@
             {key: "A Very Long Series Label"},
             {key: "Cosine Wave"},
             {key: "Another test label"}
+        ];
+    }
+
+    function differentData() {
+        return [
+            {key: "Fixed Income"},
+            {key: "Derivatives"},
+            {key: "Credit Default Swaps"},
+            {key: "Equities"},
+            {key: "Bonds"},
+            {key: "Stocks"},
+            {key: "Apple"}
         ];
     }
 
