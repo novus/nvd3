@@ -77,3 +77,15 @@ svg.nvd3-svg {
     fill-opacity: 0;
 }
 
+/* focus */
+.nvd3 .nv-brush .extent {
+    fill-opacity: 0 !important;
+}
+
+.nvd3 .nv-brushBackground rect {
+    stroke: #000;
+    stroke-width: .4;
+    fill: #fff;
+    fill-opacity: .7;
+}
+
