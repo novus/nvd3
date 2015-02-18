@@ -92,7 +92,7 @@ nv.models.line = function() {
                 .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
 
             var groups = wrap.select('.nv-groups').selectAll('.nv-group')
-                .data(function(d) { return d }, function(d, i) { return d.key + i });
+                .data(function(d) { return d }, function(d) { return d.key });
             groups.enter().append('g')
                 .style('stroke-opacity', 1e-6)
                 .style('stroke-width', function(d) { return d.strokeWidth || strokeWidth })
