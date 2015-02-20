@@ -1,3 +1,4 @@
+d3 = require('d3');
 
 // set up main nv object
 var nv = {};
