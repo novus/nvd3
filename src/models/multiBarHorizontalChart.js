@@ -46,7 +46,6 @@ nv.models.multiBarHorizontalChart = function() {
     xAxis
         .orient('left')
         .tickPadding(5)
-        .highlightZero(false)
         .showMaxMin(false)
         .tickFormat(function(d) { return d })
     ;

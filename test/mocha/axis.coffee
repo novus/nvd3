@@ -24,7 +24,6 @@ describe 'NVD3', ->
             height: 60
             axisLabel: 'Date'
             showMaxMin: true
-            highlightZero: true
             scale: d3.scale.linear()
             rotateYLabel: true
             rotateLabels: 0
@@ -147,3 +146,10 @@ describe 'NVD3', ->
             builder.model.update()
 
             done()
+
+        it 'has CSS class "zero" to mark zero tick', ->
+            tick = builder.$ '.nv-x.nv-axis .tick.zero'
+            tick.length.should.equal 1, 'x axis zero'
+
+            tick = builder.$ '.nv-y.nv-axis .tick.zero'
+            tick.length.should.equal 1, 'y axis zero'
