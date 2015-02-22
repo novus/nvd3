@@ -33,7 +33,6 @@ nv.models.discreteBarChart = function() {
 
     xAxis
         .orient('bottom')
-        .highlightZero(false)
         .showMaxMin(false)
         .tickFormat(function(d) { return d })
     ;
