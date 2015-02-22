@@ -134,7 +134,7 @@ nv.models.sunburst = function() {
 
         });
 
-        renderWatch.renderEnd('pie immediate');
+        renderWatch.renderEnd('sunburst immediate');
         return chart;
     }
 
