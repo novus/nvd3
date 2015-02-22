@@ -302,12 +302,17 @@ nv.models.axis = function() {
                 });
             }
 
-            //highlight zero line ... Maybe should not be an option and should just be in CSS?
+            //Highlight zero tick line
             if (highlightZero) {
                 g.selectAll('.tick')
                     .filter(function (d) {
-                        return !parseFloat(Math.round(this.__data__ * 100000) / 1000000) && (this.__data__ !== undefined)
-                    }) //this is because sometimes the 0 tick is a very small fraction, TODO: think of cleaner technique
+                        /*
+                        The filter needs to return only ticks at or near zero.
+                        Numbers like 0.00001 need to count as zero as well,
+                        and the arithmetic trick below solves that.
+                        */
+                        return !parseFloat(Math.round(d * 100000) / 1000000) && (d !== undefined)
+                    }) 
                     .classed('zero', true);
             }
             //store old scales for use in transitions on update
