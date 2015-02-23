@@ -57,19 +57,24 @@ nv.utils.windowResize = function(handler) {
 
 /*
 Backwards compatible way to implement more d3-like coloring of graphs.
-If passed an array, wrap it in a function which implements the old behavior
-Else return what was passed in
+Can take in nothing, an array, or a function/scale
+To use a normal scale, get the range and pass that because we must be able
+to take two arguments and use the index to keep backward compatibility
 */
 nv.utils.getColor = function(color) {
     //if you pass in nothing, get default colors back
-    if (!arguments.length) {
+    if (color === undefined) {
         return nv.utils.defaultColor();
 
-    //if passed an array, wrap it in a function
+    //if passed an array, turn it into a color scale
     } else if(color instanceof Array) {
-        return function(d, i) { return d.color || color[i % color.length]; };
+        var color_scale = d3.scale.ordinal().range(color);
+        return function(d, i) {
+            var key = i === undefined ? d : i;
+            return d.color || color_scale(key);
+        };
 
-    //if passed a function, return the function, or whatever it may be
+    //if passed a function or scale, return it, or whatever it may be
     //external libs, such as angularjs-nvd3-directives use this
     } else {
         //can't really help it if someone passes rubbish as color
@@ -79,13 +84,12 @@ nv.utils.getColor = function(color) {
 
 
 /*
-Default color chooser uses the index of an object as before.
+Default color chooser uses a color scale of 20 colors from D3
+ https://github.com/mbostock/d3/wiki/Ordinal-Scales#categorical-colors
  */
 nv.utils.defaultColor = function() {
-    var colors = d3.scale.category20().range();
-    return function(d, i) {
-        return d.color || colors[i % colors.length]
-    };
+    // get range of the scale so we'll turn it into our own function.
+    return nv.utils.getColor(d3.scale.category20().range());
 };
 
 
