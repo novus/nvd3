@@ -150,6 +150,7 @@ nv.models.sunburst = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         id:         {get: function(){return id;}, set: function(_){id=_;}},
+        duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
