@@ -12,7 +12,7 @@ nv.models.sunburst = function() {
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , color = nv.utils.defaultColor()
         , duration = 500
-        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
+        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMousemove', 'elementMouseover', 'elementMouseout', 'renderEnd')
         ;
 
     var x = d3.scale.linear().range([0, 2 * Math.PI]);
@@ -82,7 +82,28 @@ nv.models.sunburst = function() {
                         .duration(duration)
                         .attrTween("d", arcTweenZoom(d));
                 })
-                .each(stash);
+                .each(stash)
+
+                .on('mouseover', function(d,i){
+                    d3.select(this).classed('hover', true).style('opacity', 0.8);
+                    dispatch.elementMouseover({
+                        data: d,
+                        color: d3.select(this).style("fill")
+                    });
+                })
+                .on('mouseout', function(d,i){
+                    d3.select(this).classed('hover', false).style('opacity', 1);
+                    dispatch.elementMouseout({
+                        data: d
+                    });
+                })
+                .on('mousemove', function(d,i){
+                    dispatch.elementMousemove({
+                        data: d
+                    });
+                });
+
+
 
             // Setup for switching data: stash the old values for transition.
             function stash(d) {

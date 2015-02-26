@@ -1,3 +1,5 @@
+
+
 .nvtooltip {
     position: absolute;
     background-color: rgba(255,255,255,1.0);
@@ -20,6 +22,12 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.nvtooltip.follow {
+    background: rgba(255,255,255, 0.8);
+    border: 1px solid rgba(0,0,0,0.5);
+    border-radius: 4px;
 }
 
 /*Give tooltips that old fade in transition by
@@ -98,6 +106,12 @@
     width: 8px;
     height: 8px;
     vertical-align: middle;
+}
+
+.nvtooltip.follow table td.legend-color-guide div {
+    width: 12px;
+    height: 12px;
+    border: 1px solid #999;
 }
 
 .nvtooltip .footer {
