@@ -25,13 +25,15 @@
     var chart;
 
     nv.addGraph(function() {
-        chart = nv.models.sunburst();
+        chart = nv.models.sunburstChart();
 
         chart.color(d3.scale.category20c());
 
         d3.select("#test1")
                 .datum(getData())
                 .call(chart);
+
+        nv.utils.windowResize(chart.update);
 
         return chart;
     });
