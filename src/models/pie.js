@@ -77,11 +77,11 @@ nv.models.pie = function() {
             var arc = d3.svg.arc().outerRadius(arcRadius);
             var arcOver = d3.svg.arc().outerRadius(arcRadius + 5);
 
-            if (startAngle) {
+            if (startAngle !== false) {
                 arc.startAngle(startAngle);
                 arcOver.startAngle(startAngle);
             }
-            if (endAngle) {
+            if (endAngle !== false) {
                 arc.endAngle(endAngle);
                 arcOver.endAngle(endAngle);
             }
