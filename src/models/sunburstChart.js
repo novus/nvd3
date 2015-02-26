@@ -85,17 +85,6 @@ nv.models.sunburstChart = function() {
             var sunWrap = g.select('.nv-sunburstWrap').datum(data);
             d3.transition(sunWrap).call(sunburst);
 
-            //============================================================
-            // Event Handling/Dispatching (in chart's scope)
-            //------------------------------------------------------------
-
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
-            dispatch.on('tooltipHide', function() {
-                if (tooltips) nv.tooltip.cleanup();
-            });
         });
 
         renderWatch.renderEnd('sunburstChart immediate');
