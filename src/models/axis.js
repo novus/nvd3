@@ -69,6 +69,7 @@ nv.models.axis = function() {
             axisLabel.exit().remove();
 
             var xLabelMargin;
+            var axisMaxMin;
             var w;
             switch (axis.orient()) {
                 case 'top':
@@ -224,7 +225,7 @@ nv.models.axis = function() {
                         .attr('y', rotateYLabel ? (-Math.max(margin.left, width) + 25 - (axisLabelDistance || 0)) : -10)
                         .attr('x', rotateYLabel ? (-d3.max(scale.range()) / 2) : -axis.tickPadding());
                     if (showMaxMin) {
-                        var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
+                        axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
                         axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                             .style('opacity', 0);
