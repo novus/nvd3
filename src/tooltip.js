@@ -492,10 +492,20 @@
         // Find the tooltips, mark them for removal by this class (so others cleanups won't find it)
         var tooltips = document.querySelectorAll('.nvtooltip');
         if (tooltips) {
+
             nv.dom.write(function() {
+                var removeQueue = [];
                 for (var i = 0; i < tooltips.length; i++) {
+                    removeQueue.push(tooltips[i]);
                     tooltips[i].className = 'nvtooltip-pending-removal';
                 }
+
+                window.setTimeout(function() {
+                    while(removeQueue.length) {
+                        var toRemove = removeQueue.pop();
+                        toRemove.parentNode.removeChild(toRemove);
+                    }
+                },200);
             });
         }
     };
