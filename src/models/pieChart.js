@@ -15,10 +15,13 @@ nv.models.pieChart = function() {
         , legendPosition = "top"
         , color = nv.utils.defaultColor()
         , tooltips = true
-        , tooltip = function(key, y, e, graph) {
-            return '<h3 style="background-color: '
-                + e.color + '">' + key + '</h3>'
-                + '<p>' +  y + '</p>';
+        , tooltipContent = function(evt) {
+            return '<table>' +
+                '<tbody><tr><td class="legend-color-guide">' +
+                '<div style="background-color: ' + evt.color + '"></div></td>' +
+                '<td class="key"> ' + pie.x()(evt.data) + '</td>' +
+                '<td class="value">' + pie.y()(evt.data) + '</td>' +
+                '</tr></tbody></table>';
         }
         , state = nv.utils.state()
         , defaultState = null
@@ -31,17 +34,13 @@ nv.models.pieChart = function() {
     // Private Variables
     //------------------------------------------------------------
 
-    var showTooltip = function(e, offsetElement) {
-        var tooltipLabel = pie.x()(e.point);
-        var left = e.pos[0],
-            top = e.pos[1],
-            y = pie.valueFormat()(pie.y()(e.point)),
-            content = tooltip(tooltipLabel, y, e, chart)
-            ;
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-    };
-
     var renderWatch = nv.utils.renderWatch(dispatch);
+
+    var tooltip = d3.select('body')
+        .append('div')
+        .style('display', 'none')
+        .classed('nvtooltip', true)
+        .classed('follow', true);
 
     var stateGetter = function(data) {
         return function(){
@@ -100,7 +99,7 @@ nv.models.pieChart = function() {
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
-                nv.utils.noData(chart, container)
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -175,14 +174,6 @@ nv.models.pieChart = function() {
                 }
                 chart.update();
             });
-
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
-            dispatch.on('tooltipHide', function() {
-                if (tooltips) nv.tooltip.cleanup();
-            });
         });
 
         renderWatch.renderEnd('pieChart immediate');
@@ -193,13 +184,23 @@ nv.models.pieChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    pie.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+    pie.dispatch.on('elementMouseover.tooltip', function(evt) {
+        tooltip.html(tooltipContent(evt))
+            .style('display', 'inline-block');
     });
 
-    pie.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
+    pie.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.style('display', 'none');
+    });
+
+    pie.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip.style('top', (event.pageY-15)+"px").style("left",(event.pageX+10)+"px");
+    });
+
+    pie.dispatch.on('elementClick.tooltip', function(evt) {
+        console.log("caught click! ", evt);
+        tooltip.html(tooltipContent(evt))
+            .style('display', 'inline-block');
     });
 
     //============================================================
@@ -216,7 +217,7 @@ nv.models.pieChart = function() {
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
-        tooltipContent: {get: function(){return tooltip;},        set: function(_){tooltip=_;}},
+        tooltipContent: {get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
         tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
