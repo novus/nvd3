@@ -47,7 +47,7 @@ nv.models.axis = function() {
             var wrap = container.selectAll('g.nv-wrap.nv-axis').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-axis');
             var gEnter = wrapEnter.append('g');
-            var g = wrap.select('g')
+            var g = wrap.select('g');
 
             if (ticks !== null)
                 axis.ticks(ticks);
@@ -68,10 +68,12 @@ nv.models.axis = function() {
                 .data([axisLabelText || null]);
             axisLabel.exit().remove();
 
+            var xLabelMargin;
+            var axisMaxMin;
+            var w;
             switch (axis.orient()) {
                 case 'top':
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-                    var w;
                     if (scale.range().length < 2) {
                         w = 0;
                     } else if (scale.range().length === 2) {
@@ -84,7 +86,7 @@ nv.models.axis = function() {
                         .attr('y', 0)
                         .attr('x', w/2);
                     if (showMaxMin) {
-                        var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
+                        axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
                         axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
                         axisMaxMin.exit().remove();
@@ -107,7 +109,7 @@ nv.models.axis = function() {
                     }
                     break;
                 case 'bottom':
-                    var xLabelMargin = axisLabelDistance + 36;
+                    xLabelMargin = axisLabelDistance + 36;
                     var maxTextWidth = 30;
                     var textHeight = 0;
                     var xTicks = g.selectAll('g').select("text");
@@ -123,14 +125,13 @@ nv.models.axis = function() {
                         rotateLabelsRule = 'rotate(' + rotateLabels + ' 0,' + (textHeight/2 + axis.tickPadding()) + ')';
                         //Convert to radians before calculating sin. Add 30 to margin for healthy padding.
                         var sin = Math.abs(Math.sin(rotateLabels*Math.PI/180));
-                        var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
+                        xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
                         //Rotate all xTicks
                         xTicks
                             .attr('transform', rotateLabelsRule)
                             .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
                     }
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-                    var w;
                     if (scale.range().length < 2) {
                         w = 0;
                     } else if (scale.range().length === 2) {
@@ -144,7 +145,7 @@ nv.models.axis = function() {
                         .attr('x', w/2);
                     if (showMaxMin) {
                         //if (showMaxMin && !isOrdinal) {
-                        var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
+                        axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             //.data(scale.domain())
                             .data([scale.domain()[0], scale.domain()[scale.domain().length - 1]]);
                         axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
@@ -179,10 +180,10 @@ nv.models.axis = function() {
                     axisLabel
                         .style('text-anchor', rotateYLabel ? 'middle' : 'begin')
                         .attr('transform', rotateYLabel ? 'rotate(90)' : '')
-                        .attr('y', rotateYLabel ? (-Math.max(margin.right,width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
-                        .attr('x', rotateYLabel ? (scale.range()[0] / 2) : axis.tickPadding());
+                        .attr('y', rotateYLabel ? (-Math.max(margin.right, width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+                        .attr('x', rotateYLabel ? (d3.max(scale.range()) / 2) : axis.tickPadding());
                     if (showMaxMin) {
-                        var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
+                        axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
                         axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                             .style('opacity', 0);
@@ -196,7 +197,7 @@ nv.models.axis = function() {
                             .attr('y', 0)
                             .attr('x', axis.tickPadding())
                             .style('text-anchor', 'start')
-                            .text(function(d,i) {
+                            .text(function(d, i) {
                                 var v = fmt(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
@@ -221,10 +222,10 @@ nv.models.axis = function() {
                     axisLabel
                         .style('text-anchor', rotateYLabel ? 'middle' : 'end')
                         .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
-                        .attr('y', rotateYLabel ? (-Math.max(margin.left,width) + 25 - (axisLabelDistance || 0)) : -10)
-                        .attr('x', rotateYLabel ? (-scale.range()[0] / 2) : -axis.tickPadding());
+                        .attr('y', rotateYLabel ? (-Math.max(margin.left, width) + 25 - (axisLabelDistance || 0)) : -10)
+                        .attr('x', rotateYLabel ? (-d3.max(scale.range()) / 2) : -axis.tickPadding());
                     if (showMaxMin) {
-                        var axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
+                        axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
                         axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
                             .style('opacity', 0);
@@ -280,7 +281,7 @@ nv.models.axis = function() {
                     .each(function(d,i) {
                         try {
                             if (i) // i== 1, max position
-                                maxMinRange.push(scale(d) - this.getBoundingClientRect().width - 4)  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
+                                maxMinRange.push(scale(d) - this.getBoundingClientRect().width - 4);  //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
                             else // i==0, min position
                                 maxMinRange.push(scale(d) + this.getBoundingClientRect().width + 4)
                         }catch (err) {
@@ -291,7 +292,7 @@ nv.models.axis = function() {
                         }
                     });
                 // the g's wrapping each tick
-                g.selectAll('g').each(function(d,i) {
+                g.selectAll('g').each(function(d, i) {
                     if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
                         if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                             d3.select(this).remove();
