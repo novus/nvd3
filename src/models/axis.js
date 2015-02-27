@@ -217,7 +217,6 @@ nv.models.axis = function() {
                      if(labelPadding > width) width = labelPadding;
                      });
                      */
-                    console.log('debug: ', scale.range());
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
                     axisLabel
                         .style('text-anchor', rotateYLabel ? 'middle' : 'end')
