@@ -15,8 +15,7 @@ nv.models.pie = function() {
         , valueFormat = d3.format(',.2f')
         , labelFormat = d3.format('%')
         , showLabels = true
-        , pieLabelsOutside = true
-        , donutLabelsOutside = false
+        , labelsOutside = false
         , labelType = "key"
         , labelThreshold = .02 //if slice percentage is under this, don't show label
         , donut = false
@@ -29,8 +28,7 @@ nv.models.pie = function() {
         , endAngle = false
         , cornerRadius = 0
         , donutRatio = 0.5
-        , duration = 250
-        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
+        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
 
@@ -127,9 +125,9 @@ nv.models.pie = function() {
             slices.exit().remove();
             pieLabels.exit().remove();
 
-            var ae = slices.enter().append('g')
-            ae.attr('class', 'nv-slice')
-            ae.on('mouseover', function(d,i){
+            var ae = slices.enter().append('g');
+            ae.attr('class', 'nv-slice');
+            ae.on('mouseover', function(d, i) {
                 d3.select(this).classed('hover', true);
                 if (growOnHover) {
                     d3.select(this).select("path").transition()
@@ -137,60 +135,45 @@ nv.models.pie = function() {
                         .attr("d", arcOver);
                 }
                 dispatch.elementMouseover({
-                    label: getX(d.data),
-                    value: getY(d.data),
-                    point: d.data,
-                    pointIndex: i,
-                    pos: [d3.event.pageX, d3.event.pageY],
-                    id: id,
+                    data: d.data,
+                    index: i,
                     color: d3.select(this).style("fill")
                 });
             });
-            ae.on('mouseout', function(d,i){
+            ae.on('mouseout', function(d, i) {
                 d3.select(this).classed('hover', false);
                 if (growOnHover) {
                     d3.select(this).select("path").transition()
                         .duration(50)
                         .attr("d", arc);
                 }
-                dispatch.elementMouseout({
-                    label: getX(d.data),
-                    value: getY(d.data),
-                    point: d.data,
+                dispatch.elementMouseout({data: d.data, index: i});
+            });
+            ae.on('mousemove', function(d, i) {
+                dispatch.elementMousemove({data: d.data, index: i});
+            });
+            ae.on('click', function(d, i) {
+                dispatch.elementClick({
+                    data: d.data,
                     index: i,
-                    id: id
+                    color: d3.select(this).style("fill")
+                });
+            });
+            ae.on('dblclick', function(d, i) {
+                dispatch.elementDblClick({
+                    data: d.data,
+                    index: i,
+                    color: d3.select(this).style("fill")
                 });
             });
 
-            slices.attr('fill', function(d,i) { return color(d, i); })
+            slices.attr('fill', function(d,i) { return color(d, i); });
             slices.attr('stroke', function(d,i) { return color(d, i); });
 
             var paths = ae.append('path').each(function(d) {
                 this._current = d;
             });
 
-            paths.on('click', function(d,i) {
-                dispatch.elementClick({
-                    label: getX(d.data),
-                    value: getY(d.data),
-                    point: d.data,
-                    index: i,
-                    pos: d3.event,
-                    id: id
-                });
-                d3.event.stopPropagation();
-            });
-            paths.on('dblclick', function(d,i) {
-                dispatch.elementDblClick({
-                    label: getX(d.data),
-                    value: getY(d.data),
-                    point: d.data,
-                    index: i,
-                    pos: d3.event,
-                    id: id
-                });
-                d3.event.stopPropagation();
-            });
             slices.select('path')
                 .transition()
                 .attr('d', arc)
@@ -200,14 +183,14 @@ nv.models.pie = function() {
                 // This does the normal label
                 var labelsArc = d3.svg.arc().innerRadius(0);
 
-                if (pieLabelsOutside){
-                    var labelsArc = arc;
-                }
-
-                if (donutLabelsOutside) {
-                    labelsArc = d3.svg.arc().outerRadius(arc.outerRadius());
-                    if (startAngle !== false) labelsArc.startAngle(startAngle);
-                    if (endAngle !== false) labelsArc.endAngle(endAngle);
+                if (labelsOutside){
+                    if (donut) {
+                        labelsArc = d3.svg.arc().outerRadius(arc.outerRadius());
+                        if (startAngle !== false) labelsArc.startAngle(startAngle);
+                        if (endAngle !== false) labelsArc.endAngle(endAngle);
+                    } else {
+                        labelsArc = arc;
+                    }
                 }
 
                 pieLabels.enter().append("g").classed("nv-label",true).each(function(d,i) {
@@ -240,7 +223,6 @@ nv.models.pie = function() {
                     group.append('text')
                         .style('text-anchor', labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle') //center the text on it's origin or begin/end if orthogonal aligned
                         .style('fill', '#000')
-
                 });
 
                 var labelLocationHash = {};
@@ -285,7 +267,7 @@ nv.models.pie = function() {
                 pieLabels.select(".nv-label text")
                     .style('text-anchor', function(d,i) {
                         //center the text on it's origin or begin/end if orthogonal aligned
-                        labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle';
+                        return labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle';
                     })
                     .text(function(d, i) {
                         var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
@@ -346,11 +328,21 @@ nv.models.pie = function() {
         padAngle:   {get: function(){return padAngle;}, set: function(_){padAngle=_;}},
         cornerRadius: {get: function(){return cornerRadius;}, set: function(_){cornerRadius=_;}},
         donutRatio:   {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
-        pieLabelsOutside:   {get: function(){return pieLabelsOutside;}, set: function(_){pieLabelsOutside=_;}},
-        donutLabelsOutside: {get: function(){return donutLabelsOutside;}, set: function(_){donutLabelsOutside=_;}},
+        labelsOutside: {get: function(){return labelsOutside;}, set: function(_){labelsOutside=_;}},
         labelSunbeamLayout: {get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},
         donut:              {get: function(){return donut;}, set: function(_){donut=_;}},
         growOnHover:        {get: function(){return growOnHover;}, set: function(_){growOnHover=_;}},
+
+        // depreciated after 1.7.1
+        pieLabelsOutside: {get: function(){return labelsOutside;}, set: function(_){
+            labelsOutside=_;
+            nv.deprecated('pieLabelsOutside', 'use labelsOutside instead');
+        }},
+        // depreciated after 1.7.1
+        donutLabelsOutside: {get: function(){return labelsOutside;}, set: function(_){
+            labelsOutside=_;
+            nv.deprecated('pieLabelsOutside', 'use labelsOutside instead');
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
