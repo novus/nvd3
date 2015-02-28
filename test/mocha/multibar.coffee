@@ -92,3 +92,11 @@ describe 'NVD3', ->
         it 'renders bars', ->
           bars = builder.$("g.nvd3.nv-multiBarWithLegend .nv-multibar .nv-bar")
           bars.should.have.length 12
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
+            

@@ -180,4 +180,11 @@ describe 'NVD3', ->
             transform = builder.$('.nv-wrap')[0].getAttribute('transform')
             transform.should.equal 'translate(75,830)'
 
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
+
 
