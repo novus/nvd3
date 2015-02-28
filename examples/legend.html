@@ -12,31 +12,55 @@
         }
         svg {
             display: block;
+
         }
         html, body, svg {
             margin: 0px;
             padding: 0px;
-            height: 100%;
             width: 100%;
         }
     </style>
 </head>
 <body>
+<h3>Legend 1</h3>
 <button id="changeData">Click to Change Legend</button>
 <svg id="test1" class="nvd3"></svg>
+
+<h3>Legend 2</h3>
+<p>Setting align(false)</p>
+<svg id="test2" class="nvd3"></svg>
+
+<h3>Legend 3</h3>
+<p>Setting legend padding distance</p>
+<svg id="test3" class="nvd3"></svg>
 
 <script>
     var width = 500,
         height = 20;
 
-    var legend = nv.models.legend()
-        .width(width)
-        .height(height);
+    var legend = nv.models.legend();
 
     d3.select('#test1')
         .attr('width', width)
         .attr('height', height)
         .datum(sinAndCos());
+
+    var legend2 = nv.models.legend()
+        .align(false);
+
+    d3.select('#test2')
+        .attr('width', width)
+        .attr('height', height)
+        .datum(sinAndCos()).call(legend2);
+
+    var legend3 = nv.models.legend()
+        .width(900)
+        .padding(70);
+
+    d3.select('#test3')
+        .attr('width', 900)
+        .attr('height', 200)
+        .datum(sinAndCos()).call(legend3);
 
     var update = function() {
         d3.select('#test1').call(legend);

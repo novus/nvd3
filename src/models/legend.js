@@ -11,6 +11,7 @@ nv.models.legend = function() {
         , getKey = function(d) { return d.key }
         , color = nv.utils.defaultColor()
         , align = true
+        , padding = 28 //define how much space between legend items.
         , rightAlign = true
         , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
         , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
@@ -118,7 +119,7 @@ nv.models.legend = function() {
                         nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
                     }
 
-                    seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
+                    seriesWidths.push(nodeTextLength + padding);
                 });
 
                 var seriesPerRow = 0;
@@ -174,7 +175,7 @@ nv.models.legend = function() {
                     xpos;
                 series
                     .attr('transform', function(d, i) {
-                        var length = d3.select(this).select('text').node().getComputedTextLength() + 28;
+                        var length = d3.select(this).select('text').node().getComputedTextLength() + padding;
                         xpos = newxpos;
 
                         if (width < margin.left + margin.right + xpos + length) {
@@ -212,6 +213,7 @@ nv.models.legend = function() {
         key: {get: function(){return getKey;}, set: function(_){getKey=_;}},
         align:      {get: function(){return align;}, set: function(_){align=_;}},
         rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
+        padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:    {get: function(){return updateState;}, set: function(_){updateState=_;}},
         radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
 
