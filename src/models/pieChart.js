@@ -198,7 +198,6 @@ nv.models.pieChart = function() {
     });
 
     pie.dispatch.on('elementClick.tooltip', function(evt) {
-        console.log("caught click! ", evt);
         tooltip.html(tooltipContent(evt))
             .style('display', 'inline-block');
     });
