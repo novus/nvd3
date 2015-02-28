@@ -141,6 +141,7 @@ describe 'NVD3', ->
             builder2.teardown()
 
             opts.labelType = 'percent'
+            opts.valueFormat = d3.format('%')
             builder2.build opts, [sampleData1]
 
             labels = builder2.$ '.nv-pieLabels .nv-label text'

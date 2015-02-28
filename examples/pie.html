@@ -68,8 +68,8 @@
                 .y(function(d) { return d.y; })
                 .width(width)
                 .height(height)
-                .labelType('value')
-                .valueFormat(d3.format('.2f'))
+                .labelType('percent')
+                .valueFormat(d3.format('%'))
                 .donut(true);
 
         d3.select("#test2")
