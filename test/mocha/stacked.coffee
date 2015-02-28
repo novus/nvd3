@@ -117,3 +117,15 @@ describe 'NVD3', ->
             chart.stacked.style().should.equal 'stacked'
             newTickFormat = chart.yAxis.tickFormat()
             newTickFormat(1).should.equal '<1>'
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
+
+        it 'if stacked.offset is "wiggle", y ticks is zero', ->
+            builder.model.stacked.offset 'wiggle'
+            builder.model.update()
+            builder.model.yAxis.ticks().should.equal 0
