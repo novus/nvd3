@@ -41,6 +41,7 @@ nv.models.lineWithFocusChart = function() {
 
     lines
         .clipEdge(true)
+        .duration(0)
     ;
     lines2
         .interactive(false)
@@ -228,11 +229,7 @@ nv.models.lineWithFocusChart = function() {
             brush
                 .x(x2)
                 .on('brush', function() {
-                    //When brushing, turn off transitions because chart needs to change immediately.
-                    var oldTransition = chart.duration();
-                    chart.duration(0);
                     onBrush();
-                    chart.duration(oldTransition);
                 });
 
             if (brushExtent) brush.extent(brushExtent);
