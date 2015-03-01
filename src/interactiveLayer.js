@@ -19,7 +19,6 @@ nv.interactiveGuideline = function() {
     //This is important for calculating the correct mouseX/Y positions.
     var margin = {left: 0, top: 0}
         , xScale = d3.scale.linear()
-        , yScale = d3.scale.linear()
         , dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
         , showGuideLine = true;
     //Must pass in the bounding chart's <svg> container.
@@ -246,7 +245,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         // comparators where the second argument is the search value against
         // which the first argument is compared.
         return _xAccessor(d) - v;
-    }
+    };
 
     var bisect = d3.bisector(_cmp).left;
     var index = d3.max([0, bisect(values,searchVal) - 1]);
