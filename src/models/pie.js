@@ -13,7 +13,6 @@ nv.models.pie = function() {
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , color = nv.utils.defaultColor()
         , valueFormat = d3.format(',.2f')
-        , labelFormat = d3.format('%')
         , showLabels = true
         , labelsOutside = false
         , labelType = "key"
@@ -271,12 +270,21 @@ nv.models.pie = function() {
                     })
                     .text(function(d, i) {
                         var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
-                        var labelTypes = {
-                            "key" : getX(d.data),
-                            "value": getY(d.data),
-                            "percent": labelFormat(percent)
-                        };
-                        return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
+                        var label = '';
+                        if (!d.value || percent < labelThreshold) return '';
+
+                        switch (labelType) {
+                            case 'key':
+                                label = getX(d.data);
+                                break;
+                            case 'value':
+                                label = valueFormat(getY(d.data));
+                                break;
+                            case 'percent':
+                                label = valueFormat(percent);
+                                break;
+                        }
+                        return label;
                     })
                 ;
             }
@@ -319,7 +327,6 @@ nv.models.pie = function() {
         title:      {get: function(){return title;}, set: function(_){title=_;}},
         titleOffset:    {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         labelThreshold: {get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
-        labelFormat:    {get: function(){return labelFormat;}, set: function(_){labelFormat=_;}},
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         x:          {get: function(){return getX;}, set: function(_){getX=_;}},
         id:         {get: function(){return id;}, set: function(_){id=_;}},
@@ -341,7 +348,12 @@ nv.models.pie = function() {
         // depreciated after 1.7.1
         donutLabelsOutside: {get: function(){return labelsOutside;}, set: function(_){
             labelsOutside=_;
-            nv.deprecated('pieLabelsOutside', 'use labelsOutside instead');
+            nv.deprecated('donutLabelsOutside', 'use labelsOutside instead');
+        }},
+        // deprecated after 1.7.1
+        labelFormat: {get: function(){ return valueFormat;}, set: function(_) {
+            valueFormat=_;
+            nv.deprecated('labelFormat','use valueFormat instead');
         }},
 
         // options that require extra logic in the setter

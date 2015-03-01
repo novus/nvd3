@@ -21,8 +21,7 @@ describe 'NVD3', ->
             showLegend: true
             valueFormat: (d)-> d.toFixed 2
             showLabels: true
-            donutLabelsOutside: false
-            pieLabelsOutside: true
+            labelsOutside: true
             donut: false
             donutRatio: 0.5
             labelThreshold: 0.02
@@ -106,7 +105,6 @@ describe 'NVD3', ->
         it 'can handle donut mode and options', (done)->
             builder.teardown()
             options.donut = true
-            options.donutLabelsOutside = true
             options.labelSunbeamLayout = true
             options.startAngle = (d)-> d.startAngle/2 - Math.PI/2
             options.endAngle = (d)-> d.endAngle/2 - Math.PI/2
@@ -122,3 +120,33 @@ describe 'NVD3', ->
 
             builder.build options, sampleData1
             done() 
+
+        it 'can render pie labels in other formats', ->
+            opts =
+                x: (d)-> d.label
+                y: (d)-> d.value
+                labelType: 'value'
+                valueFormat: d3.format('.2f')
+            builder2 = new ChartBuilder nv.models.pie()
+            builder2.build opts, [sampleData1]
+
+            labels = builder2.$ '.nv-pieLabels .nv-label text'
+            labels.length.should.equal 4
+
+            expected = ['100.00','200.00','50.00','70.00']
+            for label,i in labels 
+                label.textContent.should.equal expected[i]
+
+            # Test labelType = 'percent'
+            builder2.teardown()
+
+            opts.labelType = 'percent'
+            opts.valueFormat = d3.format('%')
+            builder2.build opts, [sampleData1]
+
+            labels = builder2.$ '.nv-pieLabels .nv-label text'
+            labels.length.should.equal 4
+
+            expected = ['24%','48%','12%','17%']
+            for label,i in labels 
+                label.textContent.should.equal expected[i]
