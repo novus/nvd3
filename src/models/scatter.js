@@ -221,6 +221,7 @@ nv.models.scatter = function() {
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
                         // just create the circles with the IDs they expect
+                        wrap.select('#nv-point-clips').remove();
                         var clips = wrap.append("svg:g").attr("id", "nv-point-clips");
                         clips.selectAll("clipPath")
                             .data(vertices)

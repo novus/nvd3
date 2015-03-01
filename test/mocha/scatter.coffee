@@ -180,4 +180,30 @@ describe 'NVD3', ->
             transform = builder.$('.nv-wrap')[0].getAttribute('transform')
             transform.should.equal 'translate(75,830)'
 
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
 
+        it 'only appends one nv-point-clips group', (done)->
+            builder2 = new ChartBuilder nv.models.scatterChart()
+
+            builder2.build options, sampleData1
+
+            window.setTimeout ->
+                builder2.model.update()
+                window.setTimeout((->
+                    pointClips = builder2.svg.querySelector '#nv-point-clips'
+                    should.exist pointClips, 'nv-point-clips exists'
+
+                    builder2.svg.querySelector('.nv-wrap.nv-scatter')
+                    .childElementCount.should.equal 3
+
+                    builder2.teardown()
+                    done()
+                ), 500)
+
+            , 500
+                

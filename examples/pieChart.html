@@ -86,11 +86,7 @@
             //.showLabels(false)
             .color(d3.scale.category20().range().slice(8))
             .growOnHover(false)
-            .tooltipContent(function(key, y, e, graph) {
-                return '<h3 style="padding: 5px; background-color: '
-                        + e.color + '"><strong>Yo, the value is</strong></h3>'
-                        + '<p style="padding:5px;">' +  y + '</p>';
-            })
+            .labelType('value')
             .width(width)
             .height(height);
 

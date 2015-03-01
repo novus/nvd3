@@ -41,6 +41,7 @@ nv.models.lineWithFocusChart = function() {
 
     lines
         .clipEdge(true)
+        .duration(0)
     ;
     lines2
         .interactive(false)
@@ -213,12 +214,12 @@ nv.models.lineWithFocusChart = function() {
             // Setup Main (Focus) Axes
             xAxis
                 .scale(x)
-                .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight1, 0);
 
             yAxis
                 .scale(y)
-                .ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
+                .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight1/36, data) )
                 .tickSize( -availableWidth, 0);
 
             g.select('.nv-focus .nv-x.nv-axis')
@@ -228,11 +229,7 @@ nv.models.lineWithFocusChart = function() {
             brush
                 .x(x2)
                 .on('brush', function() {
-                    //When brushing, turn off transitions because chart needs to change immediately.
-                    var oldTransition = chart.duration();
-                    chart.duration(0);
                     onBrush();
-                    chart.duration(oldTransition);
                 });
 
             if (brushExtent) brush.extent(brushExtent);
@@ -267,7 +264,7 @@ nv.models.lineWithFocusChart = function() {
             // Setup Secondary (Context) Axes
             x2Axis
                 .scale(x2)
-                .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                .ticks(x2Axis.ticks() ? x2Axis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight2, 0);
 
             g.select('.nv-context .nv-x.nv-axis')
@@ -277,7 +274,7 @@ nv.models.lineWithFocusChart = function() {
 
             y2Axis
                 .scale(y2)
-                .ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
+                .ticks(y2Axis.ticks() ? y2Axis.ticks() : nv.utils.calcTicksY(availableHeight2/36, data) )
                 .tickSize( -availableWidth, 0);
 
             d3.transition(g.select('.nv-context .nv-y.nv-axis'))

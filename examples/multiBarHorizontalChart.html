@@ -168,9 +168,13 @@
             .yErr(function(d) { return [-Math.abs(d.value * Math.random() * 0.3), Math.abs(d.value * Math.random() * 0.3)] })
             .barColor(d3.scale.category20().range())
             .duration(250)
+            .margin({left: 100})
             .stacked(true);
 
         chart.yAxis.tickFormat(d3.format(',.2f'));
+
+        chart.yAxis.axisLabel('Y Axis');
+        chart.xAxis.axisLabel('X Axis').axisLabelDistance(20);
 
         d3.select('#chart1 svg')
             .datum(long_short_data)

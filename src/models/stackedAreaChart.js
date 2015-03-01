@@ -245,7 +245,7 @@ nv.models.stackedAreaChart = function() {
             // Setup Axes
             if (showXAxis) {
                 xAxis.scale(x)
-                    .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -257,8 +257,15 @@ nv.models.stackedAreaChart = function() {
             }
 
             if (showYAxis) {
+                var ticks;
+                if (stacked.offset() === 'wiggle') {
+                    ticks = 0;
+                }
+                else {
+                    ticks = yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data);
+                }
                 yAxis.scale(y)
-                    .ticks(stacked.offset() == 'wiggle' ? 0 : nv.utils.calcTicksY(availableHeight/36, data) )
+                    .ticks(ticks)
                     .tickSize(-availableWidth, 0);
 
                     if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
