@@ -350,6 +350,7 @@ nv.models.pie = function() {
             labelsOutside=_;
             nv.deprecated('donutLabelsOutside', 'use labelsOutside instead');
         }},
+        // deprecated after 1.7.1
         labelFormat: {get: function(){ return valueFormat;}, set: function(_) {
             valueFormat=_;
             nv.deprecated('labelFormat','use valueFormat instead');
