@@ -187,4 +187,23 @@ describe 'NVD3', ->
             builder.model.xAxis.ticks().should.equal 34
             builder.model.yAxis.ticks().should.equal 56
 
+        it 'only appends one nv-point-clips group', (done)->
+            builder2 = new ChartBuilder nv.models.scatterChart()
 
+            builder2.build options, sampleData1
+
+            window.setTimeout ->
+                builder2.model.update()
+                window.setTimeout((->
+                    pointClips = builder2.svg.querySelector '#nv-point-clips'
+                    should.exist pointClips, 'nv-point-clips exists'
+
+                    builder2.svg.querySelector('.nv-wrap.nv-scatter')
+                    .childElementCount.should.equal 3
+
+                    builder2.teardown()
+                    done()
+                ), 500)
+
+            , 500
+                
