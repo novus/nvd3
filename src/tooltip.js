@@ -46,7 +46,7 @@
             ,   tooltipElem = null  //actual DOM element representing the tooltip.
             ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
-            ,   duration = 0 // duration for tooltip movement
+            ,   duration = 100 // duration for tooltip movement
         ;
 
         //Generates a unique id when you create a new tooltip() object
@@ -132,13 +132,19 @@
         };
 
         var dataSeriesExists = function(d) {
-            if (d && d.series && d.series.length > 0) {
-                return true;
+            if (d && d.series) {
+                if (d.series instanceof Array) {
+                    return !!d.series.length;
+                }
+                // if object, it's okay just convert to array of the object
+                if (d.series instanceof Object) {
+                    d.series = [d.series];
+                    return true;
+                }
             }
             return false;
         };
 
-        var last_pos;
         var calcTooltipPosition = function(pos) {
             if (!tooltipElem) return;
 
@@ -215,10 +221,15 @@
                 console.log("moving from ", old_translate, " to ", new_translate);
                 var translateInterpolator = d3.interpolateString(old_translate, new_translate);
 
-                tooltip.transition().duration(duration)
+                console.log("opacity is: ", tooltip.style('opacity'));
+                // opacity often returns 0.9999etc so account for that
+                //var is_hidden = tooltip.style('opacity') > 0.9 ? false : true;
+
+                tooltip.transition().duration(hidden ? 0 : duration)
                     .styleTween('transform', function (d) {
                         return translateInterpolator;
                     });
+                tooltip.style('opacity', hidden ? 0 : 1);
             });
         };
 
@@ -254,7 +265,7 @@
                     .attr("class", "nvtooltip " + (classes ? classes : "xy-tooltip"))
                     .attr("id", id);
                 tooltip.style("top", 0).style("left", 0);
-                //tooltip.transition().duration(100).delay(100).style("opacity", hidden ? '0' : '1');
+                tooltip.style('opacity', 0);
                 tooltip.selectAll("div, table, td, tr").classed(nvPointerEventsClass, true);
                 tooltip.classed(nvPointerEventsClass, true);
                 tooltipElem = tooltip.node();
@@ -321,122 +332,48 @@
         }
 
         nvtooltip.nvPointerEventsClass = nvPointerEventsClass;
+        nvtooltip.options = nv.utils.optionsFunc.bind(nvtooltip);
 
-        nvtooltip.hide = function() {
-            hidden = true;
-            if (tooltip) {
-                tooltip.style('opacity', 0);
-            }
-            return nvtooltip;
-        };
-        nvtooltip.show = function() {
-            hidden = false;
-            if (tooltip) {
-                tooltip.style('opacity', 1);
-            }
-            return nvtooltip;
-        };
+        nvtooltip._options = Object.create({}, {
+            // simple read/write options
+            duration: {get: function(){return duration;}, set: function(_){duration=_;}},
+            content: {get: function(){return content;}, set: function(_){content=_;}},
+            data: {get: function(){return data;}, set: function(_){data=_;}},
+            gravity: {get: function(){return gravity;}, set: function(_){gravity=_;}},
+            distance: {get: function(){return distance;}, set: function(_){distance=_;}},
+            snapDistance: {get: function(){return snapDistance;}, set: function(_){snapDistance=_;}},
+            classes: {get: function(){return classes;}, set: function(_){classes=_;}},
+            chartContainer: {get: function(){return chartContainer;}, set: function(_){chartContainer=_;}},
+            fixedTop: {get: function(){return fixedTop;}, set: function(_){fixedTop=_;}},
+            enabled: {get: function(){return enabled;}, set: function(_){enabled=_;}},
 
-        nvtooltip.duration = function(_) {
-            if (!arguments.length) return duration;
-            duration = _;
-        };
+            // options with extra logic
+            position: {get: function(){return position;}, set: function(_){
+                position.left = _.left !== undefined ? _.left : position.left;
+                position.top = _.top !== undefined ? _.top : position.top;
+            }},
+            hidden: {get: function(){return hidden;}, set: function(_){
+                if (hidden != _) {
+                    hidden = !!_;
+                    nvtooltip();
+                }
+            }},
+            contentGenerator: {get: function(){return contentGenerator;}, set: function(_){
+                contentGenerator = typeof _ === 'function' ? _ : contentGenerator;
+            }},
+            valueFormatter: {get: function(){return valueFormatter;}, set: function(_){
+                valueFormatter = typeof _ === 'function' ? _ : valueFormatter;
+            }},
+            headerFormatter: {get: function(){return headerFormatter;}, set: function(_){
+                headerFormatter = typeof _ === 'function' ? _ : headerFormatter;
+            }},
 
-        nvtooltip.content = function(_) {
-            if (!arguments.length) return content;
-            content = _;
-            return nvtooltip;
-        };
+            // read only properties
+            tooltipElem: {get: function(){return tooltipElem;}, set: function(_){}},
+            id: {get: function(){return id;}, set: function(_){}}
+        });
 
-        //Returns tooltipElem...not able to set it.
-        nvtooltip.getTooltipElem = function() {
-            return tooltipElem;
-        };
-
-        nvtooltip.contentGenerator = function(_) {
-            if (!arguments.length) return contentGenerator;
-            if (typeof _ === 'function') {
-                contentGenerator = _;
-            }
-            return nvtooltip;
-        };
-
-        nvtooltip.data = function(_) {
-            if (!arguments.length) return data;
-            data = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.gravity = function(_) {
-            if (!arguments.length) return gravity;
-            gravity = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.distance = function(_) {
-            if (!arguments.length) return distance;
-            distance = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.snapDistance = function(_) {
-            if (!arguments.length) return snapDistance;
-            snapDistance = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.classes = function(_) {
-            if (!arguments.length) return classes;
-            classes = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.chartContainer = function(_) {
-            if (!arguments.length) return chartContainer;
-            chartContainer = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.position = function(_) {
-            if (!arguments.length) return position;
-            position.left = _.left !== undefined ? _.left : position.left;
-            position.top = _.top !== undefined ? _.top : position.top;
-            return nvtooltip;
-        };
-
-        nvtooltip.fixedTop = function(_) {
-            if (!arguments.length) return fixedTop;
-            fixedTop = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.enabled = function(_) {
-            if (!arguments.length) return enabled;
-            enabled = _;
-            return nvtooltip;
-        };
-
-        nvtooltip.valueFormatter = function(_) {
-            if (!arguments.length) return valueFormatter;
-            if (typeof _ === 'function') {
-                valueFormatter = _;
-            }
-            return nvtooltip;
-        };
-
-        nvtooltip.headerFormatter = function(_) {
-            if (!arguments.length) return headerFormatter;
-            if (typeof _ === 'function') {
-                headerFormatter = _;
-            }
-            return nvtooltip;
-        };
-
-        //id() is a read-only function. You can't use it to set the id.
-        nvtooltip.id = function() {
-            return id;
-        };
-
+        nv.utils.initOptions(nvtooltip);
         return nvtooltip;
     };
 
@@ -467,7 +404,5 @@
         } while( Elem );
         return offsetLeft;
     };
-
-    nv.tooltip.cleanup = function() {};
 
 })();

@@ -10,6 +10,7 @@ nv.interactiveGuideline = function() {
     "use strict";
 
     var tooltip = nv.models.tooltip();
+    tooltip.duration(0).hidden(false);
 
     //Public settings
     var width = null;
@@ -107,7 +108,10 @@ nv.interactiveGuideline = function() {
                         mouseY: mouseY
                     });
                     layer.renderGuideLine(null); //hide the guideline
+                    tooltip.hidden(true);
                     return;
+                } else {
+                    tooltip.hidden(false);
                 }
 
                 var pointXValue = xScale.invert(mouseX);

@@ -10,6 +10,7 @@ nv.models.lineChart = function() {
         , yAxis = nv.models.axis()
         , legend = nv.models.legend()
         , interactiveLayer = nv.interactiveGuideline()
+        , tooltip = nv.models.tooltip()
         ;
 
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -21,11 +22,6 @@ nv.models.lineChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , useInteractiveGuideline = false
-        , tooltips = true
-        , tooltipContent = function(key, x, y, e, graph) {
-            return '<h3>' + key + '</h3>' +
-                '<p>' +  y + ' at ' + x + '</p>'
-        }
         , x
         , y
         , state = nv.utils.state()
@@ -37,8 +33,6 @@ nv.models.lineChart = function() {
 
     xAxis.orient('bottom').tickPadding(7);
     yAxis.orient((rightAlignYAxis) ? 'right' : 'left');
-
-    var tooltip = nv.models.tooltip();
 
     //============================================================
     // Private Variables
@@ -93,9 +87,6 @@ nv.models.lineChart = function() {
                     container.transition().duration(duration).call(chart)
             };
             chart.container = this;
-
-            tooltip.enabled(tooltips).duration(100);
-            tooltip(); // initialize it
 
             state
                 .setter(stateSetter(data), chart.update)
@@ -262,7 +253,6 @@ nv.models.lineChart = function() {
                 interactiveLayer.tooltip
                     .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
-                    .enabled(tooltips)
                     .valueFormatter(function(d,i) {
                         return yAxis.tickFormat()(d);
                     })
@@ -302,7 +292,6 @@ nv.models.lineChart = function() {
             });
 
             interactiveLayer.dispatch.on("elementMouseout",function(e) {
-                dispatch.tooltipHide();
                 lines.clearHighlights();
             });
 
@@ -330,18 +319,12 @@ nv.models.lineChart = function() {
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
         var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
-        console.log("tooltipShow data: ", evt);
-        var tooltip_data = {series: [{
-            color: evt.series.color,
-            key: evt.series.key,
-            value: chart.yAxis.tickFormat()(evt.point.y)
-        }]};
-        console.log("tooltipShow tooltip data: ", tooltip_data);
-        tooltip.data(tooltip_data).position(pos).show()();
+        evt.series.value = chart.yAxis.tickFormat()(evt.point.y);
+        tooltip.data(evt).position(pos).hidden(false);
     });
 
     lines.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.hide();
+        tooltip.hidden(true)
     });
 
     //============================================================
@@ -355,6 +338,7 @@ nv.models.lineChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.interactiveLayer = interactiveLayer;
+    chart.tooltip = tooltip;
 
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
@@ -366,10 +350,20 @@ nv.models.lineChart = function() {
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
