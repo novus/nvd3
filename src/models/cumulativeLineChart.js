@@ -253,7 +253,7 @@ nv.models.cumulativeLineChart = function() {
 
                 g.select('.nv-controlsWrap')
                     .datum(controlsData)
-                    .attr('transform', 'translate(0,' + (-controls.height()) +')')
+                    .attr('transform', 'translate(0,' + (-legend.height()) +')')
                     .call(controls);
             }
 
