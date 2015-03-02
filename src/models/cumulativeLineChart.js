@@ -14,7 +14,7 @@ nv.models.cumulativeLineChart = function() {
         , interactiveLayer = nv.interactiveGuideline()
         ;
 
-    var margin = {top: 30, right: 30, bottom: 50, left: 60}
+    var margin = {top: 0, right: 30, bottom: 50, left: 60}
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
