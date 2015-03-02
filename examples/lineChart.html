@@ -61,6 +61,14 @@
             .tickFormat(d3.format(',.2f'))
         ;
 
+        //Example of how to customize the tooltip.
+        chart.interactiveLayer
+        .tooltip
+        .valueFormatter(d3.format('%'))
+        .headerFormatter(function (d) {
+            return "Time: " + d;
+        });
+
         data = sinAndCos();
 
         d3.select('#chart1').append('svg')

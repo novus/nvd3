@@ -23,12 +23,13 @@
         Tooltip data. If data is given in the proper format, a consistent tooltip is generated.
         Example Format of data:
         {
-            key: "Date",
             value: "August 2009",
             series: [
                 {key: "Series 1", value: "Value 1", color: "#000"},
                 {key: "Series 2", value: "Value 2", color: "#00f"}
-            ]
+            ],
+            footer: 'footnote',
+            point: <...more point info...>
         }
         */
         var data = null;
@@ -50,17 +51,16 @@
         var  nvPointerEventsClass = "nv-pointer-events-none";
 
         //Format function for the tooltip values column
-        var valueFormatter = function(d,i) {
-            return d;
-        };
+        var valueFormatter = null;
 
         //Format function for the tooltip header value.
-        var headerFormatter = function(d) {
-            return d;
-        };
+        var headerFormatter = null;
 
-        //By default, the tooltip model renders a beautiful table inside a DIV.
-        //You can override this function if a custom tooltip is desired.
+        /*By default, the tooltip model renders a beautiful table inside a DIV.
+          You can override this function if a custom tooltip is desired.
+          Example of how to override:
+            lineChart.interactiveLayer.tooltip.contentGenerator(function(d){...})
+        */
         var contentGenerator = function(d) {
             if (content !== null) {
                 return content;
@@ -80,7 +80,7 @@
                 .attr("colspan",3)
                 .append("strong")
                 .classed("x-value",true)
-                .html(headerFormatter(d.value));
+                .html( (!headerFormatter) ? d.value : headerFormatter(d.value));
 
             var tbodyEnter = table.selectAll("tbody")
                 .data([d])
@@ -103,8 +103,9 @@
 
             trowEnter.append("td")
                 .classed("value",true)
-                .html(function(p,i) { return valueFormatter(p.value,i) });
-
+                .html(function(p,i) { 
+                    return (!valueFormatter) ? p.value : valueFormatter(p.value,i);
+                });
 
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight) {
