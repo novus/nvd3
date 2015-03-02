@@ -129,6 +129,15 @@
         chart.xAxis.tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
         chart.yAxis.tickFormat(d3.format(',.4f'));
 
+        //Example of how to customize the tooltip.
+        chart.interactiveLayer
+        .tooltip
+        .headerFormatter(function(d) {
+            return "Date: " + d3.time.format('%x')(new Date(d));
+        })
+        .valueFormatter(d3.format(',.2f'))
+        ;
+
         d3.select('#chart1')
             .datum(histcatexplong)
             .transition().duration(1000)

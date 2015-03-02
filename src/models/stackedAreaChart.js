@@ -46,6 +46,7 @@ nv.models.stackedAreaChart = function() {
     yAxis.orient((rightAlignYAxis) ? 'right' : 'left');
 
     var oldYTickFormat = null;
+    var oldValueFormatter = null;
     controls.updateState(false);
 
     //============================================================
@@ -230,6 +231,22 @@ nv.models.stackedAreaChart = function() {
                     .margin({left: margin.left, top: margin.top})
                     .svgContainer(container)
                     .xScale(x);
+
+                var _tooltip = interactiveLayer.tooltip;
+                
+                if (!oldValueFormatter) {
+                    oldValueFormatter = _tooltip.valueFormatter() ? _tooltip.valueFormatter() : yAxis.tickFormat();
+                }
+                //If we are in 'expand' mode, force the format to be a percentage.
+                var valueFormatter = (stacked.style() === 'expand') ?
+                    function(d,i) {return d3.format(".1%")(d);} :
+                    oldValueFormatter;
+                    
+                _tooltip
+                    .valueFormatter(valueFormatter)
+                    .headerFormatter(_tooltip.headerFormatter() ? _tooltip.headerFormatter() : xAxis.tickFormat())
+                ;
+
                 wrap.select(".nv-interactive").call(interactiveLayer);
             }
 
@@ -376,21 +393,17 @@ nv.models.stackedAreaChart = function() {
                         allData[indexToHighlight].highlight = true;
                 }
 
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
-
-                //If we are in 'expand' mode, force the format to be a percentage.
-                var valueFormatter = (stacked.style() == 'expand') ?
-                    function(d,i) {return d3.format(".1%")(d);} :
-                    function(d,i) {return yAxis.tickFormat()(d); };
+                var xValue = chart.x()(singlePoint,pointIndex);
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .enabled(tooltips)
-                    .valueFormatter(valueFormatter)
                     .data(
                     {
                         value: xValue,
-                        series: allData
+                        series: allData,
+                        point: singlePoint,
+                        data: data
                     }
                 )();
 
