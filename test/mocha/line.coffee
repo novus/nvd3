@@ -69,6 +69,8 @@ describe 'NVD3', ->
         afterEach ->
             builder.teardown()
 
+        getTransform = (elem)-> elem[0].getAttribute 'transform'
+
         it 'api check', ->
             should.exist builder.model.options, 'options exposed'
             for opt of options
@@ -141,11 +143,10 @@ describe 'NVD3', ->
             builder.model.xAxis.ticks().should.equal 34
             builder.model.yAxis.ticks().should.equal 56
 
-        it 'can set margin.top', ->
-            builder.model.showLegend(true);
-            builder.model.margin({top: 100});
-            builder.model.update();
-            getTransform = (elem)-> elem[0].getAttribute 'transform'
+        it 'can set margin.top and legend position', ->
+            builder.model.showLegend true
+            builder.model.margin {top: 100}
+            builder.model.update()
 
             wrap = builder.$ '.nv-wrap.nv-lineChart'
             getTransform(wrap).should.equal 'translate(75,130)'
@@ -156,3 +157,34 @@ describe 'NVD3', ->
             builder.model.update()
             wrap = builder.$ '.nv-wrap.nv-lineChart'
             getTransform(wrap).should.equal 'translate(75,130)'
+
+        it 'do not allow margin 0 to clip legend', ->
+            builder.model.showLegend true
+            builder.model.margin {top: 0}
+            builder.model.update()
+            wrap = builder.$ '.nv-wrap.nv-lineChart'
+            getTransform(wrap).should.equal 'translate(75,30)'
+
+        it 'defaults to reasonable margin.top if no legend', ->
+            builder2 = new ChartBuilder nv.models.lineChart()
+            opts = 
+                showLegend: false
+
+            builder2.build opts, sampleData1
+
+            wrap = builder2.$ '.nv-wrap.nv-lineChart'
+            getTransform(wrap).should.equal 'translate(60,30)'
+
+            builder2.teardown()
+
+        it 'defaults to reasonable margin.top if show legend', ->
+            builder2 = new ChartBuilder nv.models.lineChart()
+            opts = 
+                showLegend: true
+
+            builder2.build opts, sampleData1
+
+            wrap = builder2.$ '.nv-wrap.nv-lineChart'
+            getTransform(wrap).should.equal 'translate(60,30)'
+
+            builder2.teardown()

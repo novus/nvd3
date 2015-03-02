@@ -14,7 +14,7 @@ nv.models.cumulativeLineChart = function() {
         , interactiveLayer = nv.interactiveGuideline()
         ;
 
-    var margin = {top: 0, right: 30, bottom: 50, left: 60}
+    var margin = {top: 30, right: 30, bottom: 50, left: 60}
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -225,24 +225,18 @@ nv.models.cumulativeLineChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-            // Legend
-            if (showLegend) {
-                legend.width(availableWidth);
+            // Legend creation logic.
+            var legendResult = nv.utils.createLegend(legend, {
+                showLegend: showLegend,
+                width: availableWidth,
+                height: availableHeight,
+                margin: margin,
+                data: data,
+                legendWrap: wrap.select('.nv-legendWrap')
+            });
 
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
-
-                marginTopActual = margin.top + legend.height();
-                availableHeight = nv.utils.availableHeight(
-                    height, 
-                    container, 
-                    {top: marginTopActual, bottom: margin.bottom}
-                );
-
-                g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-legend.height()) +')')
-            }
+            availableHeight = legendResult.availableHeight
+            marginTopActual = legendResult.marginTopActual
 
             // Controls
             if (showControls) {

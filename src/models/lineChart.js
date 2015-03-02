@@ -145,25 +145,18 @@ nv.models.lineChart = function() {
                 .attr("width",availableWidth)
                 .attr("height",(availableHeight > 0) ? availableHeight : 0);
 
-            // Legend
-            if (showLegend) {
-                legend.width(availableWidth);
+            // Legend creation logic.
+            var legendResult = nv.utils.createLegend(legend, {
+                showLegend: showLegend,
+                width: availableWidth,
+                height: availableHeight,
+                margin: margin,
+                data: data,
+                legendWrap: wrap.select('.nv-legendWrap')
+            });
 
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
-
-                marginTopActual = margin.top + legend.height();
-
-                availableHeight = nv.utils.availableHeight(
-                    height, 
-                    container, 
-                    {top: marginTopActual, bottom: margin.bottom}
-                );
-
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-legend.height()) +')')
-            }
+            availableHeight = legendResult.availableHeight
+            marginTopActual = legendResult.marginTopActual
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + marginTopActual + ')');
 

@@ -13,8 +13,7 @@ nv.models.historicalBarChart = function(bar_model) {
         , interactiveLayer = nv.interactiveGuideline()
         ;
 
-
-    var margin = {top: 30, right: 90, bottom: 50, left: 90}
+    var margin = {top: 0, right: 90, bottom: 50, left: 90}
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -86,6 +85,8 @@ nv.models.historicalBarChart = function(bar_model) {
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
+            var marginTopActual = margin.top;
+
             chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
             chart.container = this;
 
@@ -134,15 +135,18 @@ nv.models.historicalBarChart = function(bar_model) {
                     .datum(data)
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
-                }
+                marginTopActual = margin.top + legend.height();
 
+                availableHeight = nv.utils.availableHeight(
+                    height, 
+                    container, 
+                    {top:marginTopActual, bottom: margin.bottom}
+                );
+                
                 wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
+                    .attr('transform', 'translate(0,' + (-legend.height()) +')')
             }
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            wrap.attr('transform', 'translate(' + margin.left + ',' + marginTopActual + ')');
 
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
@@ -154,7 +158,7 @@ nv.models.historicalBarChart = function(bar_model) {
                 interactiveLayer
                     .width(availableWidth)
                     .height(availableHeight)
-                    .margin({left:margin.left, top:margin.top})
+                    .margin({left:margin.left, top:marginTopActual})
                     .svgContainer(container)
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
@@ -225,7 +229,7 @@ nv.models.historicalBarChart = function(bar_model) {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                    .position({left: pointXLocation + margin.left, top: e.mouseY + marginTopActual})
                     .chartContainer(that.parentNode)
                     .enabled(tooltips)
                     .valueFormatter(function(d,i) {
