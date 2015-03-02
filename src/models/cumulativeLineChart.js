@@ -286,6 +286,13 @@ nv.models.cumulativeLineChart = function() {
                     .margin({left:margin.left,top:margin.top})
                     .svgContainer(container)
                     .xScale(x);
+
+                var _tooltip = interactiveLayer.tooltip;
+                _tooltip
+                    .valueFormatter(_tooltip.valueFormatter() ? _tooltip.valueFormatter() : yAxis.tickFormat())
+                    .headerFormatter(_tooltip.headerFormatter() ? _tooltip.headerFormatter() : xAxis.tickFormat())
+                ;
+
                 wrap.select(".nv-interactive").call(interactiveLayer);
             }
 
@@ -482,18 +489,17 @@ nv.models.cumulativeLineChart = function() {
                         allData[indexToHighlight].highlight = true;
                 }
 
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
+                var xValue = chart.x()(singlePoint,pointIndex);
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .enabled(tooltips)
-                    .valueFormatter(function(d,i) {
-                        return yAxis.tickFormat()(d);
-                    })
                     .data(
                     {
                         value: xValue,
-                        series: allData
+                        series: allData,
+                        point: singlePoint,
+                        data: data
                     }
                 )();
 

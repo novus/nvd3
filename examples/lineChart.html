@@ -43,11 +43,9 @@
 
     nv.addGraph(function() {
         chart = nv.models.lineChart()
-            .options({
-                transitionDuration: 300,
-                useInteractiveGuideline: true
-            })
-        ;
+            .duration(300)
+            .useInteractiveGuideline(true)
+            ;
 
         // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
         chart.xAxis
@@ -60,6 +58,14 @@
             .axisLabel('Voltage (v)')
             .tickFormat(d3.format(',.2f'))
         ;
+
+        //Example of how to customize the tooltip.
+        chart.interactiveLayer
+        .tooltip
+        .valueFormatter(d3.format('%'))
+        .headerFormatter(function (d) {
+            return "Time: " + d;
+        });
 
         data = sinAndCos();
 
