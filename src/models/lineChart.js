@@ -12,7 +12,7 @@ nv.models.lineChart = function() {
         , interactiveLayer = nv.interactiveGuideline()
         ;
 
-    var margin = {top: 30, right: 20, bottom: 50, left: 60}
+    var margin = {top: 0, right: 20, bottom: 50, left: 60}
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -153,13 +153,12 @@ nv.models.lineChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
-                }
+                margin.top += legend.height();
+
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
                 wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
+                    .attr('transform', 'translate(0,' + (-legend.height()) +')')
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');

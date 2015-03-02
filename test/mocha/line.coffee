@@ -140,3 +140,16 @@ describe 'NVD3', ->
             builder.model.update()
             builder.model.xAxis.ticks().should.equal 34
             builder.model.yAxis.ticks().should.equal 56
+
+        it 'can set margin.top', ->
+            builder.model.showLegend(true);
+            builder.model.margin({top: 100});
+            builder.model.update();
+
+            wrap = builder.$ '.nv-wrap.nv-lineChart'
+            transform = wrap[0].getAttribute 'transform'
+            transform.should.equal 'translate(75,130)'
+
+            legend = builder.$ '.nv-legendWrap'
+            transform = legend[0].getAttribute 'transform'
+            transform.should.equal 'translate(0,-30)'
