@@ -88,6 +88,7 @@ nv.models.lineChart = function() {
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
+            var marginTopActual = margin.top;
 
             chart.update = function() {
                 if (duration === 0)
@@ -124,7 +125,6 @@ nv.models.lineChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-
             // Setup Scales
             x = lines.xScale();
             y = lines.yScale();
@@ -153,15 +153,19 @@ nv.models.lineChart = function() {
                     .datum(data)
                     .call(legend);
 
-                margin.top += legend.height();
+                marginTopActual = margin.top + legend.height();
 
-                availableHeight = nv.utils.availableHeight(height, container, margin);
+                availableHeight = nv.utils.availableHeight(
+                    height, 
+                    container, 
+                    {top: marginTopActual, bottom: margin.bottom}
+                );
 
                 wrap.select('.nv-legendWrap')
                     .attr('transform', 'translate(0,' + (-legend.height()) +')')
             }
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            wrap.attr('transform', 'translate(' + margin.left + ',' + marginTopActual + ')');
 
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
@@ -173,7 +177,7 @@ nv.models.lineChart = function() {
                 interactiveLayer
                     .width(availableWidth)
                     .height(availableHeight)
-                    .margin({left:margin.left, top:margin.top})
+                    .margin({left:margin.left, top:marginTopActual})
                     .svgContainer(container)
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
@@ -259,7 +263,7 @@ nv.models.lineChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                    .position({left: pointXLocation + margin.left, top: e.mouseY + marginTopActual})
                     .chartContainer(that.parentNode)
                     .enabled(tooltips)
                     .valueFormatter(function(d,i) {

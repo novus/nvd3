@@ -145,11 +145,14 @@ describe 'NVD3', ->
             builder.model.showLegend(true);
             builder.model.margin({top: 100});
             builder.model.update();
+            getTransform = (elem)-> elem[0].getAttribute 'transform'
 
             wrap = builder.$ '.nv-wrap.nv-lineChart'
-            transform = wrap[0].getAttribute 'transform'
-            transform.should.equal 'translate(75,130)'
+            getTransform(wrap).should.equal 'translate(75,130)'
 
             legend = builder.$ '.nv-legendWrap'
-            transform = legend[0].getAttribute 'transform'
-            transform.should.equal 'translate(0,-30)'
+            getTransform(legend).should.equal 'translate(0,-30)'
+
+            builder.model.update()
+            wrap = builder.$ '.nv-wrap.nv-lineChart'
+            getTransform(wrap).should.equal 'translate(75,130)'
