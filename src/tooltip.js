@@ -326,7 +326,6 @@
                         calcTooltipPosition([left,top]);
                     });
                 } else {
-                    console.log("tooltip position: ", [left, top]);
                     calcTooltipPosition([left,top]);
                 }
             });

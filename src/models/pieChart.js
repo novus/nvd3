@@ -22,9 +22,12 @@ nv.models.pieChart = function() {
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
         ;
 
-    tooltip.headerEnabled(false).duration(0).valueFormatter(function(d, i) {
-        return pie.valueFormat()(d, i);
-    });
+    tooltip
+        .headerEnabled(false)
+        .duration(0)
+        .valueFormatter(function(d, i) {
+            return pie.valueFormat()(d, i);
+        });
 
     //============================================================
     // Private Variables
@@ -175,12 +178,12 @@ nv.models.pieChart = function() {
     //------------------------------------------------------------
 
     pie.dispatch.on('elementMouseover.tooltip', function(evt) {
-        var tip_data = {series: {
+        evt['series'] = {
             key: evt.data.key,
             value: evt.data.y,
             color: evt.color
-        }};
-        tooltip.data(tip_data).hidden(false);
+        };
+        tooltip.data(evt).hidden(false);
     });
 
     pie.dispatch.on('elementMouseout.tooltip', function(evt) {
