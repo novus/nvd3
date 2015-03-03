@@ -6,7 +6,6 @@
  */
 (function() {
     "use strict";
-    window.nv.tooltip = {};
 
     /* Model which can be instantiated to handle tooltip rendering.
      Example usage:
@@ -16,8 +15,6 @@
      tip();    //just invoke the returned function to render tooltip.
      */
     nv.models.tooltip = function() {
-        //HTML contents of the tooltip.  If null, the content is generated via the data variable.
-        var content = null;
 
         /*
         Tooltip data. If data is given in the proper format, a consistent tooltip is generated.
@@ -32,9 +29,6 @@
         }
         */
         var data = null;
-
-
-
         var gravity = 'w'   //Can be 'n','s','e','w'. Determines how tooltip is positioned.
             ,   distance = 25   //Distance to offset tooltip from the mouse location.
             ,   snapDistance = 0   //Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
@@ -47,6 +41,7 @@
             ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
+            ,   headerEnabled = true
         ;
 
         //Generates a unique id when you create a new tooltip() object
@@ -68,26 +63,23 @@
         //By default, the tooltip model renders a beautiful table inside a DIV.
         //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
-            console.log("content generated d is: ", d);
-            if (content !== null) {
-                return content;
-            }
-
             if (d === null) {
                 return '';
             }
 
             var table = d3.select(document.createElement("table"));
-            var theadEnter = table.selectAll("thead")
-                .data([d])
-                .enter().append("thead");
+            if (headerEnabled) {
+                var theadEnter = table.selectAll("thead")
+                    .data([d])
+                    .enter().append("thead");
 
-            theadEnter.append("tr")
-                .append("td")
-                .attr("colspan",3)
-                .append("strong")
-                .classed("x-value",true)
-                .html(headerFormatter(d.value));
+                theadEnter.append("tr")
+                    .append("td")
+                    .attr("colspan", 3)
+                    .append("strong")
+                    .classed("x-value", true)
+                    .html(headerFormatter(d.value));
+            }
 
             var tbodyEnter = table.selectAll("tbody")
                 .data([d])
@@ -160,14 +152,31 @@
                 windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
                 windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
 
+
+                //Helper functions to find the total offsets of a given DOM element.
+                //Looks up the entire ancestry of an element, up to the first relatively positioned element.
                 var tooltipTop = function ( Elem ) {
-                    return nv.tooltip.findTotalOffsetTop(Elem, top);
+                    var offsetTop = top;
+                    do {
+                        if( !isNaN( Elem.offsetTop ) ) {
+                            offsetTop += (Elem.offsetTop);
+                        }
+                        Elem = Elem.offsetParent;
+                    } while( Elem );
+                    return offsetTop;
                 };
-
                 var tooltipLeft = function ( Elem ) {
-                    return nv.tooltip.findTotalOffsetLeft(Elem,left);
+                    var offsetLeft = left;
+                    do {
+                        if( !isNaN( Elem.offsetLeft ) ) {
+                            offsetLeft += (Elem.offsetLeft);
+                        }
+                        Elem = Elem.offsetParent;
+                    } while( Elem );
+                    return offsetLeft;
                 };
 
+                // calculate position based on gravity
                 var tLeft, tTop;
                 switch (gravity) {
                     case 'e':
@@ -217,13 +226,7 @@
                 var box = tooltipElem.getBoundingClientRect();
                 var old_translate = 'translate(' + box.left + 'px, ' + box.top + 'px)';
                 var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
-
-                console.log("moving from ", old_translate, " to ", new_translate);
                 var translateInterpolator = d3.interpolateString(old_translate, new_translate);
-
-                console.log("opacity is: ", tooltip.style('opacity'));
-                // opacity often returns 0.9999etc so account for that
-                //var is_hidden = tooltip.style('opacity') > 0.9 ? false : true;
 
                 tooltip.transition().duration(hidden ? 0 : duration)
                     .styleTween('transform', function (d) {
@@ -337,8 +340,6 @@
         nvtooltip._options = Object.create({}, {
             // simple read/write options
             duration: {get: function(){return duration;}, set: function(_){duration=_;}},
-            content: {get: function(){return content;}, set: function(_){content=_;}},
-            data: {get: function(){return data;}, set: function(_){data=_;}},
             gravity: {get: function(){return gravity;}, set: function(_){gravity=_;}},
             distance: {get: function(){return distance;}, set: function(_){distance=_;}},
             snapDistance: {get: function(){return snapDistance;}, set: function(_){snapDistance=_;}},
@@ -346,11 +347,15 @@
             chartContainer: {get: function(){return chartContainer;}, set: function(_){chartContainer=_;}},
             fixedTop: {get: function(){return fixedTop;}, set: function(_){fixedTop=_;}},
             enabled: {get: function(){return enabled;}, set: function(_){enabled=_;}},
+            contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
+            valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
+            headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
+            headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
 
             // options with extra logic
             position: {get: function(){return position;}, set: function(_){
                 position.left = _.left !== undefined ? _.left : position.left;
-                position.top = _.top !== undefined ? _.top : position.top;
+                position.top  = _.top  !== undefined ? _.top  : position.top;
             }},
             hidden: {get: function(){return hidden;}, set: function(_){
                 if (hidden != _) {
@@ -358,14 +363,13 @@
                     nvtooltip();
                 }
             }},
-            contentGenerator: {get: function(){return contentGenerator;}, set: function(_){
-                contentGenerator = typeof _ === 'function' ? _ : contentGenerator;
-            }},
-            valueFormatter: {get: function(){return valueFormatter;}, set: function(_){
-                valueFormatter = typeof _ === 'function' ? _ : valueFormatter;
-            }},
-            headerFormatter: {get: function(){return headerFormatter;}, set: function(_){
-                headerFormatter = typeof _ === 'function' ? _ : headerFormatter;
+            data: {get: function(){return data;}, set: function(_){
+                // if showing a single data point, adjust data format with that
+                if (_.point) {
+                    _.value = _.point.x;
+                    _.series.value = _.point.y;
+                }
+                data = _;
             }},
 
             // read only properties
@@ -375,34 +379,6 @@
 
         nv.utils.initOptions(nvtooltip);
         return nvtooltip;
-    };
-
-    //Finds the total offsetTop of a given DOM element.
-    //Looks up the entire ancestry of an element, up to the first relatively positioned element.
-    nv.tooltip.findTotalOffsetTop = function ( Elem, initialTop ) {
-        var offsetTop = initialTop;
-
-        do {
-            if( !isNaN( Elem.offsetTop ) ) {
-                offsetTop += (Elem.offsetTop);
-            }
-            Elem = Elem.offsetParent;
-        } while( Elem );
-        return offsetTop;
-    };
-
-    //Finds the total offsetLeft of a given DOM element.
-    //Looks up the entire ancestry of an element, up to the first relatively positioned element.
-    nv.tooltip.findTotalOffsetLeft = function ( Elem, initialLeft) {
-        var offsetLeft = initialLeft;
-
-        do {
-            if( !isNaN( Elem.offsetLeft ) ) {
-                offsetLeft += (Elem.offsetLeft);
-            }
-            Elem = Elem.offsetParent;
-        } while( Elem );
-        return offsetLeft;
     };
 
 })();

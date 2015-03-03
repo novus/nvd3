@@ -21,8 +21,6 @@ nv.models.axis = function() {
         , axisLabelDistance = 0
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')
-        , axisRendered = false
-        , maxMinRendered = false
         ;
     axis
         .scale(scale)

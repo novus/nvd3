@@ -31,22 +31,20 @@ nv.models.lineChart = function() {
         , duration = 250
         ;
 
+    // set options on sub-objects for this chart
     xAxis.orient('bottom').tickPadding(7);
-    yAxis.orient((rightAlignYAxis) ? 'right' : 'left');
+    yAxis.orient(rightAlignYAxis ? 'right' : 'left');
+    tooltip.valueFormatter(function(d, i) {
+        return yAxis.tickFormat()(d, i);
+    }).headerFormatter(function(d, i) {
+        console.log("xformatting: ", d);
+        return xAxis.tickFormat()(d, i);
+    });
+
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
-
-    var showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-            y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
-            content = tooltipContent(e.series.key, x, y, e, chart);
-
-        nv.tooltip.show([left, top], content, null, null, offsetElement);
-    };
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -256,12 +254,10 @@ nv.models.lineChart = function() {
                     .valueFormatter(function(d,i) {
                         return yAxis.tickFormat()(d);
                     })
-                    .data(
-                    {
+                    .data({
                         value: xValue,
                         series: allData
-                    }
-                )();
+                    })();
 
                 interactiveLayer.renderGuideLine(pointXLocation);
 
@@ -319,7 +315,6 @@ nv.models.lineChart = function() {
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
         var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
-        evt.series.value = chart.yAxis.tickFormat()(evt.point.y);
         tooltip.data(evt).position(pos).hidden(false);
     });
 
