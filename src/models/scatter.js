@@ -94,7 +94,13 @@ nv.models.scatter = function() {
                 .range(sizeRange || _sizeRange_def);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
-            if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) singlePoint = true;
+            if (x.domain()[0] === x.domain()[1] || y.domain()[0] === y.domain()[1]) {
+              singlePoint = true;
+            }
+            else {
+              singlePoint = false;
+            }
+
             if (x.domain()[0] === x.domain()[1])
                 x.domain()[0] ?
                     x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
@@ -124,7 +130,7 @@ nv.models.scatter = function() {
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
 
-            wrapEnter.classed('nv-single-point', singlePoint);
+            wrap.classed('nv-single-point', singlePoint);
             gEnter.append('g').attr('class', 'nv-groups');
             gEnter.append('g').attr('class', 'nv-point-paths');
 
