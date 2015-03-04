@@ -364,7 +364,7 @@
             }},
             data: {get: function(){return data;}, set: function(_){
                 // if showing a single data point, adjust data format with that
-                if (_.point) {
+                if (_.point && !(_.series instanceof Array)) {
                     _.value = _.point.x;
                     _.series.value = _.point.y;
                 }

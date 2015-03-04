@@ -233,11 +233,12 @@ nv.models.scatter = function() {
                             .attr('r', clipRadius);
                     }
 
-                    var mouseEventCallback = function(d,mDispatch) {
+                    var mouseEventCallback = function(d, mDispatch) {
                         if (needsUpdate) return 0;
                         var series = data[d.series];
-                        if (typeof series === 'undefined') return;
+                        if (series === undefined) return;
                         var point  = series.values[d.point];
+                        point['color'] = color(d, d.point);
 
                         mDispatch({
                             point: point,
@@ -316,7 +317,8 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
-                                pointIndex: i
+                                pointIndex: i,
+                                color: color(d, i)
                             });
                         })
                         .on('mouseout', function(d,i) {
@@ -328,7 +330,8 @@ nv.models.scatter = function() {
                                 point: point,
                                 series: series,
                                 seriesIndex: d.series,
-                                pointIndex: i
+                                pointIndex: i,
+                                color: color(d, i)
                             });
                         });
                 }

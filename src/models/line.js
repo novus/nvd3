@@ -176,9 +176,9 @@ nv.models.line = function() {
     chart.dispatch = dispatch;
     chart.scatter = scatter;
     // Pass through events
-    scatter.dispatch.on('elementClick', function(){ dispatch.elementClick.apply(this, arguments); })
-    scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); })
-    scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); })
+    scatter.dispatch.on('elementClick', function(){ dispatch.elementClick.apply(this, arguments); });
+    scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); });
+    scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); });
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 

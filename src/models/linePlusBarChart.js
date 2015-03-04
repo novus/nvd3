@@ -17,6 +17,7 @@ nv.models.linePlusBarChart = function() {
         , y4Axis = nv.models.axis()
         , legend = nv.models.legend()
         , brush = d3.svg.brush()
+        , tooltip = nv.models.tooltip()
         ;
 
     var margin = {top: 30, right: 30, bottom: 30, left: 60}
@@ -33,11 +34,6 @@ nv.models.linePlusBarChart = function() {
         , focusHeight = 50
         , extent
         , brushExtent = null
-        , tooltips = true
-        , tooltip = function(key, x, y, e, graph) {
-            return '<h3>' + key + '</h3>' +
-                '<p>' +  y + ' at ' + x + '</p>';
-        }
         , x
         , x2
         , y1
@@ -45,7 +41,7 @@ nv.models.linePlusBarChart = function() {
         , y3
         , y4
         , noData = null
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
+        , dispatch = d3.dispatch('brush', 'stateChange', 'changeState')
         , transitionDuration = 0
         , state = nv.utils.state()
         , defaultState = null
@@ -53,49 +49,22 @@ nv.models.linePlusBarChart = function() {
         , legendRightAxisHint = ' (right axis)'
         ;
 
-    lines
-        .clipEdge(true)
-    ;
-    lines2
-        .interactive(false)
-    ;
-    xAxis
-        .orient('bottom')
-        .tickPadding(5)
-    ;
-    y1Axis
-        .orient('left')
-    ;
-    y2Axis
-        .orient('right')
-    ;
-    x2Axis
-        .orient('bottom')
-        .tickPadding(5)
-    ;
-    y3Axis
-        .orient('left')
-    ;
-    y4Axis
-        .orient('right')
-    ;
+    lines.clipEdge(true);
+    lines2.interactive(false);
+    xAxis.orient('bottom').tickPadding(5);
+    y1Axis.orient('left');
+    y2Axis.orient('right');
+    x2Axis.orient('bottom').tickPadding(5);
+    y3Axis.orient('left');
+    y4Axis.orient('right');
+
+    tooltip.headerEnabled(true).headerFormatter(function(d, i) {
+        return xAxis.tickFormat()(d, i);
+    });
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
-
-    var showTooltip = function(e, offsetElement) {
-        if (extent) {
-            e.pointIndex += Math.ceil(extent[0]);
-        }
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-            y = (e.series.bar ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
-            content = tooltip(e.series.key, x, y, e, chart);
-
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-    };
 
     var stateGetter = function(data) {
         return function(){
@@ -355,14 +324,6 @@ nv.models.linePlusBarChart = function() {
                 chart.update();
             });
 
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
-            dispatch.on('tooltipHide', function() {
-                if (tooltips) nv.tooltip.cleanup();
-            });
-
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined') {
@@ -517,22 +478,48 @@ nv.models.linePlusBarChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+    lines.dispatch.on('elementMouseover.tooltip', function(evt) {
+        var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
+        evt.value = evt.point.x;
+        evt.series = {
+            value: evt.point.y,
+            color: evt.point.color
+        };
+        tooltip
+            .duration(100)
+            .valueFormatter(function(d, i) {
+                return y2Axis.tickFormat()(d, i);
+            })
+            .data(evt)
+            .position(pos)
+            .hidden(false);
     });
 
-    lines.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
+    lines.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.hidden(true)
     });
 
-    bars.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+    bars.dispatch.on('elementMouseover.tooltip', function(evt) {
+        evt.value = evt.data.x;
+        evt['series'] = {
+            value: evt.data.y,
+            color: evt.color
+        };
+        tooltip
+            .duration(0)
+            .valueFormatter(function(d, i) {
+                return y1Axis.tickFormat()(d, i);
+            })
+            .data(evt)
+            .hidden(false);
     });
 
-    bars.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
+    bars.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.hidden(true);
+    });
+
+    bars.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
     });
 
     //============================================================
@@ -555,6 +542,7 @@ nv.models.linePlusBarChart = function() {
     chart.y2Axis = y2Axis;
     chart.y3Axis = y3Axis;
     chart.y4Axis = y4Axis;
+    chart.tooltip = tooltip;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -563,8 +551,6 @@ nv.models.linePlusBarChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         brushExtent:    {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},
@@ -573,6 +559,18 @@ nv.models.linePlusBarChart = function() {
         focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
         legendLeftAxisHint:    {get: function(){return legendLeftAxisHint;}, set: function(_){legendLeftAxisHint=_;}},
         legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
