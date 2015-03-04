@@ -33,6 +33,7 @@
     // and may do more in the future... it's NOT required
     nv.addGraph(function() {
         var chart = nv.models.cumulativeLineChart()
+            .margin({top: 40})
             .useInteractiveGuideline(true)
             .x(function(d) { return d[0] })
             .y(function(d) { return d[1]/100 })

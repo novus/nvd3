@@ -14,7 +14,7 @@ nv.models.cumulativeLineChart = function() {
         , interactiveLayer = nv.interactiveGuideline()
         ;
 
-    var margin = {top: 30, right: 30, bottom: 50, left: 60}
+    var margin = {top: 0, right: 30, bottom: 50, left: 60}
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -111,6 +111,8 @@ nv.models.cumulativeLineChart = function() {
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
+
+            var marginTopActual = margin.top;
 
             chart.update = function() {
                 if (duration === 0)
@@ -223,22 +225,18 @@ nv.models.cumulativeLineChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-controlsWrap');
 
-            // Legend
-            if (showLegend) {
-                legend.width(availableWidth);
+            // Legend creation logic.
+            var legendResult = nv.utils.createLegend(legend, {
+                showLegend: showLegend,
+                width: availableWidth,
+                height: availableHeight,
+                margin: margin,
+                data: data,
+                legendWrap: wrap.select('.nv-legendWrap')
+            });
 
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
-
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
-                }
-
-                g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
-            }
+            availableHeight = legendResult.availableHeight
+            marginTopActual = legendResult.marginTopActual
 
             // Controls
             if (showControls) {
@@ -255,11 +253,11 @@ nv.models.cumulativeLineChart = function() {
 
                 g.select('.nv-controlsWrap')
                     .datum(controlsData)
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
+                    .attr('transform', 'translate(0,' + (-legend.height()) +')')
                     .call(controls);
             }
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            wrap.attr('transform', 'translate(' + margin.left + ',' + marginTopActual + ')');
 
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
@@ -283,7 +281,7 @@ nv.models.cumulativeLineChart = function() {
                 interactiveLayer
                     .width(availableWidth)
                     .height(availableHeight)
-                    .margin({left:margin.left,top:margin.top})
+                    .margin({left:margin.left,top:marginTopActual})
                     .svgContainer(container)
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
@@ -484,7 +482,7 @@ nv.models.cumulativeLineChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                    .position({left: pointXLocation + margin.left, top: e.mouseY + marginTopActual})
                     .chartContainer(that.parentNode)
                     .enabled(tooltips)
                     .valueFormatter(function(d,i) {

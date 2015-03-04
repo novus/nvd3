@@ -44,8 +44,10 @@
     nv.addGraph(function() {
         chart = nv.models.lineChart()
             .options({
+                margin: {top: 30, bottom: 100},
+                showLegend: false,
                 transitionDuration: 300,
-                useInteractiveGuideline: true
+                useInteractiveGuideline: false
             })
         ;
 

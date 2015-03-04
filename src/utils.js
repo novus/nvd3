@@ -598,6 +598,38 @@ nv.utils.availableWidth = function(width, container, margin) {
 };
 
 /*
+The logic for positioning the legend on all charts is the same.
+This utility factors out that logic.
+*/
+nv.utils.createLegend = function(legend, options) {
+    var margin = options.margin;
+    var marginTopActual = margin.top;
+    var minMarginTop = 30; //minimum margin top.
+    var availableHeight;
+    if (options.showLegend) {
+        legend.width(options.width);
+
+        options.legendWrap
+            .datum(options.data)
+            .call(legend);
+
+        marginTopActual = margin.top + legend.height();
+
+        options.legendWrap.attr('transform', 'translate(0,' + (-legend.height()) +')');
+    }
+    marginTopActual = d3.max([minMarginTop, marginTopActual]);
+    availableHeight = nv.utils.availableHeight(
+        options.height,
+        null, 
+        {top: marginTopActual, bottom: margin.bottom}
+    );
+    return {
+        marginTopActual: marginTopActual,
+        availableHeight: availableHeight
+    };
+};
+
+/*
 Clear any rendered chart components and display a chart's 'noData' message
 */
 nv.utils.noData = function(chart, container) {

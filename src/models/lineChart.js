@@ -12,7 +12,7 @@ nv.models.lineChart = function() {
         , interactiveLayer = nv.interactiveGuideline()
         ;
 
-    var margin = {top: 30, right: 20, bottom: 50, left: 60}
+    var margin = {top: 0, right: 20, bottom: 50, left: 60}
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -88,6 +88,7 @@ nv.models.lineChart = function() {
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
+            var marginTopActual = margin.top;
 
             chart.update = function() {
                 if (duration === 0)
@@ -124,7 +125,6 @@ nv.models.lineChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-
             // Setup Scales
             x = lines.xScale();
             y = lines.yScale();
@@ -145,24 +145,20 @@ nv.models.lineChart = function() {
                 .attr("width",availableWidth)
                 .attr("height",(availableHeight > 0) ? availableHeight : 0);
 
-            // Legend
-            if (showLegend) {
-                legend.width(availableWidth);
+            // Legend creation logic.
+            var legendResult = nv.utils.createLegend(legend, {
+                showLegend: showLegend,
+                width: availableWidth,
+                height: availableHeight,
+                margin: margin,
+                data: data,
+                legendWrap: wrap.select('.nv-legendWrap')
+            });
 
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
+            availableHeight = legendResult.availableHeight
+            marginTopActual = legendResult.marginTopActual
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
-                }
-
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
-            }
-
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            wrap.attr('transform', 'translate(' + margin.left + ',' + marginTopActual + ')');
 
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
@@ -174,7 +170,7 @@ nv.models.lineChart = function() {
                 interactiveLayer
                     .width(availableWidth)
                     .height(availableHeight)
-                    .margin({left:margin.left, top:margin.top})
+                    .margin({left:margin.left, top:marginTopActual})
                     .svgContainer(container)
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
@@ -260,7 +256,7 @@ nv.models.lineChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                    .position({left: pointXLocation + margin.left, top: e.mouseY + marginTopActual})
                     .chartContainer(that.parentNode)
                     .enabled(tooltips)
                     .valueFormatter(function(d,i) {
