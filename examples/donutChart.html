@@ -18,6 +18,11 @@
             height: 350px !important;
             width: 350px !important;
         }
+		#test3 {
+			height: 500px !important;
+            width: 500px !important;
+		}
+		
         html, body {
             margin: 0px;
             padding: 0px;
@@ -30,7 +35,6 @@
         }
 
         .nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {
-            font-size: 45px;
             opacity: 0.4;
             fill: rgba(224, 116, 76, 0.91);
         }
@@ -39,9 +43,13 @@
 </head>
 <body class='with-3d-shadow with-transitions'>
 
+<svg id="test3" class="mypiechart"></svg>
+
 <svg id="test1" class="mypiechart"></svg>
 
 <svg id="test2" class="mypiechart"></svg>
+
+
 
 <script>
 
@@ -82,7 +90,7 @@
         return chart;
 
     });
-
+	
     nv.addGraph(function() {
         var chart = nv.models.pieChart()
             .x(function(d) { return d.key })
@@ -111,6 +119,31 @@
             .call(chart);
 
         return chart;
+    });
+	
+	nv.addGraph(function() {
+        var chart = nv.models.pieChart()
+            .x(function(d) { return d.key })
+            .y(function(d) { return d.y })
+            .donut(true)
+            .width(width)
+            .height(height)
+            .padAngle(.08)
+            .cornerRadius(5)
+            .id('donut1'); // allow custom CSS for this one svg
+
+        chart.title("100%");
+        chart.pie.donutLabelsOutside(true).donut(true);
+
+        d3.select("#test3")
+            .datum(testdata)
+            .transition().duration(1200)
+            .attr('width', width)
+            .attr('height', height)
+            .call(chart);
+
+        return chart;
+
     });
 
 </script>
