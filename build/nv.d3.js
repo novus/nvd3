@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.1(https://github.com/novus/nvd3) 2015-02-08 */
+/* nvd3 version 1.8.1-alpha(https://github.com/novus/nvd3) 2015-03-04 */
 (function(){
 
 // set up main nv object on window
@@ -11353,5 +11353,5 @@ nv.models.stackedAreaChart = function() {
     return chart;
 };
 
-nv.version = "1.7.1";
+nv.version = "1.8.1-alpha";
 })();
