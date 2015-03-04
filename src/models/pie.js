@@ -111,7 +111,7 @@ nv.models.pie = function() {
                     .text(function (d) {
                         return title;
                     })
-                    .style("font-size", Math.min(availableWidth, availableHeight) / 6 + "px")
+                    .style("font-size", (Math.min(availableWidth, availableHeight)) * donutRatio * 2 / (title.length + 2) + "px")
                     .attr("dy", "0.35em") // trick to vertically center text
                     .attr('transform', function(d, i) {
                         return 'translate(0, '+ titleOffset + ')';
