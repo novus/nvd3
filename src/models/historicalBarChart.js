@@ -191,9 +191,9 @@ nv.models.historicalBarChart = function(bar_model) {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
                         bars.highlightPoint(pointIndex,true);
                         var point = series.values[pointIndex];
-                        if (typeof point === 'undefined') return;
-                        if (typeof singlePoint === 'undefined') singlePoint = point;
-                        if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                        if (point === undefined) return;
+                        if (singlePoint === undefined) singlePoint = point;
+                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
                             value: chart.y()(point, pointIndex),
@@ -206,16 +206,13 @@ nv.models.historicalBarChart = function(bar_model) {
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
-                    .enabled(tooltips)
                     .valueFormatter(function(d,i) {
                         return yAxis.tickFormat()(d);
                     })
-                    .data(
-                    {
+                    .data({
                         value: xValue,
                         series: allData
-                    }
-                )();
+                    })();
 
                 interactiveLayer.renderGuideLine(pointXLocation);
 
