@@ -1,4 +1,4 @@
-var version = '1.7.1';
+var version = '1.8.1';
 module.exports = function(grunt) {
     var _pkg = grunt.file.readJSON('package.json');
 

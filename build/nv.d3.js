@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.1 (https://github.com/novus/nvd3) 2015-03-04 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-04 */
 (function(){
 
 // set up main nv object
@@ -8769,14 +8769,14 @@ nv.models.pie = function() {
 
             // if title is specified and donut, put it in the middle
             if (donut && title) {
-                var title_g = g_pie.append('g').attr('class', 'nv-pie');
+                g_pie.append("text").attr('class', 'nv-pie-title');
 
-                title_g.append("text")
+                wrap.select('.nv-pie-title')
                     .style("text-anchor", "middle")
-                    .attr('class', 'nv-pie-title')
                     .text(function (d) {
                         return title;
                     })
+                    .style("font-size", (Math.min(availableWidth, availableHeight)) * donutRatio * 2 / (title.length + 2) + "px")
                     .attr("dy", "0.35em") // trick to vertically center text
                     .attr('transform', function(d, i) {
                         return 'translate(0, '+ titleOffset + ')';
@@ -11737,5 +11737,5 @@ nv.models.sunburstChart = function() {
     return chart;
 };
 
-nv.version = "1.7.1";
+nv.version = "1.8.1";
 })();
