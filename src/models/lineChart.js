@@ -37,7 +37,6 @@ nv.models.lineChart = function() {
     tooltip.valueFormatter(function(d, i) {
         return yAxis.tickFormat()(d, i);
     }).headerFormatter(function(d, i) {
-        console.log("xformatting: ", d);
         return xAxis.tickFormat()(d, i);
     });
 

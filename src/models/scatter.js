@@ -145,8 +145,6 @@ nv.models.scatter = function() {
 
                 if (!interactive) return false;
 
-                var eventElements;
-
                 var vertices = d3.merge(data.map(function(group, groupIndex) {
                         return group.values
                             .map(function(point, pointIndex) {
@@ -238,7 +236,7 @@ nv.models.scatter = function() {
                         var series = data[d.series];
                         if (series === undefined) return;
                         var point  = series.values[d.point];
-                        point['color'] = color(d, d.point);
+                        point['color'] = color(series, d.series);
 
                         mDispatch({
                             point: point,
