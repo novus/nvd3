@@ -23,7 +23,7 @@ nv.models.discreteBarChart = function() {
         , x
         , y
         , noData = null
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate','renderEnd')
+        , dispatch = d3.dispatch('beforeUpdate','renderEnd')
         , duration = 250
         ;
 
@@ -43,7 +43,6 @@ nv.models.discreteBarChart = function() {
             return yAxis.tickFormat()(d, i);
         })
         .headerFormatter(function(d, i) {
-            console.log("xformatting: ", d);
             return xAxis.tickFormat()(d, i);
         });
 
@@ -194,6 +193,7 @@ nv.models.discreteBarChart = function() {
     chart.discretebar = discretebar;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
+    chart.tooltip = tooltip;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
