@@ -36,6 +36,7 @@
             ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
             ,   chartContainer = null   //Parent dom element of the SVG that holds the chart.
             ,   hidden = true  // start off hidden, toggle with hide/show functions below
+            ,   hideDelay = 400  // delay before the tooltip hides after calling hide()
             ,   tooltip = null // d3 select of tooltipElem below
             ,   tooltipElem = null  //actual DOM element representing the tooltip.
             ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
@@ -223,16 +224,35 @@
                         break;
                 }
 
+                // using tooltip.style('transform') returns values un-usable for tween
                 var box = tooltipElem.getBoundingClientRect();
                 var old_translate = 'translate(' + box.left + 'px, ' + box.top + 'px)';
                 var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
                 var translateInterpolator = d3.interpolateString(old_translate, new_translate);
 
-                tooltip.transition().duration(hidden ? 0 : duration)
-                    .styleTween('transform', function (d) {
-                        return translateInterpolator;
-                    });
-                tooltip.style('opacity', hidden ? 0 : 1);
+                var is_hidden = tooltip.style('opacity') < 0.1;
+
+                // delay hiding a bit to avoid flickering
+                if (hidden) {
+                    tooltip
+                        .transition()
+                        .delay(hideDelay)
+                        .duration(0)
+                        .style('opacity', 0);
+                } else {
+                    tooltip
+                        .interrupt() // cancel running transitions
+                        .transition()
+                        .duration(is_hidden ? 0 : duration)
+                        // using tween since some versions of d3 can't auto-tween a translate on a div
+                        .styleTween('transform', function (d) {
+                            return translateInterpolator;
+                        })
+                        .style('opacity', 1);
+                }
+
+
+
             });
         };
 
@@ -346,6 +366,7 @@
             chartContainer: {get: function(){return chartContainer;}, set: function(_){chartContainer=_;}},
             fixedTop: {get: function(){return fixedTop;}, set: function(_){fixedTop=_;}},
             enabled: {get: function(){return enabled;}, set: function(_){enabled=_;}},
+            hideDelay: {get: function(){return hideDelay;}, set: function(_){hideDelay=_;}},
             contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
             valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
             headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
