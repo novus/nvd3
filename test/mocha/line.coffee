@@ -12,6 +12,7 @@ describe 'NVD3', ->
 
         sampleData2 = [
             key: 'Series 1'
+            classed: 'dashed'
             values: [
                 [-1,-3]
                 [0,6]
@@ -90,7 +91,7 @@ describe 'NVD3', ->
         it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.lineChart()
             builder.buildover options, sampleData1, []
-            
+
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 
@@ -140,3 +141,9 @@ describe 'NVD3', ->
             builder.model.update()
             builder.model.xAxis.ticks().should.equal 34
             builder.model.yAxis.ticks().should.equal 56
+
+        it 'can add custom CSS class to series', ->
+            builder.updateData sampleData2
+
+            lines = builder.$ '.nv-linesWrap .nv-groups .nv-group.dashed'
+            lines.length.should.equal 1, 'dashed class exists'
