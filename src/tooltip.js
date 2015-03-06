@@ -387,6 +387,7 @@
                 // if showing a single data point, adjust data format with that
                 if (_.point) {
                     _.value = _.point.x;
+                    _.series = _.series || {};
                     _.series.value = _.point.y;
                     _.series.color = _.point.color || _.series.color;
                 }
