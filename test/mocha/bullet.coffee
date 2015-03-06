@@ -47,8 +47,9 @@ describe 'NVD3', ->
             builder1.teardown()
 
         it 'api check', ->
-            for opt of options
-                should.exist builder1.model[opt](), "#{opt} can be called"
+          should.exist builder1.model.options, 'options exposed'
+          for opt of options
+              should.exist builder1.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
             wrap = builder1.$ 'g.nvd3.nv-bulletChart'
@@ -138,6 +139,15 @@ describe 'NVD3', ->
               noData: 'No Data Available'
             builder.build options, {}
             builder.svg.textContent.should.be.equal 'No Data Available'
+
+
+          it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.bulletChart()
+            builder.buildover options, sampleData, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
 
           it 'margin', ->
             options =

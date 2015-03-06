@@ -34,12 +34,22 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
+
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.sparklinePlus()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
 
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-sparklineplus'
             should.exist wrap[0]
+
+
 
         it 'has correct structure', ->
           cssClasses = [

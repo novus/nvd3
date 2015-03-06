@@ -56,6 +56,7 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
@@ -63,19 +64,33 @@ describe 'NVD3', ->
             wrap = builder.$ 'g.nvd3.nv-multiBarHorizontalChart'
             should.exist wrap[0]
 
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.multiBarHorizontalChart()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
         it 'has correct structure', ->
-          cssClasses = [
-            '.nv-x.nv-axis'
-            '.nv-y.nv-axis'
-            '.nv-barsWrap'
-            '.nv-multibarHorizontal'
-            '.nv-legendWrap'
-            '.nv-controlsWrap'
-          ]
-          for cssClass in cssClasses
-            do (cssClass) ->
-              should.exist builder.$("g.nvd3.nv-multiBarHorizontalChart #{cssClass}")[0]
+            cssClasses = [
+                '.nv-x.nv-axis'
+                '.nv-y.nv-axis'
+                '.nv-barsWrap'
+                '.nv-multibarHorizontal'
+                '.nv-legendWrap'
+                '.nv-controlsWrap'
+            ]
+            for cssClass in cssClasses
+                do (cssClass) ->
+                  should.exist builder.$("g.nvd3.nv-multiBarHorizontalChart #{cssClass}")[0]
 
         it 'renders bars', ->
-          bars = builder.$('g.nvd3.nv-multiBarHorizontalChart .nv-multibarHorizontal .nv-bar')
-          bars.should.have.length 12
+            bars = builder.$('g.nvd3.nv-multiBarHorizontalChart .nv-multibarHorizontal .nv-bar')
+            bars.should.have.length 12
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56

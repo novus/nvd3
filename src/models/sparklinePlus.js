@@ -20,7 +20,7 @@ nv.models.sparklinePlus = function() {
         , showValue = true
         , alignValue = true
         , rightAlignValue = false
-        , noData = "No Data Available."
+        , noData = null
         ;
 
     function chart(selection) {
@@ -28,28 +28,15 @@ nv.models.sparklinePlus = function() {
             var container = d3.select(this);
             nv.utils.initSVG(container);
 
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height')) || 400)
-                    - margin.top - margin.bottom;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() { chart(selection) };
             chart.container = this;
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container)
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();

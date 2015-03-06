@@ -23,6 +23,7 @@ nv.models.multiBarHorizontal = function() {
         , showValues = false
         , showBarLabels = false
         , valuePadding = 60
+        , groupSpacing = 0.1
         , valueFormat = d3.format(',.2f')
         , delay = 1200
         , xDomain
@@ -30,7 +31,7 @@ nv.models.multiBarHorizontal = function() {
         , xRange
         , yRange
         , duration = 250
-        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout','renderEnd')
+        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
     //============================================================
@@ -90,7 +91,7 @@ nv.models.multiBarHorizontal = function() {
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-                .rangeBands(xRange || [0, availableHeight], .1);
+                .rangeBands(xRange || [0, availableHeight], groupSpacing);
 
             y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
 
@@ -147,47 +148,46 @@ nv.models.multiBarHorizontal = function() {
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pos: [ y(getY(d,i) + (stacked ? d.y0 : 0)), x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length) ],
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                 })
                 .on('mouseout', function(d,i) {
                     d3.select(this).classed('hover', false);
                     dispatch.elementMouseout({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
+                    });
+                })
+                .on('mouseout', function(d,i) {
+                    dispatch.elementMouseout({
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                 })
                 .on('click', function(d,i) {
                     dispatch.elementClick({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
                 })
                 .on('dblclick', function(d,i) {
                     dispatch.elementDblClick({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
                 });
@@ -218,13 +218,13 @@ nv.models.multiBarHorizontal = function() {
                     .attr('text-anchor', function(d,i) { return getY(d,i) < 0 ? 'end' : 'start' })
                     .attr('y', x.rangeBand() / (data.length * 2))
                     .attr('dy', '.32em')
-                    .html(function(d,i) {
+                    .text(function(d,i) {
                         var t = valueFormat(getY(d,i))
                             , yerr = getYerr(d,i);
                         if (yerr === undefined)
                             return t;
                         if (!yerr.length)
-                            return t + '&plusmn;' + valueFormat(Math.abs(yerr));
+                            return t + '±' + valueFormat(Math.abs(yerr));
                         return t + '+' + valueFormat(Math.abs(yerr[1])) + '-' + valueFormat(Math.abs(yerr[0]));
                     });
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
@@ -327,6 +327,7 @@ nv.models.multiBarHorizontal = function() {
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         valuePadding: {get: function(){return valuePadding;}, set: function(_){valuePadding=_;}},
+        groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -342,8 +343,8 @@ nv.models.multiBarHorizontal = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
         }},
-        barColor:  {get: function(){return color;}, set: function(_){
-            barColor = nv.utils.getColor(_);
+        barColor:  {get: function(){return barColor;}, set: function(_){
+            barColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 

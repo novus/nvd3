@@ -70,6 +70,7 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
@@ -85,6 +86,14 @@ describe 'NVD3', ->
 
             noData = builder.$ '.nv-noData'
             noData[0].textContent.should.equal 'No Data Available'
+
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.lineChart()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
 
         it 'interactive tooltip', ->
             builder = new ChartBuilder nv.models.lineChart()
@@ -108,6 +117,9 @@ describe 'NVD3', ->
 
             builder.model.interactiveLayer.dispatch.elementMouseout()
 
+            tooltip = document.querySelector '.nvtooltip-pending-removal'
+            should.exist tooltip, 'hidden tooltip exists after mouseout'
+
         it 'has correct structure', ->
           cssClasses = [
             '.nv-x.nv-axis'
@@ -121,3 +133,10 @@ describe 'NVD3', ->
           for cssClass in cssClasses
             do (cssClass) ->
               should.exist builder.$("g.nvd3.nv-lineChart #{cssClass}")[0]
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56

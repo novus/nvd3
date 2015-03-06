@@ -4,6 +4,7 @@ Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ock
 
 [View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/novus/nvd3.svg?branch=development)](https://travis-ci.org/novus/nvd3)
 
+
 ## Usage
 Simply add the `nv.d3` assets to your project and include them in your HTML.
 
@@ -16,7 +17,12 @@ Simply add the `nv.d3` assets to your project and include them in your HTML.
 * Prefer minified assets (`.min`) for production.
 
 ### Dependencies
-NVD3 depends on [d3.js](http://d3js.org/), and is tested on version 3.3.13. There is currently [a minor bug](https://github.com/novus/nvd3/issues/760) associated with version 3.5.
+
+NVD3 should work with the latest [d3.js](http://d3js.org/) version 3.5.3 and later.
+
+**Minimum D3 version required: 3.4.4**
+
+Along with `pieChart` options `padAngle` and `cornerRadius`, the interactive guideline tooltip now requires these later versions of D3 (3.4.4+, specifically, to get interactive tooltips). The interactive guide lines rely on the more recent `d3.bisector()` method which treats accessors taking two parameters (the second being the element index) as comparators (see [d3.bisector()](https://github.com/mbostock/d3/wiki/Arrays#d3_bisector)).
 
 
 ## Supported Browsers
@@ -73,6 +79,12 @@ Found a bug?  Check out the `development` branch and make sure it's not already 
 
 ---
 
+# Optional dependencies
+
+Including [Fastdom](https://github.com/wilsonpage/fastdom) in your project can greatly increase the performance of the line chart (particularly in Firefox and Internet Explorer) by batching DOM read and write operations to avoid [layout thrashing](http://wilsonpage.co.uk/preventing-layout-thrashing/). NVD3 will take advantage of Fastdom if present.
+
+---
+
 # Contributing
 
 If one of [the existing models](https://github.com/nvd3-community/nvd3/tree/development/src/models)
@@ -105,15 +117,13 @@ only include the source files you changed!
 
 ## Building latest
 
-1. First clone the repository and checkout the "development" branch
-2. make sure nodejs is installed via your system's package manager.
-3. Install grunt-cli and bower: npm install -g bower grunt-cli
+1. First clone the repository and checkout the `development` branch
+2. make sure `nodejs` is installed via your system's package manager.
+3. Install `grunt`, `grunt-cli`, and `bower`:  `npm install -g grunt grunt-cli bower`
 
-> have node download it's required modules with:  npm install
+> have node download nvd3's required modules with:  `npm install`
 
-> install grunt globally:  sudo npm install -g grunt
-
-> build with:  grunt production
+> build with:  `grunt production`
 
 You should now have a `build` directory with the js and css files within.
 

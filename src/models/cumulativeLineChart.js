@@ -35,7 +35,7 @@ nv.models.cumulativeLineChart = function() {
         , id = lines.id()
         , state = nv.utils.state()
         , defaultState = null
-        , noData = 'No Data Available.'
+        , noData = null
         , average = function(d) { return d.average }
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , transitionDuration = 250
@@ -109,10 +109,8 @@ nv.models.cumulativeLineChart = function() {
             container.classed('nv-chart-' + id, true);
             var that = this;
 
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height')) || 400)
-                    - margin.top - margin.bottom;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
                 if (duration === 0)
@@ -169,18 +167,7 @@ nv.models.cumulativeLineChart = function() {
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container)
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -246,8 +233,7 @@ nv.models.cumulativeLineChart = function() {
 
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
-                    availableHeight = (height || parseInt(container.style('height')) || 400)
-                        - margin.top - margin.bottom;
+                    availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
 
                 g.select('.nv-legendWrap')
@@ -389,7 +375,7 @@ nv.models.cumulativeLineChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks( nv.utils.calcTicksX(availableWidth/70, data) )
+                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/70, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -401,7 +387,7 @@ nv.models.cumulativeLineChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                    .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -523,9 +509,12 @@ nv.models.cumulativeLineChart = function() {
                 if (tooltips) showTooltip(e, that.parentNode);
             });
 
+            dispatch.on('tooltipHide', function() {
+                if (tooltips) nv.tooltip.cleanup();
+            });
+
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
-
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
@@ -569,10 +558,6 @@ nv.models.cumulativeLineChart = function() {
 
     lines.dispatch.on('elementMouseout.tooltip', function(e) {
         dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
     });
 
     //============================================================
@@ -620,6 +605,7 @@ nv.models.cumulativeLineChart = function() {
     chart.dispatch = dispatch;
     chart.lines = lines;
     chart.legend = legend;
+    chart.controls = controls;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.interactiveLayer = interactiveLayer;
