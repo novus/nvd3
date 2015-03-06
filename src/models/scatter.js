@@ -371,7 +371,7 @@ nv.models.scatter = function() {
                 })
                 .attr('d',
                     nv.utils.symbol()
-                    .type(getShape)
+                    .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
             points.exit().remove();
@@ -396,7 +396,7 @@ nv.models.scatter = function() {
                 })
                 .attr('d',
                     nv.utils.symbol()
-                    .type(getShape)
+                    .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
 
