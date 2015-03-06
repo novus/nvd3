@@ -392,7 +392,6 @@ nv.models.stackedAreaChart = function() {
             });
 
             interactiveLayer.dispatch.on("elementMouseout",function(e) {
-                dispatch.tooltipHide();
                 stacked.clearHighlights();
             });
 
