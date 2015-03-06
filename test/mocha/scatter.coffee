@@ -206,4 +206,28 @@ describe 'NVD3', ->
                 ), 500)
 
             , 500
-                
+
+        it 'sets nv-single-point class if only one data point', ->
+            builder.teardown()
+
+            singleData = [
+                key: 'Series1'
+                values: [
+                    [1,1]
+                ]
+            ]
+
+            builder.build options, singleData
+
+            builder.svg.querySelector('.nv-wrap.nv-scatter')
+            .className.should.contain 'nv-single-point'
+
+            builder.updateData sampleData1
+
+            builder.svg.querySelector('.nv-wrap.nv-scatter')
+            .className.should.not.contain 'nv-single-point'
+
+            builder.updateData singleData
+
+            builder.svg.querySelector('.nv-wrap.nv-scatter')
+            .className.should.contain 'nv-single-point'
