@@ -45,9 +45,9 @@
     </div>
 </div>
 <div class="container">
-    <div style="height: 10px; width: 100%; float: left; display: inline-block;"></div>
-    <div style="position: relative; margin-top: 20px; margin-left: 20px; margin-bottom: -50px; margin-right: -50px; display: inline-block; width: 300px; height: 300px;">
-        <div style="position: absolute; right: 100; bottom: 0; display: inline-block; width: 200px; height: 200px;">
+    <div style="height: 10px; width: 100%; display: inline-block;"></div>
+    <div style="position: relative; margin-top: 20px; margin-left: 20px; margin-bottom: -50px; margin-right: -50px; display: inline-block; width: 300px; height: 400px;">
+        <div style="position: absolute; right: 100; bottom: 0; display: inline-block; width: 300px; height: 300px;">
             <svg id="test2">
             </svg>
         </div>
@@ -87,6 +87,8 @@
         chart = nv.models.lineChart()
                 .showXAxis(false)
                 .showLegend(false)
+                .clipVoronoi(false)
+                .showVoronoi(true)
                 .showYAxis(false);
         d3.select('#test2')
                 .datum(sinAndCos())
@@ -97,7 +99,7 @@
     function sinAndCos() {
         var cos = [];
         for (var i = 0; i < 5; i++) {
-            cos.push({x: i, y: .5 * Math.cos(i/10)});
+            cos.push({x: i, y: Math.round(.5 * Math.cos(i/10) * 100) / 100});
         }
         return [{
             values: cos,

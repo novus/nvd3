@@ -314,12 +314,10 @@ nv.models.scatterChart = function() {
 
             scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
                 d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
-                    .attr('y1', evt.pos[1] - availableHeight);
+                    .attr('y1', evt.pos.top - availableHeight - margin.top);
                 d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
-                    .attr('x2', evt.pos[0] + distX.size());
-
-                var pos = {left: evt.pos[0] + margin.left, top: evt.pos[1] + margin.top};
-                tooltip.position(pos).data(evt).hidden(false);
+                    .attr('x2', evt.pos.left + distX.size() - margin.left);
+                tooltip.position(evt.pos).data(evt).hidden(false);
             });
 
             //store old scales for use in transitions on update

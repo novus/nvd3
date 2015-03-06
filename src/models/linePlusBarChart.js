@@ -479,7 +479,6 @@ nv.models.linePlusBarChart = function() {
     //------------------------------------------------------------
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
         evt.value = evt.point.x;
         evt.series = {
             value: evt.point.y,
@@ -491,7 +490,7 @@ nv.models.linePlusBarChart = function() {
                 return y2Axis.tickFormat()(d, i);
             })
             .data(evt)
-            .position(pos)
+            .position(evt.pos)
             .hidden(false);
     });
 

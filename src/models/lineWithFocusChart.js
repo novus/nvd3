@@ -366,8 +366,7 @@ nv.models.lineWithFocusChart = function() {
     //------------------------------------------------------------
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
-        tooltip.data(evt).position(pos).hidden(false);
+        tooltip.data(evt).position(evt.pos).hidden(false);
     });
 
     lines.dispatch.on('elementMouseout.tooltip', function(evt) {

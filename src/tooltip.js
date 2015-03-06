@@ -226,7 +226,9 @@
 
                 // using tooltip.style('transform') returns values un-usable for tween
                 var box = tooltipElem.getBoundingClientRect();
-                var old_translate = 'translate(' + box.left + 'px, ' + box.top + 'px)';
+                var scrollTop  = window.pageYOffset || document.documentElement.scrollTop;
+                var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                var old_translate = 'translate(' + (box.left + scrollLeft) + 'px, ' + (box.top + scrollTop) + 'px)';
                 var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
                 var translateInterpolator = d3.interpolateString(old_translate, new_translate);
 

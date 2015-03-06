@@ -246,7 +246,6 @@ nv.models.multiChart = function() {
 
             function mouseover_line(evt) {
                 var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
-                var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
                 evt.value = evt.point.x;
                 evt.series = {
                     value: evt.point.y,
@@ -258,7 +257,7 @@ nv.models.multiChart = function() {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(pos)
+                    .position(evt.pos)
                     .hidden(false);
             }
 

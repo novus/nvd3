@@ -27,6 +27,7 @@ nv.models.scatter = function() {
         , padDataOuter = .1 //outerPadding to imitate ordinal scale outer padding
         , clipEdge     = false // if true, masks points within x and y scale
         , clipVoronoi  = true // if true, masks each point with a circle... can turn off to slightly increase performance
+        , showVoronoi  = false // display the voronoi areas
         , clipRadius   = function() { return 25 } // function to get the radius for voronoi point clips
         , xDomain      = null // Override x domain (skips the calculation from data)
         , yDomain      = null // Override y domain
@@ -199,7 +200,7 @@ nv.models.scatter = function() {
                     // nuke all voronoi paths on reload and recreate them
                     wrap.select('.nv-point-paths').selectAll('path').remove();
                     var pointPaths = wrap.select('.nv-point-paths').selectAll('path').data(voronoi);
-                    pointPaths
+                    var vPointPaths = pointPaths
                         .enter().append("svg:path")
                         .attr("d", function(d) {
                             if (!d || !d.data || d.data.length === 0)
@@ -211,11 +212,14 @@ nv.models.scatter = function() {
                             return "nv-path-"+i; })
                         .attr("clip-path", function(d,i) { return "url(#nv-clip-"+i+")"; })
                         ;
-                        // chain these to above to see the voronoi elements (good for debugging)
-                        //.style("fill", d3.rgb(230, 230, 230))
-                        //.style('fill-opacity', 0.4)
-                        //.style('stroke-opacity', 1)
-                        //.style("stroke", d3.rgb(200,200,200));
+
+                    // good for debugging point hover issues
+                    if (showVoronoi) {
+                        vPointPaths.style("fill", d3.rgb(230, 230, 230))
+                            .style('fill-opacity', 0.4)
+                            .style('stroke-opacity', 1)
+                            .style("stroke", d3.rgb(200,200,200));
+                    }
 
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
@@ -239,10 +243,20 @@ nv.models.scatter = function() {
                         var point  = series.values[d.point];
                         point['color'] = color(series, d.series);
 
+                        // can't just get box of event node since it's actually a voronoi polygon
+                        var box = container.node().getBoundingClientRect();
+                        var scrollTop  = window.pageYOffset || document.documentElement.scrollTop;
+                        var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+                        var pos = {
+                            left: x(getX(point, d.point)) + box.left + scrollLeft + margin.left + 10,
+                            top: y(getY(point, d.point)) + box.top + scrollTop + margin.top + 10
+                        };
+
                         mDispatch({
                             point: point,
                             series: series,
-                            pos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
+                            pos: pos,
                             seriesIndex: d.series,
                             pointIndex: d.point
                         });
@@ -471,6 +485,7 @@ nv.models.scatter = function() {
         clipEdge:     {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
         clipVoronoi:  {get: function(){return clipVoronoi;}, set: function(_){clipVoronoi=_;}},
         clipRadius:   {get: function(){return clipRadius;}, set: function(_){clipRadius=_;}},
+        showVoronoi:   {get: function(){return showVoronoi;}, set: function(_){showVoronoi=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
 
 

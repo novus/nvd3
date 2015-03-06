@@ -426,10 +426,9 @@ nv.models.stackedAreaChart = function() {
     //------------------------------------------------------------
 
     stacked.dispatch.on('elementMouseover.tooltip', function(evt) {
-        var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
         evt.point['x'] = evt.point['x'] || evt.point[0];
         evt.point['y'] = evt.point['y'] || evt.point[1];
-        tooltip.data(evt).position(pos).hidden(false);
+        tooltip.data(evt).position(evt.pos).hidden(false);
     });
 
     stacked.dispatch.on('elementMouseout.tooltip', function(evt) {
