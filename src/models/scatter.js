@@ -400,6 +400,7 @@ nv.models.scatter = function() {
                 d3.select(this)
                     .classed('nv-point', true)
                     .classed('nv-point-' + d[1], true)
+                    .classed('nv-noninteractive', !interactive)
                     .classed('hover',false)
                 ;
             });
