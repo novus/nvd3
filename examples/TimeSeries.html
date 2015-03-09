@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+        html, body, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+
+
+
+        .nvd3 line.nv-guideline { /* Hide the guideline */
+            display: none;
+            stroke-width: 0.0;
+        }
+
+        .nvd3 .nv-bars rect { /* fix the hover guideline to be snappy */
+            transition: fill-opacity 0ms linear;
+            -moz-transition: fill-opacity 0ms linear;
+            -webkit-transition: fill-opacity 0ms linear;
+        }
+
+        .nvd3 .nv-x .nv-axis .x-axis-tick-mark {
+            stroke: #000; /* black tick marks */
+        }
+
+        .nvd3 .nv-y .nv-axis .tick.zero line {
+            stroke: #000; /* black line for the x axis */
+        }
+
+    </style>
+</head>
+<body class='with-3d-shadow with-transitions'>
+
+<svg id="test1"></svg>
+
+<script>
+
+    var data = [{
+        values : []
+    }];
+
+    var i, x;
+    var prevVal = 3000;
+    var tickCount = 2000;
+    for (i = 0; i < tickCount; i++) {
+        x = 1425096000 + i * 10 * 60; // data points every ten minutes
+        if (Math.random() < 0.8) { // add some gaps
+            prevVal += (Math.random() - 0.5) * 500;
+            if (prevVal <= 0) {
+                prevVal = Math.random() * 100;
+            }
+            data[0].values.push({x: x * 1000, y: prevVal});
+        }
+    }
+
+    var chart;
+
+    nv.addGraph(function() {
+        chart = nv.models.historicalBarChart();
+        chart
+            .xScale(d3.time.scale()) // use a time scale instead of plain numbers in order to get nice round default values in the axis
+            .color(['#68c'])
+            .useInteractiveGuideline(true) // check out the css that turns the guideline into this nice thing
+            .margin({"left": 80, "right": 50, "top": 20, "bottom": 30})
+            .duration(0)
+        ;
+
+        var tickMultiFormat = d3.time.format.multi([
+            ["%-I:%M%p", function(d) { return d.getMinutes(); }], // not the beginning of the hour
+            ["%-I%p", function(d) { return d.getHours(); }], // not midnight
+            ["%b %-d", function(d) { return d.getDate() != 1; }], // not the first of the month
+            ["%b %-d", function(d) { return d.getMonth(); }], // not Jan 1st
+            ["%Y", function() { return true; }]
+        ]);
+        chart.xAxis
+                .showMaxMin(false)
+                .tickPadding(10)
+                .tickFormat(function (d) { return tickMultiFormat(new Date(d)); })
+        ;
+
+        chart.yAxis
+                .showMaxMin(false)
+                .tickFormat(d3.format(",.0f"))
+        ;
+
+        var svgElem = d3.select('#test1');
+        svgElem
+                .datum(data)
+                .transition()
+                .call(chart);
+
+        // make our own x-axis tick marks because NVD3 doesn't provide any
+        var tickY2 = chart.yAxis.scale().range()[1];
+        var lineElems = svgElem
+                        .select('.nv-x.nv-axis.nvd3-svg')
+                        .select('.nvd3.nv-wrap.nv-axis')
+                        .select('g')
+                        .selectAll('.tick')
+                        .data(chart.xScale().ticks())
+                        .append('line')
+                        .attr('class', 'x-axis-tick-mark')
+                        .attr('x2', 0)
+                        .attr('y1', tickY2 + 4)
+                        .attr('y2', tickY2)
+                        .attr('stroke-width', 1)
+                ;
+
+        // set up the tooltip to display full dates
+        var tsFormat = d3.time.format('%b %-d, %Y %I:%M%p');
+        var contentGenerator = chart.interactiveLayer.tooltip.contentGenerator();
+        var tooltip = chart.interactiveLayer.tooltip;
+        tooltip.contentGenerator(function (d) { d.value = d.series[0].data.x; return contentGenerator(d); });
+        tooltip.headerFormatter(function (d) { return tsFormat(new Date(d)); });
+
+        return chart;
+    });
+
+</script>
+</body>
+</html>
