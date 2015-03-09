@@ -39,50 +39,8 @@
     fill-opacity: 0;
 }
 
+
+
 .nvd3 .nv-indexLine {
     cursor: ew-resize;
-}
-
-.nvd3 .nv-line-pattern-None {
-stroke-opacity:0 !important;
-}
-
-.nvd3 .nv-line-pattern-Solid {
-stroke-opacity: 1;
-}
-
-.nvd3 .nv-line-pattern-Dense {
-stroke-dasharray: 1 5;
-}
-
-.nvd3 .nv-line-pattern-Medium {
-stroke-dasharray: 2 10;
-}
-
-.nvd3 .nv-line-pattern-Sparse {
-stroke-dasharray: 3 20
-}
-
-.nvd3 .nv-line-pattern-DashShort {
-stroke-dasharray: 5 5;
-}
-
-.nvd3 .nv-line-pattern-DashMedium {
-stroke-dasharray: 10 10;
-}
-
-.nvd3 .nv-line-pattern-DashLong {
-stroke-dasharray: 20 20;
-}
-
-.nvd3 .nv-line-pattern-DashDot {
-stroke-dasharray: 10 2 2 2;
-}
-
-.nvd3 .nv-line-pattern-DashDotDot {
-stroke-dasharray: 20 10 5 5 5 10;
-}
-
-.nvd3 .nv-line-pattern-DashDashDot {
-stroke-dasharray:15 5 15 10 5 10
 }
