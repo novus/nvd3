@@ -1,15 +1,15 @@
-nv.models.pie = function () {
+nv.models.pie = function() {
     "use strict";
 
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var margin = { top: 0, right: 0, bottom: 0, left: 0 }
+    var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 500
         , height = 500
-        , getX = function (d) { return d.x }
-        , getY = function (d) { return d.y }
+        , getX = function(d) { return d.x }
+        , getY = function(d) { return d.y }
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , color = nv.utils.defaultColor()
         , valueFormat = d3.format(',.2f')
@@ -40,7 +40,7 @@ nv.models.pie = function () {
 
     function chart(selection) {
         renderWatch.reset();
-        selection.each(function (data) {
+        selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right
                 , availableHeight = height - margin.top - margin.bottom
                 , radius = Math.min(availableWidth, availableHeight) / 2
@@ -48,7 +48,6 @@ nv.models.pie = function () {
                 , arcsRadiusInner = []
                 , container = d3.select(this)
                 ;
-
             if (arcsRadius.length === 0) {
                 for (var i = 0; i < data[0].length; i++) {
                     arcsRadiusOuter.push(radius - radius / 5);
@@ -59,13 +58,11 @@ nv.models.pie = function () {
                 arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
                 donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 5); }));
             }
-
-
             nv.utils.initSVG(container);
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('.nv-wrap.nv-pie').data(data);
-            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-pie nv-chart-' + id);
+            var wrapEnter = wrap.enter().append('g').attr('class','nvd3 nv-wrap nv-pie nv-chart-' + id);
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
             var g_pie = gEnter.append('g').attr('class', 'nv-pie');
@@ -76,7 +73,7 @@ nv.models.pie = function () {
             g.select('.nv-pieLabels').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
             //
-            container.on('click', function (d, i) {
+            container.on('click', function(d,i) {
                 dispatch.chartClick({
                     data: d,
                     index: i,
@@ -118,7 +115,7 @@ nv.models.pie = function () {
             // Setup the Pie chart and choose the data element
             var pie = d3.layout.pie()
                 .sort(null)
-                .value(function (d) { return d.disabled ? 0 : getY(d) });
+                .value(function(d) { return d.disabled ? 0 : getY(d) });
 
             // padAngle added in d3 3.5
             if (pie.padAngle && padAngle) {
@@ -136,8 +133,8 @@ nv.models.pie = function () {
                     })
                     .style("font-size", (Math.min(availableWidth, availableHeight)) * donutRatio * 2 / (title.length + 2) + "px")
                     .attr("dy", "0.35em") // trick to vertically center text
-                    .attr('transform', function (d, i) {
-                        return 'translate(0, ' + titleOffset + ')';
+                    .attr('transform', function(d, i) {
+                        return 'translate(0, '+ titleOffset + ')';
                     });
             }
 
@@ -149,7 +146,7 @@ nv.models.pie = function () {
 
             var ae = slices.enter().append('g');
             ae.attr('class', 'nv-slice');
-            ae.on('mouseover', function (d, i) {
+            ae.on('mouseover', function(d, i) {
                 d3.select(this).classed('hover', true);
                 if (growOnHover) {
                     d3.select(this).select("path").transition()
@@ -162,26 +159,26 @@ nv.models.pie = function () {
                     color: d3.select(this).style("fill")
                 });
             });
-            ae.on('mouseout', function (d, i) {
+            ae.on('mouseout', function(d, i) {
                 d3.select(this).classed('hover', false);
                 if (growOnHover) {
                     d3.select(this).select("path").transition()
                         .duration(50)
                         .attr("d", arcs[i]);
                 }
-                dispatch.elementMouseout({ data: d.data, index: i });
+                dispatch.elementMouseout({data: d.data, index: i});
             });
-            ae.on('mousemove', function (d, i) {
-                dispatch.elementMousemove({ data: d.data, index: i });
+            ae.on('mousemove', function(d, i) {
+                dispatch.elementMousemove({data: d.data, index: i});
             });
-            ae.on('click', function (d, i) {
+            ae.on('click', function(d, i) {
                 dispatch.elementClick({
                     data: d.data,
                     index: i,
                     color: d3.select(this).style("fill")
                 });
             });
-            ae.on('dblclick', function (d, i) {
+            ae.on('dblclick', function(d, i) {
                 dispatch.elementDblClick({
                     data: d.data,
                     index: i,
@@ -189,10 +186,10 @@ nv.models.pie = function () {
                 });
             });
 
-            slices.attr('fill', function (d, i) { return color(d, i); });
-            slices.attr('stroke', function (d, i) { return color(d, i); });
+            slices.attr('fill', function(d,i) { return color(d, i); });
+            slices.attr('stroke', function(d,i) { return color(d, i); });
 
-            var paths = ae.append('path').each(function (d) {
+            var paths = ae.append('path').each(function(d) {
                 this._current = d;
             });
 
@@ -217,7 +214,8 @@ nv.models.pie = function () {
                         }
                     }
                 }
-                pieLabels.enter().append("g").classed("nv-label", true).each(function (d, i) {
+
+                pieLabels.enter().append("g").classed("nv-label",true).each(function(d,i) {
                     var group = d3.select(this);
 
                     group.attr('transform', function (d, i) {
@@ -252,8 +250,8 @@ nv.models.pie = function () {
                 var labelLocationHash = {};
                 var avgHeight = 14;
                 var avgWidth = 140;
-                var createHashKey = function (coordinates) {
-                    return Math.floor(coordinates[0] / avgWidth) * avgWidth + ',' + Math.floor(coordinates[1] / avgHeight) * avgHeight;
+                var createHashKey = function(coordinates) {
+                    return Math.floor(coordinates[0]/avgWidth) * avgWidth + ',' + Math.floor(coordinates[1]/avgHeight) * avgHeight;
                 };
 
                 pieLabels.watchTransition(renderWatch, 'pie labels').attr('transform', function (d, i) {
@@ -289,11 +287,11 @@ nv.models.pie = function () {
                 });
 
                 pieLabels.select(".nv-label text")
-                    .style('text-anchor', function (d, i) {
+                    .style('text-anchor', function(d,i) {
                         //center the text on it's origin or begin/end if orthogonal aligned
                         return labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle';
                     })
-                    .text(function (d, i) {
+                    .text(function(d, i) {
                         var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
                         var label = '';
                         if (!d.value || percent < labelThreshold) return '';
@@ -346,65 +344,58 @@ nv.models.pie = function () {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        width: { get: function () { return width; }, set: function (_) { width = _; } },
-        height: { get: function () { return height; }, set: function (_) { height = _; } },
-        showLabels: { get: function () { return showLabels; }, set: function (_) { showLabels = _; } },
-        title: { get: function () { return title; }, set: function (_) { title = _; } },
-        titleOffset: { get: function () { return titleOffset; }, set: function (_) { titleOffset = _; } },
-        labelThreshold: { get: function () { return labelThreshold; }, set: function (_) { labelThreshold = _; } },
-        valueFormat: { get: function () { return valueFormat; }, set: function (_) { valueFormat = _; } },
-        x: { get: function () { return getX; }, set: function (_) { getX = _; } },
-        id: { get: function () { return id; }, set: function (_) { id = _; } },
-        endAngle: { get: function () { return endAngle; }, set: function (_) { endAngle = _; } },
-        startAngle: { get: function () { return startAngle; }, set: function (_) { startAngle = _; } },
-        padAngle: { get: function () { return padAngle; }, set: function (_) { padAngle = _; } },
-        cornerRadius: { get: function () { return cornerRadius; }, set: function (_) { cornerRadius = _; } },
-        donutRatio: { get: function () { return donutRatio; }, set: function (_) { donutRatio = _; } },
         arcsRadius: { get: function () { return arcsRadius; }, set: function (_) { arcsRadius = _; } },
-        labelsOutside: { get: function () { return labelsOutside; }, set: function (_) { labelsOutside = _; } },
-        labelSunbeamLayout: { get: function () { return labelSunbeamLayout; }, set: function (_) { labelSunbeamLayout = _; } },
-        donut: { get: function () { return donut; }, set: function (_) { donut = _; } },
-        growOnHover: { get: function () { return growOnHover; }, set: function (_) { growOnHover = _; } },
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showLabels: {get: function(){return showLabels;}, set: function(_){showLabels=_;}},
+        title:      {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset:    {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
+        labelThreshold: {get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
+        valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
+        x:          {get: function(){return getX;}, set: function(_){getX=_;}},
+        id:         {get: function(){return id;}, set: function(_){id=_;}},
+        endAngle:   {get: function(){return endAngle;}, set: function(_){endAngle=_;}},
+        startAngle: {get: function(){return startAngle;}, set: function(_){startAngle=_;}},
+        padAngle:   {get: function(){return padAngle;}, set: function(_){padAngle=_;}},
+        cornerRadius: {get: function(){return cornerRadius;}, set: function(_){cornerRadius=_;}},
+        donutRatio:   {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
+        labelsOutside: {get: function(){return labelsOutside;}, set: function(_){labelsOutside=_;}},
+        labelSunbeamLayout: {get: function(){return labelSunbeamLayout;}, set: function(_){labelSunbeamLayout=_;}},
+        donut:              {get: function(){return donut;}, set: function(_){donut=_;}},
+        growOnHover:        {get: function(){return growOnHover;}, set: function(_){growOnHover=_;}},
 
         // depreciated after 1.7.1
-        pieLabelsOutside: { get: function () { return labelsOutside; }, set: function (_) {
-            labelsOutside = _;
+        pieLabelsOutside: {get: function(){return labelsOutside;}, set: function(_){
+            labelsOutside=_;
             nv.deprecated('pieLabelsOutside', 'use labelsOutside instead');
-        } 
-        },
+        }},
         // depreciated after 1.7.1
-        donutLabelsOutside: { get: function () { return labelsOutside; }, set: function (_) {
-            labelsOutside = _;
+        donutLabelsOutside: {get: function(){return labelsOutside;}, set: function(_){
+            labelsOutside=_;
             nv.deprecated('donutLabelsOutside', 'use labelsOutside instead');
-        } 
-        },
+        }},
         // deprecated after 1.7.1
-        labelFormat: { get: function () { return valueFormat; }, set: function (_) {
-            valueFormat = _;
-            nv.deprecated('labelFormat', 'use valueFormat instead');
-        } 
-        },
+        labelFormat: {get: function(){ return valueFormat;}, set: function(_) {
+            valueFormat=_;
+            nv.deprecated('labelFormat','use valueFormat instead');
+        }},
 
         // options that require extra logic in the setter
-        margin: { get: function () { return margin; }, set: function (_) {
-            margin.top = typeof _.top != 'undefined' ? _.top : margin.top;
-            margin.right = typeof _.right != 'undefined' ? _.right : margin.right;
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
             margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-            margin.left = typeof _.left != 'undefined' ? _.left : margin.left;
-        } 
-        },
-        y: { get: function () { return getY; }, set: function (_) {
-            getY = d3.functor(_);
-        } 
-        },
-        color: { get: function () { return color; }, set: function (_) {
-            color = nv.utils.getColor(_);
-        } 
-        },
-        labelType: { get: function () { return labelType; }, set: function (_) {
-            labelType = _ || 'key';
-        } 
-        }
+            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        }},
+        y: {get: function(){return getY;}, set: function(_){
+            getY=d3.functor(_);
+        }},
+        color: {get: function(){return color;}, set: function(_){
+            color=nv.utils.getColor(_);
+        }},
+        labelType:          {get: function(){return labelType;}, set: function(_){
+            labelType= _ || 'key';
+        }}
     });
 
     nv.utils.initOptions(chart);
