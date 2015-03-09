@@ -49,9 +49,11 @@ nv.models.pie = function() {
                 , container = d3.select(this)
                 ;
             if (arcsRadius.length === 0) {
+                var outer = radius - radius / 5;
+                var inner = donutRatio * radius;
                 for (var i = 0; i < data[0].length; i++) {
-                    arcsRadiusOuter.push(radius - radius / 5);
-                    arcsRadiusInner.push(donutRatio * radius);
+                    arcsRadiusOuter.push(outer);
+                    arcsRadiusInner.push(inner);
                 }
             } else {
                 arcsRadiusOuter = arcsRadius.map(function (d) { return (d.outer - d.outer / 5) * radius; });
