@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-04 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-10 */
 .nvd3 .nv-axis {
     pointer-events:none;
     opacity: 1;
@@ -354,7 +354,9 @@ svg.nvd3-svg {
 .nvd3 .nv-scatter .nv-point.hover {
     fill-opacity: 1;
 }
-
+.nv-noninteractive {
+    pointer-events: none;
+}
 /* sparkline */
 .nvd3.nv-sparkline path {
     fill: none;
@@ -448,7 +450,7 @@ svg.nvd3-svg {
     user-select: none;
 }
 
-.nvtooltip.follow {
+.nvtooltip {
     background: rgba(255,255,255, 0.8);
     border: 1px solid rgba(0,0,0,0.5);
     border-radius: 4px;
@@ -532,7 +534,7 @@ svg.nvd3-svg {
     vertical-align: middle;
 }
 
-.nvtooltip.follow table td.legend-color-guide div {
+.nvtooltip table td.legend-color-guide div {
     width: 12px;
     height: 12px;
     border: 1px solid #999;
