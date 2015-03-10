@@ -55,9 +55,6 @@
 
         chart.xAxis.tickFormat(d3.format('.02f'));
         chart.yAxis.tickFormat(d3.format('.02f'));
-        chart.tooltipContent(function(key) {
-            return '<h2>' + key + '</h2>';
-        });
 
         d3.select('#test1 svg')
             .datum(randomData(4,40))

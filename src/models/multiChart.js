@@ -10,11 +10,6 @@ nv.models.multiChart = function() {
         width = null,
         height = null,
         showLegend = true,
-        tooltips = true,
-        tooltip = function(key, x, y, e, graph) {
-            return '<h3>' + key + '</h3>' +
-                '<p>' +  y + ' at ' + x + '</p>'
-        },
         noData = null,
         yDomain1,
         yDomain2,
@@ -46,17 +41,8 @@ nv.models.multiChart = function() {
         yAxis2 = nv.models.axis().scale(yScale2).orient('right'),
 
         legend = nv.models.legend().height(30),
-        dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
-
-    var showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(lines1.x()(e.point, e.pointIndex)),
-            y = ((e.series.yAxis == 2) ? yAxis2 : yAxis1).tickFormat()(lines1.y()(e.point, e.pointIndex)),
-            content = tooltip(e.series.key, x, y, e, chart);
-
-        nv.tooltip.show([left, top], content, undefined, undefined, offsetElement.offsetParent);
-    };
+        tooltip = nv.models.tooltip(),
+        dispatch = d3.dispatch();
 
     function chart(selection) {
         selection.each(function(data) {
@@ -254,108 +240,97 @@ nv.models.multiChart = function() {
                 chart.update();
             });
 
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
+            //============================================================
+            // Event Handling/Dispatching
+            //------------------------------------------------------------
+
+            function mouseover_line(evt) {
+                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                evt.value = evt.point.x;
+                evt.series = {
+                    value: evt.point.y,
+                    color: evt.point.color
+                };
+                tooltip
+                    .duration(100)
+                    .valueFormatter(function(d, i) {
+                        return yaxis.tickFormat()(d, i);
+                    })
+                    .data(evt)
+                    .position(evt.pos)
+                    .hidden(false);
+            }
+
+            function mouseover_stack(evt) {
+                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
+                evt.point['x'] = evt.point['x'] || evt.point[0];
+                evt.point['y'] = evt.point['y'] || evt.point[1];
+                tooltip
+                    .duration(100)
+                    .valueFormatter(function(d, i) {
+                        return yaxis.tickFormat()(d, i);
+                    })
+                    .data(evt)
+                    .position(pos)
+                    .hidden(false);
+            }
+
+            function mouseover_bar(evt) {
+                var yaxis = data[evt.data.series].yAxis === 2 ? yAxis2 : yAxis1;
+
+                evt.value = evt.data.x;
+                evt['series'] = {
+                    value: evt.data.y,
+                    color: evt.color
+                };
+                tooltip
+                    .duration(0)
+                    .valueFormatter(function(d, i) {
+                        return yaxis.tickFormat()(d, i);
+                    })
+                    .data(evt)
+                    .hidden(false);
+            }
+
+            lines1.dispatch.on('elementMouseover.tooltip', mouseover_line);
+            lines2.dispatch.on('elementMouseover.tooltip', mouseover_line);
+            lines1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+            lines2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+
+            stack1.dispatch.on('elementMouseover.tooltip', mouseover_stack);
+            stack2.dispatch.on('elementMouseover.tooltip', mouseover_stack);
+            stack1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+            stack2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+
+            bars1.dispatch.on('elementMouseover.tooltip', mouseover_bar);
+            bars2.dispatch.on('elementMouseover.tooltip', mouseover_bar);
+
+            bars1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true);
+            });
+            bars2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true);
+            });
+            bars1.dispatch.on('elementMousemove.tooltip', function(evt) {
+                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+            });
+            bars2.dispatch.on('elementMousemove.tooltip', function(evt) {
+                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
             });
 
         });
 
         return chart;
     }
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-
-    lines1.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines1.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    lines2.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines2.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    bars1.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    bars1.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    bars2.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    bars2.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    stack1.dispatch.on('tooltipShow', function(e) {
-        //disable tooltips when value ~= 0
-        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-        if (!Math.round(stack1.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
-            setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
-            return false;
-        }
-
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    stack1.dispatch.on('tooltipHide', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    stack2.dispatch.on('tooltipShow', function(e) {
-        //disable tooltips when value ~= 0
-        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-        if (!Math.round(stack2.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
-            setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
-            return false;
-        }
-
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    stack2.dispatch.on('tooltipHide', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    lines1.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines1.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    lines2.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines2.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
-    });
 
     //============================================================
     // Global getters and setters
@@ -371,6 +346,7 @@ nv.models.multiChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis1 = yAxis1;
     chart.yAxis2 = yAxis2;
+    chart.tooltip = tooltip;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -381,10 +357,20 @@ nv.models.multiChart = function() {
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         yDomain1:      {get: function(){return yDomain1;}, set: function(_){yDomain1=_;}},
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

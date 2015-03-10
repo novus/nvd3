@@ -24,7 +24,7 @@ nv.models.bullet = function() {
         , height = 30
         , tickFormat = null
         , color = nv.utils.getColor(['#1f77b4'])
-        , dispatch = d3.dispatch('elementMouseover', 'elementMouseout')
+        , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
         ;
 
     function chart(selection) {
@@ -110,13 +110,21 @@ nv.models.bullet = function() {
                     dispatch.elementMouseover({
                         value: measurez[0],
                         label: measureLabelz[0] || 'Current',
-                        pos: [x1(measurez[0]), availableHeight/2]
+                        color: d3.select(this).style("fill")
+                    })
+                })
+                .on('mousemove', function() {
+                    dispatch.elementMousemove({
+                        value: measurez[0],
+                        label: measureLabelz[0] || 'Current',
+                        color: d3.select(this).style("fill")
                     })
                 })
                 .on('mouseout', function() {
                     dispatch.elementMouseout({
                         value: measurez[0],
-                        label: measureLabelz[0] || 'Current'
+                        label: measureLabelz[0] || 'Current',
+                        color: d3.select(this).style("fill")
                     })
                 });
 
@@ -129,13 +137,21 @@ nv.models.bullet = function() {
                         dispatch.elementMouseover({
                             value: markerz[0],
                             label: markerLabelz[0] || 'Previous',
-                            pos: [x1(markerz[0]), availableHeight/2]
+                            color: d3.select(this).style("fill")
+                        })
+                    })
+                    .on('mousemove', function() {
+                        dispatch.elementMousemove({
+                            value: measurez[0],
+                            label: measureLabelz[0] || 'Previous',
+                            color: d3.select(this).style("fill")
                         })
                     })
                     .on('mouseout', function() {
                         dispatch.elementMouseout({
                             value: markerz[0],
-                            label: markerLabelz[0] || 'Previous'
+                            label: markerLabelz[0] || 'Previous',
+                            color: d3.select(this).style("fill")
                         })
                     });
             } else {
@@ -145,19 +161,25 @@ nv.models.bullet = function() {
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
                     var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
-
                     dispatch.elementMouseover({
                         value: d,
                         label: label,
-                        pos: [x1(d), availableHeight/2]
+                        color: d3.select(this).style("fill")
+                    })
+                })
+                .on('mousemove', function() {
+                    dispatch.elementMousemove({
+                        value: measurez[0],
+                        label: measureLabelz[0] || 'Previous',
+                        color: d3.select(this).style("fill")
                     })
                 })
                 .on('mouseout', function(d,i) {
                     var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
-
                     dispatch.elementMouseout({
                         value: d,
-                        label: label
+                        label: label,
+                        color: d3.select(this).style("fill")
                     })
                 });
         });

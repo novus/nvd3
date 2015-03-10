@@ -7,6 +7,7 @@ nv.models.pieChart = function() {
 
     var pie = nv.models.pie();
     var legend = nv.models.legend();
+    var tooltip = nv.models.tooltip();
 
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
         , width = null
@@ -14,15 +15,6 @@ nv.models.pieChart = function() {
         , showLegend = true
         , legendPosition = "top"
         , color = nv.utils.defaultColor()
-        , tooltips = true
-        , tooltipContent = function(evt) {
-            return '<table>' +
-                '<tbody><tr><td class="legend-color-guide">' +
-                '<div style="background-color: ' + evt.color + '"></div></td>' +
-                '<td class="key"> ' + pie.x()(evt.data) + '</td>' +
-                '<td class="value">' + pie.y()(evt.data) + '</td>' +
-                '</tr></tbody></table>';
-        }
         , state = nv.utils.state()
         , defaultState = null
         , noData = null
@@ -30,17 +22,18 @@ nv.models.pieChart = function() {
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
         ;
 
+    tooltip
+        .headerEnabled(false)
+        .duration(0)
+        .valueFormatter(function(d, i) {
+            return pie.valueFormat()(d, i);
+        });
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch);
-
-    var tooltip = d3.select('body')
-        .append('div')
-        .style('display', 'none')
-        .classed('nvtooltip', true)
-        .classed('follow', true);
 
     var stateGetter = function(data) {
         return function(){
@@ -185,21 +178,20 @@ nv.models.pieChart = function() {
     //------------------------------------------------------------
 
     pie.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.html(tooltipContent(evt))
-            .style('display', 'inline-block');
+        evt['series'] = {
+            key: evt.data.key,
+            value: evt.data.y,
+            color: evt.color
+        };
+        tooltip.data(evt).hidden(false);
     });
 
     pie.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.style('display', 'none');
+        tooltip.hidden(true);
     });
 
     pie.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.style('top', (event.pageY-15)+"px").style("left",(event.pageX+10)+"px");
-    });
-
-    pie.dispatch.on('elementClick.tooltip', function(evt) {
-        tooltip.html(tooltipContent(evt))
-            .style('display', 'inline-block');
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
     });
 
     //============================================================
@@ -216,11 +208,22 @@ nv.models.pieChart = function() {
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
-        tooltipContent: {get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
-        tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
+
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
             color = _;

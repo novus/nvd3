@@ -6,21 +6,13 @@ nv.models.sunburstChart = function() {
     //------------------------------------------------------------
 
     var sunburst = nv.models.sunburst();
+    var tooltip = nv.models.tooltip();
 
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
-        , tooltips = true
         , id = Math.round(Math.random() * 100000)
-        , tooltipContent = function(evt) {
-            return '<table>' +
-                '<tbody><tr><td class="legend-color-guide">' +
-                '<div style="background-color: ' + evt.color + '"></div></td>' +
-                '<td class="key"> ' + evt.data.name + '</td>' +
-                '<td class="value">' + (evt.data.size || '') + '</td>' +
-                '</tr></tbody></table>';
-        }
         , defaultState = null
         , noData = null
         , duration = 250
@@ -31,13 +23,10 @@ nv.models.sunburstChart = function() {
     // Private Variables
     //------------------------------------------------------------
 
-    var tooltip = d3.select('body')
-        .append('div')
-        .style('display', 'none')
-        .classed('nvtooltip', true)
-        .classed('follow', true);
-
     var renderWatch = nv.utils.renderWatch(dispatch);
+    tooltip.headerEnabled(false).duration(0).valueFormatter(function(d, i) {
+        return d;
+    });
 
     //============================================================
     // Chart function
@@ -96,16 +85,20 @@ nv.models.sunburstChart = function() {
     //------------------------------------------------------------
 
     sunburst.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.html(tooltipContent(evt))
-            .style('display', 'inline-block');
+        evt['series'] = {
+            key: evt.data.name,
+            value: evt.data.size,
+            color: evt.color
+        };
+        tooltip.data(evt).hidden(false);
     });
 
     sunburst.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.style('display', 'none');
+        tooltip.hidden(true);
     });
 
     sunburst.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.style('top', (event.pageY-15)+"px").style("left",(event.pageX+10)+"px");
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
     });
 
     //============================================================
@@ -121,9 +114,8 @@ nv.models.sunburstChart = function() {
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
-        tooltipContent: {get: function(){return tooltipContent;},        set: function(_){tooltipContent=_;}},
-        tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
             color = _;

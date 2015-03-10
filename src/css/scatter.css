@@ -7,3 +7,6 @@
 .nvd3 .nv-scatter .nv-point.hover {
     fill-opacity: 1;
 }
+.nv-noninteractive {
+    pointer-events: none;
+}

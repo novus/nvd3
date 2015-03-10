@@ -9,6 +9,7 @@ nv.models.discreteBarChart = function() {
     var discretebar = nv.models.discreteBar()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
+        , tooltip = nv.models.tooltip()
         ;
 
     var margin = {top: 15, right: 10, bottom: 50, left: 60}
@@ -19,15 +20,10 @@ nv.models.discreteBarChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , staggerLabels = false
-        , tooltips = true
-        , tooltip = function(key, x, y, e, graph) {
-            return '<h3>' + x + '</h3>' +
-                '<p>' +  y + '</p>'
-        }
         , x
         , y
         , noData = null
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate','renderEnd')
+        , dispatch = d3.dispatch('beforeUpdate','renderEnd')
         , duration = 250
         ;
 
@@ -41,19 +37,18 @@ nv.models.discreteBarChart = function() {
         .tickFormat(d3.format(',.1f'))
     ;
 
+    tooltip
+        .duration(0)
+        .valueFormatter(function(d, i) {
+            return yAxis.tickFormat()(d, i);
+        })
+        .headerFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        });
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
-
-    var showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(discretebar.x()(e.point, e.pointIndex)),
-            y = yAxis.tickFormat()(discretebar.y()(e.point, e.pointIndex)),
-            content = tooltip(e.series.key, x, y, e, chart);
-
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-    };
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -78,7 +73,7 @@ nv.models.discreteBarChart = function() {
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                nv.utils.noData(chart, container)
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -114,7 +109,7 @@ nv.models.discreteBarChart = function() {
                 .height(availableHeight);
 
             var barsWrap = g.select('.nv-barsWrap')
-                .datum(data.filter(function(d) { return !d.disabled }))
+                .datum(data.filter(function(d) { return !d.disabled }));
 
             barsWrap.transition().call(discretebar);
 
@@ -163,18 +158,6 @@ nv.models.discreteBarChart = function() {
                 .attr("y1", y(0))
                 .attr("y2", y(0))
             ;
-
-            //============================================================
-            // Event Handling/Dispatching (in chart's scope)
-            //------------------------------------------------------------
-
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
-            dispatch.on('tooltipHide', function() {
-                if (tooltips) nv.tooltip.cleanup();
-            });
         });
 
         renderWatch.renderEnd('discreteBar chart immediate');
@@ -185,13 +168,21 @@ nv.models.discreteBarChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    discretebar.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+    discretebar.dispatch.on('elementMouseover.tooltip', function(evt) {
+        evt['series'] = {
+            key: evt.data.label,
+            value: evt.data.value,
+            color: evt.color
+        };
+        tooltip.data(evt).hidden(false);
     });
 
-    discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
+    discretebar.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.hidden(true);
+    });
+
+    discretebar.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
     });
 
     //============================================================
@@ -202,6 +193,7 @@ nv.models.discreteBarChart = function() {
     chart.discretebar = discretebar;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
+    chart.tooltip = tooltip;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -212,9 +204,19 @@ nv.models.discreteBarChart = function() {
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
         showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

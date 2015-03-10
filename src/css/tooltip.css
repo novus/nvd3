@@ -24,7 +24,7 @@
     user-select: none;
 }
 
-.nvtooltip.follow {
+.nvtooltip {
     background: rgba(255,255,255, 0.8);
     border: 1px solid rgba(0,0,0,0.5);
     border-radius: 4px;
@@ -108,7 +108,7 @@
     vertical-align: middle;
 }
 
-.nvtooltip.follow table td.legend-color-guide div {
+.nvtooltip table td.legend-color-guide div {
     width: 12px;
     height: 12px;
     border: 1px solid #999;
