@@ -35,7 +35,7 @@ describe 'NVD3', ->
             height: 110
             tickFormat: (d)-> d.toFixed 2
             tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
+            tooltipContent: (evt)-> "<h3>test</h3>"
             noData: 'No Data Available'
 
         builder1 = null
@@ -206,10 +206,10 @@ describe 'NVD3', ->
             removeAllTooltips()
 
             options =
-              tooltipContent: (key)-> "<h2>#{key}</h2>"
+              tooltipContent: (evt)-> "<h2>test</h2>"
             builder.build options, sampleData
 
             builder.model.bullet.dispatch.elementMouseover eventTooltipData
 
             tooltip = document.querySelectorAll '.nvtooltip'
-            expect(tooltip[0].innerHTML).to.contain "<h2>Revenue</h2>"
+            expect(tooltip[0].innerHTML).to.contain "<h2>test</h2>"

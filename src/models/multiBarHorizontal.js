@@ -31,7 +31,7 @@ nv.models.multiBarHorizontal = function() {
         , xRange
         , yRange
         , duration = 250
-        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout','renderEnd')
+        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
     //============================================================
@@ -148,47 +148,46 @@ nv.models.multiBarHorizontal = function() {
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pos: [ y(getY(d,i) + (stacked ? d.y0 : 0)), x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length) ],
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                 })
                 .on('mouseout', function(d,i) {
                     d3.select(this).classed('hover', false);
                     dispatch.elementMouseout({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
+                    });
+                })
+                .on('mouseout', function(d,i) {
+                    dispatch.elementMouseout({
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                 })
                 .on('click', function(d,i) {
                     dispatch.elementClick({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
                 })
                 .on('dblclick', function(d,i) {
                     dispatch.elementDblClick({
-                        value: getY(d,i),
-                        point: d,
-                        series: data[d.series],
-                        pos: [x(getX(d,i)) + (x.rangeBand() * (stacked ? data.length / 2 : d.series + .5) / data.length), y(getY(d,i) + (stacked ? d.y0 : 0))],  // TODO: Figure out why the value appears to be shifted
-                        pointIndex: i,
-                        seriesIndex: d.series,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
                 });

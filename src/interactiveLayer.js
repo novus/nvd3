@@ -10,6 +10,7 @@ nv.interactiveGuideline = function() {
     "use strict";
 
     var tooltip = nv.models.tooltip();
+    tooltip.duration(0).hideDelay(0).hidden(false);
 
     //Public settings
     var width = null;
@@ -19,7 +20,6 @@ nv.interactiveGuideline = function() {
     //This is important for calculating the correct mouseX/Y positions.
     var margin = {left: 0, top: 0}
         , xScale = d3.scale.linear()
-        , yScale = d3.scale.linear()
         , dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
         , showGuideLine = true;
     //Must pass in the bounding chart's <svg> container.
@@ -108,7 +108,10 @@ nv.interactiveGuideline = function() {
                         mouseY: mouseY
                     });
                     layer.renderGuideLine(null); //hide the guideline
+                    tooltip.hidden(true);
                     return;
+                } else {
+                    tooltip.hidden(false);
                 }
 
                 var pointXValue = xScale.invert(mouseX);
@@ -246,7 +249,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         // comparators where the second argument is the search value against
         // which the first argument is compared.
         return _xAccessor(d) - v;
-    }
+    };
 
     var bisect = d3.bisector(_cmp).left;
     var index = d3.max([0, bisect(values,searchVal) - 1]);
