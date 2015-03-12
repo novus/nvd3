@@ -604,13 +604,23 @@ nv.models.cumulativeLineChart = function() {
         showControls:     {get: function(){return showControls;}, set: function(_){showControls=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         average: {get: function(){return average;}, set: function(_){average=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         showXAxis:    {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         noErrorCheck:    {get: function(){return noErrorCheck;}, set: function(_){noErrorCheck=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
