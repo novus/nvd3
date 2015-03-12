@@ -9,16 +9,19 @@ nv.models.parallelCoordinates = function() {
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var margin = {top: 30, right: 10, bottom: 10, left: 10}
-        , width = null
-        , height = null
+    var margin = {top: 30, right: 0, bottom: 10, left: 0}
+        , width = 1000
+        , height = 500
         , x = d3.scale.ordinal()
         , y = {}
         , dimensions = []
         , color = nv.utils.defaultColor()
         , filters = []
         , active = []
-        , dispatch = d3.dispatch('brush')
+        , foreground
+        , background
+        , lineTension = 1
+        , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout')
         ;
 
     //============================================================
@@ -34,9 +37,6 @@ nv.models.parallelCoordinates = function() {
             nv.utils.initSVG(container);
 
             active = data; //set all active before first brush call
-
-            //This is a placeholder until this chart is made resizeable
-            chart.update = function() { };
 
             // Setup Scales
             x.rangePoints([0, availableWidth], 1).domain(dimensions);
@@ -58,32 +58,44 @@ nv.models.parallelCoordinates = function() {
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
 
-            gEnter.append('g').attr('class', 'nv-parallelCoordinatesWrap');
+            gEnter.append('g').attr('class', 'background');
+            gEnter.append('g').attr('class', 'foreground');
+
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var line = d3.svg.line(),
-                axis = d3.svg.axis().orient('left'),
-                background,
-                foreground;
+            var line = d3.svg.line().interpolate('cardinal').tension(lineTension),
+                axis = d3.svg.axis().orient('left');
 
             // Add grey background lines for context.
-            background = gEnter.append('g')
-                .attr('class', 'background')
-                .selectAll('path')
-                .data(data)
-                .enter().append('path')
-                .attr('d', path)
-            ;
+            background = wrap.select('.background').selectAll('path').data(data);
+            background.enter().append('path');
+            background.exit().remove();
+            background.attr('d', path);
 
             // Add blue foreground lines for focus.
-            foreground = gEnter.append('g')
-                .attr('class', 'foreground')
-                .selectAll('path')
-                .data(data)
-                .enter().append('path')
-                .attr('d', path)
-                .attr('stroke', color)
-            ;
+            foreground = wrap.select('.foreground').selectAll('path').data(data);
+            foreground.enter().append('path')
+            foreground.exit().remove();
+            foreground.attr('d', path).attr('stroke', color);
+
+            foreground.on("mouseover", function (d, i) {
+                d3.select(this).classed('hover', true);
+                dispatch.elementMouseover({
+                    label: d.name,
+                    data: d.data,
+                    index: i,
+                    pos: [d3.mouse(this.parentNode)[0], d3.mouse(this.parentNode)[1]]
+                });
+
+            });
+            foreground.on("mouseout", function (d, i) {
+                d3.select(this).classed('hover', false);
+                dispatch.elementMouseout({
+                    label: d.name,
+                    data: d.data,
+                    index: i
+                });
+            });
 
             // Add a group element for each dimension.
             var dimension = g.selectAll('.dimension')
@@ -158,13 +170,14 @@ nv.models.parallelCoordinates = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         dimensions: {get: function(){return dimensions;}, set: function(_){dimensions=_;}},
+        lineTension: {get: function(){return lineTension;}, set: function(_){lineTension=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+            margin.top    =  _.top    != undefined ? _.top    : margin.top;
+            margin.right  =  _.right  != undefined ? _.right  : margin.right;
+            margin.bottom =  _.bottom != undefined ? _.bottom : margin.bottom;
+            margin.left   =  _.left   != undefined ? _.left   : margin.left;
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
