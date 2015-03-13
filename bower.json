@@ -1,7 +1,7 @@
 {
-  "name": "nvd3-community",
-  "version": "1.7.0",
-  "homepage": "http://nvd3-community.github.io/nvd3/",
+  "name": "nvd3",
+  "version": "1.7.1",
+  "homepage": "http://www.nvd3.org",
   "authors": [
     "Bob Monteverde",
     "Tyler Wolf",
@@ -38,9 +38,6 @@
     "*.json",
     "*.md"
   ],
-  "resolutions": {
-    "d3": "~3.3.13"
-  },
   "devDependencies": {
     "d3": "~3.3.13"
   }

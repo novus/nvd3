@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.0(https://github.com/liquidpele/nvd3) 2014-12-13 */
+/* nvd3 version 1.7.1(https://github.com/novus/nvd3) 2015-02-08 */
 (function(){
 
 // set up main nv object on window
@@ -1614,7 +1614,9 @@ nv.utils.initSVG = function(svg) {
                     }
                     if (staggerLabels)
                         xTicks
-                            .attr('transform', function(d,i) { return 'translate(0,' + nv.utils.NaNtoZero((i % 2 == 0 ? '0' : '12')) + ')' });
+                            .attr('transform', function(d,i) {
+                                return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')'
+                            });
 
                     break;
                 case 'right':
@@ -5188,6 +5190,8 @@ nv.models.linePlusBarChart = function() {
         , transitionDuration = 0
         , state = nv.utils.state()
         , defaultState = null
+        , legendLeftAxisHint = ' (left axis)'
+        , legendRightAxisHint = ' (right axis)'
         ;
 
     lines
@@ -5370,7 +5374,7 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-legendWrap')
                     .datum(data.map(function(series) {
                         series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
-                        series.key = series.originalKey + (series.bar ? ' (left axis)' : ' (right axis)');
+                        series.key = series.originalKey + (series.bar ? legendLeftAxisHint : legendRightAxisHint);
                         return series;
                     }))
                     .call(legend);
@@ -5715,6 +5719,8 @@ nv.models.linePlusBarChart = function() {
         focusHeight:    {get: function(){return focusHeight;}, set: function(_){focusHeight=_;}},
         focusShowAxisX:    {get: function(){return focusShowAxisX;}, set: function(_){focusShowAxisX=_;}},
         focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
+        legendLeftAxisHint:    {get: function(){return legendLeftAxisHint;}, set: function(_){legendLeftAxisHint=_;}},
+        legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -6618,6 +6624,7 @@ nv.models.multiBarChart = function() {
         , height = null
         , color = nv.utils.defaultColor()
         , showControls = true
+        , controlLabels = {}
         , showLegend = true
         , showXAxis = true
         , showYAxis = true
@@ -6800,8 +6807,8 @@ nv.models.multiBarChart = function() {
             // Controls
             if (showControls) {
                 var controlsData = [
-                    { key: 'Grouped', disabled: multibar.stacked() },
-                    { key: 'Stacked', disabled: !multibar.stacked() }
+                    { key: controlLabels.grouped || 'Grouped', disabled: multibar.stacked() },
+                    { key: controlLabels.stacked || 'Stacked', disabled: !multibar.stacked() }
                 ];
 
                 controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -6997,6 +7004,7 @@ nv.models.multiBarChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        controlLabels: {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
@@ -7408,6 +7416,7 @@ nv.models.multiBarHorizontalChart = function() {
         , height = null
         , color = nv.utils.defaultColor()
         , showControls = true
+        , controlLabels = {}
         , showLegend = true
         , showXAxis = true
         , showYAxis = true
@@ -7583,8 +7592,8 @@ nv.models.multiBarHorizontalChart = function() {
             // Controls
             if (showControls) {
                 var controlsData = [
-                    { key: 'Grouped', disabled: multibar.stacked() },
-                    { key: 'Stacked', disabled: !multibar.stacked() }
+                    { key: controlLabels.grouped || 'Grouped', disabled: multibar.stacked() },
+                    { key: controlLabels.stacked || 'Stacked', disabled: !multibar.stacked() }
                 ];
 
                 controls.width(controlWidth()).color(['#444', '#444', '#444']);
@@ -7743,6 +7752,7 @@ nv.models.multiBarHorizontalChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
+        controlLabels: {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
@@ -8786,7 +8796,15 @@ nv.models.pie = function() {
                     id: id
                 });
             });
-            ae.on('click', function(d,i) {
+
+            slices.attr('fill', function(d,i) { return color(d, i); })
+            slices.attr('stroke', function(d,i) { return color(d, i); });
+
+            var paths = ae.append('path').each(function(d) {
+                this._current = d;
+            });
+
+            paths.on('click', function(d,i) {
                 dispatch.elementClick({
                     label: getX(d.data),
                     value: getY(d.data),
@@ -8797,7 +8815,7 @@ nv.models.pie = function() {
                 });
                 d3.event.stopPropagation();
             });
-            ae.on('dblclick', function(d,i) {
+            paths.on('dblclick', function(d,i) {
                 dispatch.elementDblClick({
                     label: getX(d.data),
                     value: getY(d.data),
@@ -8808,14 +8826,6 @@ nv.models.pie = function() {
                 });
                 d3.event.stopPropagation();
             });
-
-            slices.attr('fill', function(d,i) { return color(d, i); })
-            slices.attr('stroke', function(d,i) { return color(d, i); });
-
-            var paths = ae.append('path').each(function(d) {
-                this._current = d;
-            });
-
             slices.select('path')
                 .transition()
                 .attr('d', arc)
@@ -11343,5 +11353,5 @@ nv.models.stackedAreaChart = function() {
     return chart;
 };
 
-nv.version = "1.7.0";
+nv.version = "1.7.1";
 })();

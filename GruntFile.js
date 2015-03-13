@@ -1,5 +1,5 @@
 
-var version = '1.7.0';
+var version = '1.7.1';
 
 module.exports = function(grunt) {
 
@@ -10,7 +10,7 @@ module.exports = function(grunt) {
             options: {
                 separator: '',
                 // wrap output in a function block.
-                banner: '/* nvd3 version ' + version + '(https://github.com/liquidpele/nvd3) ' +
+                banner: '/* nvd3 version ' + version + '(https://github.com/novus/nvd3) ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
                 footer: '\nnv.version = "' + version + '";\n})();'
             },
@@ -29,7 +29,7 @@ module.exports = function(grunt) {
         },
         uglify: {
             options: {
-                banner: '/* nvd3 version ' + version + ' (https://github.com/liquidpele/nvd3) ' +
+                banner: '/* nvd3 version ' + version + ' (https://github.com/novus/nvd3) ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
             js: {
@@ -70,7 +70,7 @@ module.exports = function(grunt) {
             unit: {
                 options: {
                     logLevel: 'ERROR',
-                    browsers: ['Chrome'],
+                    browsers: ['Firefox'],
                     frameworks: [ 'mocha', 'sinon-chai' ],
                     reporters: [ 'spec', 'junit', 'coverage'],
                     singleRun: true,

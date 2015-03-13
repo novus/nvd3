@@ -1,7 +1,6 @@
-
 ##nvd3.js License
 
-Copyright (c) 2011, 2012 [Novus Partners, Inc.][novus]
+Copyright (c) 2011-2014 [Novus Partners, Inc.][novus]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

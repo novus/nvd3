@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
 
     <style>
@@ -113,9 +113,6 @@
         }
     ];
 
-    //an example of harmonizing colors between visualizations
-    //observe that Consumer Discretionary and Consumer Staples have
-    //been flipped in the second chart
     var colors = d3.scale.category20();
     var keyColor = function(d, i) {return colors(d.key)};
 
@@ -125,10 +122,10 @@
             .useInteractiveGuideline(true)
             .x(function(d) { return d[0] })
             .y(function(d) { return d[1] })
+            .controlLabels({stacked: "Stacked"})
             .color(keyColor)
             .duration(300);
 
-        // chart.stacked.scatter.clipVoronoi(false);
         chart.xAxis.tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
         chart.yAxis.tickFormat(d3.format(',.2f'));
 
@@ -144,33 +141,6 @@
                     })
                 }, 0)
             });
-
-        chart.state.dispatch.on('change', function(state){
-            console.log('state', JSON.stringify(state));
-        });
-
-        nv.utils.windowResize(chart.update);
-        return chart;
-    });
-
-    nv.addGraph(function() {
-        var chart = nv.models.stackedAreaChart()
-            .x(function(d) { return d[0] })
-            .y(function(d) { return d[1] })
-            .color(keyColor)
-            ;
-
-        chart.xAxis.tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
-        chart.yAxis.tickFormat(d3.format(',.2f'));
-
-        d3.select('#chart2')
-            .datum(histcatexpshort)
-            .transition()
-            .call(chart);
-
-        chart.state.dispatch.on('change', function(state){
-            nv.log('state', JSON.stringify(state));
-        });
 
         nv.utils.windowResize(chart.update);
         return chart;
