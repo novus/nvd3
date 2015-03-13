@@ -67,7 +67,8 @@ nv.utils.getColor = function(color) {
         return nv.utils.defaultColor();
 
     //if passed an array, turn it into a color scale
-    } else if(color instanceof Array) {
+    // use isArray, instanceof fails if d3 range is created in an iframe
+    } else if(Array.isArray(color)) {
         var color_scale = d3.scale.ordinal().range(color);
         return function(d, i) {
             var key = i === undefined ? d : i;
