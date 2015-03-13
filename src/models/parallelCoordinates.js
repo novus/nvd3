@@ -18,8 +18,6 @@ nv.models.parallelCoordinates = function() {
         , color = nv.utils.defaultColor()
         , filters = []
         , active = []
-        , foreground
-        , background
         , lineTension = 1
         , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout')
         ;
@@ -58,8 +56,8 @@ nv.models.parallelCoordinates = function() {
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
 
-            gEnter.append('g').attr('class', 'background');
-            gEnter.append('g').attr('class', 'foreground');
+            gEnter.append('g').attr('class', 'nv-parallelCoordinates background');
+            gEnter.append('g').attr('class', 'nv-parallelCoordinates foreground');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -67,13 +65,13 @@ nv.models.parallelCoordinates = function() {
                 axis = d3.svg.axis().orient('left');
 
             // Add grey background lines for context.
-            background = wrap.select('.background').selectAll('path').data(data);
+            var background = wrap.select('.background').selectAll('path').data(data);
             background.enter().append('path');
             background.exit().remove();
             background.attr('d', path);
 
             // Add blue foreground lines for focus.
-            foreground = wrap.select('.foreground').selectAll('path').data(data);
+            var foreground = wrap.select('.foreground').selectAll('path').data(data);
             foreground.enter().append('path')
             foreground.exit().remove();
             foreground.attr('d', path).attr('stroke', color);
@@ -174,10 +172,10 @@ nv.models.parallelCoordinates = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    =  _.top    != undefined ? _.top    : margin.top;
-            margin.right  =  _.right  != undefined ? _.right  : margin.right;
-            margin.bottom =  _.bottom != undefined ? _.bottom : margin.bottom;
-            margin.left   =  _.left   != undefined ? _.left   : margin.left;
+            margin.top    =  _.top    !== undefined ? _.top    : margin.top;
+            margin.right  =  _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom =  _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   =  _.left   !== undefined ? _.left   : margin.left;
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
