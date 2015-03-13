@@ -390,13 +390,8 @@ as well as used to print out examples using those example inputs.
             default: true,
             examples: [true]
         },
-        donutLabelsOutside: {
-            desc: "Whether donut chart labels should be outside or inside the slices",
-            default: true,
-            examples: [true]
-        },
-        pieLabelsOutside: {
-            desc: "Whether pie chart labels should be outside or inside the slices",
+        labelsOutside: {
+            desc: "Whether pie/donut chart labels should be outside the slices instead of inside them",
             default: true,
             examples: [true]
         },
@@ -666,12 +661,8 @@ as well as used to print out examples using those example inputs.
             ]
         },
         valueFormat: {
-            desc: "D3 Format object for the value of a pie/donut chart.",
+            desc: "D3 Format object for the label of pie/donut, discrete bar and multibar charts.",
             default: "d3.format(',.2f')"
-        },
-        labelFormat: {
-            desc: "D3 Format object for the label of a pie/donut chart.",
-            default: "d3.format('%')"
         },
         donutRatio: {
             desc: "Percent of pie radius to cut out of the middle to make the donut.  It is multiplied by the outer radius to calculate the inner radius, thus it should be between 0 and 1.",
@@ -748,6 +739,16 @@ as well as used to print out examples using those example inputs.
             refs: ["https://github.com/mbostock/d3/wiki/Ordinal-Scales#ordinal_rangeBands"],
             default: 0.1,
             examples: [0.5]
+        },
+        padding: {
+            desc: "Specifies how much spacing there is between legend items.",
+            default: "28",
+            examples: ["40"]
+        },
+        arcsRadius: {
+            desc: "Specifies each slice size, by an inner and a outer radius. Values between 0 and 1.",
+            default: "[{inner: donutRatio, outer: 1}]",
+            examples: [{inner: 0.6, outer: 0.8}]
         }
     };
 </script>

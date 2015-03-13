@@ -11,6 +11,7 @@ nv.models.legend = function() {
         , getKey = function(d) { return d.key }
         , color = nv.utils.defaultColor()
         , align = true
+        , padding = 28 //define how much space between legend items.
         , rightAlign = true
         , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
         , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
@@ -31,8 +32,22 @@ nv.models.legend = function() {
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var series = g.selectAll('.nv-series')
-                .data(function(d) { return d });
+                .data(function(d) { 
+                    return d; 
+                });
             var seriesEnter = series.enter().append('g').attr('class', 'nv-series')
+                
+            seriesEnter.append('circle')
+                .style('stroke-width', 2)
+                .attr('class','nv-legend-symbol')
+                .attr('r', 5);
+            seriesEnter.append('text')
+                .attr('text-anchor', 'start')
+                .attr('class','nv-legend-text')
+                .attr('dy', '.32em')
+                .attr('dx', '8');
+
+            series
                 .on('mouseover', function(d,i) {
                     dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
                 })
@@ -41,6 +56,8 @@ nv.models.legend = function() {
                 })
                 .on('click', function(d,i) {
                     dispatch.legendClick(d,i);
+                    // make sure we re-get data in case it was modified
+                    var data = series.data();
                     if (updateState) {
                         if (radioButtonMode) {
                             //Radio button mode: set every series to disabled,
@@ -64,6 +81,8 @@ nv.models.legend = function() {
                 .on('dblclick', function(d,i) {
                     dispatch.legendDblclick(d,i);
                     if (updateState) {
+                        // make sure we re-get data in case it was modified
+                        var data = series.data();
                         //the default behavior of NVD3 legends, when double clicking one,
                         // is to set all other series' to false, and make the double clicked series enabled.
                         data.forEach(function(series) {
@@ -75,15 +94,7 @@ nv.models.legend = function() {
                         });
                     }
                 });
-            seriesEnter.append('circle')
-                .style('stroke-width', 2)
-                .attr('class','nv-legend-symbol')
-                .attr('r', 5);
-            seriesEnter.append('text')
-                .attr('text-anchor', 'start')
-                .attr('class','nv-legend-text')
-                .attr('dy', '.32em')
-                .attr('dx', '8');
+
             series.classed('nv-disabled', function(d) { return d.disabled });
             series.exit().remove();
             series.select('circle')
@@ -108,7 +119,7 @@ nv.models.legend = function() {
                         nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
                     }
 
-                    seriesWidths.push(nodeTextLength + 28); // 28 is ~ the width of the circle plus some padding
+                    seriesWidths.push(nodeTextLength + padding);
                 });
 
                 var seriesPerRow = 0;
@@ -164,7 +175,7 @@ nv.models.legend = function() {
                     xpos;
                 series
                     .attr('transform', function(d, i) {
-                        var length = d3.select(this).select('text').node().getComputedTextLength() + 28;
+                        var length = d3.select(this).select('text').node().getComputedTextLength() + padding;
                         xpos = newxpos;
 
                         if (width < margin.left + margin.right + xpos + length) {
@@ -202,6 +213,7 @@ nv.models.legend = function() {
         key: {get: function(){return getKey;}, set: function(_){getKey=_;}},
         align:      {get: function(){return align;}, set: function(_){align=_;}},
         rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
+        padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:    {get: function(){return updateState;}, set: function(_){updateState=_;}},
         radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
 

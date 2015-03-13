@@ -7,6 +7,7 @@ nv.models.pieChart = function() {
 
     var pie = nv.models.pie();
     var legend = nv.models.legend();
+    var tooltip = nv.models.tooltip();
 
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
         , width = null
@@ -14,32 +15,23 @@ nv.models.pieChart = function() {
         , showLegend = true
         , legendPosition = "top"
         , color = nv.utils.defaultColor()
-        , tooltips = true
-        , tooltip = function(key, y, e, graph) {
-            return '<h3 style="background-color: '
-                + e.color + '">' + key + '</h3>'
-                + '<p>' +  y + '</p>';
-        }
         , state = nv.utils.state()
         , defaultState = null
-        , noData = "No Data Available."
+        , noData = null
         , duration = 250
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
         ;
 
+    tooltip
+        .headerEnabled(false)
+        .duration(0)
+        .valueFormatter(function(d, i) {
+            return pie.valueFormat()(d, i);
+        });
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
-
-    var showTooltip = function(e, offsetElement) {
-        var tooltipLabel = pie.x()(e.point);
-        var left = e.pos[0],
-            top = e.pos[1],
-            y = pie.valueFormat()(pie.y()(e.point)),
-            content = tooltip(tooltipLabel, y, e, chart)
-            ;
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-    };
 
     var renderWatch = nv.utils.renderWatch(dispatch);
 
@@ -74,11 +66,8 @@ nv.models.pieChart = function() {
             nv.utils.initSVG(container);
 
             var that = this;
-            var canvasWidth = (width || parseInt(container.style('width'), 10) || 960),
-                canvasHeight = (height || parseInt(container.style('height'), 10) || 400),
-                availableWidth = canvasWidth - margin.left - margin.right,
-                availableHeight = canvasHeight - margin.top - margin.bottom
-                ;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() { container.transition().call(chart); };
             chart.container = this;
@@ -103,21 +92,7 @@ nv.models.pieChart = function() {
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
-                //Remove any previously created chart components
-                container.selectAll('g').remove()
-                
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -142,8 +117,7 @@ nv.models.pieChart = function() {
 
                     if ( margin.top != legend.height()) {
                         margin.top = legend.height();
-                        availableHeight = (height || parseInt(container.style('height')) || 400)
-                            - margin.top - margin.bottom;
+                        availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
 
                     wrap.select('.nv-legendWrap')
@@ -194,14 +168,6 @@ nv.models.pieChart = function() {
                 }
                 chart.update();
             });
-
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
-            dispatch.on('tooltipHide', function() {
-                if (tooltips) nv.tooltip.cleanup();
-            });
         });
 
         renderWatch.renderEnd('pieChart immediate');
@@ -212,13 +178,21 @@ nv.models.pieChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    pie.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+    pie.dispatch.on('elementMouseover.tooltip', function(evt) {
+        evt['series'] = {
+            key: evt.data.key,
+            value: evt.data.y,
+            color: evt.color
+        };
+        tooltip.data(evt).hidden(false);
     });
 
-    pie.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
+    pie.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.hidden(true);
+    });
+
+    pie.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
     });
 
     //============================================================
@@ -235,11 +209,22 @@ nv.models.pieChart = function() {
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
-        tooltipContent: {get: function(){return tooltip;},        set: function(_){tooltip=_;}},
-        tooltips:       {get: function(){return tooltips;},       set: function(_){tooltips=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
+
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
             color = _;

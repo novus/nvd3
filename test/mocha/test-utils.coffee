@@ -21,9 +21,13 @@ class ChartBuilder
             else
                 @model[opt](val)
 
-        d3.select(@svg)
-        .datum(data)
-        .call(@model)
+        @updateData data
+
+    ###
+    Update the data while preserving the chart model.
+    ###
+    updateData: (data)->
+        d3.select(@svg).datum(data).call(@model)
 
     ###
     options: an object hash of chart options.

@@ -19,6 +19,10 @@
             height: 100%;
             width: 100%;
         }
+
+        .dashed {
+            stroke-dasharray: 5,5;
+        }
     </style>
 </head>
 <body class='with-3d-shadow with-transitions'>
@@ -45,7 +49,7 @@
         chart = nv.models.lineChart()
             .options({
                 transitionDuration: 300,
-                useInteractiveGuideline: true
+                //useInteractiveGuideline: true
             })
         ;
 
@@ -53,6 +57,7 @@
         chart.xAxis
             .axisLabel("Time (s)")
             .tickFormat(d3.format(',.1f'))
+            .staggerLabels(true)
         ;
 
         chart.yAxis
@@ -93,7 +98,8 @@
                 values: sin,
                 key: "Sine Wave",
                 color: "#ff7f0e",
-                strokeWidth: 4
+                strokeWidth: 4,
+                classed: 'dashed'
             },
             {
                 values: cos,

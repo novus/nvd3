@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../build/nv.d3.js"></script>
 
 <body>
 	 <div class='navigation'>
@@ -22,20 +24,6 @@
 	<button id='start-stop-button'>Start/Stop Stream</button>
 </div>
 
-
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/interactiveLayer.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/lineChart.js"></script>
-<script src="../src/models/historicalBar.js"></script>
-<script src="../src/models/historicalBarChart.js"></script>
-
 <script>
 var chart;
 var data = [{
@@ -46,7 +34,7 @@ var data = [{
 	]
 }];
 nv.addGraph(function() {
-  
+
   chart = nv.models.historicalBarChart();
 
   chart
@@ -77,7 +65,7 @@ var x = 2;
 var run = true;
 setInterval(function(){
 	if (!run) return;
-	
+
 	var spike = (Math.random() > 0.95) ? 10: 1;
 	data[0].values.push({
 		x: x,

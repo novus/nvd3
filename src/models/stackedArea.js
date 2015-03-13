@@ -22,11 +22,8 @@ nv.models.stackedArea = function() {
         , y //can be accessed via chart.yScale()
         , scatter = nv.models.scatter()
         , duration = 250
-        , dispatch =  d3.dispatch('tooltipShow', 'tooltipHide', 'areaClick', 'areaMouseover', 'areaMouseout','renderEnd')
+        , dispatch =  d3.dispatch('areaClick', 'areaMouseover', 'areaMouseout','renderEnd', 'elementClick', 'elementMouseover', 'elementMouseout')
         ;
-
-    // scatter is interactive by default, but this chart isn't so must disable
-    scatter.interactive(false);
 
     scatter
         .pointSize(2.2) // default size
@@ -231,28 +228,16 @@ nv.models.stackedArea = function() {
         return chart;
     }
 
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-
-    scatter.dispatch.on('elementClick.area', function(e) {
-        dispatch.areaClick(e);
-    });
-    scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-            dispatch.tooltipShow(e);
-    });
-    scatter.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
     //============================================================
     // Global getters and setters
     //------------------------------------------------------------
 
     chart.dispatch = dispatch;
     chart.scatter = scatter;
+
+    scatter.dispatch.on('elementClick', function(){ dispatch.elementClick.apply(this, arguments); });
+    scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); });
+    scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); });
 
     chart.interpolate = function(_) {
         if (!arguments.length) return interpolate;
@@ -269,6 +254,7 @@ nv.models.stackedArea = function() {
     };
 
     chart.dispatch = dispatch;
+    chart.scatter = scatter;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart._options = Object.create({}, {

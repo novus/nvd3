@@ -1,7 +1,6 @@
 {
-  "name": "nvd3-community",
-  "version": "1.7.0",
-  "homepage": "http://nvd3-community.github.io/nvd3/",
+  "name": "nvd3",
+  "homepage": "http://www.nvd3.org",
   "authors": [
     "Bob Monteverde",
     "Tyler Wolf",
@@ -22,7 +21,7 @@
   ],
   "license": "Apache License, v2.0",
   "dependencies": {
-    "d3": "^3.3.13"
+    "d3": "^3.4.4"
   },
   "ignore": [
     "**/.*",
@@ -37,11 +36,5 @@
     "*.xml",
     "*.json",
     "*.md"
-  ],
-  "resolutions": {
-    "d3": "^3.3.13"
-  },
-  "devDependencies": {
-    "d3": "^3.3.13"
-  }
+  ]
 }

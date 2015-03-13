@@ -67,8 +67,9 @@ describe 'NVD3', ->
             builder1.teardown()
 
         it 'api check', ->
-            for opt of options
-                should.exist builder1.model[opt](), "#{opt} can be called"
+          should.exist builder1.model.options, 'options exposed'
+          for opt of options
+              should.exist builder1.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
             wrap = builder1.$ 'g.nvd3.nv-cumulativeLine'
@@ -157,6 +158,13 @@ describe 'NVD3', ->
               builder.build options, sampleData
               builder.$(".nv-cumulativeLine .nv-axis.nv-x *").length.should.be.equal 0
 
+            it 'can override axis ticks', ->
+              builder.build options, sampleData
+              builder.model.xAxis.ticks(34)
+              builder.model.yAxis.ticks(56)
+              builder.model.update()
+              builder.model.xAxis.ticks().should.equal 34
+              builder.model.yAxis.ticks().should.equal 56
 
           describe 'showYAxis', ->
             it 'true', ->

@@ -1,8 +1,11 @@
 <!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
-
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type="text/css">
+<script src="../bower_components/d3/d3.js" charset="utf-8"></script>
+<script src="../build/nv.d3.js"></script>
 <style>
 #chart13, #chart14 {
   overflow: scroll;
@@ -15,6 +18,7 @@
   height: 400px;
 }
 </style>
+</head>
 <body>
   <h3>Line chart test cases - feel free to add more tests</h3>
   <div style='position:relative;'>
@@ -25,9 +29,9 @@
           <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
           <a href="ScatterChartTest.html">Scatter</a>
           <a href="pieChartTest.html">Pie chart</a>
+          <a href="multiBarCharttest.html">Multi Bar Chart</a>
           <a href="realTimeChartTest.html">Real time test</a>
           <a href="polylinearTest.html">Polylinear test</a>
-          <a href="interactiveBisectTest.html">nv.interactiveBisect unit tests</a>
       </div>
       <div class='chart full' id='chart1'>
         Example of chart with many series', and new interactive guideline plus tooltip. A chunk of data was purposely removed
@@ -124,16 +128,6 @@
       </div>
     </div>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/interactiveLayer.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/lineChart.js"></script>
 <script src="testScript.js"></script>
 <script>
 
@@ -142,7 +136,7 @@ d3.select("body").on("keydown",function() {
      alert("keydowned");
   }
 });
-//------------ CHART 1 
+//------------ CHART 1
 defaultChartConfig("chart1", dummyStocks(),true, true, {forceY:false});
 
 //-------------- CHART 2  --- Chart without the interactive guideline.
@@ -202,17 +196,17 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
     chart = nv.models.lineChart().useInteractiveGuideline(guideline);
 
     chart
-        .x(function(d,i) { 
+        .x(function(d,i) {
           return d.x;
         });
 
-    if (auxOptions.width) 
+    if (auxOptions.width)
       chart.width(auxOptions.width);
 
     if (auxOptions.height)
       chart.height(auxOptions.height);
 
-    if (auxOptions.forceY) 
+    if (auxOptions.forceY)
       chart.forceY([0]);
 
     var formatter;
@@ -477,3 +471,5 @@ function dummyStocks(numPoints) {
 }
 
 </script>
+
+</body></html>
