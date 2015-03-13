@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-12 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-13 */
 (function(){
 
 // set up main nv object
@@ -8693,8 +8693,8 @@ nv.models.pie = function() {
                 });
             });
 
-            slices.attr('fill', function(d,i) { return color(d, i); });
-            slices.attr('stroke', function(d,i) { return color(d, i); });
+            slices.attr('fill', function(d,i) { return color(d.data, i); });
+            slices.attr('stroke', function(d,i) { return color(d.data, i); });
 
             var paths = ae.append('path').each(function(d) {
                 this._current = d;
