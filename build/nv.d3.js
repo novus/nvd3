@@ -318,6 +318,7 @@ nv.interactiveGuideline = function() {
             }
 
             svgContainer
+                .on('touchmove', mouseHandler)
                 .on("mousemove",mouseHandler, true)
                 .on("mouseout" ,mouseHandler,true)
                 .on("dblclick" ,mouseHandler)
