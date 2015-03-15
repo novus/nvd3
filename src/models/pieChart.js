@@ -203,6 +203,7 @@ nv.models.pieChart = function() {
     chart.legend = legend;
     chart.dispatch = dispatch;
     chart.pie = pie;
+    chart.tooltip = tooltip;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     // use Object get/set functionality to map between vars and chart functions
