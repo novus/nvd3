@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-13 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-15 */
 (function(){
 
 // set up main nv object
@@ -7956,7 +7956,6 @@ nv.models.multiChart = function() {
 
             function mouseover_stack(evt) {
                 var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
-                var pos = {left: evt.pos[0] +  margin.left, top: evt.pos[1] + margin.top};
                 evt.point['x'] = evt.point['x'] || evt.point[0];
                 evt.point['y'] = evt.point['y'] || evt.point[1];
                 tooltip
@@ -7965,7 +7964,7 @@ nv.models.multiChart = function() {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(pos)
+                    .position(evt.pos)
                     .hidden(false);
             }
 
@@ -9113,6 +9112,7 @@ nv.models.pieChart = function() {
     chart.legend = legend;
     chart.dispatch = dispatch;
     chart.pie = pie;
+    chart.tooltip = tooltip;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     // use Object get/set functionality to map between vars and chart functions
