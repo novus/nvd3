@@ -6,8 +6,8 @@ nv.models.parallelCoordinates = function() {
     //------------------------------------------------------------
 
     var margin = {top: 30, right: 0, bottom: 10, left: 0}
-        , width = 1000
-        , height = 500
+        , width = null
+        , height = null
         , x = d3.scale.ordinal()
         , y = {}
         , dimensionsName = []
