@@ -250,6 +250,8 @@
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
                         })
+                        // not using tween for webkit touch device
+                        .style('-webkit-transform', new_translate)
                         .style('opacity', 1);
                 }
 
