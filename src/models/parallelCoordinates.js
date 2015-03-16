@@ -1,7 +1,3 @@
-
-// Code adapted from Jason Davies' "Parallel Coordinates"
-// http://bl.ocks.org/jasondavies/1341281
-
 nv.models.parallelCoordinates = function() {
     "use strict";
 
@@ -14,10 +10,11 @@ nv.models.parallelCoordinates = function() {
         , height = 500
         , x = d3.scale.ordinal()
         , y = {}
-        , dimensions = []
+        , dimensionsName = []
         , color = nv.utils.defaultColor()
         , filters = []
         , active = []
+        , dragging = []
         , lineTension = 1
         , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout')
         ;
@@ -37,10 +34,10 @@ nv.models.parallelCoordinates = function() {
             active = data; //set all active before first brush call
 
             // Setup Scales
-            x.rangePoints([0, availableWidth], 1).domain(dimensions);
+            x.rangePoints([0, availableWidth], 1).domain(dimensionsName);
 
             // Extract the list of dimensions and create a scale for each.
-            dimensions.forEach(function(d) {
+            dimensionsName.forEach(function(d) {
                 y[d] = d3.scale.linear()
                     .domain(d3.extent(data, function(p) { return +p[d]; }))
                     .range([availableHeight, 0]);
@@ -62,7 +59,11 @@ nv.models.parallelCoordinates = function() {
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var line = d3.svg.line().interpolate('cardinal').tension(lineTension),
-                axis = d3.svg.axis().orient('left');
+                axis = d3.svg.axis().orient('left'),
+                axisDrag = d3.behavior.drag()
+                        .on('dragstart', dragStart)
+                        .on('drag', dragMove)
+                        .on('dragend', dragEnd);
 
             // Add grey background lines for context.
             var background = wrap.select('.background').selectAll('path').data(data);
@@ -96,37 +97,56 @@ nv.models.parallelCoordinates = function() {
             });
 
             // Add a group element for each dimension.
-            var dimension = g.selectAll('.dimension')
-                .data(dimensions)
-                .enter().append('g')
-                .attr('class', 'dimension')
-                .attr('transform', function(d) { return 'translate(' + x(d) + ',0)'; });
+
+            var dimensions = g.selectAll('.dimension').data(dimensionsName);
+            var dimensionsEnter = dimensions.enter().append('g').attr('class', 'nv-parallelCoordinates dimension');
+            dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates nv-axis');
+            dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates-brush');
+            dimensionsEnter.append('text').attr('class', 'nv-parallelCoordinates nv-label');
+
+            dimensions.attr('transform', function(d) { return 'translate(' + x(d) + ',0)'; });
+            dimensions.exit().remove();
 
             // Add an axis and title.
-            dimension.append('g')
-                .attr('class', 'axis')
-                .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
-                .append('text')
+            dimensions.select('.nv-label')
+                .style("cursor", "move")
+                .attr('dy', '-1em')
                 .attr('text-anchor', 'middle')
-                .attr('y', -9)
-                .text(String);
+                .text(String)
+                .on("mouseover", function(d, i) {
+                    dispatch.elementMouseover({
+                        dim: d,
+                        pos: [d3.mouse(this.parentNode.parentNode)[0], d3.mouse(this.parentNode.parentNode)[1]]
+                    });
+                })
+                .on("mouseout", function(d, i) {
+                    dispatch.elementMouseout({
+                        dim: d
+                    });
+                })
+                .call(axisDrag);
 
-            // Add and store a brush for each axis.
-            dimension.append('g')
-                .attr('class', 'brush')
-                .each(function(d) { d3.select(this).call(y[d].brush); })
+            dimensions.select('.nv-axis')
+                .each(function (d) {
+                    d3.select(this).call(axis.scale(y[d]));
+                });
+
+                dimensions.select('.nv-parallelCoordinates-brush')
+                .each(function (d) {
+                    d3.select(this).call(y[d].brush);
+                })
                 .selectAll('rect')
                 .attr('x', -8)
                 .attr('width', 16);
 
             // Returns the path for a given data point.
             function path(d) {
-                return line(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
+                return line(dimensionsName.map(function(p) { return [x(p), y[p](d[p])]; }));
             }
 
             // Handles a brush event, toggling the display of foreground lines.
             function brush() {
-                var actives = dimensions.filter(function(p) { return !y[p].brush.empty(); }),
+                var actives = dimensionsName.filter(function(p) { return !y[p].brush.empty(); }),
                     extents = actives.map(function(p) { return y[p].brush.extent(); });
 
                 filters = []; //erase current filters
@@ -151,6 +171,39 @@ nv.models.parallelCoordinates = function() {
                     active: active
                 });
             }
+            
+            function dragStart(d, i) {
+                dragging[d] = this.parentNode.__origin__ = x(d);
+                background.attr("visibility", "hidden");
+
+            }
+
+            function dragMove(d, i) {
+                dragging[d] = Math.min(width, Math.max(0, this.parentNode.__origin__ += d3.event.x));
+                foreground.attr("d", path);
+                dimensionsName.sort(function(a, b) { return position(a) - position(b); });
+                //dimensions.map(function(d, i) { return d.currentPosition = i; });
+                x.domain(dimensionsName);
+                dimensions.attr("transform", function(d) { return "translate(" + position(d) + ")"; });
+            }
+
+            function dragEnd(d, i) {
+                delete this.parentNode.__origin__;
+                delete dragging[d];
+                d3.select(this.parentNode).attr("transform", "translate(" + x(d) + ")");
+                foreground
+                  .attr("d", path);
+                background
+                  .attr("d", path)
+                  .attr("visibility", null);
+
+                //dispatch.dimensionsOrder(dimensionsName);
+            }
+
+            function position(d) {
+                var v = dragging[d];
+                return v == null ? x(d) : v;
+            }
         });
 
         return chart;
@@ -167,7 +220,7 @@ nv.models.parallelCoordinates = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
-        dimensions: {get: function(){return dimensions;}, set: function(_){dimensions=_;}},
+        dimensionsName: { get: function() { return dimensionsName; }, set: function(_) { dimensionsName = _; } },
         lineTension: {get: function(){return lineTension;}, set: function(_){lineTension=_;}},
 
         // options that require extra logic in the setter

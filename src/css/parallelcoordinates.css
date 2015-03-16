@@ -10,19 +10,21 @@
     stroke-opacity: .7;
 }
 
-.nvd3 .brush .extent {
-    fill-opacity: .3;
-    stroke: #fff;
+.nvd3 .nv-parallelCoordinates-brush .extent 
+{
+    fill: #fff;
+    fill-opacity: .6;
+    stroke: gray;
     shape-rendering: crispEdges;
 }
 
-.nvd3 .axis line, .axis path {
+.nvd3 .nv-axis line, .nv-axis path {
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
 }
 
-.nvd3 .axis text {
+.nvd3 .nv-axis text {
     text-shadow: 0 1px 0 #fff;
 }
 
