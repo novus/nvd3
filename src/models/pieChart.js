@@ -123,19 +123,20 @@ nv.models.pieChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + (-margin.top) +')');
                 } else if (legendPosition === "right") {
-                    legend.height(availableHeight).width(availableWidth - availableHeight).key(pie.x());
-
-                    wrap.select('.nv-legendWrap')
-                        .datum(data)
-                        .call(legend);
+                    legend.height( availableHeight ).key(pie.x());
 
                     if ( margin.right != legend.width()) {
+                        if (legend.width() > availableWidth / 2) {
+                            legend.width(availableWidth / 2);
+                            availableWidth -= legend.width();
+                        }
                         margin.right = legend.width();
-                        availableWidth = nv.utils.availableWidth(width, container, margin);
                     }
 
                     wrap.select('.nv-legendWrap')
-                        .attr('transform', 'translate(' + (margin.left + availableHeight) +',0)');
+                        .datum(data)
+                        .call(legend)
+                        .attr('transform', 'translate(' + (availableWidth) +',0)');
                 }
             }
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -202,6 +203,7 @@ nv.models.pieChart = function() {
     chart.legend = legend;
     chart.dispatch = dispatch;
     chart.pie = pie;
+    chart.tooltip = tooltip;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     // use Object get/set functionality to map between vars and chart functions
