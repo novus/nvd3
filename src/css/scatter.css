@@ -10,3 +10,7 @@
 .nv-noninteractive {
     pointer-events: none;
 }
+
+.nv-distx, .nv-disty {
+    pointer-events: none;
+}
