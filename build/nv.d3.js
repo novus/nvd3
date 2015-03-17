@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-10 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-15 */
 (function(){
 
 // set up main nv object
@@ -1275,7 +1275,6 @@ To enable in the chart:
 chart.options = nv.utils.optionsFunc.bind(chart);
 */
 nv.utils.optionsFunc = function(args) {
-    nv.deprecated('nv.utils.optionsFunc');
     if (args) {
         d3.map(args).forEach((function(key,value) {
             if (typeof this[key] === "function") {
