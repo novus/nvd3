@@ -33,6 +33,8 @@
     nv.addGraph(function() {
         var chart = nv.models.lineWithFocusChart();
 
+        chart.brushExtent([40,80]);
+
         chart.xAxis.tickFormat(d3.format(',f'));
         chart.x2Axis.tickFormat(d3.format(',f'));
         chart.yAxis.tickFormat(d3.format(',.2f'));
