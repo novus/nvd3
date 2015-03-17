@@ -20,7 +20,7 @@ describe 'NVD3', ->
             height: 50
             xTickFormat: (d)-> d
             yTickFormat: (d)-> d.toFixed 2
-            showLastValue: true
+            showValue: true
             alignValue: true
             rightAlignValue: false
             noData: 'No Data Available'
