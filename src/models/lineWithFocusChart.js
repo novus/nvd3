@@ -307,7 +307,7 @@ nv.models.lineWithFocusChart = function() {
                     .data([brush.empty() ? x2.domain() : brushExtent])
                     .each(function(d,i) {
                         var leftWidth = x2(d[0]) - x.range()[0],
-                            rightWidth = x.range()[1] - x2(d[1]);
+                            rightWidth = availableWidth - x2(d[1]);
                         d3.select(this).select('.left')
                             .attr('width',  leftWidth < 0 ? 0 : leftWidth);
 
