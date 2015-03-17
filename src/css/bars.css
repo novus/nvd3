@@ -1,9 +1,4 @@
-.nvd3 .nv-bars .negative rect {
-    zfill: brown;
-}
-
 .nvd3 .nv-bars rect {
-    zfill: steelblue;
     fill-opacity: .75;
 
     transition: fill-opacity 250ms linear;
