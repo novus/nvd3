@@ -249,8 +249,9 @@
                         // using tween since some versions of d3 can't auto-tween a translate on a div
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
-                        })
-                        // not using tween for webkit touch device
+                        }, 'important')
+                        // Safari has its own `-webkit-transform` and does not support `transform` 
+                        // transform tooltip without transition only in Safari
                         .style('-webkit-transform', new_translate)
                         .style('opacity', 1);
                 }
