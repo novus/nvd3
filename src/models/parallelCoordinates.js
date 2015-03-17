@@ -38,11 +38,24 @@ nv.models.parallelCoordinates = function() {
             // Setup Scales
             x.rangePoints([0, availableWidth], 1).domain(dimensionNames);
 
+            var onlyNanValues = {};
             // Extract the list of dimensions and create a scale for each.
             dimensionNames.forEach(function(d) {
+                var extent = d3.extent(data, function(p) { return +p[d]; });
+                onlyNanValues[d] = false;
+                if (extent[0] === undefined) {
+                    onlyNanValues[d] = true;
+                    extent[0] = 0;
+                    extent[1] = 0;
+                }
+                //Scale axis if there is only one value
+                if (extent[0] === extent[1]) {
+                    extent[0] = extent[0] - 1;
+                    extent[1] = extent[1] + 1;
+                }
                 y[d] = d3.scale.linear()
-                    .domain(d3.extent(data, function(p) { return +p[d]; }))
-                    .range([availableHeight, 0]);
+                    .domain(extent)
+                    .range([(availableHeight - 12) * 0.9, 0]);
 
                 y[d].brush = d3.svg.brush().y(y[d]).on('brush', brush);
 
@@ -57,6 +70,7 @@ nv.models.parallelCoordinates = function() {
 
             gEnter.append('g').attr('class', 'nv-parallelCoordinates background');
             gEnter.append('g').attr('class', 'nv-parallelCoordinates foreground');
+            gEnter.append('g').attr('class', 'nv-parallelCoordinates missingValuesline');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -66,6 +80,28 @@ nv.models.parallelCoordinates = function() {
                         .on('dragstart', dragStart)
                         .on('drag', dragMove)
                         .on('dragend', dragEnd);
+
+            //Add missing value line
+            var missingValuesline, missingValueslineText;
+            var step = x.range()[1] - x.range()[0];
+            var axisWithMissingValues = [];
+            var lineData = [0 + step / 2, availableHeight - 12, availableWidth - step / 2, availableHeight - 12];
+            missingValuesline = wrap.select('.missingValuesline').selectAll('line').data([lineData]);
+            missingValuesline.enter().append('line');
+            missingValuesline.exit().remove();
+            missingValuesline.attr("x1", function(d) { return d[0]; })
+                    .attr("y1", function(d) { return d[1]; })
+                    .attr("x2", function(d) { return d[2]; })
+                    .attr("y2", function(d) { return d[3]; });
+
+
+            missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
+            missingValueslineText.append('text').data(["undefined values"]);
+            missingValueslineText.enter().append('text');
+            missingValueslineText.exit().remove();
+            missingValueslineText.attr("y", availableHeight)
+                    .attr("x", availableWidth - 92 - step / 2)
+                    .text(function(d) { return d; });
 
             // Add grey background lines for context.
             var background = wrap.select('.background').selectAll('path').data(data);
@@ -78,7 +114,6 @@ nv.models.parallelCoordinates = function() {
             foreground.enter().append('path')
             foreground.exit().remove();
             foreground.attr('d', path).attr('stroke', color);
-
             foreground.on("mouseover", function (d, i) {
                 d3.select(this).classed('hover', true);
                 dispatch.elementMouseover({
@@ -142,7 +177,32 @@ nv.models.parallelCoordinates = function() {
 
             // Returns the path for a given data point.
             function path(d) {
-                return line(dimensionNames.map(function (p) { return [x(p), y[p](d[p])]; }));
+                return line(dimensionNames.map(function (p) {
+                    if(isNaN(d[p]) || isNaN(parseFloat(d[p]))) {
+                        var domain = y[p].domain();
+                        var range = y[p].range();
+                        var min = domain[0] - (domain[1] - domain[0]) / 9;
+
+                        if(axisWithMissingValues.indexOf(p) < 0) {
+
+                            var newscale = d3.scale.linear().domain([min, domain[1]]).range([availableHeight - 12, range[1]]);
+                            y[p].brush.y(newscale);
+                            axisWithMissingValues.push(p);
+                        }
+
+                        return [x(p), y[p](min)];
+                    }
+
+                    if(axisWithMissingValues.length > 0) {
+                        missingValuesline.style("display", "inline");
+                        missingValueslineText.style("display", "inline");
+                    } else {
+                        missingValuesline.style("display", "none");
+                        missingValueslineText.style("display", "none");
+                    }
+
+                     return [x(p), y[p](d[p])];
+                }));
             }
 
             // Handles a brush event, toggling the display of foreground lines.
@@ -161,6 +221,7 @@ nv.models.parallelCoordinates = function() {
                 active = []; //erase current active list
                 foreground.style('display', function(d) {
                     var isActive = actives.every(function(p, i) {
+                        if(isNaN(d[p]) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
                         return extents[i][0] <= d[p] && d[p] <= extents[i][1];
                     });
                     if (isActive) active.push(d);

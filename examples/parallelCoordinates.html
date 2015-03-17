@@ -12,6 +12,9 @@
         }
         svg {
             display: block;
+			float: left;
+			height: 450px !important;
+            width: 850px !important;
         }
         html, body, #chart1, svg {
             margin: 0px;
@@ -24,10 +27,8 @@
 </head>
 <body>
 
-<div id="chart1" class="chart">
-    <svg></svg>
-</div>
-
+<svg id="chart1" class="chart"></svg>
+<svg id="chart2" class="chart"></svg>
 <script>
 
 var chart;
@@ -37,10 +38,7 @@ nv.addGraph(function() {
         .dimensions(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"])
         .lineTension(0.85);
 
-    // make all lines the same color like this
-    //chart.color(['steelblue']);
-
-    d3.select('#chart1 svg')
+    d3.select('#chart1')
             .datum(data())
             .call(chart);
 
@@ -49,6 +47,49 @@ nv.addGraph(function() {
     return chart;
 });
 
+nv.addGraph(function() {
+
+    chart = nv.models.parallelCoordinates()
+        .dimensionNames(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"]);
+        
+
+    // make all lines the same color like this
+    chart.color(['steelblue']);
+
+    d3.select('#chart2')
+            .datum(data1())
+            .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+});
+
+function data1() {
+    return [
+        {
+            "name": "AMC Ambassador Brougham",
+            "economy (mpg)": "13",
+            "cylinders": "x",
+            "displacement (cc)": "s",
+            "power (hp)": "177",
+            "weight (lb)": "f",
+            "0-60 mph (s)": "11",
+            "year": ""
+        },
+
+		{
+            "name": "AMC Ambassador Brougham",
+            "economy (mpg)": "10",
+            "cylinders": "19",
+            "displacement (cc)": "36",
+            "power (hp)": "76",
+            "weight (lb)": "382",
+            "0-60 mph (s)": "120",
+            "year": "4"
+        }
+	]
+}
 function data() {
     return [
         {
@@ -106,7 +147,7 @@ function data() {
             "economy (mpg)": "23",
             "cylinders": "4",
             "displacement (cc)": "151",
-            "power (hp)": "",
+            "power (hp)": "0",
             "weight (lb)": "3035",
             "0-60 mph (s)": "20.5",
             "year": "82"
@@ -313,7 +354,7 @@ function data() {
         },
         {
             "name": "AMC Rebel SST (Wagon)",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "8",
             "displacement (cc)": "360",
             "power (hp)": "175",
@@ -713,7 +754,7 @@ function data() {
         },
         {
             "name": "Chevrolet Chevelle Concours (Wagon)",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "8",
             "displacement (cc)": "350",
             "power (hp)": "165",
@@ -1163,7 +1204,7 @@ function data() {
         },
         {
             "name": "Citroen DS-21 Pallas",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "4",
             "displacement (cc)": "133",
             "power (hp)": "115",
@@ -2086,7 +2127,7 @@ function data() {
             "economy (mpg)": "21",
             "cylinders": "6",
             "displacement (cc)": "200",
-            "power (hp)": "",
+            "power (hp)": "0",
             "weight (lb)": "2875",
             "0-60 mph (s)": "17",
             "year": "74"
@@ -2113,7 +2154,7 @@ function data() {
         },
         {
             "name": "Ford Mustang Boss 302",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "8",
             "displacement (cc)": "302",
             "power (hp)": "140",
@@ -2126,7 +2167,7 @@ function data() {
             "economy (mpg)": "23.6",
             "cylinders": "4",
             "displacement (cc)": "140",
-            "power (hp)": "",
+            "power (hp)": "0",
             "weight (lb)": "2905",
             "0-60 mph (s)": "14.3",
             "year": "80"
@@ -2226,7 +2267,7 @@ function data() {
             "economy (mpg)": "25",
             "cylinders": "4",
             "displacement (cc)": "98",
-            "power (hp)": "",
+            "power (hp)": "0",
             "weight (lb)": "2046",
             "0-60 mph (s)": "19",
             "year": "71"
@@ -2273,7 +2314,7 @@ function data() {
         },
         {
             "name": "Ford Torino (Wagon)",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "8",
             "displacement (cc)": "351",
             "power (hp)": "153",
@@ -3143,7 +3184,7 @@ function data() {
         },
         {
             "name": "Plymouth Satellite (Wagon)",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "8",
             "displacement (cc)": "383",
             "power (hp)": "175",
@@ -3436,7 +3477,7 @@ function data() {
             "economy (mpg)": "34.5",
             "cylinders": "4",
             "displacement (cc)": "100",
-            "power (hp)": "",
+            "power (hp)": "0",
             "weight (lb)": "2320",
             "0-60 mph (s)": "15.8",
             "year": "81"
@@ -3456,14 +3497,14 @@ function data() {
             "economy (mpg)": "40.9",
             "cylinders": "4",
             "displacement (cc)": "85",
-            "power (hp)": "",
+            "power (hp)": "0",
             "weight (lb)": "1835",
             "0-60 mph (s)": "17.3",
             "year": "80"
         },
         {
             "name": "Saab 900S",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "4",
             "displacement (cc)": "121",
             "power (hp)": "110",
@@ -4023,7 +4064,7 @@ function data() {
         },
         {
             "name": "Volkswagen Super Beetle 117",
-            "economy (mpg)": "",
+            "economy (mpg)": "0",
             "cylinders": "4",
             "displacement (cc)": "97",
             "power (hp)": "48",
