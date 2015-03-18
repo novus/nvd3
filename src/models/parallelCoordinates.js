@@ -220,6 +220,12 @@ nv.models.parallelCoordinates = function() {
         dimensionNames: {get: function() { return dimensionNames;}, set: function(_){dimensionNames= _;}},
         lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
 
+        // deprecated options
+        dimensions: {get: function (){return dimensionNames;}, set: function(_){
+            // deprecated after 1.8.1
+            nv.deprecated('dimensions', 'use dimensionNames instead');
+            dimensionNames = _;
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
