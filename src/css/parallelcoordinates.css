@@ -18,16 +18,6 @@
     shape-rendering: crispEdges;
 }
 
-.nvd3 .nv-axis line, .nv-axis path {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.nvd3 .nv-axis text {
-    text-shadow: 0 1px 0 #fff;
-}
-
 .nvd3 .nv-parallelCoordinates .hover  {
     fill-opacity: 1;
 	stroke-width: 3px;
