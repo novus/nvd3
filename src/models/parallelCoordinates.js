@@ -1,3 +1,5 @@
+// Code adapted from Jason Davies' "Parallel Coordinates"
+// http://bl.ocks.org/jasondavies/1341281
 nv.models.parallelCoordinates = function() {
     "use strict";
 
