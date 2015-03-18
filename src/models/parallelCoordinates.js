@@ -38,11 +38,13 @@ nv.models.parallelCoordinates = function() {
             // Setup Scales
             x.rangePoints([0, availableWidth], 1).domain(dimensionNames);
 
+            //Set as true if all values on an axis are missing.
             var onlyNanValues = {};
             // Extract the list of dimensions and create a scale for each.
             dimensionNames.forEach(function(d) {
                 var extent = d3.extent(data, function(p) { return +p[d]; });
                 onlyNanValues[d] = false;
+                //If there is no values to display on an axis, set the extent to 0 
                 if (extent[0] === undefined) {
                     onlyNanValues[d] = true;
                     extent[0] = 0;
@@ -81,7 +83,7 @@ nv.models.parallelCoordinates = function() {
                         .on('drag', dragMove)
                         .on('dragend', dragEnd);
 
-            //Add missing value line
+            //Add missing value line at the bottom of the chart
             var missingValuesline, missingValueslineText;
             var step = x.range()[1] - x.range()[0];
             var axisWithMissingValues = [];
@@ -94,7 +96,7 @@ nv.models.parallelCoordinates = function() {
                     .attr("x2", function(d) { return d[2]; })
                     .attr("y2", function(d) { return d[3]; });
 
-
+            //Add the text "undefined values" under the missing value line 
             missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
             missingValueslineText.append('text').data(["undefined values"]);
             missingValueslineText.enter().append('text');
@@ -178,11 +180,13 @@ nv.models.parallelCoordinates = function() {
             // Returns the path for a given data point.
             function path(d) {
                 return line(dimensionNames.map(function (p) {
+                    //If value if missing, put the value on the missing value line
                     if(isNaN(d[p]) || isNaN(parseFloat(d[p]))) {
                         var domain = y[p].domain();
                         var range = y[p].range();
                         var min = domain[0] - (domain[1] - domain[0]) / 9;
-
+                        
+                        //If it's not already the case, allow brush to select undefined values
                         if(axisWithMissingValues.indexOf(p) < 0) {
 
                             var newscale = d3.scale.linear().domain([min, domain[1]]).range([availableHeight - 12, range[1]]);
@@ -192,7 +196,8 @@ nv.models.parallelCoordinates = function() {
 
                         return [x(p), y[p](min)];
                     }
-
+                    
+                    //If parallelCoordinate contain missing values show the missing values line otherwise, hide it.
                     if(axisWithMissingValues.length > 0) {
                         missingValuesline.style("display", "inline");
                         missingValueslineText.style("display", "inline");
