@@ -287,7 +287,10 @@ nv.models.pie = function() {
                         var labelTypes = {
                             "key" : getX(d.data),
                             "value": getY(d.data),
-                            "percent": labelFormat(percent)
+                            "percent": labelFormat(percent),
+                            "key:value" : getX(d.data) + ' (' + getY(d.data) + ')',
+                            "key:percent" : getX(d.data) + ' (' + labelFormat(percent) + ')',
+                            "key:value:percent" : getX(d.data) + ' (' + getY(d.data) + ')' + ' (' + labelFormat(percent) + ')'
                         };
                         return (d.value && percent > labelThreshold) ? labelTypes[labelType] : '';
                     })
