@@ -317,6 +317,9 @@ nv.models.pie = function() {
                             case 'key:value:percent':
                                 label = getX(d.data) + ' (' + getY(d.data) + ')' + ' (' + labelFormat(percent) + ')'
                                 break;
+                            default:
+                                label = labelType();
+                                break;
                         }
                         return label;
                     })
