@@ -298,19 +298,29 @@ nv.models.pie = function() {
                         var label = '';
                         if (!d.value || percent < labelThreshold) return '';
 
-                        switch (labelType) {
-                            case 'key':
-                                label = getX(d.data);
-                                break;
-                            case 'value':
-                                label = valueFormat(getY(d.data));
-                                break;
-                            case 'percent':
-                                label = valueFormat(percent);
-                                break;
-                            default:
-                                label = labelType({ 'key': getX(d.data), 'value': getY(d.data), 'percent': labelFormat(percent) });
-                                break;
+                        if(typeof labelType === 'function') {
+                            label = labelType({ 'key': getX(d.data), 'value': getY(d.data), 'percent': labelFormat(percent) });
+                        } else {
+                            switch (labelType) {
+                                case 'key':
+                                    label = getX(d.data);
+                                    break;
+                                case 'value':
+                                    label = valueFormat(getY(d.data));
+                                    break;
+                                case 'percent':
+                                    label = valueFormat(percent);
+                                    break;
+                                case 'key:value':
+                                    label = getX(d.data) + ' (' + getY(d.data) + ')'
+                                    break;
+                                case 'key:percent':
+                                    label = getX(d.data) + ' (' + labelFormat(percent) + ')'
+                                    break;
+                                case 'key:value:percent':
+                                    label = getX(d.data) + ' (' + getY(d.data) + ')' + ' (' + labelFormat(percent) + ')'
+                                    break;
+                            }
                         }
                         return label;
                     })
