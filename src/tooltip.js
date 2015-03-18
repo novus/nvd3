@@ -40,7 +40,7 @@
             ,   tooltip = null // d3 select of tooltipElem below
             ,   tooltipElem = null  //actual DOM element representing the tooltip.
             ,   position = {left: null, top: null}   //Relative position of the tooltip inside chartContainer.
-            ,   tooltipOffset = {left: 0, top: 0}   //Offset of tooltip against the pointer
+            ,   offset = {left: 0, top: 0}   //Offset of tooltip against the pointer
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
             ,   headerEnabled = true
@@ -226,8 +226,8 @@
                 }
                 
                 // adjust tooltip offsets
-                left -= tooltipOffset.left;
-                top -= tooltipOffset.top;
+                left -= offset.left;
+                top -= offset.top;
 
                 // using tooltip.style('transform') returns values un-usable for tween
                 var box = tooltipElem.getBoundingClientRect();
@@ -384,9 +384,9 @@
                 position.left = _.left !== undefined ? _.left : position.left;
                 position.top  = _.top  !== undefined ? _.top  : position.top;
             }},
-            tooltipOffset: {get: function(){return tooltipOffset;}, set: function(_){
-                tooltipOffset.left = _.left !== undefined ? _.left : tooltipOffset.left;
-                tooltipOffset.top  = _.top  !== undefined ? _.top  : tooltipOffset.top;
+            offset: {get: function(){return offset;}, set: function(_){
+                offset.left = _.left !== undefined ? _.left : offset.left;
+                offset.top  = _.top  !== undefined ? _.top  : offset.top;
             }},
             hidden: {get: function(){return hidden;}, set: function(_){
                 if (hidden != _) {
