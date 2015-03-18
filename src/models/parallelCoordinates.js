@@ -182,7 +182,6 @@ nv.models.parallelCoordinates = function() {
                 dragging[d] = Math.min(width, Math.max(0, this.parentNode.__origin__ += d3.event.x));
                 foreground.attr("d", path);
                 dimensionsName.sort(function(a, b) { return position(a) - position(b); });
-                //dimensions.map(function(d, i) { return d.currentPosition = i; });
                 x.domain(dimensionsName);
                 dimensions.attr("transform", function(d) { return "translate(" + position(d) + ")"; });
             }
@@ -197,7 +196,6 @@ nv.models.parallelCoordinates = function() {
                   .attr("d", path)
                   .attr("visibility", null);
 
-                //dispatch.dimensionsOrder(dimensionsName);
             }
 
             function position(d) {
