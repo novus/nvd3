@@ -752,6 +752,19 @@ as well as used to print out examples using those example inputs.
             default: "[{inner: donutRatio, outer: 1}]",
             examples: [{inner: 0.6, outer: 0.8}]
         },
+        lineTension: {
+            desc: "Specifies each line tension. Values between 0 and 1.",
+            default: 1,
+            examples: [0.85]
+        },
+        dimensions: {
+            desc: "Deprecated. Use dimensionsNames instead. "
+        },
+        dimensionNames: {
+            desc: "Name of each dimension, used for each axis.",
+            default: "[]",
+            examples: [["axis1", "axis2", "axis3"]]
+        },
         gravity: {
             desc: "Can be 'n','s','e','w'. Determines how tooltip is positioned.",
             default: "w",
