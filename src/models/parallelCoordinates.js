@@ -10,7 +10,7 @@ nv.models.parallelCoordinates = function() {
         , height = null
         , x = d3.scale.ordinal()
         , y = {}
-        , dimensionsName = []
+        , dimensionNames = []
         , color = nv.utils.defaultColor()
         , filters = []
         , active = []
@@ -34,10 +34,10 @@ nv.models.parallelCoordinates = function() {
             active = data; //set all active before first brush call
 
             // Setup Scales
-            x.rangePoints([0, availableWidth], 1).domain(dimensionsName);
+            x.rangePoints([0, availableWidth], 1).domain(dimensionNames);
 
             // Extract the list of dimensions and create a scale for each.
-            dimensionsName.forEach(function(d) {
+            dimensionNames.forEach(function(d) {
                 y[d] = d3.scale.linear()
                     .domain(d3.extent(data, function(p) { return +p[d]; }))
                     .range([availableHeight, 0]);
@@ -97,8 +97,7 @@ nv.models.parallelCoordinates = function() {
             });
 
             // Add a group element for each dimension.
-
-            var dimensions = g.selectAll('.dimension').data(dimensionsName);
+            var dimensions = g.selectAll('.dimension').data(dimensionNames);
             var dimensionsEnter = dimensions.enter().append('g').attr('class', 'nv-parallelCoordinates dimension');
             dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates nv-axis');
             dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates-brush');
@@ -141,12 +140,12 @@ nv.models.parallelCoordinates = function() {
 
             // Returns the path for a given data point.
             function path(d) {
-                return line(dimensionsName.map(function(p) { return [x(p), y[p](d[p])]; }));
+                return line(dimensionNames.map(function (p) { return [x(p), y[p](d[p])]; }));
             }
 
             // Handles a brush event, toggling the display of foreground lines.
             function brush() {
-                var actives = dimensionsName.filter(function(p) { return !y[p].brush.empty(); }),
+                var actives = dimensionNames.filter(function(p) { return !y[p].brush.empty(); }),
                     extents = actives.map(function(p) { return y[p].brush.extent(); });
 
                 filters = []; //erase current filters
@@ -181,8 +180,8 @@ nv.models.parallelCoordinates = function() {
             function dragMove(d, i) {
                 dragging[d] = Math.min(width, Math.max(0, this.parentNode.__origin__ += d3.event.x));
                 foreground.attr("d", path);
-                dimensionsName.sort(function(a, b) { return position(a) - position(b); });
-                x.domain(dimensionsName);
+                dimensionNames.sort(function (a, b) { return position(a) - position(b); });
+                x.domain(dimensionNames);
                 dimensions.attr("transform", function(d) { return "translate(" + position(d) + ")"; });
             }
 
@@ -216,10 +215,11 @@ nv.models.parallelCoordinates = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        width:      {get: function(){return width;}, set: function(_){width=_;}},
-        height:     {get: function(){return height;}, set: function(_){height=_;}},
-        dimensionsName: { get: function() { return dimensionsName; }, set: function(_) { dimensionsName = _; } },
-        lineTension: {get: function(){return lineTension;}, set: function(_){lineTension=_;}},
+        width:         {get: function(){return width;},           set: function(_){width= _;}},
+        height:        {get: function(){return height;},          set: function(_){height= _;}},
+        dimensionNames: {get: function() { return dimensionNames;}, set: function(_){dimensionNames= _;}},
+        lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
+
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
