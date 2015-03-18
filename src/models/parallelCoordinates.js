@@ -178,7 +178,7 @@ nv.models.parallelCoordinates = function() {
             }
 
             function dragMove(d, i) {
-                dragging[d] = Math.min(width, Math.max(0, this.parentNode.__origin__ += d3.event.x));
+                dragging[d] = Math.min(availableWidth, Math.max(0, this.parentNode.__origin__ += d3.event.x));
                 foreground.attr("d", path);
                 dimensionNames.sort(function (a, b) { return position(a) - position(b); });
                 x.domain(dimensionNames);
