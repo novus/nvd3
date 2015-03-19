@@ -13,6 +13,7 @@ nv.models.parallelCoordinates = function() {
         , x = d3.scale.ordinal()
         , y = {}
         , dimensionNames = []
+        , dimensionFormats = []
         , color = nv.utils.defaultColor()
         , filters = []
         , active = []
@@ -165,8 +166,8 @@ nv.models.parallelCoordinates = function() {
                 .call(axisDrag);
 
             dimensions.select('.nv-axis')
-                .each(function (d) {
-                    d3.select(this).call(axis.scale(y[d]));
+                .each(function (d, i) {
+                    d3.select(this).call(axis.scale(y[d]).tickFormat(d3.format(dimensionFormats[i])));
                 });
 
                 dimensions.select('.nv-parallelCoordinates-brush')
@@ -286,6 +287,7 @@ nv.models.parallelCoordinates = function() {
         width:         {get: function(){return width;},           set: function(_){width= _;}},
         height:        {get: function(){return height;},          set: function(_){height= _;}},
         dimensionNames: {get: function() { return dimensionNames;}, set: function(_){dimensionNames= _;}},
+        dimensionFormats : {get: function(){return dimensionFormats;}, set: function (_){dimensionFormats=_;}},
         lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
 
         // deprecated options
