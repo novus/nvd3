@@ -56,6 +56,8 @@ nv.models.parallelCoordinates = function() {
                     extent[0] = extent[0] - 1;
                     extent[1] = extent[1] + 1;
                 }
+                //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
+                //The remaining 10% are used to display the missingValue line.
                 y[d] = d3.scale.linear()
                     .domain(extent)
                     .range([(availableHeight - 12) * 0.9, 0]);
@@ -103,6 +105,7 @@ nv.models.parallelCoordinates = function() {
             missingValueslineText.enter().append('text');
             missingValueslineText.exit().remove();
             missingValueslineText.attr("y", availableHeight)
+                    //To have the text right align with the missingValues line, substract 92 representing the text size.
                     .attr("x", availableWidth - 92 - step / 2)
                     .text(function(d) { return d; });
 
