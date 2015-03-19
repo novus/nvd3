@@ -22,3 +22,12 @@
     fill-opacity: 1;
 	stroke-width: 3px;
 }
+
+
+.nvd3 .missingValuesline line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1;
+  stroke-opacity: 1;
+  stroke-dasharray: 5, 5; 
+}
