@@ -243,6 +243,10 @@ nv.models.scatter = function() {
                         var point  = series.values[d.point];
                         point['color'] = color(series, d.series);
 
+                        // standardize attributes for tooltip.
+                        point['x'] = getX(point);
+                        point['y'] = getY(point);
+
                         // can't just get box of event node since it's actually a voronoi polygon
                         var box = container.node().getBoundingClientRect();
                         var scrollTop  = window.pageYOffset || document.documentElement.scrollTop;
