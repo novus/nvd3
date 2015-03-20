@@ -10,18 +10,24 @@
     stroke-opacity: .7;
 }
 
-.nvd3 .brush .extent {
-    fill-opacity: .3;
-    stroke: #fff;
+.nvd3 .nv-parallelCoordinates-brush .extent 
+{
+    fill: #fff;
+    fill-opacity: .6;
+    stroke: gray;
     shape-rendering: crispEdges;
 }
 
-.nvd3 .axis line, .axis path {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
+.nvd3 .nv-parallelCoordinates .hover  {
+    fill-opacity: 1;
+	stroke-width: 3px;
 }
 
-.nvd3 .axis text {
-    text-shadow: 0 1px 0 #fff;
+
+.nvd3 .missingValuesline line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1;
+  stroke-opacity: 1;
+  stroke-dasharray: 5, 5; 
 }

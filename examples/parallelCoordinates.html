@@ -34,10 +34,10 @@ var chart;
 nv.addGraph(function() {
 
     chart = nv.models.parallelCoordinates()
-        .dimensions(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"]);
-
-    // make all lines the same color like this
-    //chart.color(['steelblue']);
+        .dimensionNames(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"])
+        .dimensionFormats(["0.5f", "e", "g", "d", "", "%", "p"])
+        .lineTension(0.85);
+		
 
     d3.select('#chart1 svg')
             .datum(data())

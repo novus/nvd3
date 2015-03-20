@@ -39,7 +39,8 @@
             ,   hideDelay = 400  // delay before the tooltip hides after calling hide()
             ,   tooltip = null // d3 select of tooltipElem below
             ,   tooltipElem = null  //actual DOM element representing the tooltip.
-            ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
+            ,   position = {left: null, top: null}   //Relative position of the tooltip inside chartContainer.
+            ,   offset = {left: 0, top: 0}   //Offset of tooltip against the pointer
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
             ,   headerEnabled = true
@@ -223,6 +224,10 @@
                         tTop = tooltipTop(tooltipElem);
                         break;
                 }
+                
+                // adjust tooltip offsets
+                left -= offset.left;
+                top -= offset.top;
 
                 // using tooltip.style('transform') returns values un-usable for tween
                 var box = tooltipElem.getBoundingClientRect();
@@ -249,7 +254,10 @@
                         // using tween since some versions of d3 can't auto-tween a translate on a div
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
-                        })
+                        }, 'important')
+                        // Safari has its own `-webkit-transform` and does not support `transform` 
+                        // transform tooltip without transition only in Safari
+                        .style('-webkit-transform', new_translate)
                         .style('opacity', 1);
                 }
 
@@ -378,6 +386,10 @@
             position: {get: function(){return position;}, set: function(_){
                 position.left = _.left !== undefined ? _.left : position.left;
                 position.top  = _.top  !== undefined ? _.top  : position.top;
+            }},
+            offset: {get: function(){return offset;}, set: function(_){
+                offset.left = _.left !== undefined ? _.left : offset.left;
+                offset.top  = _.top  !== undefined ? _.top  : offset.top;
             }},
             hidden: {get: function(){return hidden;}, set: function(_){
                 if (hidden != _) {
