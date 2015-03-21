@@ -31,6 +31,8 @@ nv.models.pie = function() {
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
+    var arcs = [];
+    var arcsOver = [];
 
     //============================================================
     // chart function
@@ -84,9 +86,8 @@ nv.models.pie = function() {
                 });
             });
 
-            var arcs = [];
-            var arcsOver = [];
-
+            arcs = [];
+            arcsOver = [];
             for (var i = 0; i < data[0].length; i++) {
 
                 var arc = d3.svg.arc().outerRadius(arcsRadiusOuter[i]);
