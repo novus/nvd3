@@ -138,7 +138,10 @@
                     // now print the all out in alphabetical order
                     var alpha = Object.keys(alloptions).sort();
                     for (var j4 in alpha) {
-                        parse_options(ul, alloptions[alpha[j4]]);
+                        // ignore internal options (start with an underscore)
+                        if (alpha[j4].substring(0, 1) !== '_') {
+                            parse_options(ul, alloptions[alpha[j4]]);
+                        }
                     }
 
                     // append the list of options to the dom
