@@ -46,6 +46,11 @@
             ,   headerEnabled = true
         ;
 
+        // set to true by interactive layer to adjust tooltip positions
+        // eventually we should probably fix interactive layer to get the position better.
+        // for now this is needed if you want to set chartContainer for normal tooltips, else it "fixes" it to broken
+        var isInteractiveLayer = false;
+
         //Generates a unique id when you create a new tooltip() object
         var id = "nvtooltip-" + Math.floor(Math.random() * 100000);
 
@@ -325,7 +330,7 @@
                     tooltipElem.innerHTML = newContent;
                 }
 
-                if (chartContainer) {
+                if (chartContainer && isInteractiveLayer) {
                     nv.dom.read(function() {
                         var svgComp = chartContainer.getElementsByTagName("svg")[0];
                         var svgOffset = {left:0,top:0};
@@ -381,6 +386,9 @@
             valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
             headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
             headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
+
+            // internal use only, set by interactive layer to adjust position.
+            _isInteractiveLayer: {get: function(){return isInteractiveLayer;}, set: function(_){isInteractiveLayer=!!_;}},
 
             // options with extra logic
             position: {get: function(){return position;}, set: function(_){
