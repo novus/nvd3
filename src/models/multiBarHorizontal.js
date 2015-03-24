@@ -56,10 +56,11 @@ nv.models.multiBarHorizontal = function() {
                     .y(getY)
                 (data);
 
-            //add series index to each data point for reference
+            //add series index and key to each data point for reference
             data.forEach(function(series, i) {
                 series.values.forEach(function(point) {
                     point.series = i;
+                    point.key = series.key;
                 });
             });
 

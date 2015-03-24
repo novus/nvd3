@@ -67,6 +67,10 @@
             return d;
         };
 
+        var keyFormatter = function(d, i) {
+            return d;
+        };
+
         //By default, the tooltip model renders a beautiful table inside a DIV.
         //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
@@ -105,11 +109,11 @@
 
             trowEnter.append("td")
                 .classed("key",true)
-                .html(function(p) {return p.key});
+                .html(function(p, i) {return keyFormatter(p.key, i)});
 
             trowEnter.append("td")
                 .classed("value",true)
-                .html(function(p,i) { return valueFormatter(p.value,i) });
+                .html(function(p, i) { return valueFormatter(p.value, i) });
 
 
             trowEnter.selectAll("td").each(function(p) {
@@ -385,6 +389,7 @@
             contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
             valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
             headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
+            keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
             headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
 
             // internal use only, set by interactive layer to adjust position.

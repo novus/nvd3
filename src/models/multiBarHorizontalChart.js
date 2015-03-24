@@ -51,7 +51,6 @@ nv.models.multiBarHorizontalChart = function() {
 
     tooltip
         .duration(0)
-        .headerEnabled(false)
         .valueFormatter(function(d, i) {
             return yAxis.tickFormat()(d, i);
         })
@@ -296,7 +295,7 @@ nv.models.multiBarHorizontalChart = function() {
     multibar.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt.value = chart.x()(evt.data);
         evt['series'] = {
-            key: chart.x()(evt.data),
+            key: evt.data.key,
             value: chart.y()(evt.data),
             color: evt.color
         };
