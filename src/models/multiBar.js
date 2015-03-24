@@ -74,10 +74,11 @@ nv.models.multiBar = function() {
                 (!data.length && hideable ? hideable : data);
 
 
-            //add series index to each data point for reference
+            //add series index and key to each data point for reference
             data.forEach(function(series, i) {
                 series.values.forEach(function(point) {
                     point.series = i;
+                    point.key = series.key;
                 });
             });
 
@@ -133,7 +134,7 @@ nv.models.multiBar = function() {
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
-            var g = wrap.select('g')
+            var g = wrap.select('g');
 
             gEnter.append('g').attr('class', 'nv-groups');
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');

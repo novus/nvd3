@@ -39,10 +39,11 @@ nv.models.discreteBarChart = function() {
 
     tooltip
         .duration(0)
+        .headerEnabled(false)
         .valueFormatter(function(d, i) {
             return yAxis.tickFormat()(d, i);
         })
-        .headerFormatter(function(d, i) {
+        .keyFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         });
 
