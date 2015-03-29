@@ -2,7 +2,6 @@
   "name": "nvd3",
   "version": "1.7.1",
   "scripts": {
-    "postinstall": "bower install",
     "test": "grunt"
   },
   "devDependencies": {
