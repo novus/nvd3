@@ -396,6 +396,7 @@ nv.models.scatterChart = function() {
     chart.yAxis = yAxis;
     chart.distX = distX;
     chart.distY = distY;
+    chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
