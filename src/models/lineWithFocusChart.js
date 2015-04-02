@@ -156,7 +156,7 @@ nv.models.lineWithFocusChart = function() {
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             
-			//Set up interactive layer
+            //Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
                     .width(availableWidth)
@@ -285,7 +285,7 @@ nv.models.lineWithFocusChart = function() {
                 chart.update();
             });
 
-              interactiveLayer.dispatch.on('elementMousemove', function(e) {
+            interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 lines.clearHighlights();
                 var singlePoint, pointIndex, pointXLocation, allData = [];
                 data
@@ -294,12 +294,12 @@ nv.models.lineWithFocusChart = function() {
                         return !series.disabled;
                     })
                     .forEach(function(series,i) {
-                    	 	var extent = brush.empty() ? x2.domain() : brush.extent();
-				            var currentValues = series.values.filter(function(d,i) {
-                     		return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
-           				});
- 			              pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
-
+                            var extent = brush.empty() ? x2.domain() : brush.extent();
+                            var currentValues = series.values.filter(function(d,i) {
+                            return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                        });
+ 
+                        pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
                         lines.highlightPoint(i, pointIndex, true);
                         var point = currentValues[pointIndex];
                         if (point === undefined) return;
