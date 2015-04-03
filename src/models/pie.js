@@ -300,7 +300,11 @@ nv.models.pie = function() {
                         if (!d.value || percent < labelThreshold) return '';
 
                         if(typeof labelType === 'function') {
-                            label = labelType({ 'key': getX(d.data), 'value': getY(d.data), 'percent': labelFormat(percent) });
+                            label = labelType(d, i, {
+                                'key': getX(d.data),
+                                'value': getY(d.data),
+                                'percent': valueFormat(percent)
+                            });
                         } else {
                             switch (labelType) {
                                 case 'key':

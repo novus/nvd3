@@ -50,7 +50,11 @@
                 .x(function(d) { return d.key; })
                 .y(function(d) { return d.y; })
                 .width(width)
-                .height(height);
+                .height(height)
+                .labelType(function(d, i, values) {
+                    return values.key + ':' + values.value;
+                })
+                ;
 
         d3.select("#test1")
                 .datum([testdata])
