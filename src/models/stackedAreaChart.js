@@ -239,7 +239,7 @@ nv.models.stackedAreaChart = function() {
             // Setup Axes
             if (showXAxis) {
                 xAxis.scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -256,10 +256,10 @@ nv.models.stackedAreaChart = function() {
                     ticks = 0;
                 }
                 else {
-                    ticks = yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data);
+                    ticks = nv.utils.calcTicksY(availableHeight/36, data);
                 }
                 yAxis.scale(y)
-                    .ticks(ticks)
+                    ._ticks(ticks)
                     .tickSize(-availableWidth, 0);
 
                     if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {

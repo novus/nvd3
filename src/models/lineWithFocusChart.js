@@ -206,12 +206,12 @@ nv.models.lineWithFocusChart = function() {
             // Setup Main (Focus) Axes
             xAxis
                 .scale(x)
-                .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight1, 0);
 
             yAxis
                 .scale(y)
-                .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight1/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
                 .tickSize( -availableWidth, 0);
 
             g.select('.nv-focus .nv-x.nv-axis')
@@ -255,7 +255,7 @@ nv.models.lineWithFocusChart = function() {
             // Setup Secondary (Context) Axes
             x2Axis
                 .scale(x2)
-                .ticks(x2Axis.ticks() ? x2Axis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight2, 0);
 
             g.select('.nv-context .nv-x.nv-axis')
@@ -265,7 +265,7 @@ nv.models.lineWithFocusChart = function() {
 
             y2Axis
                 .scale(y2)
-                .ticks(y2Axis.ticks() ? y2Axis.ticks() : nv.utils.calcTicksY(availableHeight2/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
                 .tickSize( -availableWidth, 0);
 
             d3.transition(g.select('.nv-context .nv-y.nv-axis'))
