@@ -255,6 +255,7 @@ nv.models.lineChart = function() {
                     })
                     .data({
                         value: xValue,
+                        index: pointIndex,
                         series: allData
                     })();
 
