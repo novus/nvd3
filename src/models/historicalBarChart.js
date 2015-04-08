@@ -211,6 +211,7 @@ nv.models.historicalBarChart = function(bar_model) {
                     })
                     .data({
                         value: xValue,
+                        index: pointIndex,
                         series: allData
                     })();
 

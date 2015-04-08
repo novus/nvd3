@@ -330,6 +330,7 @@ nv.models.lineWithFocusChart = function() {
                     })
                     .data({
                         value: xValue,
+                        index: pointIndex,
                         series: allData
                     })();
 
