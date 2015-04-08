@@ -71,7 +71,10 @@ module.exports = function(grunt) {
         watch: {
             js: {
                 files: ["src/**/*.js"],
-                tasks: ['concat']
+                tasks: ['concat'],
+                options: {
+                  livereload: true,
+                }
             }
         },
         copy: {
