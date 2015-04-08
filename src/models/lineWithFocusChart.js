@@ -13,6 +13,7 @@ nv.models.lineWithFocusChart = function() {
         , y2Axis = nv.models.axis()
         , legend = nv.models.legend()
         , brush = d3.svg.brush()
+        , interactiveLayer = nv.interactiveGuideline()
         ;
 
     var margin = {top: 30, right: 30, bottom: 30, left: 60}
@@ -27,6 +28,7 @@ nv.models.lineWithFocusChart = function() {
         , y2
         , showLegend = true
         , brushExtent = null
+        , useInteractiveGuideline = false
         , tooltips = true
         , tooltip = function(key, x, y, e, graph) {
             return '<h3>' + key + '</h3>' +
@@ -160,6 +162,7 @@ nv.models.lineWithFocusChart = function() {
             focusEnter.append('g').attr('class', 'nv-x nv-axis');
             focusEnter.append('g').attr('class', 'nv-y nv-axis');
             focusEnter.append('g').attr('class', 'nv-linesWrap');
+            focusEnter.append('g').attr('class', 'nv-interactive');
 
             var contextEnter = gEnter.append('g').attr('class', 'nv-context');
             contextEnter.append('g').attr('class', 'nv-x nv-axis');
@@ -188,6 +191,16 @@ nv.models.lineWithFocusChart = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+            //Set up interactive layer
+            if (useInteractiveGuideline) {
+                interactiveLayer
+                    .width(availableWidth)
+                    .height(availableHeight1)
+                    .margin({ left: margin.left, top: margin.top })
+                    .svgContainer(container)
+                    .xScale(x);
+                wrap.select(".nv-interactive").call(interactiveLayer);
+            }
             // Main Chart Component(s)
             lines
                 .width(availableWidth)
@@ -324,6 +337,98 @@ nv.models.lineWithFocusChart = function() {
                 chart.update();
             });
 
+            interactiveLayer.dispatch.on('elementMousemove', function (e) {
+                lines.clearHighlights();
+                var singlePoint, pointIndex, pointXLocation, allData = [];
+                data
+                    .filter(function (series, i) {
+                        series.seriesIndex = i;
+                        return !series.disabled;
+                    })
+                    .forEach(function (series, i) {
+                        pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+
+                        //lines.highlightPoint will look for the class .nv-point- followed by the point index.
+                        //However, when zoomed in, all the points are renumbered starting from 0.
+                        //For this reason we need to reduce the pointindex by the min value of the brushextent to get the correct index for the .nv-point- selector
+                        var brushExtentMin = 0;
+                        if (chart._options['brushExtent'] !== null) {
+                            brushExtentMin = chart._options['brushExtent'][0];
+                        }
+
+                        //Not flooring will sometimes cause the hover class to be assigned to the following path
+                        var highlightPointIndex = Math.floor(pointIndex - brushExtentMin);
+
+                        var point = series.values[pointIndex];
+                        lines.highlightPoint(i, highlightPointIndex, true);
+                        if (typeof point === 'undefined') return;
+                        if (typeof singlePoint === 'undefined') singlePoint = point;
+                        if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point, pointIndex));
+                        allData.push({
+                            key: series.key,
+                            value: chart.y()(point, pointIndex),
+                            color: color(series, series.seriesIndex)
+                        });
+                    });
+
+                //Highlight the tooltip entry based on which point the mouse is closest to.
+                if (allData.length > 2) {
+                    var yValue = chart.yScale().invert(e.mouseY);
+                    var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+                    var threshold = 0.03 * domainExtent;
+                    var indexToHighlight = nv.nearestValueIndex(allData.map(function (d) { return d.value }), yValue, threshold);
+                    if (indexToHighlight !== null)
+                        allData[indexToHighlight].highlight = true;
+                }
+
+                var xValue = xAxis.tickFormat()(chart.x()(singlePoint, pointIndex));
+                interactiveLayer.tooltip
+                    .position({ left: pointXLocation + margin.left, top: e.mouseY + margin.top })
+                    .chartContainer(that.parentNode)
+                    .enabled(tooltips)
+                    .valueFormatter(function (d, i) {
+                        return yAxis.tickFormat()(d);
+                    })
+                    .data(
+                    {
+                        value: xValue,
+                        series: allData
+                    }
+                )();
+
+                interactiveLayer.renderGuideLine(pointXLocation);
+
+            });
+
+            interactiveLayer.dispatch.on('elementClick', function (e) {
+                var pointXLocation, allData = [];
+
+                data.filter(function (series, i) {
+                    series.seriesIndex = i;
+                    return !series.disabled;
+                }).forEach(function (series) {
+                    var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+                    var point = series.values[pointIndex];
+                    if (typeof point === 'undefined') return;
+                    if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point, pointIndex));
+                    var yPos = chart.yScale()(chart.y()(point, pointIndex));
+                    allData.push({
+                        point: point,
+                        pointIndex: pointIndex,
+                        pos: [pointXLocation, yPos],
+                        seriesIndex: series.seriesIndex,
+                        series: series
+                    });
+                });
+
+                lines.dispatch.elementClick(allData);
+            });
+
+            interactiveLayer.dispatch.on("elementMouseout", function (e) {
+                dispatch.tooltipHide();
+                lines.clearHighlights();
+            });
+
             //============================================================
             // Functions
             //------------------------------------------------------------
@@ -435,6 +540,7 @@ nv.models.lineWithFocusChart = function() {
     chart.yAxis = yAxis;
     chart.x2Axis = x2Axis;
     chart.y2Axis = y2Axis;
+    chart.interactiveLayer = interactiveLayer;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -486,6 +592,13 @@ nv.models.lineWithFocusChart = function() {
         y: {get: function(){return lines.y();}, set: function(_){
             lines.y(_);
             lines2.y(_);
+        }},
+        useInteractiveGuideline: {get: function () { return useInteractiveGuideline; }, set: function (_) {
+            useInteractiveGuideline = _;
+            if (useInteractiveGuideline) {
+                lines.interactive(false);
+                lines.useVoronoi(false);
+            }
         }}
     });
 
