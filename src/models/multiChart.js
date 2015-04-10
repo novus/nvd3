@@ -205,7 +205,7 @@ nv.models.multiChart = function() {
             if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
 
             xAxis
-                .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight, 0);
 
             g.select('.nv-x.nv-axis')
@@ -214,7 +214,7 @@ nv.models.multiChart = function() {
                 .call(xAxis);
 
             yAxis1
-                .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                 .tickSize( -availableWidth, 0);
 
 
@@ -222,7 +222,7 @@ nv.models.multiChart = function() {
                 .call(yAxis1);
 
             yAxis2
-                .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                 .tickSize( -availableWidth, 0);
 
             d3.transition(g.select('.nv-y2.nv-axis'))

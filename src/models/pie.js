@@ -299,16 +299,24 @@ nv.models.pie = function() {
                         var label = '';
                         if (!d.value || percent < labelThreshold) return '';
 
-                        switch (labelType) {
-                            case 'key':
-                                label = getX(d.data);
-                                break;
-                            case 'value':
-                                label = valueFormat(getY(d.data));
-                                break;
-                            case 'percent':
-                                label = valueFormat(percent);
-                                break;
+                        if(typeof labelType === 'function') {
+                            label = labelType(d, i, {
+                                'key': getX(d.data),
+                                'value': getY(d.data),
+                                'percent': valueFormat(percent)
+                            });
+                        } else {
+                            switch (labelType) {
+                                case 'key':
+                                    label = getX(d.data);
+                                    break;
+                                case 'value':
+                                    label = valueFormat(getY(d.data));
+                                    break;
+                                case 'percent':
+                                    label = valueFormat(percent);
+                                    break;
+                            }
                         }
                         return label;
                     })
