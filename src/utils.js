@@ -457,9 +457,19 @@ nv.utils.initOption = function(chart, name) {
     } else {
         chart[name] = function (_) {
             if (!arguments.length) return chart._options[name];
+            chart._overrides[name] = true;
             chart._options[name] = _;
             return chart;
         };
+        // calling the option as _option will ignore if set by option already
+        // so nvd3 can set options internally but the stop if set manually
+        chart['_' + name] = function(_) {
+            if (!arguments.length) return chart._options[name];
+            if (!chart._overrides[name]) {
+                chart._options[name] = _;
+            }
+            return chart;
+        }
     }
 };
 
@@ -468,6 +478,7 @@ nv.utils.initOption = function(chart, name) {
 Add all options in an options object to the chart
 */
 nv.utils.initOptions = function(chart) {
+    chart._overrides = chart._overrides || {};
     var ops = Object.getOwnPropertyNames(chart._options || {});
     var calls = Object.getOwnPropertyNames(chart._calls || {});
     ops = ops.concat(calls);
