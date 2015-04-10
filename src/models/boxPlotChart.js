@@ -40,7 +40,7 @@ nv.models.boxPlotChart = function() {
         .duration(0)
         .contentGenerator(function(d) {
             return '<h3>' + d.data.label + '</h3>' + 
-                '<table style="margin-top: 0px; margin-bottom: 0px; margin-right: 0px; width: 100%; text-align: center;">' + 
+                '<table class="nv-boxplot-tooltip">' + 
                 '<tr><td>Q3</th><td> ' + d.data.values.Q3 + '</td></tr>' + 
                 '<tr><td>Q2</th><td> ' + d.data.values.Q2 + '</td></tr>' +
                 '<tr><td>Q1</th><td> ' + d.data.values.Q1 + '</td></tr></table>';
