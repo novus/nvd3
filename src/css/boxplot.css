@@ -11,8 +11,6 @@
   fill-opacity: 1;
 }
 
-.nvd3 .nv-boxplot-tooltip {
-  margin-top: 0px; margin-bottom: 0px; margin-right: 0px; 
-  width: 100%; 
-  text-align: center;
+.nvd3 line.nv-boxplot-median {
+  stroke: black;
 }

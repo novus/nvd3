@@ -36,15 +36,7 @@ nv.models.boxPlotChart = function() {
         .tickFormat(d3.format(',.1f'))
     ;
     
-    tooltip
-        .duration(0)
-        .contentGenerator(function(d) {
-            return '<h3>' + d.data.label + '</h3>' + 
-                '<table class="nv-boxplot-tooltip">' + 
-                '<tr><td>Q3</th><td> ' + d.data.values.Q3 + '</td></tr>' + 
-                '<tr><td>Q2</th><td> ' + d.data.values.Q2 + '</td></tr>' +
-                '<tr><td>Q1</th><td> ' + d.data.values.Q1 + '</td></tr></table>';
-        });
+    tooltip.duration(0);
 
     //============================================================
     // Private Variables
@@ -187,12 +179,15 @@ nv.models.boxPlotChart = function() {
     //------------------------------------------------------------
 
     boxplot.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.position({top: evt.pos[1], left: evt.pos[0]})();
         tooltip.data(evt).hidden(false);
     });
 
     boxplot.dispatch.on('elementMouseout.tooltip', function(evt) {
         tooltip.data(evt).hidden(true);
+    });
+
+    boxplot.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
     });
 
     //============================================================
