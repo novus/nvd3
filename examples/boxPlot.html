@@ -2,12 +2,9 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <link href="../src/css/boxplot.css" rel="stylesheet">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
-    <script src="/build/nv.d3.js"></script>
-    <script src="../src/models/boxPlot.js"></script>
-    <script src="../src/models/boxPlotChart.js"></script>
+    <script src="../build/nv.d3.js"></script>
     
     <style>
         text {
@@ -34,9 +31,10 @@
 <script>
     nv.addGraph(function() {
       var chart = nv.models.boxPlotChart()
-          .x(function(d) { return d.label })    //Specify the data accessors.
+          .x(function(d) { return d.label })
           .y(function(d) { return d.values.Q3 })
           .staggerLabels(true)
+          .maxBoxWidth(75) // prevent boxes from being incredibly wide 
           ;
       
       d3.select('#chart1 svg')
@@ -60,7 +58,6 @@
             whisker_high: 210,
             outliers: [50, 100, 225]
           },
-          outliers: [50, 100, 225]
         },
         {
           "label": "Sample B",
@@ -72,7 +69,6 @@
             whisker_high: 400,
             outliers: [175]          
           },
-          outliers: [175]
         },
         {
           label: "Sample C",
@@ -84,7 +80,6 @@
             whisker_high: 175,
             outliers: [0]
           },
-          outliers: [0]
         }
       ];
     }
