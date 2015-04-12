@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../build/nv.d3.js"></script>
+
+<body class='with-3d-shadow with-transitions'>
+  <h3>Box Plot test cases</h3>
+  <div class='chart half' id="chart1">
+    Normal data (maxBoxWidth and staggerLabel options)
+    <svg></svg>
+  </div>
+  <div class='chart half' id="chart2">
+    Data with no outliers (empty lists)
+    <svg></svg>
+  </div>
+  <div class='chart half' id="chart3">
+    Single box
+    <svg></svg>
+  </div>
+  <div class='chart half' id="chart4">
+    Twelve boxes (repeating)
+    <svg></svg>
+  </div>
+<script>
+
+function testData1() {
+    return  [ 
+       {
+         label: "Sample A",
+         values: { 
+           Q1: 120,
+           Q2: 150,
+           Q3: 200,
+           whisker_low: 115,
+           whisker_high: 210,
+           outliers: [50, 100, 225]
+         },
+       },
+       {
+         label: "Sample B",
+         values: { 
+           Q1: 300,
+           Q2: 350,
+           Q3: 400,
+           whisker_low: 225,
+           whisker_high: 400,
+           outliers: [175]          
+         },
+       },
+       {
+         label: "Sample C",
+         values: { 
+           Q1: 50,
+           Q2: 100,
+           Q3: 125,
+           whisker_low: 25,
+           whisker_high: 175,
+           outliers: [0]
+         },
+       }
+     ];
+}
+
+
+function testNoOutliers() {
+    return  [ 
+       {
+         label: "Sample A",
+         values: { 
+           Q1: 120,
+           Q2: 150,
+           Q3: 200,
+           whisker_low: 115,
+           whisker_high: 210,
+           outliers: []
+         },
+       },
+       {
+         label: "Sample B",
+         values: { 
+           Q1: 300,
+           Q2: 350,
+           Q3: 400,
+           whisker_low: 225,
+           whisker_high: 400,
+           outliers: []
+         },
+       },
+       {
+         label: "Sample C",
+         values: { 
+           Q1: 50,
+           Q2: 100,
+           Q3: 125,
+           whisker_low: 25,
+           whisker_high: 175,
+           outliers: []
+         },
+       }
+     ];    
+}
+
+function testSingleBox() {
+    return [
+        { 
+            label: 'Sample A',
+            values: {  
+                Q1: 120,
+                Q2: 150,
+                Q3: 200,
+                whisker_low: 115,
+                whisker_high: 210,
+                outliers: [50, 100, 225]
+            }
+        }
+    ]
+}
+
+function testDozenBoxes() {
+    return [
+       { label: "Sample A", values: { Q1: 120, Q2: 150, Q3: 200, whisker_low: 115, whisker_high: 210, outliers: [50, 100, 225] } },
+       { label: "Sample B", values: { Q1: 300, Q2: 350, Q3: 400, whisker_low: 225, whisker_high: 400, outliers: [175] } },
+       { label: "Sample C", values: { Q1: 50, Q2: 100, Q3: 125, whisker_low: 25, whisker_high: 75, outliers: [0] } },
+
+       { label: "Sample D", values: { Q1: 120, Q2: 150, Q3: 200, whisker_low: 115, whisker_high: 210, outliers: [50, 100, 225] } },
+       { label: "Sample E", values: { Q1: 300, Q2: 350, Q3: 400, whisker_low: 225, whisker_high: 400, outliers: [175] } },
+       { label: "Sample F", values: { Q1: 50, Q2: 100, Q3: 125, whisker_low: 25, whisker_high: 75, outliers: [0] } },
+
+       { label: "Sample H", values: { Q1: 120, Q2: 150, Q3: 200, whisker_low: 115, whisker_high: 210, outliers: [50, 100, 225] } },
+       { label: "Sample I", values: { Q1: 300, Q2: 350, Q3: 400, whisker_low: 225, whisker_high: 400, outliers: [175] } },
+       { label: "Sample J", values: { Q1: 50, Q2: 100, Q3: 125, whisker_low: 25, whisker_high: 75, outliers: [0] } },
+
+       { label: "Sample K", values: { Q1: 120, Q2: 150, Q3: 200, whisker_low: 115, whisker_high: 210, outliers: [50, 100, 225] } },
+       { label: "Sample L", values: { Q1: 300, Q2: 350, Q3: 400, whisker_low: 225, whisker_high: 400, outliers: [175] } },
+       { label: "Sample M", values: { Q1: 50, Q2: 100, Q3: 125, whisker_low: 25, whisker_high: 75, outliers: [0] } },
+    ]
+}
+
+defaultChartConfig("chart1", testData1, {
+  staggerLabels: true,
+  maxBoxWidth: 75
+});
+
+defaultChartConfig("chart2", testNoOutliers, {});
+
+defaultChartConfig("chart3", testSingleBox, {});
+
+defaultChartConfig("chart4", testDozenBoxes, {
+  staggerLabels: true,
+  maxBoxWidth: 75
+});
+
+function defaultChartConfig(containerId, data, chartOptions) {
+  nv.addGraph(function() {
+      var chart;
+      chart = nv.models.boxPlotChart()
+        .x(function(d) { return d.label })
+        .y(function(d) { return d.values.Q3 })
+        .margin({bottom: 100})
+        ;
+
+      chart.options(chartOptions);
+
+      d3.select('#' + containerId + ' svg')
+        .datum(data)
+        .call(chart);
+
+      nv.utils.windowResize(chart.update);
+
+      return chart;
+  });
+}
+</script>

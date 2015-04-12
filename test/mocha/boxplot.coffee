@@ -1,45 +1,41 @@
 describe 'NVD3', ->
-    describe 'Line Chart', ->
+    describe 'Box Plot', ->
         sampleData1 = [
-            key: 'Series 1'
-            values: [
-                [-1,-1]
-                [0,0]
-                [1,1]
-                [2,2]
-            ]
+            label: 'Sample A',
+            values:  
+                Q1: 120,
+                Q2: 150,
+                Q3: 200,
+                whisker_low: 115,
+                whisker_high: 210,
+                outliers: [50, 100, 225]
         ]
 
         sampleData2 = [
-            key: 'Series 1'
-            classed: 'dashed'
-            values: [
-                [-1,-3]
-                [0,6]
-                [1,12]
-                [2,18]
-            ]
-        ,
-            key: 'Series 2'
-            values: [
-                [-1,-4]
-                [0,7]
-                [1,13]
-                [2,14]
-            ]
-        ,
-            key: 'Series 3'
-            values: [
-                [-1,-5]
-                [0,7.2]
-                [1,11]
-                [2,18.5]
-            ]
+            label: 'Sample A',
+            values:  
+                Q1: 120,
+                Q2: 150,
+                Q3: 200,
+                whisker_low: 115,
+                whisker_high: 210,
+                outliers: []
         ]
 
+        sampleData3 = [ 
+            { 
+              label: 'Sample A', 
+              values: { Q1: 120, Q2: 150, Q3: 200, whisker_low: 115, whisker_high: 210, outliers: [50, 100, 225] } 
+            },
+            { 
+              label: 'Sample B', 
+              values: { Q1: 300, Q2: 350, Q3: 400, whisker_low: 2255, whisker_high: 400, outliers: [175] } 
+            }
+        ]
+        
         options =
-            x: (d)-> d[0]
-            y: (d)-> d[1]
+            x: (d)-> d.label
+            y: (d)-> d.values.Q3
             margin:
                 top: 30
                 right: 20
@@ -48,23 +44,15 @@ describe 'NVD3', ->
             color: nv.utils.defaultColor()
             height: 400
             width: 800
-            showLegend: true
             showXAxis: true
             showYAxis: true
-            rightAlignYAxis: true
-            useInteractiveGuideline: true
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             duration: 0
-            clipEdge: false
-            isArea: (d)-> d.area
-            defined: (d)-> true
-            interpolate: 'linear'
-
+            maxBoxWidth: 75
+            
         builder = null
         beforeEach ->
-            builder = new ChartBuilder nv.models.lineChart()
+            builder = new ChartBuilder nv.models.boxPlotChart()
             builder.build options, sampleData1
 
         afterEach ->
@@ -78,67 +66,50 @@ describe 'NVD3', ->
             builder.model.update()
 
         it 'renders', ->
-            wrap = builder.$ 'g.nvd3.nv-lineChart'
+            wrap = builder.$ 'g.nvd3.nv-boxPlotWithAxes'
             should.exist wrap[0]
 
         it 'no data text', ->
-            builder = new ChartBuilder nv.models.lineChart()
+            builder = new ChartBuilder nv.models.boxPlotChart()
             builder.build options, []
 
             noData = builder.$ '.nv-noData'
             noData[0].textContent.should.equal 'No Data Available'
 
-        it 'clears chart objects for no data', ->
-            builder = new ChartBuilder nv.models.lineChart()
-            builder.buildover options, sampleData1, []
-
-            groups = builder.$ 'g'
-            groups.length.should.equal 0, 'removes chart components'
-
-
-        it 'interactive tooltip', ->
-            builder = new ChartBuilder nv.models.lineChart()
-            builder.build options, sampleData2
-
-            evt =
-                mouseX: 243
-                mouseY: 96
-                pointXValue: 28.15
-
-            builder.model.interactiveLayer.dispatch.elementMousemove evt
-
-            getGuideline = ->
-                line = builder.$ '.nv-interactiveGuideLine line'
-                line[0]
-
-            should.exist getGuideline(), 'guideline exists'
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.exist tooltip, 'tooltip exists'
-
         it 'has correct structure', ->
           cssClasses = [
             '.nv-x.nv-axis'
             '.nv-y.nv-axis'
-            '.nv-linesWrap'
-            '.nv-legendWrap'
-            '.nv-line'
-            '.nv-scatter'
-            '.nv-legend'
+            '.nv-barsWrap'
+            '.nv-wrap'
+            '.nv-boxplot'
+            '.nv-boxplot-median'
+            '.nv-boxplot-ltick'
+            '.nv-boxplot-htick'
+            '.nv-boxplot-lwhisker'
+            '.nv-boxplot-hwhisker'
           ]
           for cssClass in cssClasses
             do (cssClass) ->
-              should.exist builder.$("g.nvd3.nv-lineChart #{cssClass}")[0]
+              should.exist builder.$("g.nvd3.nv-boxPlotWithAxes #{cssClass}")[0]
 
-        it 'can override axis ticks', ->
-            builder.model.xAxis.ticks(34)
-            builder.model.yAxis.ticks(56)
-            builder.model.update()
-            builder.model.xAxis.ticks().should.equal 34
-            builder.model.yAxis.ticks().should.equal 56
+        it 'Has boxplots', ->
+            builder = new ChartBuilder nv.models.boxPlotChart()
+            builder.buildover options, sampleData3, []
 
-        it 'can add custom CSS class to series', ->
-            builder.updateData sampleData2
+            boxes = builder.$ '.nv-boxplot-box'
+            boxes.length.should.equal 2, 'boxplots exist'
 
-            lines = builder.$ '.nv-linesWrap .nv-groups .nv-group.dashed'
-            lines.length.should.equal 1, 'dashed class exists'
+        it 'Has outliers', ->
+            builder = new ChartBuilder nv.models.boxPlotChart()
+            builder.buildover options, sampleData1, []
+
+            outliers = builder.$ '.nv-boxplot .nv-boxplot-outlier'
+            outliers.length.should.equal 3, 'outliers exist'
+
+        it 'Has no outliers', ->
+            builder = new ChartBuilder nv.models.boxPlotChart()
+            builder.buildover options, sampleData2, []
+
+            outliers = builder.$ '.nv-boxplot-outlier'
+            
