@@ -14,8 +14,6 @@ nv.models.boxPlot = function() {
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , color = nv.utils.defaultColor()
-        , showValues = false
-        , valueFormat = d3.format(',.2f')
         , xDomain
         , yDomain
         , xRange
@@ -74,11 +72,8 @@ nv.models.boxPlot = function() {
                 yData = [ yMin, yMax ] ;
             }
                         
-            y   .domain(yDomain || yData);
-            
-            // If showValues, pad the Y axis range to account for label height
-            if (showValues) y.range(yRange || [availableHeight - (y.domain()[0] < 0 ? 12 : 0), y.domain()[1] > 0 ? 12 : 0]);
-            else y.range(yRange || [availableHeight, 0]);
+            y.domain(yDomain || yData);
+            y.range(yRange || [availableHeight, 0]);
 
             //store old scales if they exist
             x0 = x0 || x;
@@ -194,7 +189,7 @@ nv.models.boxPlot = function() {
                             
             // boxes
             boxEnter.append('rect')
-                .attr('class', 'nv-boxplot')                
+                .attr('class', 'nv-boxplot-box')                
                 // tooltip events
                 .on('mouseover', function(d,i) {
                     d3.select(this).classed('hover', true);
@@ -231,7 +226,7 @@ nv.models.boxPlot = function() {
                 });
 
             // box transitions
-            boxplots.select('rect.nv-boxplot')
+            boxplots.select('rect.nv-boxplot-box')
               .watchTransition(renderWatch, 'nv-boxplot: boxes')
                 .attr('y', function(d,i) { return y(d.values.Q3); })
                 .attr('width', box_width)
@@ -271,7 +266,6 @@ nv.models.boxPlot = function() {
         // simple options, just get/set the necessary values
         width:   {get: function(){return width;}, set: function(_){width=_;}},
         height:  {get: function(){return height;}, set: function(_){height=_;}},
-        showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
         maxBoxWidth: {get: function(){return maxBoxWidth;}, set: function(_){maxBoxWidth=_;}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}},
         y:       {get: function(){return getY;}, set: function(_){getY=_;}},
@@ -281,7 +275,6 @@ nv.models.boxPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         // rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
 

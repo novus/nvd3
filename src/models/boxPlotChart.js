@@ -136,8 +136,7 @@ nv.models.boxPlotChart = function() {
                     .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
-                g.select('.nv-x.nv-axis')
-                    .attr('transform', 'translate(0,' + (y.range()[0] + ((boxplot.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
+                g.select('.nv-x.nv-axis').attr('transform', 'translate(0,' + y.range()[0] + ')');
                 g.select('.nv-x.nv-axis').call(xAxis);
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
