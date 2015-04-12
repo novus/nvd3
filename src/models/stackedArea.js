@@ -199,22 +199,21 @@ nv.models.stackedArea = function() {
             chart.d3_stackedOffset_stackPercent = function(stackData) {
                 var n = stackData.length,    //How many series
                     m = stackData[0].length,     //how many points per series
-                    k = 1 / n,
                     i,
                     j,
                     o,
                     y0 = [];
 
                 for (j = 0; j < m; ++j) { //Looping through all points
-                    for (i = 0, o = 0; i < dataRaw.length; i++) { //looping through series'
-                        o += getY(dataRaw[i].values[j]);   //total value of all points at a certian point in time.
+                    for (i = 0, o = 0; i < dataRaw.length; i++) { //looping through all series
+                        o += getY(dataRaw[i].values[j]); //total y value of all series at a certian point in time.
                     }
 
-                    if (o) for (i = 0; i < n; i++) {
+                    if (o) for (i = 0; i < n; i++) { //(total y value of all series at point in time i) != 0
                         stackData[i][j][1] /= o;
-                    } else {
+                    } else { //(total y value of all series at point in time i) == 0
                         for (i = 0; i < n; i++) {
-                            stackData[i][j][1] = k;
+                            stackData[i][j][1] = 0;
                         }
                     }
                 }
@@ -296,9 +295,6 @@ nv.models.stackedArea = function() {
                     chart.order('inside-out');
                     break;
                 case 'expand':
-                    chart.offset('expand');
-                    chart.order('default');
-                    break;
                 case 'stack_percent':
                     chart.offset(chart.d3_stackedOffset_stackPercent);
                     chart.order('default');
