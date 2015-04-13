@@ -1,62 +1,57 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
 
-.sparkline path {
-  fill: none;
-  stroke: #444;
-}
-
-text {
-  font: 10px sans-serif;
-}
-
-#chart1 {
-  width: 300px;
-  height: 32px;
-}
-
-</style>
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+        html, body {
+            margin: 0px;
+            padding: 0px;
+        }
+        #chart1 {
+            height: 30px;
+        }
+    </style>
+</head>
 <body>
 
-  <h2>Sparkline: <svg id="chart1" class="sparkline"></svg></h2>
+<h2>Sparkline: <svg id="chart1" class="sparkline"></svg></h2>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/models/sparkline.js"></script>
-<script src="../src/utils.js"></script>
 <script>
 
-//Format A
-nv.addGraph({
-  generate: function() {
-    var chart = nv.models.sparkline()
-                  .width(400)
-                  .height(30)
+    nv.addGraph({
+        generate: function() {
+            var chart = nv.models.sparkline()
+                    .width(400)
+                    .height(30)
 
-    d3.select("#chart1")
-      .datum(sine())
-      .call(chart);
+            d3.select("#chart1")
+                    .datum(sine())
+                    .call(chart);
 
-    return chart;
-  },
-  callback: function(graph) {
-    //log("Sparkline rendered");
-  }
-});
+            return chart;
+        }
+    });
 
+    function sine() {
+        var sin = [];
 
+        for (var i = 0; i < 100; i++) {
+            sin.push({x: i, y: Math.sin(i/10)});
+        }
 
-function sine() {
-  var sin = [];
-
-  for (var i = 0; i < 100; i++) {
-    sin.push({x: i, y: Math.sin(i/10)});
-  }
-
-  return sin;
-}
-
+        return sin;
+    }
 
 </script>
+</body>
+</html>

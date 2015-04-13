@@ -1,3 +1,6 @@
+
+var version = '1.7.1';
+
 module.exports = function(grunt) {
 
     //Project configuration.
@@ -5,60 +8,33 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         concat: {
             options: {
-                separator: ''
+                separator: '',
+                // wrap output in a function block.
+                banner: '/* nvd3 version ' + version + '(https://github.com/novus/nvd3) ' +
+                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
+                footer: '\nnv.version = "' + version + '";\n})();'
             },
             dist: {
                 src: [
-                     'src/intro.js',
-                     'src/core.js',
-                     'src/interactiveLayer.js',
-                     'src/tooltip.js',
-                     'src/utils.js',
-                     'src/models/axis.js',
-                     'src/models/historicalBar.js',
-                     'src/models/bullet.js',
-                     'src/models/bulletChart.js',
-                     'src/models/cumulativeLineChart.js',
-                     'src/models/discreteBar.js',
-                     'src/models/discreteBarChart.js',
-                     'src/models/distribution.js',
-                     'src/models/historicalBar.js',
-                     'src/models/historicalBarChart.js',
-                     'src/models/indentedTree.js',
-                     'src/models/legend.js',
-                     'src/models/line.js',
-                     'src/models/lineChart.js',
-                     'src/models/linePlusBarChart.js',
-                     'src/models/lineWithFocusChart.js',
-                     'src/models/linePlusBarWithFocusChart.js',
-                     'src/models/multiBar.js',
-                     'src/models/multiBarChart.js',
-                     'src/models/multiBarHorizontal.js',
-                     'src/models/multiBarHorizontalChart.js',
-                     'src/models/multiChart.js',
-                     'src/models/ohlcBar.js',
-                     'src/models/pie.js',
-                     'src/models/pieChart.js',
-                     'src/models/scatter.js',
-                     'src/models/scatterChart.js',
-                     'src/models/scatterPlusLineChart.js',
-                     'src/models/sparkline.js',
-                     'src/models/sparklinePlus.js',
-                     'src/models/stackedArea.js',
-                     'src/models/stackedAreaChart.js',
-                     'src/outro.js'
+                    'src/core.js',
+                    'src/interactiveLayer.js',
+                    'src/tooltip.js',
+                    'src/utils.js',
+                    //Include all files in src/models
+                    'src/models/*.js'
+                    // example to exclude files: '!src/models/excludeMe*'
                      ],
-                dest: 'nv.d3.js'
+                dest: 'build/nv.d3.js'
             }
         },
         uglify: {
             options: {
-                banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
-                    '<%= grunt.template.today("yyyy-mm-dd") %> */'
+                banner: '/* nvd3 version ' + version + ' (https://github.com/novus/nvd3) ' +
+                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
             js: {
                 files: {
-                    'nv.d3.min.js': ['nv.d3.js']
+                    'build/nv.d3.min.js': ['build/nv.d3.js']
                 }
             }
         },
@@ -79,16 +55,50 @@ module.exports = function(grunt) {
         copy: {
           css: {
             files: [
-              { src: 'src/nv.d3.css', dest: 'nv.d3.css' }
+              { src: 'src/nv.d3.css', dest: 'build/nv.d3.css' }
             ]
           }
         },
         cssmin: {
           dist: {
             files: {
-              'nv.d3.min.css' : ['nv.d3.css']
+                'build/nv.d3.min.css' : ['build/nv.d3.css']
             }
           }
+        },
+        karma: {
+            unit: {
+                options: {
+                    logLevel: 'ERROR',
+                    browsers: ['Firefox'],
+                    frameworks: [ 'mocha', 'sinon-chai' ],
+                    reporters: [ 'spec', 'junit', 'coverage'],
+                    singleRun: true,
+                    preprocessors: {
+                        'src/*.js': ['coverage'],
+                        'src/models/*.js': ['coverage'],
+                        'test/mocha/*.coffee': ['coffee']
+                    },
+                    files: [
+                        'bower_components/d3/d3.js',
+                        'src/*.js',
+                        'src/models/*.js',
+                        'test/mocha/*.coffee'
+                    ],
+                    exclude: [
+                        'src/intro.js',
+                        'src/outro.js',
+                        //Files we don't want to test.
+                        'src/models/lineWith*',
+                        'src/models/parallelCoordinates*',
+                        'src/models/multiBarTime*',
+                        'src/models/indented*',
+                        'src/models/linePlus*',
+                        'src/models/ohlcBar.js',
+                        'src/models/multiChart.js'
+                    ]
+                }
+            }
         }
     });
 
@@ -98,8 +108,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-karma');
 
-    grunt.registerTask('default', ['concat', 'copy']);
+    grunt.registerTask('default', ['concat', 'karma:unit']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);

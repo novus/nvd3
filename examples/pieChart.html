@@ -1,122 +1,124 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script src="lib/stream_layers.js"></script>
 
-body {
-  overflow-y:scroll;
-}
-
-text {
-  font: 12px sans-serif;
-}
-
-.mypiechart {
-  width: 500px;
-  border: 2px;
-}
-</style>
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+            float: left;
+            height: 350px;
+            width: 350px;
+        }
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
 <body class='with-3d-shadow with-transitions'>
 
-<h2>Test1</h2>
 <svg id="test1" class="mypiechart"></svg>
-
-<h2>Test2</h2>
 <svg id="test2" class="mypiechart"></svg>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/pie.js"></script>
-<script src="../src/models/pieChart.js"></script>
-<script src="../src/utils.js"></script>
 <script>
 
-  var testdata = [
-    {
-      key: "One",
-      y: 5
-    },
-    {
-      key: "Two",
-      y: 2
-    },
-    {
-      key: "Three",
-      y: 9
-    },
-    {
-      key: "Four",
-      y: 7
-    },
-    {
-      key: "Five",
-      y: 4
-    },
-    {
-      key: "Six",
-      y: 3
-    },
-    {
-      key: "Seven",
-      y: .5
-    }
-  ];
+    var testdata = [
+        {key: "One", y: 5},
+        {key: "Two", y: 2},
+        {key: "Three", y: 9},
+        {key: "Four", y: 7},
+        {key: "Five", y: 4},
+        {key: "Six", y: 3},
+        {key: "Seven", y: 0.5}
+    ];
+    var testdata2 = [
+        {key: "One", y: 5},
+        {key: "Two", y: 2},
+        {key: "Three", y: 9},
+        {key: "Four", y: 7},
+        {key: "Five", y: 4},
+        {key: "Six", y: 3},
+        {key: "Seven", y: 0.5}
+    ];
 
+    var height = 350;
+    var width = 350;
 
-nv.addGraph(function() {
-    var width = 500,
-        height = 500;
+    nv.addGraph(function() {
+        var chart = nv.models.pieChart()
+            .x(function(d) { return d.key })
+            .y(function(d) { return d.y })
+            .width(width)
+            .height(height);
 
-    var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        .y(function(d) { return d.y })
-        .color(d3.scale.category10().range())
-        .width(width)
-        .height(height);
+        d3.select("#test1")
+            .datum(testdata2)
+            .transition().duration(1200)
+            .attr('width', width)
+            .attr('height', height)
+            .call(chart);
 
-      d3.select("#test1")
-          .datum(testdata)
-        .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
+        // update chart data values randomly
+        setInterval(function() {
+            testdata2[0].y = Math.floor(Math.random() * 10);
+            testdata2[1].y = Math.floor(Math.random() * 10);
+            chart.update();
+        }, 4000);
 
-    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+        return chart;
+    });
 
-    return chart;
-});
+    nv.addGraph(function() {
+        var chart = nv.models.pieChart()
+            .x(function(d) { return d.key })
+            .y(function(d) { return d.y })
+            //.labelThreshold(.08)
+            //.showLabels(false)
+            .color(d3.scale.category20().range().slice(8))
+            .growOnHover(false)
+            .tooltipContent(function(key, y, e, graph) {
+                return '<h3 style="padding: 5px; background-color: '
+                        + e.color + '"><strong>Yo, the value is</strong></h3>'
+                        + '<p style="padding:5px;">' +  y + '</p>';
+            })
+            .width(width)
+            .height(height);
 
-nv.addGraph(function() {
+        // make it a half circle
+        chart.pie
+            .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
+            .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
 
-    var width = 500,
-        height = 500;
+        // MAKES LABELS OUTSIDE OF DONUT
+        //chart.pie.donutLabelsOutside(true).donut(true);
 
-    var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        //.y(function(d) { return d.value })
-        //.labelThreshold(.08)
-        //.showLabels(false)
-        .color(d3.scale.category10().range())
-        .width(width)
-        .height(height)
-        .donut(true);
+        d3.select("#test2")
+            .datum(testdata)
+            .transition().duration(1200)
+            .attr('width', width)
+            .attr('height', height)
+            .call(chart);
 
-    chart.pie
-        .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
-        .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
+        // disable and enable some of the sections
+        var is_disabled = false;
+        setInterval(function() {
+            chart.dispatch.changeState({disabled: {2: !is_disabled, 4: !is_disabled}});
+            is_disabled = !is_disabled;
+        }, 3000);
 
-      //chart.pie.donutLabelsOutside(true).donut(true);
-
-      d3.select("#test2")
-          //.datum(historicalBarChart)
-          .datum(testdata)
-        .transition().duration(1200)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
-
-    return chart;
-});
+        return chart;
+    });
 
 </script>
+</body>
+</html>

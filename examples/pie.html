@@ -1,94 +1,81 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<style>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script src="lib/stream_layers.js"></script>
 
-body {
-  overflow-y:scroll;
-}
-
-text {
-  font: 12px sans-serif;
-}
-
-</style>
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+            float: left;
+            height: 300px;
+            width: 300px;
+        }
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
 <body>
 
 <svg id="test1"></svg>
-
 <svg id="test2"></svg>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/models/pie.js"></script>
-<script> 
+<script>
 
-  var testdata = [
-    { 
-      key: "One",
-      y: 5
-    },
-    { 
-      key: "Two",
-      y: 2
-    },
-    { 
-      key: "Three",
-      y: 9
-    },
-    { 
-      key: "Four",
-      y: 7
-    },
-    { 
-      key: "Five",
-      y: 4
-    },
-    {
-        key: "Six",
-        y: 3
-    }
-  ];
+    var testdata = [
+        {key: "One", y: 5},
+        {key: "Two", y: 2},
+        {key: "Three", y: 9},
+        {key: "Four", y: 7},
+        {key: "Five", y: 4},
+        {key: "Six", y: 3},
+        {key: "Seven", y: 0.5}
+    ];
 
+    var width = 300;
+    var height = 300;
 
-nv.addGraph(function() {
-    var width = nv.utils.windowSize().width - 40,
-        height = nv.utils.windowSize().height / 2 - 40;
+    nv.addGraph(function() {
+        var chart = nv.models.pie()
+                .width(width)
+                .height(height);
 
-    var chart = nv.models.pie()
-        .values(function(d) { return d })
-        .width(width)
-        .height(height);
+        d3.select("#test1")
+                .datum([testdata])
+                .transition().duration(1200)
+                .attr('width', width)
+                .attr('height', height)
+                .call(chart);
 
-    d3.select("#test1")
-        .datum([testdata])
-      .transition().duration(1200)
-        .attr('width', width)
-        .attr('height', height)
-        .call(chart);
+        return chart;
+    });
 
-    return chart;
-});
+    nv.addGraph(function() {
+        var chart = nv.models.pie()
+                .width(width)
+                .height(height)
+                .donut(true);
 
-nv.addGraph(function() {
-    var width = nv.utils.windowSize().width - 40,
-        height = nv.utils.windowSize().height / 2 - 40;
+        d3.select("#test2")
+                .datum([testdata])
+                .transition().duration(1200)
+                .attr('width', width)
+                .attr('height', height)
+                .call(chart);
 
-    var chart = nv.models.pie()
-        .values(function(d) { return d })
-        .width(width)
-        .height(height)
-        .donut(true);
-
-    d3.select("#test2")
-        .datum([testdata])
-      .transition().duration(1200)
-        .attr('width', width)
-        .attr('height', height)
-        .call(chart);
-
-    return chart;
-});
+        return chart;
+    });
 
 </script>
+</body>
+</html>

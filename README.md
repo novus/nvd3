@@ -1,99 +1,120 @@
-For those interested in a fork of NVD3 that is being actively maintained by a community member, please see:  [ https://github.com/liquidpele/nvd3](https://github.com/liquidpele/nvd3)
+## NVD3 - A reusable D3 charting library
 
-# MAJOR REFACTOR
+Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ocks.org/mike/chart/), and supported by a combined effort of [Novus](http://www.novus.com) and the NVD3 community.
 
-As of mid April, 2014, NVD3 is undergoing a major internal refactoring. While we wanted to make it in such a way that it would be a perfectly backwards compatible minor version release, we cannot do so. There are a half-dozen side and corner cases in the current code base, that, while we could call them "bugs", are just poorly implemented features. Because of this, we are announcing heavy development on the 2.0 NVD3 line, which will bring a sane internal structure and numerous API and development enhancements.
+[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/novus/nvd3.svg?branch=development)](https://travis-ci.org/novus/nvd3)
 
-The code is on the branch at [refactor/2.0.0-dev](https://github.com/novus/nvd3/tree/refactor/2.0.0-dev). It is currently about 4/5ths functional, and we are working through finishing the tests for the last few parameters. The commonly used charts are there, and any outstanding or new pull requests will need to rebase and target that. Of course, if you want to implement some of those features, that would also be great!
+## Usage
+Simply add the `nv.d3` assets to your project and include them in your HTML.
 
-For more information on the refactored architecture and approach, please see the recent blog posts on  [architecture](http://nvd3.org/blog/2014/03/architecture/) and [chart drawing lifecycle](http://nvd3.org/blog/2014/03/nvd3-chart-drawing-lifecycle/).
+```
+<link href="nv.d3.min.css" rel="stylesheet">
+<script src="nv.d3.min.js"></script>
+```
 
-For now, any users of NVD3 still get 1.1.15-beta.
+*  `nv.d3.js` should appear after `d3.js` is included.
+* Prefer minified assets (`.min`) for production.
 
-# NVD3 - v1.1.15-beta
-## Release notes for version 1.1.15 beta
-* Various fixes across the board
+### Dependencies
+NVD3 depends on [d3.js](http://d3js.org/), and is tested on version 3.3.13. There is currently [a minor bug](https://github.com/novus/nvd3/issues/760) associated with version 3.5.
 
-## Overview
-A reusable chart library for d3.js.
-
-NVD3 may change from its current state, but will always try to follow the style of d3.js.
-
-You can also check out the [examples page](http://nvd3.org/ghpages/examples.html).
-**Note:** The examples on nvd3.org are outdated.  For examples on how to use the latest NVD3, please checkout the **examples/** directory in the repository.
-
----
-
-# Current development focus
-
-- Getting documentation up.
-- Unifying common API functions between charts.
-- Bug fixes that come up.
-
----
-
-# Installation Instructions
-
-`d3.v3.js` is a dependency of `nv.d3.js`. Be sure to include in in your project, then:
-Add a script tag to include `nv.d3.js` OR `nv.d3.min.js` in your project.
-Also add a link to the `nv.d3.css` file.
-
-See wiki -> Documentation for more detail
-
----
-
-If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models) doesn't meet your needs, fork the project, implement the model and an example using it, send us a pull request, for consideration for inclusion in the project.
-
-We cannot honor all pull requests, but we will review all of them.
-
-Please do not aggregate pull requests. Aggregated pull requests are actually more difficult to review.
-
-We are currently changing our branch structure so that master will be gauranteed stable. In addition, there is now a "development" branch. This branch reflects the latest changes to NVD3 and is not necessarily stable.
-
----
-
-## Minifying your fork:
-
-### Using Make
-The Makefile requires [UglifyJS](https://github.com/mishoo/UglifyJS) and [CSSMin](https://github.com/jbleuzen/node-cssmin)
-
-The easiest way to install UglifyJS and CSSMin is via npm. Run `npm install -g uglify-js cssmin`. After installing verify the setup by running `uglifyjs --version` and `cssmin --help`.
-
-Once you have the `uglifyjs` and `cssmin` commands available, running `make` from your
-fork's root directory will rebuild both `nv.d3.js` and `nv.d3.min.js`.
-
-    make # build nv.d3.js and nv.d3.css and minify
-    make nv.d3.js # Build nv.d3.js
-    make nv.d3.min.js # Minify nv.d3.js into nv.d3.min.js
-    make nv.d3.css # Build nv.d3.css
-    make nv.d3.min.css # Minify nv.d3.css into nv.d3.min.css
-    make clean # Delete nv.d3.*js and nv.d3.*css
-
-
-*Without UglifyJS or CSSMin, you won't get the minified versions when running make.**
-
-### Using Grunt
-
-You can use grunt instead of makefile to build js file. See more about [grunt](http://gruntjs.com/).
-***[Nodejs](http://nodejs.org/) must be installed before you can use grunt.***
-Run `npm install` in root dir to install grunt and it's dependencies.
-
-Then, you can use these commands:
-
-    grunt # build nv.d3.js
-    grunt production # build nv.d3.js and nv.d3.min.js
-    grunt watch # watch file changes in src/, and rebuild nv.d3.js, it's very helpful when delevop NVD3
-    grunt lint # run jshint on src/**/*.js
-
-**We ask that you DO NOT minify pull requests...
-If you need to minify please build pull request in separate branch, and
-merge and minify in your master.
 
 ## Supported Browsers
 NVD3 runs best on WebKit based browsers.
 
-* **Google Chrome: latest version (preferred)**
-* **Opera 15+ (preferred)**
+* Google Chrome: latest version
+* Opera 15+ (i.e. webkit version)
 * Safari: latest version
 * Firefox: latest version
-* Internet Explorer: 9 and 10
+* Internet Explorer: 10+
+
+## Changelog
+
+**1.7.1** Changes:
+
+* Fixed axis.staggerLabels bug.
+* Fixed Karma unit tests.
+* Fixed chart test pages.
+* Merged in nvd3-community changes and development branch.
+
+**1.7.0** Changes:
+
+* Fixes around 20 small bugs.
+* Fixed the notorious slowness of line charts and scatter plots on chrome
+* Combined the scatterChart and scatterChartWithLines models
+* Combined the linePlusBarChart and linePlusBarChartWithFocus models.
+* renamed some of the options (see the new documentation for what options are available for each chart)
+* Completed the migration of the option functions to an object format which allows the generation of
+the documentation in an automated way.  Not everything has a description yet, but check it out!
+* Added extra options to the donut charts based on features that will be in d3 3.5.  The donut example page
+loads the latest d3 from their 3.5 branch so keep that in mind.
+* Added an example of the parallelCoordinates chart.
+* Fixed up the half-done OHLC bar chart, and made an example for it as well.
+
+**1.6.0** Changes:
+
+* includes about a dozen bug fixes and pull requests I fixed and merged in
+from the issues/pulls from the original project.
+* It also standardized all indention
+
+---
+
+# Current development focus
+- Review outstanding pull requests and issues.
+- Try to find an easy way to actually document usage and all chart options.
+- Improve the testing framework.
+- Setup continuous integration.
+
+---
+
+# Bugs
+
+Found a bug?  Check out the `development` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
+
+---
+
+# Contributing
+
+If one of [the existing models](https://github.com/nvd3-community/nvd3/tree/development/src/models)
+doesn't meet your needs, fork the project, implement the model and an example using it,
+send us a pull request, for consideration for inclusion in the project.
+
+If you'd like to contribute consistently, show me what you've got with some good pull requests and you may get added to the nvd3-community org!
+
+### A few rules for pull requests
+
+1. Please commit to the `development` branch
+2. Do NOT check in anything under the `build` directory, it clutters up the commit and just gets overwritten later.
+3. All new features must come with unit test coverage
+4. Bug fixes should come with unit tests that prove their fix
+
+If you want to test your changes using the example pages,
+you'll have to run `grunt production` to build the items into the `build` directory.
+You must do this before your changes show up in the examples, as they link to the build directory
+in order to properly show off the finished product.
+Please remember to NOT include the build files in your commit though,
+only include the source files you changed!
+
+### Tips for Testing
+* Unit tests were written in Karma and Mocha. Follow instructions in **Building Latest** to get npm packages setup. This may not work on Windows machines.
+* Run `grunt` to start the unit tests.
+* Also visually inspect the HTML pages in the **examples/ and test/ folders**.  Make sure there are no glaring errors.
+* Novus now uses Travis CI for continuous integration. Visit [our travis build page](https://travis-ci.org/novus/nvd3/) to see the latest status.
+
+---
+
+## Building latest
+
+1. First clone the repository and checkout the "development" branch
+2. make sure nodejs is installed via your system's package manager.
+3. Install grunt-cli and bower: npm install -g bower grunt-cli
+
+> have node download it's required modules with:  npm install
+
+> install grunt globally:  sudo npm install -g grunt
+
+> build with:  grunt production
+
+You should now have a `build` directory with the js and css files within.
+
+---
