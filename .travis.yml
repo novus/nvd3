@@ -6,4 +6,6 @@ before_install:
     - "npm install -g grunt-cli"
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
-install: npm install
+install:
+    - "npm install"
+    - "bower install"
