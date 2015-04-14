@@ -98,7 +98,7 @@ svg.nvd3-svg {
 
   -webkit-border-radius: 5px 5px 0 0;
   -moz-border-radius: 5px 5px 0 0;
-  border-radius: 1px 5px 0 0;
+  border-radius: 5px 5px 0 0;
 }
 
 .nvtooltip p {
