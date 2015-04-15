@@ -295,3 +295,60 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
     });
     return indexToHighlight;
 };
+
+/*
+For all series in data:
+ - add filteredValues attribute, which is an array of values where both x and y are not undefined nor null
+ - add filteredIndexToOrigIndex for converting the index of a value in filteredValues to the index of the same value
+   in the original values array.
+ These attributes are can be used by charts that use interactiveBisect on series with missing data.
+ See example lineChartWithInteractiveAndMissingData.html
+*/
+nv.filterValuesForBisect = function(data, xAccessor, yAccessor) {
+    "use strict";
+
+    if (data == null) {
+        return;
+    }
+
+    if (!(data instanceof Array)) {
+        // Convert to array
+        data = [data];
+    }
+
+    var _xAccessor;
+    if (typeof xAccessor !== 'function') {
+        _xAccessor = function(d) {
+            return d.x;
+        }
+    } else {
+        _xAccessor = xAccessor;
+    }
+
+    var _yAccessor;
+    if (typeof yAccessor !== 'function') {
+        _yAccessor = function(d) {
+            return d.y;
+        }
+    } else {
+        _yAccessor = yAccessor;
+    }
+    
+
+    var i, j, v, series;
+    for(i = 0; i < data.length; i++) {
+        series = data[i];
+        var filteredValues = [];
+        var filteredIndexToOrigIndex = [];
+        for(j = 0; j < (series.values && series.values.length || 0); j++) {
+            v = series.values[j];
+            if (_xAccessor(v) != null && _yAccessor(v) != null) {
+                filteredValues.push(v);
+                filteredIndexToOrigIndex.push(j);
+            }
+        }
+        series.filteredValues = filteredValues;
+        series.filteredIndexToOrigIndex = filteredIndexToOrigIndex;
+    }
+
+};

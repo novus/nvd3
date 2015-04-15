@@ -159,6 +159,7 @@ nv.models.lineChart = function() {
 
             //Set up interactive layer
             if (useInteractiveGuideline) {
+                
                 interactiveLayer
                     .width(availableWidth)
                     .height(availableHeight)
@@ -166,6 +167,8 @@ nv.models.lineChart = function() {
                     .svgContainer(container)
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
+
+                nv.filterValuesForBisect(data, chart.x(), chart.y());
             }
 
             lines
@@ -217,14 +220,15 @@ nv.models.lineChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 lines.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [];
+                var singlePoint, pointIndex, filteredPointIndex,  pointXLocation, allData = [];
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
                         return !series.disabled;
                     })
                     .forEach(function(series,i) {
-                        pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+                        filteredPointIndex = nv.interactiveBisect(series.filteredValues, e.pointXValue, chart.x());
+                        pointIndex = series.filteredIndexToOrigIndex[filteredPointIndex]
                         lines.highlightPoint(i, pointIndex, true);
                         var point = series.values[pointIndex];
                         if (point === undefined) return;
@@ -236,6 +240,7 @@ nv.models.lineChart = function() {
                             color: color(series,series.seriesIndex)
                         });
                     });
+
                 //Highlight the tooltip entry based on which point the mouse is closest to.
                 if (allData.length > 2) {
                     var yValue = chart.yScale().invert(e.mouseY);
@@ -270,7 +275,8 @@ nv.models.lineChart = function() {
                     series.seriesIndex = i;
                     return !series.disabled;
                 }).forEach(function(series) {
-                    var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+                    var filteredPointIndex = nv.interactiveBisect(series.filteredValues, e.pointXValue, chart.x());
+                    var pointIndex = series.filteredIndexToOrigIndex[filteredPointIndex];
                     var point = series.values[pointIndex];
                     if (typeof point === 'undefined') return;
                     if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
