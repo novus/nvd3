@@ -49,7 +49,7 @@
         chart = nv.models.lineChart()
             .options({
                 transitionDuration: 300,
-                //useInteractiveGuideline: true
+                useInteractiveGuideline: true
             })
         ;
 
@@ -62,7 +62,12 @@
 
         chart.yAxis
             .axisLabel('Voltage (v)')
-            .tickFormat(d3.format(',.2f'))
+            .tickFormat(function(d) {
+                if (d == null) {
+                    return 'N/A';
+                }
+                return d3.format(',.2f')(d);
+            })
         ;
 
         data = sinAndCos();
