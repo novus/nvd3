@@ -159,6 +159,7 @@ nv.models.lineChart = function() {
 
             //Set up interactive layer
             if (useInteractiveGuideline) {
+
                 interactiveLayer
                     .width(availableWidth)
                     .height(availableHeight)
@@ -166,6 +167,8 @@ nv.models.lineChart = function() {
                     .svgContainer(container)
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
+
+                nv.filterValuesForBisect(data, chart.x(), chart.y());
             }
 
             lines
@@ -217,36 +220,62 @@ nv.models.lineChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 lines.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [];
+                var allData = [];
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
                         return !series.disabled;
                     })
                     .forEach(function(series,i) {
-                        pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        lines.highlightPoint(i, pointIndex, true);
+                        var filteredPointIndex = nv.interactiveBisect(series.filteredValues, e.pointXValue, chart.x());
+                        var pointIndex = series.filteredIndexToOrigIndex[filteredPointIndex]
+                        // lines.highlightPoint(i, pointIndex, true);
                         var point = series.values[pointIndex];
                         if (point === undefined) return;
-                        if (singlePoint === undefined) singlePoint = point;
-                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                        var pointXLocation = chart.xScale()(chart.x()(point,pointIndex)); // Must do this for each series because of missing data.
                         allData.push({
                             key: series.key,
                             value: chart.y()(point, pointIndex),
-                            color: color(series,series.seriesIndex)
+                            color: color(series,series.seriesIndex),
+                            pointIndex: pointIndex,
+                            pointXLocation: pointXLocation,
+                            point: point,
+                            i : i
                         });
                     });
+
                 //Highlight the tooltip entry based on which point the mouse is closest to.
+                var indexForGuideline;
                 if (allData.length > 2) {
+
                     var yValue = chart.yScale().invert(e.mouseY);
                     var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
                     var threshold = 0.03 * domainExtent;
                     var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
                     if (indexToHighlight !== null)
                         allData[indexToHighlight].highlight = true;
+
+                    // Select xvalue among the series for the guideline
+                    indexForGuideline = nv.nearestValueIndex(allData.map(function(d) { return d.pointXLocation; }), e.mouseX, Infinity);
+
+                } else {
+                    indexForGuideline = 0;
                 }
 
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+                var xForGuideline = allData[indexForGuideline].pointXLocation;
+                var ptForGuideline = allData[indexForGuideline].point;
+                var xValue = xAxis.tickFormat()(chart.x()(ptForGuideline, indexForGuideline));
+
+                // Modify allData and remove any points that don't share the selected xValue
+                allData = allData.filter(function(d) {
+                    return d.pointXLocation === xForGuideline;
+                });
+
+                // Highlight points that share this x location
+                allData.forEach(function(d) {
+                    lines.highlightPoint(d.i, d.pointIndex, true);
+                });
+
                 interactiveLayer.tooltip
                     .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
@@ -255,11 +284,11 @@ nv.models.lineChart = function() {
                     })
                     .data({
                         value: xValue,
-                        index: pointIndex,
+                        index: indexForGuideline,
                         series: allData
                     })();
 
-                interactiveLayer.renderGuideLine(pointXLocation);
+                interactiveLayer.renderGuideLine(xForGuideline);
 
             });
 
@@ -270,7 +299,8 @@ nv.models.lineChart = function() {
                     series.seriesIndex = i;
                     return !series.disabled;
                 }).forEach(function(series) {
-                    var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+                    var filteredPointIndex = nv.interactiveBisect(series.filteredValues, e.pointXValue, chart.x());
+                    var pointIndex = series.filteredIndexToOrigIndex[filteredPointIndex];
                     var point = series.values[pointIndex];
                     if (typeof point === 'undefined') return;
                     if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
