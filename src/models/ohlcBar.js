@@ -43,13 +43,16 @@ nv.models.ohlcBar = function() {
 
             nv.utils.initSVG(container);
 
+            // ohlc bar width.
+            var w = (availableWidth / data[0].values.length) * .9;
+
             // Setup Scales
             x.domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
 
             if (padData)
                 x.range(xRange || [availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
             else
-                x.range(xRange || [0, availableWidth]);
+                x.range(xRange || [5 + w/2, availableWidth - w/2 - 5]);
 
             y.domain(yDomain || [
                     d3.min(data[0].values.map(getLow).concat(forceY)),
@@ -106,7 +109,6 @@ nv.models.ohlcBar = function() {
             ticks.enter().append('path')
                 .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
                 .attr('d', function(d,i) {
-                    var w = (availableWidth / data[0].values.length) * .9;
                     return 'm0,0l0,'
                         + (y(getOpen(d,i))
                             - y(getHigh(d,i)))
