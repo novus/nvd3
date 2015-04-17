@@ -300,8 +300,11 @@ nv.models.lineWithFocusChart = function() {
                         });
  
                         pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
-                        lines.highlightPoint(i, pointIndex, true);
                         var point = currentValues[pointIndex];
+                        var pointYValue = chart.y()(point, pointIndex);
+                        if (pointYValue != null) {
+                            lines.highlightPoint(i, pointIndex, true);
+                        }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
@@ -326,7 +329,7 @@ nv.models.lineWithFocusChart = function() {
                     .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
-                        return yAxis.tickFormat()(d);
+                        return d == null ? "N/A" : yAxis.tickFormat()(d);
                     })
                     .data({
                         value: xValue,
