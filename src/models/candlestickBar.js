@@ -1,5 +1,5 @@
 
-nv.models.ohlcBar = function() {
+nv.models.candlestickBar = function() {
     "use strict";
 
     //============================================================
@@ -43,8 +43,8 @@ nv.models.ohlcBar = function() {
 
             nv.utils.initSVG(container);
 
-            // ohlc bar width.
-            var w = (availableWidth / data[0].values.length) * .9;
+            // Width of the candlestick bars.
+            var barWidth = (availableWidth / data[0].values.length) * .45;
 
             // Setup Scales
             x.domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
@@ -52,7 +52,7 @@ nv.models.ohlcBar = function() {
             if (padData)
                 x.range(xRange || [availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
             else
-                x.range(xRange || [5 + w/2, availableWidth - w/2 - 5]);
+                x.range(xRange || [5 + barWidth / 2, availableWidth - barWidth / 2 - 5]);
 
             y.domain(yDomain || [
                     d3.min(data[0].values.map(getLow).concat(forceY)),
@@ -72,8 +72,8 @@ nv.models.ohlcBar = function() {
                     : y.domain([-1,1]);
 
             // Setup containers and skeleton of chart
-            var wrap = d3.select(this).selectAll('g.nv-wrap.nv-ohlcBar').data([data[0].values]);
-            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-ohlcBar');
+            var wrap = d3.select(this).selectAll('g.nv-wrap.nv-candlestickBar').data([data[0].values]);
+            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-candlestickBar');
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
@@ -106,61 +106,54 @@ nv.models.ohlcBar = function() {
                 .data(function(d) { return d });
             ticks.exit().remove();
 
-            ticks.enter().append('path')
-                .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
-                .attr('d', function(d,i) {
-                    return 'm0,0l0,'
-                        + (y(getOpen(d,i))
-                            - y(getHigh(d,i)))
-                        + 'l'
-                        + (-w/2)
-                        + ',0l'
-                        + (w/2)
-                        + ',0l0,'
-                        + (y(getLow(d,i)) - y(getOpen(d,i)))
-                        + 'l0,'
-                        + (y(getClose(d,i))
-                            - y(getLow(d,i)))
-                        + 'l'
-                        + (w/2)
-                        + ',0l'
-                        + (-w/2)
-                        + ',0z';
+            // The colors are currently controlled by CSS.
+            var tickGroups = ticks.enter().append('g')
+                .attr('class', function(d, i, j) { return (getOpen(d, i) > getClose(d, i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i});
+
+            var lines = tickGroups.append('line')
+                .attr('class', 'nv-candlestick-lines')
+                .attr('transform', function(d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; })
+                .attr('x1', 0)
+                .attr('y1', function(d, i) { return y(getHigh(d, i)); })
+                .attr('x2', 0)
+                .attr('y2', function(d, i) { return y(getLow(d, i)); });
+
+            var rects = tickGroups.append('rect')
+                .attr('class', 'nv-candlestick-rects')
+                .attr('transform', function(d, i) {
+                    return 'translate(' + (x(getX(d, i)) - barWidth/2) + ','
+                    + (y(getY(d, i)) - (getOpen(d, i) > getClose(d, i) ? (y(getClose(d, i)) - y(getOpen(d, i))) : 0))
+                    + ')';
                 })
-                .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
-                .attr('fill', function(d,i) { return color[0]; })
-                .attr('stroke', function(d,i) { return color[0]; })
-                .attr('x', 0 )
-                .attr('y', function(d,i) {  return y(Math.max(0, getY(d,i))) })
-                .attr('height', function(d,i) { return Math.abs(y(getY(d,i)) - y(0)) });
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', barWidth)
+                .attr('height', function(d, i) {
+                    var open = getOpen(d, i);
+                    var close = getClose(d, i);
+                    return open > close ? y(close) - y(open) : y(open) - y(close);
+                });
 
-            // the bar colors are controlled by CSS currently
-            ticks.attr('class', function(d,i,j) {
-                return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i;
-            });
+            d3.selectAll('.nv-candlestick-lines').transition()
+                .attr('transform', function(d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; })
+                .attr('x1', 0)
+                .attr('y1', function(d, i) { return y(getHigh(d, i)); })
+                .attr('x2', 0)
+                .attr('y2', function(d, i) { return y(getLow(d, i)); });
 
-            d3.transition(ticks)
-                .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
-                .attr('d', function(d,i) {
-                    var w = (availableWidth / data[0].values.length) * .9;
-                    return 'm0,0l0,'
-                        + (y(getOpen(d,i))
-                            - y(getHigh(d,i)))
-                        + 'l'
-                        + (-w/2)
-                        + ',0l'
-                        + (w/2)
-                        + ',0l0,'
-                        + (y(getLow(d,i))
-                            - y(getOpen(d,i)))
-                        + 'l0,'
-                        + (y(getClose(d,i))
-                            - y(getLow(d,i)))
-                        + 'l'
-                        + (w/2)
-                        + ',0l'
-                        + (-w/2)
-                        + ',0z';
+            d3.selectAll('.nv-candlestick-rects').transition()
+                .attr('transform', function(d, i) {
+                    return 'translate(' + (x(getX(d, i)) - barWidth/2) + ','
+                    + (y(getY(d, i)) - (getOpen(d, i) > getClose(d, i) ? (y(getClose(d, i)) - y(getOpen(d, i))) : 0))
+                    + ')';
+                })
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', barWidth)
+                .attr('height', function(d, i) {
+                    var open = getOpen(d, i);
+                    var close = getClose(d, i);
+                    return open > close ? y(close) - y(open) : y(open) - y(close);
                 });
         });
 
@@ -171,13 +164,13 @@ nv.models.ohlcBar = function() {
     //Create methods to allow outside functions to highlight a specific bar.
     chart.highlightPoint = function(pointIndex, isHoverOver) {
         chart.clearHighlights();
-        d3.select(".nv-ohlcBar .nv-tick-0-" + pointIndex)
+        d3.select(".nv-candlestickBar .nv-tick-0-" + pointIndex)
             .classed("hover", isHoverOver)
         ;
     };
 
     chart.clearHighlights = function() {
-        d3.select(".nv-ohlcBar .nv-tick.hover")
+        d3.select(".nv-candlestickBar .nv-tick.hover")
             .classed("hover", false)
         ;
     };
