@@ -331,8 +331,11 @@ nv.models.stackedAreaChart = function() {
                     })
                     .forEach(function(series,i) {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        stacked.highlightPoint(i, pointIndex, true);
                         var point = series.values[pointIndex];
+                        var pointYValue = chart.y()(point, pointIndex);
+                        if (pointYValue != null) {
+                            stacked.highlightPoint(i, pointIndex, true);
+                        }
                         if (typeof point === 'undefined') return;
                         if (typeof singlePoint === 'undefined') singlePoint = point;
                         if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
@@ -374,8 +377,8 @@ nv.models.stackedAreaChart = function() {
 
                 //If we are in 'expand' mode, force the format to be a percentage.
                 var valueFormatter = (stacked.style() == 'expand') ?
-                    function(d,i) {return d3.format(".1%")(d);} :
-                    function(d,i) {return yAxis.tickFormat()(d); };
+                    function(d,i) {return d == null ? "N/A" : d3.format(".1%")(d);} :
+                    function(d,i) {return d == null ? "N/A" : yAxis.tickFormat()(d); };
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
