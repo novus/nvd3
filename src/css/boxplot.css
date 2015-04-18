@@ -14,3 +14,7 @@
 .nvd3 line.nv-boxplot-median {
   stroke: black;
 }
+
+.nv-boxplot-tick:hover {
+  stroke-width: 2.5px;
+}

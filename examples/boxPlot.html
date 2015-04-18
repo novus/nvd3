@@ -35,6 +35,7 @@
           .y(function(d) { return d.values.Q3 })
           .staggerLabels(true)
           .maxBoxWidth(75) // prevent boxes from being incredibly wide 
+          .yDomain([0, 500])
           ;
       
       d3.select('#chart1 svg')
@@ -66,7 +67,7 @@
             Q2: 350,
             Q3: 400,
             whisker_low: 225,
-            whisker_high: 400,
+            whisker_high: 425,
             outliers: [175]          
           },
         },
