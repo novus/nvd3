@@ -11,8 +11,8 @@
     Normal data (maxBoxWidth and staggerLabel options)
     <svg></svg>
   </div>
-  <div class='chart half' id="chart2">
-    Data with no outliers (empty lists)
+  <div class='chart half' id="forceY">
+    Normal data (forceY)
     <svg></svg>
   </div>
   <div class='chart half' id="chart3">
@@ -21,6 +21,14 @@
   </div>
   <div class='chart half' id="chart4">
     Twelve boxes (repeating)
+    <svg></svg>
+  </div>
+  <div class='chart half' id="bad_whiskers">
+    Bad whiskers
+    <svg></svg>
+  </div>
+  <div class='chart half' id="bad_outliers">
+    Bad outliers
     <svg></svg>
   </div>
 <script>
@@ -63,45 +71,6 @@ function testData1() {
      ];
 }
 
-
-function testNoOutliers() {
-    return  [ 
-       {
-         label: "Sample A",
-         values: { 
-           Q1: 120,
-           Q2: 150,
-           Q3: 200,
-           whisker_low: 115,
-           whisker_high: 210,
-           outliers: []
-         },
-       },
-       {
-         label: "Sample B",
-         values: { 
-           Q1: 300,
-           Q2: 350,
-           Q3: 400,
-           whisker_low: 225,
-           whisker_high: 400,
-           outliers: []
-         },
-       },
-       {
-         label: "Sample C",
-         values: { 
-           Q1: 50,
-           Q2: 100,
-           Q3: 125,
-           whisker_low: 25,
-           whisker_high: 175,
-           outliers: []
-         },
-       }
-     ];    
-}
-
 function testSingleBox() {
     return [
         { 
@@ -138,12 +107,127 @@ function testDozenBoxes() {
     ]
 }
 
+function badWhiskers() {
+    return [
+        {
+          "label": "Missing High",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_low: 50,
+            outliers: []          
+          }
+        }, 
+        {
+          "label": "Missing Low",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_high: 200,
+            outliers: []          
+          }
+        }, 
+        {
+          "label": "Null High",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_low: 50,
+            whisker_high: null,
+            outliers: []          
+          }
+        }, 
+        {
+          "label": "Null Low",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_low: null,
+            whisker_high: 200,
+            outliers: []          
+          }
+        }, 
+        {
+          "label": "Both Missing",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            outliers: []          
+          }
+        }, 
+        {
+          "label": "Both Null",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_low: null,
+            whisker_high: null,
+            outliers: []          
+          }
+        },
+        {
+          "label": "Both Missing with Outliers",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            outliers: [25, 250]
+          }
+        }
+    ]
+}
+
+function badOutliers() {
+    return [
+        {
+          "label": "Empty outlier list",
+          "values": { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_low: 50,
+            whisker_high: 200,
+            outliers: []          
+          }
+        }, 
+        {
+          label: "Null outliers",
+          values: { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_low: 50,
+            whisker_high: 200,
+            outliers: null
+          }
+        },
+        {
+          label: "No outliers",
+          values: { 
+            Q1: 100,
+            Q2: 125,
+            Q3: 150,
+            whisker_low: 50,
+            whisker_high: 200,
+          }
+        }
+    ]
+}
+
 defaultChartConfig("chart1", testData1, {
   staggerLabels: true,
   maxBoxWidth: 75
 });
 
-defaultChartConfig("chart2", testNoOutliers, {});
+defaultChartConfig("forceY", testData1, {
+  yDomain: [0, 500]
+});
 
 defaultChartConfig("chart3", testSingleBox, {});
 
@@ -151,6 +235,11 @@ defaultChartConfig("chart4", testDozenBoxes, {
   staggerLabels: true,
   maxBoxWidth: 75
 });
+
+defaultChartConfig("bad_whiskers", badWhiskers, {
+  staggerLabels: true
+});
+defaultChartConfig("bad_outliers", badOutliers, {});
 
 function defaultChartConfig(containerId, data, chartOptions) {
   nv.addGraph(function() {
