@@ -84,10 +84,10 @@ describe 'NVD3', ->
             '.nv-wrap'
             '.nv-boxplot'
             '.nv-boxplot-median'
-            '.nv-boxplot-ltick'
-            '.nv-boxplot-htick'
-            '.nv-boxplot-lwhisker'
-            '.nv-boxplot-hwhisker'
+            '.nv-boxplot-tick.nv-boxplot-low'
+            '.nv-boxplot-whisker.nv-boxplot-low'
+            '.nv-boxplot-tick.nv-boxplot-high'
+            '.nv-boxplot-whisker.nv-boxplot-high'
           ]
           for cssClass in cssClasses
             do (cssClass) ->
