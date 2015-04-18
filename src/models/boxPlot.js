@@ -51,20 +51,20 @@ nv.models.boxPlot = function() {
                 var yMin = d3.min(data.map(function(d) {
                     var min_arr = [];
 
-                    min_arr.push(d.values.whisker_low);
                     min_arr.push(d.values.Q1);
-                    min_arr = min_arr.concat(d.values.outliers);
-
+                    if (d.values.hasOwnProperty('whisker_low') && d.values.whisker_low !== null) { min_arr.push(d.values.whisker_low); } 
+                    if (d.values.hasOwnProperty('outliers') && d.values.outliers !== null) { min_arr = min_arr.concat(d.values.outliers); }
+                    
                     return d3.min(min_arr);
                 }));
                 
                 // upper values
                 var yMax = d3.max(data.map(function(d) {
                     var max_arr = [];
-
-                    max_arr.push(d.values.whisker_high);
+                    
                     max_arr.push(d.values.Q3);
-                    max_arr = max_arr.concat(d.values.outliers);
+                    if (d.values.hasOwnProperty('whisker_high') && d.values.whisker_high !== null) { max_arr.push(d.values.whisker_high); } 
+                    if (d.values.hasOwnProperty('outliers') && d.values.outliers !== null) { max_arr = max_arr.concat(d.values.outliers); }
 
                     return d3.max(max_arr);
                 }));
@@ -102,9 +102,29 @@ nv.models.boxPlot = function() {
             
             // ----- add the SVG elements for each boxPlot -----
             
+            // conditionally append whisker lines
+            boxEnter.each(function(d,i) {
+              var box = d3.select(this);
+
+              ['low', 'high'].forEach(function(key) {
+                if (d.values.hasOwnProperty('whisker_' + key) && d.values['whisker_' + key] !== null) {
+                  box.append('line')
+                    .style('stroke', (d.color) ? d.color : color(d,i))
+                    .attr('class', 'nv-boxplot-whisker nv-boxplot-' + key);
+
+                  box.append('line')
+                    .style('stroke', (d.color) ? d.color : color(d,i))
+                    .attr('class', 'nv-boxplot-tick nv-boxplot-' + key);                
+                }
+              });
+            });
+            
             // outliers
             // TODO: support custom colors here
-            var outliers = boxplots.selectAll('.nv-boxplot-outlier').data(function(d) { return d.values.outliers });
+            var outliers = boxplots.selectAll('.nv-boxplot-outlier').data(function(d) { 
+                if (d.values.hasOwnProperty('outliers') && d.values.outliers !== null) { return d.values.outliers; }
+                else { return []; }
+            });
             outliers.enter().append('circle')
                 .style('fill', function(d,i,j) { return color(d,j) }).style('stroke', function(d,i,j) { return color(d,j) })
                 .on('mouseover', function(d,i,j) {
@@ -133,59 +153,49 @@ nv.models.boxPlot = function() {
                 .attr('r', '3');
             outliers.exit().remove();                
             
-            var box_width = function() { return (maxBoxWidth === null ? x.rangeBand() * .9 : Math.min(75, x.rangeBand() * .9)); }
-            var box_left  = function() { return x.rangeBand() * .45 - box_width()/2; }
-            var box_right = function() { return x.rangeBand() * .45 + box_width()/2; }
+            var box_width = function() { return (maxBoxWidth === null ? x.rangeBand() * .9 : Math.min(75, x.rangeBand() * .9)); };
+            var box_left  = function() { return x.rangeBand() * .45 - box_width()/2; };
+            var box_right = function() { return x.rangeBand() * .45 + box_width()/2; };
+                        
+            // update whisker lines and ticks
+            ['low', 'high'].forEach(function(key) {
+              var endpoint = (key === 'low') ? 'Q1' : 'Q3';
             
-            // whiskers 
-            // (lower)
-            boxEnter.append('line')
-                .style('stroke', function(d,i) { return d.color || color(d,i) })
-                .attr('class', 'nv-boxplot-lwhisker');
-            
-            boxplots.select('line.nv-boxplot-lwhisker')
-              .watchTransition(renderWatch, 'nv-boxplot: boxplots')
-                .attr('x1', x.rangeBand() * .45 )
-                .attr('y1', function(d,i) { return y(d.values.whisker_low); })
-                .attr('x2', x.rangeBand() * .45 )
-                .attr('y2', function(d,i) { return y(d.values.Q1); });
-            
-            // (upper)
-            boxEnter.append('line')
-                .style('stroke', function(d,i) { return d.color || color(d,i) })
-                .attr('class', 'nv-boxplot-hwhisker');
+              boxplots.select('line.nv-boxplot-whisker.nv-boxplot-' + key)
+                .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+                  .attr('x1', x.rangeBand() * .45 )
+                  .attr('y1', function(d,i) { return y(d.values['whisker_' + key]); })
+                  .attr('x2', x.rangeBand() * .45 )
+                  .attr('y2', function(d,i) { return y(d.values[endpoint]); });
 
-            boxplots.select('line.nv-boxplot-hwhisker')
-              .watchTransition(renderWatch, 'nv-boxplot: boxplots')
-                .attr('x1', x.rangeBand() * .45 )
-                .attr('y1', function(d,i) { return y(d.values.whisker_high); })
-                .attr('x2', x.rangeBand() * .45 )
-                .attr('y2', function(d,i) { return y(d.values.Q3); });
-            
-            // whisker ticks 
-            // (lower)
-            boxEnter.append('line')
-              .style('stroke', function(d,i) { return d.color || color(d,i) })
-              .attr('class', 'nv-boxplot-ltick');
-            
-            boxplots.select('line.nv-boxplot-ltick')
-              .watchTransition(renderWatch, 'nv-boxplot: boxplots')
-                .attr('x1', box_left )
-                .attr('y1', function(d,i) { return y(d.values.whisker_low); })
-                .attr('x2', box_right )
-                .attr('y2', function(d,i) { return y(d.values.whisker_low); });            
+              boxplots.select('line.nv-boxplot-tick.nv-boxplot-' + key)
+                .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+                  .attr('x1', box_left )
+                  .attr('y1', function(d,i) { return y(d.values['whisker_' + key]); })
+                  .attr('x2', box_right )
+                  .attr('y2', function(d,i) { return y(d.values['whisker_' + key]); });          
+            });
 
-            // (upper)
-            boxEnter.append('line')
-              .style('stroke', function(d,i) { return d.color || color(d,i) })
-              .attr('class', 'nv-boxplot-htick');
-            
-            boxplots.select('line.nv-boxplot-htick')
-              .watchTransition(renderWatch, 'nv-boxplot: boxplots line')
-                .attr('x1', box_left)
-                .attr('y1', function(d,i) { return y(d.values.whisker_high); })
-                .attr('x2', box_right)
-                .attr('y2', function(d,i) { return y(d.values.whisker_high); });
+            ['low', 'high'].forEach(function(key) {
+              boxEnter.selectAll('.nv-boxplot-' + key)
+                .on('mouseover', function(d,i,j) {
+                    d3.select(this).classed('hover', true);
+                    dispatch.elementMouseover({
+                        series: { key: d.values['whisker_' + key], color: color(d,j) },
+                        e: d3.event
+                    });
+                })
+                .on('mouseout', function(d,i,j) {
+                    d3.select(this).classed('hover', false);
+                    dispatch.elementMouseout({
+                        series: { key: d.values['whisker_' + key], color: color(d,j) },
+                        e: d3.event
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
+                });
+            });
                             
             // boxes
             boxEnter.append('rect')
