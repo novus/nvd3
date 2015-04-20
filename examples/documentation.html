@@ -55,7 +55,8 @@
                 'discreteBarChart',
                 'cumulativeLineChart',
                 'bulletChart',
-                'ohlcBarChart'
+                'ohlcBarChart',
+                'sunburstChart'
             ].sort();
             var parts = [
                 'line',
@@ -70,7 +71,8 @@
                 'legend',
                 'tooltip',
                 'sparkline',
-                'discreteBar'
+                'discreteBar',
+                'sunburst'
             ].sort();
             var c = $('#optionlist');
             var jump = $('#optionjump');
@@ -281,9 +283,9 @@
         <div id="optionjump"></div>
 
         <div style="height: 50px"></div>
-		
+
 		<h3 class="option"><span class="expand all">[ <a href="javascript:$('#optionlist>ul').toggle()">toggle all</a> ]</span></h3>
-		
+
         <div id="optionlist"></div>
 
     </section>
@@ -846,6 +848,12 @@ as well as used to print out examples using those example inputs.
         },
         tooltipElem: {
             desc: "For tooltip: returns the dom element of the tooltip.  This is read-only, you cannot set this value."
+        },
+        mode: {
+            desc: "For sunburst only: specifies the mode of drawing the sunburst segments. Can be 'size' or 'count'. 'size' draws the segments according to the 'size' attribute of the leaf nodes, 'count' draws according to the amount of siblings a node has.",
+            default: "count",
+            refs: ["http://bl.ocks.org/kerryrodden/477c1bfb081b783f80ad"],
+            examples: ["size"]
         }
     };
 </script>
