@@ -9,6 +9,8 @@ nv.models.sunburst = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = null
         , height = null
+        , mode = "count"
+        , modes = {count: function(d) { return 1; }, size: function(d) { return d.size }}
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , color = nv.utils.defaultColor()
         , duration = 500
@@ -68,8 +70,8 @@ nv.models.sunburst = function() {
             y.range([0, radius]);
 
             node = node || data;
-            path =
-                g.data(partition.nodes).enter()
+            partition.value(modes[mode] || modes["count"]);
+            path = g.data(partition.nodes).enter()
                 .append("path")
                 .attr("d", arc)
                 .style("fill", function (d) {
@@ -170,6 +172,7 @@ nv.models.sunburst = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        mode:       {get: function(){return mode;}, set: function(_){mode=_;}},
         id:         {get: function(){return id;}, set: function(_){id=_;}},
         duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
 
