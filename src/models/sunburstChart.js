@@ -108,6 +108,7 @@ nv.models.sunburstChart = function() {
     // expose chart's sub-components
     chart.dispatch = dispatch;
     chart.sunburst = sunburst;
+    chart.tooltip = tooltip;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     // use Object get/set functionality to map between vars and chart functions
