@@ -129,6 +129,7 @@ nv.models.scatter = function() {
             wrap.classed('nv-single-point', singlePoint);
             gEnter.append('g').attr('class', 'nv-groups');
             gEnter.append('g').attr('class', 'nv-point-paths');
+            wrapEnter.append('g').attr('class', 'nv-point-clips');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -225,9 +226,8 @@ nv.models.scatter = function() {
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
                         // just create the circles with the IDs they expect
-                        wrap.select('#nv-point-clips').remove();
-                        var clips = wrap.append("svg:g").attr("id", "nv-point-clips");
-                        clips.selectAll("clipPath")
+                        wrap.select('.nv-point-clips').selectAll('clipPath').remove();
+                        wrap.select('.nv-point-clips').selectAll("clipPath")
                             .data(vertices)
                             .enter().append("svg:clipPath")
                             .attr("id", function(d, i) { return "nv-clip-"+i;})

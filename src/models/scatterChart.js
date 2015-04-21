@@ -119,7 +119,7 @@ nv.models.scatterChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                nv.utils.noData(chart, container)
+                nv.utils.noData(chart, container);
                 renderWatch.renderEnd('scatter immediate');
                 return chart;
             } else {
@@ -291,15 +291,12 @@ nv.models.scatterChart = function() {
 
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
-
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
                     });
-
                     state.disabled = e.disabled;
                 }
-
                 chart.update();
             });
 
