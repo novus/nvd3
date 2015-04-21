@@ -28,6 +28,7 @@
 <body class='with-3d-shadow with-transitions'>
 <div style="position:absolute; top: 0; left: 0;">
     <button onclick="randomizeFillOpacity();">Randomize fill opacity</button>
+    <button onclick="expandLegend();">Expand/Contract Legend</button>
 </div>
 <div id="chart1"></div>
 
@@ -44,6 +45,12 @@
         data[4].fillOpacity = rand;
         chart.update();
     };
+
+    var expandLegend = function() {
+        var exp = chart.legend.expanded();
+        chart.legend.expanded(!exp);
+        chart.update();
+    }
 
     nv.addGraph(function() {
         chart = nv.models.lineChart()

@@ -8,7 +8,7 @@ nv.models.lineChart = function() {
     var lines = nv.models.line()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
-        , legend = nv.models.legend()
+        , legend = nv.models.furiousLegend()
         , interactiveLayer = nv.interactiveGuideline()
         , tooltip = nv.models.tooltip()
         ;

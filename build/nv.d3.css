@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-04-03 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-04-21 */
 .nvd3 .nv-axis {
     pointer-events:none;
     opacity: 1;
@@ -91,6 +91,26 @@
     stroke: rgba(0,0,0,0);
 }
 
+/* boxplot CSS */
+.nvd3 .nv-boxplot circle {
+  fill-opacity: 0.5;
+}
+
+.nvd3 .nv-boxplot circle:hover {
+  fill-opacity: 1;
+}
+
+.nvd3 .nv-boxplot rect:hover {
+  fill-opacity: 1;
+}
+
+.nvd3 line.nv-boxplot-median {
+  stroke: black;
+}
+
+.nv-boxplot-tick:hover {
+  stroke-width: 2.5px;
+}
 /* bullet */
 .nvd3.nv-bullet { font: 10px sans-serif; }
 .nvd3.nv-bullet .nv-measure { fill-opacity: .8; }
@@ -111,6 +131,48 @@
 }
 .nvd3.nv-bullet .nv-range:hover {
     fill-opacity: .7;
+}
+
+.nvd3.nv-candlestickBar .nv-ticks .nv-tick {
+    stroke-width: 1px;
+}
+
+.nvd3.nv-candlestickBar .nv-ticks .nv-tick.hover {
+    stroke-width: 2px;
+}
+
+.nvd3.nv-candlestickBar .nv-ticks .nv-tick.positive rect {
+    stroke: #2ca02c;
+    fill: #2ca02c;
+}
+
+.nvd3.nv-candlestickBar .nv-ticks .nv-tick.negative rect {
+    stroke: #d62728;
+    fill: #d62728;
+}
+
+.nvd3.nv-candlestickBar .nv-ticks line {
+    stroke: #333;
+}
+
+
+.nvd3 .nv-legend .nv-disabled rect {
+    /*fill-opacity: 0;*/
+}
+
+.nvd3 .nv-check-box .nv-box {
+    fill-opacity:0;
+    stroke-width:2;
+}
+
+.nvd3 .nv-check-box .nv-check {
+    fill-opacity:0;
+    stroke-width:4;
+}
+
+.nvd3 .nv-series.nv-disabled .nv-check-box .nv-check {
+    fill-opacity:0;
+    stroke-opacity:0;
 }
 
 /* line plus bar */
@@ -491,7 +553,7 @@ svg.nvd3-svg {
 
     -webkit-border-radius: 5px 5px 0 0;
     -moz-border-radius: 5px 5px 0 0;
-    border-radius: 1px 5px 0 0;
+    border-radius: 5px 5px 0 0;
 }
 
 .nvtooltip p {
