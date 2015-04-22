@@ -16,3 +16,7 @@
     fill-opacity:0;
     stroke-opacity:0;
 }
+
+.nvd3 .nv-controlsWrap .nv-legend .nv-check-box .nv-check {
+    opacity: 0;
+}

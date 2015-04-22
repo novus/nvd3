@@ -38,14 +38,14 @@
     var width = 500,
         height = 40;
 
-    var legend = nv.models.furiousLegend();
+    var legend = nv.models.legend().vers('furious');
 
     d3.select('#test1')
         .attr('width', width)
         .attr('height', height)
         .datum(sinAndCos());
 
-    var legend2 = nv.models.furiousLegend()
+    var legend2 = nv.models.legend().vers('furious')
         .align(false);
 
     d3.select('#test2')
@@ -53,7 +53,7 @@
         .attr('height', height)
         .datum(sinAndCos()).call(legend2);
 
-    var legend3 = nv.models.furiousLegend()
+    var legend3 = nv.models.legend().vers('furious')
         .width(900)
         .padding(70);
 
