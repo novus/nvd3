@@ -11,7 +11,7 @@ nv.models.furiousLegend = function() {
         , getKey = function(d) { return d.key }
         , color = nv.utils.getColor()
         , align = true
-        , padding = 32 //define how much space between legend items.
+        , padding = 28 //define how much space between legend items. - recommend 32 for furious version
         , rightAlign = true
         , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
         , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
@@ -35,7 +35,7 @@ nv.models.furiousLegend = function() {
 
             var series = g.selectAll('.nv-series')
                 .data(function(d) {
-                    if(vers == 'classic') return d;
+                    if(vers != 'furious') return d;
 
                     return d.filter(function(n) {
                         return expanded ? true : !n.disengaged;
@@ -43,13 +43,6 @@ nv.models.furiousLegend = function() {
                 });
             var seriesEnter = series.enter().append('g').attr('class', 'nv-series')
 
-            seriesEnter.append('text')
-                .attr('text-anchor', 'start')
-                .attr('class','nv-legend-text')
-                .attr('dy', '.32em')
-                .attr('dx', '8');
-
-            var seriesText = series.select('text.nv-legend-text');
             var seriesShape;
 
             if(vers == 'classic') {
@@ -68,15 +61,26 @@ nv.models.furiousLegend = function() {
 
                 seriesShape = series.select('rect');
 
-                seriesText.classed('inverse', true);
-
                 seriesEnter.append('g')
                     .attr('class', 'nv-check-box')
                     .property('innerHTML','<path d="M0.5,5 L22.5,5 L22.5,26.5 L0.5,26.5 L0.5,5 Z" class="nv-box"></path><path d="M5.5,12.8618467 L11.9185089,19.2803556 L31,0.198864511" class="nv-check"></path>')
                     .attr('transform', 'translate(-10,-8)scale(0.5)');
 
                 var seriesCheckbox = series.select('.nv-check-box');
+
+                seriesCheckbox.each(function(d,i) {
+                    d3.select(this).selectAll('path')
+                        .attr('stroke', setTextColor(d,i));
+                });
             }
+
+            seriesEnter.append('text')
+                .attr('text-anchor', 'start')
+                .attr('class','nv-legend-text')
+                .attr('dy', '.32em')
+                .attr('dx', '8');
+
+            var seriesText = series.select('text.nv-legend-text');
 
             series
                 .on('mouseover', function(d,i) {
@@ -90,17 +94,37 @@ nv.models.furiousLegend = function() {
                     // make sure we re-get data in case it was modified
                     var data = series.data();
                     if (updateState) {
-                        if(expanded) {
-                            d.disengaged = !d.disengaged;
-                            d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
-                            d.disabled = d.disengaged || d.userDisabled;
-                        } else if (!expanded) {
-                            d.disabled = !d.disabled;
-                            d.userDisabled = d.disabled;
-                            if (data.every(function(series) { return series.disabled})) {
-                                //the default behavior of NVD3 legends is, if every single series
-                                // is disabled, turn all series' back on.
-                                data.forEach(function(series) { series.disabled = false});
+                        if(vers =='classic') {
+                            if (radioButtonMode) {
+                                //Radio button mode: set every series to disabled,
+                                //  and enable the clicked series.
+                                data.forEach(function(series) { series.disabled = true});
+                                d.disabled = false;
+                            }
+                            else {
+                                d.disabled = !d.disabled;
+                                if (data.every(function(series) { return series.disabled})) {
+                                    //the default behavior of NVD3 legends is, if every single series
+                                    // is disabled, turn all series' back on.
+                                    data.forEach(function(series) { series.disabled = false});
+                                }
+                            }
+                        } else if(vers == 'furious') {
+                            if(expanded) {
+                                d.disengaged = !d.disengaged;
+                                d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
+                                d.disabled = d.disengaged || d.userDisabled;
+                            } else if (!expanded) {
+                                d.disabled = !d.disabled;
+                                d.userDisabled = d.disabled;
+                                var engaged = data.filter(function(d) { return !d.disengaged; });
+                                if (engaged.every(function(series) { return series.userDisabled })) {
+                                    //the default behavior of NVD3 legends is, if every single series
+                                    // is disabled, turn all series' back on.
+                                    data.forEach(function(series) {
+                                        series.disabled = series.userDisabled = false;
+                                    });
+                                }
                             }
                         }
                         dispatch.stateChange({
@@ -111,6 +135,7 @@ nv.models.furiousLegend = function() {
                     }
                 })
                 .on('dblclick', function(d,i) {
+                    if(vers == 'furious' && expanded) return;
                     dispatch.legendDblclick(d,i);
                     if (updateState) {
                         // make sure we re-get data in case it was modified
@@ -119,8 +144,10 @@ nv.models.furiousLegend = function() {
                         // is to set all other series' to false, and make the double clicked series enabled.
                         data.forEach(function(series) {
                             series.disabled = true;
+                            if(vers == 'furious') series.userDisabled = series.disabled;
                         });
                         d.disabled = false;
+                        if(vers == 'furious') d.userDisabled = d.disabled;
                         dispatch.stateChange({
                             disabled: data.map(function(d) { return !!d.disabled })
                         });
@@ -130,17 +157,22 @@ nv.models.furiousLegend = function() {
             series.classed('nv-disabled', function(d) { return d.userDisabled });
             series.exit().remove();
 
-            seriesCheckbox.each(function(d,i) {
-                d3.select(this).selectAll('path')
-                    .attr('stroke', setTextColor(d,i));
-            });
-
             seriesText
                 .attr('fill', setTextColor)
                 .text(getKey);
 
             //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
             // NEW ALIGNING CODE, TODO: clean up
+
+            var versPadding;
+            switch(vers) {
+                case 'furious' :
+                    versPadding = 23;
+                    break;
+                case 'classic' :
+                    versPadding = 20;
+            }
+
             if (align) {
 
                 var seriesWidths = [];
@@ -191,7 +223,7 @@ nv.models.furiousLegend = function() {
 
                 series
                     .attr('transform', function(d, i) {
-                        return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * 23) + ')';
+                        return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * versPadding) + ')';
                     });
 
                 //position legend as far right as possible within the total width
@@ -202,7 +234,7 @@ nv.models.furiousLegend = function() {
                     g.attr('transform', 'translate(0' + ',' + margin.top + ')');
                 }
 
-                height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 23);
+                height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * versPadding);
 
             } else {
 
@@ -217,7 +249,7 @@ nv.models.furiousLegend = function() {
 
                         if (width < margin.left + margin.right + xpos + length) {
                             newxpos = xpos = 5;
-                            ypos += 23;
+                            ypos += versPadding;
                         }
 
                         newxpos += length;
@@ -232,19 +264,24 @@ nv.models.furiousLegend = function() {
                 height = margin.top + margin.bottom + ypos + 15;
             }
 
-            // Size rectangles after text is placed
+            if(vers == 'furious') {
+                // Size rectangles after text is placed
+                seriesShape
+                    .attr('width', function(d,i) {
+                        return seriesText[0][i].getComputedTextLength() + 27;
+                    })
+                    .attr('height', 18)
+                    .attr('y', -9)
+                    .attr('x', -15)
+            }
+
             seriesShape
-                .attr('width', function(d,i) {
-                    return seriesText[0][i].getComputedTextLength() + 27;
-                })
-                .attr('height', 18)
-                .attr('y', -9)
-                .attr('x', -15)
                 .style('fill', setBGColor)
                 .style('stroke', function(d,i) { return d.color || color(d, i) });
         });
 
         function setTextColor(d,i) {
+            if(vers != 'furious') return '#000';
             if(expanded) {
                 return d.disengaged ? color(d,i) : '#fff';
             } else if (!expanded) {
@@ -253,9 +290,9 @@ nv.models.furiousLegend = function() {
         }
 
         function setBGColor(d,i) {
-            if(expanded) {
+            if(expanded && vers == 'furious') {
                 return d.disengaged ? '#fff' : color(d,i);
-            } else if (!expanded) {
+            } else {
                 return !!d.disabled ? '#fff' : color(d,i);
             }
         }
@@ -280,8 +317,8 @@ nv.models.furiousLegend = function() {
         padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
         radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
-        showAll:    {get: function(){return showAll;}, set: function(_){showAll=_;}},
         expanded:   {get: function(){return expanded;}, set: function(_){expanded=_;}},
+        vers:   {get: function(){return vers;}, set: function(_){vers=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
