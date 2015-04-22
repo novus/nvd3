@@ -263,12 +263,16 @@ nv.models.stackedAreaChart = function() {
                     .tickSize(-availableWidth, 0);
 
                     if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
-                        oldYTickFormat = yAxis.tickFormat();
+                        if ( !oldYTickFormat )
+                            oldYTickFormat = yAxis.tickFormat();
                         //Forces the yAxis to use percentage in 'expand' mode.
                         yAxis.tickFormat(d3.format('%'));
                     }
                     else {
-                        if (oldYTickFormat) yAxis.tickFormat(oldYTickFormat);
+                        if (oldYTickFormat) {
+                            yAxis.tickFormat(oldYTickFormat);
+                            oldYTickFormat = null;
+                        }
                     }
 
                 g.select('.nv-y.nv-axis')

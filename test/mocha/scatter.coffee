@@ -195,7 +195,7 @@ describe 'NVD3', ->
             window.setTimeout ->
                 builder2.model.update()
                 window.setTimeout((->
-                    pointClips = builder2.svg.querySelector '#nv-point-clips'
+                    pointClips = builder2.svg.querySelector '.nv-point-clips'
                     should.exist pointClips, 'nv-point-clips exists'
 
                     builder2.svg.querySelector('.nv-wrap.nv-scatter')

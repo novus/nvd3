@@ -30,8 +30,10 @@ nv.models.sunburst = function() {
         .innerRadius(function(d) { return Math.max(0, y(d.y)); })
         .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
-    // Keep track of the node that is currently being displayed as the root.
-    var node;
+    // Keep track of the current and previous node being displayed as the root.
+    var node, prevNode;
+    // Keep track of the root node
+    var rootNode;
 
     //============================================================
     // chart function
@@ -70,6 +72,7 @@ nv.models.sunburst = function() {
             y.range([0, radius]);
 
             node = node || data;
+            rootNode = data[0];
             partition.value(modes[mode] || modes["count"]);
             path = g.data(partition.nodes).enter()
                 .append("path")
@@ -79,13 +82,21 @@ nv.models.sunburst = function() {
                 })
                 .style("stroke", "#FFF")
                 .on("click", function(d) {
+                    if (prevNode !== node && node !== d) prevNode = node;
                     node = d;
                     path.transition()
                         .duration(duration)
                         .attrTween("d", arcTweenZoom(d));
                 })
                 .each(stash)
-
+                .on("dblclick", function(d) {
+                    if (prevNode.parent == d) {
+                        path.transition()
+                            .duration(duration)
+                            .attrTween("d", arcTweenZoom(rootNode));
+                    }
+                })
+                .each(stash)
                 .on('mouseover', function(d,i){
                     d3.select(this).classed('hover', true).style('opacity', 0.8);
                     dispatch.elementMouseover({
