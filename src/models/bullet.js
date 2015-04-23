@@ -133,7 +133,7 @@ nv.models.bullet = function() {
               .attr('class', 'nv-markerTriangle')
               .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' })
               .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
-              .on('mouseover', function(d, i) {
+              .on('mouseover', function(d) {
                 dispatch.elementMouseover({
                   value: d.value,
                   label: d.label || 'Previous',
