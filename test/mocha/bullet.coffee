@@ -55,7 +55,7 @@ describe 'NVD3', ->
             should.exist wrap[0]
 
         it 'displays multiple markers', ->
-          markers = document.querySelectorAll ".nv-markerTriangle"
+          markers = document.querySelectorAll '.nv-markerTriangle'
           markers.length.should.equal 2
 
         it 'has correct g.nvd3.nv-bulletChart position', ->
