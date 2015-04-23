@@ -1933,30 +1933,39 @@ nv.models.bullet = function() {
 
             var h3 =  availableHeight / 6;
             var length = markerz.length;
+            // for (var index = 0; index < length; ++index) {
+            //   console.log(index);
+            //   var marker = markerz[index];
+            //   var label = markerLabelz[index];
+            var things = [
+            ]
             for (var index = 0; index < length; ++index) {
-              var marker = markerz[index];
-              var label = markerLabelz[index];
+              things.push({value: markerz[index], label: markerLabelz[index]});
+            }
+
               gEnter
+                .selectAll("path.nv-markerTriangle")
+                .data(things)
+                .enter()
                 .append('path')
                 .attr('class', 'nv-markerTriangle')
-                .attr("data-marker", marker);
-              g.select('[data-marker="'+ marker +'"]')
-                  .attr('transform', function(d) { return 'translate(' + x1(marker) + ',' + (availableHeight / 2) + ')' })
-                  .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
-                  .on('mouseover', function() {
-                      dispatch.elementMouseover({
-                          value: marker,
-                          label: label|| 'Previous',
-                          pos: [x1(marker), availableHeight/2]
-                      })
+                .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' })
+                .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
+                .on('mouseover', function(d, i) {
+                  dispatch.elementMouseover({
+                    value: d.value,
+                    label: d.label || 'Previous',
+                    pos: [x1(d.value), availableHeight/2]
                   })
-                  .on('mouseout', function() {
-                      dispatch.elementMouseout({
-                          value: marker,
-                          label: label || 'Previous'
-                      })
-                  });
-            }
+
+                })
+                .on('mouseout', function(d, i) {
+                    dispatch.elementMouseout({
+                        value: d.value,
+                        label: d.label || 'Previous'
+                    })
+                });
+            //}
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
                     var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
