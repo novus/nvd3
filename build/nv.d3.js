@@ -1933,6 +1933,8 @@ nv.models.bullet = function() {
 
             var h3 =  availableHeight / 6;
             if (markerz.length > 0) {
+              var length = markerz.length;
+              for (var i=0; i<length; ++i) {
                 gEnter.append('path').attr('class', 'nv-markerTriangle').attr("data-marker", markerz[0]);
                 g.select('[data-marker="'+ markerz[0] +'"]')
                     .attr('transform', function(d) { return 'translate(' + x1(markerz[0]) + ',' + (availableHeight / 2) + ')' })
@@ -1950,6 +1952,7 @@ nv.models.bullet = function() {
                             label: markerLabelz[0] || 'Previous'
                         })
                     });
+              }
             } else {
                 g.selectAll('path.nv-markerTriangle').remove();
             }

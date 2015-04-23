@@ -18,7 +18,7 @@ describe 'NVD3', ->
             subtitle: 'US$ in thousands'
             ranges: [10,20,30]
             measures: [40]
-            markers: [50]
+            markers: [50, 100]
 
         options =
             orient: 'left'
@@ -53,6 +53,13 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder1.$ 'g.nvd3.nv-bulletChart'
             should.exist wrap[0]
+
+        it.only 'displays multiple markers', ->
+          firstMarker = document.querySelector "[data-marker='50']"
+          should.exist firstMarker
+
+          secondMarker = document.querySelector "[data-marker='100']"
+          should.exist secondMarker
 
         it 'has correct g.nvd3.nv-bulletChart position', ->
           chart = builder1.$ 'g.nvd3.nv-bulletChart'
@@ -97,18 +104,11 @@ describe 'NVD3', ->
               subtitle: 'US$ in thousands'
               ranges: [10,20,30]
               measures: [40]
-              markers: [50, 100]
+              markers: [50]
           afterEach ->
             builder.teardown()
 
           describe "orient", ->
-
-            it.only 'displays multiple markers', ->
-              firstMarker = document.querySelector "[data-marker='50']"
-              should.exist firstMarker
-
-              # secondMarker = document.querySelector "[data-marker='100']"
-              # should.exist secondMarker
 
             it 'left', ->
               options =
