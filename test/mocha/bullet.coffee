@@ -54,7 +54,7 @@ describe 'NVD3', ->
             wrap = builder1.$ 'g.nvd3.nv-bulletChart'
             should.exist wrap[0]
 
-        it.only 'displays multiple markers', ->
+        it 'displays multiple markers', ->
           firstMarker = document.querySelector "[data-marker='50']"
           should.exist firstMarker
 
