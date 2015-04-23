@@ -122,24 +122,26 @@ nv.models.bullet = function() {
             var h3 =  availableHeight / 6;
             var length = markerz.length;
             for (var index = 0; index < length; ++index) {
+              var marker = markerz[index];
+              var label = markerLabelz[index];
               gEnter
                 .append('path')
                 .attr('class', 'nv-markerTriangle')
-                .attr("data-marker", markerz[index]);
-              g.select('[data-marker="'+ markerz[index] +'"]')
-                  .attr('transform', function(d) { return 'translate(' + x1(markerz[index]) + ',' + (availableHeight / 2) + ')' })
+                .attr("data-marker", marker);
+              g.select('[data-marker="'+ marker +'"]')
+                  .attr('transform', function(d) { return 'translate(' + x1(marker) + ',' + (availableHeight / 2) + ')' })
                   .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
                   .on('mouseover', function() {
                       dispatch.elementMouseover({
-                          value: markerz[index],
-                          label: markerLabelz[0] || 'Previous',
-                          pos: [x1(markerz[index]), availableHeight/2]
+                          value: marker,
+                          label: label|| 'Previous',
+                          pos: [x1(marker), availableHeight/2]
                       })
                   })
                   .on('mouseout', function() {
                       dispatch.elementMouseout({
-                          value: markerz[index],
-                          label: markerLabelz[0] || 'Previous'
+                          value: marker,
+                          label: label || 'Previous'
                       })
                   });
             }
