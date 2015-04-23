@@ -18,7 +18,7 @@ describe 'NVD3', ->
             subtitle: 'US$ in thousands'
             ranges: [10,20,30]
             measures: [40]
-            markers: [50]
+            markers: [50, 100]
 
         options =
             orient: 'left'
@@ -54,6 +54,10 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder1.$ 'g.nvd3.nv-bulletChart'
             should.exist wrap[0]
+
+        it 'displays multiple markers', ->
+          markers = document.querySelectorAll '.nv-markerTriangle'
+          markers.length.should.equal 2
 
         it 'has correct g.nvd3.nv-bulletChart position', ->
           chart = builder1.$ 'g.nvd3.nv-bulletChart'
