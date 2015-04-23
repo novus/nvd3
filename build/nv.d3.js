@@ -1,4 +1,4 @@
-/* nvd3 version 1.7.1(https://github.com/novus/nvd3) 2015-04-23 */
+/* nvd3 version 1.7.1(https://github.com/novus/nvd3) 2015-02-08 */
 (function(){
 
 // set up main nv object on window
@@ -1881,6 +1881,7 @@ nv.models.bullet = function() {
             gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
             gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
             gEnter.append('rect').attr('class', 'nv-measure');
+            gEnter.append('path').attr('class', 'nv-markerTriangle');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -1932,33 +1933,26 @@ nv.models.bullet = function() {
                 });
 
             var h3 =  availableHeight / 6;
-            var length = markerz.length;
-            var markerData = markerz.map (function(marker, index) {
-                return {value: marker, label: markerLabelz[index]}
-            });
-
-            gEnter
-              .selectAll("path.nv-markerTriangle")
-              .data(markerData)
-              .enter()
-              .append('path')
-              .attr('class', 'nv-markerTriangle')
-              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' })
-              .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
-              .on('mouseover', function(d) {
-                dispatch.elementMouseover({
-                  value: d.value,
-                  label: d.label || 'Previous',
-                  pos: [x1(d.value), availableHeight/2]
-                })
-
-              })
-              .on('mouseout', function(d, i) {
-                  dispatch.elementMouseout({
-                      value: d.value,
-                      label: d.label || 'Previous'
-                  })
-              });
+            if (markerz[0]) {
+                g.selectAll('path.nv-markerTriangle')
+                    .attr('transform', function(d) { return 'translate(' + x1(markerz[0]) + ',' + (availableHeight / 2) + ')' })
+                    .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
+                    .on('mouseover', function() {
+                        dispatch.elementMouseover({
+                            value: markerz[0],
+                            label: markerLabelz[0] || 'Previous',
+                            pos: [x1(markerz[0]), availableHeight/2]
+                        })
+                    })
+                    .on('mouseout', function() {
+                        dispatch.elementMouseout({
+                            value: markerz[0],
+                            label: markerLabelz[0] || 'Previous'
+                        })
+                    });
+            } else {
+                g.selectAll('path.nv-markerTriangle').remove();
+            }
 
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
