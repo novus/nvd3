@@ -55,11 +55,8 @@ describe 'NVD3', ->
             should.exist wrap[0]
 
         it 'displays multiple markers', ->
-          firstMarker = document.querySelector "[data-marker='50']"
-          should.exist firstMarker
-
-          secondMarker = document.querySelector "[data-marker='100']"
-          should.exist secondMarker
+          markers = document.querySelectorAll ".nv-markerTriangle"
+          markers.length.should.equal 2
 
         it 'has correct g.nvd3.nv-bulletChart position', ->
           chart = builder1.$ 'g.nvd3.nv-bulletChart'
