@@ -69,7 +69,6 @@ nv.models.bullet = function() {
             gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
             gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
             gEnter.append('rect').attr('class', 'nv-measure');
-            gEnter.append('path').attr('class', 'nv-markerTriangle');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -121,8 +120,9 @@ nv.models.bullet = function() {
                 });
 
             var h3 =  availableHeight / 6;
-            if (markerz[0]) {
-                g.selectAll('path.nv-markerTriangle')
+            if (markerz.length > 0) {
+                gEnter.append('path').attr('class', 'nv-markerTriangle').attr("data-marker", markerz[0]);
+                g.select('[data-marker="'+ markerz[0] +'"]')
                     .attr('transform', function(d) { return 'translate(' + x1(markerz[0]) + ',' + (availableHeight / 2) + ')' })
                     .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
                     .on('mouseover', function() {

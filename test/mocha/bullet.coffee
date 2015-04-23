@@ -97,11 +97,18 @@ describe 'NVD3', ->
               subtitle: 'US$ in thousands'
               ranges: [10,20,30]
               measures: [40]
-              markers: [50]
+              markers: [50, 100]
           afterEach ->
             builder.teardown()
 
           describe "orient", ->
+
+            it.only 'displays multiple markers', ->
+              firstMarker = document.querySelector "[data-marker='50']"
+              should.exist firstMarker
+
+              # secondMarker = document.querySelector "[data-marker='100']"
+              # should.exist secondMarker
 
             it 'left', ->
               options =
