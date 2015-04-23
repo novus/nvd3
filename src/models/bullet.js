@@ -120,11 +120,10 @@ nv.models.bullet = function() {
                 });
 
             var h3 =  availableHeight / 6;
-            var length = markerz.length;
-            var markerData = markerz.map (function(marker, index) {
+
+            var markerData = markerz.map( function(marker, index) {
                 return {value: marker, label: markerLabelz[index]}
             });
-
             gEnter
               .selectAll("path.nv-markerTriangle")
               .data(markerData)
