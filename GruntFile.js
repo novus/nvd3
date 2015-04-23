@@ -48,7 +48,7 @@ module.exports = function(grunt) {
         },
         watch: {
             js: {
-                files: ["src/**/*.js", "test/**/*.js"],
+                files: ["src/**/*.js"],
                 tasks: ['concat']
             }
         },
@@ -73,7 +73,7 @@ module.exports = function(grunt) {
                     browsers: ['Firefox'],
                     frameworks: [ 'mocha', 'sinon-chai' ],
                     reporters: [ 'spec', 'junit', 'coverage'],
-                    singleRun: false,
+                    singleRun: true,
                     preprocessors: {
                         'src/*.js': ['coverage'],
                         'src/models/*.js': ['coverage'],
