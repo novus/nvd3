@@ -45,7 +45,7 @@ nv.models.parallelCoordinates = function() {
             dimensionNames.forEach(function(d) {
                 var extent = d3.extent(data, function(p) { return +p[d]; });
                 onlyNanValues[d] = false;
-                //If there is no values to display on an axis, set the extent to 0 
+                //If there is no values to display on an axis, set the extent to 0
                 if (extent[0] === undefined) {
                     onlyNanValues[d] = true;
                     extent[0] = 0;
@@ -99,7 +99,7 @@ nv.models.parallelCoordinates = function() {
                     .attr("x2", function(d) { return d[2]; })
                     .attr("y2", function(d) { return d[3]; });
 
-            //Add the text "undefined values" under the missing value line 
+            //Add the text "undefined values" under the missing value line
             missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
             missingValueslineText.append('text').data(["undefined values"]);
             missingValueslineText.enter().append('text');
@@ -189,7 +189,7 @@ nv.models.parallelCoordinates = function() {
                         var domain = y[p].domain();
                         var range = y[p].range();
                         var min = domain[0] - (domain[1] - domain[0]) / 9;
-                        
+
                         //If it's not already the case, allow brush to select undefined values
                         if(axisWithMissingValues.indexOf(p) < 0) {
 
@@ -200,7 +200,7 @@ nv.models.parallelCoordinates = function() {
 
                         return [x(p), y[p](min)];
                     }
-                    
+
                     //If parallelCoordinate contain missing values show the missing values line otherwise, hide it.
                     if(axisWithMissingValues.length > 0) {
                         missingValuesline.style("display", "inline");
@@ -242,7 +242,7 @@ nv.models.parallelCoordinates = function() {
                     active: active
                 });
             }
-            
+
             function dragStart(d, i) {
                 dragging[d] = this.parentNode.__origin__ = x(d);
                 background.attr("visibility", "hidden");

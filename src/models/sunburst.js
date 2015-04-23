@@ -12,6 +12,7 @@ nv.models.sunburst = function() {
         , mode = "count"
         , modes = {count: function(d) { return 1; }, size: function(d) { return d.size }}
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , color = nv.utils.defaultColor()
         , duration = 500
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMousemove', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -44,7 +45,7 @@ nv.models.sunburst = function() {
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin);
             var availableHeight = nv.utils.availableHeight(height, container, margin);
             var radius = Math.min(availableWidth, availableHeight) / 2;

@@ -10,6 +10,7 @@ nv.models.historicalBar = function() {
         , width = null
         , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , x = d3.scale.linear()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -33,7 +34,7 @@ nv.models.historicalBar = function() {
         selection.each(function(data) {
             renderWatch.reset();
 
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -173,14 +174,14 @@ nv.models.historicalBar = function() {
 
     //Create methods to allow outside functions to highlight a specific bar.
     chart.highlightPoint = function(pointIndex, isHoverOver) {
-        d3.select(".nv-historicalBar-" + id)
+        container
             .select(".nv-bars .nv-bar-0-" + pointIndex)
             .classed("hover", isHoverOver)
         ;
     };
 
     chart.clearHighlights = function() {
-        d3.select(".nv-historicalBar-" + id)
+        container
             .select(".nv-bars .nv-bar.hover")
             .classed("hover", false)
         ;

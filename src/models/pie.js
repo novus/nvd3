@@ -11,6 +11,7 @@ nv.models.pie = function() {
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , color = nv.utils.defaultColor()
         , valueFormat = d3.format(',.2f')
         , showLabels = true
@@ -48,8 +49,9 @@ nv.models.pie = function() {
                 , radius = Math.min(availableWidth, availableHeight) / 2
                 , arcsRadiusOuter = []
                 , arcsRadiusInner = []
-                , container = d3.select(this)
                 ;
+
+            container = d3.select(this)
             if (arcsRadius.length === 0) {
                 var outer = radius - radius / 5;
                 var inner = donutRatio * radius;

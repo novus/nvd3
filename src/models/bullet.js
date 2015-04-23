@@ -22,6 +22,7 @@ nv.models.bullet = function() {
         , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
         , width = 380
         , height = 30
+        , container = null
         , tickFormat = null
         , color = nv.utils.getColor(['#1f77b4'])
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
@@ -30,8 +31,9 @@ nv.models.bullet = function() {
     function chart(selection) {
         selection.each(function(d, i) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
