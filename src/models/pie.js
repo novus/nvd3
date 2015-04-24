@@ -314,7 +314,7 @@ nv.models.pie = function() {
                                     label = valueFormat(getY(d.data));
                                     break;
                                 case 'percent':
-                                    label = valueFormat(percent);
+                                    label = d3.format('%')(percent);
                                     break;
                             }
                         }
