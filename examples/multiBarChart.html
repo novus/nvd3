@@ -33,6 +33,7 @@
     var test_data = stream_layers(3,10+Math.random()*100,.1).map(function(data, i) {
         return {
             key: 'Stream' + i,
+            stacked: true,
             values: data
         };
     });
@@ -42,6 +43,7 @@
     var negative_test_data = new d3.range(0,3).map(function(d,i) {
         return {
             key: 'Stream' + i,
+            stacked: true,
             values: new d3.range(0,11).map( function(f,j) {
                 return {
                     y: 10 + Math.random()*100 * (Math.floor(Math.random()*100)%2 ? 1 : -1),
