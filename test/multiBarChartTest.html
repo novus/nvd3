@@ -58,7 +58,6 @@ var negative_test_data = new d3.range(0,4).map(function(d,i) {
   var series = {};
   return {
     key: 'Stream ' + i,
-    stacked: true,
     values: new d3.range(0,11).map( function(f,j) {
       return {
          y: 10 + Math.random()*100 * (Math.floor(Math.random()*100)%2 ? 1 : -1),
@@ -72,7 +71,6 @@ function dataFactory(seriesNum, perSeries, color) {
   return new d3.range(0,seriesNum).map(function(d,i) { 
     return {
       key: 'Stream Data ' + i,
-      stacked: true,
       color: color||null,
       values: new d3.range(0,perSeries).map( function(f,j) {
         return {
@@ -88,7 +86,7 @@ function dataFactoryNoStackable(seriesNum, perSeries, color) {
    return new d3.range(0,seriesNum).map(function(d,i) { 
     var series = {
       key: 'Non-stackable Stream Data ' + i,
-      stacked: false,
+      nonStackable: true,
       values: new d3.range(0,perSeries).map( function(f,j) {
         return {
            y: 10 + Math.random()*100,
@@ -106,13 +104,13 @@ function dataFactoryWithStackable(seriesNum, perSeries, color, nonStackableCount
       if (i < (seriesNum - nonStackableCount)) {
         series = {
           key: 'Stream ' + i,
-          stacked: true
+          nonStackable: false
         };
       } else {
         series = {
           color: color||null,
           key: 'Non-stackable Stream Data ' + i,
-          stacked: false
+          nonStackable: true
         };
       }
       series.values = new d3.range(0,perSeries).map( function(f,j) {

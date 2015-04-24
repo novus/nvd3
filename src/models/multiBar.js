@@ -75,7 +75,8 @@ nv.models.multiBar = function() {
                 (!data.length && hideable ? hideable : data);
 
                 parsed.forEach(function(series, i){
-                    if (!series.stacked) {
+                    // if series is non-stackable, use un-parsed data
+                    if (series.nonStackable) {
                         parsed[i] = data[i];
                     }
                 });
@@ -119,7 +120,7 @@ nv.models.multiBar = function() {
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked && data[d.idx].stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked && !data[d.idx].nonStackable ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
                 .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -187,11 +188,11 @@ nv.models.multiBar = function() {
             var barsEnter = bars.enter().append('rect')
                     .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
                     .attr('x', function(d,i,j) {
-                        return stacked && data[j].stacked ? 0 : (j * x.rangeBand() / data.length )
+                        return stacked && !data[j].nonStackable ? 0 : (j * x.rangeBand() / data.length )
                     })
-                    .attr('y', function(d,i,j) { return y0(stacked && data[j].stacked ? d.y0 : 0) || 0 })
+                    .attr('y', function(d,i,j) { return y0(stacked && !data[j].nonStackable ? d.y0 : 0) || 0 })
                     .attr('height', 0)
-                    .attr('width', function(d,i,j) { return x.rangeBand() / (stacked && data[j].stacked ? 1 : data.length) })
+                    .attr('width', function(d,i,j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length) })
                     .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
                 ;
             bars
@@ -255,7 +256,7 @@ nv.models.multiBar = function() {
             if (stacked){
                 barSelection
                     .attr('y', function(d,i,j) {
-                        if (stacked && data[j].stacked) {
+                        if (stacked && !data[j].nonStackable) {
                             return y(d.y1);
                         } else {
                             return getY(d,i) < 0 ?
@@ -266,7 +267,7 @@ nv.models.multiBar = function() {
                         }
                     })
                     .attr('height', function(d,i,j) {
-                        if (stacked && data[j].stacked) {
+                        if (stacked && !data[j].nonStackable) {
                             return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 1);
                         } else {
                             return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
@@ -276,7 +277,7 @@ nv.models.multiBar = function() {
                         return 0;
                     })
                     .attr('width', function(d,i,j){
-                        if (stacked && data[j].stacked) {
+                        if (stacked && !data[j].nonStackable) {
                             return x.rangeBand();
                         } else {
                             return data.length > 1 ? x.rangeBand()/2: x.rangeBand();
