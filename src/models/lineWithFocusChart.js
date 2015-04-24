@@ -503,11 +503,11 @@ nv.models.lineWithFocusChart = function() {
             lines.interpolate(_);
             lines2.interpolate(_);
         }},
-        xTickFormat: {get: function(){return xAxis.xTickFormat();}, set: function(_){
+        xTickFormat: {get: function(){return xAxis.tickFormat();}, set: function(_){
             xAxis.tickFormat(_);
             x2Axis.tickFormat(_);
         }},
-        yTickFormat: {get: function(){return yAxis.yTickFormat();}, set: function(_){
+        yTickFormat: {get: function(){return yAxis.tickFormat();}, set: function(_){
             yAxis.tickFormat(_);
             y2Axis.tickFormat(_);
         }},
