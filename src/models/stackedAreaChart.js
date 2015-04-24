@@ -12,7 +12,6 @@ nv.models.stackedAreaChart = function() {
         , legend = nv.models.legend()
         , controls = nv.models.legend()
         , interactiveLayer = nv.interactiveGuideline()
-        , tooltip = nv.models.tooltip()
         ;
 
     var margin = {top: 30, right: 25, bottom: 50, left: 60}
@@ -41,7 +40,7 @@ nv.models.stackedAreaChart = function() {
     xAxis.orient('bottom').tickPadding(7);
     yAxis.orient((rightAlignYAxis) ? 'right' : 'left');
 
-    tooltip
+    interactiveLayer.tooltip
         .headerFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         })
@@ -375,15 +374,12 @@ nv.models.stackedAreaChart = function() {
                 //If we are in 'expand' mode, force the format to be a percentage.
                 var valueFormatter = (stacked.style() == 'expand') ?
                     function(d,i) {return d3.format(".1%")(d);} :
-                    tooltip.valueFormatter(); 
-                
-                var headerFormatter = tooltip.headerFormatter();
+                    interactiveLayer.tooltip.valueFormatter(); 
 
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(valueFormatter)
-                    .headerFormatter(headerFormatter)
                     .data(
                     {
                         value: xValue,
@@ -450,7 +446,6 @@ nv.models.stackedAreaChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.interactiveLayer = interactiveLayer;
-    chart.tooltip = tooltip;
 
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
