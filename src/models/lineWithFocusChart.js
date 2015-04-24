@@ -504,17 +504,19 @@ nv.models.lineWithFocusChart = function() {
             lines2.interpolate(_);
         }},
         xTickFormat: {get: function(){return xAxis.xTickFormat();}, set: function(_){
-            xAxis.xTickFormat(_);
-            x2Axis.xTickFormat(_);
+            xAxis.tickFormat(_);
+            x2Axis.tickFormat(_);
         }},
         yTickFormat: {get: function(){return yAxis.yTickFormat();}, set: function(_){
-            yAxis.yTickFormat(_);
-            y2Axis.yTickFormat(_);
+            yAxis.tickFormat(_);
+            y2Axis.tickFormat(_);
         }},
         duration:    {get: function(){return transitionDuration;}, set: function(_){
             transitionDuration=_;
             yAxis.duration(transitionDuration);
+            y2Axis.duration(transitionDuration);
             xAxis.duration(transitionDuration);
+            x2Axis.duration(transitionDuration);
         }},
         x: {get: function(){return lines.x();}, set: function(_){
             lines.x(_);
@@ -523,7 +525,7 @@ nv.models.lineWithFocusChart = function() {
         y: {get: function(){return lines.y();}, set: function(_){
             lines.y(_);
             lines2.y(_);
-        }}, 
+        }},
         useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
             useInteractiveGuideline = _;
             if (useInteractiveGuideline) {
