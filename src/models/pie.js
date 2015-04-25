@@ -205,15 +205,17 @@ nv.models.pie = function() {
                 // This does the normal label
                 var labelsArc = [];
                 for (var i = 0; i < data[0].length; i++) {
-                    labelsArc.push(d3.svg.arc().innerRadius(0));
+                    labelsArc.push(arcs[i]);
 
                     if (labelsOutside) {
                         if (donut) {
                             labelsArc[i] = d3.svg.arc().outerRadius(arcs[i].outerRadius());
                             if (startAngle !== false) labelsArc[i].startAngle(startAngle);
                             if (endAngle !== false) labelsArc[i].endAngle(endAngle);
-                        } else {
-                            labelsArc[i] = arcs[i];
+                        }
+                    } else {
+                        if (!donut) {
+                            labelsArc[i].innerRadius(0);
                         }
                     }
                 }
