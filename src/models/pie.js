@@ -213,10 +213,8 @@ nv.models.pie = function() {
                             if (startAngle !== false) labelsArc[i].startAngle(startAngle);
                             if (endAngle !== false) labelsArc[i].endAngle(endAngle);
                         }
-                    } else {
-                        if (!donut) {
+                    } else if (!donut) {
                             labelsArc[i].innerRadius(0);
-                        }
                     }
                 }
 
