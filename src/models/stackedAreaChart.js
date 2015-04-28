@@ -49,7 +49,17 @@ nv.models.stackedAreaChart = function() {
             return yAxis.tickFormat()(d, i);
         });
 
-    var oldYTickFormat = null;
+    interactiveLayer.tooltip
+        .headerFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        })
+        .valueFormatter(function(d, i) {
+            return yAxis.tickFormat()(d, i);
+        });
+
+    var oldYTickFormat = null,
+        oldValueFormatter = null;
+
     controls.updateState(false);
 
     //============================================================
@@ -379,10 +389,25 @@ nv.models.stackedAreaChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
 
+                // Keeps track of the tooltip valueFormatter if the chart changes to expanded view
+                if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
+                    if ( !oldValueFormatter ) {
+                        oldValueFormatter = interactiveLayer.tooltip.valueFormatter();
+                    }
+                    //Forces the tooltip to use percentage in 'expand' mode.
+                    interactiveLayer.tooltip.valueFormatter(yAxis.tickFormat(d3.format('%')));
+                }
+                else {
+                    if (oldValueFormatter) {
+                        interactiveLayer.tooltip.valueFormatter(oldValueFormatter);
+                        oldValueFormatter = null;
+                    }
+                }
+
                 //If we are in 'expand' mode, force the format to be a percentage.
                 var valueFormatter = (stacked.style() == 'expand') ?
                     function(d,i) {return d == null ? "N/A" : d3.format(".1%")(d);} :
-                    function(d,i) {return d == null ? "N/A" : yAxis.tickFormat()(d); };
+                    interactiveLayer.tooltip.valueFormatter();
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
