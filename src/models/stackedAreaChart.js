@@ -389,25 +389,22 @@ nv.models.stackedAreaChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
 
+                var valueFormatter = interactiveLayer.tooltip.valueFormatter();
                 // Keeps track of the tooltip valueFormatter if the chart changes to expanded view
                 if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
                     if ( !oldValueFormatter ) {
-                        oldValueFormatter = interactiveLayer.tooltip.valueFormatter();
+                        oldValueFormatter = valueFormatter;
                     }
                     //Forces the tooltip to use percentage in 'expand' mode.
-                    interactiveLayer.tooltip.valueFormatter(yAxis.tickFormat(d3.format('%')));
+                    valueFormatter = d3.format(".1%");
                 }
                 else {
                     if (oldValueFormatter) {
-                        interactiveLayer.tooltip.valueFormatter(oldValueFormatter);
+                        valueFormatter = oldValueFormatter;
                         oldValueFormatter = null;
                     }
                 }
 
-                //If we are in 'expand' mode, force the format to be a percentage.
-                var valueFormatter = (stacked.style() == 'expand') ?
-                    function(d,i) {return d == null ? "N/A" : d3.format(".1%")(d);} :
-                    interactiveLayer.tooltip.valueFormatter();
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
