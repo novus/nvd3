@@ -178,16 +178,7 @@ nv.models.legend = function() {
                 var seriesWidths = [];
                 series.each(function(d,i) {
                     var legendText = d3.select(this).select('text');
-                    var nodeTextLength;
-                    try {
-                        nodeTextLength = legendText.node().getComputedTextLength();
-                        // If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
-                        if(nodeTextLength <= 0) throw Error();
-                    }
-                    catch(e) {
-                        nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
-                    }
-
+                    var nodeTextLength = nv.utils.getComputedTextLength(legendText.node())
                     seriesWidths.push(nodeTextLength + padding);
                 });
 
@@ -244,7 +235,7 @@ nv.models.legend = function() {
                     xpos;
                 series
                     .attr('transform', function(d, i) {
-                        var length = d3.select(this).select('text').node().getComputedTextLength() + padding;
+                        var length = nv.utils.getComputedTextLength(d3.select(this).select('text').node()) + padding;
                         xpos = newxpos;
 
                         if (width < margin.left + margin.right + xpos + length) {
@@ -271,7 +262,7 @@ nv.models.legend = function() {
                 // Size rectangles after text is placed
                 seriesShape
                     .attr('width', function(d,i) {
-                        return seriesText[0][i].getComputedTextLength() + 27;
+                        return nv.utils.getComputedTextLength(seriesText[0][i]) + 27;
                     })
                     .attr('height', 18)
                     .attr('y', -9)
