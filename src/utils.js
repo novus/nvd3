@@ -172,6 +172,20 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
     return 0;
 };
 
+/*
+ A safe way to get computedTextLength, since invisible elements can throw an exception if
+ svg API getComputedTextLength is called
+ */
+nv.utils.getComputedTextLength = function (svgTextElem) {
+    var length;
+    try {
+        length = svgTextElem.getComputedTextLength();
+    } catch (e) {
+        length = nv.utils.calcApproxTextWidth(svgTextElem);
+    } finally {
+        return length;
+    }
+}
 
 /*
 Numbers that are undefined, null or NaN, convert them to zeros.
