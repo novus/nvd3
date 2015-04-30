@@ -491,6 +491,7 @@ nv.models.stackedAreaChart = function() {
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
+        cData:    {get: function(){return cData;}, set: function(_){cData=_;}},
 
         // deprecated options
         tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
