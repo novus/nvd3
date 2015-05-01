@@ -79,9 +79,8 @@ nv.models.stackedArea = function() {
                 .x(getX)
                 .y(getY)
                 .out(function(d, y0, y) {
-                    var yHeight = (getY(d) === 0) ? 0 : y;
                     d.display = {
-                        y: yHeight,
+                        y: y,
                         y0: y0
                     };
                 })
@@ -295,6 +294,9 @@ nv.models.stackedArea = function() {
                     chart.order('inside-out');
                     break;
                 case 'expand':
+                    chart.offset('expand');
+                    chart.order('default');
+                    break;
                 case 'stack_percent':
                     chart.offset(chart.d3_stackedOffset_stackPercent);
                     chart.order('default');
