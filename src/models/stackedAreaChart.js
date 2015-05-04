@@ -89,6 +89,8 @@ nv.models.stackedAreaChart = function() {
         }
     };
 
+    var percentFormatter = d3.format('%');
+
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(stacked);
@@ -273,10 +275,13 @@ nv.models.stackedAreaChart = function() {
                     .tickSize(-availableWidth, 0);
 
                     if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
-                        if ( !oldYTickFormat )
-                            oldYTickFormat = yAxis.tickFormat();
+                        var currentFormat = yAxis.tickFormat();
+
+                        if ( !oldYTickFormat || currentFormat !== percentFormatter )
+                            oldYTickFormat = currentFormat;
+
                         //Forces the yAxis to use percentage in 'expand' mode.
-                        yAxis.tickFormat(d3.format('%'));
+                        yAxis.tickFormat(percentFormatter);
                     }
                     else {
                         if (oldYTickFormat) {
