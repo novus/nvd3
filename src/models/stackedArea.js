@@ -97,7 +97,13 @@ nv.models.stackedArea = function() {
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
+            
+            // If the user has not specified forceY, make sure 0 is included in the domain
+            // Otherwise, use user-specified values for forceY
+            if (scatter.forceY().length == 0) {
+                scatter.forceY().push(0);
+            }
+            
             scatter
                 .width(availableWidth)
                 .height(availableHeight)
