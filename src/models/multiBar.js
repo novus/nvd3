@@ -48,7 +48,7 @@ nv.models.multiBar = function() {
                 availableHeight = height - margin.top - margin.bottom,
                 container = d3.select(this);
             nv.utils.initSVG(container);
-
+            var nonStackableCount = 0;
             // This function defines the requirements for render complete
             var endFn = function(d, i) {
                 if (d.series === data.length - 1 && i === data[0].values.length - 1)
@@ -77,7 +77,16 @@ nv.models.multiBar = function() {
                 parsed.forEach(function(series, i){
                     // if series is non-stackable, use un-parsed data
                     if (series.nonStackable) {
+                        data[i].nonStackableSeries = nonStackableCount++; 
                         parsed[i] = data[i];
+                    } else {
+                        // don't stack this seires on top of the nonStackable seriees 
+                        if (i > 0 && parsed[i - 1].nonStackable){
+                            parsed[i].values.map(function(d,j){
+                                d.y0 -= parsed[i - 1].values[j].y;
+                                d.y1 = d.y0 + d.y;
+                            });
+                        }
                     }
                 });
                 data = parsed;
@@ -91,23 +100,26 @@ nv.models.multiBar = function() {
             });
 
             // HACK for negative value stacking
-            if (stacked)
+            if (stacked) {
                 data[0].values.map(function(d,i) {
                     var posBase = 0, negBase = 0;
-                    data.map(function(d) {
-                        var f = d.values[i]
-                        f.size = Math.abs(f.y);
-                        if (f.y<0)  {
-                            f.y1 = negBase;
-                            negBase = negBase - f.size;
-                        } else
-                        {
-                            f.y1 = f.size + posBase;
-                            posBase = posBase + f.size;
+                    data.map(function(d, idx) {
+                        if (!data[idx].nonStackable) {
+                            var f = d.values[i]
+                            f.size = Math.abs(f.y);
+                            if (f.y<0)  {
+                                f.y1 = negBase;
+                                negBase = negBase - f.size;
+                            } else
+                            {
+                                f.y1 = f.size + posBase;
+                                posBase = posBase + f.size;
+                            }
                         }
+                        
                     });
                 });
-
+            }
             // Setup Scales
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
@@ -120,8 +132,19 @@ nv.models.multiBar = function() {
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked && !data[d.idx].nonStackable ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
-                .range(yRange || [availableHeight, 0]);
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) {
+                var domain = d.y;
+                // increase the domain range if this series is stackable
+                if (stacked && !data[d.idx].nonStackable) {
+                    if (d.y > 0){
+                        domain = d.y1
+                    } else {
+                        domain = d.y1 + d.y
+                    }
+                }
+                return domain;
+            }).concat(forceY)))
+            .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
             if (x.domain()[0] === x.domain()[1])
@@ -164,7 +187,15 @@ nv.models.multiBar = function() {
 
             var exitTransition = renderWatch
                 .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(100, duration))
-                .attr('y', function(d) { return (stacked ? y0(d.y0) : y0(0)) || 0 })
+                .attr('y', function(d, i, j) {
+                    var yVal = y0(0) || 0;
+                    if (stacked) {
+                        if (!data[d.series].nonStackable) {
+                            yVal = y0(d.y0);
+                        }
+                    }
+                    return yVal;
+                })
                 .attr('height', 0)
                 .remove();
             if (exitTransition.delay)
@@ -256,38 +287,59 @@ nv.models.multiBar = function() {
             if (stacked){
                 barSelection
                     .attr('y', function(d,i,j) {
-                        if (stacked && !data[j].nonStackable) {
-                            return y(d.y1);
+                        var yVal = 0;
+                        // if stackable, stack it on top of the previous series
+                        if (!data[j].nonStackable) {
+                            yVal = y(d.y1);
                         } else {
-                            return getY(d,i) < 0 ?
-                                y(0) :
-                                    y(0) - y(getY(d,i)) < 1 ?
-                                y(0) - 1 :
-                                y(getY(d,i)) || 0;
+                            if (getY(d,i) < 0){
+                                yVal = y(0);
+                            } else {
+                                if (y(0) - y(getY(d,i)) < -1){
+                                    yVal = y(0) - 1;
+                                } else {
+                                    yVal = y(getY(d, i)) || 0;
+                                }
+                            }
                         }
+                        return yVal;
                     })
                     .attr('height', function(d,i,j) {
-                        if (stacked && !data[j].nonStackable) {
+                        if (!data[j].nonStackable) {
                             return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 1);
                         } else {
                             return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
                         }
                     })
                     .attr('x', function(d,i,j) {
-                        return 0;
+                        var width = 0;
+                        if (data[j].nonStackable) {
+                            width = d.series * x.rangeBand() / data.length;
+                            if (data.length !== nonStackableCount){
+                                width = data[j].nonStackableSeries * x.rangeBand()/(nonStackableCount*2); 
+                            }
+                        }
+                        return width;
                     })
                     .attr('width', function(d,i,j){
-                        if (stacked && !data[j].nonStackable) {
+                        if (!data[j].nonStackable) {
                             return x.rangeBand();
                         } else {
-                            return data.length > 1 ? x.rangeBand()/2: x.rangeBand();
+                            // if all series are nonStacable, take the full width
+                            var width = (x.rangeBand() / nonStackableCount);
+                            // otherwise, nonStackable graph will be only taking the half-width 
+                            // of the x rangeBand
+                            if (data.length !== nonStackableCount) {
+                                width = x.rangeBand()/(nonStackableCount*2);
+                            }
+                            return width;
                         }
                     });
             }
             else {
                 barSelection
                     .attr('x', function(d,i) {
-                        return d.series * x.rangeBand() / data.length
+                        return d.series * x.rangeBand() / data.length;
                     })
                     .attr('width', x.rangeBand() / data.length)
                     .attr('y', function(d,i) {

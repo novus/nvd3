@@ -6,44 +6,58 @@
 <script src="../build/nv.d3.js"></script>
 <body class='with-3d-shadow with-transitions'>
   <h3>Multibar chart test cases - feel free to add more tests</h3>
-  <div class='chart half' id="chart1">
-    Normal chart, with transition delay, no non-stackable series and bar color set.
+  <div class='chart third' id="chart1">
+    Transition delay 1200ms, 0 non-stackable series and bar color set.
     <svg></svg>
   </div>
-  <div class='chart half' id="chart2">
-    Normal chart, no transitionDuration or delay, no non-stackable series and no bar color set.
+  <div class='chart third' id="chart2">
+    No transitionDuration or delay, 0 non-stackable series and no bar color set.
     <svg></svg>
   </div>
-  <div class='chart half' id="chart2-2">
-    Normal chart, no transitionDuration or delay, one non-stackable series and no bar color set.
+  <div class='chart third' id="chart2-2">
+    No transitionDuration or delay, 1 non-stackable series and no bar color set.
     <svg></svg>
   </div>
-  <div class='chart half' id="chart3">
-    Normal chart, transitionDuration or delay, one non-stackable series and bar color set.
+  <div class='chart third' id="chart3">
+    TransitionDuration or delay 500ms, 1 non-stackable series(first) and color set.
     <svg></svg>
   </div>
-  <div class='chart half' id="chart4">
+  <div class='chart third' id="chart3-2">
+    TransitionDuration or delay 500ms, 1 non-stackable series(mid) and color set.
+    <svg></svg>
+  </div>
+  <div class='chart third' id="chart3-3">
+    TransitionDuration or delay 500ms, 1 non-stackable series(last) and color set.
+    <svg></svg>
+  </div>
+  <div class='chart third' id="chart4">
     Chart with single series, no group spacing.
     <svg></svg>
   </div>
-  <div class='chart half' id="chart5">
-    Chart with 18 series, 7 data points per series and no non-stackable series.
-    <svg></svg>
-  </div>
-  <div class='chart third' id="chart6">
+  <div class='chart third' id="chart5">
     Chart with 1 data point
     <svg></svg>
   </div>
-  <div class='chart third' id="chart7">
+  <div class='chart third' id="chart6">
     Chart with 2 data points
     <svg></svg>
   </div>
+
+  <div class='chart full' id="chart7">
+    Chart with 18 series, 7 data points per series and no non-stackable series.
+    <svg></svg>
+  </div>
+  
   <div class='chart third' id="chart8">
-    Chart with no stackable series -> overlap graphs
+    Chart with no stackable series -> same as grouped graphs
     <svg></svg>
   </div>
   <div class='chart third' id="chart9">
     Chart with multi stackable series
+    <svg></svg>
+  </div>
+  <div class='chart third' id="chart9-1">
+    Chart with multi more non stackable series
     <svg></svg>
   </div>
   <div class='chart third' id="chart10">
@@ -99,28 +113,47 @@ function dataFactoryNoStackable(seriesNum, perSeries, color) {
 }
 
 function dataFactoryWithStackable(seriesNum, perSeries, color, nonStackableCount) {
-   return new d3.range(0,seriesNum).map(function(d,i) { 
-      var series = {};
-      if (i < (seriesNum - nonStackableCount)) {
-        series = {
-          key: 'Stream ' + i,
-          nonStackable: false
-        };
-      } else {
-        series = {
-          color: color||null,
-          key: 'Non-stackable Stream Data ' + i,
-          nonStackable: true
-        };
-      }
-      series.values = new d3.range(0,perSeries).map( function(f,j) {
-        return {
-           y: 10 + Math.random()*100,
-           x: j
-         }
-      });
-      return series;
+ return new d3.range(0,seriesNum).map(function(d,i) { 
+    var series = {};
+    if (i < (seriesNum - nonStackableCount)) {
+      series = {
+        key: 'Stream ' + i,
+        nonStackable: false
+      };
+    } else {
+      series = {
+        color: color||null,
+        key: 'Non-stackable Stream Data ' + i,
+        nonStackable: true
+      };
+    }
+    series.values = new d3.range(0,perSeries).map( function(f,j) {
+      return {
+         y: 10 + Math.random()*100,
+         x: j
+       }
     });
+    return series;
+  });
+}
+function dataFactoryWithCustomNonStackablePosition(seriesNum, perSeries, color,
+  nonStackablePosition) {
+  var colors = ['red', 'green', 'blue'];
+  nonStackablePosition = nonStackablePosition ? nonStackablePosition: 0;
+  return new d3.range(0,seriesNum).map(function(d,i) { 
+    var series = {
+      key: nonStackablePosition === i ? 'Non-stackable Stream ' + i: 'Stream ' + i,
+      nonStackable: nonStackablePosition === i,
+      color: nonStackablePosition === i ? color: colors[i]
+    };
+    series.values = new d3.range(0,perSeries).map( function(f,j) {
+      return {
+         y: 10 + Math.random()*100,
+         x: j
+       }
+    });
+    return series;
+  });
 }
 
 
@@ -144,7 +177,17 @@ defaultChartConfig("chart2-2", dataFactoryWithStackable(3,11,null,1), {
   groupSpacing: 0.2
 });
 
-defaultChartConfig("chart3", dataFactoryWithStackable(3,11,'gray',1), {
+defaultChartConfig("chart3", dataFactoryWithCustomNonStackablePosition(3,11,'gray', 0), {
+  delay: 500,
+  groupSpacing: 0.2
+});
+
+defaultChartConfig("chart3-2", dataFactoryWithCustomNonStackablePosition(3,11,'gray', 1), {
+  delay: 500,
+  groupSpacing: 0.2
+});
+
+defaultChartConfig("chart3-3", dataFactoryWithCustomNonStackablePosition(3,11,'gray', 2), {
   delay: 500,
   groupSpacing: 0.2
 });
@@ -154,16 +197,16 @@ defaultChartConfig("chart4",dataFactoryWithStackable(1,15),{
   delay:0
 });
 
-defaultChartConfig("chart5",dataFactory(18,7),{
+defaultChartConfig("chart5",dataFactory(1,1),{
+  delay:0
+});
+
+defaultChartConfig("chart6",dataFactory(1,2),{
+  delay:0
+});
+
+defaultChartConfig("chart7",dataFactory(18,7),{
   delay:800
-});
-
-defaultChartConfig("chart6",dataFactory(1,1),{
-  delay:0
-});
-
-defaultChartConfig("chart7",dataFactory(1,2),{
-  delay:0
 });
 
 defaultChartConfig("chart8",dataFactoryNoStackable(3,11),{
@@ -171,6 +214,9 @@ defaultChartConfig("chart8",dataFactoryNoStackable(3,11),{
 });
 
 defaultChartConfig("chart9",dataFactoryWithStackable(5,8,null,2),{
+  delay:0
+});
+defaultChartConfig("chart9-1",dataFactoryWithStackable(5,8,null,3),{
   delay:0
 });
 
