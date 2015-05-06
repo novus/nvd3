@@ -67,7 +67,6 @@ nv.models.multiBar = function() {
                 )}];
 
             if (stacked) {
-                var parsed = [];
                 var parsed = d3.layout.stack()
                     .offset(stackOffset)
                     .values(function(d){ return d.values })
