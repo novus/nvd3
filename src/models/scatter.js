@@ -11,6 +11,7 @@ nv.models.scatter = function() {
         , height       = null
         , color        = nv.utils.defaultColor() // chooses color
         , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
+        , container    = null
         , x            = d3.scale.linear()
         , y            = d3.scale.linear()
         , z            = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
@@ -56,7 +57,7 @@ nv.models.scatter = function() {
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -436,14 +437,14 @@ nv.models.scatter = function() {
     chart._calls = new function() {
         this.clearHighlights = function () {
             nv.dom.write(function() {
-                d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+                container.selectAll(".nv-point.hover").classed("hover", false);
             });
             return null;
         };
         this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
             nv.dom.write(function() {
-                var node = document.querySelector(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex);
-                d3.select(node).classed("hover", isHoverOver);
+                container.select(" .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+                    .classed("hover", isHoverOver);
             });
         };
     };

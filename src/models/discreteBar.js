@@ -10,6 +10,7 @@ nv.models.discreteBar = function() {
         , width = 960
         , height = 500
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container
         , x = d3.scale.ordinal()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -38,8 +39,9 @@ nv.models.discreteBar = function() {
         renderWatch.reset();
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             //add series index to each data point for reference

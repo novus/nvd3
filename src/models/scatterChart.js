@@ -18,6 +18,7 @@ nv.models.scatterChart = function() {
     var margin       = {top: 30, right: 20, bottom: 50, left: 75}
         , width        = null
         , height       = null
+        , container    = null
         , color        = nv.utils.defaultColor()
         , x            = scatter.xScale()
         , y            = scatter.yScale()
@@ -83,8 +84,9 @@ nv.models.scatterChart = function() {
         if (showDistY) renderWatch.models(distY);
 
         selection.each(function(data) {
-            var container = d3.select(this),
-                that = this;
+            var that = this;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
@@ -303,16 +305,16 @@ nv.models.scatterChart = function() {
             // mouseover needs availableHeight so we just keep scatter mouse events inside the chart block
             scatter.dispatch.on('elementMouseout.tooltip', function(evt) {
                 tooltip.hidden(true);
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                     .attr('y1', 0);
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', distY.size());
             });
 
             scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                     .attr('y1', evt.pos.top - availableHeight - margin.top);
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', evt.pos.left + distX.size() - margin.left);
                 tooltip.position(evt.pos).data(evt).hidden(false);
             });
@@ -346,6 +348,7 @@ nv.models.scatterChart = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        container:  {get: function(){return container;}, set: function(_){container=_;}},
         showDistX:  {get: function(){return showDistX;}, set: function(_){showDistX=_;}},
         showDistY:  {get: function(){return showDistY;}, set: function(_){showDistY=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},

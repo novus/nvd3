@@ -11,6 +11,7 @@ nv.models.stackedArea = function() {
         , height = 500
         , color = nv.utils.defaultColor() // a function that computes the color
         , id = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
+        , container = null
         , getX = function(d) { return d.x } // accessor to get the x value from a data point
         , getY = function(d) { return d.y } // accessor to get the y value from a data point
         , style = 'stack'
@@ -49,8 +50,9 @@ nv.models.stackedArea = function() {
         renderWatch.models(scatter);
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             // Setup Scales

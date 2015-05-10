@@ -10,6 +10,7 @@ nv.models.ohlcBar = function() {
         , width = null
         , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , x = d3.scale.linear()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -37,7 +38,7 @@ nv.models.ohlcBar = function() {
 
     function chart(selection) {
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -171,13 +172,13 @@ nv.models.ohlcBar = function() {
     //Create methods to allow outside functions to highlight a specific bar.
     chart.highlightPoint = function(pointIndex, isHoverOver) {
         chart.clearHighlights();
-        d3.select(".nv-ohlcBar .nv-tick-0-" + pointIndex)
+        container.select(".nv-ohlcBar .nv-tick-0-" + pointIndex)
             .classed("hover", isHoverOver)
         ;
     };
 
     chart.clearHighlights = function() {
-        d3.select(".nv-ohlcBar .nv-tick.hover")
+        container.select(".nv-ohlcBar .nv-tick.hover")
             .classed("hover", false)
         ;
     };

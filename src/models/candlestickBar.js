@@ -10,6 +10,7 @@ nv.models.candlestickBar = function() {
         , width = null
         , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container
         , x = d3.scale.linear()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -37,7 +38,7 @@ nv.models.candlestickBar = function() {
 
     function chart(selection) {
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -119,7 +120,7 @@ nv.models.candlestickBar = function() {
                 .attr('y2', function(d, i) { return y(getLow(d, i)); });
 
             var rects = tickGroups.append('rect')
-                .attr('class', 'nv-candlestick-rects')
+                .attr('class', 'nv-candlestick-rects nv-bars')
                 .attr('transform', function(d, i) {
                     return 'translate(' + (x(getX(d, i)) - barWidth/2) + ','
                     + (y(getY(d, i)) - (getOpen(d, i) > getClose(d, i) ? (y(getClose(d, i)) - y(getOpen(d, i))) : 0))
@@ -134,14 +135,14 @@ nv.models.candlestickBar = function() {
                     return open > close ? y(close) - y(open) : y(open) - y(close);
                 });
 
-            d3.selectAll('.nv-candlestick-lines').transition()
+            container.selectAll('.nv-candlestick-lines').transition()
                 .attr('transform', function(d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; })
                 .attr('x1', 0)
                 .attr('y1', function(d, i) { return y(getHigh(d, i)); })
                 .attr('x2', 0)
                 .attr('y2', function(d, i) { return y(getLow(d, i)); });
 
-            d3.selectAll('.nv-candlestick-rects').transition()
+            container.selectAll('.nv-candlestick-rects').transition()
                 .attr('transform', function(d, i) {
                     return 'translate(' + (x(getX(d, i)) - barWidth/2) + ','
                     + (y(getY(d, i)) - (getOpen(d, i) > getClose(d, i) ? (y(getClose(d, i)) - y(getOpen(d, i))) : 0))
@@ -164,13 +165,13 @@ nv.models.candlestickBar = function() {
     //Create methods to allow outside functions to highlight a specific bar.
     chart.highlightPoint = function(pointIndex, isHoverOver) {
         chart.clearHighlights();
-        d3.select(".nv-candlestickBar .nv-tick-0-" + pointIndex)
+        container.select(".nv-candlestickBar .nv-tick-0-" + pointIndex)
             .classed("hover", isHoverOver)
         ;
     };
 
     chart.clearHighlights = function() {
-        d3.select(".nv-candlestickBar .nv-tick.hover")
+        container.select(".nv-candlestickBar .nv-tick.hover")
             .classed("hover", false)
         ;
     };

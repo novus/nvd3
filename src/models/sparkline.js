@@ -9,6 +9,7 @@ nv.models.sparkline = function() {
     var margin = {top: 2, right: 0, bottom: 2, left: 0}
         , width = 400
         , height = 32
+        , container = null
         , animate = true
         , x = d3.scale.linear()
         , y = d3.scale.linear()
@@ -24,8 +25,9 @@ nv.models.sparkline = function() {
     function chart(selection) {
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             // Setup Scales
