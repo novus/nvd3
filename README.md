@@ -123,6 +123,8 @@ only include the source files you changed!
 
 > have node download nvd3's required modules with:  `npm install`
 
+> install bower packages with:  `bower install`
+
 > build with:  `grunt production`
 
 You should now have a `build` directory with the js and css files within.
