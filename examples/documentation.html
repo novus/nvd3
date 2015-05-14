@@ -17,7 +17,7 @@
     <script>
 
         function expandall(name) {
-            $('#ul_' + name).find("li").click();
+            $('#ul_' + name).show().find("li").click();
         }
 
         function expandchart(name) {
@@ -45,19 +45,20 @@
                 'parallelCoordinates',
                 'scatterChart',
                 'stackedAreaChart',
-                'scatterPlusLineChart',
                 'sparklinePlus',
                 'multiChart',
                 'multiBarHorizontalChart',
                 'multiBarChart',
                 'lineWithFocusChart',
-                'linePlusBarWithFocusChart',
                 'linePlusBarChart',
                 'historicalBarChart',
                 'discreteBarChart',
                 'cumulativeLineChart',
                 'bulletChart',
-                'ohlcBarChart'
+                'ohlcBarChart',
+                'boxPlotChart',
+                'sunburstChart',
+                'candlestickBarChart'
             ].sort();
             var parts = [
                 'line',
@@ -70,9 +71,12 @@
                 'multiBarHorizontal',
                 'multiBar',
                 'legend',
-                'axis',
+                'tooltip',
+                'boxPlot',
+                'candlestickBar',
                 'sparkline',
-                'discreteBar'
+                'discreteBar',
+                'sunburst'
             ].sort();
             var c = $('#optionlist');
             var jump = $('#optionjump');
@@ -140,7 +144,10 @@
                     // now print the all out in alphabetical order
                     var alpha = Object.keys(alloptions).sort();
                     for (var j4 in alpha) {
-                        parse_options(ul, alloptions[alpha[j4]]);
+                        // ignore internal options (start with an underscore)
+                        if (alpha[j4].substring(0, 1) !== '_') {
+                            parse_options(ul, alloptions[alpha[j4]]);
+                        }
                     }
 
                     // append the list of options to the dom
@@ -170,6 +177,7 @@
                         var def = option_info[name]['default'];
                         var ex = option_info[name]['examples'];
                         var refs = option_info[name]['refs'] || [];
+                        var example_obj = option_info[name]['example_object'] || 'chart';
                         var examples = [];
                         var inputs = [];
 
@@ -187,7 +195,7 @@
                                 // due to indention in the info object
                                 e = e.toString().replace(/(\r\n|\n|\r)\s{16}/gm,'\n');
                             }
-                            examples.push('chart.' + name + '(' + $('<div/>').text(e).html() + ')');
+                            examples.push(example_obj + '.' + name + '(' + $('<div/>').text(e).html() + ')');
                         }
 
                         // build html of other option info
@@ -238,14 +246,14 @@
     <div>
         <span id="logo"></span>
 
-        <a href="https://github.com/liquidpele/nvd3" target="github" class="button fork"><strong>GitHub</strong></a>
+        <a href="https://github.com/nvd3-community/nvd3" target="github" class="button fork"><strong>GitHub</strong></a>
         <a href="site.html" class="button fork docs"><strong>Examples</strong></a>
         <a href="documentation.html" class="button fork docs selected"><strong>Documentation</strong></a>
         <div class="downloads">
             <span>Downloads:</span>
             <ul>
-                <li><a href="https://github.com/liquidpele/nvd3/zipball/master" class="button">ZIP</a></li>
-                <li><a href="https://github.com/liquidpele/nvd3/tarball/master" class="button">TAR</a></li>
+                <li><a href="https://github.com/nvd3-community/nvd3/zipball/master" class="button">ZIP</a></li>
+                <li><a href="https://github.com/nvd3-community/nvd3/tarball/master" class="button">TAR</a></li>
             </ul>
         </div>
     </div>
@@ -279,6 +287,9 @@
         <div id="optionjump"></div>
 
         <div style="height: 50px"></div>
+
+		<h3 class="option"><span class="expand all">[ <a href="javascript:$('#optionlist>ul').toggle()">toggle all</a> ]</span></h3>
+
         <div id="optionlist"></div>
 
     </section>
@@ -326,21 +337,10 @@ as well as used to print out examples using those example inputs.
             examples: [true]
         },
         tooltips: {
-            desc: "Whether to display tooltips or not",
-            default: true,
-            examples: [true]
+            desc: "Deprecated.  Use chart.tooltip.enabled or chart.interactive to control if tooltips are enabled or not."
         },
         tooltipContent: {
-            desc: "Function used to build the tooltip content.  The variables passed to the function can depend on the chart (i.e. it depends on what makes sense for the chart) so you might want to console.log stuff when playing with this to see what's available.",
-            default: "Depends on graph type",
-            examples: [
-                function(key, y, e, graph) {
-                    var content = '<h3 style="background-color: ';
-                    content += e.color + '">';
-                    content += key + '</h3><p>' +  y + '</p>';
-                    return content;
-                }
-            ]
+            desc: "Deprecated.  Use chart.tooltip.contentGenerator or chart.interactiveGuideline.tooltip.contentGenerator to control tooltip content."
         },
         noData: {
             desc: "Message to display if no data is provided",
@@ -388,13 +388,8 @@ as well as used to print out examples using those example inputs.
             default: true,
             examples: [true]
         },
-        donutLabelsOutside: {
-            desc: "Whether donut chart labels should be outside or inside the slices",
-            default: true,
-            examples: [true]
-        },
-        pieLabelsOutside: {
-            desc: "Whether pie chart labels should be outside or inside the slices",
+        labelsOutside: {
+            desc: "Whether pie/donut chart labels should be outside the slices instead of inside them",
             default: true,
             examples: [true]
         },
@@ -456,8 +451,8 @@ as well as used to print out examples using those example inputs.
             ]
         },
         id: {
-            desc: "Applies the provided ID as part of the unique class name for the chart.  You can use this to specify custom CSS for particular charts.  For example, if you set the chart to have id 'woot', you can customize the CSS using the selector .nvd3.nv-chart-woot",
-            default: "A random number is generated by default",
+            desc: "Applies the provided ID as part of the unique class name for the chart.  For tooltip, this value is read-only.  For charts, you can use this to specify custom CSS for particular charts.  For example, if you set the chart to have id 'woot', you can customize the CSS using the selector .nvd3.nv-chart-woot",
+            default: "A random ID is generated by default",
             examples: [123, "chart56"]
         },
         showXAxis: {
@@ -529,6 +524,15 @@ as well as used to print out examples using those example inputs.
                 "http://bl.ocks.org/mbostock/8033015"],
             default: true,
             examples: [false]
+        },
+        showVoronoi: {
+            desc: "Displays the voronoi areas on the chart.  This is mostly helpful when debugging issues.",
+            refs: [
+                "https://github.com/mbostock/d3/wiki/Voronoi-Geom",
+                "http://bl.ocks.org/njvack/1405439",
+                "http://bl.ocks.org/mbostock/8033015"],
+            default: false,
+            examples: [true]
         },
         clipRadius: {
             desc: "When useVoronoi and clipVoronoi are true, you can control the clip radius with this option.  Essentially this lets you set how far away from the actual point you can put the mouse for it to select the point.",
@@ -664,17 +668,18 @@ as well as used to print out examples using those example inputs.
             ]
         },
         valueFormat: {
-            desc: "D3 Format object for the value of a pie/donut chart.",
+            desc: "D3 Format object for the label of pie/donut, discrete bar and multibar charts.",
             default: "d3.format(',.2f')"
-        },
-        labelFormat: {
-            desc: "D3 Format object for the label of a pie/donut chart.",
-            default: "d3.format('%')"
         },
         donutRatio: {
             desc: "Percent of pie radius to cut out of the middle to make the donut.  It is multiplied by the outer radius to calculate the inner radius, thus it should be between 0 and 1.",
             default: "0.5",
             examples: [0.75]
+        },
+        legendPosition: {
+            desc: "Position of the legend (top or right)",
+            default: "top",
+            examples: ["top", "right"]
         },
         labelSunbeamLayout: {
             desc: "?",
@@ -695,7 +700,11 @@ as well as used to print out examples using those example inputs.
             desc: "Prints the Y values on the top of the bars.  Only recommended to use if there aren't many bars.",
             default: false,
             examples: [true]
-
+        },
+        showLastValue: {
+            desc: "Shows the last value in the sparkline to the right of the line.",
+            default: true,
+            examples: [false]
         },
         padData: {
             desc: "?",
@@ -735,6 +744,120 @@ as well as used to print out examples using those example inputs.
                 {stacked: "Stack It", stream: "Stream dat", expanded: "Xpand"},
                 {grouped: "Group em", stacked: "Stack em"}
             ]
+        },
+        groupSpacing: {
+            desc: "The padding between bar groups, this is passed as the padding attribute of rangeBands",
+            refs: ["https://github.com/mbostock/d3/wiki/Ordinal-Scales#ordinal_rangeBands"],
+            default: 0.1,
+            examples: [0.5]
+        },
+        padding: {
+            desc: "Specifies how much spacing there is between legend items.",
+            default: "28",
+            examples: ["40"]
+        },
+        arcsRadius: {
+            desc: "Specifies each slice size, by an inner and a outer radius. Values between 0 and 1.",
+            default: "[{inner: donutRatio, outer: 1}]",
+            examples: [{inner: 0.6, outer: 0.8}]
+        },
+        lineTension: {
+            desc: "Specifies each line tension. Values between 0 and 1.",
+            default: 1,
+            examples: [0.85]
+        },
+        dimensions: {
+            desc: "Deprecated. Use dimensionsNames instead. "
+        },
+        dimensionNames: {
+            desc: "Name of each dimension, used for each axis.",
+            default: "[]",
+            examples: [["axis1", "axis2", "axis3"]]
+        },
+        dimensionFormats: {
+            desc: "D3 format for each x axis",
+            default: "Use the default formatter scale.tickFormat",
+            examples: [["%", "", "0.2f"]]
+        },
+        gravity: {
+            desc: "Can be 'n','s','e','w'. Determines how tooltip is positioned.",
+            default: "w",
+            examples: ['n'],
+            example_object: 'chart.tooltip'
+        },
+        snapDistance: {
+            desc: "Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)",
+            default: 0,
+            examples: [10],
+            example_object: 'chart.tooltip'
+        },
+        fixedTop: {
+            desc: "For tooltip: If not null, this fixes the top position of the tooltip.",
+            default: 'null',
+            examples: [50],
+            example_object: 'chart.tooltip'
+        },
+        chartContainer: {
+            desc: "For tooltip: Parent dom element of the SVG that holds the chart.  This will make the tooltip dom be created inside this container instead of on the document body.",
+            default: 'null',
+            example_object: 'chart.tooltip'
+        },
+        hidden: {
+            desc: "For tooltip: show or hide the tooltip by setting this to true or false.  Tooltips used to be created and destroyed, but now we re-used the element and set opacity to 1 or 0.",
+            default: 'false',
+            examples: [true],
+            example_object: 'chart.tooltip'
+        },
+        hideDelay: {
+            desc: "Delay in ms before the tooltip hides itself after a mouseout event.  A new mouseover event cancels the hide if within this timeout period.",
+            default: 400,
+            examples: [200],
+            example_object: 'chart.tooltip'
+        },
+        position: {
+            desc: "For tooltip: sets the top/left positioning for the tooltip.  Should be given an object with 'left' and/or 'top' attributes.  You can override just one, just like the 'margin' option on charts.",
+            default: "Starts off with {top: 0, left: 0}",
+            examples: [{top: 200, left: 300}, {left: 50}],
+            example_object: 'chart.tooltip'
+        },
+        contentGenerator: {
+            desc: "For tooltip: Function that generates the tooltip content html.  This replaces the 'tooltipContent' option that was on most charts.  Please note that the data passed this function is usually different depending on the chart, so you'll probably need to console.log() the input object.  Also, the data passed is always a single object now, so previous functions written for the tooltipContent option will have to be adjusted accordingly.",
+            default: "See contentGenerator function in tooltip.js",
+            examples: [function(obj) { return JSON.stringify(obj)}],
+            example_object: 'chart.tooltip'
+        },
+        valueFormatter: {
+            desc: "For tooltip: formats the y axis value(s) in the tooltip",
+            default: "Uses the yAxis' tickFormat() option",
+            examples: [function(d) { return d > 0 ? d : 0; }],
+            example_object: 'chart.tooltip'
+        },
+        headerFormatter: {
+            desc: "For tooltip: formats the x axis value in the tooltip",
+            default: "Uses the xAxis' tickFormat() option",
+            examples: [function(d) { return d + ' monkeys' }],
+            example_object: 'chart.tooltip'
+        },
+        headerEnabled: {
+            desc: "For tooltip: show the x axis value in the tooltip or not (not valid for pie charts for instance)",
+            default: "true",
+            examples: [false],
+            example_object: 'chart.tooltip'
+        },
+        enabled: {
+            desc: "For tooltip: completely enables or disabled the tooltip",
+            default: "true",
+            examples: [false],
+            example_object: 'chart.tooltip'
+        },
+        tooltipElem: {
+            desc: "For tooltip: returns the dom element of the tooltip.  This is read-only, you cannot set this value."
+        },
+        mode: {
+            desc: "For sunburst only: specifies the mode of drawing the sunburst segments. Can be 'size' or 'count'. 'size' draws the segments according to the 'size' attribute of the leaf nodes, 'count' draws according to the amount of siblings a node has.",
+            default: "count",
+            refs: ["http://bl.ocks.org/kerryrodden/477c1bfb081b783f80ad"],
+            examples: ["size"]
         }
     };
 </script>

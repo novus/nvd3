@@ -1,6 +1,5 @@
 {
   "name": "nvd3",
-  "version": "1.7.1",
   "homepage": "http://www.nvd3.org",
   "authors": [
     "Bob Monteverde",
@@ -22,7 +21,7 @@
   ],
   "license": "Apache License, v2.0",
   "dependencies": {
-    "d3": "~3.3.13"
+    "d3": "^3.4.4"
   },
   "ignore": [
     "**/.*",
@@ -37,8 +36,5 @@
     "*.xml",
     "*.json",
     "*.md"
-  ],
-  "devDependencies": {
-    "d3": "~3.3.13"
-  }
+  ]
 }

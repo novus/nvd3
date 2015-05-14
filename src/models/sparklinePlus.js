@@ -17,10 +17,10 @@ nv.models.sparklinePlus = function() {
         , paused = false
         , xTickFormat = d3.format(',r')
         , yTickFormat = d3.format(',.2f')
-        , showValue = true
+        , showLastValue = true
         , alignValue = true
         , rightAlignValue = false
-        , noData = "No Data Available."
+        , noData = null
         ;
 
     function chart(selection) {
@@ -28,28 +28,15 @@ nv.models.sparklinePlus = function() {
             var container = d3.select(this);
             nv.utils.initSVG(container);
 
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height')) || 400)
-                    - margin.top - margin.bottom;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() { chart(selection) };
             chart.container = this;
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container)
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -79,20 +66,24 @@ nv.models.sparklinePlus = function() {
             sparkline.width(availableWidth).height(availableHeight);
             sparklineWrap.call(sparkline);
 
-            var valueWrap = g.select('.nv-valueWrap');
-            var value = valueWrap.selectAll('.nv-currentValue')
-                .data([currentValue]);
+            if (showLastValue) {
+                var valueWrap = g.select('.nv-valueWrap');
+                var value = valueWrap.selectAll('.nv-currentValue')
+                    .data([currentValue]);
 
-            value.enter().append('text').attr('class', 'nv-currentValue')
-                .attr('dx', rightAlignValue ? -8 : 8)
-                .attr('dy', '.9em')
-                .style('text-anchor', rightAlignValue ? 'end' : 'start');
+                value.enter().append('text').attr('class', 'nv-currentValue')
+                    .attr('dx', rightAlignValue ? -8 : 8)
+                    .attr('dy', '.9em')
+                    .style('text-anchor', rightAlignValue ? 'end' : 'start');
 
-            value
-                .attr('x', availableWidth + (rightAlignValue ? margin.right : 0))
-                .attr('y', alignValue ? function(d) { return y(d) } : 0)
-                .style('fill', sparkline.color()(data[data.length-1], data.length-1))
-                .text(yTickFormat(currentValue));
+                value
+                    .attr('x', availableWidth + (rightAlignValue ? margin.right : 0))
+                    .attr('y', alignValue ? function (d) {
+                        return y(d)
+                    } : 0)
+                    .style('fill', sparkline.color()(data[data.length - 1], data.length - 1))
+                    .text(yTickFormat(currentValue));
+            }
 
             gEnter.select('.nv-hoverArea').append('rect')
                 .on('mousemove', sparklineHover)
@@ -108,7 +99,7 @@ nv.models.sparklinePlus = function() {
             function updateValueLine() {
                 if (paused) return;
 
-                var hoverValue = g.selectAll('.nv-hoverValue').data(index)
+                var hoverValue = g.selectAll('.nv-hoverValue').data(index);
 
                 var hoverEnter = hoverValue.enter()
                     .append('g').attr('class', 'nv-hoverValue')
@@ -139,7 +130,7 @@ nv.models.sparklinePlus = function() {
                     .attr('x', -6)
                     .attr('y', -margin.top)
                     .attr('text-anchor', 'end')
-                    .attr('dy', '.9em')
+                    .attr('dy', '.9em');
 
                 g.select('.nv-hoverValue .nv-xValue')
                     .text(xTickFormat(sparkline.x()(data[index[0]], index[0])));
@@ -148,7 +139,7 @@ nv.models.sparklinePlus = function() {
                     .attr('x', 6)
                     .attr('y', -margin.top)
                     .attr('text-anchor', 'start')
-                    .attr('dy', '.9em')
+                    .attr('dy', '.9em');
 
                 g.select('.nv-hoverValue .nv-yValue')
                     .text(yTickFormat(sparkline.y()(data[index[0]], index[0])));
@@ -195,7 +186,7 @@ nv.models.sparklinePlus = function() {
         height:          {get: function(){return height;}, set: function(_){height=_;}},
         xTickFormat:     {get: function(){return xTickFormat;}, set: function(_){xTickFormat=_;}},
         yTickFormat:     {get: function(){return yTickFormat;}, set: function(_){yTickFormat=_;}},
-        showValue:       {get: function(){return showValue;}, set: function(_){showValue=_;}},
+        showLastValue:   {get: function(){return showLastValue;}, set: function(_){showLastValue=_;}},
         alignValue:      {get: function(){return alignValue;}, set: function(_){alignValue=_;}},
         rightAlignValue: {get: function(){return rightAlignValue;}, set: function(_){rightAlignValue=_;}},
         noData:          {get: function(){return noData;}, set: function(_){noData=_;}},

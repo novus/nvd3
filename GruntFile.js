@@ -1,22 +1,32 @@
-
-var version = '1.7.1';
-
+var version = '1.8.1';
 module.exports = function(grunt) {
+    var _pkg = grunt.file.readJSON('package.json');
 
     //Project configuration.
     grunt.initConfig({
-        pkg: grunt.file.readJSON('package.json'),
+        pkg: _pkg,
         concat: {
-            options: {
-                separator: '',
-                // wrap output in a function block.
-                banner: '/* nvd3 version ' + version + '(https://github.com/novus/nvd3) ' +
-                    '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
-                footer: '\nnv.version = "' + version + '";\n})();'
+            css: {
+                options: {
+                    separator: '\n',
+                    banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
+                        '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
+                },
+                src: [
+                    'src/css/*.css'
+                ],
+                dest: 'build/nv.d3.css'
             },
-            dist: {
+            js: {
+                options: {
+                    separator: '',
+                    banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
+                        '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
+                    footer: '\nnv.version = "' + _pkg.version + '";\n})();'
+                },
                 src: [
                     'src/core.js',
+                    'src/dom.js',
                     'src/interactiveLayer.js',
                     'src/tooltip.js',
                     'src/utils.js',
@@ -29,13 +39,25 @@ module.exports = function(grunt) {
         },
         uglify: {
             options: {
-                banner: '/* nvd3 version ' + version + ' (https://github.com/novus/nvd3) ' +
+                banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
             js: {
                 files: {
                     'build/nv.d3.min.js': ['build/nv.d3.js']
                 }
+            }
+        },
+        replace: {
+            version: {
+                src: [
+                    'package.js'
+                ],
+                overwrite: true,
+                replacements: [{
+                    from: /(version?\s?=?\:?\s\')([\d\.]*)\'/gi,
+                    to: '$1' + _pkg.version + "'"
+                }]
             }
         },
         jshint: {
@@ -95,6 +117,7 @@ module.exports = function(grunt) {
                         'src/models/indented*',
                         'src/models/linePlus*',
                         'src/models/ohlcBar.js',
+                        'src/models/candlestickBar.js',
                         'src/models/multiChart.js'
                     ]
                 }
@@ -109,9 +132,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-text-replace');
 
-    grunt.registerTask('default', ['concat', 'karma:unit']);
-    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin']);
+    grunt.registerTask('default', ['concat','copy','karma:unit']);
+    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin', 'replace']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
 };

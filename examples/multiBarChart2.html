@@ -33,11 +33,11 @@
     //var test_data = stream_layers(3,128,.1).map(function(data, i) {
     var test_data = stream_layers(3,128,.1).map(function(data, i) {
         return {
-            key: 'Stream' + i,
+            key: (i == 1) ? 'Non-stackable Stream' + i: 'Stream' + i,
+            nonStackable: (i == 1),
             values: data
         };
     });
-
     nv.addGraph({
         generate: function() {
             var width = nv.utils.windowSize().width,

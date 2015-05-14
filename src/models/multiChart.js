@@ -10,19 +10,13 @@ nv.models.multiChart = function() {
         width = null,
         height = null,
         showLegend = true,
-        tooltips = true,
-        tooltip = function(key, x, y, e, graph) {
-            return '<h3>' + key + '</h3>' +
-                '<p>' +  y + ' at ' + x + '</p>'
-        },
-        x,
-        y,
-        noData = 'No Data Available.',
+        noData = null,
         yDomain1,
         yDomain2,
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
-        interpolate = 'monotone'
+        interpolate = 'monotone',
+        useVoronoi = true
         ;
 
     //============================================================
@@ -47,17 +41,8 @@ nv.models.multiChart = function() {
         yAxis2 = nv.models.axis().scale(yScale2).orient('right'),
 
         legend = nv.models.legend().height(30),
-        dispatch = d3.dispatch('tooltipShow', 'tooltipHide');
-
-    var showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(lines1.x()(e.point, e.pointIndex)),
-            y = ((e.series.yAxis == 2) ? yAxis2 : yAxis1).tickFormat()(lines1.y()(e.point, e.pointIndex)),
-            content = tooltip(e.series.key, x, y, e, chart);
-
-        nv.tooltip.show([left, top], content, undefined, undefined, offsetElement.offsetParent);
-    };
+        tooltip = nv.models.tooltip(),
+        dispatch = d3.dispatch();
 
     function chart(selection) {
         selection.each(function(data) {
@@ -68,10 +53,8 @@ nv.models.multiChart = function() {
             chart.update = function() { container.transition().call(chart); };
             chart.container = this;
 
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height')) || 400)
-                    - margin.top - margin.bottom;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             var dataLines1 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 1});
             var dataLines2 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 2});
@@ -82,18 +65,7 @@ nv.models.multiChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -119,9 +91,9 @@ nv.models.multiChart = function() {
             var wrap = container.selectAll('g.wrap.multiChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
 
-            gEnter.append('g').attr('class', 'x axis');
-            gEnter.append('g').attr('class', 'y1 axis');
-            gEnter.append('g').attr('class', 'y2 axis');
+            gEnter.append('g').attr('class', 'nv-x nv-axis');
+            gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+            gEnter.append('g').attr('class', 'nv-y2 nv-axis');
             gEnter.append('g').attr('class', 'lines1Wrap');
             gEnter.append('g').attr('class', 'lines2Wrap');
             gEnter.append('g').attr('class', 'bars1Wrap');
@@ -137,8 +109,11 @@ nv.models.multiChart = function() {
             });
 
             if (showLegend) {
+                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
+                var legendXPosition = legend.align() ? legendWidth : 0;
+
+                legend.width(legendWidth);
                 legend.color(color_array);
-                legend.width( availableWidth / 2 );
 
                 g.select('.legendWrap')
                     .datum(data.map(function(series) {
@@ -150,12 +125,11 @@ nv.models.multiChart = function() {
 
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
-                    availableHeight = (height || parseInt(container.style('height')) || 400)
-                        - margin.top - margin.bottom;
+                    availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
 
                 g.select('.legendWrap')
-                    .attr('transform', 'translate(' + ( availableWidth / 2 ) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }
 
             lines1
@@ -188,51 +162,38 @@ nv.models.multiChart = function() {
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var lines1Wrap = g.select('.lines1Wrap')
-                .datum(
-                    dataLines1.filter(function(d){return !d.disabled})
-                );
+                .datum(dataLines1.filter(function(d){return !d.disabled}));
             var bars1Wrap = g.select('.bars1Wrap')
-                .datum(
-                    dataBars1.filter(function(d){return !d.disabled})
-                );
+                .datum(dataBars1.filter(function(d){return !d.disabled}));
             var stack1Wrap = g.select('.stack1Wrap')
-                .datum(
-                    dataStack1.filter(function(d){return !d.disabled})
-                );
-
+                .datum(dataStack1.filter(function(d){return !d.disabled}));
             var lines2Wrap = g.select('.lines2Wrap')
-                .datum(
-                    dataLines2.filter(function(d){return !d.disabled})
-                );
+                .datum(dataLines2.filter(function(d){return !d.disabled}));
             var bars2Wrap = g.select('.bars2Wrap')
-                .datum(
-                    dataBars2.filter(function(d){return !d.disabled})
-                );
+                .datum(dataBars2.filter(function(d){return !d.disabled}));
             var stack2Wrap = g.select('.stack2Wrap')
-                .datum(
-                    dataStack2.filter(function(d){return !d.disabled})
-                );
+                .datum(dataStack2.filter(function(d){return !d.disabled}));
 
             var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-            }).concat([{x:0, y:0}]) : []
+            }).concat([{x:0, y:0}]) : [];
             var extraValue2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-            }).concat([{x:0, y:0}]) : []
+            }).concat([{x:0, y:0}]) : [];
 
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
-                .range([0, availableHeight])
+                .range([0, availableHeight]);
 
             yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
-                .range([0, availableHeight])
+                .range([0, availableHeight]);
 
-            lines1.yDomain(yScale1.domain())
-            bars1.yDomain(yScale1.domain())
-            stack1.yDomain(yScale1.domain())
+            lines1.yDomain(yScale1.domain());
+            bars1.yDomain(yScale1.domain());
+            stack1.yDomain(yScale1.domain());
 
-            lines2.yDomain(yScale2.domain())
-            bars2.yDomain(yScale2.domain())
-            stack2.yDomain(yScale2.domain())
+            lines2.yDomain(yScale2.domain());
+            bars2.yDomain(yScale2.domain());
+            stack2.yDomain(yScale2.domain());
 
             if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
             if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
@@ -244,34 +205,34 @@ nv.models.multiChart = function() {
             if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
 
             xAxis
-                .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight, 0);
 
-            g.select('.x.axis')
+            g.select('.nv-x.nv-axis')
                 .attr('transform', 'translate(0,' + availableHeight + ')');
-            d3.transition(g.select('.x.axis'))
+            d3.transition(g.select('.nv-x.nv-axis'))
                 .call(xAxis);
 
             yAxis1
-                .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                 .tickSize( -availableWidth, 0);
 
 
-            d3.transition(g.select('.y1.axis'))
+            d3.transition(g.select('.nv-y1.nv-axis'))
                 .call(yAxis1);
 
             yAxis2
-                .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                 .tickSize( -availableWidth, 0);
 
-            d3.transition(g.select('.y2.axis'))
+            d3.transition(g.select('.nv-y2.nv-axis'))
                 .call(yAxis2);
 
-            g.select('.y1.axis')
+            g.select('.nv-y1.nv-axis')
                 .classed('nv-disabled', series1.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[0] + ',0)');
 
-            g.select('.y2.axis')
+            g.select('.nv-y2.nv-axis')
                 .classed('nv-disabled', series2.length ? false : true)
                 .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
@@ -279,108 +240,96 @@ nv.models.multiChart = function() {
                 chart.update();
             });
 
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
+            //============================================================
+            // Event Handling/Dispatching
+            //------------------------------------------------------------
+
+            function mouseover_line(evt) {
+                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                evt.value = evt.point.x;
+                evt.series = {
+                    value: evt.point.y,
+                    color: evt.point.color
+                };
+                tooltip
+                    .duration(100)
+                    .valueFormatter(function(d, i) {
+                        return yaxis.tickFormat()(d, i);
+                    })
+                    .data(evt)
+                    .position(evt.pos)
+                    .hidden(false);
+            }
+
+            function mouseover_stack(evt) {
+                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                evt.point['x'] = stack1.x()(evt.point);
+                evt.point['y'] = stack1.y()(evt.point);
+                tooltip
+                    .duration(100)
+                    .valueFormatter(function(d, i) {
+                        return yaxis.tickFormat()(d, i);
+                    })
+                    .data(evt)
+                    .position(evt.pos)
+                    .hidden(false);
+            }
+
+            function mouseover_bar(evt) {
+                var yaxis = data[evt.data.series].yAxis === 2 ? yAxis2 : yAxis1;
+
+                evt.value = bars1.x()(evt.data);
+                evt['series'] = {
+                    value: bars1.y()(evt.data),
+                    color: evt.color
+                };
+                tooltip
+                    .duration(0)
+                    .valueFormatter(function(d, i) {
+                        return yaxis.tickFormat()(d, i);
+                    })
+                    .data(evt)
+                    .hidden(false);
+            }
+
+            lines1.dispatch.on('elementMouseover.tooltip', mouseover_line);
+            lines2.dispatch.on('elementMouseover.tooltip', mouseover_line);
+            lines1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+            lines2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+
+            stack1.dispatch.on('elementMouseover.tooltip', mouseover_stack);
+            stack2.dispatch.on('elementMouseover.tooltip', mouseover_stack);
+            stack1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+            stack2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+
+            bars1.dispatch.on('elementMouseover.tooltip', mouseover_bar);
+            bars2.dispatch.on('elementMouseover.tooltip', mouseover_bar);
+
+            bars1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true);
+            });
+            bars2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true);
+            });
+            bars1.dispatch.on('elementMousemove.tooltip', function(evt) {
+                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+            });
+            bars2.dispatch.on('elementMousemove.tooltip', function(evt) {
+                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
             });
 
         });
 
         return chart;
     }
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-
-    lines1.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines1.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    lines2.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines2.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    bars1.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    bars1.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    bars2.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    bars2.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    stack1.dispatch.on('tooltipShow', function(e) {
-        //disable tooltips when value ~= 0
-        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-        if (!Math.round(stack1.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
-            setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
-            return false;
-        }
-
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-            dispatch.tooltipShow(e);
-    });
-
-    stack1.dispatch.on('tooltipHide', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    stack2.dispatch.on('tooltipShow', function(e) {
-        //disable tooltips when value ~= 0
-        //// TODO: consider removing points from voronoi that have 0 value instead of this hack
-        if (!Math.round(stack2.y()(e.point) * 100)) {  // 100 will not be good for very small numbers... will have to think about making this valu dynamic, based on data range
-            setTimeout(function() { d3.selectAll('.point.hover').classed('hover', false) }, 0);
-            return false;
-        }
-
-        e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top],
-            dispatch.tooltipShow(e);
-    });
-
-    stack2.dispatch.on('tooltipHide', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    lines1.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines1.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    lines2.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
-    });
-
-    lines2.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
-    });
 
     //============================================================
     // Global getters and setters
@@ -396,6 +345,7 @@ nv.models.multiChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis1 = yAxis1;
     chart.yAxis2 = yAxis2;
+    chart.tooltip = tooltip;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -406,10 +356,20 @@ nv.models.multiChart = function() {
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         yDomain1:      {get: function(){return yDomain1;}, set: function(_){yDomain1=_;}},
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -424,12 +384,27 @@ nv.models.multiChart = function() {
         x: {get: function(){return getX;}, set: function(_){
             getX = _;
             lines1.x(_);
+            lines2.x(_);
             bars1.x(_);
+            bars2.x(_);
+            stack1.x(_);
+            stack2.x(_);
         }},
         y: {get: function(){return getY;}, set: function(_){
             getY = _;
             lines1.y(_);
+            lines2.y(_);
+            stack1.y(_);
+            stack2.y(_);
             bars1.y(_);
+            bars2.y(_);
+        }},
+        useVoronoi: {get: function(){return useVoronoi;}, set: function(_){
+            useVoronoi=_;
+            lines1.useVoronoi(_);
+            lines2.useVoronoi(_);
+            stack1.useVoronoi(_);
+            stack2.useVoronoi(_);
         }}
     });
 

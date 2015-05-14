@@ -12,11 +12,13 @@ nv.models.scatterChart = function() {
         , legend       = nv.models.legend()
         , distX        = nv.models.distribution()
         , distY        = nv.models.distribution()
+        , tooltip      = nv.models.tooltip()
         ;
 
     var margin       = {top: 30, right: 20, bottom: 50, left: 75}
         , width        = null
         , height       = null
+        , container    = null
         , color        = nv.utils.defaultColor()
         , x            = scatter.xScale()
         , y            = scatter.yScale()
@@ -26,36 +28,28 @@ nv.models.scatterChart = function() {
         , showXAxis    = true
         , showYAxis    = true
         , rightAlignYAxis = false
-        , tooltips     = true
-        , tooltipX     = function(key, x, y) { return '<strong>' + x + '</strong>' }
-        , tooltipY     = function(key, x, y) { return '<strong>' + y + '</strong>' }
-        , tooltip      = function(key, x, y, date) { return '<h3>' + key + '</h3>'
-            + '<p>' + date + '</p>' }
         , state = nv.utils.state()
         , defaultState = null
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
-        , noData       = "No Data Available."
+        , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd')
+        , noData       = null
         , duration = 250
         ;
 
-    scatter
-        .xScale(x)
-        .yScale(y)
-    ;
-    xAxis
-        .orient('bottom')
-        .tickPadding(10)
-    ;
+    scatter.xScale(x).yScale(y);
+    xAxis.orient('bottom').tickPadding(10);
     yAxis
         .orient((rightAlignYAxis) ? 'right' : 'left')
         .tickPadding(10)
     ;
-    distX
-        .axis('x')
-    ;
-    distY
-        .axis('y')
-    ;
+    distX.axis('x');
+    distY.axis('y');
+    tooltip
+        .headerFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        })
+        .valueFormatter(function(d, i) {
+            return yAxis.tickFormat()(d, i);
+        });
 
     //============================================================
     // Private Variables
@@ -63,25 +57,6 @@ nv.models.scatterChart = function() {
 
     var x0, y0
         , renderWatch = nv.utils.renderWatch(dispatch, duration);
-
-    var showTooltip = function(e, offsetElement) {
-        //TODO: make tooltip style an option between single or dual on axes (maybe on all charts with axes?
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            leftX = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            topX = y.range()[0] + margin.top + ( offsetElement.offsetTop || 0),
-            leftY = x.range()[0] + margin.left + ( offsetElement.offsetLeft || 0 ),
-            topY = e.pos[1] + ( offsetElement.offsetTop || 0),
-            xVal = xAxis.tickFormat()(scatter.x()(e.point, e.pointIndex)),
-            yVal = yAxis.tickFormat()(scatter.y()(e.point, e.pointIndex));
-
-        if( tooltipX != null )
-            nv.tooltip.show([leftX, topX], tooltipX(e.series.key, xVal, yVal, e, chart), 'n', 1, offsetElement, 'x-nvtooltip');
-        if( tooltipY != null )
-            nv.tooltip.show([leftY, topY], tooltipY(e.series.key, xVal, yVal, e, chart), 'e', 1, offsetElement, 'y-nvtooltip');
-        if( tooltip != null )
-            nv.tooltip.show([left, top], tooltip(e.series.key, xVal, yVal, e.point.tooltip, e, chart), e.value < 0 ? 'n' : 's', null, offsetElement);
-    };
 
     var stateGetter = function(data) {
         return function(){
@@ -109,14 +84,13 @@ nv.models.scatterChart = function() {
         if (showDistY) renderWatch.models(distY);
 
         selection.each(function(data) {
-            var container = d3.select(this),
-                that = this;
+            var that = this;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height')) || 400)
-                    - margin.top - margin.bottom;
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
                 if (duration === 0)
@@ -147,20 +121,8 @@ nv.models.scatterChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container);
                 renderWatch.renderEnd('scatter immediate');
-
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -186,8 +148,6 @@ nv.models.scatterChart = function() {
             gEnter.append('g').attr('class', 'nv-distWrap');
             gEnter.append('g').attr('class', 'nv-legendWrap');
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
                     .attr("transform", "translate(" + availableWidth + ",0)");
@@ -195,7 +155,8 @@ nv.models.scatterChart = function() {
 
             // Legend
             if (showLegend) {
-                legend.width( availableWidth / 2 );
+                var legendWidth = availableWidth;
+                legend.width(legendWidth);
 
                 wrap.select('.nv-legendWrap')
                     .datum(data)
@@ -203,13 +164,14 @@ nv.models.scatterChart = function() {
 
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
-                    availableHeight = (height || parseInt(container.style('height')) || 400)
-                        - margin.top - margin.bottom;
+                    availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
 
                 wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + (availableWidth / 2) + ',' + (-margin.top) +')');
+                    .attr('transform', 'translate(0' + ',' + (-margin.top) +')');
             }
+
+            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             // Main Chart Component(s)
             scatter
@@ -267,7 +229,7 @@ nv.models.scatterChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks( xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight , 0);
 
                 g.select('.nv-x.nv-axis')
@@ -278,7 +240,7 @@ nv.models.scatterChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -329,33 +291,32 @@ nv.models.scatterChart = function() {
                 chart.update();
             });
 
-
-            scatter.dispatch.on('elementMouseover.tooltip', function(e) {
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-distx-' + e.pointIndex)
-                    .attr('y1', e.pos[1] - availableHeight);
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
-                    .attr('x2', e.pos[0] + distX.size());
-
-                e.pos = [e.pos[0] + margin.left, e.pos[1] + margin.top];
-                dispatch.tooltipShow(e);
-            });
-
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
-
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
                     });
-
                     state.disabled = e.disabled;
                 }
-
                 chart.update();
+            });
+
+            // mouseover needs availableHeight so we just keep scatter mouse events inside the chart block
+            scatter.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true);
+                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                    .attr('y1', 0);
+                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                    .attr('x2', distY.size());
+            });
+
+            scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
+                container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                    .attr('y1', evt.pos.top - availableHeight - margin.top);
+                container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                    .attr('x2', evt.pos.left + distX.size() - margin.left);
+                tooltip.position(evt.pos).data(evt).hidden(false);
             });
 
             //store old scales for use in transitions on update
@@ -369,22 +330,6 @@ nv.models.scatterChart = function() {
     }
 
     //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-
-    scatter.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-
-        d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-distx-' + e.pointIndex)
-            .attr('y1', 0);
-        d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + e.seriesIndex + ' .nv-disty-' + e.pointIndex)
-            .attr('x2', distY.size());
-    });
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
-    });
-
-    //============================================================
     // Expose Public Variables
     //------------------------------------------------------------
 
@@ -396,23 +341,42 @@ nv.models.scatterChart = function() {
     chart.yAxis = yAxis;
     chart.distX = distX;
     chart.distY = distY;
+    chart.tooltip = tooltip;
 
+    chart.options = nv.utils.optionsFunc.bind(chart);
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        container:  {get: function(){return container;}, set: function(_){container=_;}},
         showDistX:  {get: function(){return showDistX;}, set: function(_){showDistX=_;}},
         showDistY:  {get: function(){return showDistY;}, set: function(_){showDistY=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showXAxis:  {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:  {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
-        tooltips:   {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:   {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
-        tooltipXContent:  {get: function(){return tooltipX;}, set: function(_){tooltipX=_;}},
-        tooltipYContent:  {get: function(){return tooltipY;}, set: function(_){tooltipY=_;}},
         defaultState:     {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:     {get: function(){return noData;}, set: function(_){noData=_;}},
         duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
+        tooltipXContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'This option is removed, put values into main tooltip.');
+        }},
+        tooltipYContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'This option is removed, put values into main tooltip.');
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
