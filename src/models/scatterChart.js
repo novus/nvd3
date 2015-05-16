@@ -178,7 +178,8 @@ nv.models.scatterChart = function() {
                 .width(availableWidth)
                 .height(availableHeight)
                 .color(data.map(function(d,i) {
-                    return d.color || color(d, i);
+                    d.color = d.color || color(d, i);
+                    return d.color;
                 }).filter(function(d,i) { return !data[i].disabled }));
 
             wrap.select('.nv-scatterWrap')

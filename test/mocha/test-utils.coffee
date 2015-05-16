@@ -12,6 +12,7 @@ class ChartBuilder
     This method builds a chart and puts it on the <body> element.
     ###
     build: (options, data)->
+        @data = data
         @svg = document.createElement 'svg'
         document.querySelector('body').appendChild @svg
 
@@ -27,6 +28,7 @@ class ChartBuilder
     Update the data while preserving the chart model.
     ###
     updateData: (data)->
+        @data = data
         d3.select(@svg).datum(data).call(@model)
 
     ###
@@ -38,6 +40,7 @@ class ChartBuilder
     Useful for testing the results of transitioning and the 'noData' state after a chart has had data
     ###
     buildover: (options, data, data2)->
+        @data = data
         @svg = document.createElement 'svg'
         document.querySelector('body').appendChild @svg
 
