@@ -244,4 +244,4 @@ describe 'NVD3', ->
 
             builder.build options, singleData
 
-            should.exist builder.data[0].color
+            should.exist singleData[0].color
