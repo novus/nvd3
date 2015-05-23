@@ -21,6 +21,7 @@ nv.models.bulletChart = function() {
         , width = null
         , height = 55
         , tickFormat = null
+	, ticks = null
         , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
         ;
@@ -102,7 +103,7 @@ nv.models.bulletChart = function() {
 
             // Update the tick groups.
             var tick = g.selectAll('g.nv-tick')
-                .data(x1.ticks( availableWidth / 50 ), function(d) {
+                .data(x1.ticks( ticks ? ticks : (availableWidth / 50) ), function(d) {
                     return this.textContent || format(d);
                 });
 
@@ -184,6 +185,7 @@ nv.models.bulletChart = function() {
         width:    {get: function(){return width;}, set: function(_){width=_;}},
         height:    {get: function(){return height;}, set: function(_){height=_;}},
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
+        ticks:    {get: function(){return ticks;}, set: function(_){ticks=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
         // deprecated options
