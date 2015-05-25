@@ -109,6 +109,7 @@ only include the source files you changed!
 
 ### Tips for Testing
 * Unit tests were written in Karma and Mocha. Follow instructions in **Building Latest** to get npm packages setup. This may not work on Windows machines.
+* Run `bower install` to get bower dependencies.
 * Run `grunt` to start the unit tests.
 * Also visually inspect the HTML pages in the **examples/ and test/ folders**.  Make sure there are no glaring errors.
 * Novus now uses Travis CI for continuous integration. Visit [our travis build page](https://travis-ci.org/novus/nvd3/) to see the latest status.
