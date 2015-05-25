@@ -90,14 +90,35 @@ nv.models.multiBarHorizontal = function() {
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d) {
                     return d.values.map(function(d,i) {
-                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, yErr: getYerr(d,i) }
                     })
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableHeight], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
+            y.domain(yDomain || d3.extent(d3.merge(
+                d3.merge(seriesData).map(function(d) {
+                    var domain = d.y;
+                    if (stacked) {
+                        if (d.y > 0){
+                            domain = d.y1 + d.y
+                        } else {
+                            domain = d.y1
+                        }
+                    }
+                    var yerr = d.yErr;
+                    if (yerr) {
+                        if (yerr.length) {
+                            return [domain + yerr[0], domain + yerr[1]];
+                        } else {
+                            yerr = Math.abs(yerr)
+                            return [domain - yerr, domain + yerr];
+                        }
+                    } else {
+                        return [domain];
+                    }
+                })).concat(forceY)))
 
             if (showValues && !stacked)
                 y.range(yRange || [(y.domain()[0] < 0 ? valuePadding : 0), availableWidth - (y.domain()[1] > 0 ? valuePadding : 0) ]);

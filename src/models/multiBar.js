@@ -127,25 +127,36 @@ nv.models.multiBar = function() {
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d, idx) {
                     return d.values.map(function(d,i) {
-                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx }
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx, yErr: getYerr(d,i)}
                     })
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) {
-                var domain = d.y;
-                // increase the domain range if this series is stackable
-                if (stacked && !data[d.idx].nonStackable) {
-                    if (d.y > 0){
-                        domain = d.y1
-                    } else {
-                        domain = d.y1 + d.y
+            y.domain(yDomain || d3.extent(d3.merge(
+                d3.merge(seriesData).map(function(d) {
+                    var domain = d.y;
+                    // increase the domain range if this series is stackable
+                    if (stacked && !data[d.idx].nonStackable) {
+                        if (d.y > 0){
+                            domain = d.y1
+                        } else {
+                            domain = d.y1 + d.y
+                        }
                     }
-                }
-                return domain;
-            }).concat(forceY)))
+                    var yerr = d.yErr;
+                    if (yerr) {
+                        if (yerr.length) {
+                            return [domain + yerr[0], domain + yerr[1]];
+                        } else {
+                            yerr = Math.abs(yerr)
+                            return [domain - yerr, domain + yerr];
+                        }
+                    } else {
+                        return [domain];
+                    }
+                })).concat(forceY)))
             .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
