@@ -299,8 +299,11 @@ nv.models.multiBar = function() {
                         var a = [[-mid, yerr[0]], [mid, yerr[0]], [0, yerr[0]], [0, yerr[1]], [-mid, yerr[1]], [mid, yerr[1]]];
                         return a.map(function (path) { return path.join(',') }).join(' ');
                     })
-                    .attr('transform',
-                          'translate(' + (x.rangeBand() / ((stacked ? 1 : data.length) * 2)) + ', 0)')
+                    .attr('transform', function(d, i) {
+                        var xOffset = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
+                        var yOffset = getY(d,i) < 0 ? y(getY(d, i)) - y(0) : 0;
+                        return 'translate(' + xOffset + ', ' + yOffset + ')';
+                    })
             }
 
             bars
