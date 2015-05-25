@@ -311,7 +311,7 @@ nv.models.multiBar = function() {
 
             if (barColor) {
                 if (!disabled) disabled = data.map(function() { return true });
-                bars
+                bars.select('rect')
                     .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); })
                     .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
             }
