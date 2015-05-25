@@ -308,7 +308,8 @@ nv.models.multiBar = function() {
                         return i * duration / data[0].values.length;
                     });
             if (stacked){
-                bars.attr('transform', function(d,i,j) {
+                barSelection
+                    .attr('transform', function(d,i,j) {
                         var yVal = 0;
                         // if stackable, stack it on top of the previous series
                         if (!data[j].nonStackable) {
@@ -358,7 +359,7 @@ nv.models.multiBar = function() {
                     });
             }
             else {
-                bars.attr('transform', function(d,i) {
+                barSelection.attr('transform', function(d,i) {
                     var xVal = d.series * x.rangeBand() / data.length + x(getX(d, i));
                     var yVal = getY(d,i) < 0 ?
                             y(0) :
