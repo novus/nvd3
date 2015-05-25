@@ -19,6 +19,7 @@ nv.models.multiBarHorizontal = function() {
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , color = nv.utils.defaultColor()
         , barColor = null // adding the ability to set the color for each rather than the whole group
+        , errorBarColor = nv.utils.defaultColor()
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
         , stacked = false
         , showValues = false
@@ -195,11 +196,12 @@ nv.models.multiBarHorizontal = function() {
                     d3.event.stopPropagation();
                 });
 
-            if (getYerr(data[0],0)) {
+            if (getYerr(data[0].values[0], 0)) {
                 barsEnter.append('polyline');
 
                 bars.select('polyline')
                     .attr('fill', 'none')
+                    .attr('stroke', function(d,i,j) { return errorBarColor(d, j, i); })
                     .attr('points', function(d,i) {
                         var xerr = getYerr(d,i)
                             , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
@@ -348,6 +350,9 @@ nv.models.multiBarHorizontal = function() {
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
             barColor = _ ? nv.utils.getColor(_) : null;
+        }},
+        errorBarColor:  {get: function(){return errorBarColor;}, set: function(_){
+            errorBarColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 
