@@ -231,3 +231,17 @@ describe 'NVD3', ->
 
             builder.svg.querySelector('.nv-wrap.nv-scatter')
             .className.should.contain 'nv-single-point'
+
+        it 'should set color property if not specified', ->
+            builder.teardown()
+
+            singleData = [
+                key: 'Series1'
+                values: [
+                  [1,1]
+                ]
+            ]
+
+            builder.build options, singleData
+
+            should.exist singleData[0].color
