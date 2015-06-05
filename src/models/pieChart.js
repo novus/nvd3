@@ -123,7 +123,7 @@ nv.models.pieChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + (-margin.top) +')');
                 } else if (legendPosition === "right") {
-                    var legendWidth = nv.models.legend().width();
+                    var legendWidth = nv.models.legend().width(); 
                     if (availableWidth / 2 < legendWidth) {
                         legendWidth = (availableWidth / 2)
                     }

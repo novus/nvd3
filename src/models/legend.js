@@ -10,6 +10,7 @@ nv.models.legend = function() {
         , height = 20
         , getKey = function(d) { return d.key }
         , color = nv.utils.getColor()
+        , maxKeyLength = 20 //default value for key lengths
         , align = true
         , padding = 32 //define how much space between legend items. - recommend 32 for furious version
         , rightAlign = true
@@ -90,13 +91,24 @@ nv.models.legend = function() {
                 .attr('dx', '8');
 
             var seriesText = series.select('text.nv-legend-text');
+            var tooltip = nv.models.tooltip();
 
             series
                 .on('mouseover', function(d,i) {
                     dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
+                    console.log("before conditional");
+                    if (getKey(d).length > maxKeyLength) {
+                        d['series'] = {
+                            key: getKey(d),
+                            color: d.color
+                        };
+                        tooltip.duration(0).headerEnabled(false);
+                        tooltip.data(d).hidden(false);
+                    }
                 })
                 .on('mouseout', function(d,i) {
                     dispatch.legendMouseout(d,i);
+                    tooltip.hidden(true);
                 })
                 .on('click', function(d,i) {
                     dispatch.legendClick(d,i);
@@ -176,8 +188,15 @@ nv.models.legend = function() {
             if (align) {
 
                 var seriesWidths = [];
+
                 series.each(function(d,i) {
-                    var legendText = d3.select(this).select('text');
+                    var legendText;
+                    if (getKey(d).length > maxKeyLength) { 
+                        var trimmedKey = getKey(d).substring(0, maxKeyLength);
+                        legendText = d3.select(this).select('text').text(trimmedKey + "...");
+                    } else {
+                        legendText = d3.select(this).select('text');
+                    } 
                     var nodeTextLength;
                     try {
                         nodeTextLength = legendText.node().getComputedTextLength();
@@ -346,6 +365,7 @@ nv.models.legend = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         key:        {get: function(){return getKey;}, set: function(_){getKey=_;}},
         align:      {get: function(){return align;}, set: function(_){align=_;}},
+        maxKeyLength:   {get: function(){return maxKeyLength;}, set: function(_){maxKeyLength=_;}},
         rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
         padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
