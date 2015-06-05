@@ -44,6 +44,9 @@
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
             ,   headerEnabled = true
+            ,   colorDivEnabled = true //enable color div in tooltip for legend elements
+            ,   keyEnabled = true //enable key text in tooltip for legend elements
+            ,   valueEnabled = true //enable value text in tooltip for legend elements
         ;
 
         // set to true by interactive layer to adjust tooltip positions
@@ -102,19 +105,24 @@
                     .append("tr")
                     .classed("highlight", function(p) { return p.highlight});
 
-            trowEnter.append("td")
-                .classed("legend-color-guide",true)
-                .append("div")
-                .style("background-color", function(p) { return p.color});
+            if (colorDivEnabled === true) {
+                trowEnter.append("td")
+                    .classed("legend-color-guide",true)
+                    .append("div")
+                    .style("background-color", function(p) { return p.color});
+            }
 
-            trowEnter.append("td")
-                .classed("key",true)
-                .html(function(p, i) {return keyFormatter(p.key, i)});
+            if (keyEnabled === true) {
+                trowEnter.append("td")
+                    .classed("key",true)
+                    .html(function(p, i) {return keyFormatter(p.key, i)});
+            }
 
-            trowEnter.append("td")
-                .classed("value",true)
-                .html(function(p, i) { return valueFormatter(p.value, i) });
-
+            if (valueEnabled === true) {
+                trowEnter.append("td")
+                    .classed("value",true)
+                    .html(function(p, i) { return valueFormatter(p.value, i) });
+            }
 
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight) {
@@ -388,10 +396,14 @@
             enabled: {get: function(){return enabled;}, set: function(_){enabled=_;}},
             hideDelay: {get: function(){return hideDelay;}, set: function(_){hideDelay=_;}},
             contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
+            tooltipContent: {get: function(){return tooltipContent;}, set: function(_){tooltipContent=_;}},
             valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
             headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
             keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
             headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
+            colorDivEnabled:   {get: function(){return colorDivEnabled;}, set: function(_){colorDivEnabled=_;}},
+            keyEnabled:   {get: function(){return keyEnabled;}, set: function(_){keyEnabled=_;}},
+            valueEnabled:   {get: function(){return valueEnabled;}, set: function(_){valueEnabled=_;}},
 
             // internal use only, set by interactive layer to adjust position.
             _isInteractiveLayer: {get: function(){return isInteractiveLayer;}, set: function(_){isInteractiveLayer=!!_;}},
