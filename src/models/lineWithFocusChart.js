@@ -39,6 +39,8 @@ nv.models.lineWithFocusChart = function() {
 
     lines.clipEdge(true).duration(0);
     lines2.interactive(false);
+    // We don't want any points emitted for the focus chart's scatter graph.
+    lines2.pointActive(function(d) { return false });
     xAxis.orient('bottom').tickPadding(5);
     yAxis.orient('left');
     x2Axis.orient('bottom').tickPadding(5);

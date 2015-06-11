@@ -51,6 +51,8 @@ nv.models.linePlusBarChart = function() {
 
     lines.clipEdge(true);
     lines2.interactive(false);
+    // We don't want any points emitted for the focus chart's scatter graph.
+    lines2.pointActive(function(d) { return false });
     xAxis.orient('bottom').tickPadding(5);
     y1Axis.orient('left');
     y2Axis.orient('right');
