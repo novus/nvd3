@@ -36,13 +36,13 @@ NVD3 runs best on WebKit based browsers.
 
 ## Changelog
 
-**1.8.1-alpha** Changes:
+**1.8.1** Changes:
 
-* Tooltips were refactored
-* Added boxplot charts
+* Tooltips were refactored - If you have customized your tooltips, note that you may need to adjust your custom functions as the data passed has changed format.  See the new [tooltip options](https://nvd3-community.github.io/nvd3/examples/documentation.html#tooltip) for more details.
+* Added boxplot charts | [example](https://nvd3-community.github.io/nvd3/examples/boxPlot.html)
 * Added candlestick charts
-* Added sunburst Charts
-* Lots of bug fixes
+* Added sunburst Charts | [example](https://nvd3-community.github.io/nvd3/examples/sunburst.html)
+* Lots of bug fixes (see closed issues)
 
 **1.7.1** Changes:
 
