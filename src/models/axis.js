@@ -72,13 +72,14 @@ nv.models.axis = function() {
             switch (axis.orient()) {
                 case 'top':
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-                    if (scale.range().length < 2) {
-                        w = 0;
+		    w = 0;
+                    if (scale.range().length === 1) {
+                       w = scale.range()[0] * 2 + scale.rangeBand();
                     } else if (scale.range().length === 2) {
-                        w = scale.range()[1];
-                    } else {
-                        w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
-                    }
+                       w = scale.range()[0] + scale.range()[1] + scale.rangeBand();;
+                    } else if ( scale.range().length > 2){
+                      w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+                    };
                     axisLabel
                         .attr('text-anchor', 'middle')
                         .attr('y', 0)
