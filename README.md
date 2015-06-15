@@ -2,7 +2,7 @@
 
 Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ocks.org/mike/chart/), and supported by a combined effort of [Novus](http://www.novus.com) and the NVD3 community.
 
-[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/novus/nvd3.svg?branch=development)](https://travis-ci.org/novus/nvd3)
+[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/novus/nvd3.svg?branch=master)](https://travis-ci.org/novus/nvd3)
 
 
 ## Usage
@@ -35,6 +35,14 @@ NVD3 runs best on WebKit based browsers.
 * Internet Explorer: 10+
 
 ## Changelog
+
+**1.8.1-alpha** Changes:
+
+* Tooltips were refactored
+* Added boxplot charts
+* Added candlestick charts
+* Added sunburst Charts
+* Lots of bug fixes
 
 **1.7.1** Changes:
 
@@ -75,7 +83,7 @@ from the issues/pulls from the original project.
 
 # Bugs
 
-Found a bug?  Check out the `development` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
+Found a bug?  Check out the latest from the `master` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
 
 ---
 
@@ -87,7 +95,7 @@ Including [Fastdom](https://github.com/wilsonpage/fastdom) in your project can g
 
 # Contributing
 
-If one of [the existing models](https://github.com/nvd3-community/nvd3/tree/development/src/models)
+If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models)
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
 
@@ -95,7 +103,7 @@ If you'd like to contribute consistently, show me what you've got with some good
 
 ### A few rules for pull requests
 
-1. Please commit to the `development` branch
+1. Please commit to the `master` branch
 2. Do NOT check in anything under the `build` directory, it clutters up the commit and just gets overwritten later.
 3. All new features must come with unit test coverage
 4. Bug fixes should come with unit tests that prove their fix
@@ -118,7 +126,7 @@ only include the source files you changed!
 
 ## Building latest
 
-1. First clone the repository and checkout the `development` branch
+1. First clone the repository and checkout the `master` branch
 2. make sure `nodejs` is installed via your system's package manager.
 3. Install `grunt`, `grunt-cli`, and `bower`:  `npm install -g grunt grunt-cli bower`
 
