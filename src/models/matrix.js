@@ -270,49 +270,45 @@ nv.models.matrix = function() {
 
     chart.dispatch = dispatch;
 
-    chart.options = nv.utils.optionsFunc.bind(chart);
+    chart.tooltip = tooltip;
 
-    //chart.tooltipContent = function(_){
-    //    if (!arguments.length) return tooltipContent;
-    //    tooltipContent = _;
-    //    return chart;
-    //}
+    chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart.labelFormat = function(_){
         if (!arguments.length) return labelFormat;
         labelFormat = _;
         return chart;
-    }
+    };
 
     chart.labelContent = function(_){
         if (!arguments.length) return labelContent;
         labelContent = _;
         return chart;
-    }
+    };
 
     chart.getKey = function(_){
         if (!arguments.length) return getKey;
         getKey = _;
         return chart;
-    }
+    };
 
     chart.getColor = function(_){
         if (!arguments.length) return getColor;
         getColor = _;
         return chart;
-    }
+    };
 
     chart.noData = function(_){
         if (!arguments.length) return noData;
         noData = _;
         return chart;
-    }
+    };
 
     chart.transitionDuration = function(_){
         if (!arguments.length) return transitionDuration;
         transitionDuration = _;
         return chart;
-    }
+    };
 
     chart.margin = function(_) {
         if (!arguments.length) return margin;
