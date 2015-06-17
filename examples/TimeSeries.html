@@ -145,6 +145,21 @@
         tooltip.contentGenerator(function (d) { d.value = d.series[0].data.x; return contentGenerator(d); });
         tooltip.headerFormatter(function (d) { return tsFormat(new Date(d)); });
 
+        // fix the bar widths so they don't overlap when there are gaps
+        var xScale = chart.xScale();
+        var xPixelFirstBar = xScale(data[0].values[0].x);
+        var xPixelSecondBar = xScale(data[0].values[0].x + barTimespan * 1000);
+        var barWidth = xPixelSecondBar - xPixelFirstBar; // number of pixels representing time delta per bar
+        svgElem
+            .selectAll('.nv-bars')
+            .selectAll('rect')
+            .attr('width', barWidth)
+            .attr('transform', function(d, i) {
+                var deltaX = xScale(data[0].values[i].x) - xPixelFirstBar;
+                return 'translate(' + deltaX + ', 0)';
+            })
+            ;
+
         return chart;
     });
 
