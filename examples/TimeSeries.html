@@ -52,8 +52,8 @@
 </head>
 <body class='with-3d-shadow with-transitions'>
 
-<button class="spaced" onClick="switchChartStyle('samples')">Data is periodic samples</button>
-<button class="spaced" onClick="switchChartStyle('usage')">Data is usage across the period</button>
+<button class="spaced" onClick="switchChartStyle('instant')">Bars represents points in time</button>
+<button class="spaced" onClick="switchChartStyle('timespan')">Bars represent spans of time</button>
 <div class="spaced" style="float: left;">(affects the x axis ticks and the bar spacing)</div>
 
 <div style="clear: both;"></div>
@@ -198,10 +198,10 @@
                 xAxisElem.attr('transform', transform);
             }
 
-            if (meaning === 'periodic_samples') {
+            if (meaning === 'instant') {
                 fixBarWidths(0.2);
             }
-            else if (meaning === 'period_usage') {
+            else if (meaning === 'timespan') {
                 fixBarWidths(0.0);
                 shiftXAxis();
             }
@@ -210,8 +210,8 @@
         });
     }
 
-    renderChart('#test1', 'periodic_samples');
-    renderChart('#test2', 'period_usage');
+    renderChart('#test1', 'instant');
+    renderChart('#test2', 'timespan');
 
     window.setTimeout(function() {
         window.setTimeout(function() {
@@ -221,11 +221,11 @@
     }, 0);
 
     function switchChartStyle(style) {
-        if (style === 'samples') {
+        if (style === 'instant') {
             document.getElementById('sc-one').style.display = 'block';
             document.getElementById('sc-two').style.display = 'none';
         }
-        else if (style === 'usage') {
+        else if (style === 'timespan') {
             document.getElementById('sc-one').style.display = 'none';
             document.getElementById('sc-two').style.display = 'block';
         }
