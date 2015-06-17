@@ -19,6 +19,7 @@ nv.models.multiBarHorizontal = function() {
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , color = nv.utils.defaultColor()
         , barColor = null // adding the ability to set the color for each rather than the whole group
+        , errorBarColor = nv.utils.defaultColor()
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
         , stacked = false
         , showValues = false
@@ -89,14 +90,35 @@ nv.models.multiBarHorizontal = function() {
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d) {
                     return d.values.map(function(d,i) {
-                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, yErr: getYerr(d,i) }
                     })
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableHeight], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
+            y.domain(yDomain || d3.extent(d3.merge(
+                d3.merge(seriesData).map(function(d) {
+                    var domain = d.y;
+                    if (stacked) {
+                        if (d.y > 0){
+                            domain = d.y1 + d.y
+                        } else {
+                            domain = d.y1
+                        }
+                    }
+                    var yerr = d.yErr;
+                    if (yerr) {
+                        if (yerr.length) {
+                            return [domain + yerr[0], domain + yerr[1]];
+                        } else {
+                            yerr = Math.abs(yerr)
+                            return [domain - yerr, domain + yerr];
+                        }
+                    } else {
+                        return [domain];
+                    }
+                })).concat(forceY)))
 
             if (showValues && !stacked)
                 y.range(yRange || [(y.domain()[0] < 0 ? valuePadding : 0), availableWidth - (y.domain()[1] > 0 ? valuePadding : 0) ]);
@@ -197,11 +219,12 @@ nv.models.multiBarHorizontal = function() {
                     d3.event.stopPropagation();
                 });
 
-            if (getYerr(data[0],0)) {
+            if (getYerr(data[0].values[0], 0)) {
                 barsEnter.append('polyline');
 
                 bars.select('polyline')
                     .attr('fill', 'none')
+                    .attr('stroke', function(d,i,j) { return errorBarColor(d, j, i); })
                     .attr('points', function(d,i) {
                         var xerr = getYerr(d,i)
                             , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
@@ -356,6 +379,9 @@ nv.models.multiBarHorizontal = function() {
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
             barColor = _ ? nv.utils.getColor(_) : null;
+        }},
+        errorBarColor:  {get: function(){return errorBarColor;}, set: function(_){
+            errorBarColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 

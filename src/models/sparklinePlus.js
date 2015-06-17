@@ -31,7 +31,7 @@ nv.models.sparklinePlus = function() {
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
-            chart.update = function() { chart(selection) };
+            chart.update = function() { container.call(chart); };
             chart.container = this;
 
             // Display No Data message if there's nothing to show.
