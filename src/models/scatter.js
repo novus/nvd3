@@ -256,7 +256,9 @@ nv.models.scatter = function() {
 
                         var pos = {
                             left: x(getX(point, d.point)) + box.left + scrollLeft + margin.left + 10,
-                            top: y(getY(point, d.point)) + box.top + scrollTop + margin.top + 10
+                            top: y(getY(point, d.point)) + box.top + scrollTop + margin.top + 10,
+                            lineLeft : (point.x - x.domain()[0]) / (x.domain()[1] - x.domain()[0]) * nv.utils.availableWidth(width, container, margin),
+                            lineTop : (point.y - y.domain()[0]) / (y.domain()[1] - y.domain()[0]) * nv.utils.availableHeight(height, container, margin)
                         };
 
                         mDispatch({
