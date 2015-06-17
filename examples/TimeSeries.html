@@ -84,11 +84,15 @@
 
     var chart;
 
+    var halfBarXMin = data[0].values[0].x - barTimespan / 2 * 1000;
+    var halfBarXMax = data[0].values[data[0].values.length-1].x + barTimespan / 2 * 1000;
+
     nv.addGraph(function() {
         chart = nv.models.historicalBarChart();
         chart
             .xScale(d3.time.scale()) // use a time scale instead of plain numbers in order to get nice round default values in the axis
             .color(['#68c'])
+            .forceX([halfBarXMin, halfBarXMax]) // fix half-bar problem on the first and last bars
             .useInteractiveGuideline(true) // check out the css that turns the guideline into this nice thing
             .margin({"left": 80, "right": 50, "top": 20, "bottom": 30})
             .duration(0)
