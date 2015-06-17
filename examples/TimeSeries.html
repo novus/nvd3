@@ -54,16 +54,31 @@
     }];
 
     var i, x;
+    var gap = false;
     var prevVal = 3000;
-    var tickCount = 2000;
+    var tickCount = 100;
+    var probEnterGap = 0.1;
+    var probExitGap = 0.2;
+    var barTimespan = 30 * 60; // thirty minutes in seconds
+    var startOfTime = 1425096000;
     for (i = 0; i < tickCount; i++) {
-        x = 1425096000 + i * 10 * 60; // data points every ten minutes
-        if (Math.random() < 0.8) { // add some gaps
-            prevVal += (Math.random() - 0.5) * 500;
-            if (prevVal <= 0) {
-                prevVal = Math.random() * 100;
+        x = startOfTime + i * barTimespan;
+        if (!gap) {
+            if (Math.random() > probEnterGap) {
+                prevVal += (Math.random() - 0.5) * 500;
+                if (prevVal <= 0) {
+                    prevVal = Math.random() * 100;
+                }
+                data[0].values.push({x: x * 1000, y: prevVal});
             }
-            data[0].values.push({x: x * 1000, y: prevVal});
+            else {
+                gap = true;
+            }
+        }
+        else {
+            if (Math.random() < probExitGap) {
+                gap = false;
+            }
         }
     }
 
