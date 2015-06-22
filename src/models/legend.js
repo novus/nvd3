@@ -96,14 +96,15 @@ nv.models.legend = function() {
             series
                 .on('mouseover', function(d,i) {
                     dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
-                    console.log("before conditional");
                     if (getKey(d).length > maxKeyLength) {
                         d['series'] = {
-                            key: getKey(d),
-                            color: d.color
+                            key: getKey(d)
                         };
                         tooltip.duration(0).headerEnabled(false);
                         tooltip.data(d).hidden(false);
+                        tooltip.data(d).colorDivEnabled(false);
+                        tooltip.data(d).valueEnabled(false);
+                        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
                     }
                 })
                 .on('mouseout', function(d,i) {
