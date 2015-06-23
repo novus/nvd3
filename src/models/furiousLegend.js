@@ -10,6 +10,7 @@ nv.models.furiousLegend = function() {
         , height = 20
         , getKey = function(d) { return d.key }
         , color = nv.utils.getColor()
+        , maxKeyLength = 20 //default value for key lengths
         , align = true
         , padding = 28 //define how much space between legend items. - recommend 32 for furious version
         , rightAlign = true
@@ -176,8 +177,15 @@ nv.models.furiousLegend = function() {
             if (align) {
 
                 var seriesWidths = [];
+                
                 series.each(function(d,i) {
-                    var legendText = d3.select(this).select('text');
+                    var legendText;
+                    if (getKey(d).length > maxKeyLength) { 
+                        var trimmedKey = getKey(d).substring(0, maxKeyLength);
+                        legendText = d3.select(this).select('text').text(trimmedKey + "...");
+                    } else {
+                        legendText = d3.select(this).select('text');
+                    } 
                     var nodeTextLength;
                     try {
                         nodeTextLength = legendText.node().getComputedTextLength();
@@ -314,6 +322,7 @@ nv.models.furiousLegend = function() {
         key:        {get: function(){return getKey;}, set: function(_){getKey=_;}},
         align:      {get: function(){return align;}, set: function(_){align=_;}},
         rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
+        maxKeyLength:  {get: function(){return maxKeyLength;}, set: function(_){maxKeyLength=_;}},
         padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
         radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
