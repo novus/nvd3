@@ -240,10 +240,7 @@ nv.models.multiBar = function() {
 
             barsEnter.append('rect')
                     .attr('height', 0)
-                    .attr('width', function(d,i,j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length) })
-                    .style('fill', function(d,i,j){ return color(d, j, i);  })
-                    .style('stroke', function(d,i,j){ return color(d, j, i); })
-                ;
+                    .attr('width', function(d,i,j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length) });
             bars
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
