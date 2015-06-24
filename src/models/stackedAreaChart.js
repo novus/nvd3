@@ -342,7 +342,7 @@ nv.models.stackedAreaChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [];
+                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -367,6 +367,8 @@ nv.models.stackedAreaChart = function() {
                             color: color(series,series.seriesIndex),
                             stackedValue: point.display
                         });
+
+                        valueSum += tooltipValue;
                     });
 
                 allData.reverse();
@@ -390,6 +392,15 @@ nv.models.stackedAreaChart = function() {
                     });
                     if (indexToHighlight != null)
                         allData[indexToHighlight].highlight = true;
+                }
+
+                //If we are not in 'expand' mode, add a 'Total' row to the tooltip.
+                if (stacked.style() != 'expand' && allData.length >= 2) {
+                    allData.push({
+                        key: "TOTAL",
+                        value: valueSum,
+                        total: true
+                    });
                 }
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
