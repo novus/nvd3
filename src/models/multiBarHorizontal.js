@@ -188,13 +188,6 @@ nv.models.multiBarHorizontal = function() {
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('mouseout', function(d,i) {
-                    dispatch.elementMouseout({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).style("fill")
-                    });
-                })
                 .on('mousemove', function(d,i) {
                     dispatch.elementMousemove({
                         data: d,
