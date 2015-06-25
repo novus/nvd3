@@ -35,6 +35,7 @@ nv.models.lineWithFocusChart = function() {
         , transitionDuration = 250
         , state = nv.utils.state()
         , defaultState = null
+        , focusEnable = true
         ;
 
     lines.clipEdge(true).duration(0);
@@ -77,7 +78,8 @@ nv.models.lineWithFocusChart = function() {
                 that = this;
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight1 = nv.utils.availableHeight(height, container, margin) - height2,
+                availableHeight1 = nv.utils.availableHeight(height, container, margin)
+                    - (focusEnable ? height2 : 0),
                 availableHeight2 = height2 - margin2.top - margin2.bottom;
 
             chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
@@ -155,6 +157,7 @@ nv.models.lineWithFocusChart = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+            g.select('.nv-context').style('display', focusEnable ? 'initial' : 'none');
             
             //Set up interactive layer
             if (useInteractiveGuideline) {
@@ -473,6 +476,7 @@ nv.models.lineWithFocusChart = function() {
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         brushExtent: {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
+        focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
         // deprecated options
