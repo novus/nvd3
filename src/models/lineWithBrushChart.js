@@ -84,7 +84,7 @@ nv.models.lineWithBrushChart = function() {
                 that = this;
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width,container,margin),
-                availableHeight = nv.utils.availableHeight(height,container,margin);
+                availableHeight = 30;
 
             chart.update = function() {
                 if (duration === 0)
@@ -463,10 +463,12 @@ nv.models.lineWithBrushChart = function() {
                 var end  = x.domain()[1];
 
                 if( brush.empty() || brushExtent === null){
-                    brushExtent = [ x.domain()[0], x.domain()[0]+(playMode?brushStep:initStep(brushStep)) ];
+                    //brushExtent = [ x.domain()[0], x.domain()[0]+(playMode?brushStep:initStep(brushStep)) ];
+                    brushExtent = [x.domain()[0],brushStep];
                 }
                 if( brushExtent[1] >= end ){
-                    brushExtent = playMode?[ brushExtent[0], brushExtent[0] ]:[ x.domain()[0], x.domain()[0] + brushExtent[1]- brushExtent[0] ];
+                    //brushExtent = playMode?[ brushExtent[0], brushExtent[0] ]:[ x.domain()[0], x.domain()[0] + brushExtent[1]- brushExtent[0] ];
+                    brushExtent = playMode ? [brushExtent[0], x.domain()[1]] : [x.domain()[0], x.domain()[1]];
                 }
 
                 var playstep = function(){
@@ -479,12 +481,21 @@ nv.models.lineWithBrushChart = function() {
                         },0);
                         return;
                     }
-                    if(brushExtent[1] + brushStep >= end){
-                        brushStep =  end - brushExtent[1];
-                    }else{
+                    brushExtent = [ brushExtent[0], brushStep];
+
+                    if(brushStep < end)
+                    {
                         brushStep = step(x.domain(),data[0].values);
+                    }else
+                    {
+                        brushExtent = [ brushExtent[0], x.domain()[1] ];
                     }
-                    brushExtent = [ playMode?brushExtent[0]:brushExtent[0]+=brushStep , brushExtent[1]+=brushStep ];
+                    //if(brushExtent[1] + brushStep >= end){
+                    //    brushStep =  end - brushExtent[1];
+                    //}else{
+                    //    brushStep = step(x.domain(),data[0].values);
+                    //}
+                    //brushExtent = [ playMode?brushExtent[0]:brushExtent[0]+=brushStep , brushExtent[1]+=brushStep ];
                     brush.extent(brushExtent);
                     gBrush.call(brush);
                     onBrush();
