@@ -114,6 +114,12 @@ nv.models.linePlusBarChart = function() {
         }
     };
 
+    var allDisabled = function(data) {
+      return data.every(function(series) {
+        return series.disabled;
+      });
+    }
+
     function chart(selection) {
         selection.each(function(data) {
             var container = d3.select(this),
@@ -279,9 +285,11 @@ nv.models.linePlusBarChart = function() {
                     {values: []}
                 ]);
             var lines2Wrap = g.select('.nv-context .nv-linesWrap')
-                .datum(!dataLines[0].disabled ? dataLines : [
-                    {values: []}
-                ]);
+                .datum(allDisabled(dataLines) ?
+                       [{values: []}] :
+                       dataLines.filter(function(dataLine) {
+                         return !dataLine.disabled;
+                       }));
 
             g.select('.nv-context')
                 .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')');
@@ -451,10 +459,13 @@ nv.models.linePlusBarChart = function() {
                 );
 
                 var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-                    .datum(dataLines[0].disabled ? [{values:[]}] :
-                        dataLines
-                            .map(function(d,i) {
+                    .datum(allDisabled(dataLines) ? [{values:[]}] :
+                           dataLines
+                           .filter(function(dataLine) { return !dataLine.disabled; })
+                           .map(function(d,i) {
                                 return {
+                                    area: d.area,
+                                    fillOpacity: d.fillOpacity,
                                     key: d.key,
                                     values: d.values.filter(function(d,i) {
                                         return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
@@ -500,7 +511,7 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-focus .nv-y1.nv-axis')
                     .style('opacity', dataBars.length ? 1 : 0);
                 g.select('.nv-focus .nv-y2.nv-axis')
-                    .style('opacity', dataLines.length && !dataLines[0].disabled ? 1 : 0)
+                    .style('opacity', dataLines.length && !allDisabled(dataLines) ? 1 : 0)
                     .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
                 g.select('.nv-focus .nv-y1.nv-axis').transition().duration(transitionDuration)
