@@ -47,6 +47,7 @@ nv.models.linePlusBarChart = function() {
         , defaultState = null
         , legendLeftAxisHint = ' (left axis)'
         , legendRightAxisHint = ' (right axis)'
+        , leftAxisShowBars = true
         ;
 
     lines.clipEdge(true);
@@ -67,6 +68,18 @@ nv.models.linePlusBarChart = function() {
     //============================================================
     // Private Variables
     //------------------------------------------------------------
+
+    var getBarsAxis = function() {
+        return leftAxisShowBars
+            ? { main: y1Axis, focus: y3Axis }
+            : { main: y2Axis, focus: y4Axis }
+    }
+
+    var getLinesAxis = function() {
+        return leftAxisShowBars
+            ? { main: y2Axis, focus: y4Axis }
+            : { main: y1Axis, focus: y3Axis }
+    }
 
     var stateGetter = function(data) {
         return function(){
@@ -137,13 +150,15 @@ nv.models.linePlusBarChart = function() {
 
             x = bars.xScale();
             x2 = x2Axis.scale();
-            y1 = bars.yScale();
-            y2 = lines.yScale();
-            y3 = bars2.yScale();
-            y4 = lines2.yScale();
+
+            // select the scales and series based on the position of the yAxis
+            y1 = leftAxisShowBars ? bars.yScale() : lines.yScale();
+            y2 = leftAxisShowBars ? lines.yScale() : bars.yScale();
+            y3 = leftAxisShowBars ? bars2.yScale() : lines2.yScale();
+            y4 = leftAxisShowBars ? lines2.yScale() : bars2.yScale();
 
             var series1 = data
-                .filter(function(d) { return !d.disabled && d.bar })
+                .filter(function(d) { return !d.disabled && (leftAxisShowBars ? d.bar : !d.bar) })
                 .map(function(d) {
                     return d.values.map(function(d,i) {
                         return { x: getX(d,i), y: getY(d,i) }
@@ -151,7 +166,7 @@ nv.models.linePlusBarChart = function() {
                 });
 
             var series2 = data
-                .filter(function(d) { return !d.disabled && !d.bar })
+                .filter(function(d) { return !d.disabled && (leftAxisShowBars ? !d.bar : d.bar) })
                 .map(function(d) {
                     return d.values.map(function(d,i) {
                         return { x: getX(d,i), y: getY(d,i) }
@@ -201,7 +216,11 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-legendWrap')
                     .datum(data.map(function(series) {
                         series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
-                        series.key = series.originalKey + (series.bar ? legendLeftAxisHint : legendRightAxisHint);
+                        if(leftAxisShowBars) {
+                            series.key = series.originalKey + (series.bar ? legendLeftAxisHint : legendRightAxisHint);
+                        } else {
+                            series.key = series.originalKey + (series.bar ? legendRightAxisHint : legendLeftAxisHint);
+                        }
                         return series;
                     }))
                     .call(legend);
@@ -433,7 +452,7 @@ nv.models.linePlusBarChart = function() {
                 );
 
                 // Update Main (Focus) X Axis
-                if (dataBars.length) {
+                if (dataBars.length && leftAxisShowBars) {
                     x = bars.xScale();
                 } else {
                     x = lines.xScale();
@@ -466,10 +485,17 @@ nv.models.linePlusBarChart = function() {
                     ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
                     .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
+                // Calculate opacity of the axis
+                var barsOpacity = dataBars.length ? 1 : 0;
+                var linesOpacity = dataLines.length && !allDisabled(dataLines) ? 1 : 0;
+
+                var y1Opacity = leftAxisShowBars ? barsOpacity : linesOpacity;
+                var y2Opacity = leftAxisShowBars ? linesOpacity : barsOpacity;
+
                 g.select('.nv-focus .nv-y1.nv-axis')
-                    .style('opacity', dataBars.length ? 1 : 0);
+                    .style('opacity', y1Opacity);
                 g.select('.nv-focus .nv-y2.nv-axis')
-                    .style('opacity', dataLines.length && !allDisabled(dataLines) ? 1 : 0)
+                    .style('opacity', y2Opacity)
                     .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
                 g.select('.nv-focus .nv-y1.nv-axis').transition().duration(transitionDuration)
@@ -493,7 +519,7 @@ nv.models.linePlusBarChart = function() {
         tooltip
             .duration(100)
             .valueFormatter(function(d, i) {
-                return y2Axis.tickFormat()(d, i);
+                return getLinesAxis().main.tickFormat()(d, i);
             })
             .data(evt)
             .hidden(false);
@@ -512,7 +538,7 @@ nv.models.linePlusBarChart = function() {
         tooltip
             .duration(0)
             .valueFormatter(function(d, i) {
-                return y1Axis.tickFormat()(d, i);
+                return getBarsAxis().main.tickFormat()(d, i);
             })
             .data(evt)
             .hidden(false);
@@ -563,6 +589,7 @@ nv.models.linePlusBarChart = function() {
         focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
         legendLeftAxisHint:    {get: function(){return legendLeftAxisHint;}, set: function(_){legendLeftAxisHint=_;}},
         legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
+        leftAxisShowBars:    {get: function(){return leftAxisShowBars;}, set: function(_){leftAxisShowBars=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -599,6 +626,13 @@ nv.models.linePlusBarChart = function() {
             bars2.y(_);
         }}
     });
+
+    chart.toggleAxis = function() {
+        leftAxisShowBars = !leftAxisShowBars;
+        var tickFormat = y1Axis.tickFormat();
+        y1Axis.tickFormat(y2Axis.tickFormat());
+        y2Axis.tickFormat(tickFormat);
+    }
 
     nv.utils.inheritOptions(chart, lines);
     nv.utils.initOptions(chart);
