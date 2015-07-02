@@ -370,7 +370,9 @@ nv.models.stackedAreaChart = function() {
                             stackedValue: point.display
                         });
 
-                        valueSum += tooltipValue;
+                        if (showTotalInTooltip && stacked.style() != 'expand') {
+                          valueSum += tooltipValue;
+                        };
                     });
 
                 allData.reverse();
