@@ -213,7 +213,7 @@ nv.models.scatter = function() {
                         })
                         .attr("id", function(d,i) {
                             return "nv-path-"+i; })
-                        .attr("clip-path", function(d,i) { return "url(#nv-clip-"+i+")"; })
+                        .attr("clip-path", function(d,i) { return "url(#nv-clip-"+id+"-"+i+")"; })
                         ;
 
                     // good for debugging point hover issues
@@ -231,7 +231,7 @@ nv.models.scatter = function() {
                         wrap.select('.nv-point-clips').selectAll("clipPath")
                             .data(vertices)
                             .enter().append("svg:clipPath")
-                            .attr("id", function(d, i) { return "nv-clip-"+i;})
+                            .attr("id", function(d, i) { return "nv-clip-"+id+"-"+i;})
                             .append("svg:circle")
                             .attr('cx', function(d) { return d[0]; })
                             .attr('cy', function(d) { return d[1]; })

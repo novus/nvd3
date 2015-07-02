@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-04-22 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-06-15 */
 .nvd3 .nv-axis {
     pointer-events:none;
     opacity: 1;
@@ -80,6 +80,7 @@
 
 .nvd3 .nv-multibar .nv-groups rect:hover,
 .nvd3 .nv-multibarHorizontal .nv-groups rect:hover,
+.nvd3 .nv-candlestickBar .nv-ticks rect:hover,
 .nvd3 .nv-discretebar .nv-groups rect:hover {
     fill-opacity: 1;
 }
@@ -149,6 +150,13 @@
 .nvd3.nv-candlestickBar .nv-ticks .nv-tick.negative rect {
     stroke: #d62728;
     fill: #d62728;
+}
+
+.with-transitions .nv-candlestickBar .nv-ticks .nv-tick {
+    transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
+    -moz-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
+    -webkit-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
+
 }
 
 .nvd3.nv-candlestickBar .nv-ticks line {
@@ -427,6 +435,7 @@ svg.nvd3-svg {
 .nv-distx, .nv-disty {
     pointer-events: none;
 }
+
 /* sparkline */
 .nvd3.nv-sparkline path {
     fill: none;

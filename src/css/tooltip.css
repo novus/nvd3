@@ -87,7 +87,10 @@
 }
 
 .nvtooltip table td.key {
-    font-weight:normal;
+    font-weight: normal;
+}
+.nvtooltip table td.key.total {
+    font-weight: bold;
 }
 .nvtooltip table td.value {
     text-align: right;
