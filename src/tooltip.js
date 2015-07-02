@@ -109,8 +109,8 @@
 
             trowEnter.append("td")
                 .classed("key",true)
-                .html(function(p, i) {return keyFormatter(p.key, i)})
-                .style("font-weight", function(p) {return p.total && "bold"});
+                .classed("total",function(p) { return !!p.total})
+                .html(function(p, i) { return keyFormatter(p.key, i)});
 
             trowEnter.append("td")
                 .classed("value",true)

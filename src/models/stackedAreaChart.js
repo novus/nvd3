@@ -25,6 +25,8 @@ nv.models.stackedAreaChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , useInteractiveGuideline = false
+        , showTotalInTooltip = true
+        , totalLabel = 'TOTAL'
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
         , state = nv.utils.state()
@@ -395,9 +397,9 @@ nv.models.stackedAreaChart = function() {
                 }
 
                 //If we are not in 'expand' mode, add a 'Total' row to the tooltip.
-                if (stacked.style() != 'expand' && allData.length >= 2) {
+                if (showTotalInTooltip && stacked.style() != 'expand' && allData.length >= 2) {
                     allData.push({
-                        key: "TOTAL",
+                        key: totalLabel,
                         value: valueSum,
                         total: true
                     });
@@ -508,6 +510,8 @@ nv.models.stackedAreaChart = function() {
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         controlOptions:    {get: function(){return controlOptions;}, set: function(_){controlOptions=_;}},
+        showTotalInTooltip:      {get: function(){return showTotalInTooltip;}, set: function(_){showTotalInTooltip=_;}},
+        totalLabel:      {get: function(){return totalLabel;}, set: function(_){totalLabel=_;}},
 
         // deprecated options
         tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
