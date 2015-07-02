@@ -268,8 +268,9 @@ nv.models.lineWithFocusChart = function() {
 
             y2Axis
                 .scale(y2)
-                ._ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
-                .tickSize( -availableWidth, 0);
+                ._ticks( 0 )
+                .tickSize( -availableWidth, 0)
+                .showMaxMin(false);
 
             d3.transition(g.select('.nv-context .nv-y.nv-axis'))
                 .call(y2Axis);
@@ -409,23 +410,30 @@ nv.models.lineWithFocusChart = function() {
 
                 updateBrushBG();
 
+                var updateData = data
+                    .filter(function(d) { return !d.disabled })
+                    .map(function(d,i) {
+                        return {
+                            key: d.key,
+                            area: d.area,
+                            values: d.values.filter(function(d,i) {
+                                return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                            })
+                        }
+                    });
+
+                var maxDomain = d3.max(updateData.map(function(d,i){
+                    return d3.max(d.values.map(function(d,i){
+                        return lines.y()(d,i);
+                    }) )
+                }));
+
+                lines.forceY([0,maxDomain * 1.1]);
+
                 // Update Main (Focus)
                 var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-                    .datum(
-                    data
-                        .filter(function(d) { return !d.disabled })
-                        .map(function(d,i) {
-                            return {
-                                key: d.key,
-                                area: d.area,
-                                values: d.values.filter(function(d,i) {
-                                    return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
-                                })
-                            }
-                        })
-                );
+                    .datum(updateData);
                 focusLinesWrap.transition().duration(transitionDuration).call(lines);
-
 
                 // Update Main (Focus) Axes
                 g.select('.nv-focus .nv-x.nv-axis').transition().duration(transitionDuration)

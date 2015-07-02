@@ -1,4 +1,4 @@
-nv.models.lineWithBrushChart = function() {
+nv.models.lineWithTimeChart = function() {
     "use strict";
     //============================================================
     // Public Variables with Default Settings
@@ -8,7 +8,7 @@ nv.models.lineWithBrushChart = function() {
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
         , legend = nv.models.legend()
-        , interactiveLayer = nv.interactiveGuideline()
+       // , interactiveLayer = nv.interactiveGuideline()
         , tooltip = nv.models.tooltip()
         ;
 
@@ -20,7 +20,7 @@ nv.models.lineWithBrushChart = function() {
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
-        , useInteractiveGuideline = false
+       // , useInteractiveGuideline = false
         , x
         , y
         , state = nv.utils.state()
@@ -31,6 +31,7 @@ nv.models.lineWithBrushChart = function() {
         , brush =  d3.svg.brush()
         , brushExtent = null
         , playMode = 1
+        , stepMode = 'year'
         , showBrushExtentLabel = true
         , step = function( _xDomain,data ){ return (_xDomain[1]- _xDomain[0])/data.length; }
         , initStep = function(brushStep){ return 4*brushStep; }
@@ -180,15 +181,15 @@ nv.models.lineWithBrushChart = function() {
 
             //------------------------------------------------------------
             //Set up interactive layer
-            if (useInteractiveGuideline) {
-                interactiveLayer
-                    .width(availableWidth)
-                    .height(availableHeight)
-                    .margin({left:margin.left, top:margin.top})
-                    .svgContainer(container)
-                    .xScale(x);
-                wrap.select(".nv-interactive").call(interactiveLayer);
-            }
+            //if (useInteractiveGuideline) {
+            //    interactiveLayer
+            //        .width(availableWidth)
+            //        .height(availableHeight)
+            //        .margin({left:margin.left, top:margin.top})
+            //        .svgContainer(container)
+            //        .xScale(x);
+            //    wrap.select(".nv-interactive").call(interactiveLayer);
+            //}
 
 
             lines
@@ -361,84 +362,84 @@ nv.models.lineWithBrushChart = function() {
                 chart.update();
             });
 
-            interactiveLayer.dispatch.on('elementMousemove', function(e) {
-                lines.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [];
-                data
-                    .filter(function(series, i) {
-                        series.seriesIndex = i;
-                        return !series.disabled;
-                    })
-                    .forEach(function(series,i) {
-                        pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        var point = series.values[pointIndex];
-                        var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue != null) {
-                            lines.highlightPoint(i, pointIndex, true);
-                        }
-                        if (point === undefined) return;
-                        if (singlePoint === undefined) singlePoint = point;
-                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-                        allData.push({
-                            key: series.key,
-                            value: pointYValue,
-                            color: color(series,series.seriesIndex)
-                        });
-                    });
-                //Highlight the tooltip entry based on which point the mouse is closest to.
-                if (allData.length > 2) {
-                    var yValue = chart.yScale().invert(e.mouseY);
-                    var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
-                    var threshold = 0.03 * domainExtent;
-                    var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
-                    if (indexToHighlight !== null)
-                        allData[indexToHighlight].highlight = true;
-                }
-
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
-                interactiveLayer.tooltip
-                    .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
-                    .chartContainer(that.parentNode)
-                    .valueFormatter(function(d,i) {
-                        return d == null ? "N/A" : yAxis.tickFormat()(d);
-                    })
-                    .data({
-                        value: xValue,
-                        index: pointIndex,
-                        series: allData
-                    })();
-
-                interactiveLayer.renderGuideLine(pointXLocation);
-
-            });
-
-            interactiveLayer.dispatch.on('elementClick', function(e) {
-                var pointXLocation, allData = [];
-
-                data.filter(function(series, i) {
-                    series.seriesIndex = i;
-                    return !series.disabled;
-                }).forEach(function(series) {
-                    var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                    var point = series.values[pointIndex];
-                    if (typeof point === 'undefined') return;
-                    if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-                    var yPos = chart.yScale()(chart.y()(point,pointIndex));
-                    allData.push({
-                        point: point,
-                        pointIndex: pointIndex,
-                        pos: [pointXLocation, yPos],
-                        seriesIndex: series.seriesIndex,
-                        series: series
-                    });
-                });
-
-                lines.dispatch.elementClick(allData);
-            });
-
-            interactiveLayer.dispatch.on("elementMouseout",function(e) {
-                lines.clearHighlights();
-            });
+            //interactiveLayer.dispatch.on('elementMousemove', function(e) {
+            //    lines.clearHighlights();
+            //    var singlePoint, pointIndex, pointXLocation, allData = [];
+            //    data
+            //        .filter(function(series, i) {
+            //            series.seriesIndex = i;
+            //            return !series.disabled;
+            //        })
+            //        .forEach(function(series,i) {
+            //            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+            //            var point = series.values[pointIndex];
+            //            var pointYValue = chart.y()(point, pointIndex);
+            //            if (pointYValue != null) {
+            //                lines.highlightPoint(i, pointIndex, true);
+            //            }
+            //            if (point === undefined) return;
+            //            if (singlePoint === undefined) singlePoint = point;
+            //            if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+            //            allData.push({
+            //                key: series.key,
+            //                value: pointYValue,
+            //                color: color(series,series.seriesIndex)
+            //            });
+            //        });
+            //    //Highlight the tooltip entry based on which point the mouse is closest to.
+            //    if (allData.length > 2) {
+            //        var yValue = chart.yScale().invert(e.mouseY);
+            //        var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+            //        var threshold = 0.03 * domainExtent;
+            //        var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+            //        if (indexToHighlight !== null)
+            //            allData[indexToHighlight].highlight = true;
+            //    }
+            //
+            //    var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+            //    interactiveLayer.tooltip
+            //        .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
+            //        .chartContainer(that.parentNode)
+            //        .valueFormatter(function(d,i) {
+            //            return d == null ? "N/A" : yAxis.tickFormat()(d);
+            //        })
+            //        .data({
+            //            value: xValue,
+            //            index: pointIndex,
+            //            series: allData
+            //        })();
+            //
+            //    interactiveLayer.renderGuideLine(pointXLocation);
+            //
+            //});
+            //
+            //interactiveLayer.dispatch.on('elementClick', function(e) {
+            //    var pointXLocation, allData = [];
+            //
+            //    data.filter(function(series, i) {
+            //        series.seriesIndex = i;
+            //        return !series.disabled;
+            //    }).forEach(function(series) {
+            //        var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
+            //        var point = series.values[pointIndex];
+            //        if (typeof point === 'undefined') return;
+            //        if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+            //        var yPos = chart.yScale()(chart.y()(point,pointIndex));
+            //        allData.push({
+            //            point: point,
+            //            pointIndex: pointIndex,
+            //            pos: [pointXLocation, yPos],
+            //            seriesIndex: series.seriesIndex,
+            //            series: series
+            //        });
+            //    });
+            //
+            //    lines.dispatch.elementClick(allData);
+            //});
+            //
+            //interactiveLayer.dispatch.on("elementMouseout",function(e) {
+            //    lines.clearHighlights();
+            //});
 
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
@@ -456,10 +457,13 @@ nv.models.lineWithBrushChart = function() {
 
             chart.play = function(){
 
+                var currentStep = 1;
+
                 clearTimeout(chart.playTimer);
                 chart.playTimer = null;
 
-                var brushStep = step(x.domain(),data[0].values);
+
+                var brushStep = moment(x.domain()[0]).add(stepMode, currentStep )._d;
                 var end  = x.domain()[1];
 
                 if( brush.empty() || brushExtent === null){
@@ -468,11 +472,11 @@ nv.models.lineWithBrushChart = function() {
                 }
                 if( brushExtent[1] >= end ){
                     //brushExtent = playMode?[ brushExtent[0], brushExtent[0] ]:[ x.domain()[0], x.domain()[0] + brushExtent[1]- brushExtent[0] ];
-                    brushExtent = playMode ? [brushExtent[0], x.domain()[1]] : [x.domain()[0], x.domain()[1]];
+                    brushExtent = [brushExtent[0], x.domain()[1]];
                 }
 
                 var playstep = function(){
-                    if( brushExtent === null || brushExtent[1] === end ){
+                    if( brushExtent === null || brushExtent[1].getTime() >= end.getTime() ){
                         clearTimeout(chart.playTimer);
                         chart.playTimer = null;
                         setTimeout(function(){
@@ -481,15 +485,11 @@ nv.models.lineWithBrushChart = function() {
                         },0);
                         return;
                     }
-                    brushExtent = [ brushExtent[0], brushStep];
 
-                    if(brushStep < end)
-                    {
-                        brushStep = step(x.domain(),data[0].values);
-                    }else
-                    {
-                        brushExtent = [ brushExtent[0], x.domain()[1] ];
-                    }
+                    brushExtent = [ brushExtent[0] , moment(brushExtent[1]).add(stepMode,playMode)._d];
+
+                    if(brushStep >= end) brushExtent = [ brushExtent[0], x.domain()[1] ];
+
                     //if(brushExtent[1] + brushStep >= end){
                     //    brushStep =  end - brushExtent[1];
                     //}else{
@@ -498,19 +498,21 @@ nv.models.lineWithBrushChart = function() {
                     //brushExtent = [ playMode?brushExtent[0]:brushExtent[0]+=brushStep , brushExtent[1]+=brushStep ];
                     brush.extent(brushExtent);
                     gBrush.call(brush);
+
                     onBrush();
+
                     chart.playTimer = setTimeout(playstep,transitionDuration+1);
-                }
+                };
 
                 dispatch.startPlay({brush:brush,extent:brush.extent()});
                 playstep();
-            }
+            };
 
             chart.stop = function(){
                 clearTimeout(chart.playTimer);
                 chart.playTimer = null;
                 dispatch.stopPlay({brush:brush,extent:brush.extent()});
-            }
+            };
 
             //============================================================
 
@@ -546,7 +548,7 @@ nv.models.lineWithBrushChart = function() {
     chart.legend = legend;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
-    chart.interactiveLayer = interactiveLayer;
+   // chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
 
     chart.dispatch = dispatch;
@@ -598,16 +600,20 @@ nv.models.lineWithBrushChart = function() {
             rightAlignYAxis = _;
             yAxis.orient( rightAlignYAxis ? 'right' : 'left');
         }},
-        useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
-            useInteractiveGuideline = _;
-            if (useInteractiveGuideline) {
-                lines.interactive(false);
-                lines.useVoronoi(false);
-            }
-        }},
+        //useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
+        //    useInteractiveGuideline = _;
+        //    if (useInteractiveGuideline) {
+        //        lines.interactive(false);
+        //        lines.useVoronoi(false);
+        //    }
+        //}},
         playMode :{get: function(){ return playMode; },set:function(_){
             if (!arguments.length) return playMode;
             playMode = _;
+        }},
+        stepMode :{get: function(){ return stepMode; },set:function(_){
+            if (!arguments.length) return stepMode;
+            stepMode = _;
         }},
         showBrushExtentLabel:{get:function(){ return showBrushExtentLabel;},set:function(_){
             if (!arguments.length) return showBrushExtentLabel;

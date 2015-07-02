@@ -258,9 +258,6 @@ nv.models.matrix = function() {
             });
 
         });
-
-
-
         return chart;
     }
 
