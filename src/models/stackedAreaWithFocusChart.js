@@ -272,11 +272,29 @@ nv.models.stackedAreaWithFocusChart = function() {
 
             stacked
                 .width(availableWidth)
-                .height(availableHeight);
+                .height(availableHeight)
+                .color(
+                data
+                    .map(function(d,i) {
+                        return d.color || color(d, i);
+                    })
+                    .filter(function(d,i) {
+                        return !data[i].disabled;
+                    })
+            );
 
             stacked2
                 .width(availableWidth)
-                .height(availableHeight2);
+                .height(availableHeight2)
+                .color(
+                data
+                    .map(function(d,i) {
+                        return d.color || color(d, i);
+                    })
+                    .filter(function(d,i) {
+                        return !data[i].disabled;
+                    })
+            );
 
             g.select('.nv-context')
                 .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + margin2.top) + ')')
