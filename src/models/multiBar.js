@@ -352,9 +352,9 @@ nv.models.multiBar = function() {
                     .select('rect')
                     .attr('height', function(d,i,j) {
                         if (!data[j].nonStackable) {
-                            return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 1);
+                            return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 0);
                         } else {
-                            return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+                            return Math.max(Math.abs(y(getY(d,i)) - y(0)), 0) || 0;
                         }
                     })
                     .attr('width', function(d,i,j){
