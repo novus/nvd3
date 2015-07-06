@@ -184,7 +184,6 @@ nv.models.stackedAreaWithFocusChart = function() {
             contextEnter.append('g').attr('class', 'nv-x nv-brush');
             contextEnter.select("rect").attr("width",availableWidth).attr("height",availableHeight2);
 
-
             // Legend
             if (showLegend) {
                 var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
@@ -253,6 +252,8 @@ nv.models.stackedAreaWithFocusChart = function() {
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            g.select('.nv-context').style('display', focusEnable ? 'initial' : 'none');
 
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
@@ -692,6 +693,7 @@ nv.models.stackedAreaWithFocusChart = function() {
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
