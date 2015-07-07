@@ -443,6 +443,11 @@ nv.models.lineWithFocusChart = function() {
                 g.select('.nv-focus .nv-y.nv-axis').transition().duration(transitionDuration)
                     .call(yAxis);
             }
+
+            brush.update = function () {
+                gBrush.call(brush);
+                onBrush();
+            };
         });
 
         return chart;
@@ -475,6 +480,7 @@ nv.models.lineWithFocusChart = function() {
     chart.y2Axis = y2Axis;
     chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
+    chart.brush = brush;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -545,6 +551,10 @@ nv.models.lineWithFocusChart = function() {
         y: {get: function(){return lines.y();}, set: function(_){
             lines.y(_);
             lines2.y(_);
+        }},
+        xScale:{get: function(){ return lines.xScale()},set: function(_){
+            lines.xScale(_);
+            lines2.xScale(_);
         }},
         useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
             useInteractiveGuideline = _;

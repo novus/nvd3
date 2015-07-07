@@ -650,6 +650,11 @@ nv.models.stackedAreaWithFocusChart = function() {
                 return chart;
             }
 
+            brush.update = function () {
+                gBrush.call(brush);
+                onBrush();
+            };
+
         });
     }
 
@@ -750,6 +755,18 @@ nv.models.stackedAreaWithFocusChart = function() {
         y: {get: function(){return stacked.y();}, set: function(_){
             stacked.y(_);
             stacked2.y(_);
+        }},
+        xTickFormat: {get: function(){return xAxis.tickFormat();}, set: function(_){
+            xAxis.tickFormat(_);
+            x2Axis.tickFormat(_);
+        }},
+        yTickFormat: {get: function(){return yAxis.tickFormat();}, set: function(_){
+            yAxis.tickFormat(_);
+            y2Axis.tickFormat(_);
+        }},
+        xScale:{get: function(){ return lines.xScale()},set: function(_){
+            stacked.xScale(_);
+            stacked2.xScale(_);
         }}
     });
 
