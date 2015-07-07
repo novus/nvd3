@@ -687,6 +687,7 @@ nv.models.stackedAreaWithFocusChart = function() {
     chart.y2Axis = y2Axis;
     chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
+    chart.brush = brush;
 
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
