@@ -45,8 +45,7 @@
             values: new d3.range(0,11).map( function(f,j) {
                 return {
                     y: 10 + Math.random()*100 * (Math.floor(Math.random()*100)%2 ? 1 : -1),
-                    x: j,
-                    yErr: [-Math.random() * 30, Math.random() * 30]
+                    x: j
                 }
             })
         };
@@ -60,7 +59,6 @@
             .margin({bottom: 100, left: 70})
             .rotateLabels(45)
             .groupSpacing(0.1)
-            .errorBarColor(function() { return 'red'; })
         ;
 
         chart.reduceXTicks(false).staggerLabels(true);
