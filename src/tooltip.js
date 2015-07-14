@@ -109,7 +109,8 @@
 
             trowEnter.append("td")
                 .classed("key",true)
-                .html(function(p, i) {return keyFormatter(p.key, i)});
+                .classed("total",function(p) { return !!p.total})
+                .html(function(p, i) { return keyFormatter(p.key, i)});
 
             trowEnter.append("td")
                 .classed("value",true)
@@ -233,7 +234,7 @@
                         tTop = tooltipTop(tooltipElem);
                         break;
                 }
-                
+
                 // adjust tooltip offsets
                 left -= offset.left;
                 top -= offset.top;
@@ -264,7 +265,7 @@
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
                         }, 'important')
-                        // Safari has its own `-webkit-transform` and does not support `transform` 
+                        // Safari has its own `-webkit-transform` and does not support `transform`
                         // transform tooltip without transition only in Safari
                         .style('-webkit-transform', new_translate)
                         .style('-ms-transform', new_translate)
