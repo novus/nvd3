@@ -334,12 +334,14 @@ nv.models.multiBarChart = function() {
 
     multibar.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt.value = chart.x()(evt.data);
-        evt['series'] = {
-            key: evt.data.key,
-            value: chart.y()(evt.data),
-            color: evt.color
-        };
-        tooltip.data(evt).hidden(false);
+        if (evt.data.size > 0 || evt.data.size == undefined) {
+            evt['series'] = {
+                key: evt.data.key,
+                value: chart.y()(evt.data),
+                color: evt.color
+            };
+            tooltip.data(evt).hidden(false);
+        }
     });
 
     multibar.dispatch.on('elementMouseout.tooltip', function(evt) {
