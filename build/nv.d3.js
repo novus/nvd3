@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-06-17 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-07-14 */
 (function(){
 
 // set up main nv object
@@ -581,7 +581,8 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
 
             trowEnter.append("td")
                 .classed("key",true)
-                .html(function(p, i) {return keyFormatter(p.key, i)});
+                .classed("total",function(p) { return !!p.total})
+                .html(function(p, i) { return keyFormatter(p.key, i)});
 
             trowEnter.append("td")
                 .classed("value",true)
@@ -705,7 +706,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                         tTop = tooltipTop(tooltipElem);
                         break;
                 }
-                
+
                 // adjust tooltip offsets
                 left -= offset.left;
                 top -= offset.top;
@@ -736,9 +737,10 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
                         }, 'important')
-                        // Safari has its own `-webkit-transform` and does not support `transform` 
+                        // Safari has its own `-webkit-transform` and does not support `transform`
                         // transform tooltip without transition only in Safari
                         .style('-webkit-transform', new_translate)
+                        .style('-ms-transform', new_translate)
                         .style('opacity', 1);
                 }
 
@@ -1521,8 +1523,8 @@ nv.utils.noData = function(chart, container) {
         margin = opt.margin(),
         noData = opt.noData(),
         data = (noData == null) ? ["No Data Available."] : [noData],
-        height = nv.utils.availableHeight(opt.height(), container, margin),
-        width = nv.utils.availableWidth(opt.width(), container, margin),
+        height = nv.utils.availableHeight(null, container, margin),
+        width = nv.utils.availableWidth(null, container, margin),
         x = margin.left + width/2,
         y = margin.top + height/2;
 
@@ -1541,7 +1543,6 @@ nv.utils.noData = function(chart, container) {
         .attr('y', y)
         .text(function(t){ return t; });
 };
-
 nv.models.axis = function() {
     "use strict";
 
@@ -1616,13 +1617,14 @@ nv.models.axis = function() {
             switch (axis.orient()) {
                 case 'top':
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-                    if (scale.range().length < 2) {
-                        w = 0;
-                    } else if (scale.range().length === 2) {
-                        w = scale.range()[1];
-                    } else {
-                        w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
-                    }
+                  w = 0;
+                  if (scale.range().length === 1) {
+                    w = isOrdinal ? scale.range()[0] * 2 + scale.rangeBand() : 0;
+                  } else if (scale.range().length === 2) {
+                    w = isOrdinal ? scale.range()[0] + scale.range()[1] + scale.rangeBand() : scale.range()[1];
+                  } else if ( scale.range().length > 2){
+                    w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+                  };
                     axisLabel
                         .attr('text-anchor', 'middle')
                         .attr('y', 0)
@@ -1676,13 +1678,14 @@ nv.models.axis = function() {
                             .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
                     }
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-                    if (scale.range().length < 2) {
-                        w = 0;
+                    w = 0;
+                    if (scale.range().length === 1) {
+                        w = isOrdinal ? scale.range()[0] * 2 + scale.rangeBand() : 0;
                     } else if (scale.range().length === 2) {
-                        w = scale.range()[1];
-                    } else {
+                        w = isOrdinal ? scale.range()[0] + scale.range()[1] + scale.rangeBand() : scale.range()[1];
+                    } else if ( scale.range().length > 2){
                         w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
-                    }
+                    };
                     axisLabel
                         .attr('text-anchor', 'middle')
                         .attr('y', xLabelMargin)
@@ -6544,6 +6547,12 @@ nv.models.linePlusBarChart = function() {
         }
     };
 
+    var allDisabled = function(data) {
+      return data.every(function(series) {
+        return series.disabled;
+      });
+    }
+
     function chart(selection) {
         selection.each(function(data) {
             var container = d3.select(this),
@@ -6700,9 +6709,11 @@ nv.models.linePlusBarChart = function() {
                     {values: []}
                 ]);
             var lines2Wrap = g.select('.nv-context .nv-linesWrap')
-                .datum(!dataLines[0].disabled ? dataLines : [
-                    {values: []}
-                ]);
+                .datum(allDisabled(dataLines) ?
+                       [{values: []}] :
+                       dataLines.filter(function(dataLine) {
+                         return !dataLine.disabled;
+                       }));
 
             g.select('.nv-context')
                 .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')');
@@ -6868,9 +6879,10 @@ nv.models.linePlusBarChart = function() {
                 );
 
                 var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-                    .datum(dataLines[0].disabled ? [{values:[]}] :
-                        dataLines
-                            .map(function(d,i) {
+                    .datum(allDisabled(dataLines) ? [{values:[]}] :
+                           dataLines
+                           .filter(function(dataLine) { return !dataLine.disabled; })
+                           .map(function(d,i) {
                                 return {
                                     area: d.area,
                                     fillOpacity: d.fillOpacity,
@@ -6919,7 +6931,7 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-focus .nv-y1.nv-axis')
                     .style('opacity', dataBars.length ? 1 : 0);
                 g.select('.nv-focus .nv-y2.nv-axis')
-                    .style('opacity', dataLines.length && !dataLines[0].disabled ? 1 : 0)
+                    .style('opacity', dataLines.length && !allDisabled(dataLines) ? 1 : 0)
                     .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
                 g.select('.nv-focus .nv-y1.nv-axis').transition().duration(transitionDuration)
@@ -7618,6 +7630,7 @@ nv.models.lineWithFocusChart = function() {
 
     return chart;
 };
+
 nv.models.multiBar = function() {
     "use strict";
 
@@ -7634,13 +7647,11 @@ nv.models.multiBar = function() {
         , container = null
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
-        , getYerr = function(d) { return d.yErr }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , clipEdge = true
         , stacked = false
         , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
         , color = nv.utils.defaultColor()
-        , errorBarColor = nv.utils.defaultColor()
         , hideable = false
         , barColor = null // adding the ability to set the color for each rather than the whole group
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
@@ -7747,36 +7758,25 @@ nv.models.multiBar = function() {
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d, idx) {
                     return d.values.map(function(d,i) {
-                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx, yErr: getYerr(d,i)}
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx }
                     })
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(
-                d3.merge(seriesData).map(function(d) {
-                    var domain = d.y;
-                    // increase the domain range if this series is stackable
-                    if (stacked && !data[d.idx].nonStackable) {
-                        if (d.y > 0){
-                            domain = d.y1
-                        } else {
-                            domain = d.y1 + d.y
-                        }
-                    }
-                    var yerr = d.yErr;
-                    if (yerr) {
-                        if (yerr.length) {
-                            return [domain + yerr[0], domain + yerr[1]];
-                        } else {
-                            yerr = Math.abs(yerr)
-                            return [domain - yerr, domain + yerr];
-                        }
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) {
+                var domain = d.y;
+                // increase the domain range if this series is stackable
+                if (stacked && !data[d.idx].nonStackable) {
+                    if (d.y > 0){
+                        domain = d.y1
                     } else {
-                        return [domain];
+                        domain = d.y1 + d.y
                     }
-                })).concat(forceY)))
+                }
+                return domain;
+            }).concat(forceY)))
             .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -7819,7 +7819,7 @@ nv.models.multiBar = function() {
                 .style('fill-opacity', 1e-6);
 
             var exitTransition = renderWatch
-                .transition(groups.exit().selectAll('g.nv-bar'), 'multibarExit', Math.min(100, duration))
+                .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(100, duration))
                 .attr('y', function(d, i, j) {
                     var yVal = y0(0) || 0;
                     if (stacked) {
@@ -7845,26 +7845,23 @@ nv.models.multiBar = function() {
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', 0.75);
 
-            var bars = groups.selectAll('g.nv-bar')
+            var bars = groups.selectAll('rect.nv-bar')
                 .data(function(d) { return (hideable && !data.length) ? hideable.values : d.values });
             bars.exit().remove();
 
-            var barsEnter = bars.enter().append('g')
+            var barsEnter = bars.enter().append('rect')
                     .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
-                    .attr('transform', function(d,i,j) {
-                        var _x = stacked && !data[j].nonStackable ? 0 : (j * x.rangeBand() / data.length );
-                        var _y = y0(stacked && !data[j].nonStackable ? d.y0 : 0) || 0;
-                        return 'translate(' + _x + ',' + _y + ')';
+                    .attr('x', function(d,i,j) {
+                        return stacked && !data[j].nonStackable ? 0 : (j * x.rangeBand() / data.length )
                     })
-                ;
-
-            barsEnter.append('rect')
+                    .attr('y', function(d,i,j) { return y0(stacked && !data[j].nonStackable ? d.y0 : 0) || 0 })
                     .attr('height', 0)
                     .attr('width', function(d,i,j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length) })
-                    .style('fill', function(d,i,j){ return color(d, j, i);  })
-                    .style('stroke', function(d,i,j){ return color(d, j, i); })
+                    .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
                 ;
             bars
+                .style('fill', function(d,i,j){ return color(d, j, i);  })
+                .style('stroke', function(d,i,j){ return color(d, j, i); })
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
@@ -7904,34 +7901,13 @@ nv.models.multiBar = function() {
                     });
                     d3.event.stopPropagation();
                 });
-
-            if (getYerr(data[0].values[0], 0)) {
-                barsEnter.append('polyline');
-
-                bars.select('polyline')
-                    .attr('fill', 'none')
-                    .attr('stroke', function(d, i, j) { return errorBarColor(d, j, i); })
-                    .attr('points', function(d,i) {
-                        var yerr = getYerr(d,i)
-                            , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        yerr = yerr.length ? yerr : [-Math.abs(yerr), Math.abs(yerr)];
-                        yerr = yerr.map(function(e) { return y(e) - y(0); });
-                        var a = [[-mid, yerr[0]], [mid, yerr[0]], [0, yerr[0]], [0, yerr[1]], [-mid, yerr[1]], [mid, yerr[1]]];
-                        return a.map(function (path) { return path.join(',') }).join(' ');
-                    })
-                    .attr('transform', function(d, i) {
-                        var xOffset = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        var yOffset = getY(d,i) < 0 ? y(getY(d, i)) - y(0) : 0;
-                        return 'translate(' + xOffset + ', ' + yOffset + ')';
-                    })
-            }
-
             bars
                 .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
+                .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
 
             if (barColor) {
                 if (!disabled) disabled = data.map(function() { return true });
-                bars.select('rect')
+                bars
                     .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); })
                     .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
             }
@@ -7943,7 +7919,7 @@ nv.models.multiBar = function() {
                     });
             if (stacked){
                 barSelection
-                    .attr('transform', function(d,i,j) {
+                    .attr('y', function(d,i,j) {
                         var yVal = 0;
                         // if stackable, stack it on top of the previous series
                         if (!data[j].nonStackable) {
@@ -7959,6 +7935,16 @@ nv.models.multiBar = function() {
                                 }
                             }
                         }
+                        return yVal;
+                    })
+                    .attr('height', function(d,i,j) {
+                        if (!data[j].nonStackable) {
+                            return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 1);
+                        } else {
+                            return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+                        }
+                    })
+                    .attr('x', function(d,i,j) {
                         var width = 0;
                         if (data[j].nonStackable) {
                             width = d.series * x.rangeBand() / data.length;
@@ -7966,16 +7952,7 @@ nv.models.multiBar = function() {
                                 width = data[j].nonStackableSeries * x.rangeBand()/(nonStackableCount*2); 
                             }
                         }
-                        var xVal = width + x(getX(d, i));
-                        return 'translate(' + xVal + ',' + yVal + ')';
-                    })
-                    .select('rect')
-                    .attr('height', function(d,i,j) {
-                        if (!data[j].nonStackable) {
-                            return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 1);
-                        } else {
-                            return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
-                        }
+                        return width;
                     })
                     .attr('width', function(d,i,j){
                         if (!data[j].nonStackable) {
@@ -7993,17 +7970,18 @@ nv.models.multiBar = function() {
                     });
             }
             else {
-                barSelection.attr('transform', function(d,i) {
-                    var xVal = d.series * x.rangeBand() / data.length + x(getX(d, i));
-                    var yVal = getY(d,i) < 0 ?
+                barSelection
+                    .attr('x', function(d,i) {
+                        return d.series * x.rangeBand() / data.length;
+                    })
+                    .attr('width', x.rangeBand() / data.length)
+                    .attr('y', function(d,i) {
+                        return getY(d,i) < 0 ?
                             y(0) :
                                 y(0) - y(getY(d,i)) < 1 ?
                             y(0) - 1 :
                             y(getY(d,i)) || 0;
-                    return 'translate(' + xVal + ',' + yVal + ')';
                     })
-                    .select('rect')
-                    .attr('width', x.rangeBand() / data.length)
                     .attr('height', function(d,i) {
                         return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
                     });
@@ -8039,7 +8017,6 @@ nv.models.multiBar = function() {
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}},
         y:       {get: function(){return getY;}, set: function(_){getY=_;}},
-        yErr:       {get: function(){return getYerr;}, set: function(_){getYerr=_;}},
         xScale:  {get: function(){return x;}, set: function(_){x=_;}},
         yScale:  {get: function(){return y;}, set: function(_){y=_;}},
         xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
@@ -8071,9 +8048,6 @@ nv.models.multiBar = function() {
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
             barColor = _ ? nv.utils.getColor(_) : null;
-        }},
-        errorBarColor:  {get: function(){return errorBarColor;}, set: function(_){
-            errorBarColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 
@@ -8081,7 +8055,6 @@ nv.models.multiBar = function() {
 
     return chart;
 };
-
 nv.models.multiBarChart = function() {
     "use strict";
 
@@ -8530,7 +8503,6 @@ nv.models.multiBarHorizontal = function() {
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , color = nv.utils.defaultColor()
         , barColor = null // adding the ability to set the color for each rather than the whole group
-        , errorBarColor = nv.utils.defaultColor()
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
         , stacked = false
         , showValues = false
@@ -8601,35 +8573,14 @@ nv.models.multiBarHorizontal = function() {
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d) {
                     return d.values.map(function(d,i) {
-                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, yErr: getYerr(d,i) }
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
                     })
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableHeight], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(
-                d3.merge(seriesData).map(function(d) {
-                    var domain = d.y;
-                    if (stacked) {
-                        if (d.y > 0){
-                            domain = d.y1 + d.y
-                        } else {
-                            domain = d.y1
-                        }
-                    }
-                    var yerr = d.yErr;
-                    if (yerr) {
-                        if (yerr.length) {
-                            return [domain + yerr[0], domain + yerr[1]];
-                        } else {
-                            yerr = Math.abs(yerr)
-                            return [domain - yerr, domain + yerr];
-                        }
-                    } else {
-                        return [domain];
-                    }
-                })).concat(forceY)))
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 + d.y : d.y1 ) : d.y }).concat(forceY)))
 
             if (showValues && !stacked)
                 y.range(yRange || [(y.domain()[0] < 0 ? valuePadding : 0), availableWidth - (y.domain()[1] > 0 ? valuePadding : 0) ]);
@@ -8728,12 +8679,11 @@ nv.models.multiBarHorizontal = function() {
                     d3.event.stopPropagation();
                 });
 
-            if (getYerr(data[0].values[0], 0)) {
+            if (getYerr(data[0],0)) {
                 barsEnter.append('polyline');
 
                 bars.select('polyline')
                     .attr('fill', 'none')
-                    .attr('stroke', function(d,i,j) { return errorBarColor(d, j, i); })
                     .attr('points', function(d,i) {
                         var xerr = getYerr(d,i)
                             , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
@@ -8882,9 +8832,6 @@ nv.models.multiBarHorizontal = function() {
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
             barColor = _ ? nv.utils.getColor(_) : null;
-        }},
-        errorBarColor:  {get: function(){return errorBarColor;}, set: function(_){
-            errorBarColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 
@@ -9661,6 +9608,7 @@ nv.models.multiChart = function() {
     //------------------------------------------------------------
 
     chart.dispatch = dispatch;
+    chart.legend = legend;
     chart.lines1 = lines1;
     chart.lines2 = lines2;
     chart.scatters1 = scatters1;
@@ -9743,7 +9691,6 @@ nv.models.multiChart = function() {
 
     return chart;
 };
-
 
 nv.models.ohlcBar = function() {
     "use strict";
@@ -11184,9 +11131,9 @@ nv.models.scatter = function() {
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
                         // just create the circles with the IDs they expect
-                        wrap.select('.nv-point-clips').selectAll('clipPath').remove();
-                        wrap.select('.nv-point-clips').selectAll("clipPath")
-                            .data(vertices)
+                        wrap.select('.nv-point-clips').selectAll('*').remove(); // must do * since it has sub-dom
+                        var pointClips = wrap.select('.nv-point-clips').selectAll('clipPath').data(vertices);
+                        var vPointClips = pointClips
                             .enter().append("svg:clipPath")
                             .attr("id", function(d, i) { return "nv-clip-"+id+"-"+i;})
                             .append("svg:circle")
@@ -12564,6 +12511,8 @@ nv.models.stackedAreaChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , useInteractiveGuideline = false
+        , showTotalInTooltip = true
+        , totalLabel = 'TOTAL'
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
         , state = nv.utils.state()
@@ -12881,7 +12830,7 @@ nv.models.stackedAreaChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [];
+                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -12906,6 +12855,10 @@ nv.models.stackedAreaChart = function() {
                             color: color(series,series.seriesIndex),
                             stackedValue: point.display
                         });
+
+                        if (showTotalInTooltip && stacked.style() != 'expand') {
+                          valueSum += tooltipValue;
+                        };
                     });
 
                 allData.reverse();
@@ -12929,6 +12882,15 @@ nv.models.stackedAreaChart = function() {
                     });
                     if (indexToHighlight != null)
                         allData[indexToHighlight].highlight = true;
+                }
+
+                //If we are not in 'expand' mode, add a 'Total' row to the tooltip.
+                if (showTotalInTooltip && stacked.style() != 'expand' && allData.length >= 2) {
+                    allData.push({
+                        key: totalLabel,
+                        value: valueSum,
+                        total: true
+                    });
                 }
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
@@ -13036,6 +12998,8 @@ nv.models.stackedAreaChart = function() {
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         controlOptions:    {get: function(){return controlOptions;}, set: function(_){controlOptions=_;}},
+        showTotalInTooltip:      {get: function(){return showTotalInTooltip;}, set: function(_){showTotalInTooltip=_;}},
+        totalLabel:      {get: function(){return totalLabel;}, set: function(_){totalLabel=_;}},
 
         // deprecated options
         tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
