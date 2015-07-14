@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-07-14 */
+/* nvd3 version master (https://github.com/novus/nvd3) 2015-07-14 */
 (function(){
 
 // set up main nv object
@@ -12271,7 +12271,9 @@ nv.models.stackedArea = function() {
                 .width(availableWidth)
                 .height(availableHeight)
                 .x(getX)
-                .y(function(d) { return d.display.y + d.display.y0 })
+                .y(function(d) {
+                    if (d.display !== undefined) { return d.display.y + d.display.y0; }
+                })
                 .forceY([0])
                 .color(data.map(function(d,i) {
                     return d.color || color(d, d.seriesIndex);
@@ -13395,5 +13397,5 @@ nv.models.sunburstChart = function() {
     return chart;
 };
 
-nv.version = "1.8.1";
+nv.version = "master";
 })();
