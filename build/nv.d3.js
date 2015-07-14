@@ -1,4 +1,4 @@
-/* nvd3 version master (https://github.com/novus/nvd3) 2015-07-14 */
+/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2015-07-14 */
 (function(){
 
 // set up main nv object
@@ -13397,5 +13397,5 @@ nv.models.sunburstChart = function() {
     return chart;
 };
 
-nv.version = "master";
+nv.version = "1.8.1-dev";
 })();
