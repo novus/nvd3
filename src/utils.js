@@ -616,8 +616,8 @@ nv.utils.noData = function(chart, container) {
         margin = opt.margin(),
         noData = opt.noData(),
         data = (noData == null) ? ["No Data Available."] : [noData],
-        height = nv.utils.availableHeight(opt.height(), container, margin),
-        width = nv.utils.availableWidth(opt.width(), container, margin),
+        height = nv.utils.availableHeight(null, container, margin),
+        width = nv.utils.availableWidth(null, container, margin),
         x = margin.left + width/2,
         y = margin.top + height/2;
 
@@ -636,4 +636,3 @@ nv.utils.noData = function(chart, container) {
         .attr('y', y)
         .text(function(t){ return t; });
 };
-
