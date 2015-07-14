@@ -206,7 +206,7 @@
                         tLeft = tooltipLeft(tooltipElem);
                         tTop = tooltipTop(tooltipElem);
                         if (tLeft + width > windowWidth) left = pos[0] - width - distance;
-                        if (tTop < scrollTop) top = scrollTop + 5;
+                        if (tTop < scrollTop) top = scrollTop - tTop + top;
                         if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
                         break;
                     case 'n':
