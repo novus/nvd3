@@ -79,14 +79,14 @@ nv.models.multiChart = function() {
             var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
                 .map(function(d) {
                     return d.values.map(function(d,i) {
-                        return { x: d.x, y: d.y }
+                        return { x: getX(d), y: getY(d) }
                     })
                 });
 
             var series2 = data.filter(function(d) {return !d.disabled && d.yAxis == 2})
                 .map(function(d) {
                     return d.values.map(function(d,i) {
-                        return { x: d.x, y: d.y }
+                        return { x: getX(d), y: getY(d) }
                     })
                 });
 
