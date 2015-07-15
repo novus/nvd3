@@ -334,7 +334,7 @@ nv.models.multiBarChart = function() {
 
     multibar.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt.value = chart.x()(evt.data);
-        if (!chart.stacked() || (evt.data.size > 0 || evt.data.size == undefined)) {
+        if (!chart.stacked() || (evt.data.y > 0 || evt.data.y == undefined)) {
             evt['series'] = {
                 key: evt.data.key,
                 value: chart.y()(evt.data),
