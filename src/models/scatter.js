@@ -443,8 +443,10 @@ nv.models.scatter = function() {
         };
         this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
             nv.dom.write(function() {
-                container.select(" .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-                    .classed("hover", isHoverOver);
+                container.select('.nv-groups')
+                  .selectAll(".nv-series-" + seriesIndex)
+                  .selectAll(".nv-point-" + pointIndex)
+                  .classed("hover", isHoverOver);
             });
         };
     };
