@@ -876,6 +876,24 @@ as well as used to print out examples using those example inputs.
             default: "count",
             refs: ["http://bl.ocks.org/kerryrodden/477c1bfb081b783f80ad"],
             examples: ["size"]
+        },
+        ylowwer: {
+            desc: "lowwer y in confidence interval.",
+            default: "function(d) { return d.ylower }",
+            examples: [
+		function(d){
+                    return d.yllower;
+                }
+	    ]
+        },
+        yupper: {
+            desc: "upper y in confidence interval.",
+            default: "function(d) { return d.yupper }",
+            examples: [
+		function(d){
+                    return d.yupper;
+                }
+	    ]
         }
     };
 </script>
