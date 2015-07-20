@@ -392,8 +392,8 @@ nv.models.lineChart = function() {
                 lines.useVoronoi(false);
             }
         }},
-	ylower: {get: function(d){return lines.getYLowwer(d);}, set: function(_){
-	    yllower = _;
+	ylower: {get: function(d){return lines.getYLower(d);}, set: function(_){
+	    ylower = _;
 	}},
 	yupper: {get: function(d){return lines.getYUpper(d);}, set: function(_){
 	    yupper = _;
