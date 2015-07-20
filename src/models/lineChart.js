@@ -10,6 +10,7 @@ nv.models.lineChart = function() {
         , yAxis = nv.models.axis()
         , legend = nv.models.legend()
         , interactiveLayer = nv.interactiveGuideline()
+        , tooltip = nv.models.tooltip()
         ;
 
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
@@ -21,41 +22,28 @@ nv.models.lineChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , useInteractiveGuideline = false
-        , tooltips = true
-        , tooltip = function(key, x, y, e, graph) {
-            return '<h3>' + key + '</h3>' +
-                '<p>' +  y + ' at ' + x + '</p>'
-        }
         , x
         , y
         , state = nv.utils.state()
         , defaultState = null
-        , noData = 'No Data Available.'
+        , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , duration = 250
         ;
 
-    xAxis
-        .orient('bottom')
-        .tickPadding(7)
-    ;
-    yAxis
-        .orient((rightAlignYAxis) ? 'right' : 'left')
-    ;
+    // set options on sub-objects for this chart
+    xAxis.orient('bottom').tickPadding(7);
+    yAxis.orient(rightAlignYAxis ? 'right' : 'left');
+    tooltip.valueFormatter(function(d, i) {
+        return yAxis.tickFormat()(d, i);
+    }).headerFormatter(function(d, i) {
+        return xAxis.tickFormat()(d, i);
+    });
+
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
-
-    var showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-            top = e.pos[1] + ( offsetElement.offsetTop || 0),
-            x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
-            y = yAxis.tickFormat()(lines.y()(e.point, e.pointIndex)),
-            content = tooltip(e.series.key, x, y, e, chart);
-
-        nv.tooltip.show([left, top], content, null, null, offsetElement);
-    };
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -86,11 +74,8 @@ nv.models.lineChart = function() {
             var container = d3.select(this),
                 that = this;
             nv.utils.initSVG(container);
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height')) || 400)
-                    - margin.top - margin.bottom;
-
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
                 if (duration === 0)
@@ -121,18 +106,7 @@ nv.models.lineChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container)
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -169,8 +143,7 @@ nv.models.lineChart = function() {
 
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
-                    availableHeight = (height || parseInt(container.style('height')) || 400)
-                        - margin.top - margin.bottom;
+                    availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
 
                 wrap.select('.nv-legendWrap')
@@ -212,7 +185,7 @@ nv.models.lineChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks(nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -224,7 +197,7 @@ nv.models.lineChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks(nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -252,14 +225,17 @@ nv.models.lineChart = function() {
                     })
                     .forEach(function(series,i) {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        lines.highlightPoint(i, pointIndex, true);
                         var point = series.values[pointIndex];
-                        if (typeof point === 'undefined') return;
-                        if (typeof singlePoint === 'undefined') singlePoint = point;
-                        if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                        var pointYValue = chart.y()(point, pointIndex);
+                        if (pointYValue != null) {
+                            lines.highlightPoint(i, pointIndex, true);
+                        }
+                        if (point === undefined) return;
+                        if (singlePoint === undefined) singlePoint = point;
+                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
-                            value: chart.y()(point, pointIndex),
+                            value: pointYValue,
                             color: color(series,series.seriesIndex)
                         });
                     });
@@ -275,18 +251,16 @@ nv.models.lineChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
+                    .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
-                    .enabled(tooltips)
                     .valueFormatter(function(d,i) {
-                        return yAxis.tickFormat()(d);
+                        return d == null ? "N/A" : yAxis.tickFormat()(d);
                     })
-                    .data(
-                    {
+                    .data({
                         value: xValue,
+                        index: pointIndex,
                         series: allData
-                    }
-                )();
+                    })();
 
                 interactiveLayer.renderGuideLine(pointXLocation);
 
@@ -317,16 +291,10 @@ nv.models.lineChart = function() {
             });
 
             interactiveLayer.dispatch.on("elementMouseout",function(e) {
-                dispatch.tooltipHide();
                 lines.clearHighlights();
             });
 
-            dispatch.on('tooltipShow', function(e) {
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
             dispatch.on('changeState', function(e) {
-
                 if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
@@ -348,17 +316,12 @@ nv.models.lineChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    lines.dispatch.on('elementMouseover.tooltip', function(e) {
-        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-        dispatch.tooltipShow(e);
+    lines.dispatch.on('elementMouseover.tooltip', function(evt) {
+        tooltip.data(evt).position(evt.pos).hidden(false);
     });
 
-    lines.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
-    });
-
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
+    lines.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.hidden(true)
     });
 
     //============================================================
@@ -372,6 +335,7 @@ nv.models.lineChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.interactiveLayer = interactiveLayer;
+    chart.tooltip = tooltip;
 
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
@@ -383,10 +347,20 @@ nv.models.lineChart = function() {
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

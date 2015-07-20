@@ -13,6 +13,11 @@ describe 'NVD3', ->
       'nv.utils.deepExtend'
       'nv.utils.state'
       'nv.utils.optionsFunc'
+      'nv.utils.sanitizeHeight'
+      'nv.utils.sanitizeWidth'
+      'nv.utils.availableHeight'
+      'nv.utils.availableWidth'
+      'nv.utils.noData'
     ]
 
     describe 'has ', ->
@@ -44,7 +49,43 @@ describe 'NVD3', ->
       returnedFunction({},2).should.be.equal '#aaa'
       returnedFunction({},3).should.be.equal '#000'
 
+  createCont = (wh = false)->
+    obj = document.createElement('div')
+    obj.style.cssText = 'width:964px;height:404px' if wh
+    d3.select(obj)
+
+  describe 'Sanitize Height and Width for a Container', ->
+    it 'provides default height and width', ->
+      cont = createCont()
+      expect(nv.utils.sanitizeHeight(null, cont)).to.equal 400
+      expect(nv.utils.sanitizeWidth(null, cont)).to.equal 960
+      expect(nv.utils.sanitizeHeight(undefined, cont)).to.equal 400
+      expect(nv.utils.sanitizeWidth(undefined, cont)).to.equal 960
+      expect(nv.utils.sanitizeHeight(0, cont)).to.equal 400
+      expect(nv.utils.sanitizeWidth(0, cont)).to.equal 960
+    it 'uses container width and height', ->
+      cont = createCont(true)
+      expect(nv.utils.sanitizeHeight(null, cont)).to.equal 404
+      expect(nv.utils.sanitizeWidth(null, cont)).to.equal 964
+    it 'uses given width and height', ->
+      cont = createCont(true)
+      expect(nv.utils.sanitizeHeight(408, cont)).to.equal 408
+      expect(nv.utils.sanitizeWidth(968, cont)).to.equal 968
+
+  describe 'Available Container Height and Width', ->
+    it 'calculates height and width properly', ->
+      cont = createCont(true)
+      m = { left: 5, right: 6, top: 7, bottom: 8 }
+      expect(nv.utils.availableHeight(300, cont, m)).to.equal 285
+      expect(nv.utils.availableWidth(300, cont, m)).to.equal 289
+      expect(nv.utils.availableHeight(0, cont, m)).to.equal 389
+      expect(nv.utils.availableWidth(0, cont, m)).to.equal 953
+
   describe 'Interactive Bisect', ->
+    it 'works with no accessor', ->
+      list = [{ x:0 },{ x:1 },{ x:1 },{ x:2 },{ x:3 },{ x:5 },{ x:8 },{ x:13 },{ x:21 },{ x:34 }]
+      expect(nv.interactiveBisect(list,7)).to.equal 6
+
     runTest = (list, searchVal, accessor = null)->
       xAcc = unless accessor?
         (d)-> d
@@ -55,6 +96,9 @@ describe 'NVD3', ->
 
     it 'exists', ->
       expect(nv.interactiveBisect).to.exist
+
+    it 'returns null when no array', ->
+      expect(nv.interactiveBisect('bad', 'a')).to.equal null
 
     it 'basic test', ->
       expect(runTest([0,1,2,3,4,5], 3)).to.equal 3
@@ -89,21 +133,6 @@ describe 'NVD3', ->
       list = [0,1,1,2,3,5,8,13,21,34]
       expect(runTest(list,20)).to.equal 8
 
-    it 'accessor in index mode - existing item', ->
-      x = (d,i)-> i
-      list = [0,1,1,2,3,5,8,13,21,34]
-      expect(runTest(list,7,x)).to.equal 7
-
-    it 'accessor in index mode - inbetween item 1', ->
-      x = (d,i)-> i
-      list = [0,1,1,2,3,5,8,13,21,34]
-      expect(runTest(list,7.3,x)).to.equal 7
-
-    it 'accessor in index mode - inbetween item 2', ->
-      x = (d,i)-> i
-      list = [0,1,1,2,3,5,8,13,21,34]
-      expect(runTest(list,7.50001,x)).to.equal 8
-
     it 'empty array', ->
       expect(runTest([],4)).to.equal 0
 
@@ -115,3 +144,53 @@ describe 'NVD3', ->
 
     it 'single element array - past the end', ->
       expect(runTest([0],1)).to.equal 0
+
+  describe 'NoData Chart Clearing', ->
+    sampleData1 = [
+            key: 'Series 1'
+            values: [
+                [-1,-1]
+                [0,0]
+                [1,1]
+                [2,2]
+            ]
+        ]
+
+    options =
+            x: (d)-> d[0]
+            y: (d)-> d[1]
+            margin:
+                top: 30
+                right: 20
+                bottom: 50
+                left: 75
+            color: nv.utils.defaultColor()
+            height: 400
+            width: 800
+            showLegend: true
+            showXAxis: true
+            showYAxis: true
+            rightAlignYAxis: true
+            useInteractiveGuideline: true
+            tooltips: true
+            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
+            noData: 'No Data Available'
+            duration: 0
+            clipEdge: false
+            isArea: (d)-> d.area
+            defined: (d)-> true
+            interpolate: 'linear'
+
+    it 'shows no data text', ->
+            builder = new ChartBuilder nv.models.lineChart()
+            builder.build options, []
+
+            noData = builder.$ '.nv-noData'
+            noData[0].textContent.should.equal 'No Data Available'
+
+    it 'clears chart objects for no data', ->
+        builder = new ChartBuilder nv.models.lineChart()
+        builder.buildover options, sampleData1, []
+        
+        groups = builder.$ 'g'
+        groups.length.should.equal 0, 'removes chart components'

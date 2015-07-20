@@ -2,7 +2,8 @@
 
 Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ocks.org/mike/chart/), and supported by a combined effort of [Novus](http://www.novus.com) and the NVD3 community.
 
-[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/novus/nvd3.svg?branch=development)](https://travis-ci.org/novus/nvd3)
+[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/novus/nvd3.svg?branch=master)](https://travis-ci.org/novus/nvd3)
+
 
 ## Usage
 Simply add the `nv.d3` assets to your project and include them in your HTML.
@@ -16,7 +17,12 @@ Simply add the `nv.d3` assets to your project and include them in your HTML.
 * Prefer minified assets (`.min`) for production.
 
 ### Dependencies
-NVD3 depends on [d3.js](http://d3js.org/), and is tested on version 3.3.13. There is currently [a minor bug](https://github.com/novus/nvd3/issues/760) associated with version 3.5.
+
+NVD3 should work with the latest [d3.js](http://d3js.org/) version 3.5.3 and later.
+
+**Minimum D3 version required: 3.4.4**
+
+Along with `pieChart` options `padAngle` and `cornerRadius`, the interactive guideline tooltip now requires these later versions of D3 (3.4.4+, specifically, to get interactive tooltips). The interactive guide lines rely on the more recent `d3.bisector()` method which treats accessors taking two parameters (the second being the element index) as comparators (see [d3.bisector()](https://github.com/mbostock/d3/wiki/Arrays#d3_bisector)).
 
 
 ## Supported Browsers
@@ -29,6 +35,18 @@ NVD3 runs best on WebKit based browsers.
 * Internet Explorer: 10+
 
 ## Changelog
+
+**1.8.1** Changes:
+
+* Tooltips were refactored - If you have customized your tooltips, note that you may need to adjust your custom functions as the data passed has changed format.  See the new [tooltip options](https://nvd3-community.github.io/nvd3/examples/documentation.html#tooltip) for more details.
+* Added boxplot charts | [example](https://nvd3-community.github.io/nvd3/examples/boxPlot.html)
+* Added candlestick charts | [example](https://nvd3-community.github.io/nvd3/examples/candlestickChart.html)
+* Added extra donut chart abilities | [examples](https://nvd3-community.github.io/nvd3/examples/monitoringChart.html)
+* Added sunburst Charts | [example](https://nvd3-community.github.io/nvd3/examples/sunburst.html)
+* Time Series | [example](https://nvd3-community.github.io/nvd3/examples/TimeSeries.html)
+* Another legend format available | [example](https://nvd3-community.github.io/nvd3/examples/stackedAreaChart.html)
+* Lots of bug fixes (see closed issues)
+* (for all examples, see [here](https://nvd3-community.github.io/nvd3/))
 
 **1.7.1** Changes:
 
@@ -69,13 +87,19 @@ from the issues/pulls from the original project.
 
 # Bugs
 
-Found a bug?  Check out the `development` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
+Found a bug?  Check out the latest from the `master` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
+
+---
+
+# Optional dependencies
+
+Including [Fastdom](https://github.com/wilsonpage/fastdom) in your project can greatly increase the performance of the line chart (particularly in Firefox and Internet Explorer) by batching DOM read and write operations to avoid [layout thrashing](http://wilsonpage.co.uk/preventing-layout-thrashing/). NVD3 will take advantage of Fastdom if present.
 
 ---
 
 # Contributing
 
-If one of [the existing models](https://github.com/nvd3-community/nvd3/tree/development/src/models)
+If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models)
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
 
@@ -83,7 +107,7 @@ If you'd like to contribute consistently, show me what you've got with some good
 
 ### A few rules for pull requests
 
-1. Please commit to the `development` branch
+1. Please commit to the `master` branch
 2. Do NOT check in anything under the `build` directory, it clutters up the commit and just gets overwritten later.
 3. All new features must come with unit test coverage
 4. Bug fixes should come with unit tests that prove their fix
@@ -97,6 +121,7 @@ only include the source files you changed!
 
 ### Tips for Testing
 * Unit tests were written in Karma and Mocha. Follow instructions in **Building Latest** to get npm packages setup. This may not work on Windows machines.
+* Run `bower install` to get bower dependencies.
 * Run `grunt` to start the unit tests.
 * Also visually inspect the HTML pages in the **examples/ and test/ folders**.  Make sure there are no glaring errors.
 * Novus now uses Travis CI for continuous integration. Visit [our travis build page](https://travis-ci.org/novus/nvd3/) to see the latest status.
@@ -105,15 +130,13 @@ only include the source files you changed!
 
 ## Building latest
 
-1. First clone the repository and checkout the "development" branch
-2. make sure nodejs is installed via your system's package manager.
-3. Install grunt-cli and bower: npm install -g bower grunt-cli
+1. First clone the repository and checkout the `master` branch
+2. make sure `nodejs` is installed via your system's package manager.
+3. Install `grunt`, `grunt-cli`, and `bower`:  `npm install -g grunt grunt-cli bower`
 
-> have node download it's required modules with:  npm install
+> have node download nvd3's required modules with:  `npm install`
 
-> install grunt globally:  sudo npm install -g grunt
-
-> build with:  grunt production
+> build with:  `grunt production`
 
 You should now have a `build` directory with the js and css files within.
 

@@ -14,8 +14,8 @@
         svg {
             display: block;
             float: left;
-            height: 350px;
-            width: 350px;
+            height: 350px !important;
+            width: 350px !important;
         }
         html, body {
             margin: 0px;
@@ -33,7 +33,7 @@
 <script>
 
     var testdata = [
-        {key: "One", y: 5},
+        {key: "One", y: 5, color: "#5F5"},
         {key: "Two", y: 2},
         {key: "Three", y: 9},
         {key: "Four", y: 7},
@@ -86,11 +86,7 @@
             //.showLabels(false)
             .color(d3.scale.category20().range().slice(8))
             .growOnHover(false)
-            .tooltipContent(function(key, y, e, graph) {
-                return '<h3 style="padding: 5px; background-color: '
-                        + e.color + '"><strong>Yo, the value is</strong></h3>'
-                        + '<p style="padding:5px;">' +  y + '</p>';
-            })
+            .labelType('value')
             .width(width)
             .height(height);
 

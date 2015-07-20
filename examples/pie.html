@@ -11,7 +11,7 @@
         text {
             font: 12px sans-serif;
         }
-        svg {
+        .testBlock {
             display: block;
             float: left;
             height: 300px;
@@ -27,8 +27,8 @@
 </head>
 <body>
 
-<svg id="test1"></svg>
-<svg id="test2"></svg>
+<div class="testBlock"><svg id="test1"></svg></div>
+<div class="testBlock"><svg id="test2"></svg></div>
 
 <script>
 
@@ -47,8 +47,14 @@
 
     nv.addGraph(function() {
         var chart = nv.models.pie()
+                .x(function(d) { return d.key; })
+                .y(function(d) { return d.y; })
                 .width(width)
-                .height(height);
+                .height(height)
+                .labelType(function(d, i, values) {
+                    return values.key + ':' + values.value;
+                })
+                ;
 
         d3.select("#test1")
                 .datum([testdata])
@@ -62,8 +68,12 @@
 
     nv.addGraph(function() {
         var chart = nv.models.pie()
+                .x(function(d) { return d.key; })
+                .y(function(d) { return d.y; })
                 .width(width)
                 .height(height)
+                .labelType('percent')
+                .valueFormat(d3.format('%'))
                 .donut(true);
 
         d3.select("#test2")

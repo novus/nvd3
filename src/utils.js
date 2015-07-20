@@ -9,10 +9,11 @@ nv.utils.windowSize = function() {
     // Sane defaults
     var size = {width: 640, height: 480};
 
-    // Earlier IE uses Doc.body
-    if (document.body && document.body.offsetWidth) {
-        size.width = document.body.offsetWidth;
-        size.height = document.body.offsetHeight;
+    // Most recent browsers use
+    if (window.innerWidth && window.innerHeight) {
+        size.width = window.innerWidth;
+        size.height = window.innerHeight;
+        return (size);
     }
 
     // IE can use depending on mode it is in
@@ -22,16 +23,18 @@ nv.utils.windowSize = function() {
 
         size.width = document.documentElement.offsetWidth;
         size.height = document.documentElement.offsetHeight;
+        return (size);
     }
 
-    // Most recent browsers use
-    if (window.innerWidth && window.innerHeight) {
-        size.width = window.innerWidth;
-        size.height = window.innerHeight;
+    // Earlier IE uses Doc.body
+    if (document.body && document.body.offsetWidth) {
+        size.width = document.body.offsetWidth;
+        size.height = document.body.offsetHeight;
+        return (size);
     }
+
     return (size);
 };
-
 
 /*
 Binds callback function to run when window is resized
@@ -54,19 +57,25 @@ nv.utils.windowResize = function(handler) {
 
 /*
 Backwards compatible way to implement more d3-like coloring of graphs.
-If passed an array, wrap it in a function which implements the old behavior
-Else return what was passed in
+Can take in nothing, an array, or a function/scale
+To use a normal scale, get the range and pass that because we must be able
+to take two arguments and use the index to keep backward compatibility
 */
 nv.utils.getColor = function(color) {
     //if you pass in nothing, get default colors back
-    if (!arguments.length) {
+    if (color === undefined) {
         return nv.utils.defaultColor();
 
-    //if passed an array, wrap it in a function
-    } else if(color instanceof Array) {
-        return function(d, i) { return d.color || color[i % color.length]; };
+    //if passed an array, turn it into a color scale
+    // use isArray, instanceof fails if d3 range is created in an iframe
+    } else if(Array.isArray(color)) {
+        var color_scale = d3.scale.ordinal().range(color);
+        return function(d, i) {
+            var key = i === undefined ? d : i;
+            return d.color || color_scale(key);
+        };
 
-    //if passed a function, return the function, or whatever it may be
+    //if passed a function or scale, return it, or whatever it may be
     //external libs, such as angularjs-nvd3-directives use this
     } else {
         //can't really help it if someone passes rubbish as color
@@ -76,13 +85,12 @@ nv.utils.getColor = function(color) {
 
 
 /*
-Default color chooser uses the index of an object as before.
+Default color chooser uses a color scale of 20 colors from D3
+ https://github.com/mbostock/d3/wiki/Ordinal-Scales#categorical-colors
  */
 nv.utils.defaultColor = function() {
-    var colors = d3.scale.category20().range();
-    return function(d, i) {
-        return d.color || colors[i % colors.length]
-    };
+    // get range of the scale so we'll turn it into our own function.
+    return nv.utils.getColor(d3.scale.category20().range());
 };
 
 
@@ -157,7 +165,7 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
     if (typeof svgTextElem.style === 'function'
         && typeof svgTextElem.text === 'function') {
 
-        var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""));
+        var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""), 10);
         var textLength = svgTextElem.text().length;
         return textLength * fontSize * 0.5;
     }
@@ -286,7 +294,7 @@ gives:  {a: 2, b: 3, c: 4}
 nv.utils.deepExtend = function(dst){
     var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
     sources.forEach(function(source) {
-        for (key in source) {
+        for (var key in source) {
             var isArray = dst[key] instanceof Array;
             var isObject = typeof dst[key] === 'object';
             var srcObj = typeof source[key] === 'object';
@@ -386,7 +394,6 @@ To enable in the chart:
 chart.options = nv.utils.optionsFunc.bind(chart);
 */
 nv.utils.optionsFunc = function(args) {
-    nv.deprecated('nv.utils.optionsFunc');
     if (args) {
         d3.map(args).forEach((function(key,value) {
             if (typeof this[key] === "function") {
@@ -450,9 +457,19 @@ nv.utils.initOption = function(chart, name) {
     } else {
         chart[name] = function (_) {
             if (!arguments.length) return chart._options[name];
+            chart._overrides[name] = true;
             chart._options[name] = _;
             return chart;
         };
+        // calling the option as _option will ignore if set by option already
+        // so nvd3 can set options internally but the stop if set manually
+        chart['_' + name] = function(_) {
+            if (!arguments.length) return chart._options[name];
+            if (!chart._overrides[name]) {
+                chart._options[name] = _;
+            }
+            return chart;
+        }
     }
 };
 
@@ -461,6 +478,7 @@ nv.utils.initOption = function(chart, name) {
 Add all options in an options object to the chart
 */
 nv.utils.initOptions = function(chart) {
+    chart._overrides = chart._overrides || {};
     var ops = Object.getOwnPropertyNames(chart._options || {});
     var calls = Object.getOwnPropertyNames(chart._calls || {});
     ops = ops.concat(calls);
@@ -558,3 +576,64 @@ Runs common initialize code on the svg before the chart builds
 nv.utils.initSVG = function(svg) {
     svg.classed({'nvd3-svg':true});
 };
+
+
+/*
+Sanitize and provide default for the container height.
+*/
+nv.utils.sanitizeHeight = function(height, container) {
+    return (height || parseInt(container.style('height'), 10) || 400);
+};
+
+
+/*
+Sanitize and provide default for the container width.
+*/
+nv.utils.sanitizeWidth = function(width, container) {
+    return (width || parseInt(container.style('width'), 10) || 960);
+};
+
+
+/*
+Calculate the available height for a chart.
+*/
+nv.utils.availableHeight = function(height, container, margin) {
+    return nv.utils.sanitizeHeight(height, container) - margin.top - margin.bottom;
+};
+
+/*
+Calculate the available width for a chart.
+*/
+nv.utils.availableWidth = function(width, container, margin) {
+    return nv.utils.sanitizeWidth(width, container) - margin.left - margin.right;
+};
+
+/*
+Clear any rendered chart components and display a chart's 'noData' message
+*/
+nv.utils.noData = function(chart, container) {
+    var opt = chart.options(),
+        margin = opt.margin(),
+        noData = opt.noData(),
+        data = (noData == null) ? ["No Data Available."] : [noData],
+        height = nv.utils.availableHeight(opt.height(), container, margin),
+        width = nv.utils.availableWidth(opt.width(), container, margin),
+        x = margin.left + width/2,
+        y = margin.top + height/2;
+
+    //Remove any previously created chart components
+    container.selectAll('g').remove();
+
+    var noDataText = container.selectAll('.nv-noData').data(data);
+
+    noDataText.enter().append('text')
+        .attr('class', 'nvd3 nv-noData')
+        .attr('dy', '-.7em')
+        .style('text-anchor', 'middle');
+
+    noDataText
+        .attr('x', x)
+        .attr('y', y)
+        .text(function(t){ return t; });
+};
+

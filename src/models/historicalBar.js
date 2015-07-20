@@ -10,6 +10,7 @@ nv.models.historicalBar = function() {
         , width = null
         , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , x = d3.scale.linear()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -23,7 +24,7 @@ nv.models.historicalBar = function() {
         , yDomain
         , xRange
         , yRange
-        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
+        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , interactive = true
         ;
 
@@ -33,11 +34,9 @@ nv.models.historicalBar = function() {
         selection.each(function(data) {
             renderWatch.reset();
 
-            var container = d3.select(this);
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                - margin.left - margin.right;
-            var availableHeight = (height || parseInt(container.style('height')) || 400)
-                - margin.top - margin.bottom;
+            container = d3.select(this);
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
 
@@ -97,7 +96,7 @@ nv.models.historicalBar = function() {
                 .data(function(d) { return d }, function(d,i) {return getX(d,i)});
             bars.exit().remove();
 
-            var barsEnter = bars.enter().append('rect')
+            bars.enter().append('rect')
                 .attr('x', 0 )
                 .attr('y', function(d,i) {  return nv.utils.NaNtoZero(y(Math.max(0, getY(d,i)))) })
                 .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.abs(y(getY(d,i)) - y(0))) })
@@ -106,12 +105,9 @@ nv.models.historicalBar = function() {
                     if (!interactive) return;
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
-                        point: d,
-                        series: data[0],
-                        pos: [x(getX(d,i)), y(getY(d,i))],  // TODO: Figure out why the value appears to be shifted
-                        pointIndex: i,
-                        seriesIndex: 0,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
 
                 })
@@ -119,36 +115,34 @@ nv.models.historicalBar = function() {
                     if (!interactive) return;
                     d3.select(this).classed('hover', false);
                     dispatch.elementMouseout({
-                        point: d,
-                        series: data[0],
-                        pointIndex: i,
-                        seriesIndex: 0,
-                        e: d3.event
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    if (!interactive) return;
+                    dispatch.elementMousemove({
+                        data: d,
+                        index: i,
+                        color: d3.select(this).style("fill")
                     });
                 })
                 .on('click', function(d,i) {
                     if (!interactive) return;
                     dispatch.elementClick({
-                        //label: d[label],
-                        value: getY(d,i),
                         data: d,
                         index: i,
-                        pos: [x(getX(d,i)), y(getY(d,i))],
-                        e: d3.event,
-                        id: id
+                        color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
                 })
                 .on('dblclick', function(d,i) {
                     if (!interactive) return;
                     dispatch.elementDblClick({
-                        //label: d[label],
-                        value: getY(d,i),
                         data: d,
                         index: i,
-                        pos: [x(getX(d,i)), y(getY(d,i))],
-                        e: d3.event,
-                        id: id
+                        color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
                 });
@@ -180,14 +174,14 @@ nv.models.historicalBar = function() {
 
     //Create methods to allow outside functions to highlight a specific bar.
     chart.highlightPoint = function(pointIndex, isHoverOver) {
-        d3.select(".nv-historicalBar-" + id)
+        container
             .select(".nv-bars .nv-bar-0-" + pointIndex)
             .classed("hover", isHoverOver)
         ;
     };
 
     chart.clearHighlights = function() {
-        d3.select(".nv-historicalBar-" + id)
+        container
             .select(".nv-bars .nv-bar.hover")
             .classed("hover", false)
         ;
