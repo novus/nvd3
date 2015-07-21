@@ -43,7 +43,8 @@
             ,   offset = {left: 0, top: 0}   //Offset of tooltip against the pointer
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
-            ,   headerEnabled = true
+            ,   headerEnabled = true //show the tooltip header
+            ,   legendEnabled = true //show the tooltip legend
         ;
 
         // set to true by interactive layer to adjust tooltip positions
@@ -86,7 +87,7 @@
 
                 theadEnter.append("tr")
                     .append("td")
-                    .attr("colspan", 3)
+                    .attr("colspan", legendEnabled ? 3 : 2)
                     .append("strong")
                     .classed("x-value", true)
                     .html(headerFormatter(d.value));
@@ -102,10 +103,12 @@
                     .append("tr")
                     .classed("highlight", function(p) { return p.highlight});
 
-            trowEnter.append("td")
-                .classed("legend-color-guide",true)
-                .append("div")
-                .style("background-color", function(p) { return p.color});
+            if (legendEnabled) {
+                trowEnter.append("td")
+                    .classed("legend-color-guide",true)
+                    .append("div")
+                    .style("background-color", function(p) { return p.color});
+            }
 
             trowEnter.append("td")
                 .classed("key",true)
@@ -393,6 +396,7 @@
             headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
             keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
             headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
+            legendEnabled:   {get: function(){return legendEnabled;}, set: function(_){legendEnabled=_;}},
 
             // internal use only, set by interactive layer to adjust position.
             _isInteractiveLayer: {get: function(){return isInteractiveLayer;}, set: function(_){isInteractiveLayer=!!_;}},
