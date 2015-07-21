@@ -24,6 +24,7 @@ nv.models.boxPlotChart = function() {
         , noData = "No Data Available."
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate', 'renderEnd')
         , duration = 250
+        , tooltips
         ;
 
     xAxis
