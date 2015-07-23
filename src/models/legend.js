@@ -10,6 +10,7 @@ nv.models.legend = function() {
         , height = 20
         , getKey = function(d) { return d.key }
         , color = nv.utils.getColor()
+        , maxKeyLength = 20 //default value for key lengths
         , align = true
         , padding = 32 //define how much space between legend items. - recommend 32 for furious version
         , rightAlign = true
@@ -67,7 +68,6 @@ nv.models.legend = function() {
                     .attr('class','nv-legend-symbol')
                     .attr('rx', 3)
                     .attr('ry', 3);
-
                 seriesShape = series.select('.nv-legend-symbol');
 
                 seriesEnter.append('g')
@@ -177,7 +177,14 @@ nv.models.legend = function() {
 
                 var seriesWidths = [];
                 series.each(function(d,i) {
-                    var legendText = d3.select(this).select('text');
+                    var legendText;
+                    if (getKey(d).length > maxKeyLength) { 
+                        var trimmedKey = getKey(d).substring(0, maxKeyLength);
+                        legendText = d3.select(this).select('text').text(trimmedKey + "...");
+                        d3.select(this).append("svg:title").text(getKey(d));
+                    } else {
+                        legendText = d3.select(this).select('text');
+                    } 
                     var nodeTextLength;
                     try {
                         nodeTextLength = legendText.node().getComputedTextLength();
@@ -346,6 +353,7 @@ nv.models.legend = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         key:        {get: function(){return getKey;}, set: function(_){getKey=_;}},
         align:      {get: function(){return align;}, set: function(_){align=_;}},
+        maxKeyLength:   {get: function(){return maxKeyLength;}, set: function(_){maxKeyLength=_;}},
         rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
         padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
