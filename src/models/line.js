@@ -24,6 +24,7 @@ nv.models.line = function() {
         , interpolate = "linear" // controls the line interpolation
         , duration = 250
         , dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
+        , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         ;
 
     scatter

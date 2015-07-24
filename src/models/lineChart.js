@@ -10,6 +10,8 @@ nv.models.lineChart = function() {
         , yAxis = nv.models.axis()
         , legend = nv.models.legend()
         , interactiveLayer = nv.interactiveGuideline()
+        , distX = nv.models.distribution()
+        , distY = nv.models.distribution()
         , tooltip = nv.models.tooltip()
         ;
 
@@ -17,11 +19,14 @@ nv.models.lineChart = function() {
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
+        , container = null
         , showLegend = true
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
         , useInteractiveGuideline = false
+        , showDistX = false
+        , showDistY = false
         , x
         , y
         , state = nv.utils.state()
@@ -34,6 +39,8 @@ nv.models.lineChart = function() {
     // set options on sub-objects for this chart
     xAxis.orient('bottom').tickPadding(7);
     yAxis.orient(rightAlignYAxis ? 'right' : 'left');
+    distX.axis('x').size(3);
+    distY.axis('y').size(3);
     tooltip.valueFormatter(function(d, i) {
         return yAxis.tickFormat()(d, i);
     }).headerFormatter(function(d, i) {
@@ -69,11 +76,15 @@ nv.models.lineChart = function() {
         renderWatch.models(lines);
         if (showXAxis) renderWatch.models(xAxis);
         if (showYAxis) renderWatch.models(yAxis);
+        if (showDistX) renderWatch.models(distX);
+        if (showDistY) renderWatch.models(distY);
 
         selection.each(function(data) {
-            var container = d3.select(this),
-                that = this;
+            var that = this;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
+
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -106,7 +117,7 @@ nv.models.lineChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                nv.utils.noData(chart, container)
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -119,13 +130,14 @@ nv.models.lineChart = function() {
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-lineChart').data([data]);
-            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineChart').append('g');
+            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-lineChart nv-chart-' + lines.id()).append('g');
             var g = wrap.select('g');
 
             gEnter.append("rect").style("opacity",0);
             gEnter.append('g').attr('class', 'nv-x nv-axis');
             gEnter.append('g').attr('class', 'nv-y nv-axis');
             gEnter.append('g').attr('class', 'nv-linesWrap');
+            gEnter.append('g').attr('class', 'nv-distWrap');
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-interactive');
 
@@ -202,6 +214,39 @@ nv.models.lineChart = function() {
 
                 g.select('.nv-y.nv-axis')
                     .call(yAxis);
+            }
+
+            //Setup Distribution
+            if (showDistX) {
+                distX
+                    .getData(lines.x())
+                    .scale(x)
+                    .width(availableWidth)
+                    .color(data.map(function (d, i) {
+                        return d.color || color(d, i);
+                    }).filter(function (d, i) { return !data[i].disabled }));
+                gEnter.select('.nv-distWrap').append('g')
+                    .attr('class', 'nv-distributionX');
+                g.select('.nv-distributionX')
+                    .attr('transform', 'translate(0,' + y.range()[0] + ')')
+                    .datum(data.filter(function (d) { return !d.disabled }))
+                    .call(distX);
+            }
+
+            if (showDistY) {
+                distY
+                    .getData(lines.y())
+                    .scale(y)
+                    .width(availableHeight)
+                    .color(data.map(function (d, i) {
+                        return d.color || color(d, i);
+                    }).filter(function (d, i) { return !data[i].disabled }));
+                gEnter.select('.nv-distWrap').append('g')
+                    .attr('class', 'nv-distributionY');
+                g.select('.nv-distributionY')
+                    .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
+                    .datum(data.filter(function (d) { return !d.disabled }))
+                    .call(distY);
             }
 
             //============================================================
@@ -306,23 +351,35 @@ nv.models.lineChart = function() {
                 chart.update();
             });
 
+            lines.dispatch.on('elementMouseover.tooltip', function(evt) {
+                tooltip.data(evt).position(evt.pos).hidden(false);
+
+                if(showDistX){
+                    container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                        .attr('y1', evt.pos.top - availableHeight - margin.top);
+                }
+                if(showDistY){
+                    container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                        .attr('x2', evt.pos.left + distX.size() - margin.left);
+                }
+            });
+
+            lines.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true);
+                if(showDistX){
+                    container.select('.nv-chart-' + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                        .attr('y1', 0);
+                }
+                if(showDistY){
+                    container.select('.nv-chart-' + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                        .attr('x2', distY.size());
+                }
+            });
         });
 
         renderWatch.renderEnd('lineChart immediate');
         return chart;
     }
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-
-    lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.data(evt).position(evt.pos).hidden(false);
-    });
-
-    lines.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.hidden(true)
-    });
 
     //============================================================
     // Expose Public Variables
@@ -334,6 +391,8 @@ nv.models.lineChart = function() {
     chart.legend = legend;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
+    chart.distX = distX;
+    chart.distY = distY;
     chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
 
@@ -344,9 +403,12 @@ nv.models.lineChart = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        container:  {get: function(){return container;}, set: function(_){container=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        showDistX:      {get: function(){return showDistX;}, set: function(_){showDistX=_;}},
+        showDistY:    {get: function(){return showDistY;}, set: function(_){showDistY=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
