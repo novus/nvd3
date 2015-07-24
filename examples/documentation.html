@@ -177,10 +177,10 @@
 
                         var desc = option_info[name]['desc'];
                         var def;
-                        if (typeof option_info[name]['default'] == 'function') {
-                            // use function in option_info to pull default value of the option off an instance of the chart
+                        // if defaultValueGetter exists, it is a function to pull the actual default value from an instance of the chart
+                        if (option_info[name]['defaultValueGetter']) { 
                             var chartName = a.parent().attr('id').substring(3); // first 3 chars are a 'ul_' appended to the chart name
-                            def = JSON.stringify(option_info[name]['default'](nv.models[chartName]()), null, 1);
+                            def = JSON.stringify(option_info[name]['defaultValueGetter'](nv.models[chartName]()), null, 1);
                         } else {
                             def = option_info[name]['default'];
                         }
@@ -386,7 +386,7 @@ as well as used to print out examples using those example inputs.
         },
         margin: {
             desc: "Object containing the margins for the chart or component.  You can specify only certain margins in the object to change just those parts.",
-            default: function(chart){ return chart.margin(); },
+            defaultValueGetter: function(chart){ return chart.margin(); },
             examples: [
                 {top: 10, bottom: 10},
                 {left: 5, right: 5, top: 10, bottom: 10}
