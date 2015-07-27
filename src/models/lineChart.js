@@ -355,23 +355,23 @@ nv.models.lineChart = function() {
                 tooltip.data(evt).position(evt.pos).hidden(false);
 
                 if(showDistX){
-                    container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
-                        .attr('y1', evt.pos.top - availableHeight - margin.top);
+                    container.select('.nv-distributionX .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                        .attr('y1', evt.relativePos[1] - availableHeight);
                 }
                 if(showDistY){
-                    container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
-                        .attr('x2', evt.pos.left + distX.size() - margin.left);
+                    container.select('.nv-distributionY .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                        .attr('x2', evt.relativePos[0] + distX.size());
                 }
             });
 
             lines.dispatch.on('elementMouseout.tooltip', function(evt) {
                 tooltip.hidden(true);
                 if(showDistX){
-                    container.select('.nv-chart-' + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                    container.select('.nv-distributionX .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                         .attr('y1', 0);
                 }
                 if(showDistY){
-                    container.select('.nv-chart-' + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                    container.select('.nv-distributionY .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                         .attr('x2', distY.size());
                 }
             });
