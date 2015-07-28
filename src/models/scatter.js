@@ -263,6 +263,7 @@ nv.models.scatter = function() {
                             point: point,
                             series: series,
                             pos: pos,
+                            relativePos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                             seriesIndex: d.series,
                             pointIndex: d.point
                         });
@@ -297,7 +298,8 @@ nv.models.scatter = function() {
                             dispatch.elementClick({
                                 point: point,
                                 series: series,
-                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top], //TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i
                             });
@@ -310,7 +312,8 @@ nv.models.scatter = function() {
                             dispatch.elementDblClick({
                                 point: point,
                                 series: series,
-                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i
                             });
@@ -323,7 +326,8 @@ nv.models.scatter = function() {
                             dispatch.elementMouseover({
                                 point: point,
                                 series: series,
-                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i,
                                 color: color(d, i)
@@ -337,6 +341,8 @@ nv.models.scatter = function() {
                             dispatch.elementMouseout({
                                 point: point,
                                 series: series,
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i,
                                 color: color(d, i)
