@@ -271,8 +271,9 @@
                             return translateInterpolator;
                         }, 'important')
                         // Safari has its own `-webkit-transform` and does not support `transform`
-                        // transform tooltip without transition only in Safari
-                        .style('-webkit-transform', new_translate)
+                        .styleTween('-webkit-transform', function (d) {
+                            return translateInterpolator;
+                        }, 'important')
                         .style('-ms-transform', new_translate)
                         .style('opacity', 1);
                 }
