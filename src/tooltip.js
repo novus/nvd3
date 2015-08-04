@@ -9,7 +9,7 @@
 
     /* Model which can be instantiated to handle tooltip rendering.
      Example usage:
-     var tip = nv.models.tooltip().gravity('w').distance(23)
+     var tip = nv.models.tooltip().gravity('sw').distance(23)
      .data(myDataObject);
 
      tip();    //just invoke the returned function to render tooltip.
@@ -29,7 +29,7 @@
         }
         */
         var data = null;
-        var gravity = 'w'   //Can be 'n','s','e','w'. Determines how tooltip is positioned.
+        var gravity = 'se'   //Can be 'nw','ne','sw','se'. Determines how tooltip is positioned.
             ,   distance = 25   //Distance to offset tooltip from the mouse location.
             ,   snapDistance = 0   //Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
             ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
@@ -40,6 +40,7 @@
             ,   tooltip = null // d3 select of tooltipElem below
             ,   tooltipElem = null  //actual DOM element representing the tooltip.
             ,   position = {left: null, top: null}   //Relative position of the tooltip inside chartContainer.
+            ,   absPosition = {left: null, top: null} // Final absolute position of the tooltip.
             ,   offset = {left: 0, top: 0}   //Offset of tooltip against the pointer
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
@@ -152,107 +153,46 @@
             if (!tooltipElem) return;
 
             nv.dom.read(function() {
-                var height = parseInt(tooltipElem.offsetHeight, 10),
-                    width = parseInt(tooltipElem.offsetWidth, 10),
-                    windowWidth = nv.utils.windowSize().width,
-                    windowHeight = nv.utils.windowSize().height,
-                    scrollTop = window.pageYOffset,
-                    scrollLeft = window.pageXOffset,
+                var height = tooltipElem.offsetHeight,
+                    width = tooltipElem.offsetWidth,
+                    scrollTop  = window.pageYOffset || document.documentElement.scrollTop,
+                    scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+                    windowSize = nv.utils.windowSize(),
                     left, top;
 
-                windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
-                windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
-
-
-                //Helper functions to find the total offsets of a given DOM element.
-                //Looks up the entire ancestry of an element, up to the first relatively positioned element.
-                var tooltipTop = function ( Elem ) {
-                    var offsetTop = top;
-                    do {
-                        if( !isNaN( Elem.offsetTop ) ) {
-                            offsetTop += (Elem.offsetTop);
-                        }
-                        Elem = Elem.offsetParent;
-                    } while( Elem );
-                    return offsetTop;
-                };
-                var tooltipLeft = function ( Elem ) {
-                    var offsetLeft = left;
-                    do {
-                        if( !isNaN( Elem.offsetLeft ) ) {
-                            offsetLeft += (Elem.offsetLeft);
-                        }
-                        Elem = Elem.offsetParent;
-                    } while( Elem );
-                    return offsetLeft;
-                };
-
-                // calculate position based on gravity
-                var tLeft, tTop;
                 switch (gravity) {
-                    case 'e':
+                    case 'nw':
                         left = pos[0] - width - distance;
-                        top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft < scrollLeft) left = pos[0] + distance > scrollLeft ? pos[0] + distance : scrollLeft - tLeft + left;
-                        if (tTop < scrollTop) top = scrollTop - tTop + top;
-                        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                        break;
-                    case 'w':
-                        left = pos[0] + distance;
-                        top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft + width > windowWidth) left = pos[0] - width - distance;
-                        if (tTop < scrollTop) top = scrollTop - tTop + top;
-                        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                        break;
-                    case 'n':
-                        left = pos[0] - (width / 2) - 5;
-                        top = pos[1] + distance;
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft < scrollLeft) left = scrollLeft + 5;
-                        if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                        break;
-                    case 's':
-                        left = pos[0] - (width / 2);
                         top = pos[1] - height - distance;
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft < scrollLeft) left = scrollLeft + 5;
-                        if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                        if (scrollTop > tTop) top = scrollTop;
+                        if(left < scrollLeft) left = pos[0] + distance;
+                        if(top < scrollTop) top = pos[1] + distance;
                         break;
-                    case 'none':
-                        left = pos[0];
-                        top = pos[1] - distance;
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
+                    case 'ne':
+                        left = pos[0] + distance;
+                        top = pos[1] - height - distance;
+                        if(left + width > scrollLeft + windowSize.width) left = pos[0] - width - distance;
+                        if(top < scrollTop) top = pos[1] + distance;
+                        break;
+                    case 'sw':
+                        left = pos[0] - width - distance;
+                        top = pos[1] + distance; // +5 to take into account the mouse's size.
+                        if(left < scrollLeft) left = pos[0] + distance;
+                        if(top + height > scrollTop + windowSize.height) top = pos[1] - height - distance;
+                        break;
+                    case 'se':
+                        left = pos[0] + distance;
+                        top = pos[1] + distance;
+                        if(left + width > scrollLeft + windowSize.width) left = pos[0] - width - distance;
+                        if(top + height > scrollTop + windowSize.height) top = pos[1] - height - distance;
                         break;
                     case 'center':
-                        left = pos[0] - (width / 2);
-                        top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(container);
-                        tTop = tooltipTop(container);
+                        left = - width / 2;
+                        top = - height / 2;
                         break;
                 }
 
-                // adjust tooltip offsets
                 left -= offset.left;
                 top -= offset.top;
-
-                // using tooltip.style('transform') returns values un-usable for tween
-                var box = tooltipElem.getBoundingClientRect();
-                var scrollTop  = window.pageYOffset || document.documentElement.scrollTop;
-                var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-                var old_translate = 'translate(' + (box.left + scrollLeft) + 'px, ' + (box.top + scrollTop) + 'px)';
-                var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
-                var translateInterpolator = d3.interpolateString(old_translate, new_translate);
-
-                var is_hidden = tooltip.style('opacity') < 0.1;
 
                 // delay hiding a bit to avoid flickering
                 if (hidden) {
@@ -262,6 +202,12 @@
                         .duration(0)
                         .style('opacity', 0);
                 } else {
+                    // using tooltip.style('transform') returns values un-usable for tween
+                    var is_hidden = tooltip.style('opacity') < 0.1,
+                        old_translate = 'translate(' + absPosition.left + 'px, ' + absPosition.top + 'px)',
+                        new_translate = 'translate(' + left + 'px, ' + top + 'px)',
+                        translateInterpolator = d3.interpolateString(old_translate, new_translate);
+
                     tooltip
                         .interrupt() // cancel running transitions
                         .transition()
@@ -277,8 +223,9 @@
                         .style('opacity', 1);
                 }
 
-
-
+                // Save the new absolute position.
+                absPosition.left = left;
+                absPosition.top = top;
             });
         };
 
@@ -343,28 +290,10 @@
 
                 if (chartContainer && isInteractiveLayer) {
                     nv.dom.read(function() {
-                        var svgComp = chartContainer.getElementsByTagName("svg")[0];
-                        var svgOffset = {left:0,top:0};
-                        if (svgComp) {
-                            var svgBound = svgComp.getBoundingClientRect();
-                            var chartBound = chartContainer.getBoundingClientRect();
-                            var svgBoundTop = svgBound.top;
-
-                            //Defensive code. Sometimes, svgBoundTop can be a really negative
-                            //  number, like -134254. That's a bug.
-                            //  If such a number is found, use zero instead. FireFox bug only
-                            if (svgBoundTop < 0) {
-                                var containerBound = chartContainer.getBoundingClientRect();
-                                svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
-                            }
-                            svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
-                            svgOffset.left = Math.abs(svgBound.left - chartBound.left);
-                        }
-                        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
-                        //You need to also add any offset between the <svg> element and its containing <div>
-                        //Finally, add any offset of the containing <div> on the whole page.
-                        left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
-                        top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
+                        var svg = chartContainer.getElementsByTagName("svg")[0];
+                        var svgAbsPos = nv.utils.absolutePosition(svg);
+                        left += svgAbsPos.x;
+                        top += svgAbsPos.y;
 
                         if (snapDistance && snapDistance > 0) {
                             top = Math.floor(top/snapDistance) * snapDistance;
