@@ -107,8 +107,10 @@ nv.models.candlestickBar = function() {
                 .data(function(d) { return d });
             ticks.exit().remove();
 
+            var tickGroups = ticks.enter().append('g');
+
             // The colors are currently controlled by CSS.
-            var tickGroups = ticks.enter().append('g')
+            ticks
                 .attr('class', function(d, i, j) { return (getOpen(d, i) > getClose(d, i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i});
 
             var lines = tickGroups.append('line')
@@ -134,9 +136,6 @@ nv.models.candlestickBar = function() {
                     var close = getClose(d, i);
                     return open > close ? y(close) - y(open) : y(open) - y(close);
                 });
-
-            ticks
-                .attr('class', function(d, i, j) { return (getOpen(d, i) > getClose(d, i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i});
 
             ticks.select('.nv-candlestick-lines').transition()
                 .attr('transform', function(d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; })
