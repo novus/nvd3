@@ -273,7 +273,7 @@
                         // Safari has its own `-webkit-transform` and does not support `transform`
                         .styleTween('-webkit-transform', function (d) {
                             return translateInterpolator;
-                        }, 'important')
+                        })
                         .style('-ms-transform', new_translate)
                         .style('opacity', 1);
                 }
