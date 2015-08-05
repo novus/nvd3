@@ -20,6 +20,7 @@ nv.models.parallelCoordinates = function() {
         , dragging = []
         , lineTension = 1
         , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout')
+        , enumerateNonNumericDimensions = false
         ;
 
     //============================================================
@@ -41,26 +42,46 @@ nv.models.parallelCoordinates = function() {
 
             //Set as true if all values on an axis are missing.
             var onlyNanValues = {};
+            var dimensionTypes = {};
             // Extract the list of dimensions and create a scale for each.
             dimensionNames.forEach(function(d) {
+                // First assume that the dimension is numeric and try to get
+                // the extent of it.
                 var extent = d3.extent(data, function(p) { return +p[d]; });
                 onlyNanValues[d] = false;
-                //If there is no values to display on an axis, set the extent to 0
-                if (extent[0] === undefined) {
-                    onlyNanValues[d] = true;
-                    extent[0] = 0;
-                    extent[1] = 0;
+
+                // The user can elect to enumerate each unique value for non
+                // numeric dimensions, rather than defining an extent of 0.
+                if (extent[0] === undefined && enumerateNonNumericDimensions) {
+                    // Record this dimension type as being an enumeration.
+                    dimensionTypes[d] = "enum";
+
+                    // Create an ordinal scale rather than a linear one.
+                    y[d] = d3.scale.ordinal()
+                        .domain(data.map(function(o) { return String(o[d]); }).sort())
+                        .rangePoints([0, (availableHeight - 12) * 0.9]);
                 }
-                //Scale axis if there is only one value
-                if (extent[0] === extent[1]) {
-                    extent[0] = extent[0] - 1;
-                    extent[1] = extent[1] + 1;
+                else {
+                    dimensionTypes[d] = "number";
+                    if (extent[0] === undefined) {
+                        // We are not enumerating non-numeric dimensions, so assign
+                        // an extent of 0 and indicate this axis has only NaN values.
+                        onlyNanValues[d] = true;
+                        extent[0] = 0;
+                        extent[1] = 0;
+                    }
+
+                    //Scale axis if there is only one value
+                    if (extent[0] === extent[1]) {
+                        extent[0] = extent[0] - 1;
+                        extent[1] = extent[1] + 1;
+                    }
+                    //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
+                    //The remaining 10% are used to display the missingValue line.
+                    y[d] = d3.scale.linear()
+                        .domain(extent)
+                        .range([(availableHeight - 12) * 0.9, 0]);
                 }
-                //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
-                //The remaining 10% are used to display the missingValue line.
-                y[d] = d3.scale.linear()
-                    .domain(extent)
-                    .range([(availableHeight - 12) * 0.9, 0]);
 
                 y[d].brush = d3.svg.brush().y(y[d]).on('brush', brush);
 
@@ -170,10 +191,16 @@ nv.models.parallelCoordinates = function() {
 
             dimensions.select('.nv-axis')
                 .each(function (d, i) {
-                    d3.select(this).call(axis.scale(y[d]).tickFormat(d3.format(dimensionFormats[i])));
+                    // Only use the tick format for numeric types. Enumerations
+                    // will use the value as-is.
+                    if (dimensionTypes[d] === "number" && !onlyNanValues[d]) {
+                        d3.select(this).call(axis.scale(y[d]).tickFormat(d3.format(dimensionFormats[i])));
+                    } else if (dimensionTypes[d] === "enum") {
+                        d3.select(this).call(axis.scale(y[d]));
+                    }
                 });
 
-                dimensions.select('.nv-parallelCoordinates-brush')
+            dimensions.select('.nv-parallelCoordinates-brush')
                 .each(function (d) {
                     d3.select(this).call(y[d].brush);
                 })
@@ -184,8 +211,10 @@ nv.models.parallelCoordinates = function() {
             // Returns the path for a given data point.
             function path(d) {
                 return line(dimensionNames.map(function (p) {
-                    //If value if missing, put the value on the missing value line
-                    if(isNaN(d[p]) || isNaN(parseFloat(d[p]))) {
+                    // If value if missing, put the value on the missing value line
+                    // Note that we only do this for numeric values. Enums will
+                    // always be rendered.
+                    if (dimensionTypes[p] === "number" && (isNaN(d[p]) || isNaN(parseFloat(d[p])))) {
                         var domain = y[p].domain();
                         var range = y[p].range();
                         var min = domain[0] - (domain[1] - domain[0]) / 9;
@@ -230,8 +259,16 @@ nv.models.parallelCoordinates = function() {
                 active = []; //erase current active list
                 foreground.style('display', function(d) {
                     var isActive = actives.every(function(p, i) {
-                        if(isNaN(d[p]) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
-                        return extents[i][0] <= d[p] && d[p] <= extents[i][1];
+                        if (dimensionTypes[p] === "number") {
+                            if(isNaN(d[p]) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
+                            return extents[i][0] <= d[p] && d[p] <= extents[i][1];
+                        } else if (dimensionTypes[p] === "enum") {
+                            // If the dimension type is an enum, then we check
+                            // whether or not the output value is in the range
+                            // by using the ordinal scale.
+                            var rangeValue = y[p](d[p]);
+                            return extents[i][0] <= rangeValue && rangeValue <= extents[i][1];
+                        }
                     });
                     if (isActive) active.push(d);
                     return isActive ? null : 'none';
@@ -309,7 +346,8 @@ nv.models.parallelCoordinates = function() {
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
-        }}
+        }},
+        enumerateNonNumericDimensions: {get: function(){return enumerateNonNumericDimensions;}, set: function(_){enumerateNonNumericDimensions=_;}}
     });
 
     nv.utils.initOptions(chart);
