@@ -54,6 +54,21 @@ nv.utils.windowResize = function(handler) {
     }
 };
 
+/*
+Returns the absolute position of an element relative to the beginning of the page.
+Thanks to http://www.kirupa.com/html5/get_element_position_using_javascript.htm
+*/
+nv.utils.absolutePosition = function(element) {
+    var xPosition = 0;
+    var yPosition = 0;
+
+    while(element && element.style.position != 'relative') {
+        xPosition += (element.offsetLeft + element.clientLeft);
+        yPosition += (element.offsetTop + element.clientTop);
+        element = element.offsetParent;
+    }
+    return { x: xPosition, y: yPosition };
+};
 
 /*
 Backwards compatible way to implement more d3-like coloring of graphs.
