@@ -111,7 +111,6 @@ module.exports = function(grunt) {
                         'src/outro.js',
                         //Files we don't want to test.
                         'src/models/lineWith*',
-                        'src/models/parallelCoordinates*',
                         'src/models/multiBarTime*',
                         'src/models/indented*',
                         'src/models/linePlus*',
