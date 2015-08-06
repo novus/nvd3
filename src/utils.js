@@ -62,7 +62,7 @@ nv.utils.absolutePosition = function(element) {
     var xPosition = 0;
     var yPosition = 0;
 
-    while(element) {
+    while(element && element.style.position != 'relative') {
         xPosition += (element.offsetLeft + element.clientLeft);
         yPosition += (element.offsetTop + element.clientTop);
         element = element.offsetParent;
