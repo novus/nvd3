@@ -9,26 +9,21 @@
 nv.interactiveGuideline = function() {
     "use strict";
 
-    var tooltip = nv.models.tooltip();
-    tooltip.duration(0).hideDelay(0)._isInteractiveLayer(true).hidden(false);
+    var margin = { left: 0, top: 0 } //Pass the chart's top and left magins. Used to calculate the mouseX/Y.
+        ,   width = null
+        ,   height = null
+        ,   xScale = d3.scale.linear()
+        ,   dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
+        ,   showGuideLine = true
+        ,   svgContainer = null // Must pass the chart's svg, we'll use its mousemove event.
+        ,   tooltip = nv.models.tooltip()
+        ,   isMSIE = "ActiveXObject" in window // Checkt if IE by looking for activeX.
+    ;
 
-    //Public settings
-    var width = null;
-    var height = null;
-
-    //Please pass in the bounding chart's top and left margins
-    //This is important for calculating the correct mouseX/Y positions.
-    var margin = {left: 0, top: 0}
-        , xScale = d3.scale.linear()
-        , dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
-        , showGuideLine = true;
-    //Must pass in the bounding chart's <svg> container.
-    //The mousemove event is attached to this container.
-    var svgContainer = null;
-
-    // check if IE by looking for activeX
-    var isMSIE = "ActiveXObject" in window;
-
+    tooltip
+        .duration(0)
+        .hideDelay(0)
+        .hidden(false);
 
     function layer(selection) {
         selection.each(function(data) {

@@ -26,8 +26,6 @@ describe 'NVD3', ->
             donutRatio: 0.5
             labelThreshold: 0.02
             labelType: 'key'
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             duration: 0
             startAngle: false
