@@ -112,6 +112,10 @@ describe 'NVD3', ->
                     210
                     119
                 ]
+                relativePos: [
+                    210
+                    119
+                ]
                 series:
                     key: 'Series 1'
                 seriesIndex: 0
