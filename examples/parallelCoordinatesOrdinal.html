@@ -32,7 +32,7 @@
 
     sampleData3 = [
         {
-            id: "Tudor",
+            id: "",
             year: 73,
             weight: 25.5
         },
@@ -44,7 +44,7 @@
         {
             id: "Windsor",
             year: 72,
-            weight: 25.5
+            weight: NaN
         },
         {
             id: "Plantagenet",
@@ -52,7 +52,7 @@
             weight: 20.3
         },
         {
-            id: "Plantagenet",
+            id: "",
             year: 71,
             weight: 19.5
         },
@@ -70,7 +70,6 @@ nv.addGraph(function() {
             //.dimensionNames(["name", "economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"])
             //.dimensionFormats(["e", "", "g", "d", "", "%", "p"])
             .dimensionNames(['id', 'year', 'weight'])
-            .dimensionFormats(['', '', ''])
             .lineTension(0.85)
             .enumerateNonNumericDimensions(true);
 		

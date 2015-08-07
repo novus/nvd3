@@ -35,6 +35,10 @@ nv.models.parallelCoordinates = function() {
 
             nv.utils.initSVG(container);
 
+            chart.update = function() {
+                container.call(chart);
+            };
+
             active = data; //set all active before first brush call
 
             // Setup Scales
@@ -47,7 +51,7 @@ nv.models.parallelCoordinates = function() {
             dimensionNames.forEach(function(d) {
                 // First assume that the dimension is numeric and try to get
                 // the extent of it.
-                var extent = d3.extent(data, function(p) { return +p[d]; });
+                var extent = d3.extent(data, function(p) { return parseFloat(p[d]); });
                 onlyNanValues[d] = false;
 
                 // The user can elect to enumerate each unique value for non
@@ -56,9 +60,10 @@ nv.models.parallelCoordinates = function() {
                     // Record this dimension type as being an enumeration.
                     dimensionTypes[d] = "enum";
 
-                    // Create an ordinal scale rather than a linear one.
+                    // Create an ordinal scale rather than a linear one. Treat
+                    // empty strings as undefined.
                     y[d] = d3.scale.ordinal()
-                        .domain(data.map(function(o) { return String(o[d]); }).sort())
+                        .domain(data.map(function(o) { return String(o[d]); }).filter(function(str) { return str !== ""; }).sort())
                         .rangePoints([0, (availableHeight - 12) * 0.9]);
                 }
                 else {
@@ -211,23 +216,32 @@ nv.models.parallelCoordinates = function() {
             // Returns the path for a given data point.
             function path(d) {
                 return line(dimensionNames.map(function (p) {
-                    // If value if missing, put the value on the missing value line
-                    // Note that we only do this for numeric values. Enums will
-                    // always be rendered.
+                    // If value if missing, put the value on the missing value line. We manage
+                    // numeric values differently to non-numeric values, as they have different scales.
                     if (dimensionTypes[p] === "number" && (isNaN(d[p]) || isNaN(parseFloat(d[p])))) {
                         var domain = y[p].domain();
                         var range = y[p].range();
                         var min = domain[0] - (domain[1] - domain[0]) / 9;
 
                         //If it's not already the case, allow brush to select undefined values
-                        if(axisWithMissingValues.indexOf(p) < 0) {
-
+                        if (axisWithMissingValues.indexOf(p) < 0) {
                             var newscale = d3.scale.linear().domain([min, domain[1]]).range([availableHeight - 12, range[1]]);
                             y[p].brush.y(newscale);
                             axisWithMissingValues.push(p);
                         }
-
                         return [x(p), y[p](min)];
+
+                    } else if (dimensionTypes[p] === "enum" && d[p] === "") {
+                        var range = y[p].range();
+                        var min = range[range.length - 1] + (range[range.length - 1] - range[0]) / 9;
+
+                        //If it's not already the case, allow brush to select undefined values
+                        if (axisWithMissingValues.indexOf(p) < 0) {
+                            var newscale = d3.scale.ordinal().range([availableHeight - 12, range[0]]);
+                            y[p].brush.y(newscale);
+                            axisWithMissingValues.push(p);
+                        }
+                        return [x(p), min];
                     }
 
                     //If parallelCoordinate contain missing values show the missing values line otherwise, hide it.
@@ -263,10 +277,10 @@ nv.models.parallelCoordinates = function() {
                             if(isNaN(d[p]) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
                             return extents[i][0] <= d[p] && d[p] <= extents[i][1];
                         } else if (dimensionTypes[p] === "enum") {
-                            // If the dimension type is an enum, then we check
-                            // whether or not the output value is in the range
-                            // by using the ordinal scale.
+                            // If the dimension type is an enum, then we check whether or not the
+                            // output value is in the range by using the ordinal scale.
                             var rangeValue = y[p](d[p]);
+                            if (rangeValue === undefined && extents[i][1] === y[p].brush.y().range()[0]) return true;
                             return extents[i][0] <= rangeValue && rangeValue <= extents[i][1];
                         }
                     });
