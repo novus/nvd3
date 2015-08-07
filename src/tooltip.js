@@ -235,8 +235,8 @@
                     case 'center':
                         left = pos[0] - (width / 2);
                         top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(container);
-                        tTop = tooltipTop(container);
+                        tLeft = tooltipLeft(tooltipElem);
+                        tTop = tooltipTop(tooltipElem);
                         break;
                 }
 
