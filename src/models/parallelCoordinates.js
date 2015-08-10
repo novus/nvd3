@@ -51,7 +51,7 @@ nv.models.parallelCoordinates = function() {
             dimensionNames.forEach(function(d) {
                 // First assume that the dimension is numeric and try to get
                 // the extent of it.
-                var extent = d3.extent(data, function(p) { return parseFloat(p[d]); });
+                var extent = d3.extent(data, function(p) { return Number(p[d]); });
                 onlyNanValues[d] = false;
 
                 // The user can elect to enumerate each unique value for non
