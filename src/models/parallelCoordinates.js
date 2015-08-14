@@ -19,7 +19,7 @@ nv.models.parallelCoordinates = function() {
         , active = []
         , dragging = []
         , lineTension = 1
-        , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout')
+        , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout', 'renderEnd')
         , enumerateNonNumericDimensions = false
         ;
 
@@ -27,9 +27,16 @@ nv.models.parallelCoordinates = function() {
     // Private Variables
     //------------------------------------------------------------
 
+    var renderWatch = nv.utils.renderWatch(dispatch);
+
     function chart(selection) {
+        renderWatch.reset();
         selection.each(function(data) {
             var container = d3.select(this);
+
+            // Watch a transition purely for the purposes of notifying on render complete.
+            container.watchTransition(renderWatch, 'nv-parallelCoordinates');
+
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -324,6 +331,8 @@ nv.models.parallelCoordinates = function() {
                 var v = dragging[d];
                 return v == null ? x(d) : v;
             }
+
+            renderWatch.renderEnd("nv-parallelCoordinates immediate");
         });
 
         return chart;
