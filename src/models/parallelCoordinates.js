@@ -332,9 +332,9 @@ nv.models.parallelCoordinates = function() {
                 return v == null ? x(d) : v;
             }
 
-            renderWatch.renderEnd("nv-parallelCoordinates immediate");
         });
 
+        renderWatch.renderEnd("nv-parallelCoordinates immediate");
         return chart;
     }
 
