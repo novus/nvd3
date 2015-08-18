@@ -121,7 +121,8 @@ nv.models.stackedAreaWithFocusChart = function() {
             nv.utils.initSVG(container);
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? height2 : 0),
+                availableHeight = nv.utils.availableHeight(height, container, margin)
+                    - ((focusEnable ? height2 : 0) + 20),
                 availableHeight2 = height2 - margin2.top - margin2.bottom;
 
             chart.update = function() { container.transition().duration(duration).call(chart); };
@@ -679,6 +680,7 @@ nv.models.stackedAreaWithFocusChart = function() {
     // expose chart's sub-components
     chart.dispatch = dispatch;
     chart.stacked = stacked;
+    chart.stacked2 = stacked2;
     chart.legend = legend;
     chart.controls = controls;
     chart.xAxis = xAxis;
@@ -765,9 +767,9 @@ nv.models.stackedAreaWithFocusChart = function() {
             yAxis.tickFormat(_);
             y2Axis.tickFormat(_);
         }},
-        xScale:{get: function(){ return lines.xScale()},set: function(_){
+        xTimeScale: {get: function(){return lines.y();}, set: function(_){
             stacked.xScale(_);
-            stacked2.xScale(_);
+            stacked2.xScale(_.copy());
         }}
     });
 
