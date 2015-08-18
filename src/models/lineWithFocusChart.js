@@ -81,7 +81,7 @@ nv.models.lineWithFocusChart = function() {
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight1 = nv.utils.availableHeight(height, container, margin)
-                    - (focusEnable ? height2 : 0),
+                    - ((focusEnable ? height2 : 0) + 20 ),
                 availableHeight2 = height2 - margin2.top - margin2.bottom;
 
             chart.update = function() { container.transition().duration(transitionDuration).call(chart) };
@@ -159,10 +159,10 @@ nv.models.lineWithFocusChart = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            g.select('.nv-context').style('display', focusEnable ? 'initial' : 'none');
+            g.select('.nv-focus').style('display', focusEnable ? 'initial' : 'none');
             
             //Set up interactive layer
-            if (useInteractiveGuideline) {
+            if (useInteractiveGuideline && focusEnable) {
                 interactiveLayer
                     .width(availableWidth)
                     .height(availableHeight1)
@@ -201,7 +201,7 @@ nv.models.lineWithFocusChart = function() {
             );
 
             g.select('.nv-context')
-                .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
+                .attr('transform', 'translate(0,' + (focusEnable ? ( availableHeight1 + margin.bottom + margin2.top) : 0) + ')')
 
             var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
                 .datum(data.filter(function(d) { return !d.disabled }))
@@ -291,65 +291,67 @@ nv.models.lineWithFocusChart = function() {
                 chart.update();
             });
 
-            interactiveLayer.dispatch.on('elementMousemove', function(e) {
-                lines.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [];
-                data
-                    .filter(function(series, i) {
-                        series.seriesIndex = i;
-                        return !series.disabled;
-                    })
-                    .forEach(function(series,i) {
+            if(focusEnable){
+                interactiveLayer.dispatch.on('elementMousemove', function(e) {
+                    lines.clearHighlights();
+                    var singlePoint, pointIndex, pointXLocation, allData = [];
+                    data
+                        .filter(function(series, i) {
+                            series.seriesIndex = i;
+                            return !series.disabled;
+                        })
+                        .forEach(function(series,i) {
                             var extent = brush.empty() ? x2.domain() : brush.extent();
                             var currentValues = series.values.filter(function(d,i) {
-                            return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                                return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                            });
+
+                            pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
+                            var point = currentValues[pointIndex];
+                            var pointYValue = chart.y()(point, pointIndex);
+                            if (pointYValue != null) {
+                                lines.highlightPoint(i, pointIndex, true);
+                            }
+                            if (point === undefined) return;
+                            if (singlePoint === undefined) singlePoint = point;
+                            if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                            allData.push({
+                                key: series.key,
+                                value: chart.y()(point, pointIndex),
+                                color: color(series,series.seriesIndex)
+                            });
                         });
- 
-                        pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
-                        var point = currentValues[pointIndex];
-                        var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue != null) {
-                            lines.highlightPoint(i, pointIndex, true);
-                        }
-                        if (point === undefined) return;
-                        if (singlePoint === undefined) singlePoint = point;
-                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-                        allData.push({
-                            key: series.key,
-                            value: chart.y()(point, pointIndex),
-                            color: color(series,series.seriesIndex)
-                        });
-                    });
-                //Highlight the tooltip entry based on which point the mouse is closest to.
-                if (allData.length > 2) {
-                    var yValue = chart.yScale().invert(e.mouseY);
-                    var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
-                    var threshold = 0.03 * domainExtent;
-                    var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
-                    if (indexToHighlight !== null)
-                        allData[indexToHighlight].highlight = true;
-                }
+                    //Highlight the tooltip entry based on which point the mouse is closest to.
+                    if (allData.length > 2) {
+                        var yValue = chart.yScale().invert(e.mouseY);
+                        var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+                        var threshold = 0.03 * domainExtent;
+                        var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+                        if (indexToHighlight !== null)
+                            allData[indexToHighlight].highlight = true;
+                    }
 
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
-                interactiveLayer.tooltip
-                    .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
-                    .chartContainer(that.parentNode)
-                    .valueFormatter(function(d,i) {
-                        return d == null ? "N/A" : yAxis.tickFormat()(d);
-                    })
-                    .data({
-                        value: xValue,
-                        index: pointIndex,
-                        series: allData
-                    })();
+                    var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+                    interactiveLayer.tooltip
+                        .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
+                        .chartContainer(that.parentNode)
+                        .valueFormatter(function(d,i) {
+                            return d == null ? "N/A" : yAxis.tickFormat()(d);
+                        })
+                        .data({
+                            value: xValue,
+                            index: pointIndex,
+                            series: allData
+                        })();
 
-                interactiveLayer.renderGuideLine(pointXLocation);
+                    interactiveLayer.renderGuideLine(pointXLocation);
 
-            });
+                });
 
-            interactiveLayer.dispatch.on("elementMouseout",function(e) {
-                lines.clearHighlights();
-            });
+                interactiveLayer.dispatch.on("elementMouseout",function(e) {
+                    lines.clearHighlights();
+                });
+            }
 
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined') {
@@ -457,13 +459,15 @@ nv.models.lineWithFocusChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.data(evt).position(evt.pos).hidden(false);
-    });
+    if(focusEnable){
+        lines.dispatch.on('elementMouseover.tooltip', function(evt) {
+            tooltip.data(evt).position(evt.pos).hidden(false);
+        });
 
-    lines.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.hidden(true)
-    });
+        lines.dispatch.on('elementMouseout.tooltip', function(evt) {
+            tooltip.hidden(true)
+        });
+    }
 
     //============================================================
     // Expose Public Variables
@@ -552,16 +556,16 @@ nv.models.lineWithFocusChart = function() {
             lines.y(_);
             lines2.y(_);
         }},
-        xScale:{get: function(){ return lines.xScale()},set: function(_){
-            lines.xScale(_);
-            lines2.xScale(_);
-        }},
         useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
             useInteractiveGuideline = _;
             if (useInteractiveGuideline) {
                 lines.interactive(false);
                 lines.useVoronoi(false);
             }
+        }},
+        xTimeScale: {get: function(){return lines.y();}, set: function(_){
+            lines.xScale(_);
+            lines2.xScale(_.copy());
         }}
     });
 
