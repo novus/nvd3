@@ -31,7 +31,7 @@ nv.models.lineWithFocusChart = function() {
         , showLegend = true
         , brushExtent = null
         , noData = null
-        , dispatch = d3.dispatch('brush', 'stateChange', 'changeState')
+        , dispatch = d3.dispatch('brush', 'stateChange', 'changeState','startPlay','stopPlay','finishPlay','brushPlaying')
         , transitionDuration = 250
         , state = nv.utils.state()
         , defaultState = null
@@ -201,10 +201,10 @@ nv.models.lineWithFocusChart = function() {
             );
 
             g.select('.nv-context')
-                .attr('transform', 'translate(0,' + (focusEnable ? ( availableHeight1 + margin.bottom + margin2.top) : 0) + ')')
+                .attr('transform', 'translate(0,' + (focusEnable ? ( availableHeight1 + margin.bottom + margin2.top) : 0) + ')');
 
             var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
-                .datum(data.filter(function(d) { return !d.disabled }))
+                .datum(data.filter(function(d) { return !d.disabled }));
 
             d3.transition(contextLinesWrap).call(lines2);
 
@@ -409,7 +409,7 @@ nv.models.lineWithFocusChart = function() {
                     return;
                 }
 
-                dispatch.brush({extent: extent, brush: brush});
+                dispatch.brush({extent: extent, brush: brush , type:'line'});
 
 
                 updateBrushBG();
@@ -449,6 +449,67 @@ nv.models.lineWithFocusChart = function() {
             brush.update = function () {
                 gBrush.call(brush);
                 onBrush();
+            };
+
+            chart.playTimer = null;
+
+            chart.play = function(){
+
+                var currentStep = 1;
+
+                clearTimeout(chart.playTimer);
+                chart.playTimer = null;
+
+
+                var brushStep = moment(x.domain()[0]).add(stepMode, currentStep )._d;
+                var end  = x.domain()[1];
+
+                if( brush.empty() || brushExtent === null){
+                    //brushExtent = [ x.domain()[0], x.domain()[0]+(playMode?brushStep:initStep(brushStep)) ];
+                    brushExtent = [x.domain()[0],brushStep];
+                }
+                if( brushExtent[1] >= end ){
+                    //brushExtent = playMode?[ brushExtent[0], brushExtent[0] ]:[ x.domain()[0], x.domain()[0] + brushExtent[1]- brushExtent[0] ];
+                    brushExtent = [brushExtent[0], x.domain()[1]];
+                }
+
+                var playstep = function(){
+                    if( brushExtent === null || brushExtent[1].getTime() >= end.getTime() ){
+                        clearTimeout(chart.playTimer);
+                        chart.playTimer = null;
+                        setTimeout(function(){
+                            dispatch.stopPlay({brush:brush,extent:brush.extent()});
+                            dispatch.finishPlay({brush:brush,extent:brush.extent()});
+                        },0);
+                        return;
+                    }
+
+                    brushExtent = [ brushExtent[0] , moment(brushExtent[1]).add(stepMode,playMode)._d];
+
+                    if(brushStep >= end) brushExtent = [ brushExtent[0], x.domain()[1] ];
+
+                    //if(brushExtent[1] + brushStep >= end){
+                    //    brushStep =  end - brushExtent[1];
+                    //}else{
+                    //    brushStep = step(x.domain(),data[0].values);
+                    //}
+                    //brushExtent = [ playMode?brushExtent[0]:brushExtent[0]+=brushStep , brushExtent[1]+=brushStep ];
+                    brush.extent(brushExtent);
+                    gBrush.call(brush);
+
+                    onBrush();
+
+                    chart.playTimer = setTimeout(playstep,transitionDuration+1);
+                };
+
+                dispatch.startPlay({brush:brush,extent:brush.extent()});
+                playstep();
+            };
+
+            chart.stop = function(){
+                clearTimeout(chart.playTimer);
+                chart.playTimer = null;
+                dispatch.stopPlay({brush:brush,extent:brush.extent()});
             };
         });
 

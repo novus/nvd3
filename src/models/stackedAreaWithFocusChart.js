@@ -618,7 +618,7 @@ nv.models.stackedAreaWithFocusChart = function() {
                     return;
                 }
 
-                dispatch.brush({extent: extent, brush: brush});
+                dispatch.brush({extent: extent, brush: brush, type: 'area'});
 
                 updateBrushBG();
 
