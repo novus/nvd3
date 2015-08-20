@@ -108,6 +108,7 @@ nv.models.sunburstChart = function() {
     // expose chart's sub-components
     chart.dispatch = dispatch;
     chart.sunburst = sunburst;
+    chart.tooltip = tooltip;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     // use Object get/set functionality to map between vars and chart functions
@@ -124,6 +125,7 @@ nv.models.sunburstChart = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+            sunburst.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;

@@ -11,6 +11,7 @@ nv.models.scatter = function() {
         , height       = null
         , color        = nv.utils.defaultColor() // chooses color
         , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
+        , container    = null
         , x            = d3.scale.linear()
         , y            = d3.scale.linear()
         , z            = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
@@ -56,7 +57,7 @@ nv.models.scatter = function() {
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -129,6 +130,7 @@ nv.models.scatter = function() {
             wrap.classed('nv-single-point', singlePoint);
             gEnter.append('g').attr('class', 'nv-groups');
             gEnter.append('g').attr('class', 'nv-point-paths');
+            wrapEnter.append('g').attr('class', 'nv-point-clips');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -143,33 +145,34 @@ nv.models.scatter = function() {
             g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
             function updateInteractiveLayer() {
+                // Always clear needs-update flag regardless of whether or not
+                // we will actually do anything (avoids needless invocations).
                 needsUpdate = false;
 
                 if (!interactive) return false;
 
-                var vertices = d3.merge(data.map(function(group, groupIndex) {
-                        return group.values
-                            .map(function(point, pointIndex) {
-                                // *Adding noise to make duplicates very unlikely
-                                // *Injecting series and point index for reference
-                                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                                 */
-                                var pX = getX(point,pointIndex);
-                                var pY = getY(point,pointIndex);
-
-                                return [x(pX)+ Math.random() * 1e-4,
-                                        y(pY)+ Math.random() * 1e-4,
-                                    groupIndex,
-                                    pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
-                            })
-                            .filter(function(pointArray, pointIndex) {
-                                return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
-                            })
-                    })
-                );
-
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
+                    var vertices = d3.merge(data.map(function(group, groupIndex) {
+                            return group.values
+                                .map(function(point, pointIndex) {
+                                    // *Adding noise to make duplicates very unlikely
+                                    // *Injecting series and point index for reference
+                                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
+                                     */
+                                    var pX = getX(point,pointIndex);
+                                    var pY = getY(point,pointIndex);
+
+                                    return [x(pX)+ Math.random() * 1e-4,
+                                            y(pY)+ Math.random() * 1e-4,
+                                        groupIndex,
+                                        pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
+                                })
+                                .filter(function(pointArray, pointIndex) {
+                                    return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
+                                })
+                        })
+                    );
 
                     if (vertices.length == 0) return false;  // No active points, we're done
                     if (vertices.length < 3) {
@@ -210,7 +213,7 @@ nv.models.scatter = function() {
                         })
                         .attr("id", function(d,i) {
                             return "nv-path-"+i; })
-                        .attr("clip-path", function(d,i) { return "url(#nv-clip-"+i+")"; })
+                        .attr("clip-path", function(d,i) { return "url(#nv-clip-"+id+"-"+i+")"; })
                         ;
 
                     // good for debugging point hover issues
@@ -224,12 +227,11 @@ nv.models.scatter = function() {
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
                         // just create the circles with the IDs they expect
-                        wrap.select('#nv-point-clips').remove();
-                        var clips = wrap.append("svg:g").attr("id", "nv-point-clips");
-                        clips.selectAll("clipPath")
+                        wrap.select('.nv-point-clips').selectAll('clipPath').remove();
+                        wrap.select('.nv-point-clips').selectAll("clipPath")
                             .data(vertices)
                             .enter().append("svg:clipPath")
-                            .attr("id", function(d, i) { return "nv-clip-"+i;})
+                            .attr("id", function(d, i) { return "nv-clip-"+id+"-"+i;})
                             .append("svg:circle")
                             .attr('cx', function(d) { return d[0]; })
                             .attr('cy', function(d) { return d[1]; })
@@ -242,6 +244,10 @@ nv.models.scatter = function() {
                         if (series === undefined) return;
                         var point  = series.values[d.point];
                         point['color'] = color(series, d.series);
+
+                        // standardize attributes for tooltip.
+                        point['x'] = getX(point);
+                        point['y'] = getY(point);
 
                         // can't just get box of event node since it's actually a voronoi polygon
                         var box = container.node().getBoundingClientRect();
@@ -277,17 +283,6 @@ nv.models.scatter = function() {
                         });
 
                 } else {
-                    /*
-                     // bring data in form needed for click handlers
-                     var dataWithPoints = vertices.map(function(d, i) {
-                     return {
-                     'data': d,
-                     'series': vertices[i][2],
-                     'point': vertices[i][3]
-                     }
-                     });
-                     */
-
                     // add event handlers to points instead voronoi paths
                     wrap.select('.nv-groups').selectAll('.nv-group')
                         .selectAll('.nv-point')
@@ -442,14 +437,14 @@ nv.models.scatter = function() {
     chart._calls = new function() {
         this.clearHighlights = function () {
             nv.dom.write(function() {
-                d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+                container.selectAll(".nv-point.hover").classed("hover", false);
             });
             return null;
         };
         this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
             nv.dom.write(function() {
-                var node = document.querySelector(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex);
-                d3.select(node).classed("hover", isHoverOver);
+                container.select(" .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+                    .classed("hover", isHoverOver);
             });
         };
     };

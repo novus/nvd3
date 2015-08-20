@@ -28,6 +28,14 @@
 <body class='with-3d-shadow with-transitions'>
 <div style="position:absolute; top: 0; left: 0;">
     <button onclick="randomizeFillOpacity();">Randomize fill opacity</button>
+    <button onclick="expandLegend();">Expand/Contract Legend</button>
+    <script>
+        var expandLegend = function() {
+            var exp = chart.legend.expanded();
+            chart.legend.expanded(!exp);
+            chart.update();
+        }
+    </script>
 </div>
 <div id="chart1"></div>
 
@@ -49,7 +57,7 @@
         chart = nv.models.lineChart()
             .options({
                 transitionDuration: 300,
-                //useInteractiveGuideline: true
+                useInteractiveGuideline: true
             })
         ;
 
@@ -62,7 +70,12 @@
 
         chart.yAxis
             .axisLabel('Voltage (v)')
-            .tickFormat(d3.format(',.2f'))
+            .tickFormat(function(d) {
+                if (d == null) {
+                    return 'N/A';
+                }
+                return d3.format(',.2f')(d);
+            })
         ;
 
         data = sinAndCos();

@@ -123,15 +123,13 @@ nv.models.pieChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + (-margin.top) +')');
                 } else if (legendPosition === "right") {
-                    legend.height( availableHeight ).key(pie.x());
-
-                    if ( margin.right != legend.width()) {
-                        if (legend.width() > availableWidth / 2) {
-                            legend.width(availableWidth / 2);
-                            availableWidth -= legend.width();
-                        }
-                        margin.right = legend.width();
+                    var legendWidth = nv.models.legend().width();
+                    if (availableWidth / 2 < legendWidth) {
+                        legendWidth = (availableWidth / 2)
                     }
+                    legend.height(availableHeight).key(pie.x());
+                    legend.width(legendWidth);
+                    availableWidth -= legend.width();
 
                     wrap.select('.nv-legendWrap')
                         .datum(data)
@@ -180,8 +178,8 @@ nv.models.pieChart = function() {
 
     pie.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: evt.data.key,
-            value: evt.data.y,
+            key: chart.x()(evt.data),
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);

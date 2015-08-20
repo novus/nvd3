@@ -39,10 +39,11 @@ nv.models.discreteBarChart = function() {
 
     tooltip
         .duration(0)
+        .headerEnabled(false)
         .valueFormatter(function(d, i) {
             return yAxis.tickFormat()(d, i);
         })
-        .headerFormatter(function(d, i) {
+        .keyFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         });
 
@@ -127,7 +128,7 @@ nv.models.discreteBarChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -145,7 +146,7 @@ nv.models.discreteBarChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis').call(yAxis);
@@ -170,8 +171,8 @@ nv.models.discreteBarChart = function() {
 
     discretebar.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: evt.data.label,
-            value: evt.data.value,
+            key: chart.x()(evt.data),
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);

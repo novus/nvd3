@@ -29,7 +29,7 @@ nv.models.historicalBarChart = function(bar_model) {
         , state = {}
         , defaultState = null
         , noData = null
-        , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd')
+        , dispatch = d3.dispatch('tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , transitionDuration = 250
         ;
 
@@ -153,7 +153,7 @@ nv.models.historicalBarChart = function(bar_model) {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks( xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -166,7 +166,7 @@ nv.models.historicalBarChart = function(bar_model) {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -211,6 +211,7 @@ nv.models.historicalBarChart = function(bar_model) {
                     })
                     .data({
                         value: xValue,
+                        index: pointIndex,
                         series: allData
                     })();
 
@@ -275,8 +276,8 @@ nv.models.historicalBarChart = function(bar_model) {
 
     bars.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: evt.data.x,
-            value: evt.data.y,
+            key: chart.x()(evt.data),
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -364,9 +365,32 @@ nv.models.historicalBarChart = function(bar_model) {
 };
 
 
-// ohlcChart is just a historical chart with oclc bars and some tweaks
+// ohlcChart is just a historical chart with ohlc bars and some tweaks
 nv.models.ohlcBarChart = function() {
     var chart = nv.models.historicalBarChart(nv.models.ohlcBar());
+
+    // special default tooltip since we show multiple values per x
+    chart.useInteractiveGuideline(true);
+    chart.interactiveLayer.tooltip.contentGenerator(function(data) {
+        // we assume only one series exists for this chart
+        var d = data.series[0].data;
+        // match line colors as defined in nv.d3.css
+        var color = d.open < d.close ? "2ca02c" : "d62728";
+        return '' +
+            '<h3 style="color: #' + color + '">' + data.value + '</h3>' +
+            '<table>' +
+            '<tr><td>open:</td><td>' + chart.yAxis.tickFormat()(d.open) + '</td></tr>' +
+            '<tr><td>close:</td><td>' + chart.yAxis.tickFormat()(d.close) + '</td></tr>' +
+            '<tr><td>high</td><td>' + chart.yAxis.tickFormat()(d.high) + '</td></tr>' +
+            '<tr><td>low:</td><td>' + chart.yAxis.tickFormat()(d.low) + '</td></tr>' +
+            '</table>';
+    });
+    return chart;
+};
+
+// candlestickChart is just a historical chart with candlestick bars and some tweaks
+nv.models.candlestickBarChart = function() {
+    var chart = nv.models.historicalBarChart(nv.models.candlestickBar());
 
     // special default tooltip since we show multiple values per x
     chart.useInteractiveGuideline(true);

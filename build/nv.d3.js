@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-03-16 */
+/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-06-15 */
 (function(){
 
 // set up main nv object
@@ -10,7 +10,6 @@ nv.tooltip = nv.tooltip || {}; // For the tooltip system
 nv.utils = nv.utils || {}; // Utility subsystem
 nv.models = nv.models || {}; //stores all the possible models/components
 nv.charts = {}; //stores all the ready to use charts
-nv.graphs = []; //stores all the graphs currently on the page
 nv.logs = {}; //stores some statistics and potential error messages
 nv.dom = {}; //DOM manipulation functions
 
@@ -94,7 +93,6 @@ nv.render = function render(step) {
         for (var i = 0; i < step && (graph = nv.render.queue[i]); i++) {
             chart = graph.generate();
             if (typeof graph.callback == typeof(Function)) graph.callback(chart);
-            nv.graphs.push(chart);
         }
 
         nv.render.queue.splice(0, i);
@@ -187,7 +185,7 @@ nv.interactiveGuideline = function() {
     "use strict";
 
     var tooltip = nv.models.tooltip();
-    tooltip.duration(0).hideDelay(0).hidden(false);
+    tooltip.duration(0).hideDelay(0)._isInteractiveLayer(true).hidden(false);
 
     //Public settings
     var width = null;
@@ -318,6 +316,7 @@ nv.interactiveGuideline = function() {
             }
 
             svgContainer
+                .on("touchmove",mouseHandler)
                 .on("mousemove",mouseHandler, true)
                 .on("mouseout" ,mouseHandler,true)
                 .on("dblclick" ,mouseHandler)
@@ -464,7 +463,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
     var yDistMax = Infinity, indexToHighlight = null;
     values.forEach(function(d,i) {
         var delta = Math.abs(searchVal - d);
-        if ( delta <= yDistMax && delta < threshold) {
+        if ( d != null && delta <= yDistMax && delta < threshold) {
             yDistMax = delta;
             indexToHighlight = i;
         }
@@ -512,11 +511,17 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             ,   hideDelay = 400  // delay before the tooltip hides after calling hide()
             ,   tooltip = null // d3 select of tooltipElem below
             ,   tooltipElem = null  //actual DOM element representing the tooltip.
-            ,   position = {left: null, top: null}      //Relative position of the tooltip inside chartContainer.
+            ,   position = {left: null, top: null}   //Relative position of the tooltip inside chartContainer.
+            ,   offset = {left: 0, top: 0}   //Offset of tooltip against the pointer
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
             ,   headerEnabled = true
         ;
+
+        // set to true by interactive layer to adjust tooltip positions
+        // eventually we should probably fix interactive layer to get the position better.
+        // for now this is needed if you want to set chartContainer for normal tooltips, else it "fixes" it to broken
+        var isInteractiveLayer = false;
 
         //Generates a unique id when you create a new tooltip() object
         var id = "nvtooltip-" + Math.floor(Math.random() * 100000);
@@ -531,6 +536,10 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
 
         //Format function for the tooltip header value.
         var headerFormatter = function(d) {
+            return d;
+        };
+
+        var keyFormatter = function(d, i) {
             return d;
         };
 
@@ -572,11 +581,11 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
 
             trowEnter.append("td")
                 .classed("key",true)
-                .html(function(p) {return p.key});
+                .html(function(p, i) {return keyFormatter(p.key, i)});
 
             trowEnter.append("td")
                 .classed("value",true)
-                .html(function(p,i) { return valueFormatter(p.value,i) });
+                .html(function(p, i) { return valueFormatter(p.value, i) });
 
 
             trowEnter.selectAll("td").each(function(p) {
@@ -696,6 +705,10 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                         tTop = tooltipTop(tooltipElem);
                         break;
                 }
+                
+                // adjust tooltip offsets
+                left -= offset.left;
+                top -= offset.top;
 
                 // using tooltip.style('transform') returns values un-usable for tween
                 var box = tooltipElem.getBoundingClientRect();
@@ -722,7 +735,10 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                         // using tween since some versions of d3 can't auto-tween a translate on a div
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
-                        })
+                        }, 'important')
+                        // Safari has its own `-webkit-transform` and does not support `transform` 
+                        // transform tooltip without transition only in Safari
+                        .style('-webkit-transform', new_translate)
                         .style('opacity', 1);
                 }
 
@@ -790,7 +806,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                     tooltipElem.innerHTML = newContent;
                 }
 
-                if (chartContainer) {
+                if (chartContainer && isInteractiveLayer) {
                     nv.dom.read(function() {
                         var svgComp = chartContainer.getElementsByTagName("svg")[0];
                         var svgOffset = {left:0,top:0};
@@ -845,12 +861,20 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
             valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
             headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
+            keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
             headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
+
+            // internal use only, set by interactive layer to adjust position.
+            _isInteractiveLayer: {get: function(){return isInteractiveLayer;}, set: function(_){isInteractiveLayer=!!_;}},
 
             // options with extra logic
             position: {get: function(){return position;}, set: function(_){
                 position.left = _.left !== undefined ? _.left : position.left;
                 position.top  = _.top  !== undefined ? _.top  : position.top;
+            }},
+            offset: {get: function(){return offset;}, set: function(_){
+                offset.left = _.left !== undefined ? _.left : offset.left;
+                offset.top  = _.top  !== undefined ? _.top  : offset.top;
             }},
             hidden: {get: function(){return hidden;}, set: function(_){
                 if (hidden != _) {
@@ -1338,9 +1362,19 @@ nv.utils.initOption = function(chart, name) {
     } else {
         chart[name] = function (_) {
             if (!arguments.length) return chart._options[name];
+            chart._overrides[name] = true;
             chart._options[name] = _;
             return chart;
         };
+        // calling the option as _option will ignore if set by option already
+        // so nvd3 can set options internally but the stop if set manually
+        chart['_' + name] = function(_) {
+            if (!arguments.length) return chart._options[name];
+            if (!chart._overrides[name]) {
+                chart._options[name] = _;
+            }
+            return chart;
+        }
     }
 };
 
@@ -1349,6 +1383,7 @@ nv.utils.initOption = function(chart, name) {
 Add all options in an options object to the chart
 */
 nv.utils.initOptions = function(chart) {
+    chart._overrides = chart._overrides || {};
     var ops = Object.getOwnPropertyNames(chart._options || {});
     var calls = Object.getOwnPropertyNames(chart._calls || {});
     ops = ops.concat(calls);
@@ -1452,7 +1487,7 @@ nv.utils.initSVG = function(svg) {
 Sanitize and provide default for the container height.
 */
 nv.utils.sanitizeHeight = function(height, container) {
-    return (height || parseInt(container.style('height')) || 400);
+    return (height || parseInt(container.style('height'), 10) || 400);
 };
 
 
@@ -1460,7 +1495,7 @@ nv.utils.sanitizeHeight = function(height, container) {
 Sanitize and provide default for the container width.
 */
 nv.utils.sanitizeWidth = function(width, container) {
-    return (width || parseInt(container.style('width')) || 960);
+    return (width || parseInt(container.style('width'), 10) || 960);
 };
 
 
@@ -1595,7 +1630,9 @@ nv.models.axis = function() {
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
-                        axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
+                        axisMaxMin.enter().append('g').attr('class',function(d,i){
+                                return ['nv-axisMaxMin','nv-axisMaxMin-x',(i == 0 ? 'nv-axisMin-x':'nv-axisMax-x')].join(' ')
+                        }).append('text');
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
@@ -1655,7 +1692,9 @@ nv.models.axis = function() {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             //.data(scale.domain())
                             .data([scale.domain()[0], scale.domain()[scale.domain().length - 1]]);
-                        axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text');
+                        axisMaxMin.enter().append('g').attr('class',function(d,i){
+                                return ['nv-axisMaxMin','nv-axisMaxMin-x',(i == 0 ? 'nv-axisMin-x':'nv-axisMax-x')].join(' ')
+                        }).append('text');
                         axisMaxMin.exit().remove();
                         axisMaxMin
                             .attr('transform', function(d,i) {
@@ -1692,7 +1731,9 @@ nv.models.axis = function() {
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
-                        axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
+                       	axisMaxMin.enter().append('g').attr('class',function(d,i){
+                                return ['nv-axisMaxMin','nv-axisMaxMin-y',(i == 0 ? 'nv-axisMin-y':'nv-axisMax-y')].join(' ')
+                        }).append('text')
                             .style('opacity', 0);
                         axisMaxMin.exit().remove();
                         axisMaxMin
@@ -1734,7 +1775,9 @@ nv.models.axis = function() {
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
-                        axisMaxMin.enter().append('g').attr('class', 'nv-axisMaxMin').append('text')
+                        axisMaxMin.enter().append('g').attr('class',function(d,i){
+                                return ['nv-axisMaxMin','nv-axisMaxMin-y',(i == 0 ? 'nv-axisMin-y':'nv-axisMax-y')].join(' ')
+                        }).append('text')
                             .style('opacity', 0);
                         axisMaxMin.exit().remove();
                         axisMaxMin
@@ -1876,7 +1919,561 @@ nv.models.axis = function() {
 
     return chart;
 };
+nv.models.boxPlot = function() {
+    "use strict";
 
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var margin = {top: 0, right: 0, bottom: 0, left: 0}
+        , width = 960
+        , height = 500
+        , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , x = d3.scale.ordinal()
+        , y = d3.scale.linear()
+        , getX = function(d) { return d.x }
+        , getY = function(d) { return d.y }
+        , color = nv.utils.defaultColor()
+        , container = null
+        , xDomain
+        , yDomain
+        , xRange
+        , yRange
+        , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
+        , duration = 250
+        , maxBoxWidth = null
+        ;
+
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    var x0, y0;
+    var renderWatch = nv.utils.renderWatch(dispatch, duration);
+
+    function chart(selection) {
+        renderWatch.reset();
+        selection.each(function(data) {
+            var availableWidth = width - margin.left - margin.right,
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
+            nv.utils.initSVG(container);
+
+            // Setup Scales
+            x   .domain(xDomain || data.map(function(d,i) { return getX(d,i); }))
+                .rangeBands(xRange || [0, availableWidth], .1);
+
+            // if we know yDomain, no need to calculate
+            var yData = []
+            if (!yDomain) {
+                // (y-range is based on quartiles, whiskers and outliers)
+
+                // lower values
+                var yMin = d3.min(data.map(function(d) {
+                    var min_arr = [];
+
+                    min_arr.push(d.values.Q1);
+                    if (d.values.hasOwnProperty('whisker_low') && d.values.whisker_low !== null) { min_arr.push(d.values.whisker_low); }
+                    if (d.values.hasOwnProperty('outliers') && d.values.outliers !== null) { min_arr = min_arr.concat(d.values.outliers); }
+
+                    return d3.min(min_arr);
+                }));
+
+                // upper values
+                var yMax = d3.max(data.map(function(d) {
+                    var max_arr = [];
+
+                    max_arr.push(d.values.Q3);
+                    if (d.values.hasOwnProperty('whisker_high') && d.values.whisker_high !== null) { max_arr.push(d.values.whisker_high); }
+                    if (d.values.hasOwnProperty('outliers') && d.values.outliers !== null) { max_arr = max_arr.concat(d.values.outliers); }
+
+                    return d3.max(max_arr);
+                }));
+
+                yData = [ yMin, yMax ] ;
+            }
+
+            y.domain(yDomain || yData);
+            y.range(yRange || [availableHeight, 0]);
+
+            //store old scales if they exist
+            x0 = x0 || x;
+            y0 = y0 || y.copy().range([y(0),y(0)]);
+
+            // Setup containers and skeleton of chart
+            var wrap = container.selectAll('g.nv-wrap').data([data]);
+            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap');
+            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var boxplots = wrap.selectAll('.nv-boxplot').data(function(d) { return d });
+            var boxEnter = boxplots.enter().append('g').style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6);
+            boxplots
+                .attr('class', 'nv-boxplot')
+                .attr('transform', function(d,i,j) { return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05) + ', 0)'; })
+                .classed('hover', function(d) { return d.hover });
+            boxplots
+                .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+                .style('stroke-opacity', 1)
+                .style('fill-opacity', .75)
+                .delay(function(d,i) { return i * duration / data.length })
+                .attr('transform', function(d,i) {
+                    return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05) + ', 0)';
+                });
+            boxplots.exit().remove();
+
+            // ----- add the SVG elements for each boxPlot -----
+
+            // conditionally append whisker lines
+            boxEnter.each(function(d,i) {
+              var box = d3.select(this);
+
+              ['low', 'high'].forEach(function(key) {
+                if (d.values.hasOwnProperty('whisker_' + key) && d.values['whisker_' + key] !== null) {
+                  box.append('line')
+                    .style('stroke', (d.color) ? d.color : color(d,i))
+                    .attr('class', 'nv-boxplot-whisker nv-boxplot-' + key);
+
+                  box.append('line')
+                    .style('stroke', (d.color) ? d.color : color(d,i))
+                    .attr('class', 'nv-boxplot-tick nv-boxplot-' + key);
+                }
+              });
+            });
+
+            // outliers
+            // TODO: support custom colors here
+            var outliers = boxplots.selectAll('.nv-boxplot-outlier').data(function(d) {
+                if (d.values.hasOwnProperty('outliers') && d.values.outliers !== null) { return d.values.outliers; }
+                else { return []; }
+            });
+            outliers.enter().append('circle')
+                .style('fill', function(d,i,j) { return color(d,j) }).style('stroke', function(d,i,j) { return color(d,j) })
+                .on('mouseover', function(d,i,j) {
+                    d3.select(this).classed('hover', true);
+                    dispatch.elementMouseover({
+                        series: { key: d, color: color(d,j) },
+                        e: d3.event
+                    });
+                })
+                .on('mouseout', function(d,i,j) {
+                    d3.select(this).classed('hover', false);
+                    dispatch.elementMouseout({
+                        series: { key: d, color: color(d,j) },
+                        e: d3.event
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
+                });
+
+            outliers.attr('class', 'nv-boxplot-outlier');
+            outliers
+              .watchTransition(renderWatch, 'nv-boxplot: nv-boxplot-outlier')
+                .attr('cx', x.rangeBand() * .45)
+                .attr('cy', function(d,i,j) { return y(d); })
+                .attr('r', '3');
+            outliers.exit().remove();
+
+            var box_width = function() { return (maxBoxWidth === null ? x.rangeBand() * .9 : Math.min(75, x.rangeBand() * .9)); };
+            var box_left  = function() { return x.rangeBand() * .45 - box_width()/2; };
+            var box_right = function() { return x.rangeBand() * .45 + box_width()/2; };
+
+            // update whisker lines and ticks
+            ['low', 'high'].forEach(function(key) {
+              var endpoint = (key === 'low') ? 'Q1' : 'Q3';
+
+              boxplots.select('line.nv-boxplot-whisker.nv-boxplot-' + key)
+                .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+                  .attr('x1', x.rangeBand() * .45 )
+                  .attr('y1', function(d,i) { return y(d.values['whisker_' + key]); })
+                  .attr('x2', x.rangeBand() * .45 )
+                  .attr('y2', function(d,i) { return y(d.values[endpoint]); });
+
+              boxplots.select('line.nv-boxplot-tick.nv-boxplot-' + key)
+                .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+                  .attr('x1', box_left )
+                  .attr('y1', function(d,i) { return y(d.values['whisker_' + key]); })
+                  .attr('x2', box_right )
+                  .attr('y2', function(d,i) { return y(d.values['whisker_' + key]); });
+            });
+
+            ['low', 'high'].forEach(function(key) {
+              boxEnter.selectAll('.nv-boxplot-' + key)
+                .on('mouseover', function(d,i,j) {
+                    d3.select(this).classed('hover', true);
+                    dispatch.elementMouseover({
+                        series: { key: d.values['whisker_' + key], color: color(d,j) },
+                        e: d3.event
+                    });
+                })
+                .on('mouseout', function(d,i,j) {
+                    d3.select(this).classed('hover', false);
+                    dispatch.elementMouseout({
+                        series: { key: d.values['whisker_' + key], color: color(d,j) },
+                        e: d3.event
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
+                });
+            });
+
+            // boxes
+            boxEnter.append('rect')
+                .attr('class', 'nv-boxplot-box')
+                // tooltip events
+                .on('mouseover', function(d,i) {
+                    d3.select(this).classed('hover', true);
+                    dispatch.elementMouseover({
+                        key: d.label,
+                        value: d.label,
+                        series: [
+                            { key: 'Q3', value: d.values.Q3, color: d.color || color(d,i) },
+                            { key: 'Q2', value: d.values.Q2, color: d.color || color(d,i) },
+                            { key: 'Q1', value: d.values.Q1, color: d.color || color(d,i) }
+                        ],
+                        data: d,
+                        index: i,
+                        e: d3.event
+                    });
+                })
+                .on('mouseout', function(d,i) {
+                    d3.select(this).classed('hover', false);
+                    dispatch.elementMouseout({
+                        key: d.label,
+                        value: d.label,
+                        series: [
+                            { key: 'Q3', value: d.values.Q3, color: d.color || color(d,i) },
+                            { key: 'Q2', value: d.values.Q2, color: d.color || color(d,i) },
+                            { key: 'Q1', value: d.values.Q1, color: d.color || color(d,i) }
+                        ],
+                        data: d,
+                        index: i,
+                        e: d3.event
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
+                });
+
+            // box transitions
+            boxplots.select('rect.nv-boxplot-box')
+              .watchTransition(renderWatch, 'nv-boxplot: boxes')
+                .attr('y', function(d,i) { return y(d.values.Q3); })
+                .attr('width', box_width)
+                .attr('x', box_left )
+
+                .attr('height', function(d,i) { return Math.abs(y(d.values.Q3) - y(d.values.Q1)) || 1 })
+                .style('fill', function(d,i) { return d.color || color(d,i) })
+                .style('stroke', function(d,i) { return d.color || color(d,i) });
+
+            // median line
+            boxEnter.append('line').attr('class', 'nv-boxplot-median');
+
+            boxplots.select('line.nv-boxplot-median')
+              .watchTransition(renderWatch, 'nv-boxplot: boxplots line')
+                .attr('x1', box_left)
+                .attr('y1', function(d,i) { return y(d.values.Q2); })
+                .attr('x2', box_right)
+                .attr('y2', function(d,i) { return y(d.values.Q2); });
+
+            //store old scales for use in transitions on update
+            x0 = x.copy();
+            y0 = y.copy();
+        });
+
+        renderWatch.renderEnd('nv-boxplot immediate');
+        return chart;
+    }
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:   {get: function(){return width;}, set: function(_){width=_;}},
+        height:  {get: function(){return height;}, set: function(_){height=_;}},
+        maxBoxWidth: {get: function(){return maxBoxWidth;}, set: function(_){maxBoxWidth=_;}},
+        x:       {get: function(){return getX;}, set: function(_){getX=_;}},
+        y:       {get: function(){return getY;}, set: function(_){getY=_;}},
+        xScale:  {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:  {get: function(){return y;}, set: function(_){y=_;}},
+        xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        id:          {get: function(){return id;}, set: function(_){id=_;}},
+        // rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+        }}
+    });
+
+    nv.utils.initOptions(chart);
+
+    return chart;
+};
+nv.models.boxPlotChart = function() {
+    "use strict";
+
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var boxplot = nv.models.boxPlot()
+        , xAxis = nv.models.axis()
+        , yAxis = nv.models.axis()
+        ;
+
+    var margin = {top: 15, right: 10, bottom: 50, left: 60}
+        , width = null
+        , height = null
+        , color = nv.utils.getColor()
+        , showXAxis = true
+        , showYAxis = true
+        , rightAlignYAxis = false
+        , staggerLabels = false
+        , tooltip = nv.models.tooltip()
+        , x
+        , y
+        , noData = "No Data Available."
+        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate', 'renderEnd')
+        , duration = 250
+        ;
+
+    xAxis
+        .orient('bottom')
+        .showMaxMin(false)
+        .tickFormat(function(d) { return d })
+    ;
+    yAxis
+        .orient((rightAlignYAxis) ? 'right' : 'left')
+        .tickFormat(d3.format(',.1f'))
+    ;
+    
+    tooltip.duration(0);
+
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    var renderWatch = nv.utils.renderWatch(dispatch, duration);
+
+    function chart(selection) {
+        renderWatch.reset();
+        renderWatch.models(boxplot);
+        if (showXAxis) renderWatch.models(xAxis);
+        if (showYAxis) renderWatch.models(yAxis);
+
+        selection.each(function(data) {
+            var container = d3.select(this),
+                that = this;
+            nv.utils.initSVG(container);
+            var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                    - margin.left - margin.right,
+                availableHeight = (height || parseInt(container.style('height')) || 400)
+                    - margin.top - margin.bottom;
+
+            chart.update = function() {
+                dispatch.beforeUpdate();
+                container.transition().duration(duration).call(chart);
+            };
+            chart.container = this;
+
+            // Display No Data message if there's nothing to show. (quartiles required at minimum)
+            if (!data || !data.length || 
+                    !data.filter(function(d) { return d.values.hasOwnProperty("Q1") && d.values.hasOwnProperty("Q2") && d.values.hasOwnProperty("Q3"); }).length) {
+                var noDataText = container.selectAll('.nv-noData').data([noData]);
+
+                noDataText.enter().append('text')
+                    .attr('class', 'nvd3 nv-noData')
+                    .attr('dy', '-.7em')
+                    .style('text-anchor', 'middle');
+
+                noDataText
+                    .attr('x', margin.left + availableWidth / 2)
+                    .attr('y', margin.top + availableHeight / 2)
+                    .text(function(d) { return d });
+
+                return chart;
+            } else {
+                container.selectAll('.nv-noData').remove();
+            }
+
+            // Setup Scales
+            x = boxplot.xScale();
+            y = boxplot.yScale().clamp(true);
+
+            // Setup containers and skeleton of chart
+            var wrap = container.selectAll('g.nv-wrap.nv-boxPlotWithAxes').data([data]);
+            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-boxPlotWithAxes').append('g');
+            var defsEnter = gEnter.append('defs');
+            var g = wrap.select('g');
+
+            gEnter.append('g').attr('class', 'nv-x nv-axis');
+            gEnter.append('g').attr('class', 'nv-y nv-axis')
+                .append('g').attr('class', 'nv-zeroLine')
+                .append('line');
+
+            gEnter.append('g').attr('class', 'nv-barsWrap');
+
+            g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            if (rightAlignYAxis) {
+                g.select(".nv-y.nv-axis")
+                    .attr("transform", "translate(" + availableWidth + ",0)");
+            }
+
+            // Main Chart Component(s)
+            boxplot
+                .width(availableWidth)
+                .height(availableHeight);
+
+            var barsWrap = g.select('.nv-barsWrap')
+                .datum(data.filter(function(d) { return !d.disabled }))
+
+            barsWrap.transition().call(boxplot);
+
+
+            defsEnter.append('clipPath')
+                .attr('id', 'nv-x-label-clip-' + boxplot.id())
+                .append('rect');
+
+            g.select('#nv-x-label-clip-' + boxplot.id() + ' rect')
+                .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
+                .attr('height', 16)
+                .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
+
+            // Setup Axes
+            if (showXAxis) {
+                xAxis
+                    .scale(x)
+                    .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                    .tickSize(-availableHeight, 0);
+
+                g.select('.nv-x.nv-axis').attr('transform', 'translate(0,' + y.range()[0] + ')');
+                g.select('.nv-x.nv-axis').call(xAxis);
+
+                var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+                if (staggerLabels) {
+                    xTicks
+                        .selectAll('text')
+                        .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
+                }
+            }
+
+            if (showYAxis) {
+                yAxis
+                    .scale(y)
+                    .ticks( Math.floor(availableHeight/36) ) // can't use nv.utils.calcTicksY with Object data
+                    .tickSize( -availableWidth, 0);
+
+                g.select('.nv-y.nv-axis').call(yAxis);
+            }
+
+            // Zero line
+            g.select(".nv-zeroLine line")
+                .attr("x1",0)
+                .attr("x2",availableWidth)
+                .attr("y1", y(0))
+                .attr("y2", y(0))
+            ;
+
+            //============================================================
+            // Event Handling/Dispatching (in chart's scope)
+            //------------------------------------------------------------
+        });
+
+        renderWatch.renderEnd('nv-boxplot chart immediate');
+        return chart;
+    }
+
+    //============================================================
+    // Event Handling/Dispatching (out of chart's scope)
+    //------------------------------------------------------------
+
+    boxplot.dispatch.on('elementMouseover.tooltip', function(evt) {
+        tooltip.data(evt).hidden(false);
+    });
+
+    boxplot.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.data(evt).hidden(true);
+    });
+
+    boxplot.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+    });
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+    chart.boxplot = boxplot;
+    chart.xAxis = xAxis;
+    chart.yAxis = yAxis;
+    chart.tooltip = tooltip;
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
+        showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
+        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+            boxplot.duration(duration);
+            xAxis.duration(duration);
+            yAxis.duration(duration);
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+            boxplot.color(color);
+        }},
+        rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
+            rightAlignYAxis = _;
+            yAxis.orient( (_) ? 'right' : 'left');
+        }}
+    });
+
+    nv.utils.inheritOptions(chart, boxplot);
+    nv.utils.initOptions(chart);
+
+    return chart;
+}
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
@@ -1900,6 +2497,7 @@ nv.models.bullet = function() {
         , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
         , width = 380
         , height = 30
+        , container = null
         , tickFormat = null
         , color = nv.utils.getColor(['#1f77b4'])
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
@@ -1908,8 +2506,9 @@ nv.models.bullet = function() {
     function chart(selection) {
         selection.each(function(d, i) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
@@ -1947,7 +2546,6 @@ nv.models.bullet = function() {
             gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
             gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
             gEnter.append('rect').attr('class', 'nv-measure');
-            gEnter.append('path').attr('class', 'nv-markerTriangle');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -2007,34 +2605,41 @@ nv.models.bullet = function() {
                 });
 
             var h3 =  availableHeight / 6;
-            if (markerz[0]) {
-                g.selectAll('path.nv-markerTriangle')
-                    .attr('transform', function(d) { return 'translate(' + x1(markerz[0]) + ',' + (availableHeight / 2) + ')' })
-                    .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
-                    .on('mouseover', function() {
-                        dispatch.elementMouseover({
-                            value: markerz[0],
-                            label: markerLabelz[0] || 'Previous',
-                            color: d3.select(this).style("fill")
-                        })
-                    })
-                    .on('mousemove', function() {
-                        dispatch.elementMousemove({
-                            value: measurez[0],
-                            label: measureLabelz[0] || 'Previous',
-                            color: d3.select(this).style("fill")
-                        })
-                    })
-                    .on('mouseout', function() {
-                        dispatch.elementMouseout({
-                            value: markerz[0],
-                            label: markerLabelz[0] || 'Previous',
-                            color: d3.select(this).style("fill")
-                        })
-                    });
-            } else {
-                g.selectAll('path.nv-markerTriangle').remove();
-            }
+
+            var markerData = markerz.map( function(marker, index) {
+                return {value: marker, label: markerLabelz[index]}
+            });
+            gEnter
+              .selectAll("path.nv-markerTriangle")
+              .data(markerData)
+              .enter()
+              .append('path')
+              .attr('class', 'nv-markerTriangle')
+              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' })
+              .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
+              .on('mouseover', function(d) {
+                dispatch.elementMouseover({
+                  value: d.value,
+                  label: d.label || 'Previous',
+                  color: d3.select(this).style("fill"),
+                  pos: [x1(d.value), availableHeight/2]
+                })
+
+              })
+              .on('mousemove', function(d) {
+                  dispatch.elementMousemove({
+                      value: d.value,
+                      label: d.label || 'Previous',
+                      color: d3.select(this).style("fill")
+                  })
+              })
+              .on('mouseout', function(d, i) {
+                  dispatch.elementMouseout({
+                      value: d.value,
+                      label: d.label || 'Previous',
+                      color: d3.select(this).style("fill")
+                  })
+              });
 
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
@@ -2126,6 +2731,7 @@ nv.models.bulletChart = function() {
         , width = null
         , height = 55
         , tickFormat = null
+	, ticks = null
         , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
         ;
@@ -2207,7 +2813,7 @@ nv.models.bulletChart = function() {
 
             // Update the tick groups.
             var tick = g.selectAll('g.nv-tick')
-                .data(x1.ticks( availableWidth / 50 ), function(d) {
+                .data(x1.ticks( ticks ? ticks : (availableWidth / 50) ), function(d) {
                     return this.textContent || format(d);
                 });
 
@@ -2289,6 +2895,7 @@ nv.models.bulletChart = function() {
         width:    {get: function(){return width;}, set: function(_){width=_;}},
         height:    {get: function(){return height;}, set: function(_){height=_;}},
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
+        ticks:    {get: function(){return ticks;}, set: function(_){ticks=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
         // deprecated options
@@ -2323,6 +2930,230 @@ nv.models.bulletChart = function() {
 };
 
 
+
+nv.models.candlestickBar = function() {
+    "use strict";
+
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var margin = {top: 0, right: 0, bottom: 0, left: 0}
+        , width = null
+        , height = null
+        , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container
+        , x = d3.scale.linear()
+        , y = d3.scale.linear()
+        , getX = function(d) { return d.x }
+        , getY = function(d) { return d.y }
+        , getOpen = function(d) { return d.open }
+        , getClose = function(d) { return d.close }
+        , getHigh = function(d) { return d.high }
+        , getLow = function(d) { return d.low }
+        , forceX = []
+        , forceY = []
+        , padData     = false // If true, adds half a data points width to front and back, for lining up a line chart with a bar chart
+        , clipEdge = true
+        , color = nv.utils.defaultColor()
+        , interactive = false
+        , xDomain
+        , yDomain
+        , xRange
+        , yRange
+        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove')
+        ;
+
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    function chart(selection) {
+        selection.each(function(data) {
+            container = d3.select(this);
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
+
+            nv.utils.initSVG(container);
+
+            // Width of the candlestick bars.
+            var barWidth = (availableWidth / data[0].values.length) * .45;
+
+            // Setup Scales
+            x.domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
+
+            if (padData)
+                x.range(xRange || [availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+            else
+                x.range(xRange || [5 + barWidth / 2, availableWidth - barWidth / 2 - 5]);
+
+            y.domain(yDomain || [
+                    d3.min(data[0].values.map(getLow).concat(forceY)),
+                    d3.max(data[0].values.map(getHigh).concat(forceY))
+                ]
+            ).range(yRange || [availableHeight, 0]);
+
+            // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
+            if (x.domain()[0] === x.domain()[1])
+                x.domain()[0] ?
+                    x.domain([x.domain()[0] - x.domain()[0] * 0.01, x.domain()[1] + x.domain()[1] * 0.01])
+                    : x.domain([-1,1]);
+
+            if (y.domain()[0] === y.domain()[1])
+                y.domain()[0] ?
+                    y.domain([y.domain()[0] + y.domain()[0] * 0.01, y.domain()[1] - y.domain()[1] * 0.01])
+                    : y.domain([-1,1]);
+
+            // Setup containers and skeleton of chart
+            var wrap = d3.select(this).selectAll('g.nv-wrap.nv-candlestickBar').data([data[0].values]);
+            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-candlestickBar');
+            var defsEnter = wrapEnter.append('defs');
+            var gEnter = wrapEnter.append('g');
+            var g = wrap.select('g');
+
+            gEnter.append('g').attr('class', 'nv-ticks');
+
+            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            container
+                .on('click', function(d,i) {
+                    dispatch.chartClick({
+                        data: d,
+                        index: i,
+                        pos: d3.event,
+                        id: id
+                    });
+                });
+
+            defsEnter.append('clipPath')
+                .attr('id', 'nv-chart-clip-path-' + id)
+                .append('rect');
+
+            wrap.select('#nv-chart-clip-path-' + id + ' rect')
+                .attr('width', availableWidth)
+                .attr('height', availableHeight);
+
+            g   .attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
+
+            var ticks = wrap.select('.nv-ticks').selectAll('.nv-tick')
+                .data(function(d) { return d });
+            ticks.exit().remove();
+
+            // The colors are currently controlled by CSS.
+            var tickGroups = ticks.enter().append('g')
+                .attr('class', function(d, i, j) { return (getOpen(d, i) > getClose(d, i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i});
+
+            var lines = tickGroups.append('line')
+                .attr('class', 'nv-candlestick-lines')
+                .attr('transform', function(d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; })
+                .attr('x1', 0)
+                .attr('y1', function(d, i) { return y(getHigh(d, i)); })
+                .attr('x2', 0)
+                .attr('y2', function(d, i) { return y(getLow(d, i)); });
+
+            var rects = tickGroups.append('rect')
+                .attr('class', 'nv-candlestick-rects nv-bars')
+                .attr('transform', function(d, i) {
+                    return 'translate(' + (x(getX(d, i)) - barWidth/2) + ','
+                    + (y(getY(d, i)) - (getOpen(d, i) > getClose(d, i) ? (y(getClose(d, i)) - y(getOpen(d, i))) : 0))
+                    + ')';
+                })
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', barWidth)
+                .attr('height', function(d, i) {
+                    var open = getOpen(d, i);
+                    var close = getClose(d, i);
+                    return open > close ? y(close) - y(open) : y(open) - y(close);
+                });
+
+            container.selectAll('.nv-candlestick-lines').transition()
+                .attr('transform', function(d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; })
+                .attr('x1', 0)
+                .attr('y1', function(d, i) { return y(getHigh(d, i)); })
+                .attr('x2', 0)
+                .attr('y2', function(d, i) { return y(getLow(d, i)); });
+
+            container.selectAll('.nv-candlestick-rects').transition()
+                .attr('transform', function(d, i) {
+                    return 'translate(' + (x(getX(d, i)) - barWidth/2) + ','
+                    + (y(getY(d, i)) - (getOpen(d, i) > getClose(d, i) ? (y(getClose(d, i)) - y(getOpen(d, i))) : 0))
+                    + ')';
+                })
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', barWidth)
+                .attr('height', function(d, i) {
+                    var open = getOpen(d, i);
+                    var close = getClose(d, i);
+                    return open > close ? y(close) - y(open) : y(open) - y(close);
+                });
+        });
+
+        return chart;
+    }
+
+
+    //Create methods to allow outside functions to highlight a specific bar.
+    chart.highlightPoint = function(pointIndex, isHoverOver) {
+        chart.clearHighlights();
+        container.select(".nv-candlestickBar .nv-tick-0-" + pointIndex)
+            .classed("hover", isHoverOver)
+        ;
+    };
+
+    chart.clearHighlights = function() {
+        container.select(".nv-candlestickBar .nv-tick.hover")
+            .classed("hover", false)
+        ;
+    };
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:    {get: function(){return width;}, set: function(_){width=_;}},
+        height:   {get: function(){return height;}, set: function(_){height=_;}},
+        xScale:   {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:   {get: function(){return y;}, set: function(_){y=_;}},
+        xDomain:  {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain:  {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        xRange:   {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:   {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        forceX:   {get: function(){return forceX;}, set: function(_){forceX=_;}},
+        forceY:   {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        padData:  {get: function(){return padData;}, set: function(_){padData=_;}},
+        clipEdge: {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
+        id:       {get: function(){return id;}, set: function(_){id=_;}},
+        interactive: {get: function(){return interactive;}, set: function(_){interactive=_;}},
+
+        x:     {get: function(){return getX;}, set: function(_){getX=_;}},
+        y:     {get: function(){return getY;}, set: function(_){getY=_;}},
+        open:  {get: function(){return getOpen();}, set: function(_){getOpen=_;}},
+        close: {get: function(){return getClose();}, set: function(_){getClose=_;}},
+        high:  {get: function(){return getHigh;}, set: function(_){getHigh=_;}},
+        low:   {get: function(){return getLow;}, set: function(_){getLow=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    != undefined ? _.top    : margin.top;
+            margin.right  = _.right  != undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom != undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   != undefined ? _.left   : margin.left;
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }}
+    });
+
+    nv.utils.initOptions(chart);
+    return chart;
+};
 
 nv.models.cumulativeLineChart = function() {
     "use strict";
@@ -2687,7 +3518,7 @@ nv.models.cumulativeLineChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/70, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/70, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -2699,7 +3530,7 @@ nv.models.cumulativeLineChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -2995,6 +3826,7 @@ nv.models.discreteBar = function() {
         , width = 960
         , height = 500
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container
         , x = d3.scale.ordinal()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -3023,8 +3855,9 @@ nv.models.discreteBar = function() {
         renderWatch.reset();
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             //add series index to each data point for reference
@@ -3273,10 +4106,11 @@ nv.models.discreteBarChart = function() {
 
     tooltip
         .duration(0)
+        .headerEnabled(false)
         .valueFormatter(function(d, i) {
             return yAxis.tickFormat()(d, i);
         })
-        .headerFormatter(function(d, i) {
+        .keyFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         });
 
@@ -3361,7 +4195,7 @@ nv.models.discreteBarChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -3379,7 +4213,7 @@ nv.models.discreteBarChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis').call(yAxis);
@@ -3404,8 +4238,8 @@ nv.models.discreteBarChart = function() {
 
     discretebar.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: evt.data.label,
-            value: evt.data.value,
+            key: chart.x()(evt.data),
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -3641,6 +4475,344 @@ nv.models.distribution = function() {
 
     return chart;
 }
+nv.models.furiousLegend = function() {
+    "use strict";
+
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var margin = {top: 5, right: 0, bottom: 5, left: 0}
+        , width = 400
+        , height = 20
+        , getKey = function(d) { return d.key }
+        , color = nv.utils.getColor()
+        , align = true
+        , padding = 28 //define how much space between legend items. - recommend 32 for furious version
+        , rightAlign = true
+        , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
+        , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
+        , expanded = false
+        , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
+        , vers = 'classic' //Options are "classic" and "furious"
+        ;
+
+    function chart(selection) {
+        selection.each(function(data) {
+            var availableWidth = width - margin.left - margin.right,
+                container = d3.select(this);
+            nv.utils.initSVG(container);
+
+            // Setup containers and skeleton of chart
+            var wrap = container.selectAll('g.nv-legend').data([data]);
+            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
+            var g = wrap.select('g');
+
+            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var series = g.selectAll('.nv-series')
+                .data(function(d) {
+                    if(vers != 'furious') return d;
+
+                    return d.filter(function(n) {
+                        return expanded ? true : !n.disengaged;
+                    });
+                });
+            var seriesEnter = series.enter().append('g').attr('class', 'nv-series')
+
+            var seriesShape;
+
+            if(vers == 'classic') {
+                seriesEnter.append('circle')
+                    .style('stroke-width', 2)
+                    .attr('class','nv-legend-symbol')
+                    .attr('r', 5);
+
+                seriesShape = series.select('circle');
+            } else if (vers == 'furious') {
+                seriesEnter.append('rect')
+                    .style('stroke-width', 2)
+                    .attr('class','nv-legend-symbol')
+                    .attr('rx', 3)
+                    .attr('ry', 3);
+
+                seriesShape = series.select('rect');
+
+                seriesEnter.append('g')
+                    .attr('class', 'nv-check-box')
+                    .property('innerHTML','<path d="M0.5,5 L22.5,5 L22.5,26.5 L0.5,26.5 L0.5,5 Z" class="nv-box"></path><path d="M5.5,12.8618467 L11.9185089,19.2803556 L31,0.198864511" class="nv-check"></path>')
+                    .attr('transform', 'translate(-10,-8)scale(0.5)');
+
+                var seriesCheckbox = series.select('.nv-check-box');
+
+                seriesCheckbox.each(function(d,i) {
+                    d3.select(this).selectAll('path')
+                        .attr('stroke', setTextColor(d,i));
+                });
+            }
+
+            seriesEnter.append('text')
+                .attr('text-anchor', 'start')
+                .attr('class','nv-legend-text')
+                .attr('dy', '.32em')
+                .attr('dx', '8');
+
+            var seriesText = series.select('text.nv-legend-text');
+
+            series
+                .on('mouseover', function(d,i) {
+                    dispatch.legendMouseover(d,i);  //TODO: Make consistent with other event objects
+                })
+                .on('mouseout', function(d,i) {
+                    dispatch.legendMouseout(d,i);
+                })
+                .on('click', function(d,i) {
+                    dispatch.legendClick(d,i);
+                    // make sure we re-get data in case it was modified
+                    var data = series.data();
+                    if (updateState) {
+                        if(vers =='classic') {
+                            if (radioButtonMode) {
+                                //Radio button mode: set every series to disabled,
+                                //  and enable the clicked series.
+                                data.forEach(function(series) { series.disabled = true});
+                                d.disabled = false;
+                            }
+                            else {
+                                d.disabled = !d.disabled;
+                                if (data.every(function(series) { return series.disabled})) {
+                                    //the default behavior of NVD3 legends is, if every single series
+                                    // is disabled, turn all series' back on.
+                                    data.forEach(function(series) { series.disabled = false});
+                                }
+                            }
+                        } else if(vers == 'furious') {
+                            if(expanded) {
+                                d.disengaged = !d.disengaged;
+                                d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
+                                d.disabled = d.disengaged || d.userDisabled;
+                            } else if (!expanded) {
+                                d.disabled = !d.disabled;
+                                d.userDisabled = d.disabled;
+                                var engaged = data.filter(function(d) { return !d.disengaged; });
+                                if (engaged.every(function(series) { return series.userDisabled })) {
+                                    //the default behavior of NVD3 legends is, if every single series
+                                    // is disabled, turn all series' back on.
+                                    data.forEach(function(series) {
+                                        series.disabled = series.userDisabled = false;
+                                    });
+                                }
+                            }
+                        }
+                        dispatch.stateChange({
+                            disabled: data.map(function(d) { return !!d.disabled }),
+                            disengaged: data.map(function(d) { return !!d.disengaged })
+                        });
+
+                    }
+                })
+                .on('dblclick', function(d,i) {
+                    if(vers == 'furious' && expanded) return;
+                    dispatch.legendDblclick(d,i);
+                    if (updateState) {
+                        // make sure we re-get data in case it was modified
+                        var data = series.data();
+                        //the default behavior of NVD3 legends, when double clicking one,
+                        // is to set all other series' to false, and make the double clicked series enabled.
+                        data.forEach(function(series) {
+                            series.disabled = true;
+                            if(vers == 'furious') series.userDisabled = series.disabled;
+                        });
+                        d.disabled = false;
+                        if(vers == 'furious') d.userDisabled = d.disabled;
+                        dispatch.stateChange({
+                            disabled: data.map(function(d) { return !!d.disabled })
+                        });
+                    }
+                });
+
+            series.classed('nv-disabled', function(d) { return d.userDisabled });
+            series.exit().remove();
+
+            seriesText
+                .attr('fill', setTextColor)
+                .text(getKey);
+
+            //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
+            // NEW ALIGNING CODE, TODO: clean up
+
+            var versPadding;
+            switch(vers) {
+                case 'furious' :
+                    versPadding = 23;
+                    break;
+                case 'classic' :
+                    versPadding = 20;
+            }
+
+            if (align) {
+
+                var seriesWidths = [];
+                series.each(function(d,i) {
+                    var legendText = d3.select(this).select('text');
+                    var nodeTextLength;
+                    try {
+                        nodeTextLength = legendText.node().getComputedTextLength();
+                        // If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
+                        if(nodeTextLength <= 0) throw Error();
+                    }
+                    catch(e) {
+                        nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
+                    }
+
+                    seriesWidths.push(nodeTextLength + padding);
+                });
+
+                var seriesPerRow = 0;
+                var legendWidth = 0;
+                var columnWidths = [];
+
+                while ( legendWidth < availableWidth && seriesPerRow < seriesWidths.length) {
+                    columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
+                    legendWidth += seriesWidths[seriesPerRow++];
+                }
+                if (seriesPerRow === 0) seriesPerRow = 1; //minimum of one series per row
+
+                while ( legendWidth > availableWidth && seriesPerRow > 1 ) {
+                    columnWidths = [];
+                    seriesPerRow--;
+
+                    for (var k = 0; k < seriesWidths.length; k++) {
+                        if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
+                            columnWidths[k % seriesPerRow] = seriesWidths[k];
+                    }
+
+                    legendWidth = columnWidths.reduce(function(prev, cur, index, array) {
+                        return prev + cur;
+                    });
+                }
+
+                var xPositions = [];
+                for (var i = 0, curX = 0; i < seriesPerRow; i++) {
+                    xPositions[i] = curX;
+                    curX += columnWidths[i];
+                }
+
+                series
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * versPadding) + ')';
+                    });
+
+                //position legend as far right as possible within the total width
+                if (rightAlign) {
+                    g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
+                }
+                else {
+                    g.attr('transform', 'translate(0' + ',' + margin.top + ')');
+                }
+
+                height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * versPadding);
+
+            } else {
+
+                var ypos = 5,
+                    newxpos = 5,
+                    maxwidth = 0,
+                    xpos;
+                series
+                    .attr('transform', function(d, i) {
+                        var length = d3.select(this).select('text').node().getComputedTextLength() + padding;
+                        xpos = newxpos;
+
+                        if (width < margin.left + margin.right + xpos + length) {
+                            newxpos = xpos = 5;
+                            ypos += versPadding;
+                        }
+
+                        newxpos += length;
+                        if (newxpos > maxwidth) maxwidth = newxpos;
+
+                        return 'translate(' + xpos + ',' + ypos + ')';
+                    });
+
+                //position legend as far right as possible within the total width
+                g.attr('transform', 'translate(' + (width - margin.right - maxwidth) + ',' + margin.top + ')');
+
+                height = margin.top + margin.bottom + ypos + 15;
+            }
+
+            if(vers == 'furious') {
+                // Size rectangles after text is placed
+                seriesShape
+                    .attr('width', function(d,i) {
+                        return seriesText[0][i].getComputedTextLength() + 27;
+                    })
+                    .attr('height', 18)
+                    .attr('y', -9)
+                    .attr('x', -15)
+            }
+
+            seriesShape
+                .style('fill', setBGColor)
+                .style('stroke', function(d,i) { return d.color || color(d, i) });
+        });
+
+        function setTextColor(d,i) {
+            if(vers != 'furious') return '#000';
+            if(expanded) {
+                return d.disengaged ? color(d,i) : '#fff';
+            } else if (!expanded) {
+                return !!d.disabled ? color(d,i) : '#fff';
+            }
+        }
+
+        function setBGColor(d,i) {
+            if(expanded && vers == 'furious') {
+                return d.disengaged ? '#fff' : color(d,i);
+            } else {
+                return !!d.disabled ? '#fff' : color(d,i);
+            }
+        }
+
+        return chart;
+    }
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        key:        {get: function(){return getKey;}, set: function(_){getKey=_;}},
+        align:      {get: function(){return align;}, set: function(_){align=_;}},
+        rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
+        padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
+        updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
+        radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
+        expanded:   {get: function(){return expanded;}, set: function(_){expanded=_;}},
+        vers:   {get: function(){return vers;}, set: function(_){vers=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        color:  {get: function(){return color;}, set: function(_){
+            color = nv.utils.getColor(_);
+        }}
+    });
+
+    nv.utils.initOptions(chart);
+
+    return chart;
+};
 //TODO: consider deprecating and using multibar with single series for this
 nv.models.historicalBar = function() {
     "use strict";
@@ -3653,6 +4825,7 @@ nv.models.historicalBar = function() {
         , width = null
         , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , x = d3.scale.linear()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -3676,7 +4849,7 @@ nv.models.historicalBar = function() {
         selection.each(function(data) {
             renderWatch.reset();
 
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -3816,14 +4989,14 @@ nv.models.historicalBar = function() {
 
     //Create methods to allow outside functions to highlight a specific bar.
     chart.highlightPoint = function(pointIndex, isHoverOver) {
-        d3.select(".nv-historicalBar-" + id)
+        container
             .select(".nv-bars .nv-bar-0-" + pointIndex)
             .classed("hover", isHoverOver)
         ;
     };
 
     chart.clearHighlights = function() {
-        d3.select(".nv-historicalBar-" + id)
+        container
             .select(".nv-bars .nv-bar.hover")
             .classed("hover", false)
         ;
@@ -3902,7 +5075,7 @@ nv.models.historicalBarChart = function(bar_model) {
         , state = {}
         , defaultState = null
         , noData = null
-        , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd')
+        , dispatch = d3.dispatch('tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , transitionDuration = 250
         ;
 
@@ -4026,7 +5199,7 @@ nv.models.historicalBarChart = function(bar_model) {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks( xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -4039,7 +5212,7 @@ nv.models.historicalBarChart = function(bar_model) {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -4084,6 +5257,7 @@ nv.models.historicalBarChart = function(bar_model) {
                     })
                     .data({
                         value: xValue,
+                        index: pointIndex,
                         series: allData
                     })();
 
@@ -4148,8 +5322,8 @@ nv.models.historicalBarChart = function(bar_model) {
 
     bars.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: evt.data.x,
-            value: evt.data.y,
+            key: chart.x()(evt.data),
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -4237,9 +5411,32 @@ nv.models.historicalBarChart = function(bar_model) {
 };
 
 
-// ohlcChart is just a historical chart with oclc bars and some tweaks
+// ohlcChart is just a historical chart with ohlc bars and some tweaks
 nv.models.ohlcBarChart = function() {
     var chart = nv.models.historicalBarChart(nv.models.ohlcBar());
+
+    // special default tooltip since we show multiple values per x
+    chart.useInteractiveGuideline(true);
+    chart.interactiveLayer.tooltip.contentGenerator(function(data) {
+        // we assume only one series exists for this chart
+        var d = data.series[0].data;
+        // match line colors as defined in nv.d3.css
+        var color = d.open < d.close ? "2ca02c" : "d62728";
+        return '' +
+            '<h3 style="color: #' + color + '">' + data.value + '</h3>' +
+            '<table>' +
+            '<tr><td>open:</td><td>' + chart.yAxis.tickFormat()(d.open) + '</td></tr>' +
+            '<tr><td>close:</td><td>' + chart.yAxis.tickFormat()(d.close) + '</td></tr>' +
+            '<tr><td>high</td><td>' + chart.yAxis.tickFormat()(d.high) + '</td></tr>' +
+            '<tr><td>low:</td><td>' + chart.yAxis.tickFormat()(d.low) + '</td></tr>' +
+            '</table>';
+    });
+    return chart;
+};
+
+// candlestickChart is just a historical chart with candlestick bars and some tweaks
+nv.models.candlestickBarChart = function() {
+    var chart = nv.models.historicalBarChart(nv.models.candlestickBar());
 
     // special default tooltip since we show multiple values per x
     chart.useInteractiveGuideline(true);
@@ -4270,13 +5467,15 @@ nv.models.legend = function() {
         , width = 400
         , height = 20
         , getKey = function(d) { return d.key }
-        , color = nv.utils.defaultColor()
+        , color = nv.utils.getColor()
         , align = true
-        , padding = 28 //define how much space between legend items.
+        , padding = 32 //define how much space between legend items. - recommend 32 for furious version
         , rightAlign = true
         , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
         , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
+        , expanded = false
         , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
+        , vers = 'classic' //Options are "classic" and "furious"
         ;
 
     function chart(selection) {
@@ -4293,20 +5492,62 @@ nv.models.legend = function() {
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var series = g.selectAll('.nv-series')
-                .data(function(d) { 
-                    return d; 
+                .data(function(d) {
+                    if(vers != 'furious') return d;
+
+                    return d.filter(function(n) {
+                        return expanded ? true : !n.disengaged;
+                    });
                 });
-            var seriesEnter = series.enter().append('g').attr('class', 'nv-series')
-                
-            seriesEnter.append('circle')
-                .style('stroke-width', 2)
-                .attr('class','nv-legend-symbol')
-                .attr('r', 5);
+
+            var seriesEnter = series.enter().append('g').attr('class', 'nv-series');
+            var seriesShape;
+
+            var versPadding;
+            switch(vers) {
+                case 'furious' :
+                    versPadding = 23;
+                    break;
+                case 'classic' :
+                    versPadding = 20;
+            }
+
+            if(vers == 'classic') {
+                seriesEnter.append('circle')
+                    .style('stroke-width', 2)
+                    .attr('class','nv-legend-symbol')
+                    .attr('r', 5);
+
+                seriesShape = series.select('circle');
+            } else if (vers == 'furious') {
+                seriesEnter.append('rect')
+                    .style('stroke-width', 2)
+                    .attr('class','nv-legend-symbol')
+                    .attr('rx', 3)
+                    .attr('ry', 3);
+
+                seriesShape = series.select('.nv-legend-symbol');
+
+                seriesEnter.append('g')
+                    .attr('class', 'nv-check-box')
+                    .property('innerHTML','<path d="M0.5,5 L22.5,5 L22.5,26.5 L0.5,26.5 L0.5,5 Z" class="nv-box"></path><path d="M5.5,12.8618467 L11.9185089,19.2803556 L31,0.198864511" class="nv-check"></path>')
+                    .attr('transform', 'translate(-10,-8)scale(0.5)');
+
+                var seriesCheckbox = series.select('.nv-check-box');
+
+                seriesCheckbox.each(function(d,i) {
+                    d3.select(this).selectAll('path')
+                        .attr('stroke', setTextColor(d,i));
+                });
+            }
+
             seriesEnter.append('text')
                 .attr('text-anchor', 'start')
                 .attr('class','nv-legend-text')
                 .attr('dy', '.32em')
                 .attr('dx', '8');
+
+            var seriesText = series.select('text.nv-legend-text');
 
             series
                 .on('mouseover', function(d,i) {
@@ -4320,26 +5561,48 @@ nv.models.legend = function() {
                     // make sure we re-get data in case it was modified
                     var data = series.data();
                     if (updateState) {
-                        if (radioButtonMode) {
-                            //Radio button mode: set every series to disabled,
-                            //  and enable the clicked series.
-                            data.forEach(function(series) { series.disabled = true});
-                            d.disabled = false;
-                        }
-                        else {
-                            d.disabled = !d.disabled;
-                            if (data.every(function(series) { return series.disabled})) {
-                                //the default behavior of NVD3 legends is, if every single series
-                                // is disabled, turn all series' back on.
-                                data.forEach(function(series) { series.disabled = false});
+                        if(vers =='classic') {
+                            if (radioButtonMode) {
+                                //Radio button mode: set every series to disabled,
+                                //  and enable the clicked series.
+                                data.forEach(function(series) { series.disabled = true});
+                                d.disabled = false;
+                            }
+                            else {
+                                d.disabled = !d.disabled;
+                                if (data.every(function(series) { return series.disabled})) {
+                                    //the default behavior of NVD3 legends is, if every single series
+                                    // is disabled, turn all series' back on.
+                                    data.forEach(function(series) { series.disabled = false});
+                                }
+                            }
+                        } else if(vers == 'furious') {
+                            if(expanded) {
+                                d.disengaged = !d.disengaged;
+                                d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
+                                d.disabled = d.disengaged || d.userDisabled;
+                            } else if (!expanded) {
+                                d.disabled = !d.disabled;
+                                d.userDisabled = d.disabled;
+                                var engaged = data.filter(function(d) { return !d.disengaged; });
+                                if (engaged.every(function(series) { return series.userDisabled })) {
+                                    //the default behavior of NVD3 legends is, if every single series
+                                    // is disabled, turn all series' back on.
+                                    data.forEach(function(series) {
+                                        series.disabled = series.userDisabled = false;
+                                    });
+                                }
                             }
                         }
                         dispatch.stateChange({
-                            disabled: data.map(function(d) { return !!d.disabled })
+                            disabled: data.map(function(d) { return !!d.disabled }),
+                            disengaged: data.map(function(d) { return !!d.disengaged })
                         });
+
                     }
                 })
                 .on('dblclick', function(d,i) {
+                    if(vers == 'furious' && expanded) return;
                     dispatch.legendDblclick(d,i);
                     if (updateState) {
                         // make sure we re-get data in case it was modified
@@ -4348,23 +5611,26 @@ nv.models.legend = function() {
                         // is to set all other series' to false, and make the double clicked series enabled.
                         data.forEach(function(series) {
                             series.disabled = true;
+                            if(vers == 'furious') series.userDisabled = series.disabled;
                         });
                         d.disabled = false;
+                        if(vers == 'furious') d.userDisabled = d.disabled;
                         dispatch.stateChange({
                             disabled: data.map(function(d) { return !!d.disabled })
                         });
                     }
                 });
 
-            series.classed('nv-disabled', function(d) { return d.disabled });
+            series.classed('nv-disabled', function(d) { return d.userDisabled });
             series.exit().remove();
-            series.select('circle')
-                .style('fill', function(d,i) { return d.color || color(d,i)})
-                .style('stroke', function(d,i) { return d.color || color(d, i) });
-            series.select('text').text(getKey);
+
+            seriesText
+                .attr('fill', setTextColor)
+                .text(getKey);
 
             //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
             // NEW ALIGNING CODE, TODO: clean up
+            var legendWidth = 0;
             if (align) {
 
                 var seriesWidths = [];
@@ -4384,8 +5650,8 @@ nv.models.legend = function() {
                 });
 
                 var seriesPerRow = 0;
-                var legendWidth = 0;
                 var columnWidths = [];
+                legendWidth = 0;
 
                 while ( legendWidth < availableWidth && seriesPerRow < seriesWidths.length) {
                     columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
@@ -4415,7 +5681,7 @@ nv.models.legend = function() {
 
                 series
                     .attr('transform', function(d, i) {
-                        return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * 20) + ')';
+                        return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * versPadding) + ')';
                     });
 
                 //position legend as far right as possible within the total width
@@ -4426,7 +5692,7 @@ nv.models.legend = function() {
                     g.attr('transform', 'translate(0' + ',' + margin.top + ')');
                 }
 
-                height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * 20);
+                height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * versPadding);
 
             } else {
 
@@ -4441,12 +5707,15 @@ nv.models.legend = function() {
 
                         if (width < margin.left + margin.right + xpos + length) {
                             newxpos = xpos = 5;
-                            ypos += 20;
+                            ypos += versPadding;
                         }
 
                         newxpos += length;
                         if (newxpos > maxwidth) maxwidth = newxpos;
 
+                        if(legendWidth < xpos + maxwidth) {
+                            legendWidth = xpos + maxwidth;
+                        }
                         return 'translate(' + xpos + ',' + ypos + ')';
                     });
 
@@ -4455,7 +5724,69 @@ nv.models.legend = function() {
 
                 height = margin.top + margin.bottom + ypos + 15;
             }
+
+            if(vers == 'furious') {
+                // Size rectangles after text is placed
+                seriesShape
+                    .attr('width', function(d,i) {
+                        return seriesText[0][i].getComputedTextLength() + 27;
+                    })
+                    .attr('height', 18)
+                    .attr('y', -9)
+                    .attr('x', -15);
+
+                // The background for the expanded legend (UI)
+                gEnter.insert('rect',':first-child')
+                    .attr('class', 'nv-legend-bg')
+                    .attr('fill', '#eee')
+                    // .attr('stroke', '#444')
+                    .attr('opacity',0);
+
+                var seriesBG = g.select('.nv-legend-bg');
+
+                seriesBG
+                .transition().duration(300)
+                    .attr('x', -versPadding )
+                    .attr('width', legendWidth + versPadding - 12)
+                    .attr('height', height + 10)
+                    .attr('y', -margin.top - 10)
+                    .attr('opacity', expanded ? 1 : 0);
+
+
+            }
+
+            seriesShape
+                .style('fill', setBGColor)
+                .style('fill-opacity', setBGOpacity)
+                .style('stroke', setBGColor);
         });
+
+        function setTextColor(d,i) {
+            if(vers != 'furious') return '#000';
+            if(expanded) {
+                return d.disengaged ? '#000' : '#fff';
+            } else if (!expanded) {
+                if(!d.color) d.color = color(d,i);
+                return !!d.disabled ? d.color : '#fff';
+            }
+        }
+
+        function setBGColor(d,i) {
+            if(expanded && vers == 'furious') {
+                return d.disengaged ? '#eee' : d.color || color(d,i);
+            } else {
+                return d.color || color(d,i);
+            }
+        }
+
+
+        function setBGOpacity(d,i) {
+            if(expanded && vers == 'furious') {
+                return 1;
+            } else {
+                return !!d.disabled ? 0 : 1;
+            }
+        }
 
         return chart;
     }
@@ -4471,12 +5802,14 @@ nv.models.legend = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
-        key: {get: function(){return getKey;}, set: function(_){getKey=_;}},
+        key:        {get: function(){return getKey;}, set: function(_){getKey=_;}},
         align:      {get: function(){return align;}, set: function(_){align=_;}},
         rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
         padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
-        updateState:    {get: function(){return updateState;}, set: function(_){updateState=_;}},
+        updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
         radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
+        expanded:   {get: function(){return expanded;}, set: function(_){expanded=_;}},
+        vers:   {get: function(){return vers;}, set: function(_){vers=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -4507,6 +5840,7 @@ nv.models.line = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 960
         , height = 500
+        , container = null
         , strokeWidth = 1.5
         , color = nv.utils.defaultColor() // a function that returns a color
         , getX = function(d) { return d.x } // accessor to get the x value from a data point
@@ -4544,9 +5878,9 @@ nv.models.line = function() {
         renderWatch.reset();
         renderWatch.models(scatter);
         selection.each(function(data) {
-            var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+            container = d3.select(this);
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
             nv.utils.initSVG(container);
 
             // Setup Scales
@@ -4909,7 +6243,7 @@ nv.models.lineChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks(nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -4921,7 +6255,7 @@ nv.models.lineChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks(nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -4949,14 +6283,17 @@ nv.models.lineChart = function() {
                     })
                     .forEach(function(series,i) {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        lines.highlightPoint(i, pointIndex, true);
                         var point = series.values[pointIndex];
+                        var pointYValue = chart.y()(point, pointIndex);
+                        if (pointYValue != null) {
+                            lines.highlightPoint(i, pointIndex, true);
+                        }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
-                            value: chart.y()(point, pointIndex),
+                            value: pointYValue,
                             color: color(series,series.seriesIndex)
                         });
                     });
@@ -4975,10 +6312,11 @@ nv.models.lineChart = function() {
                     .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
-                        return yAxis.tickFormat()(d);
+                        return d == null ? "N/A" : yAxis.tickFormat()(d);
                     })
                     .data({
                         value: xValue,
+                        index: pointIndex,
                         series: allData
                     })();
 
@@ -5373,7 +6711,7 @@ nv.models.linePlusBarChart = function() {
             // context (focus chart) axis controls
             if (focusShowAxisX) {
                 x2Axis
-                    .ticks(x2Axis.ticks() ? x2Axis.ticks() : nv.utils.calcTicksX(availableWidth / 100, data))
+                    ._ticks( nv.utils.calcTicksX(availableWidth / 100, data))
                     .tickSize(-availableHeight2, 0);
                 g.select('.nv-context .nv-x.nv-axis')
                     .attr('transform', 'translate(0,' + y3.range()[0] + ')');
@@ -5384,11 +6722,11 @@ nv.models.linePlusBarChart = function() {
             if (focusShowAxisY) {
                 y3Axis
                     .scale(y3)
-                    .ticks(y3Axis.ticks() ? y3Axis.ticks() : availableHeight2 / 36 )
+                    ._ticks( availableHeight2 / 36 )
                     .tickSize( -availableWidth, 0);
                 y4Axis
                     .scale(y4)
-                    .ticks(y4Axis.ticks() ? y4Axis.ticks() : availableHeight2 / 36 )
+                    ._ticks( availableHeight2 / 36 )
                     .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
                 g.select('.nv-context .nv-y3.nv-axis')
@@ -5551,7 +6889,7 @@ nv.models.linePlusBarChart = function() {
 
                 xAxis
                     .scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight1, 0);
 
                 xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
@@ -5569,11 +6907,11 @@ nv.models.linePlusBarChart = function() {
 
                 y1Axis
                     .scale(y1)
-                    .ticks(y1Axis.ticks() ? y1Axis.ticks() : nv.utils.calcTicksY(availableHeight1/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
                     .tickSize(-availableWidth, 0);
                 y2Axis
                     .scale(y2)
-                    .ticks(y2Axis.ticks() ? y2Axis.ticks() : nv.utils.calcTicksY(availableHeight1/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
                     .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
 
                 g.select('.nv-focus .nv-y1.nv-axis')
@@ -5600,11 +6938,6 @@ nv.models.linePlusBarChart = function() {
     //------------------------------------------------------------
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt.value = evt.point.x;
-        evt.series = {
-            value: evt.point.y,
-            color: evt.point.color
-        };
         tooltip
             .duration(100)
             .valueFormatter(function(d, i) {
@@ -5620,9 +6953,9 @@ nv.models.linePlusBarChart = function() {
     });
 
     bars.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt.value = evt.data.x;
+        evt.value = chart.x()(evt.data);
         evt['series'] = {
-            value: evt.data.y,
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip
@@ -5743,6 +7076,7 @@ nv.models.lineWithFocusChart = function() {
         , legend = nv.models.legend()
         , brush = d3.svg.brush()
         , tooltip = nv.models.tooltip()
+        , interactiveLayer = nv.interactiveGuideline()
         ;
 
     var margin = {top: 30, right: 30, bottom: 30, left: 60}
@@ -5751,6 +7085,7 @@ nv.models.lineWithFocusChart = function() {
         , width = null
         , height = null
         , height2 = 50
+        , useInteractiveGuideline = false
         , x
         , y
         , x2
@@ -5854,6 +7189,7 @@ nv.models.lineWithFocusChart = function() {
             focusEnter.append('g').attr('class', 'nv-x nv-axis');
             focusEnter.append('g').attr('class', 'nv-y nv-axis');
             focusEnter.append('g').attr('class', 'nv-linesWrap');
+            focusEnter.append('g').attr('class', 'nv-interactive');
 
             var contextEnter = gEnter.append('g').attr('class', 'nv-context');
             contextEnter.append('g').attr('class', 'nv-x nv-axis');
@@ -5880,6 +7216,18 @@ nv.models.lineWithFocusChart = function() {
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            
+            //Set up interactive layer
+            if (useInteractiveGuideline) {
+                interactiveLayer
+                    .width(availableWidth)
+                    .height(availableHeight1)
+                    .margin({left:margin.left, top:margin.top})
+                    .svgContainer(container)
+                    .xScale(x);
+                wrap.select(".nv-interactive").call(interactiveLayer);
+            }
 
             // Main Chart Component(s)
             lines
@@ -5920,12 +7268,12 @@ nv.models.lineWithFocusChart = function() {
             // Setup Main (Focus) Axes
             xAxis
                 .scale(x)
-                .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight1, 0);
 
             yAxis
                 .scale(y)
-                .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight1/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
                 .tickSize( -availableWidth, 0);
 
             g.select('.nv-focus .nv-x.nv-axis')
@@ -5961,7 +7309,6 @@ nv.models.lineWithFocusChart = function() {
             var gBrush = g.select('.nv-x.nv-brush')
                 .call(brush);
             gBrush.selectAll('rect')
-                //.attr('y', -5)
                 .attr('height', availableHeight2);
             gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
@@ -5970,7 +7317,7 @@ nv.models.lineWithFocusChart = function() {
             // Setup Secondary (Context) Axes
             x2Axis
                 .scale(x2)
-                .ticks(x2Axis.ticks() ? x2Axis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight2, 0);
 
             g.select('.nv-context .nv-x.nv-axis')
@@ -5980,7 +7327,7 @@ nv.models.lineWithFocusChart = function() {
 
             y2Axis
                 .scale(y2)
-                .ticks(y2Axis.ticks() ? y2Axis.ticks() : nv.utils.calcTicksY(availableHeight2/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
                 .tickSize( -availableWidth, 0);
 
             d3.transition(g.select('.nv-context .nv-y.nv-axis'))
@@ -5998,6 +7345,66 @@ nv.models.lineWithFocusChart = function() {
                     state[key] = newState[key];
                 dispatch.stateChange(state);
                 chart.update();
+            });
+
+            interactiveLayer.dispatch.on('elementMousemove', function(e) {
+                lines.clearHighlights();
+                var singlePoint, pointIndex, pointXLocation, allData = [];
+                data
+                    .filter(function(series, i) {
+                        series.seriesIndex = i;
+                        return !series.disabled;
+                    })
+                    .forEach(function(series,i) {
+                            var extent = brush.empty() ? x2.domain() : brush.extent();
+                            var currentValues = series.values.filter(function(d,i) {
+                            return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                        });
+ 
+                        pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
+                        var point = currentValues[pointIndex];
+                        var pointYValue = chart.y()(point, pointIndex);
+                        if (pointYValue != null) {
+                            lines.highlightPoint(i, pointIndex, true);
+                        }
+                        if (point === undefined) return;
+                        if (singlePoint === undefined) singlePoint = point;
+                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                        allData.push({
+                            key: series.key,
+                            value: chart.y()(point, pointIndex),
+                            color: color(series,series.seriesIndex)
+                        });
+                    });
+                //Highlight the tooltip entry based on which point the mouse is closest to.
+                if (allData.length > 2) {
+                    var yValue = chart.yScale().invert(e.mouseY);
+                    var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
+                    var threshold = 0.03 * domainExtent;
+                    var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+                    if (indexToHighlight !== null)
+                        allData[indexToHighlight].highlight = true;
+                }
+
+                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+                interactiveLayer.tooltip
+                    .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
+                    .chartContainer(that.parentNode)
+                    .valueFormatter(function(d,i) {
+                        return d == null ? "N/A" : yAxis.tickFormat()(d);
+                    })
+                    .data({
+                        value: xValue,
+                        index: pointIndex,
+                        series: allData
+                    })();
+
+                interactiveLayer.renderGuideLine(pointXLocation);
+
+            });
+
+            interactiveLayer.dispatch.on("elementMouseout",function(e) {
+                lines.clearHighlights();
             });
 
             dispatch.on('changeState', function(e) {
@@ -6036,7 +7443,7 @@ nv.models.lineWithFocusChart = function() {
                     .data([brush.empty() ? x2.domain() : brushExtent])
                     .each(function(d,i) {
                         var leftWidth = x2(d[0]) - x.range()[0],
-                            rightWidth = x.range()[1] - x2(d[1]);
+                            rightWidth = availableWidth - x2(d[1]);
                         d3.select(this).select('.left')
                             .attr('width',  leftWidth < 0 ? 0 : leftWidth);
 
@@ -6115,6 +7522,7 @@ nv.models.lineWithFocusChart = function() {
     chart.yAxis = yAxis;
     chart.x2Axis = x2Axis;
     chart.y2Axis = y2Axis;
+    chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
@@ -6157,18 +7565,20 @@ nv.models.lineWithFocusChart = function() {
             lines.interpolate(_);
             lines2.interpolate(_);
         }},
-        xTickFormat: {get: function(){return xAxis.xTickFormat();}, set: function(_){
-            xAxis.xTickFormat(_);
-            x2Axis.xTickFormat(_);
+        xTickFormat: {get: function(){return xAxis.tickFormat();}, set: function(_){
+            xAxis.tickFormat(_);
+            x2Axis.tickFormat(_);
         }},
-        yTickFormat: {get: function(){return yAxis.yTickFormat();}, set: function(_){
-            yAxis.yTickFormat(_);
-            y2Axis.yTickFormat(_);
+        yTickFormat: {get: function(){return yAxis.tickFormat();}, set: function(_){
+            yAxis.tickFormat(_);
+            y2Axis.tickFormat(_);
         }},
         duration:    {get: function(){return transitionDuration;}, set: function(_){
             transitionDuration=_;
             yAxis.duration(transitionDuration);
+            y2Axis.duration(transitionDuration);
             xAxis.duration(transitionDuration);
+            x2Axis.duration(transitionDuration);
         }},
         x: {get: function(){return lines.x();}, set: function(_){
             lines.x(_);
@@ -6177,6 +7587,13 @@ nv.models.lineWithFocusChart = function() {
         y: {get: function(){return lines.y();}, set: function(_){
             lines.y(_);
             lines2.y(_);
+        }},
+        useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
+            useInteractiveGuideline = _;
+            if (useInteractiveGuideline) {
+                lines.interactive(false);
+                lines.useVoronoi(false);
+            }
         }}
     });
 
@@ -6199,6 +7616,7 @@ nv.models.multiBar = function() {
         , x = d3.scale.ordinal()
         , y = d3.scale.linear()
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
@@ -6232,10 +7650,11 @@ nv.models.multiBar = function() {
         renderWatch.reset();
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
-            nv.utils.initSVG(container);
+                availableHeight = height - margin.top - margin.bottom;
 
+            container = d3.select(this);
+            nv.utils.initSVG(container);
+            var nonStackableCount = 0;
             // This function defines the requirements for render complete
             var endFn = function(d, i) {
                 if (d.series === data.length - 1 && i === data[0].values.length - 1)
@@ -6253,53 +7672,84 @@ nv.models.multiBar = function() {
                         };}
                 )}];
 
-            if (stacked)
-                data = d3.layout.stack()
+            if (stacked) {
+                var parsed = d3.layout.stack()
                     .offset(stackOffset)
                     .values(function(d){ return d.values })
                     .y(getY)
                 (!data.length && hideable ? hideable : data);
 
-
-            //add series index to each data point for reference
+                parsed.forEach(function(series, i){
+                    // if series is non-stackable, use un-parsed data
+                    if (series.nonStackable) {
+                        data[i].nonStackableSeries = nonStackableCount++; 
+                        parsed[i] = data[i];
+                    } else {
+                        // don't stack this seires on top of the nonStackable seriees 
+                        if (i > 0 && parsed[i - 1].nonStackable){
+                            parsed[i].values.map(function(d,j){
+                                d.y0 -= parsed[i - 1].values[j].y;
+                                d.y1 = d.y0 + d.y;
+                            });
+                        }
+                    }
+                });
+                data = parsed;
+            }
+            //add series index and key to each data point for reference
             data.forEach(function(series, i) {
                 series.values.forEach(function(point) {
                     point.series = i;
+                    point.key = series.key;
                 });
             });
 
             // HACK for negative value stacking
-            if (stacked)
+            if (stacked) {
                 data[0].values.map(function(d,i) {
                     var posBase = 0, negBase = 0;
-                    data.map(function(d) {
-                        var f = d.values[i]
-                        f.size = Math.abs(f.y);
-                        if (f.y<0)  {
-                            f.y1 = negBase;
-                            negBase = negBase - f.size;
-                        } else
-                        {
-                            f.y1 = f.size + posBase;
-                            posBase = posBase + f.size;
+                    data.map(function(d, idx) {
+                        if (!data[idx].nonStackable) {
+                            var f = d.values[i]
+                            f.size = Math.abs(f.y);
+                            if (f.y<0)  {
+                                f.y1 = negBase;
+                                negBase = negBase - f.size;
+                            } else
+                            {
+                                f.y1 = f.size + posBase;
+                                posBase = posBase + f.size;
+                            }
                         }
+                        
                     });
                 });
-
+            }
             // Setup Scales
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-                data.map(function(d) {
+                data.map(function(d, idx) {
                     return d.values.map(function(d,i) {
-                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1 }
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx }
                     })
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return stacked ? (d.y > 0 ? d.y1 : d.y1 + d.y ) : d.y }).concat(forceY)))
-                .range(yRange || [availableHeight, 0]);
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) {
+                var domain = d.y;
+                // increase the domain range if this series is stackable
+                if (stacked && !data[d.idx].nonStackable) {
+                    if (d.y > 0){
+                        domain = d.y1
+                    } else {
+                        domain = d.y1 + d.y
+                    }
+                }
+                return domain;
+            }).concat(forceY)))
+            .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
             if (x.domain()[0] === x.domain()[1])
@@ -6320,7 +7770,7 @@ nv.models.multiBar = function() {
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
-            var g = wrap.select('g')
+            var g = wrap.select('g');
 
             gEnter.append('g').attr('class', 'nv-groups');
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -6342,7 +7792,15 @@ nv.models.multiBar = function() {
 
             var exitTransition = renderWatch
                 .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(100, duration))
-                .attr('y', function(d) { return (stacked ? y0(d.y0) : y0(0)) || 0 })
+                .attr('y', function(d, i, j) {
+                    var yVal = y0(0) || 0;
+                    if (stacked) {
+                        if (data[d.series] && !data[d.series].nonStackable) {
+                            yVal = y0(d.y0);
+                        }
+                    }
+                    return yVal;
+                })
                 .attr('height', 0)
                 .remove();
             if (exitTransition.delay)
@@ -6366,11 +7824,11 @@ nv.models.multiBar = function() {
             var barsEnter = bars.enter().append('rect')
                     .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
                     .attr('x', function(d,i,j) {
-                        return stacked ? 0 : (j * x.rangeBand() / data.length )
+                        return stacked && !data[j].nonStackable ? 0 : (j * x.rangeBand() / data.length )
                     })
-                    .attr('y', function(d) { return y0(stacked ? d.y0 : 0) || 0 })
+                    .attr('y', function(d,i,j) { return y0(stacked && !data[j].nonStackable ? d.y0 : 0) || 0 })
                     .attr('height', 0)
-                    .attr('width', x.rangeBand() / (stacked ? 1 : data.length) )
+                    .attr('width', function(d,i,j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length) })
                     .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
                 ;
             bars
@@ -6431,22 +7889,62 @@ nv.models.multiBar = function() {
                     .delay(function(d,i) {
                         return i * duration / data[0].values.length;
                     });
-            if (stacked)
+            if (stacked){
                 barSelection
-                    .attr('y', function(d,i) {
-                        return y(d.y1);
+                    .attr('y', function(d,i,j) {
+                        var yVal = 0;
+                        // if stackable, stack it on top of the previous series
+                        if (!data[j].nonStackable) {
+                            yVal = y(d.y1);
+                        } else {
+                            if (getY(d,i) < 0){
+                                yVal = y(0);
+                            } else {
+                                if (y(0) - y(getY(d,i)) < -1){
+                                    yVal = y(0) - 1;
+                                } else {
+                                    yVal = y(getY(d, i)) || 0;
+                                }
+                            }
+                        }
+                        return yVal;
                     })
-                    .attr('height', function(d,i) {
-                        return Math.max(Math.abs(y(d.y + d.y0) - y(d.y0)),1);
+                    .attr('height', function(d,i,j) {
+                        if (!data[j].nonStackable) {
+                            return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 1);
+                        } else {
+                            return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+                        }
                     })
-                    .attr('x', function(d,i) {
-                        return 0;
+                    .attr('x', function(d,i,j) {
+                        var width = 0;
+                        if (data[j].nonStackable) {
+                            width = d.series * x.rangeBand() / data.length;
+                            if (data.length !== nonStackableCount){
+                                width = data[j].nonStackableSeries * x.rangeBand()/(nonStackableCount*2); 
+                            }
+                        }
+                        return width;
                     })
-                    .attr('width', x.rangeBand());
-            else
+                    .attr('width', function(d,i,j){
+                        if (!data[j].nonStackable) {
+                            return x.rangeBand();
+                        } else {
+                            // if all series are nonStacable, take the full width
+                            var width = (x.rangeBand() / nonStackableCount);
+                            // otherwise, nonStackable graph will be only taking the half-width 
+                            // of the x rangeBand
+                            if (data.length !== nonStackableCount) {
+                                width = x.rangeBand()/(nonStackableCount*2);
+                            }
+                            return width;
+                        }
+                    });
+            }
+            else {
                 barSelection
                     .attr('x', function(d,i) {
-                        return d.series * x.rangeBand() / data.length
+                        return d.series * x.rangeBand() / data.length;
                     })
                     .attr('width', x.rangeBand() / data.length)
                     .attr('y', function(d,i) {
@@ -6459,6 +7957,7 @@ nv.models.multiBar = function() {
                     .attr('height', function(d,i) {
                         return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
                     });
+            }
 
             //store old scales for use in transitions on update
             x0 = x.copy();
@@ -6528,7 +8027,6 @@ nv.models.multiBar = function() {
 
     return chart;
 };
-
 nv.models.multiBarChart = function() {
     "use strict";
 
@@ -6583,7 +8081,6 @@ nv.models.multiBarChart = function() {
 
     tooltip
         .duration(0)
-        .headerEnabled(false)
         .valueFormatter(function(d, i) {
             return yAxis.tickFormat()(d, i);
         })
@@ -6741,7 +8238,7 @@ nv.models.multiBarChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -6796,7 +8293,7 @@ nv.models.multiBarChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -6864,9 +8361,10 @@ nv.models.multiBarChart = function() {
     //------------------------------------------------------------
 
     multibar.dispatch.on('elementMouseover.tooltip', function(evt) {
+        evt.value = chart.x()(evt.data);
         evt['series'] = {
-            key: evt.data.x,
-            value: evt.data.y,
+            key: evt.data.key,
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -6968,6 +8466,7 @@ nv.models.multiBarHorizontal = function() {
         , width = 960
         , height = 500
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , x = d3.scale.ordinal()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -7003,8 +8502,9 @@ nv.models.multiBarHorizontal = function() {
         renderWatch.reset();
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             if (stacked)
@@ -7014,10 +8514,11 @@ nv.models.multiBarHorizontal = function() {
                     .y(getY)
                 (data);
 
-            //add series index to each data point for reference
+            //add series index and key to each data point for reference
             data.forEach(function(series, i) {
                 series.values.forEach(function(point) {
                     point.series = i;
+                    point.key = series.key;
                 });
             });
 
@@ -7310,6 +8811,7 @@ nv.models.multiBarHorizontal = function() {
 
     return chart;
 };
+
 nv.models.multiBarHorizontalChart = function() {
     "use strict";
 
@@ -7362,7 +8864,6 @@ nv.models.multiBarHorizontalChart = function() {
 
     tooltip
         .duration(0)
-        .headerEnabled(false)
         .valueFormatter(function(d, i) {
             return yAxis.tickFormat()(d, i);
         })
@@ -7511,7 +9012,7 @@ nv.models.multiBarHorizontalChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksY(availableHeight/24, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/24, data) )
                     .tickSize(-availableWidth, 0);
 
                 g.select('.nv-x.nv-axis').call(xAxis);
@@ -7525,7 +9026,7 @@ nv.models.multiBarHorizontalChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks(yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -7605,9 +9106,10 @@ nv.models.multiBarHorizontalChart = function() {
     //------------------------------------------------------------
 
     multibar.dispatch.on('elementMouseover.tooltip', function(evt) {
+        evt.value = chart.x()(evt.data);
         evt['series'] = {
-            key: evt.data.label,
-            value: evt.data.value,
+            key: evt.data.key,
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -7897,7 +9399,7 @@ nv.models.multiChart = function() {
             if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
 
             xAxis
-                .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                 .tickSize(-availableHeight, 0);
 
             g.select('.nv-x.nv-axis')
@@ -7906,7 +9408,7 @@ nv.models.multiChart = function() {
                 .call(xAxis);
 
             yAxis1
-                .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                 .tickSize( -availableWidth, 0);
 
 
@@ -7914,7 +9416,7 @@ nv.models.multiChart = function() {
                 .call(yAxis1);
 
             yAxis2
-                .ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                 .tickSize( -availableWidth, 0);
 
             d3.transition(g.select('.nv-y2.nv-axis'))
@@ -7955,8 +9457,8 @@ nv.models.multiChart = function() {
 
             function mouseover_stack(evt) {
                 var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
-                evt.point['x'] = evt.point['x'] || evt.point[0];
-                evt.point['y'] = evt.point['y'] || evt.point[1];
+                evt.point['x'] = stack1.x()(evt.point);
+                evt.point['y'] = stack1.y()(evt.point);
                 tooltip
                     .duration(100)
                     .valueFormatter(function(d, i) {
@@ -7970,9 +9472,9 @@ nv.models.multiChart = function() {
             function mouseover_bar(evt) {
                 var yaxis = data[evt.data.series].yAxis === 2 ? yAxis2 : yAxis1;
 
-                evt.value = evt.data.x;
+                evt.value = bars1.x()(evt.data);
                 evt['series'] = {
-                    value: evt.data.y,
+                    value: bars1.y()(evt.data),
                     color: evt.color
                 };
                 tooltip
@@ -8076,12 +9578,20 @@ nv.models.multiChart = function() {
         x: {get: function(){return getX;}, set: function(_){
             getX = _;
             lines1.x(_);
+            lines2.x(_);
             bars1.x(_);
+            bars2.x(_);
+            stack1.x(_);
+            stack2.x(_);
         }},
         y: {get: function(){return getY;}, set: function(_){
             getY = _;
             lines1.y(_);
+            lines2.y(_);
+            stack1.y(_);
+            stack2.y(_);
             bars1.y(_);
+            bars2.y(_);
         }},
         useVoronoi: {get: function(){return useVoronoi;}, set: function(_){
             useVoronoi=_;
@@ -8109,6 +9619,7 @@ nv.models.ohlcBar = function() {
         , width = null
         , height = null
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , x = d3.scale.linear()
         , y = d3.scale.linear()
         , getX = function(d) { return d.x }
@@ -8136,11 +9647,14 @@ nv.models.ohlcBar = function() {
 
     function chart(selection) {
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
+
+            // ohlc bar width.
+            var w = (availableWidth / data[0].values.length) * .9;
 
             // Setup Scales
             x.domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
@@ -8148,7 +9662,7 @@ nv.models.ohlcBar = function() {
             if (padData)
                 x.range(xRange || [availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
             else
-                x.range(xRange || [0, availableWidth]);
+                x.range(xRange || [5 + w/2, availableWidth - w/2 - 5]);
 
             y.domain(yDomain || [
                     d3.min(data[0].values.map(getLow).concat(forceY)),
@@ -8205,7 +9719,6 @@ nv.models.ohlcBar = function() {
             ticks.enter().append('path')
                 .attr('class', function(d,i,j) { return (getOpen(d,i) > getClose(d,i) ? 'nv-tick negative' : 'nv-tick positive') + ' nv-tick-' + j + '-' + i })
                 .attr('d', function(d,i) {
-                    var w = (availableWidth / data[0].values.length) * .9;
                     return 'm0,0l0,'
                         + (y(getOpen(d,i))
                             - y(getHigh(d,i)))
@@ -8268,13 +9781,13 @@ nv.models.ohlcBar = function() {
     //Create methods to allow outside functions to highlight a specific bar.
     chart.highlightPoint = function(pointIndex, isHoverOver) {
         chart.clearHighlights();
-        d3.select(".nv-ohlcBar .nv-tick-0-" + pointIndex)
+        container.select(".nv-ohlcBar .nv-tick-0-" + pointIndex)
             .classed("hover", isHoverOver)
         ;
     };
 
     chart.clearHighlights = function() {
-        d3.select(".nv-ohlcBar .nv-tick.hover")
+        container.select(".nv-ohlcBar .nv-tick.hover")
             .classed("hover", false)
         ;
     };
@@ -8325,10 +9838,8 @@ nv.models.ohlcBar = function() {
     nv.utils.initOptions(chart);
     return chart;
 };
-
 // Code adapted from Jason Davies' "Parallel Coordinates"
 // http://bl.ocks.org/jasondavies/1341281
-
 nv.models.parallelCoordinates = function() {
     "use strict";
 
@@ -8336,16 +9847,19 @@ nv.models.parallelCoordinates = function() {
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var margin = {top: 30, right: 10, bottom: 10, left: 10}
+    var margin = {top: 30, right: 0, bottom: 10, left: 0}
         , width = null
         , height = null
         , x = d3.scale.ordinal()
         , y = {}
-        , dimensions = []
+        , dimensionNames = []
+        , dimensionFormats = []
         , color = nv.utils.defaultColor()
         , filters = []
         , active = []
-        , dispatch = d3.dispatch('brush')
+        , dragging = []
+        , lineTension = 1
+        , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout')
         ;
 
     //============================================================
@@ -8362,17 +9876,31 @@ nv.models.parallelCoordinates = function() {
 
             active = data; //set all active before first brush call
 
-            //This is a placeholder until this chart is made resizeable
-            chart.update = function() { };
-
             // Setup Scales
-            x.rangePoints([0, availableWidth], 1).domain(dimensions);
+            x.rangePoints([0, availableWidth], 1).domain(dimensionNames);
 
+            //Set as true if all values on an axis are missing.
+            var onlyNanValues = {};
             // Extract the list of dimensions and create a scale for each.
-            dimensions.forEach(function(d) {
+            dimensionNames.forEach(function(d) {
+                var extent = d3.extent(data, function(p) { return +p[d]; });
+                onlyNanValues[d] = false;
+                //If there is no values to display on an axis, set the extent to 0
+                if (extent[0] === undefined) {
+                    onlyNanValues[d] = true;
+                    extent[0] = 0;
+                    extent[1] = 0;
+                }
+                //Scale axis if there is only one value
+                if (extent[0] === extent[1]) {
+                    extent[0] = extent[0] - 1;
+                    extent[1] = extent[1] + 1;
+                }
+                //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
+                //The remaining 10% are used to display the missingValue line.
                 y[d] = d3.scale.linear()
-                    .domain(d3.extent(data, function(p) { return +p[d]; }))
-                    .range([availableHeight, 0]);
+                    .domain(extent)
+                    .range([(availableHeight - 12) * 0.9, 0]);
 
                 y[d].brush = d3.svg.brush().y(y[d]).on('brush', brush);
 
@@ -8385,65 +9913,150 @@ nv.models.parallelCoordinates = function() {
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
 
-            gEnter.append('g').attr('class', 'nv-parallelCoordinatesWrap');
+            gEnter.append('g').attr('class', 'nv-parallelCoordinates background');
+            gEnter.append('g').attr('class', 'nv-parallelCoordinates foreground');
+            gEnter.append('g').attr('class', 'nv-parallelCoordinates missingValuesline');
+
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var line = d3.svg.line(),
+            var line = d3.svg.line().interpolate('cardinal').tension(lineTension),
                 axis = d3.svg.axis().orient('left'),
-                background,
-                foreground;
+                axisDrag = d3.behavior.drag()
+                        .on('dragstart', dragStart)
+                        .on('drag', dragMove)
+                        .on('dragend', dragEnd);
+
+            //Add missing value line at the bottom of the chart
+            var missingValuesline, missingValueslineText;
+            var step = x.range()[1] - x.range()[0];
+            var axisWithMissingValues = [];
+            var lineData = [0 + step / 2, availableHeight - 12, availableWidth - step / 2, availableHeight - 12];
+            missingValuesline = wrap.select('.missingValuesline').selectAll('line').data([lineData]);
+            missingValuesline.enter().append('line');
+            missingValuesline.exit().remove();
+            missingValuesline.attr("x1", function(d) { return d[0]; })
+                    .attr("y1", function(d) { return d[1]; })
+                    .attr("x2", function(d) { return d[2]; })
+                    .attr("y2", function(d) { return d[3]; });
+
+            //Add the text "undefined values" under the missing value line
+            missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
+            missingValueslineText.append('text').data(["undefined values"]);
+            missingValueslineText.enter().append('text');
+            missingValueslineText.exit().remove();
+            missingValueslineText.attr("y", availableHeight)
+                    //To have the text right align with the missingValues line, substract 92 representing the text size.
+                    .attr("x", availableWidth - 92 - step / 2)
+                    .text(function(d) { return d; });
 
             // Add grey background lines for context.
-            background = gEnter.append('g')
-                .attr('class', 'background')
-                .selectAll('path')
-                .data(data)
-                .enter().append('path')
-                .attr('d', path)
-            ;
+            var background = wrap.select('.background').selectAll('path').data(data);
+            background.enter().append('path');
+            background.exit().remove();
+            background.attr('d', path);
 
             // Add blue foreground lines for focus.
-            foreground = gEnter.append('g')
-                .attr('class', 'foreground')
-                .selectAll('path')
-                .data(data)
-                .enter().append('path')
-                .attr('d', path)
-                .attr('stroke', color)
-            ;
+            var foreground = wrap.select('.foreground').selectAll('path').data(data);
+            foreground.enter().append('path')
+            foreground.exit().remove();
+            foreground.attr('d', path).attr('stroke', color);
+            foreground.on("mouseover", function (d, i) {
+                d3.select(this).classed('hover', true);
+                dispatch.elementMouseover({
+                    label: d.name,
+                    data: d.data,
+                    index: i,
+                    pos: [d3.mouse(this.parentNode)[0], d3.mouse(this.parentNode)[1]]
+                });
+
+            });
+            foreground.on("mouseout", function (d, i) {
+                d3.select(this).classed('hover', false);
+                dispatch.elementMouseout({
+                    label: d.name,
+                    data: d.data,
+                    index: i
+                });
+            });
 
             // Add a group element for each dimension.
-            var dimension = g.selectAll('.dimension')
-                .data(dimensions)
-                .enter().append('g')
-                .attr('class', 'dimension')
-                .attr('transform', function(d) { return 'translate(' + x(d) + ',0)'; });
+            var dimensions = g.selectAll('.dimension').data(dimensionNames);
+            var dimensionsEnter = dimensions.enter().append('g').attr('class', 'nv-parallelCoordinates dimension');
+            dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates nv-axis');
+            dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates-brush');
+            dimensionsEnter.append('text').attr('class', 'nv-parallelCoordinates nv-label');
+
+            dimensions.attr('transform', function(d) { return 'translate(' + x(d) + ',0)'; });
+            dimensions.exit().remove();
 
             // Add an axis and title.
-            dimension.append('g')
-                .attr('class', 'axis')
-                .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
-                .append('text')
+            dimensions.select('.nv-label')
+                .style("cursor", "move")
+                .attr('dy', '-1em')
                 .attr('text-anchor', 'middle')
-                .attr('y', -9)
-                .text(String);
+                .text(String)
+                .on("mouseover", function(d, i) {
+                    dispatch.elementMouseover({
+                        dim: d,
+                        pos: [d3.mouse(this.parentNode.parentNode)[0], d3.mouse(this.parentNode.parentNode)[1]]
+                    });
+                })
+                .on("mouseout", function(d, i) {
+                    dispatch.elementMouseout({
+                        dim: d
+                    });
+                })
+                .call(axisDrag);
 
-            // Add and store a brush for each axis.
-            dimension.append('g')
-                .attr('class', 'brush')
-                .each(function(d) { d3.select(this).call(y[d].brush); })
+            dimensions.select('.nv-axis')
+                .each(function (d, i) {
+                    d3.select(this).call(axis.scale(y[d]).tickFormat(d3.format(dimensionFormats[i])));
+                });
+
+                dimensions.select('.nv-parallelCoordinates-brush')
+                .each(function (d) {
+                    d3.select(this).call(y[d].brush);
+                })
                 .selectAll('rect')
                 .attr('x', -8)
                 .attr('width', 16);
 
             // Returns the path for a given data point.
             function path(d) {
-                return line(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
+                return line(dimensionNames.map(function (p) {
+                    //If value if missing, put the value on the missing value line
+                    if(isNaN(d[p]) || isNaN(parseFloat(d[p]))) {
+                        var domain = y[p].domain();
+                        var range = y[p].range();
+                        var min = domain[0] - (domain[1] - domain[0]) / 9;
+
+                        //If it's not already the case, allow brush to select undefined values
+                        if(axisWithMissingValues.indexOf(p) < 0) {
+
+                            var newscale = d3.scale.linear().domain([min, domain[1]]).range([availableHeight - 12, range[1]]);
+                            y[p].brush.y(newscale);
+                            axisWithMissingValues.push(p);
+                        }
+
+                        return [x(p), y[p](min)];
+                    }
+
+                    //If parallelCoordinate contain missing values show the missing values line otherwise, hide it.
+                    if(axisWithMissingValues.length > 0) {
+                        missingValuesline.style("display", "inline");
+                        missingValueslineText.style("display", "inline");
+                    } else {
+                        missingValuesline.style("display", "none");
+                        missingValueslineText.style("display", "none");
+                    }
+
+                     return [x(p), y[p](d[p])];
+                }));
             }
 
             // Handles a brush event, toggling the display of foreground lines.
             function brush() {
-                var actives = dimensions.filter(function(p) { return !y[p].brush.empty(); }),
+                var actives = dimensionNames.filter(function(p) { return !y[p].brush.empty(); }),
                     extents = actives.map(function(p) { return y[p].brush.extent(); });
 
                 filters = []; //erase current filters
@@ -8457,6 +10070,7 @@ nv.models.parallelCoordinates = function() {
                 active = []; //erase current active list
                 foreground.style('display', function(d) {
                     var isActive = actives.every(function(p, i) {
+                        if(isNaN(d[p]) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
                         return extents[i][0] <= d[p] && d[p] <= extents[i][1];
                     });
                     if (isActive) active.push(d);
@@ -8467,6 +10081,37 @@ nv.models.parallelCoordinates = function() {
                     filters: filters,
                     active: active
                 });
+            }
+
+            function dragStart(d, i) {
+                dragging[d] = this.parentNode.__origin__ = x(d);
+                background.attr("visibility", "hidden");
+
+            }
+
+            function dragMove(d, i) {
+                dragging[d] = Math.min(availableWidth, Math.max(0, this.parentNode.__origin__ += d3.event.x));
+                foreground.attr("d", path);
+                dimensionNames.sort(function (a, b) { return position(a) - position(b); });
+                x.domain(dimensionNames);
+                dimensions.attr("transform", function(d) { return "translate(" + position(d) + ")"; });
+            }
+
+            function dragEnd(d, i) {
+                delete this.parentNode.__origin__;
+                delete dragging[d];
+                d3.select(this.parentNode).attr("transform", "translate(" + x(d) + ")");
+                foreground
+                  .attr("d", path);
+                background
+                  .attr("d", path)
+                  .attr("visibility", null);
+
+            }
+
+            function position(d) {
+                var v = dragging[d];
+                return v == null ? x(d) : v;
             }
         });
 
@@ -8482,16 +10127,25 @@ nv.models.parallelCoordinates = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        width:      {get: function(){return width;}, set: function(_){width=_;}},
-        height:     {get: function(){return height;}, set: function(_){height=_;}},
-        dimensions: {get: function(){return dimensions;}, set: function(_){dimensions=_;}},
+        width:         {get: function(){return width;},           set: function(_){width= _;}},
+        height:        {get: function(){return height;},          set: function(_){height= _;}},
+        dimensionNames: {get: function() { return dimensionNames;}, set: function(_){dimensionNames= _;}},
+        dimensionFormats : {get: function(){return dimensionFormats;}, set: function (_){dimensionFormats=_;}},
+        lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
+
+        // deprecated options
+        dimensions: {get: function (){return dimensionNames;}, set: function(_){
+            // deprecated after 1.8.1
+            nv.deprecated('dimensions', 'use dimensionNames instead');
+            dimensionNames = _;
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-            margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-            margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-            margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+            margin.top    =  _.top    !== undefined ? _.top    : margin.top;
+            margin.right  =  _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom =  _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   =  _.left   !== undefined ? _.left   : margin.left;
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
@@ -8514,6 +10168,7 @@ nv.models.pie = function() {
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , color = nv.utils.defaultColor()
         , valueFormat = d3.format(',.2f')
         , showLabels = true
@@ -8534,6 +10189,8 @@ nv.models.pie = function() {
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
+    var arcs = [];
+    var arcsOver = [];
 
     //============================================================
     // chart function
@@ -8549,8 +10206,9 @@ nv.models.pie = function() {
                 , radius = Math.min(availableWidth, availableHeight) / 2
                 , arcsRadiusOuter = []
                 , arcsRadiusInner = []
-                , container = d3.select(this)
                 ;
+
+            container = d3.select(this)
             if (arcsRadius.length === 0) {
                 var outer = radius - radius / 5;
                 var inner = donutRatio * radius;
@@ -8587,9 +10245,8 @@ nv.models.pie = function() {
                 });
             });
 
-            var arcs = [];
-            var arcsOver = [];
-
+            arcs = [];
+            arcsOver = [];
             for (var i = 0; i < data[0].length; i++) {
 
                 var arc = d3.svg.arc().outerRadius(arcsRadiusOuter[i]);
@@ -8707,16 +10364,16 @@ nv.models.pie = function() {
                 // This does the normal label
                 var labelsArc = [];
                 for (var i = 0; i < data[0].length; i++) {
-                    labelsArc.push(d3.svg.arc().innerRadius(0));
+                    labelsArc.push(arcs[i]);
 
                     if (labelsOutside) {
                         if (donut) {
                             labelsArc[i] = d3.svg.arc().outerRadius(arcs[i].outerRadius());
                             if (startAngle !== false) labelsArc[i].startAngle(startAngle);
                             if (endAngle !== false) labelsArc[i].endAngle(endAngle);
-                        } else {
-                            labelsArc[i] = arcs[i];
                         }
+                    } else if (!donut) {
+                            labelsArc[i].innerRadius(0);
                     }
                 }
 
@@ -8801,16 +10458,24 @@ nv.models.pie = function() {
                         var label = '';
                         if (!d.value || percent < labelThreshold) return '';
 
-                        switch (labelType) {
-                            case 'key':
-                                label = getX(d.data);
-                                break;
-                            case 'value':
-                                label = valueFormat(getY(d.data));
-                                break;
-                            case 'percent':
-                                label = valueFormat(percent);
-                                break;
+                        if(typeof labelType === 'function') {
+                            label = labelType(d, i, {
+                                'key': getX(d.data),
+                                'value': getY(d.data),
+                                'percent': valueFormat(percent)
+                            });
+                        } else {
+                            switch (labelType) {
+                                case 'key':
+                                    label = getX(d.data);
+                                    break;
+                                case 'value':
+                                    label = valueFormat(getY(d.data));
+                                    break;
+                                case 'percent':
+                                    label = d3.format('%')(percent);
+                                    break;
+                            }
                         }
                         return label;
                     })
@@ -9031,15 +10696,13 @@ nv.models.pieChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + (-margin.top) +')');
                 } else if (legendPosition === "right") {
-                    legend.height( availableHeight ).key(pie.x());
-
-                    if ( margin.right != legend.width()) {
-                        if (legend.width() > availableWidth / 2) {
-                            legend.width(availableWidth / 2);
-                            availableWidth -= legend.width();
-                        }
-                        margin.right = legend.width();
+                    var legendWidth = nv.models.legend().width();
+                    if (availableWidth / 2 < legendWidth) {
+                        legendWidth = (availableWidth / 2)
                     }
+                    legend.height(availableHeight).key(pie.x());
+                    legend.width(legendWidth);
+                    availableWidth -= legend.width();
 
                     wrap.select('.nv-legendWrap')
                         .datum(data)
@@ -9088,8 +10751,8 @@ nv.models.pieChart = function() {
 
     pie.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: evt.data.key,
-            value: evt.data.y,
+            key: chart.x()(evt.data),
+            value: chart.y()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -9168,6 +10831,7 @@ nv.models.scatter = function() {
         , height       = null
         , color        = nv.utils.defaultColor() // chooses color
         , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
+        , container    = null
         , x            = d3.scale.linear()
         , y            = d3.scale.linear()
         , z            = d3.scale.linear() //linear because d3.svg.shape.size is treated as area
@@ -9213,7 +10877,7 @@ nv.models.scatter = function() {
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -9286,6 +10950,7 @@ nv.models.scatter = function() {
             wrap.classed('nv-single-point', singlePoint);
             gEnter.append('g').attr('class', 'nv-groups');
             gEnter.append('g').attr('class', 'nv-point-paths');
+            wrapEnter.append('g').attr('class', 'nv-point-clips');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -9300,33 +10965,34 @@ nv.models.scatter = function() {
             g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
             function updateInteractiveLayer() {
+                // Always clear needs-update flag regardless of whether or not
+                // we will actually do anything (avoids needless invocations).
                 needsUpdate = false;
 
                 if (!interactive) return false;
 
-                var vertices = d3.merge(data.map(function(group, groupIndex) {
-                        return group.values
-                            .map(function(point, pointIndex) {
-                                // *Adding noise to make duplicates very unlikely
-                                // *Injecting series and point index for reference
-                                /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                                 */
-                                var pX = getX(point,pointIndex);
-                                var pY = getY(point,pointIndex);
-
-                                return [x(pX)+ Math.random() * 1e-4,
-                                        y(pY)+ Math.random() * 1e-4,
-                                    groupIndex,
-                                    pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
-                            })
-                            .filter(function(pointArray, pointIndex) {
-                                return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
-                            })
-                    })
-                );
-
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
+                    var vertices = d3.merge(data.map(function(group, groupIndex) {
+                            return group.values
+                                .map(function(point, pointIndex) {
+                                    // *Adding noise to make duplicates very unlikely
+                                    // *Injecting series and point index for reference
+                                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
+                                     */
+                                    var pX = getX(point,pointIndex);
+                                    var pY = getY(point,pointIndex);
+
+                                    return [x(pX)+ Math.random() * 1e-4,
+                                            y(pY)+ Math.random() * 1e-4,
+                                        groupIndex,
+                                        pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
+                                })
+                                .filter(function(pointArray, pointIndex) {
+                                    return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
+                                })
+                        })
+                    );
 
                     if (vertices.length == 0) return false;  // No active points, we're done
                     if (vertices.length < 3) {
@@ -9381,9 +11047,8 @@ nv.models.scatter = function() {
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
                         // just create the circles with the IDs they expect
-                        wrap.select('#nv-point-clips').remove();
-                        var clips = wrap.append("svg:g").attr("id", "nv-point-clips");
-                        clips.selectAll("clipPath")
+                        wrap.select('.nv-point-clips').selectAll('clipPath').remove();
+                        wrap.select('.nv-point-clips').selectAll("clipPath")
                             .data(vertices)
                             .enter().append("svg:clipPath")
                             .attr("id", function(d, i) { return "nv-clip-"+i;})
@@ -9399,6 +11064,10 @@ nv.models.scatter = function() {
                         if (series === undefined) return;
                         var point  = series.values[d.point];
                         point['color'] = color(series, d.series);
+
+                        // standardize attributes for tooltip.
+                        point['x'] = getX(point);
+                        point['y'] = getY(point);
 
                         // can't just get box of event node since it's actually a voronoi polygon
                         var box = container.node().getBoundingClientRect();
@@ -9434,17 +11103,6 @@ nv.models.scatter = function() {
                         });
 
                 } else {
-                    /*
-                     // bring data in form needed for click handlers
-                     var dataWithPoints = vertices.map(function(d, i) {
-                     return {
-                     'data': d,
-                     'series': vertices[i][2],
-                     'point': vertices[i][3]
-                     }
-                     });
-                     */
-
                     // add event handlers to points instead voronoi paths
                     wrap.select('.nv-groups').selectAll('.nv-group')
                         .selectAll('.nv-point')
@@ -9599,14 +11257,14 @@ nv.models.scatter = function() {
     chart._calls = new function() {
         this.clearHighlights = function () {
             nv.dom.write(function() {
-                d3.selectAll(".nv-chart-" + id + " .nv-point.hover").classed("hover", false);
+                container.selectAll(".nv-point.hover").classed("hover", false);
             });
             return null;
         };
         this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
             nv.dom.write(function() {
-                var node = document.querySelector(".nv-chart-" + id + " .nv-series-" + seriesIndex + " .nv-point-" + pointIndex);
-                d3.select(node).classed("hover", isHoverOver);
+                container.select(" .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
+                    .classed("hover", isHoverOver);
             });
         };
     };
@@ -9698,6 +11356,7 @@ nv.models.scatterChart = function() {
     var margin       = {top: 30, right: 20, bottom: 50, left: 75}
         , width        = null
         , height       = null
+        , container    = null
         , color        = nv.utils.defaultColor()
         , x            = scatter.xScale()
         , y            = scatter.yScale()
@@ -9763,8 +11422,9 @@ nv.models.scatterChart = function() {
         if (showDistY) renderWatch.models(distY);
 
         selection.each(function(data) {
-            var container = d3.select(this),
-                that = this;
+            var that = this;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
@@ -9799,7 +11459,7 @@ nv.models.scatterChart = function() {
 
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                nv.utils.noData(chart, container)
+                nv.utils.noData(chart, container);
                 renderWatch.renderEnd('scatter immediate');
                 return chart;
             } else {
@@ -9856,7 +11516,8 @@ nv.models.scatterChart = function() {
                 .width(availableWidth)
                 .height(availableHeight)
                 .color(data.map(function(d,i) {
-                    return d.color || color(d, i);
+                    d.color = d.color || color(d, i);
+                    return d.color;
                 }).filter(function(d,i) { return !data[i].disabled }));
 
             wrap.select('.nv-scatterWrap')
@@ -9907,7 +11568,7 @@ nv.models.scatterChart = function() {
             if (showXAxis) {
                 xAxis
                     .scale(x)
-                    .ticks( xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight , 0);
 
                 g.select('.nv-x.nv-axis')
@@ -9918,7 +11579,7 @@ nv.models.scatterChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    .ticks( yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis')
@@ -9971,31 +11632,28 @@ nv.models.scatterChart = function() {
 
             // Update chart from a state object passed to event handler
             dispatch.on('changeState', function(e) {
-
                 if (typeof e.disabled !== 'undefined') {
                     data.forEach(function(series,i) {
                         series.disabled = e.disabled[i];
                     });
-
                     state.disabled = e.disabled;
                 }
-
                 chart.update();
             });
 
             // mouseover needs availableHeight so we just keep scatter mouse events inside the chart block
             scatter.dispatch.on('elementMouseout.tooltip', function(evt) {
                 tooltip.hidden(true);
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                     .attr('y1', 0);
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', distY.size());
             });
 
             scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                     .attr('y1', evt.pos.top - availableHeight - margin.top);
-                d3.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', evt.pos.left + distX.size() - margin.left);
                 tooltip.position(evt.pos).data(evt).hidden(false);
             });
@@ -10029,6 +11687,7 @@ nv.models.scatterChart = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        container:  {get: function(){return container;}, set: function(_){container=_;}},
         showDistX:  {get: function(){return showDistX;}, set: function(_){showDistX=_;}},
         showDistY:  {get: function(){return showDistY;}, set: function(_){showDistY=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
@@ -10092,6 +11751,7 @@ nv.models.sparkline = function() {
     var margin = {top: 2, right: 0, bottom: 2, left: 0}
         , width = 400
         , height = 32
+        , container = null
         , animate = true
         , x = d3.scale.linear()
         , y = d3.scale.linear()
@@ -10107,8 +11767,9 @@ nv.models.sparkline = function() {
     function chart(selection) {
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             // Setup Scales
@@ -10226,7 +11887,7 @@ nv.models.sparklinePlus = function() {
         , paused = false
         , xTickFormat = d3.format(',r')
         , yTickFormat = d3.format(',.2f')
-        , showValue = true
+        , showLastValue = true
         , alignValue = true
         , rightAlignValue = false
         , noData = null
@@ -10240,7 +11901,7 @@ nv.models.sparklinePlus = function() {
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
-            chart.update = function() { chart(selection) };
+            chart.update = function() { container.call(chart); };
             chart.container = this;
 
             // Display No Data message if there's nothing to show.
@@ -10275,20 +11936,24 @@ nv.models.sparklinePlus = function() {
             sparkline.width(availableWidth).height(availableHeight);
             sparklineWrap.call(sparkline);
 
-            var valueWrap = g.select('.nv-valueWrap');
-            var value = valueWrap.selectAll('.nv-currentValue')
-                .data([currentValue]);
+            if (showLastValue) {
+                var valueWrap = g.select('.nv-valueWrap');
+                var value = valueWrap.selectAll('.nv-currentValue')
+                    .data([currentValue]);
 
-            value.enter().append('text').attr('class', 'nv-currentValue')
-                .attr('dx', rightAlignValue ? -8 : 8)
-                .attr('dy', '.9em')
-                .style('text-anchor', rightAlignValue ? 'end' : 'start');
+                value.enter().append('text').attr('class', 'nv-currentValue')
+                    .attr('dx', rightAlignValue ? -8 : 8)
+                    .attr('dy', '.9em')
+                    .style('text-anchor', rightAlignValue ? 'end' : 'start');
 
-            value
-                .attr('x', availableWidth + (rightAlignValue ? margin.right : 0))
-                .attr('y', alignValue ? function(d) { return y(d) } : 0)
-                .style('fill', sparkline.color()(data[data.length-1], data.length-1))
-                .text(yTickFormat(currentValue));
+                value
+                    .attr('x', availableWidth + (rightAlignValue ? margin.right : 0))
+                    .attr('y', alignValue ? function (d) {
+                        return y(d)
+                    } : 0)
+                    .style('fill', sparkline.color()(data[data.length - 1], data.length - 1))
+                    .text(yTickFormat(currentValue));
+            }
 
             gEnter.select('.nv-hoverArea').append('rect')
                 .on('mousemove', sparklineHover)
@@ -10304,7 +11969,7 @@ nv.models.sparklinePlus = function() {
             function updateValueLine() {
                 if (paused) return;
 
-                var hoverValue = g.selectAll('.nv-hoverValue').data(index)
+                var hoverValue = g.selectAll('.nv-hoverValue').data(index);
 
                 var hoverEnter = hoverValue.enter()
                     .append('g').attr('class', 'nv-hoverValue')
@@ -10335,7 +12000,7 @@ nv.models.sparklinePlus = function() {
                     .attr('x', -6)
                     .attr('y', -margin.top)
                     .attr('text-anchor', 'end')
-                    .attr('dy', '.9em')
+                    .attr('dy', '.9em');
 
                 g.select('.nv-hoverValue .nv-xValue')
                     .text(xTickFormat(sparkline.x()(data[index[0]], index[0])));
@@ -10344,7 +12009,7 @@ nv.models.sparklinePlus = function() {
                     .attr('x', 6)
                     .attr('y', -margin.top)
                     .attr('text-anchor', 'start')
-                    .attr('dy', '.9em')
+                    .attr('dy', '.9em');
 
                 g.select('.nv-hoverValue .nv-yValue')
                     .text(yTickFormat(sparkline.y()(data[index[0]], index[0])));
@@ -10391,7 +12056,7 @@ nv.models.sparklinePlus = function() {
         height:          {get: function(){return height;}, set: function(_){height=_;}},
         xTickFormat:     {get: function(){return xTickFormat;}, set: function(_){xTickFormat=_;}},
         yTickFormat:     {get: function(){return yTickFormat;}, set: function(_){yTickFormat=_;}},
-        showValue:       {get: function(){return showValue;}, set: function(_){showValue=_;}},
+        showLastValue:   {get: function(){return showLastValue;}, set: function(_){showLastValue=_;}},
         alignValue:      {get: function(){return alignValue;}, set: function(_){alignValue=_;}},
         rightAlignValue: {get: function(){return rightAlignValue;}, set: function(_){rightAlignValue=_;}},
         noData:          {get: function(){return noData;}, set: function(_){noData=_;}},
@@ -10423,6 +12088,7 @@ nv.models.stackedArea = function() {
         , height = 500
         , color = nv.utils.defaultColor() // a function that computes the color
         , id = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
+        , container = null
         , getX = function(d) { return d.x } // accessor to get the x value from a data point
         , getY = function(d) { return d.y } // accessor to get the y value from a data point
         , style = 'stack'
@@ -10461,8 +12127,9 @@ nv.models.stackedArea = function() {
         renderWatch.models(scatter);
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             // Setup Scales
@@ -10491,9 +12158,8 @@ nv.models.stackedArea = function() {
                 .x(getX)
                 .y(getY)
                 .out(function(d, y0, y) {
-                    var yHeight = (getY(d) === 0) ? 0 : y;
                     d.display = {
-                        y: yHeight,
+                        y: y,
                         y0: y0
                     };
                 })
@@ -10510,7 +12176,13 @@ nv.models.stackedArea = function() {
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
+            
+            // If the user has not specified forceY, make sure 0 is included in the domain
+            // Otherwise, use user-specified values for forceY
+            if (scatter.forceY().length == 0) {
+                scatter.forceY().push(0);
+            }
+            
             scatter
                 .width(availableWidth)
                 .height(availableHeight)
@@ -10611,22 +12283,21 @@ nv.models.stackedArea = function() {
             chart.d3_stackedOffset_stackPercent = function(stackData) {
                 var n = stackData.length,    //How many series
                     m = stackData[0].length,     //how many points per series
-                    k = 1 / n,
                     i,
                     j,
                     o,
                     y0 = [];
 
                 for (j = 0; j < m; ++j) { //Looping through all points
-                    for (i = 0, o = 0; i < dataRaw.length; i++) { //looping through series'
-                        o += getY(dataRaw[i].values[j]);   //total value of all points at a certian point in time.
+                    for (i = 0, o = 0; i < dataRaw.length; i++) { //looping through all series
+                        o += getY(dataRaw[i].values[j]); //total y value of all series at a certian point in time.
                     }
 
-                    if (o) for (i = 0; i < n; i++) {
+                    if (o) for (i = 0; i < n; i++) { //(total y value of all series at point in time i) != 0
                         stackData[i][j][1] /= o;
-                    } else {
+                    } else { //(total y value of all series at point in time i) == 0
                         for (i = 0; i < n; i++) {
-                            stackData[i][j][1] = k;
+                            stackData[i][j][1] = 0;
                         }
                     }
                 }
@@ -10763,7 +12434,7 @@ nv.models.stackedAreaChart = function() {
         , noData = null
         , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
         , controlWidth = 250
-        , cData = ['Stacked','Stream','Expanded']
+        , controlOptions = ['Stacked','Stream','Expanded']
         , controlLabels = {}
         , duration = 250
         ;
@@ -10780,7 +12451,17 @@ nv.models.stackedAreaChart = function() {
             return yAxis.tickFormat()(d, i);
         });
 
-    var oldYTickFormat = null;
+    interactiveLayer.tooltip
+        .headerFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        })
+        .valueFormatter(function(d, i) {
+            return yAxis.tickFormat()(d, i);
+        });
+
+    var oldYTickFormat = null,
+        oldValueFormatter = null;
+
     controls.updateState(false);
 
     //============================================================
@@ -10809,6 +12490,8 @@ nv.models.stackedAreaChart = function() {
                 });
         }
     };
+
+    var percentFormatter = d3.format('%');
 
     function chart(selection) {
         renderWatch.reset();
@@ -10918,9 +12601,9 @@ nv.models.stackedAreaChart = function() {
                     }
                 ];
 
-                controlWidth = (cData.length/3) * 260;
+                controlWidth = (controlOptions.length/3) * 260;
                 controlsData = controlsData.filter(function(d) {
-                    return cData.indexOf(d.metaKey) !== -1;
+                    return controlOptions.indexOf(d.metaKey) !== -1;
                 });
 
                 controls
@@ -10970,7 +12653,7 @@ nv.models.stackedAreaChart = function() {
             // Setup Axes
             if (showXAxis) {
                 xAxis.scale(x)
-                    .ticks(xAxis.ticks() ? xAxis.ticks() : nv.utils.calcTicksX(availableWidth/100, data) )
+                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight, 0);
 
                 g.select('.nv-x.nv-axis')
@@ -10987,19 +12670,26 @@ nv.models.stackedAreaChart = function() {
                     ticks = 0;
                 }
                 else {
-                    ticks = yAxis.ticks() ? yAxis.ticks() : nv.utils.calcTicksY(availableHeight/36, data);
+                    ticks = nv.utils.calcTicksY(availableHeight/36, data);
                 }
                 yAxis.scale(y)
-                    .ticks(ticks)
+                    ._ticks(ticks)
                     .tickSize(-availableWidth, 0);
 
                     if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
-                        oldYTickFormat = yAxis.tickFormat();
+                        var currentFormat = yAxis.tickFormat();
+
+                        if ( !oldYTickFormat || currentFormat !== percentFormatter )
+                            oldYTickFormat = currentFormat;
+
                         //Forces the yAxis to use percentage in 'expand' mode.
-                        yAxis.tickFormat(d3.format('%'));
+                        yAxis.tickFormat(percentFormatter);
                     }
                     else {
-                        if (oldYTickFormat) yAxis.tickFormat(oldYTickFormat);
+                        if (oldYTickFormat) {
+                            yAxis.tickFormat(oldYTickFormat);
+                            oldYTickFormat = null;
+                        }
                     }
 
                 g.select('.nv-y.nv-axis')
@@ -11062,8 +12752,11 @@ nv.models.stackedAreaChart = function() {
                     })
                     .forEach(function(series,i) {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        stacked.highlightPoint(i, pointIndex, true);
                         var point = series.values[pointIndex];
+                        var pointYValue = chart.y()(point, pointIndex);
+                        if (pointYValue != null) {
+                            stacked.highlightPoint(i, pointIndex, true);
+                        }
                         if (typeof point === 'undefined') return;
                         if (typeof singlePoint === 'undefined') singlePoint = point;
                         if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
@@ -11103,10 +12796,22 @@ nv.models.stackedAreaChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
 
-                //If we are in 'expand' mode, force the format to be a percentage.
-                var valueFormatter = (stacked.style() == 'expand') ?
-                    function(d,i) {return d3.format(".1%")(d);} :
-                    function(d,i) {return yAxis.tickFormat()(d); };
+                var valueFormatter = interactiveLayer.tooltip.valueFormatter();
+                // Keeps track of the tooltip valueFormatter if the chart changes to expanded view
+                if (stacked.style() === 'expand' || stacked.style() === 'stack_percent') {
+                    if ( !oldValueFormatter ) {
+                        oldValueFormatter = valueFormatter;
+                    }
+                    //Forces the tooltip to use percentage in 'expand' mode.
+                    valueFormatter = d3.format(".1%");
+                }
+                else {
+                    if (oldValueFormatter) {
+                        valueFormatter = oldValueFormatter;
+                        oldValueFormatter = null;
+                    }
+                }
+
                 interactiveLayer.tooltip
                     .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
@@ -11156,8 +12861,8 @@ nv.models.stackedAreaChart = function() {
     //------------------------------------------------------------
 
     stacked.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt.point['x'] = evt.point['x'] || evt.point[0];
-        evt.point['y'] = evt.point['y'] || evt.point[1];
+        evt.point['x'] = stacked.x()(evt.point);
+        evt.point['y'] = stacked.y()(evt.point);
         tooltip.data(evt).position(evt.pos).hidden(false);
     });
 
@@ -11193,6 +12898,7 @@ nv.models.stackedAreaChart = function() {
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
+        controlOptions:    {get: function(){return controlOptions;}, set: function(_){controlOptions=_;}},
 
         // deprecated options
         tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
@@ -11253,7 +12959,10 @@ nv.models.sunburst = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = null
         , height = null
+        , mode = "count"
+        , modes = {count: function(d) { return 1; }, size: function(d) { return d.size }}
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , color = nv.utils.defaultColor()
         , duration = 500
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMousemove', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -11272,8 +12981,10 @@ nv.models.sunburst = function() {
         .innerRadius(function(d) { return Math.max(0, y(d.y)); })
         .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
-    // Keep track of the node that is currently being displayed as the root.
-    var node;
+    // Keep track of the current and previous node being displayed as the root.
+    var node, prevNode;
+    // Keep track of the root node
+    var rootNode;
 
     //============================================================
     // chart function
@@ -11284,7 +12995,7 @@ nv.models.sunburst = function() {
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin);
             var availableHeight = nv.utils.availableHeight(height, container, margin);
             var radius = Math.min(availableWidth, availableHeight) / 2;
@@ -11312,8 +13023,9 @@ nv.models.sunburst = function() {
             y.range([0, radius]);
 
             node = node || data;
-            path =
-                g.data(partition.nodes).enter()
+            rootNode = data[0];
+            partition.value(modes[mode] || modes["count"]);
+            path = g.data(partition.nodes).enter()
                 .append("path")
                 .attr("d", arc)
                 .style("fill", function (d) {
@@ -11321,13 +13033,21 @@ nv.models.sunburst = function() {
                 })
                 .style("stroke", "#FFF")
                 .on("click", function(d) {
+                    if (prevNode !== node && node !== d) prevNode = node;
                     node = d;
                     path.transition()
                         .duration(duration)
                         .attrTween("d", arcTweenZoom(d));
                 })
                 .each(stash)
-
+                .on("dblclick", function(d) {
+                    if (prevNode.parent == d) {
+                        path.transition()
+                            .duration(duration)
+                            .attrTween("d", arcTweenZoom(rootNode));
+                    }
+                })
+                .each(stash)
                 .on('mouseover', function(d,i){
                     d3.select(this).classed('hover', true).style('opacity', 0.8);
                     dispatch.elementMouseover({
@@ -11414,6 +13134,7 @@ nv.models.sunburst = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        mode:       {get: function(){return mode;}, set: function(_){mode=_;}},
         id:         {get: function(){return id;}, set: function(_){id=_;}},
         duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
 
@@ -11542,6 +13263,7 @@ nv.models.sunburstChart = function() {
     // expose chart's sub-components
     chart.dispatch = dispatch;
     chart.sunburst = sunburst;
+    chart.tooltip = tooltip;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     // use Object get/set functionality to map between vars and chart functions
@@ -11558,6 +13280,7 @@ nv.models.sunburstChart = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+            sunburst.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;

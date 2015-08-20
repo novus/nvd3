@@ -117,6 +117,7 @@ module.exports = function(grunt) {
                         'src/models/indented*',
                         'src/models/linePlus*',
                         'src/models/ohlcBar.js',
+                        'src/models/candlestickBar.js',
                         'src/models/multiChart.js'
                     ]
                 }

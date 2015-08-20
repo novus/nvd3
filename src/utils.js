@@ -457,9 +457,19 @@ nv.utils.initOption = function(chart, name) {
     } else {
         chart[name] = function (_) {
             if (!arguments.length) return chart._options[name];
+            chart._overrides[name] = true;
             chart._options[name] = _;
             return chart;
         };
+        // calling the option as _option will ignore if set by option already
+        // so nvd3 can set options internally but the stop if set manually
+        chart['_' + name] = function(_) {
+            if (!arguments.length) return chart._options[name];
+            if (!chart._overrides[name]) {
+                chart._options[name] = _;
+            }
+            return chart;
+        }
     }
 };
 
@@ -468,6 +478,7 @@ nv.utils.initOption = function(chart, name) {
 Add all options in an options object to the chart
 */
 nv.utils.initOptions = function(chart) {
+    chart._overrides = chart._overrides || {};
     var ops = Object.getOwnPropertyNames(chart._options || {});
     var calls = Object.getOwnPropertyNames(chart._calls || {});
     ops = ops.concat(calls);
@@ -571,7 +582,7 @@ nv.utils.initSVG = function(svg) {
 Sanitize and provide default for the container height.
 */
 nv.utils.sanitizeHeight = function(height, container) {
-    return (height || parseInt(container.style('height')) || 400);
+    return (height || parseInt(container.style('height'), 10) || 400);
 };
 
 
@@ -579,7 +590,7 @@ nv.utils.sanitizeHeight = function(height, container) {
 Sanitize and provide default for the container width.
 */
 nv.utils.sanitizeWidth = function(width, container) {
-    return (width || parseInt(container.style('width')) || 960);
+    return (width || parseInt(container.style('width'), 10) || 960);
 };
 
 

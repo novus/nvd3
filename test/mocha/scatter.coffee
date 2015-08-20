@@ -195,7 +195,7 @@ describe 'NVD3', ->
             window.setTimeout ->
                 builder2.model.update()
                 window.setTimeout((->
-                    pointClips = builder2.svg.querySelector '#nv-point-clips'
+                    pointClips = builder2.svg.querySelector '.nv-point-clips'
                     should.exist pointClips, 'nv-point-clips exists'
 
                     builder2.svg.querySelector('.nv-wrap.nv-scatter')
@@ -231,3 +231,17 @@ describe 'NVD3', ->
 
             builder.svg.querySelector('.nv-wrap.nv-scatter')
             .className.should.contain 'nv-single-point'
+
+        it 'should set color property if not specified', ->
+            builder.teardown()
+
+            singleData = [
+                key: 'Series1'
+                values: [
+                  [1,1]
+                ]
+            ]
+
+            builder.build options, singleData
+
+            should.exist singleData[0].color

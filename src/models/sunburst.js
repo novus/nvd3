@@ -9,7 +9,10 @@ nv.models.sunburst = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = null
         , height = null
+        , mode = "count"
+        , modes = {count: function(d) { return 1; }, size: function(d) { return d.size }}
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container = null
         , color = nv.utils.defaultColor()
         , duration = 500
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMousemove', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -28,8 +31,10 @@ nv.models.sunburst = function() {
         .innerRadius(function(d) { return Math.max(0, y(d.y)); })
         .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
-    // Keep track of the node that is currently being displayed as the root.
-    var node;
+    // Keep track of the current and previous node being displayed as the root.
+    var node, prevNode;
+    // Keep track of the root node
+    var rootNode;
 
     //============================================================
     // chart function
@@ -40,7 +45,7 @@ nv.models.sunburst = function() {
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var container = d3.select(this);
+            container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin);
             var availableHeight = nv.utils.availableHeight(height, container, margin);
             var radius = Math.min(availableWidth, availableHeight) / 2;
@@ -68,8 +73,9 @@ nv.models.sunburst = function() {
             y.range([0, radius]);
 
             node = node || data;
-            path =
-                g.data(partition.nodes).enter()
+            rootNode = data[0];
+            partition.value(modes[mode] || modes["count"]);
+            path = g.data(partition.nodes).enter()
                 .append("path")
                 .attr("d", arc)
                 .style("fill", function (d) {
@@ -77,13 +83,21 @@ nv.models.sunburst = function() {
                 })
                 .style("stroke", "#FFF")
                 .on("click", function(d) {
+                    if (prevNode !== node && node !== d) prevNode = node;
                     node = d;
                     path.transition()
                         .duration(duration)
                         .attrTween("d", arcTweenZoom(d));
                 })
                 .each(stash)
-
+                .on("dblclick", function(d) {
+                    if (prevNode.parent == d) {
+                        path.transition()
+                            .duration(duration)
+                            .attrTween("d", arcTweenZoom(rootNode));
+                    }
+                })
+                .each(stash)
                 .on('mouseover', function(d,i){
                     d3.select(this).classed('hover', true).style('opacity', 0.8);
                     dispatch.elementMouseover({
@@ -170,6 +184,7 @@ nv.models.sunburst = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        mode:       {get: function(){return mode;}, set: function(_){mode=_;}},
         id:         {get: function(){return id;}, set: function(_){id=_;}},
         duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
 

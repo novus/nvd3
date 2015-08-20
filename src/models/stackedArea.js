@@ -11,6 +11,7 @@ nv.models.stackedArea = function() {
         , height = 500
         , color = nv.utils.defaultColor() // a function that computes the color
         , id = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't selet one
+        , container = null
         , getX = function(d) { return d.x } // accessor to get the x value from a data point
         , getY = function(d) { return d.y } // accessor to get the y value from a data point
         , style = 'stack'
@@ -49,8 +50,9 @@ nv.models.stackedArea = function() {
         renderWatch.models(scatter);
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom,
-                container = d3.select(this);
+                availableHeight = height - margin.top - margin.bottom;
+
+            container = d3.select(this);
             nv.utils.initSVG(container);
 
             // Setup Scales
@@ -79,9 +81,8 @@ nv.models.stackedArea = function() {
                 .x(getX)
                 .y(getY)
                 .out(function(d, y0, y) {
-                    var yHeight = (getY(d) === 0) ? 0 : y;
                     d.display = {
-                        y: yHeight,
+                        y: y,
                         y0: y0
                     };
                 })
@@ -98,7 +99,13 @@ nv.models.stackedArea = function() {
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
+            
+            // If the user has not specified forceY, make sure 0 is included in the domain
+            // Otherwise, use user-specified values for forceY
+            if (scatter.forceY().length == 0) {
+                scatter.forceY().push(0);
+            }
+            
             scatter
                 .width(availableWidth)
                 .height(availableHeight)
@@ -199,22 +206,21 @@ nv.models.stackedArea = function() {
             chart.d3_stackedOffset_stackPercent = function(stackData) {
                 var n = stackData.length,    //How many series
                     m = stackData[0].length,     //how many points per series
-                    k = 1 / n,
                     i,
                     j,
                     o,
                     y0 = [];
 
                 for (j = 0; j < m; ++j) { //Looping through all points
-                    for (i = 0, o = 0; i < dataRaw.length; i++) { //looping through series'
-                        o += getY(dataRaw[i].values[j]);   //total value of all points at a certian point in time.
+                    for (i = 0, o = 0; i < dataRaw.length; i++) { //looping through all series
+                        o += getY(dataRaw[i].values[j]); //total y value of all series at a certian point in time.
                     }
 
-                    if (o) for (i = 0; i < n; i++) {
+                    if (o) for (i = 0; i < n; i++) { //(total y value of all series at point in time i) != 0
                         stackData[i][j][1] /= o;
-                    } else {
+                    } else { //(total y value of all series at point in time i) == 0
                         for (i = 0; i < n; i++) {
-                            stackData[i][j][1] = k;
+                            stackData[i][j][1] = 0;
                         }
                     }
                 }

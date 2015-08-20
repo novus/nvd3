@@ -61,7 +61,7 @@
 
     -webkit-border-radius: 5px 5px 0 0;
     -moz-border-radius: 5px 5px 0 0;
-    border-radius: 1px 5px 0 0;
+    border-radius: 5px 5px 0 0;
 }
 
 .nvtooltip p {
@@ -87,7 +87,10 @@
 }
 
 .nvtooltip table td.key {
-    font-weight:normal;
+    font-weight: normal;
+}
+.nvtooltip table td.key.total {
+    font-weight: bold;
 }
 .nvtooltip table td.value {
     text-align: right;

@@ -22,7 +22,14 @@
     </style>
 </head>
 <body class='with-3d-shadow with-transitions'>
-
+<button onclick="expandLegend();">Expand/Contract Legend</button>
+    <script>
+        var expandLegend = function() {
+            var exp = chart.legend.expanded();
+            chart.legend.expanded(!exp);
+            chart.update();
+        }
+    </script>
 <svg id="chart1"></svg>
 
 <script>
@@ -84,6 +91,8 @@
         chart.xAxis.tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
         chart.yAxis.tickFormat(d3.format(',.4f'));
 
+        chart.legend.vers('furious');
+
         d3.select('#chart1')
             .datum(histcatexplong)
             .transition().duration(1000)
@@ -100,6 +109,7 @@
         nv.utils.windowResize(chart.update);
         return chart;
     });
+
 
 </script>
 </body>
