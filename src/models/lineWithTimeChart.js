@@ -148,26 +148,6 @@ nv.models.lineWithTimeChart = function() {
                 .attr("width",availableWidth)
                 .attr("height",(availableHeight > 0) ? availableHeight : 0);
 
-            // Legend
-
-            if (showLegend) {
-                legend.width(availableWidth);
-
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
-
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
-                }
-
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
-            }
-
-            //------------------------------------------------------------
-
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
@@ -177,20 +157,6 @@ nv.models.lineWithTimeChart = function() {
 
             //------------------------------------------------------------
             // Main Chart Component(s)
-
-
-            //------------------------------------------------------------
-            //Set up interactive layer
-            //if (useInteractiveGuideline) {
-            //    interactiveLayer
-            //        .width(availableWidth)
-            //        .height(availableHeight)
-            //        .margin({left:margin.left, top:margin.top})
-            //        .svgContainer(container)
-            //        .xScale(x);
-            //    wrap.select(".nv-interactive").call(interactiveLayer);
-            //}
-
 
             lines
                 .width(availableWidth)
@@ -307,7 +273,7 @@ nv.models.lineWithTimeChart = function() {
                 brushBG
                     .data([brush.empty() ? x.domain() : brushExtent])
                     .each(function(d,i) {
-                        var leftWidth = x(d[0]) - x.range()[0],
+                        var leftWidth = x(d[0]),
                             rightWidth = x.range()[1] - x(d[1]);
 
                         d3.select(this).select('.left')
@@ -361,85 +327,6 @@ nv.models.lineWithTimeChart = function() {
                 dispatch.stateChange(state);
                 chart.update();
             });
-
-            //interactiveLayer.dispatch.on('elementMousemove', function(e) {
-            //    lines.clearHighlights();
-            //    var singlePoint, pointIndex, pointXLocation, allData = [];
-            //    data
-            //        .filter(function(series, i) {
-            //            series.seriesIndex = i;
-            //            return !series.disabled;
-            //        })
-            //        .forEach(function(series,i) {
-            //            pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-            //            var point = series.values[pointIndex];
-            //            var pointYValue = chart.y()(point, pointIndex);
-            //            if (pointYValue != null) {
-            //                lines.highlightPoint(i, pointIndex, true);
-            //            }
-            //            if (point === undefined) return;
-            //            if (singlePoint === undefined) singlePoint = point;
-            //            if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-            //            allData.push({
-            //                key: series.key,
-            //                value: pointYValue,
-            //                color: color(series,series.seriesIndex)
-            //            });
-            //        });
-            //    //Highlight the tooltip entry based on which point the mouse is closest to.
-            //    if (allData.length > 2) {
-            //        var yValue = chart.yScale().invert(e.mouseY);
-            //        var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
-            //        var threshold = 0.03 * domainExtent;
-            //        var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
-            //        if (indexToHighlight !== null)
-            //            allData[indexToHighlight].highlight = true;
-            //    }
-            //
-            //    var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
-            //    interactiveLayer.tooltip
-            //        .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
-            //        .chartContainer(that.parentNode)
-            //        .valueFormatter(function(d,i) {
-            //            return d == null ? "N/A" : yAxis.tickFormat()(d);
-            //        })
-            //        .data({
-            //            value: xValue,
-            //            index: pointIndex,
-            //            series: allData
-            //        })();
-            //
-            //    interactiveLayer.renderGuideLine(pointXLocation);
-            //
-            //});
-            //
-            //interactiveLayer.dispatch.on('elementClick', function(e) {
-            //    var pointXLocation, allData = [];
-            //
-            //    data.filter(function(series, i) {
-            //        series.seriesIndex = i;
-            //        return !series.disabled;
-            //    }).forEach(function(series) {
-            //        var pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-            //        var point = series.values[pointIndex];
-            //        if (typeof point === 'undefined') return;
-            //        if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-            //        var yPos = chart.yScale()(chart.y()(point,pointIndex));
-            //        allData.push({
-            //            point: point,
-            //            pointIndex: pointIndex,
-            //            pos: [pointXLocation, yPos],
-            //            seriesIndex: series.seriesIndex,
-            //            series: series
-            //        });
-            //    });
-            //
-            //    lines.dispatch.elementClick(allData);
-            //});
-            //
-            //interactiveLayer.dispatch.on("elementMouseout",function(e) {
-            //    lines.clearHighlights();
-            //});
 
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
@@ -600,13 +487,6 @@ nv.models.lineWithTimeChart = function() {
             rightAlignYAxis = _;
             yAxis.orient( rightAlignYAxis ? 'right' : 'left');
         }},
-        //useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
-        //    useInteractiveGuideline = _;
-        //    if (useInteractiveGuideline) {
-        //        lines.interactive(false);
-        //        lines.useVoronoi(false);
-        //    }
-        //}},
         playMode :{get: function(){ return playMode; },set:function(_){
             if (!arguments.length) return playMode;
             playMode = _;
