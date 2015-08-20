@@ -22,6 +22,8 @@ nv.models.scatterChart = function() {
         , color        = nv.utils.defaultColor()
         , x            = scatter.xScale()
         , y            = scatter.yScale()
+        , xPadding     = 0
+        , yPadding     = 0
         , showDistX    = false
         , showDistY    = false
         , showLegend   = true
@@ -182,9 +184,33 @@ nv.models.scatterChart = function() {
                     return d.color;
                 }).filter(function(d,i) { return !data[i].disabled }));
 
+            if (xPadding !== 0)
+                scatter.xDomain(null);
+
+            if (yPadding !== 0)
+                scatter.yDomain(null);
+
             wrap.select('.nv-scatterWrap')
                 .datum(data.filter(function(d) { return !d.disabled }))
                 .call(scatter);
+
+            //Adjust for x and y padding
+            if (xPadding !== 0) {
+                var xRange = x.domain()[1] - x.domain()[0];
+                scatter.xDomain([x.domain()[0] - (xPadding * xRange), x.domain()[1] + (xPadding * xRange)]);
+            }
+
+            if (yPadding !== 0) {
+                var yRange = y.domain()[1] - y.domain()[0];
+                scatter.yDomain([y.domain()[0] - (yPadding * yRange), y.domain()[1] + (yPadding * yRange)]);
+            }
+
+            //Only need to update the scatter again if x/yPadding changed the domain.
+            if (yPadding !== 0 || xPadding !== 0) {
+                wrap.select('.nv-scatterWrap')
+                    .datum(data.filter(function(d) { return !d.disabled }))
+                    .call(scatter);
+            }
 
 
             wrap.select('.nv-regressionLinesWrap')
@@ -314,9 +340,9 @@ nv.models.scatterChart = function() {
 
             scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
                 container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
-                    .attr('y1', evt.pos.top - availableHeight - margin.top);
+                    .attr('y1', - evt.pos.lineTop);
                 container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
-                    .attr('x2', evt.pos.left + distX.size() - margin.left);
+                    .attr('x2', evt.pos.lineLeft);
                 tooltip.position(evt.pos).data(evt).hidden(false);
             });
 
@@ -395,6 +421,14 @@ nv.models.scatterChart = function() {
             legend.color(color);
             distX.color(color);
             distY.color(color);
+        }},
+        xPadding:{get:function(){return xPadding;},set:function(_){
+            if (!arguments.length) return xPadding;
+            xPadding = _;
+        }},
+        yPadding:{get:function(){return yPadding;},set:function(_){
+            if (!arguments.length) return yPadding;
+            yPadding = _;
         }}
     });
 

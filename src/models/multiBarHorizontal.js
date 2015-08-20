@@ -103,8 +103,10 @@ nv.models.multiBarHorizontal = function() {
             else
                 y.range(yRange || [0, availableWidth]);
 
+
+            var _y0 = forceY[0] || forceY ? y(y.domain()[0]) : y(0);
             x0 = x0 || x;
-            y0 = y0 || d3.scale.linear().domain(y.domain()).range([y(0),y(0)]);
+            y0 = y0 || d3.scale.linear().domain(y.domain()).range([_y0,_y0]);
 
             // Setup containers and skeleton of chart
             var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibarHorizontal').data([data]);
@@ -164,13 +166,6 @@ nv.models.multiBarHorizontal = function() {
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('mouseout', function(d,i) {
-                    dispatch.elementMouseout({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).style("fill")
-                    });
-                })
                 .on('mousemove', function(d,i) {
                     dispatch.elementMousemove({
                         data: d,
@@ -204,13 +199,13 @@ nv.models.multiBarHorizontal = function() {
                         var xerr = getYerr(d,i)
                             , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
                         xerr = xerr.length ? xerr : [-Math.abs(xerr), Math.abs(xerr)];
-                        xerr = xerr.map(function(e) { return y(e) - y(0); });
+                        xerr = xerr.map(function(e) { return y(e) - (forceY[0] || forceY ? y(y.domain()[0]) : y(0)); });
                         var a = [[xerr[0],-mid], [xerr[0],mid], [xerr[0],0], [xerr[1],0], [xerr[1],-mid], [xerr[1],mid]];
                         return a.map(function (path) { return path.join(',') }).join(' ');
                     })
                     .attr('transform', function(d,i) {
                         var mid = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        return 'translate(' + (getY(d,i) < 0 ? 0 : y(getY(d,i)) - y(0)) + ', ' + mid + ')'
+                        return 'translate(' + (getY(d,i) < 0 ? 0 : y(getY(d,i)) - (forceY[0] || forceY ? y(y.domain()[0]) : y(0))) + ', ' + mid + ')'
                     });
             }
 
@@ -232,7 +227,7 @@ nv.models.multiBarHorizontal = function() {
                     });
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .select('text')
-                    .attr('x', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - y(0) + 4 })
+                    .attr('x', function(d,i) { return getY(d,i) < 0 ? -4 : y(getY(d,i)) - (forceY[0] || forceY ? y(y.domain()[0]) : y(0)) + 4 })
             } else {
                 bars.selectAll('text').text('');
             }
@@ -246,7 +241,7 @@ nv.models.multiBarHorizontal = function() {
                     .text(function(d,i) { return getX(d,i) });
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .select('text.nv-bar-label')
-                    .attr('x', function(d,i) { return getY(d,i) < 0 ? y(0) - y(getY(d,i)) + 4 : -4 });
+                    .attr('x', function(d,i) { return getY(d,i) < 0 ? (forceY[0] || forceY ? y(y.domain()[0]) : y(0)) - y(getY(d,i)) + 4 : -4 });
             }
             else {
                 bars.selectAll('text.nv-bar-label').text('');
@@ -265,10 +260,16 @@ nv.models.multiBarHorizontal = function() {
             if (stacked)
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .attr('transform', function(d,i) {
+                        if(forceY[0] || forceY){
+                            return 'translate(' + y(y.domain()[0]) + ',' + x(getX(d,i)) + ')';
+                        }
                         return 'translate(' + y(d.y1) + ',' + x(getX(d,i)) + ')'
                     })
                     .select('rect')
                     .attr('width', function(d,i) {
+                        if(forceY[0] || forceY){
+                           return Math.abs(y(getY(d,i)) - y(y.domain()[0]));
+                        }
                         return Math.abs(y(getY(d,i) + d.y0) - y(d.y0))
                     })
                     .attr('height', x.rangeBand() );
@@ -277,7 +278,7 @@ nv.models.multiBarHorizontal = function() {
                     .attr('transform', function(d,i) {
                         //TODO: stacked must be all positive or all negative, not both?
                         return 'translate(' +
-                            (getY(d,i) < 0 ? y(getY(d,i)) : y(0))
+                            (getY(d,i) < 0 ? y(getY(d,i)) : (forceY[0] || forceY ? y(y.domain()[0]) : y(0)))
                             + ',' +
                             (d.series * x.rangeBand() / data.length
                                 +
@@ -287,7 +288,7 @@ nv.models.multiBarHorizontal = function() {
                     .select('rect')
                     .attr('height', x.rangeBand() / data.length )
                     .attr('width', function(d,i) {
-                        return Math.max(Math.abs(y(getY(d,i)) - y(0)),1)
+                        return Math.max(Math.abs(y(getY(d,i)) - (forceY[0] || forceY ? y(y.domain()[0]) : y(0))),1)
                     });
 
             //store old scales for use in transitions on update
