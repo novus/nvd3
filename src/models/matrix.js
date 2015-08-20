@@ -7,16 +7,13 @@ nv.models.matrix = function() {
     var margin = { top: 50, right: 0, bottom: 100, left: 30 },
         width = null,
         height = null,
-
         xCellCount = null,
         cellCount = null,
         cellPaddding = 6,
         cellWidth = 28,
         cellHeight = 20,
         cellRound = 2,
-
         tooltip = nv.models.tooltip(),
-
         colors = nv.utils.defaultColor(),
 
         x = function(d,i){return (i%xCellCount) * (cellWidth+cellPaddding)},
@@ -272,113 +269,35 @@ nv.models.matrix = function() {
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
-    chart.labelFormat = function(_){
-        if (!arguments.length) return labelFormat;
-        labelFormat = _;
-        return chart;
-    };
-
-    chart.labelContent = function(_){
-        if (!arguments.length) return labelContent;
-        labelContent = _;
-        return chart;
-    };
-
-    chart.getKey = function(_){
-        if (!arguments.length) return getKey;
-        getKey = _;
-        return chart;
-    };
-
-    chart.getColor = function(_){
-        if (!arguments.length) return getColor;
-        getColor = _;
-        return chart;
-    };
-
-    chart.noData = function(_){
-        if (!arguments.length) return noData;
-        noData = _;
-        return chart;
-    };
-
-    chart.transitionDuration = function(_){
-        if (!arguments.length) return transitionDuration;
-        transitionDuration = _;
-        return chart;
-    };
-
-    chart.margin = function(_) {
-        if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
-        margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-        return chart;
-    };
-
-    chart.width = function(_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function(_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.cellPaddding = function(_) {
-        if (!arguments.length) return cellPaddding;
-        cellPaddding = _;
-        return chart;
-    };
-
-    chart.cellWidth = function(_) {
-        if (!arguments.length) return cellWidth;
-        cellWidth = _;
-        return chart;
-    };
-    chart.cellHeight = function(_) {
-        if (!arguments.length) return cellHeight;
-        cellHeight = _;
-        return chart;
-    };
-
-    chart.cellRound = function(_) {
-        if (!arguments.length) return cellRound;
-        cellRound = _;
-        return chart;
-    };
-
-    chart.disabled = function(_) {
-        if (!arguments.length) return disabled;
-        disabled = _;
-        return chart;
-    };
-
-    chart.disableColor= function(_) {
-        if (!arguments.length) return disabledColor;
-        disabledColor = _;
-        return chart;
-    };
-
-    chart.showLabels = function(_) {
-        if (!arguments.length) return showLabels;
-        showLabels = _;
-        return chart;
-    };
-
-    chart.colors = function(_) {
-        if (!arguments.length) return colors;
-        colors = _;
-        color = d3.scale.quantize().range(colors);
-        return chart;
-    };
-
+    chart._options = Object.create({}, {
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        labelFormat: {get: function(){return labelFormat;}, set: function(_){labelFormat=_;}},
+        labelContent: {get: function(){return labelContent;}, set: function(_){labelContent=_;}},
+        getKey:     {get: function(){return getKey;}, set: function(_){getKey=_;}},
+        getColor:   {get: function(){return getColor;}, set: function(_){getColor=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        transitionDuration:{get: function(){return transitionDuration;}, set: function(_){transitionDuration=_;}},
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        cellPaddding:{get: function(){return cellPaddding;}, set: function(_){cellPaddding=_;}},
+        cellWidth:{get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
+        cellHeight:{get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
+        cellRound:{get: function(){return cellRound;}, set: function(_){cellRound=_;}},
+        disabled:{get: function(){return disabled;}, set: function(_){disabled=_;}},
+        disableColor:{get: function(){return disableColor;}, set: function(_){disableColor=_;}},
+        showLabels:{get: function(){return showLabels;}, set: function(_){showLabels=_;}},
+        colors:{get: function(){return colors;}, set: function(_){
+            colors=_;
+            color = d3.scale.quantize().range(colors);
+        }}
+    });
     //============================================================
-
+    nv.utils.initOptions(chart);
 
     return chart;
 };
