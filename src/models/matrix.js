@@ -12,6 +12,7 @@ nv.models.matrix = function() {
         cellCount = null,
         cellPaddding = 6,
         cellWidth = 28,
+        cellHeight = 20,
         cellRound = 2,
 
         tooltip = nv.models.tooltip(),
@@ -19,7 +20,7 @@ nv.models.matrix = function() {
         colors = nv.utils.defaultColor(),
 
         x = function(d,i){return (i%xCellCount) * (cellWidth+cellPaddding)},
-        y = function(d,i){return Math.floor( i/xCellCount ) * (cellWidth+cellPaddding) },
+        y = function(d,i){return Math.floor( i/xCellCount ) * (cellHeight+cellPaddding) },
         color = d3.scale.quantize().range(colors),
 
 
@@ -96,7 +97,7 @@ nv.models.matrix = function() {
             cellCount = data[0].values.length;
 
             availableWidth = xCellCount * (cellWidth+cellPaddding)  + margin.left + margin.right;
-            availableHeight = Math.ceil(cellCount/xCellCount) * (cellWidth+cellPaddding) + margin.top +margin.bottom;
+            availableHeight = Math.ceil(cellCount/xCellCount) * (cellHeight+cellPaddding) + margin.top +margin.bottom;
 
             //------------------------------------------------------------
             // Setup containers and skeleton of chart
@@ -123,9 +124,9 @@ nv.models.matrix = function() {
             //todo: make this [d] easy to understand
             clipPath.selectAll('rect').data(function(d){return [d];})
                 .attr('x',function(d){return  d.x + (1-clipScale)/2*cellWidth;})
-                .attr('y',function(d){return  d.y + (1-clipScale)/2*cellWidth;})
+                .attr('y',function(d){return  d.y + (1-clipScale)/2*cellHeight;})
                 .attr('rx',cellRound).attr('ry',cellRound)
-                .attr('width',cellWidth*clipScale).attr('height',cellWidth*clipScale);
+                .attr('width',cellWidth*clipScale).attr('height',cellHeight*clipScale);
 
             var cellsWrap = wrap.select('.nv-cellsWrap');
             var cells = cellsWrap.selectAll('rect.nv-cell').data(function(d){return d})
@@ -135,7 +136,7 @@ nv.models.matrix = function() {
                 .attr('x',function(d){return  d.x;})
                 .attr('y',function(d){return  d.y;})
                 .attr('rx',cellRound).attr('ry',cellRound)
-                .attr('width',cellWidth).attr('height',cellWidth)
+                .attr('width',cellWidth).attr('height',cellHeight)
                 .style('fill',function(d,i){return disabled(d,i) ? disabledColor : color(d.color)});
 
             cells.on('click', function(d,i) {
@@ -209,7 +210,7 @@ nv.models.matrix = function() {
                     .style('textLength',cellWidth * .8)
                     .style('pointer-events','none')
                     .attr('x',function(d){return d.x+cellWidth/2;})
-                    .attr('y',function(d){return d.y+cellWidth/2;})
+                    .attr('y',function(d){return d.y+cellHeight/2;})
                     .attr('dy', '.32em')
                     .style('fill',function(d,i){
                         return colors.indexOf( color(d.color) )/colors.length > 0.618 ? '#fff':'#000'
@@ -229,13 +230,13 @@ nv.models.matrix = function() {
                     .attr('x',function(d){return  d.x;})
                     .attr('y',function(d){return  d.y;})
                     .attr('rx',cellRound/legendScale).attr('ry',cellRound/legendScale)
-                    .attr('width',cellWidth/legendScale).attr('height',cellWidth/legendScale)
+                    .attr('width',cellWidth/legendScale).attr('height',cellHeight/legendScale)
                     .style('fill',function(d){return d.color});
-                legendWrap.attr('transform', 'translate(' + ((cellWidth+cellPaddding)*(xCellCount-legendData.length/legendScale)-cellPaddding/legendScale) + ',' + (Math.ceil(cellCount/xCellCount)*(cellWidth+cellPaddding)+10) +')');
+                legendWrap.attr('transform', 'translate(' + ((cellWidth+cellPaddding)*(xCellCount-legendData.length/legendScale)-cellPaddding/legendScale) + ',' + (Math.ceil(cellCount/xCellCount)*(cellHeight+cellPaddding)+10) +')');
             }
 
 
-            container.style('width',availableWidth + 'px').style('height',availableHeight+cellWidth/legendScale+10 + 'px');
+            container.style('width',availableWidth + 'px').style('height',availableHeight+cellHeight/legendScale+10 + 'px');
 
             dispatch.on('elementMouseover.tooltip', function(evt) {
 
@@ -337,6 +338,11 @@ nv.models.matrix = function() {
     chart.cellWidth = function(_) {
         if (!arguments.length) return cellWidth;
         cellWidth = _;
+        return chart;
+    };
+    chart.cellHeight = function(_) {
+        if (!arguments.length) return cellHeight;
+        cellHeight = _;
         return chart;
     };
 
