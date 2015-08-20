@@ -59,12 +59,20 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-multiBarWithLegend'
             should.exist wrap[0]
+
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.multiBarChart()
+            builder.buildover options, sampleData1, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
 
         it 'has correct structure', ->
           cssClasses = [
@@ -84,3 +92,11 @@ describe 'NVD3', ->
         it 'renders bars', ->
           bars = builder.$("g.nvd3.nv-multiBarWithLegend .nv-multibar .nv-bar")
           bars.should.have.length 12
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
+            

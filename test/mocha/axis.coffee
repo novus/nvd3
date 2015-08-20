@@ -24,7 +24,6 @@ describe 'NVD3', ->
             height: 60
             axisLabel: 'Date'
             showMaxMin: true
-            highlightZero: true
             scale: d3.scale.linear()
             rotateYLabel: true
             rotateLabels: 0
@@ -115,7 +114,13 @@ describe 'NVD3', ->
 
             for tick in ticks
                 transform = tick.getAttribute 'transform'
-                transform.should.equal 'rotate(30 0,0)'
+                transform.should.match /rotate\(30 0,\d+?.*?\)/
+
+            maxMin = builder.$ '.nv-x.nv-axis .nv-axisMaxMin text'
+
+            for tick in maxMin
+                transform = tick.getAttribute 'transform'
+                transform.should.match /rotate\(30 0,\d+?.*?\)/
 
         it 'axis stagger labels', ->
             axis = builder.model.xAxis
@@ -141,3 +146,10 @@ describe 'NVD3', ->
             builder.model.update()
 
             done()
+
+        it 'has CSS class "zero" to mark zero tick', ->
+            tick = builder.$ '.nv-x.nv-axis .tick.zero'
+            tick.length.should.equal 1, 'x axis zero'
+
+            tick = builder.$ '.nv-y.nv-axis .tick.zero'
+            tick.length.should.equal 1, 'y axis zero'

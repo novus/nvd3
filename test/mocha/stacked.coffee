@@ -61,12 +61,20 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-stackedAreaChart'
             should.exist wrap[0]
+
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.stackedAreaChart()
+            builder.buildover options, sampleData1, []
+
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
 
         it 'has correct structure', ->
           cssClasses = [
@@ -81,3 +89,43 @@ describe 'NVD3', ->
           for cssClass in cssClasses
             do (cssClass) ->
               should.exist builder.$("g.nvd3.nv-stackedAreaChart #{cssClass}")[0]
+
+        it 'formats y-Axis correctly depending on stacked style', ->
+            chart = nv.models.stackedAreaChart()
+            chart.yAxis.tickFormat (d)-> "<#{d}>"
+
+            builder = new ChartBuilder chart
+            builder.build options, sampleData1
+
+            yTicks = builder.$ '.nv-y.nv-axis .tick text'
+            yTicks.should.have.length.greaterThan 2
+
+            for tick in yTicks
+                tick.textContent.should.match /<.*?>/
+
+            # Update chart to 'Expand' mode
+            chart.dispatch.changeState
+                style: 'expand'
+
+            chart.stacked.style().should.equal 'expand'
+            newTickFormat = chart.yAxis.tickFormat()
+            newTickFormat(1).should.equal '100%'
+
+            chart.dispatch.changeState
+                style: 'stacked'
+
+            chart.stacked.style().should.equal 'stacked'
+            newTickFormat = chart.yAxis.tickFormat()
+            newTickFormat(1).should.equal '<1>'
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
+
+        it 'if stacked.offset is "wiggle", y ticks is zero', ->
+            builder.model.stacked.offset 'wiggle'
+            builder.model.update()
+            builder.model.yAxis.ticks().should.equal 0

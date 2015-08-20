@@ -28,24 +28,24 @@
 <body class='with-3d-shadow with-transitions'>
 
 <p><svg id="chart1" class="sparkline"></svg></p>
-<p>APPL:<svg id="chart2" class="sparkline"></svg></p>
-<p>GOOG:<svg id="chart3" class="sparkline"></svg></p>
+<p><svg id="chart2" class="sparkline"></svg></p>
+<p><svg id="chart3" class="sparkline"></svg></p>
 
 <script>
 
     function defaultChartConfig(containerId, data) {
         nv.addGraph(function() {
 
-            var chart = nv.models.sparklinePlus()
+            var chart = nv.models.sparklinePlus();
             chart.margin({left:70})
                 .x(function(d,i) { return i })
+                .showLastValue(true)
                 .xTickFormat(function(d) {
                     return d3.time.format('%x')(new Date(data[d].x))
                 });
 
             d3.select(containerId)
                     .datum(data)
-                    .transition().duration(250)
                     .call(chart);
 
             return chart;

@@ -9,8 +9,8 @@ nv.models.bulletChart = function() {
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var bullet = nv.models.bullet()
-        ;
+    var bullet = nv.models.bullet();
+    var tooltip = nv.models.tooltip();
 
     var orient = 'left' // TODO top & bottom
         , reverse = false
@@ -21,34 +21,19 @@ nv.models.bulletChart = function() {
         , width = null
         , height = 55
         , tickFormat = null
-        , tooltips = true
-        , tooltip = function(key, x, y, e, graph) {
-            return '<h3>' + x + '</h3>' +
-                '<p>' + y + '</p>'
-        }
-        , noData = 'No Data Available.'
+	, ticks = null
+        , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
         ;
 
-    //============================================================
-    // Private Variables
-    //------------------------------------------------------------
-
-    var showTooltip = function(e, offsetElement) {
-        var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ) + margin.left,
-            top = e.pos[1] + ( offsetElement.offsetTop || 0) + margin.top,
-            content = tooltip(e.key, e.label, e.value, e, chart);
-
-        nv.tooltip.show([left, top], content, e.value < 0 ? 'e' : 'w', null, offsetElement);
-    };
+    tooltip.duration(0).headerEnabled(false);
 
     function chart(selection) {
         selection.each(function(d, i) {
             var container = d3.select(this);
             nv.utils.initSVG(container);
 
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = height - margin.top - margin.bottom,
                 that = this;
 
@@ -57,18 +42,7 @@ nv.models.bulletChart = function() {
 
             // Display No Data message if there's nothing to show.
             if (!d || !ranges.call(this, d, i)) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', 18 + margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+                nv.utils.noData(chart, container)
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -129,7 +103,7 @@ nv.models.bulletChart = function() {
 
             // Update the tick groups.
             var tick = g.selectAll('g.nv-tick')
-                .data(x1.ticks( availableWidth / 50 ), function(d) {
+                .data(x1.ticks( ticks ? ticks : (availableWidth / 50) ), function(d) {
                     return this.textContent || format(d);
                 });
 
@@ -166,16 +140,6 @@ nv.models.bulletChart = function() {
                 .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
                 .style('opacity', 1e-6)
                 .remove();
-
-            //============================================================
-            // Event Handling/Dispatching (in chart's scope)
-            //------------------------------------------------------------
-
-            dispatch.on('tooltipShow', function(e) {
-                e.key = d.title;
-                if (tooltips) showTooltip(e, that.parentNode);
-            });
-
         });
 
         d3.timer.flush();
@@ -186,16 +150,21 @@ nv.models.bulletChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    bullet.dispatch.on('elementMouseover.tooltip', function(e) {
-        dispatch.tooltipShow(e);
+    bullet.dispatch.on('elementMouseover.tooltip', function(evt) {
+        evt['series'] = {
+            key: evt.label,
+            value: evt.value,
+            color: evt.color
+        };
+        tooltip.data(evt).hidden(false);
     });
 
-    bullet.dispatch.on('elementMouseout.tooltip', function(e) {
-        dispatch.tooltipHide(e);
+    bullet.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.hidden(true);
     });
 
-    dispatch.on('tooltipHide', function() {
-        if (tooltips) nv.tooltip.cleanup();
+    bullet.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
     });
 
     //============================================================
@@ -204,6 +173,8 @@ nv.models.bulletChart = function() {
 
     chart.bullet = bullet;
     chart.dispatch = dispatch;
+    chart.tooltip = tooltip;
+
     chart.options = nv.utils.optionsFunc.bind(chart);
 
     chart._options = Object.create({}, {
@@ -214,9 +185,20 @@ nv.models.bulletChart = function() {
         width:    {get: function(){return width;}, set: function(_){width=_;}},
         height:    {get: function(){return height;}, set: function(_){height=_;}},
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
-        tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
+        ticks:    {get: function(){return ticks;}, set: function(_){ticks=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+
+        // deprecated options
+        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
+            tooltip.enabled(!!_);
+        }},
+        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
+            // deprecated after 1.7.1
+            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
+            tooltip.contentGenerator(_);
+        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
