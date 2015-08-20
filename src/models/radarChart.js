@@ -12,6 +12,7 @@ nv.models.radarChart = function(){
         showLabel = true,
         showAxis = true,
         showPoint = true,
+        noData = null,
         factor = 1,
         levels = 6,
         maxValue = 0.6,
@@ -22,6 +23,8 @@ nv.models.radarChart = function(){
         series = 0,
         color = nv.utils.getColor(d3.scale.category10()),
         margin = {top: 40, right: 70, bottom: 40, left: 70};
+
+    var dispatch = d3.dispatch();
 
     function chart(selection){
 
@@ -248,6 +251,16 @@ nv.models.radarChart = function(){
     }
 
     chart.tooltip = tooltip;
+    chart.dispatch = dispatch;
 
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}}
+    });
+
+    nv.utils.initOptions(chart);
     return chart;
 };
