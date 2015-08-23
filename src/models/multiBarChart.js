@@ -26,6 +26,7 @@ nv.models.multiBarChart = function() {
         , rightAlignYAxis = false
         , reduceXTicks = true // if false a tick will show for every data point
         , staggerLabels = false
+        , wrapLabels = false
         , rotateLabels = 0
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
@@ -68,6 +69,30 @@ nv.models.multiBarChart = function() {
 
     var renderWatch = nv.utils.renderWatch(dispatch);
     var stacked = false;
+
+    var wrapTicks = function (text, width) {
+      text.each(function() {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+        while (word = words.pop()) {
+          line.push(word);
+          tspan.text(line.join(" "));
+          if (tspan.node().getComputedTextLength() > width) {
+            line.pop();
+            tspan.text(line.join(" "));
+            line = [word];
+            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+          }
+        }
+      });
+    };
 
     var stateGetter = function(data) {
         return function(){
@@ -244,6 +269,11 @@ nv.models.multiBarChart = function() {
                         });
                 }
 
+                if (wrapLabels) {
+                  g.selectAll('.tick text')
+                    .call(wrapTicks, chart.xAxis.rangeBand()*2)
+                }
+
                 if (reduceXTicks)
                     xTicks
                         .filter(function(d,i) {
@@ -363,6 +393,12 @@ nv.models.multiBarChart = function() {
     chart.yAxis = yAxis;
     chart.state = state;
     chart.tooltip = tooltip;
+
+    chart.wrapLabels = function(_) {
+      if (!arguments.length) return wrapLabels;
+      wrapLabels = _;
+      return chart;
+    };
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
