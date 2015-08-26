@@ -116,7 +116,6 @@
                 .classed("value",true)
                 .html(function(p, i) { return valueFormatter(p.value, i) });
 
-
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight) {
                     var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
@@ -206,7 +205,7 @@
                         tLeft = tooltipLeft(tooltipElem);
                         tTop = tooltipTop(tooltipElem);
                         if (tLeft + width > windowWidth) left = pos[0] - width - distance;
-                        if (tTop < scrollTop) top = scrollTop + 5;
+                        if (tTop < scrollTop) top = scrollTop - tTop + top;
                         if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
                         break;
                     case 'n':
@@ -230,6 +229,12 @@
                     case 'none':
                         left = pos[0];
                         top = pos[1] - distance;
+                        tLeft = tooltipLeft(tooltipElem);
+                        tTop = tooltipTop(tooltipElem);
+                        break;
+                    case 'center':
+                        left = pos[0] - (width / 2);
+                        top = pos[1] - (height / 2);
                         tLeft = tooltipLeft(tooltipElem);
                         tTop = tooltipTop(tooltipElem);
                         break;
@@ -266,8 +271,10 @@
                             return translateInterpolator;
                         }, 'important')
                         // Safari has its own `-webkit-transform` and does not support `transform`
-                        // transform tooltip without transition only in Safari
-                        .style('-webkit-transform', new_translate)
+                        .styleTween('-webkit-transform', function (d) {
+                            return translateInterpolator;
+                        })
+                        .style('-ms-transform', new_translate)
                         .style('opacity', 1);
                 }
 

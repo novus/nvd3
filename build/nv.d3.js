@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-06-15 */
+/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2015-07-14 */
 (function(){
 
 // set up main nv object
@@ -581,7 +581,8 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
 
             trowEnter.append("td")
                 .classed("key",true)
-                .html(function(p, i) {return keyFormatter(p.key, i)});
+                .classed("total",function(p) { return !!p.total})
+                .html(function(p, i) { return keyFormatter(p.key, i)});
 
             trowEnter.append("td")
                 .classed("value",true)
@@ -705,7 +706,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                         tTop = tooltipTop(tooltipElem);
                         break;
                 }
-                
+
                 // adjust tooltip offsets
                 left -= offset.left;
                 top -= offset.top;
@@ -736,9 +737,10 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
                         }, 'important')
-                        // Safari has its own `-webkit-transform` and does not support `transform` 
+                        // Safari has its own `-webkit-transform` and does not support `transform`
                         // transform tooltip without transition only in Safari
                         .style('-webkit-transform', new_translate)
+                        .style('-ms-transform', new_translate)
                         .style('opacity', 1);
                 }
 
@@ -1521,8 +1523,8 @@ nv.utils.noData = function(chart, container) {
         margin = opt.margin(),
         noData = opt.noData(),
         data = (noData == null) ? ["No Data Available."] : [noData],
-        height = nv.utils.availableHeight(opt.height(), container, margin),
-        width = nv.utils.availableWidth(opt.width(), container, margin),
+        height = nv.utils.availableHeight(null, container, margin),
+        width = nv.utils.availableWidth(null, container, margin),
         x = margin.left + width/2,
         y = margin.top + height/2;
 
@@ -1541,7 +1543,6 @@ nv.utils.noData = function(chart, container) {
         .attr('y', y)
         .text(function(t){ return t; });
 };
-
 nv.models.axis = function() {
     "use strict";
 
@@ -1616,13 +1617,14 @@ nv.models.axis = function() {
             switch (axis.orient()) {
                 case 'top':
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-                    if (scale.range().length < 2) {
-                        w = 0;
-                    } else if (scale.range().length === 2) {
-                        w = scale.range()[1];
-                    } else {
-                        w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
-                    }
+                  w = 0;
+                  if (scale.range().length === 1) {
+                    w = isOrdinal ? scale.range()[0] * 2 + scale.rangeBand() : 0;
+                  } else if (scale.range().length === 2) {
+                    w = isOrdinal ? scale.range()[0] + scale.range()[1] + scale.rangeBand() : scale.range()[1];
+                  } else if ( scale.range().length > 2){
+                    w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
+                  };
                     axisLabel
                         .attr('text-anchor', 'middle')
                         .attr('y', 0)
@@ -1676,13 +1678,14 @@ nv.models.axis = function() {
                             .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
                     }
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
-                    if (scale.range().length < 2) {
-                        w = 0;
+                    w = 0;
+                    if (scale.range().length === 1) {
+                        w = isOrdinal ? scale.range()[0] * 2 + scale.rangeBand() : 0;
                     } else if (scale.range().length === 2) {
-                        w = scale.range()[1];
-                    } else {
+                        w = isOrdinal ? scale.range()[0] + scale.range()[1] + scale.rangeBand() : scale.range()[1];
+                    } else if ( scale.range().length > 2){
                         w = scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]);
-                    }
+                    };
                     axisLabel
                         .attr('text-anchor', 'middle')
                         .attr('y', xLabelMargin)
@@ -6510,6 +6513,8 @@ nv.models.linePlusBarChart = function() {
 
     lines.clipEdge(true);
     lines2.interactive(false);
+    // We don't want any points emitted for the focus chart's scatter graph.
+    lines2.pointActive(function(d) { return false });
     xAxis.orient('bottom').tickPadding(5);
     y1Axis.orient('left');
     y2Axis.orient('right');
@@ -6541,6 +6546,12 @@ nv.models.linePlusBarChart = function() {
                 });
         }
     };
+
+    var allDisabled = function(data) {
+      return data.every(function(series) {
+        return series.disabled;
+      });
+    }
 
     function chart(selection) {
         selection.each(function(data) {
@@ -6698,9 +6709,11 @@ nv.models.linePlusBarChart = function() {
                     {values: []}
                 ]);
             var lines2Wrap = g.select('.nv-context .nv-linesWrap')
-                .datum(!dataLines[0].disabled ? dataLines : [
-                    {values: []}
-                ]);
+                .datum(allDisabled(dataLines) ?
+                       [{values: []}] :
+                       dataLines.filter(function(dataLine) {
+                         return !dataLine.disabled;
+                       }));
 
             g.select('.nv-context')
                 .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')');
@@ -6866,9 +6879,10 @@ nv.models.linePlusBarChart = function() {
                 );
 
                 var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-                    .datum(dataLines[0].disabled ? [{values:[]}] :
-                        dataLines
-                            .map(function(d,i) {
+                    .datum(allDisabled(dataLines) ? [{values:[]}] :
+                           dataLines
+                           .filter(function(dataLine) { return !dataLine.disabled; })
+                           .map(function(d,i) {
                                 return {
                                     area: d.area,
                                     fillOpacity: d.fillOpacity,
@@ -6917,7 +6931,7 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-focus .nv-y1.nv-axis')
                     .style('opacity', dataBars.length ? 1 : 0);
                 g.select('.nv-focus .nv-y2.nv-axis')
-                    .style('opacity', dataLines.length && !dataLines[0].disabled ? 1 : 0)
+                    .style('opacity', dataLines.length && !allDisabled(dataLines) ? 1 : 0)
                     .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
                 g.select('.nv-focus .nv-y1.nv-axis').transition().duration(transitionDuration)
@@ -7032,6 +7046,12 @@ nv.models.linePlusBarChart = function() {
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
         }},
+        focusMargin: {get: function(){return margin2;}, set: function(_){
+            margin2.top    = _.top    !== undefined ? _.top    : margin2.top;
+            margin2.right  = _.right  !== undefined ? _.right  : margin2.right;
+            margin2.bottom = _.bottom !== undefined ? _.bottom : margin2.bottom;
+            margin2.left   = _.left   !== undefined ? _.left   : margin2.left;
+        }},
         duration: {get: function(){return transitionDuration;}, set: function(_){
             transitionDuration = _;
         }},
@@ -7101,6 +7121,8 @@ nv.models.lineWithFocusChart = function() {
 
     lines.clipEdge(true).duration(0);
     lines2.interactive(false);
+    // We don't want any points emitted for the focus chart's scatter graph.
+    lines2.pointActive(function(d) { return false });
     xAxis.orient('bottom').tickPadding(5);
     yAxis.orient('left');
     x2Axis.orient('bottom').tickPadding(5);
@@ -7555,6 +7577,12 @@ nv.models.lineWithFocusChart = function() {
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        focusMargin: {get: function(){return margin2;}, set: function(_){
+            margin2.top    = _.top    !== undefined ? _.top    : margin2.top;
+            margin2.right  = _.right  !== undefined ? _.right  : margin2.right;
+            margin2.bottom = _.bottom !== undefined ? _.bottom : margin2.bottom;
+            margin2.left   = _.left   !== undefined ? _.left   : margin2.left;
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
@@ -9224,6 +9252,9 @@ nv.models.multiChart = function() {
         lines1 = nv.models.line().yScale(yScale1),
         lines2 = nv.models.line().yScale(yScale2),
 
+        scatters1 = nv.models.scatter().yScale(yScale1),
+        scatters2 = nv.models.scatter().yScale(yScale2),
+
         bars1 = nv.models.multiBar().stacked(false).yScale(yScale1),
         bars2 = nv.models.multiBar().stacked(false).yScale(yScale2),
 
@@ -9252,6 +9283,8 @@ nv.models.multiChart = function() {
 
             var dataLines1 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 1});
             var dataLines2 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 2});
+            var dataScatters1 = data.filter(function(d) {return d.type == 'scatter' && d.yAxis == 1});
+            var dataScatters2 = data.filter(function(d) {return d.type == 'scatter' && d.yAxis == 2});
             var dataBars1 =  data.filter(function(d) {return d.type == 'bar'  && d.yAxis == 1});
             var dataBars2 =  data.filter(function(d) {return d.type == 'bar'  && d.yAxis == 2});
             var dataStack1 = data.filter(function(d) {return d.type == 'area' && d.yAxis == 1});
@@ -9290,6 +9323,8 @@ nv.models.multiChart = function() {
             gEnter.append('g').attr('class', 'nv-y2 nv-axis');
             gEnter.append('g').attr('class', 'lines1Wrap');
             gEnter.append('g').attr('class', 'lines2Wrap');
+            gEnter.append('g').attr('class', 'scatters1Wrap');
+            gEnter.append('g').attr('class', 'scatters2Wrap');
             gEnter.append('g').attr('class', 'bars1Wrap');
             gEnter.append('g').attr('class', 'bars2Wrap');
             gEnter.append('g').attr('class', 'stack1Wrap');
@@ -9336,6 +9371,14 @@ nv.models.multiChart = function() {
                 .height(availableHeight)
                 .interpolate(interpolate)
                 .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'line'}));
+            scatters1
+                .width(availableWidth)
+                .height(availableHeight)
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'scatter'}));
+            scatters2
+                .width(availableWidth)
+                .height(availableHeight)
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'scatter'}));
             bars1
                 .width(availableWidth)
                 .height(availableHeight)
@@ -9357,12 +9400,16 @@ nv.models.multiChart = function() {
 
             var lines1Wrap = g.select('.lines1Wrap')
                 .datum(dataLines1.filter(function(d){return !d.disabled}));
+            var scatters1Wrap = g.select('.scatters1Wrap')
+                .datum(dataScatters1.filter(function(d){return !d.disabled}));
             var bars1Wrap = g.select('.bars1Wrap')
                 .datum(dataBars1.filter(function(d){return !d.disabled}));
             var stack1Wrap = g.select('.stack1Wrap')
                 .datum(dataStack1.filter(function(d){return !d.disabled}));
             var lines2Wrap = g.select('.lines2Wrap')
                 .datum(dataLines2.filter(function(d){return !d.disabled}));
+            var scatters2Wrap = g.select('.scatters2Wrap')
+                .datum(dataScatters2.filter(function(d){return !d.disabled}));
             var bars2Wrap = g.select('.bars2Wrap')
                 .datum(dataBars2.filter(function(d){return !d.disabled}));
             var stack2Wrap = g.select('.stack2Wrap')
@@ -9382,10 +9429,12 @@ nv.models.multiChart = function() {
                 .range([0, availableHeight]);
 
             lines1.yDomain(yScale1.domain());
+            scatters1.yDomain(yScale1.domain());
             bars1.yDomain(yScale1.domain());
             stack1.yDomain(yScale1.domain());
 
             lines2.yDomain(yScale2.domain());
+            scatters2.yDomain(yScale2.domain());
             bars2.yDomain(yScale2.domain());
             stack2.yDomain(yScale2.domain());
 
@@ -9397,6 +9446,9 @@ nv.models.multiChart = function() {
 
             if(dataLines1.length){d3.transition(lines1Wrap).call(lines1);}
             if(dataLines2.length){d3.transition(lines2Wrap).call(lines2);}
+
+            if(dataScatters1.length){d3.transition(scatters1Wrap).call(scatters1);}
+            if(dataScatters2.length){d3.transition(scatters2Wrap).call(scatters2);}
 
             xAxis
                 ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
@@ -9455,6 +9507,23 @@ nv.models.multiChart = function() {
                     .hidden(false);
             }
 
+            function mouseover_scatter(evt) {
+                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                evt.value = evt.point.x;
+                evt.series = {
+                    value: evt.point.y,
+                    color: evt.point.color
+                };
+                tooltip
+                    .duration(100)
+                    .valueFormatter(function(d, i) {
+                        return yaxis.tickFormat()(d, i);
+                    })
+                    .data(evt)
+                    .position(evt.pos)
+                    .hidden(false);
+            }
+
             function mouseover_stack(evt) {
                 var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
                 evt.point['x'] = stack1.x()(evt.point);
@@ -9495,6 +9564,15 @@ nv.models.multiChart = function() {
                 tooltip.hidden(true)
             });
 
+            scatters1.dispatch.on('elementMouseover.tooltip', mouseover_scatter);
+            scatters2.dispatch.on('elementMouseover.tooltip', mouseover_scatter);
+            scatters1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+            scatters2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                tooltip.hidden(true)
+            });
+
             stack1.dispatch.on('elementMouseover.tooltip', mouseover_stack);
             stack2.dispatch.on('elementMouseover.tooltip', mouseover_stack);
             stack1.dispatch.on('elementMouseout.tooltip', function(evt) {
@@ -9530,8 +9608,11 @@ nv.models.multiChart = function() {
     //------------------------------------------------------------
 
     chart.dispatch = dispatch;
+    chart.legend = legend;
     chart.lines1 = lines1;
     chart.lines2 = lines2;
+    chart.scatters1 = scatters1;
+    chart.scatters2 = scatters2;
     chart.bars1 = bars1;
     chart.bars2 = bars2;
     chart.stack1 = stack1;
@@ -9579,6 +9660,8 @@ nv.models.multiChart = function() {
             getX = _;
             lines1.x(_);
             lines2.x(_);
+            scatters1.x(_);
+            scatters2.x(_);
             bars1.x(_);
             bars2.x(_);
             stack1.x(_);
@@ -9588,6 +9671,8 @@ nv.models.multiChart = function() {
             getY = _;
             lines1.y(_);
             lines2.y(_);
+            scatters1.y(_);
+            scatters2.y(_);
             stack1.y(_);
             stack2.y(_);
             bars1.y(_);
@@ -9606,7 +9691,6 @@ nv.models.multiChart = function() {
 
     return chart;
 };
-
 
 nv.models.ohlcBar = function() {
     "use strict";
@@ -11033,7 +11117,7 @@ nv.models.scatter = function() {
                         })
                         .attr("id", function(d,i) {
                             return "nv-path-"+i; })
-                        .attr("clip-path", function(d,i) { return "url(#nv-clip-"+i+")"; })
+                        .attr("clip-path", function(d,i) { return "url(#nv-clip-"+id+"-"+i+")"; })
                         ;
 
                     // good for debugging point hover issues
@@ -11047,11 +11131,11 @@ nv.models.scatter = function() {
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
                         // just create the circles with the IDs they expect
-                        wrap.select('.nv-point-clips').selectAll('clipPath').remove();
-                        wrap.select('.nv-point-clips').selectAll("clipPath")
-                            .data(vertices)
+                        wrap.select('.nv-point-clips').selectAll('*').remove(); // must do * since it has sub-dom
+                        var pointClips = wrap.select('.nv-point-clips').selectAll('clipPath').data(vertices);
+                        var vPointClips = pointClips
                             .enter().append("svg:clipPath")
-                            .attr("id", function(d, i) { return "nv-clip-"+i;})
+                            .attr("id", function(d, i) { return "nv-clip-"+id+"-"+i;})
                             .append("svg:circle")
                             .attr('cx', function(d) { return d[0]; })
                             .attr('cy', function(d) { return d[1]; })
@@ -12187,7 +12271,9 @@ nv.models.stackedArea = function() {
                 .width(availableWidth)
                 .height(availableHeight)
                 .x(getX)
-                .y(function(d) { return d.display.y + d.display.y0 })
+                .y(function(d) {
+                    if (d.display !== undefined) { return d.display.y + d.display.y0; }
+                })
                 .forceY([0])
                 .color(data.map(function(d,i) {
                     return d.color || color(d, d.seriesIndex);
@@ -12427,6 +12513,8 @@ nv.models.stackedAreaChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , useInteractiveGuideline = false
+        , showTotalInTooltip = true
+        , totalLabel = 'TOTAL'
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
         , state = nv.utils.state()
@@ -12744,7 +12832,7 @@ nv.models.stackedAreaChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [];
+                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -12769,6 +12857,10 @@ nv.models.stackedAreaChart = function() {
                             color: color(series,series.seriesIndex),
                             stackedValue: point.display
                         });
+
+                        if (showTotalInTooltip && stacked.style() != 'expand') {
+                          valueSum += tooltipValue;
+                        };
                     });
 
                 allData.reverse();
@@ -12792,6 +12884,15 @@ nv.models.stackedAreaChart = function() {
                     });
                     if (indexToHighlight != null)
                         allData[indexToHighlight].highlight = true;
+                }
+
+                //If we are not in 'expand' mode, add a 'Total' row to the tooltip.
+                if (showTotalInTooltip && stacked.style() != 'expand' && allData.length >= 2) {
+                    allData.push({
+                        key: totalLabel,
+                        value: valueSum,
+                        total: true
+                    });
                 }
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
@@ -12899,6 +13000,8 @@ nv.models.stackedAreaChart = function() {
         showControls:    {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels:    {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         controlOptions:    {get: function(){return controlOptions;}, set: function(_){controlOptions=_;}},
+        showTotalInTooltip:      {get: function(){return showTotalInTooltip;}, set: function(_){showTotalInTooltip=_;}},
+        totalLabel:      {get: function(){return totalLabel;}, set: function(_){totalLabel=_;}},
 
         // deprecated options
         tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
@@ -13294,5 +13397,5 @@ nv.models.sunburstChart = function() {
     return chart;
 };
 
-nv.version = "1.8.1";
+nv.version = "1.8.1-dev";
 })();
