@@ -292,7 +292,7 @@ nv.models.multiChart = function() {
                     color: evt.point.color
                 };
                 tooltip
-                    .duration(0)
+                    .duration(100)
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
