@@ -1,4 +1,5 @@
-nv.models.multiChart = function() {
+,
+,nv.models.multiChart = function() {
     "use strict";
 
     //============================================================
@@ -323,7 +324,8 @@ nv.models.multiChart = function() {
                 evt.value = bars1.x()(evt.data);
                 evt['series'] = {
                     value: bars1.y()(evt.data),
-                    color: evt.color
+                    color: evt.color,
+                    key: evt.data.key
                 };
                 tooltip
                     .duration(0)
