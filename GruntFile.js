@@ -32,12 +32,13 @@ module.exports = function(grunt) {
                     //Include all files in src/models
                     'src/models/*.js'
                     // example to exclude files: '!src/models/excludeMe*'
-                     ],
+                ],
                 dest: 'build/nv.d3.js'
             }
         },
         uglify: {
             options: {
+                sourceMap: true,
                 banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
@@ -74,18 +75,21 @@ module.exports = function(grunt) {
             }
         },
         copy: {
-          css: {
-            files: [
-              { src: 'src/nv.d3.css', dest: 'build/nv.d3.css' }
-            ]
-          }
+            css: {
+                files: [
+                    { src: 'src/nv.d3.css', dest: 'build/nv.d3.css' }
+                ]
+            }
         },
         cssmin: {
-          dist: {
-            files: {
-                'build/nv.d3.min.css' : ['build/nv.d3.css']
+            options: {
+                sourceMap: true
+            },
+            dist: {
+                files: {
+                    'build/nv.d3.min.css' : ['build/nv.d3.css']
+                }
             }
-          }
         },
         karma: {
             unit: {
