@@ -145,24 +145,24 @@ nv.models.parallelCoordinates = function() {
             var missingValuesline, missingValueslineText;
             var step = x.range()[1] - x.range()[0];
             if (!isNaN(step)) {
-            var lineData = [0 + step / 2, availableHeight - 12, availableWidth - step / 2, availableHeight - 12];
-            missingValuesline = wrap.select('.missingValuesline').selectAll('line').data([lineData]);
-            missingValuesline.enter().append('line');
-            missingValuesline.exit().remove();
-            missingValuesline.attr("x1", function(d) { return d[0]; })
-                    .attr("y1", function(d) { return d[1]; })
-                    .attr("x2", function(d) { return d[2]; })
-                    .attr("y2", function(d) { return d[3]; });
-
-            //Add the text "undefined values" under the missing value line
-            missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
-            missingValueslineText.append('text').data(["undefined values"]);
-            missingValueslineText.enter().append('text');
-            missingValueslineText.exit().remove();
-            missingValueslineText.attr("y", availableHeight)
-                    //To have the text right align with the missingValues line, substract 92 representing the text size.
-                    .attr("x", availableWidth - 92 - step / 2)
-                    .text(function(d) { return d; });
+                var lineData = [0 + step / 2, availableHeight - 12, availableWidth - step / 2, availableHeight - 12];
+                missingValuesline = wrap.select('.missingValuesline').selectAll('line').data([lineData]);
+                missingValuesline.enter().append('line');
+                missingValuesline.exit().remove();
+                missingValuesline.attr("x1", function(d) { return d[0]; })
+                        .attr("y1", function(d) { return d[1]; })
+                        .attr("x2", function(d) { return d[2]; })
+                        .attr("y2", function(d) { return d[3]; });
+    
+                //Add the text "undefined values" under the missing value line
+                missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
+                missingValueslineText.append('text').data(["undefined values"]);
+                missingValueslineText.enter().append('text');
+                missingValueslineText.exit().remove();
+                missingValueslineText.attr("y", availableHeight)
+                        //To have the text right align with the missingValues line, substract 92 representing the text size.
+                        .attr("x", availableWidth - 92 - step / 2)
+                        .text(function(d) { return d; });
             }
             // Add grey background lines for context.
             background = wrap.select('.background').selectAll('path').data(data);
