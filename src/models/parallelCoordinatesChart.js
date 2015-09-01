@@ -13,17 +13,14 @@ nv.models.parallelCoordinatesChart = function () {
         , width = null
 		, height = null
         , showLegend = true
-        , showControls = true
 		, color = nv.utils.defaultColor()
         , state = nv.utils.state()
         , dimensionData = []
         , dimensionNames = []
         , displayBrush = true
-        , resetBrushButton = null
-        , resetSortingButton = null
         , defaultState = null
         , noData = null
-        , dispatch = d3.dispatch('resetBrush', 'resetSort', 'dimensionsOrder', 'brushEnd', 'stateChange', 'changeState', 'renderEnd')
+        , dispatch = d3.dispatch('dimensionsOrder', 'brushEnd', 'stateChange', 'changeState', 'renderEnd')
         , controlWidth = function () { return showControls ? 180 : 0 }
         ;
 
@@ -131,7 +128,6 @@ nv.models.parallelCoordinatesChart = function () {
                 
                 gEnter.append('g').attr('class', 'nv-parallelCoordinatesWrap');
                 gEnter.append('g').attr('class', 'nv-legendWrap');
-                gEnter.append('g').attr('class', 'nv-controlsWrap');
 
                 g.select("rect")
                     .attr("width", availableWidth)
@@ -139,7 +135,7 @@ nv.models.parallelCoordinatesChart = function () {
 
                 // Legend
                 if (showLegend) {
-                    legend.width(availableWidth - controlWidth())
+                    legend.width(availableWidth)
                         .color(function (d) { return "rgb(188,190,192)"; });
 
                     g.select('.nv-legendWrap')
@@ -151,47 +147,12 @@ nv.models.parallelCoordinatesChart = function () {
                         availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
                     wrap.select('.nv-legendWrap')
-                       .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) + ')');
+                       .attr('transform', 'translate( 0 ,' + (-margin.top) + ')');
                 }
                 wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-                // Controls
-                if (showControls) {
-                    if (resetBrushButton === null) {
-                        resetBrushButton = d3.select(container.node().parentNode).append("button")
-                            .attr("class", "nv-resetBrushButton")
-                            .text("Reset Brush");
-
-                        resetBrushButton.on('click', function () {
-                            parallelCoordinates.filters([]);
-                            parallelCoordinates.active([]);
-                            parallelCoordinates.displayBrush(true);
-                            dispatch.resetBrush(data);
-
-                            parallelCoordinatesWrap.transition().call(parallelCoordinates);
-                            resetBrushButton.style("visibility", "hidden");
-                        });
-
-                        resetBrushButton.node().parentNode.insertBefore(container.node(), resetBrushButton.node().nextSibling);
-                    }
-
-                    if (resetSortingButton === null) {
-                        resetSortingButton = d3.select(container.node().parentNode).append("button")
-                            .attr("class", "nv-resetSortingButton")
-                            .text("Reset Sorting");
-
-                        resetSortingButton.on('click', function () {
-                            dimensionNames.map(function (d) { return d.currentPosition = d.originalPosition; });
-                            dimensionNames.sort(function (a, b) { return a.originalPosition - b.originalPosition; });
-                            dispatch.resetSort(dimensionNames);
-
-                            parallelCoordinatesWrap.transition().call(parallelCoordinates);
-                            resetSortingButton.style("visibility", "hidden");
-                        });
-
-                        resetSortingButton.node().parentNode.insertBefore(container.node(), resetSortingButton.node().nextSibling);
-                    }
-                }
+                
+               
 
                 // Main Chart Component(s)
                 parallelCoordinates
@@ -211,11 +172,10 @@ nv.models.parallelCoordinatesChart = function () {
                 //Display reset brush button
 		        parallelCoordinates.dispatch.on('brushEnd', function (active, hasActiveBrush) {
 		            if (hasActiveBrush) {
-		                resetBrushButton.style("visibility", "visible");
 		                displayBrush = true;
 		                dispatch.brushEnd(active);
 		            } else {
-		                resetBrushButton.style("visibility", "hidden");
+
 		                displayBrush = false;
 		                dispatch.resetBrush(data);
 		            }
@@ -238,12 +198,7 @@ nv.models.parallelCoordinatesChart = function () {
 		                if (d.currentPosition !== d.originalPosition)
 		                    isSorted = true;
 		            });
-		            if (isSorted)
-		                resetSortingButton.style("visibility", "visible");
-		            else
-		                resetSortingButton.style("visibility", "hidden");
-
-		            dispatch.dimensionsOrder(dimensionNames);
+		            dispatch.dimensionsOrder(dimensionNames, isSorted);
 		        });
 
 				// Update chart from a state object passed to event handler
@@ -253,10 +208,8 @@ nv.models.parallelCoordinatesChart = function () {
                         dimensionNames.forEach(function (series, i) {
                             series.disabled = e.disabled[i];
                         });
-
                         state.disabled = e.disabled;
                     }
-
                     chart.update();
                 });
             });
@@ -301,7 +254,6 @@ nv.models.parallelCoordinatesChart = function () {
             width: { get: function () { return width; }, set: function (_) { width = _; } },
             height: { get: function () { return height; }, set: function (_) { height = _; } },
             showLegend: { get: function () { return showLegend; }, set: function (_) { showLegend = _; } },
-            showControls: { get: function () { return showControls; }, set: function (_) { showControls = _; } },
             defaultState: { get: function () { return defaultState; }, set: function (_) { defaultState = _; } },
             dimensionData: { get: function () { return dimensionData; }, set: function (_) { dimensionData = _; } },
             displayBrush: { get: function () { return displayBrush; }, set: function (_) { displayBrush = _; } },

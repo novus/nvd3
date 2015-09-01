@@ -31,20 +31,3 @@
   stroke-opacity: 1;
   stroke-dasharray: 5, 5; 
 }
-
-.nv-resetBrushButton {
-    position: absolute;
-    color: white;
-	visibility:hidden;
-	background: gray;
-	border: 0px;
-}
-
-.nv-resetSortingButton {
-    position: absolute;
-	left: 84px;
-	visibility:hidden;
-    color: white;
-	background: gray;
-	border:0px;
-}
