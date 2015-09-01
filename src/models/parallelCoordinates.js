@@ -308,12 +308,12 @@ nv.models.parallelCoordinates = function() {
                     //If parallelCoordinate contain missing values show the missing values line otherwise, hide it.
                     if (missingValuesline !== undefined) {
                         if (axisWithUndefinedValues.length > 0 || displayMissingValuesline) {
-                        missingValuesline.style("display", "inline");
-                        missingValueslineText.style("display", "inline");
-                    } else {
-                        missingValuesline.style("display", "none");
-                        missingValueslineText.style("display", "none");
-                    }
+                            missingValuesline.style("display", "inline");
+                            missingValueslineText.style("display", "inline");
+                        } else {
+                            missingValuesline.style("display", "none");
+                            missingValueslineText.style("display", "none");
+                        }
                     }
                     return [x(p.key), y[p.key](d.values[p.key])];
                 }));
