@@ -12,21 +12,33 @@ nv.models.parallelCoordinates = function() {
         , height = null
         , x = d3.scale.ordinal()
         , y = {}
+        , dimensionData = []
+        , enabledDimensions = []
         , dimensionNames = []
-        , dimensionFormats = []
+        , displayBrush = true
         , color = nv.utils.defaultColor()
         , filters = []
         , active = []
         , dragging = []
+        , axisWithUndefinedValues = []
         , lineTension = 1
-        , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout')
+        , foreground
+        , background
+        , dimensions
+        , line = d3.svg.line()
+        , axis = d3.svg.axis()
+        , dispatch = d3.dispatch('brush', 'brushEnd', 'dimensionsOrder', "stateChange", 'elementClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd', 'activeChanged')
         ;
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
+
+    var renderWatch = nv.utils.renderWatch(dispatch);
+
     function chart(selection) {
+        renderWatch.reset();
         selection.each(function(data) {
             var container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
@@ -34,37 +46,80 @@ nv.models.parallelCoordinates = function() {
 
             nv.utils.initSVG(container);
 
-            active = data; //set all active before first brush call
+
+           //Convert old data to new format (name, values)
+            if (data[0].values === undefined) {
+                var newData = [];
+                data.forEach(function (d) {
+                        var val = {};
+                        var key = Object.keys(d);
+                        key.forEach(function (k) { if (k !== "name") val[k] = d[k] });
+                        newData.push({ key: d.name, values: val });
+                });
+                data = newData;
+            }
+
+            var dataValues = data.map(function (d) {return d.values});
+            if (active.length === 0) {
+                active = data;
+            }; //set all active before first brush call
+            
+            dimensionNames = dimensionData.sort(function (a, b) { return a.currentPosition - b.currentPosition; }).map(function (d) { return d.key });
+            enabledDimensions = dimensionData.filter(function (d) { return !d.disabled; });
+            
 
             // Setup Scales
-            x.rangePoints([0, availableWidth], 1).domain(dimensionNames);
+            x.rangePoints([0, availableWidth], 1).domain(enabledDimensions.map(function (d) { return d.key; }));
 
             //Set as true if all values on an axis are missing.
-            var onlyNanValues = {};
             // Extract the list of dimensions and create a scale for each.
+            var oldDomainMaxValue = {};
+            var displayMissingValuesline = false;
+
             dimensionNames.forEach(function(d) {
-                var extent = d3.extent(data, function(p) { return +p[d]; });
-                onlyNanValues[d] = false;
+                var extent = d3.extent(dataValues, function (p) { return +p[d]; });
+                var min = extent[0];
+                var max = extent[1];
+                var onlyUndefinedValues = false;
                 //If there is no values to display on an axis, set the extent to 0
-                if (extent[0] === undefined) {
-                    onlyNanValues[d] = true;
-                    extent[0] = 0;
-                    extent[1] = 0;
+                if (isNaN(min) || isNaN(max)) {
+                    onlyUndefinedValues = true;
+                    min = 0;
+                    max = 0;
                 }
                 //Scale axis if there is only one value
-                if (extent[0] === extent[1]) {
-                    extent[0] = extent[0] - 1;
-                    extent[1] = extent[1] + 1;
+                if (min === max) {
+                    min = min - 1;
+                    max = max + 1;
+                }
+                var f = filters.filter(function (k) { return k.dimension == d; });
+                if (f.length !== 0) {
+                    //If there is only NaN values, keep the existing domain.
+                    if (onlyUndefinedValues) {
+                        min = y[d].domain()[0];
+                        max = y[d].domain()[1];
+                    }
+                        //If the brush extent is > max (< min), keep the extent value.
+                    else if (!f[0].hasNaN && displayBrush) {
+                        min = min > f[0].extent[0] ? f[0].extent[0] : min;
+                        max = max < f[0].extent[1] ? f[0].extent[1] : max;
+                    }
+                        //If there is NaN values brushed be sure the brush extent is on the domain.
+                    else if (f[0].hasNaN) {
+                        max = max < f[0].extent[1] ? f[0].extent[1] : max;
+                        oldDomainMaxValue[d] = y[d].domain()[1];
+                        displayMissingValuesline = true;
+                    }
                 }
                 //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
                 //The remaining 10% are used to display the missingValue line.
                 y[d] = d3.scale.linear()
-                    .domain(extent)
+                    .domain([min, max])
                     .range([(availableHeight - 12) * 0.9, 0]);
 
-                y[d].brush = d3.svg.brush().y(y[d]).on('brush', brush);
+                axisWithUndefinedValues = [];
 
-                return d != 'name';
+                y[d].brush = d3.svg.brush().y(y[d]).on('brush', brush).on('brushend', brushend);
             });
 
             // Setup containers and skeleton of chart
@@ -79,9 +134,9 @@ nv.models.parallelCoordinates = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var line = d3.svg.line().interpolate('cardinal').tension(lineTension),
-                axis = d3.svg.axis().orient('left'),
-                axisDrag = d3.behavior.drag()
+            line.interpolate('cardinal').tension(lineTension);
+            axis.orient('left');
+            var axisDrag = d3.behavior.drag()
                         .on('dragstart', dragStart)
                         .on('drag', dragMove)
                         .on('dragend', dragEnd);
@@ -89,93 +144,141 @@ nv.models.parallelCoordinates = function() {
             //Add missing value line at the bottom of the chart
             var missingValuesline, missingValueslineText;
             var step = x.range()[1] - x.range()[0];
-            var axisWithMissingValues = [];
-            var lineData = [0 + step / 2, availableHeight - 12, availableWidth - step / 2, availableHeight - 12];
-            missingValuesline = wrap.select('.missingValuesline').selectAll('line').data([lineData]);
-            missingValuesline.enter().append('line');
-            missingValuesline.exit().remove();
-            missingValuesline.attr("x1", function(d) { return d[0]; })
-                    .attr("y1", function(d) { return d[1]; })
-                    .attr("x2", function(d) { return d[2]; })
-                    .attr("y2", function(d) { return d[3]; });
-
-            //Add the text "undefined values" under the missing value line
-            missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
-            missingValueslineText.append('text').data(["undefined values"]);
-            missingValueslineText.enter().append('text');
-            missingValueslineText.exit().remove();
-            missingValueslineText.attr("y", availableHeight)
-                    //To have the text right align with the missingValues line, substract 92 representing the text size.
-                    .attr("x", availableWidth - 92 - step / 2)
-                    .text(function(d) { return d; });
-
+            if (!isNaN(step)) {
+                var lineData = [0 + step / 2, availableHeight - 12, availableWidth - step / 2, availableHeight - 12];
+                missingValuesline = wrap.select('.missingValuesline').selectAll('line').data([lineData]);
+                missingValuesline.enter().append('line');
+                missingValuesline.exit().remove();
+                missingValuesline.attr("x1", function(d) { return d[0]; })
+                        .attr("y1", function(d) { return d[1]; })
+                        .attr("x2", function(d) { return d[2]; })
+                        .attr("y2", function(d) { return d[3]; });
+    
+                //Add the text "undefined values" under the missing value line
+                missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
+                missingValueslineText.append('text').data(["undefined values"]);
+                missingValueslineText.enter().append('text');
+                missingValueslineText.exit().remove();
+                missingValueslineText.attr("y", availableHeight)
+                        //To have the text right align with the missingValues line, substract 92 representing the text size.
+                        .attr("x", availableWidth - 92 - step / 2)
+                        .text(function(d) { return d; });
+            }
             // Add grey background lines for context.
-            var background = wrap.select('.background').selectAll('path').data(data);
+            background = wrap.select('.background').selectAll('path').data(data);
             background.enter().append('path');
             background.exit().remove();
             background.attr('d', path);
 
             // Add blue foreground lines for focus.
-            var foreground = wrap.select('.foreground').selectAll('path').data(data);
+            foreground = wrap.select('.foreground').selectAll('path').data(data);
             foreground.enter().append('path')
             foreground.exit().remove();
-            foreground.attr('d', path).attr('stroke', color);
+            foreground.attr('d', path)
+                .style("stroke-width", function (d, i) {
+                if (isNaN(d.stroke)) { d.stroke = 1;} return d.stroke;})
+                .attr('stroke', function (d, i) { return d.color || color(d, i); });
             foreground.on("mouseover", function (d, i) {
-                d3.select(this).classed('hover', true);
+                d3.select(this).classed('hover', true).style("stroke-width", d.stroke + 2 + "px").style("stroke-opacity", 1);;
                 dispatch.elementMouseover({
                     label: d.name,
-                    data: d.data,
-                    index: i,
-                    pos: [d3.mouse(this.parentNode)[0], d3.mouse(this.parentNode)[1]]
+                    color: d.color || color(d, i)
                 });
 
             });
             foreground.on("mouseout", function (d, i) {
-                d3.select(this).classed('hover', false);
+                d3.select(this).classed('hover', false).style("stroke-width", d.stroke + "px").style("stroke-opacity", 0.7);
                 dispatch.elementMouseout({
                     label: d.name,
-                    data: d.data,
                     index: i
                 });
             });
-
+            foreground.on('mousemove', function (d, i) {
+                dispatch.elementMousemove();
+            });
+            foreground.on('click', function (d) {
+                dispatch.elementClick({
+                    id: d.id
+                });
+            });
             // Add a group element for each dimension.
-            var dimensions = g.selectAll('.dimension').data(dimensionNames);
+            dimensions = g.selectAll('.dimension').data(enabledDimensions);
             var dimensionsEnter = dimensions.enter().append('g').attr('class', 'nv-parallelCoordinates dimension');
-            dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates nv-axis');
-            dimensionsEnter.append('g').attr('class', 'nv-parallelCoordinates-brush');
-            dimensionsEnter.append('text').attr('class', 'nv-parallelCoordinates nv-label');
 
-            dimensions.attr('transform', function(d) { return 'translate(' + x(d) + ',0)'; });
-            dimensions.exit().remove();
+            dimensions.attr('transform', function(d) { return 'translate(' + x(d.key) + ',0)'; });
+            dimensionsEnter.append('g').attr('class', 'nv-axis');
 
             // Add an axis and title.
-            dimensions.select('.nv-label')
+            dimensionsEnter.append('text')
+                    .attr('class', 'nv-label')
                 .style("cursor", "move")
                 .attr('dy', '-1em')
                 .attr('text-anchor', 'middle')
-                .text(String)
                 .on("mouseover", function(d, i) {
                     dispatch.elementMouseover({
-                        dim: d,
-                        pos: [d3.mouse(this.parentNode.parentNode)[0], d3.mouse(this.parentNode.parentNode)[1]]
+                        label: d.tooltip || d.key
                     });
                 })
                 .on("mouseout", function(d, i) {
                     dispatch.elementMouseout({
-                        dim: d
+                        label: d.tooltip
                     });
+                })
+                .on('mousemove', function (d, i) {
+                    dispatch.elementMousemove();
                 })
                 .call(axisDrag);
 
+            dimensionsEnter.append('g').attr('class', 'nv-brushBackground');
+            dimensions.exit().remove();
+            dimensions.select('.nv-label').text(function (d) { return d.key });
             dimensions.select('.nv-axis')
                 .each(function (d, i) {
-                    d3.select(this).call(axis.scale(y[d]).tickFormat(d3.format(dimensionFormats[i])));
+                    d3.select(this).call(axis.scale(y[d.key]).tickFormat(d3.format(d.format)));
                 });
 
-                dimensions.select('.nv-parallelCoordinates-brush')
+            // Add and store a brush for each axis.
+                filters.forEach(function (f) {
+                    //If filter brushed NaN values, keep the brush on the bottom of the axis.
+                    var brushDomain = y[f.dimension].brush.y().domain();
+                    if (f.hasOnlyNaN) {
+                        f.extent[1] = (y[f.dimension].domain()[1] - brushDomain[0]) * (f.extent[1] - f.extent[0]) / (oldDomainMaxValue[f.dimension] - f.extent[0]) + brushDomain[0];
+                    }
+                    if (f.hasNaN) {
+                        f.extent[0] = brushDomain[0];
+                    }
+                    if (displayBrush)
+                        y[f.dimension].brush.extent(f.extent);
+                });
+
+
+            var actives = dimensionNames.filter(function (p) { return !y[p].brush.empty(); }),
+                    extents = actives.map(function (p) { return y[p].brush.extent(); });
+            var formerActive = active.slice(0);
+
+            //Restore active values
+            active = [];
+            foreground.style("display", function (d) {
+                var isActive = actives.every(function (p, i) {
+                    if ((isNaN(d.values[p]) || isNaN(parseFloat(d.values[p]))) && extents[i][0] == y[p].brush.y().domain()[0]) {
+                        return true;
+                    }
+                    return (extents[i][0] <= d.values[p] && d.values[p] <= extents[i][1]) && !isNaN(parseFloat(d.values[p]));
+                });
+                if (isActive)
+                    active.push(d);
+                return !isActive ? "none" : null;
+
+            });
+
+            if (filters.length > 0 || !nv.utils.arrayEquals(active, formerActive)) {
+               dispatch.activeChanged(active);
+            }
+
+            //Restore axis brush
+            dimensions.select('.nv-brushBackground')
                 .each(function (d) {
-                    d3.select(this).call(y[d].brush);
+                        d3.select(this).call(y[d.key].brush);
                 })
                 .selectAll('rect')
                 .attr('x', -8)
@@ -183,55 +286,59 @@ nv.models.parallelCoordinates = function() {
 
             // Returns the path for a given data point.
             function path(d) {
-                return line(dimensionNames.map(function (p) {
+                return line(enabledDimensions.map(function (p) {
                     //If value if missing, put the value on the missing value line
-                    if(isNaN(d[p]) || isNaN(parseFloat(d[p]))) {
-                        var domain = y[p].domain();
-                        var range = y[p].range();
+                    if (isNaN(d.values[p.key]) || isNaN(parseFloat(d.values[p.key])) || displayMissingValuesline) {
+                        var domain = y[p.key].domain();
+                        var range = y[p.key].range();
                         var min = domain[0] - (domain[1] - domain[0]) / 9;
 
                         //If it's not already the case, allow brush to select undefined values
-                        if(axisWithMissingValues.indexOf(p) < 0) {
+                        if (axisWithUndefinedValues.indexOf(p.key) < 0) {
 
                             var newscale = d3.scale.linear().domain([min, domain[1]]).range([availableHeight - 12, range[1]]);
-                            y[p].brush.y(newscale);
-                            axisWithMissingValues.push(p);
+                            y[p.key].brush.y(newscale);
+                            axisWithUndefinedValues.push(p.key);
                         }
-
-                        return [x(p), y[p](min)];
+                        if (isNaN(d.values[p.key]) || isNaN(parseFloat(d.values[p.key]))) {
+                            return [x(p.key), y[p.key](min)];
+                        }
                     }
 
                     //If parallelCoordinate contain missing values show the missing values line otherwise, hide it.
-                    if(axisWithMissingValues.length > 0) {
-                        missingValuesline.style("display", "inline");
-                        missingValueslineText.style("display", "inline");
-                    } else {
-                        missingValuesline.style("display", "none");
-                        missingValueslineText.style("display", "none");
+                    if (missingValuesline !== undefined) {
+                        if (axisWithUndefinedValues.length > 0 || displayMissingValuesline) {
+                            missingValuesline.style("display", "inline");
+                            missingValueslineText.style("display", "inline");
+                        } else {
+                            missingValuesline.style("display", "none");
+                            missingValueslineText.style("display", "none");
+                        }
                     }
-
-                     return [x(p), y[p](d[p])];
+                    return [x(p.key), y[p.key](d.values[p.key])];
                 }));
             }
 
             // Handles a brush event, toggling the display of foreground lines.
             function brush() {
-                var actives = dimensionNames.filter(function(p) { return !y[p].brush.empty(); }),
+                actives = dimensionNames.filter(function (p) { return !y[p].brush.empty(); }),
                     extents = actives.map(function(p) { return y[p].brush.extent(); });
 
                 filters = []; //erase current filters
                 actives.forEach(function(d,i) {
                     filters[i] = {
                         dimension: d,
-                        extent: extents[i]
+                        extent: extents[i],
+                        hasNaN: false,
+                        hasOnlyNaN: false
                     }
                 });
 
                 active = []; //erase current active list
                 foreground.style('display', function(d) {
                     var isActive = actives.every(function(p, i) {
-                        if(isNaN(d[p]) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
-                        return extents[i][0] <= d[p] && d[p] <= extents[i][1];
+                        if ((isNaN(d.values[p]) || isNaN(parseFloat(d.values[p]))) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
+                        return (extents[i][0] <= d.values[p] && d.values[p] <= extents[i][1]) && !isNaN(parseFloat(d.values[p]));
                     });
                     if (isActive) active.push(d);
                     return isActive ? null : 'none';
@@ -242,31 +349,51 @@ nv.models.parallelCoordinates = function() {
                     active: active
                 });
             }
-
-            function dragStart(d, i) {
-                dragging[d] = this.parentNode.__origin__ = x(d);
+            function brushend() {
+                var hasActiveBrush = actives.length > 0 ? true : false;
+                filters.forEach(function (f) {
+                    if (f.extent[0] === y[f.dimension].brush.y().domain()[0] && axisWithUndefinedValues.length > 0)
+                        f.hasNaN = true;
+                    if (f.extent[1] < y[f.dimension].domain()[0])
+                        f.hasOnlyNaN = true;
+                });
+                dispatch.brushEnd(active, hasActiveBrush);
+            }
+            function dragStart(d) {
+                dragging[d.key] = this.parentNode.__origin__ = x(d.key);
                 background.attr("visibility", "hidden");
 
             }
 
-            function dragMove(d, i) {
-                dragging[d] = Math.min(availableWidth, Math.max(0, this.parentNode.__origin__ += d3.event.x));
+            function dragMove(d) {
+                dragging[d.key] = Math.min(availableWidth, Math.max(0, this.parentNode.__origin__ += d3.event.x));
                 foreground.attr("d", path);
-                dimensionNames.sort(function (a, b) { return position(a) - position(b); });
-                x.domain(dimensionNames);
-                dimensions.attr("transform", function(d) { return "translate(" + position(d) + ")"; });
+                enabledDimensions.sort(function (a, b) { return position(a.key) - position(b.key); });
+                enabledDimensions.forEach(function (d, i) { return d.currentPosition = i; });
+                x.domain(enabledDimensions.map(function (d) { return d.key; }));
+                dimensions.attr("transform", function(d) { return "translate(" + position(d.key) + ")"; });
             }
 
             function dragEnd(d, i) {
                 delete this.parentNode.__origin__;
-                delete dragging[d];
-                d3.select(this.parentNode).attr("transform", "translate(" + x(d) + ")");
+                delete dragging[d.key];
+                d3.select(this.parentNode).attr("transform", "translate(" + x(d.key) + ")");
                 foreground
                   .attr("d", path);
                 background
                   .attr("d", path)
                   .attr("visibility", null);
 
+                dispatch.dimensionsOrder(enabledDimensions);
+            }
+            function resetBrush() {
+                filters = [];
+                active = [];
+                dispatch.stateChange();
+            }
+            function resetDrag() {
+                dimensionName.map(function (d, i) { return d.currentPosition = d.originalPosition; });
+                dispatch.stateChange();
             }
 
             function position(d) {
@@ -289,15 +416,43 @@ nv.models.parallelCoordinates = function() {
         // simple options, just get/set the necessary values
         width:         {get: function(){return width;},           set: function(_){width= _;}},
         height:        {get: function(){return height;},          set: function(_){height= _;}},
-        dimensionNames: {get: function() { return dimensionNames;}, set: function(_){dimensionNames= _;}},
-        dimensionFormats : {get: function(){return dimensionFormats;}, set: function (_){dimensionFormats=_;}},
+        dimensionData: { get: function () { return dimensionData; }, set: function (_) { dimensionData = _; } },
+        displayBrush: { get: function () { return displayBrush; }, set: function (_) { displayBrush = _; } },
+        filters: { get: function () { return filters; }, set: function (_) { filters = _; } },
+        active: { get: function () { return active; }, set: function (_) { active = _; } },
         lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
 
         // deprecated options
-        dimensions: {get: function (){return dimensionNames;}, set: function(_){
+        dimensions: {get: function () { return dimensionData.map(function (d){return d.key}); }, set: function (_) {
             // deprecated after 1.8.1
-            nv.deprecated('dimensions', 'use dimensionNames instead');
-            dimensionNames = _;
+            nv.deprecated('dimensions', 'use dimensionData instead');
+            if (dimensionData.length === 0) {
+                _.forEach(function (k) { dimensionData.push({ key: k }) })
+            } else {
+                _.forEach(function (k, i) { dimensionData[i].key= k })
+            }
+        }
+        },
+        dimensionNames: {get: function () { return dimensionData.map(function (d){return d.key}); }, set: function (_) {
+            // deprecated after 1.8.1
+            nv.deprecated('dimensionNames', 'use dimensionData instead');
+            dimensionNames = [];
+            if (dimensionData.length === 0) {
+                _.forEach(function (k) { dimensionData.push({ key: k }) })
+            } else {
+                _.forEach(function (k, i) { dimensionData[i].key = k })
+            }
+ 
+        }},
+        dimensionFormats: {get: function () { return dimensionData.map(function (d) { return d.format }); }, set: function (_) {
+            // deprecated after 1.8.1
+            nv.deprecated('dimensionFormats', 'use dimensionData instead');
+            if (dimensionData.length === 0) {
+                _.forEach(function (f) { dimensionData.push({ format: f }) })
+            } else {
+                _.forEach(function (f, i) { dimensionData[i].format = f })
+            }
+
         }},
 
         // options that require extra logic in the setter

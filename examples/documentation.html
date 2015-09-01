@@ -42,7 +42,7 @@
             var charts = [
                 'pieChart',
                 'lineChart',
-                'parallelCoordinates',
+                'parallelCoordinatesChart',
                 'scatterChart',
                 'stackedAreaChart',
                 'sparklinePlus',
@@ -76,7 +76,8 @@
                 'candlestickBar',
                 'sparkline',
                 'discreteBar',
-                'sunburst'
+                'sunburst',
+				'parallelCoordinates',
             ].sort();
             var c = $('#optionlist');
             var jump = $('#optionjump');
@@ -767,18 +768,39 @@ as well as used to print out examples using those example inputs.
             examples: [0.85]
         },
         dimensions: {
-            desc: "Deprecated. Use dimensionsNames instead. "
+            desc: "Deprecated. Use dimensionData instead. "
         },
         dimensionNames: {
-            desc: "Name of each dimension, used for each axis.",
-            default: "[]",
-            examples: [["axis1", "axis2", "axis3"]]
+            desc: "Deprecated. Use dimensionData instead. "
         },
         dimensionFormats: {
-            desc: "D3 format for each x axis",
-            default: "Use the default formatter scale.tickFormat",
-            examples: [["%", "", "0.2f"]]
+            desc: "Deprecated. Use dimensionData instead. "
         },
+	dimensionData: {
+            desc: "Deprecated. Use dimensionData instead. ",
+            default: "[]",
+            examples: [
+            	[
+            	        {key:"P1",format: "0.2f", tooltip: "Parameter 1"},
+			{key:"P2",format: "%", tooltip: "Parameter 2"}
+		]
+	    ]
+        },
+	displayBrush: {
+            desc: "Support brush on axis",
+            default: true,
+            examples: [false]
+        },
+	filters: {
+	    desc: "Contain all informations on active brush",
+            default: "[]",
+            examples: [
+            	[
+            		{dimension: "P1", extent: [0, 1]},
+			{dimension: "P3", extent: [0.4, 0.8]}
+		]
+	    ]
+	},
         gravity: {
             desc: "Can be 'n','s','e','w'. Determines how tooltip is positioned.",
             default: "w",
