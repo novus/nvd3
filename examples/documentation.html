@@ -776,27 +776,31 @@ as well as used to print out examples using those example inputs.
         dimensionFormats: {
             desc: "Deprecated. Use dimensionData instead. "
         },
-		dimensionData: {
+	dimensionData: {
             desc: "Deprecated. Use dimensionData instead. ",
             default: "[]",
-            examples: [[
-				{key:"P1",format: "0.2f", tooltip: "Parameter 1"},
-				{key:"P2",format: "%", tooltip: "Parameter 2"}]
-			]
+            examples: [
+            	[
+            	        {key:"P1",format: "0.2f", tooltip: "Parameter 1"},
+			{key:"P2",format: "%", tooltip: "Parameter 2"}
+		]
+	    ]
         },
-		displayBrush: {
+	displayBrush: {
             desc: "Support brush on axis",
             default: true,
             examples: [false]
         },
-		filters: {
-			desc: "Contain all informations on active brush",
+	filters: {
+	    desc: "Contain all informations on active brush",
             default: "[]",
             examples: [
-				[{dimension: "P1", extent: [0, 1]},
-				{dimension: "P3", extent: [0.4, 0.8]}]
-			]
-		},
+            	[
+            		{dimension: "P1", extent: [0, 1]},
+			{dimension: "P3", extent: [0.4, 0.8]}
+		]
+	    ]
+	},
         gravity: {
             desc: "Can be 'n','s','e','w'. Determines how tooltip is positioned.",
             default: "w",
