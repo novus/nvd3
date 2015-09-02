@@ -16,7 +16,8 @@ nv.models.multiChart = function() {
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
         interpolate = 'monotone',
-        useVoronoi = true
+        useVoronoi = true,
+        xAxisDates = false
         ;
 
     //============================================================
@@ -90,8 +91,8 @@ nv.models.multiChart = function() {
                     })
                 });
 
-            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
-                .range([0, availableWidth]);
+            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) {
+                return xAxisDates ? new Date(d.x) : d.x } )).range([0, availableWidth]);
 
             var wrap = container.selectAll('g.wrap.multiChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
@@ -414,6 +415,7 @@ nv.models.multiChart = function() {
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
+        xAxisDates:    {get: function(){return xAxisDates;}, set: function(_){xAxisDates=_;}},
 
         // deprecated options
         tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
