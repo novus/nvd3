@@ -45,7 +45,6 @@ nv.models.legend = function() {
 
             var seriesEnter = series.enter().append('g').attr('class', 'nv-series');
             var seriesShape;
-            var seriesLineShape;
 
             var versPadding;
             switch(vers) {
@@ -57,24 +56,12 @@ nv.models.legend = function() {
             }
 
             if(vers == 'classic') {
-                seriesEnter.each(function(d) {
-                    if (d.legendIconType === 'line') {
-                        d3.select(this).append('line')
-                            .style('stroke-width', 4)
-                            .attr('x1', '-0.4em')
-                            .attr('x2', '0.4em')
-                            .attr('y1', '0em')
-                            .attr('y2', '0em');
-                    }
-                    else {
-                        d3.select(this).append('circle')
-                            .style('stroke-width', 2)
-                            .attr('class','nv-legend-symbol')
-                            .attr('r', 5);
-                    }
-                });
-                seriesShape = series.select('circle, line');
-                seriesLineShape = series.select('line');
+                seriesEnter.append('circle')
+                    .style('stroke-width', 2)
+                    .attr('class','nv-legend-symbol')
+                    .attr('r', 5);
+
+                seriesShape = series.select('circle');
             } else if (vers == 'furious') {
                 seriesEnter.append('rect')
                     .style('stroke-width', 2)
@@ -321,10 +308,6 @@ nv.models.legend = function() {
                 .style('fill', setBGColor)
                 .style('fill-opacity', setBGOpacity)
                 .style('stroke', setBGColor);
-
-            if (seriesLineShape) {
-                seriesLineShape.style('stroke-width', setLineStrokeWidth);
-            }
         });
 
         function setTextColor(d,i) {
@@ -352,10 +335,6 @@ nv.models.legend = function() {
             } else {
                 return !!d.disabled ? 0 : 1;
             }
-        }
-
-        function setLineStrokeWidth(d) {
-            return !!d.disabled ? 2 : 4;
         }
 
         return chart;
