@@ -196,6 +196,7 @@ nv.models.historicalBarChart = function(bar_model) {
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: chart.y()(point, pointIndex),
                             color: color(series,series.seriesIndex),
                             data: series.values[pointIndex]

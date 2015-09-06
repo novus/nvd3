@@ -365,6 +365,7 @@ nv.models.stackedAreaChart = function() {
                         var tooltipValue = (stacked.style() == 'expand') ? point.display.y : chart.y()(point,pointIndex);
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: tooltipValue,
                             color: color(series,series.seriesIndex),
                             stackedValue: point.display
