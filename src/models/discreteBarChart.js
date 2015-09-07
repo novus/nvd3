@@ -143,11 +143,12 @@ nv.models.discreteBarChart = function() {
                         .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
                 }
                 
-                if (rotateLabels)
+                if (rotateLabels) {
                     xTicks
                         .selectAll('.tick text')
                         .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
                         .style('text-anchor', rotateLabels > 0 ? 'start' : 'end');
+                }
             }
 
             if (showYAxis) {
