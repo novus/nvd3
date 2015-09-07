@@ -20,6 +20,7 @@ nv.models.discreteBarChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , staggerLabels = false
+        , wrapLabels = false
         , x
         , y
         , noData = null
@@ -50,6 +51,30 @@ nv.models.discreteBarChart = function() {
     //============================================================
     // Private Variables
     //------------------------------------------------------------
+
+    var wrapTicks = function (text, width) {
+      text.each(function() {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+        while (word = words.pop()) {
+          line.push(word);
+          tspan.text(line.join(" "));
+          if (tspan.node().getComputedTextLength() > width) {
+            line.pop();
+            tspan.text(line.join(" "));
+            line = [word];
+            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+          }
+        }
+      });
+    };
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -141,6 +166,11 @@ nv.models.discreteBarChart = function() {
                         .selectAll('text')
                         .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
                 }
+
+                if (wrapLabels) {
+                  g.selectAll('.tick text')
+                    .call(wrapTicks, chart.xAxis.rangeBand())
+                }
             }
 
             if (showYAxis) {
@@ -195,6 +225,12 @@ nv.models.discreteBarChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
+
+    chart.wrapLabels = function(_) {
+      if (!arguments.length) return wrapLabels;
+      wrapLabels = _;
+      return chart;
+    };
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 

@@ -271,7 +271,7 @@ nv.models.multiBarChart = function() {
 
                 if (wrapLabels) {
                   g.selectAll('.tick text')
-                    .call(wrapTicks, chart.xAxis.rangeBand()*2)
+                    .call(wrapTicks, chart.xAxis.rangeBand())
                 }
 
                 if (reduceXTicks)
