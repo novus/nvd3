@@ -44,6 +44,7 @@
             ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
             ,   duration = 100 // duration for tooltip movement
             ,   headerEnabled = true
+            ,   showPercent = false	// True -> tooltip calculates and show the percent of each value in total
         ;
 
         // set to true by interactive layer to adjust tooltip positions
@@ -71,6 +72,33 @@
             return d;
         };
 
+        //calculates and return percentage 
+        var getPercent = function(p, d) {
+        	var value = p.value;
+            if (isNaN(value)) {
+                return "";
+            }
+        	var series = d.series;
+        	var positiveSum = 0;
+        	var negativeSum = 0;
+        	for (var i = 0; i < series.length; i++) {
+        		if (series[i].key.toUpperCase() == "TOTAL") {
+        			continue;
+        		}
+        		// differentiate between positive and negative values
+        		if (series[i].value < 0) {
+        			negativeSum += series[i].value;
+        		}else{
+        			positiveSum += series[i].value;
+        		}
+        	}
+        	if (Math.abs(positiveSum) >= Math.abs(negativeSum) && positiveSum != 0) {
+        		return Number(value / positiveSum * 100);
+        	}else if (Math.abs(positiveSum) < Math.abs(negativeSum) && negativeSum != 0) {
+        		return Number(value / negativeSum * 100);
+        	}
+        };
+        
         //By default, the tooltip model renders a beautiful table inside a DIV.
         //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
@@ -115,7 +143,19 @@
             trowEnter.append("td")
                 .classed("value",true)
                 .html(function(p, i) { return valueFormatter(p.value, i) });
-
+            
+            if (showPercent) {
+            	trowEnter.append("td")
+            	.classed("percent",true)
+            	.html(function(p, i) {
+            		var val = getPercent(p, d);
+            		if (isNaN(val)) {
+            			return ;
+            		}
+            		return valueFormatter(val, i) + ' %'; 
+            	});
+            }
+            
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight) {
                     var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
@@ -399,6 +439,8 @@
             headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
             keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
             headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
+            showPercent:   {get: function(){return showPercent;}, set: function(_){showPercent=_;}},
+            getPercent:   {get: function(){return getPercent;}, set: function(_){getPercent=_;}},
 
             // internal use only, set by interactive layer to adjust position.
             _isInteractiveLayer: {get: function(){return isInteractiveLayer;}, set: function(_){isInteractiveLayer=!!_;}},
