@@ -109,12 +109,12 @@
 
             trowEnter.append("td")
                 .classed("key",true)
-                .html(function(p, i) {return keyFormatter(p.key, i)});
+                .classed("total",function(p) { return !!p.total})
+                .html(function(p, i) { return keyFormatter(p.key, i)});
 
             trowEnter.append("td")
                 .classed("value",true)
                 .html(function(p, i) { return valueFormatter(p.value, i) });
-
 
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight) {
@@ -205,7 +205,7 @@
                         tLeft = tooltipLeft(tooltipElem);
                         tTop = tooltipTop(tooltipElem);
                         if (tLeft + width > windowWidth) left = pos[0] - width - distance;
-                        if (tTop < scrollTop) top = scrollTop + 5;
+                        if (tTop < scrollTop) top = scrollTop - tTop + top;
                         if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
                         break;
                     case 'n':
@@ -232,8 +232,14 @@
                         tLeft = tooltipLeft(tooltipElem);
                         tTop = tooltipTop(tooltipElem);
                         break;
+                    case 'center':
+                        left = pos[0] - (width / 2);
+                        top = pos[1] - (height / 2);
+                        tLeft = tooltipLeft(tooltipElem);
+                        tTop = tooltipTop(tooltipElem);
+                        break;
                 }
-                
+
                 // adjust tooltip offsets
                 left -= offset.left;
                 top -= offset.top;
@@ -264,9 +270,10 @@
                         .styleTween('transform', function (d) {
                             return translateInterpolator;
                         }, 'important')
-                        // Safari has its own `-webkit-transform` and does not support `transform` 
-                        // transform tooltip without transition only in Safari
-                        .style('-webkit-transform', new_translate)
+                        // Safari has its own `-webkit-transform` and does not support `transform`
+                        .styleTween('-webkit-transform', function (d) {
+                            return translateInterpolator;
+                        })
                         .style('-ms-transform', new_translate)
                         .style('opacity', 1);
                 }

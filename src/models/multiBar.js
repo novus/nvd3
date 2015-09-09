@@ -1,3 +1,4 @@
+
 nv.models.multiBar = function() {
     "use strict";
 
@@ -14,13 +15,11 @@ nv.models.multiBar = function() {
         , container = null
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
-        , getYerr = function(d) { return d.yErr }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , clipEdge = true
         , stacked = false
         , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
         , color = nv.utils.defaultColor()
-        , errorBarColor = nv.utils.defaultColor()
         , hideable = false
         , barColor = null // adding the ability to set the color for each rather than the whole group
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
@@ -127,36 +126,25 @@ nv.models.multiBar = function() {
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
                 data.map(function(d, idx) {
                     return d.values.map(function(d,i) {
-                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx, yErr: getYerr(d,i)}
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx }
                     })
                 });
 
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
-            y.domain(yDomain || d3.extent(d3.merge(
-                d3.merge(seriesData).map(function(d) {
-                    var domain = d.y;
-                    // increase the domain range if this series is stackable
-                    if (stacked && !data[d.idx].nonStackable) {
-                        if (d.y > 0){
-                            domain = d.y1
-                        } else {
-                            domain = d.y1 + d.y
-                        }
-                    }
-                    var yerr = d.yErr;
-                    if (yerr) {
-                        if (yerr.length) {
-                            return [domain + yerr[0], domain + yerr[1]];
-                        } else {
-                            yerr = Math.abs(yerr)
-                            return [domain - yerr, domain + yerr];
-                        }
+            y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) {
+                var domain = d.y;
+                // increase the domain range if this series is stackable
+                if (stacked && !data[d.idx].nonStackable) {
+                    if (d.y > 0){
+                        domain = d.y1
                     } else {
-                        return [domain];
+                        domain = d.y1 + d.y
                     }
-                })).concat(forceY)))
+                }
+                return domain;
+            }).concat(forceY)))
             .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -199,7 +187,7 @@ nv.models.multiBar = function() {
                 .style('fill-opacity', 1e-6);
 
             var exitTransition = renderWatch
-                .transition(groups.exit().selectAll('g.nv-bar'), 'multibarExit', Math.min(100, duration))
+                .transition(groups.exit().selectAll('rect.nv-bar'), 'multibarExit', Math.min(100, duration))
                 .attr('y', function(d, i, j) {
                     var yVal = y0(0) || 0;
                     if (stacked) {
@@ -225,26 +213,23 @@ nv.models.multiBar = function() {
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', 0.75);
 
-            var bars = groups.selectAll('g.nv-bar')
+            var bars = groups.selectAll('rect.nv-bar')
                 .data(function(d) { return (hideable && !data.length) ? hideable.values : d.values });
             bars.exit().remove();
 
-            var barsEnter = bars.enter().append('g')
+            var barsEnter = bars.enter().append('rect')
                     .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
-                    .attr('transform', function(d,i,j) {
-                        var _x = stacked && !data[j].nonStackable ? 0 : (j * x.rangeBand() / data.length );
-                        var _y = y0(stacked && !data[j].nonStackable ? d.y0 : 0) || 0;
-                        return 'translate(' + _x + ',' + _y + ')';
+                    .attr('x', function(d,i,j) {
+                        return stacked && !data[j].nonStackable ? 0 : (j * x.rangeBand() / data.length )
                     })
-                ;
-
-            barsEnter.append('rect')
+                    .attr('y', function(d,i,j) { return y0(stacked && !data[j].nonStackable ? d.y0 : 0) || 0 })
                     .attr('height', 0)
                     .attr('width', function(d,i,j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length) })
-                    .style('fill', function(d,i,j){ return color(d, j, i);  })
-                    .style('stroke', function(d,i,j){ return color(d, j, i); })
+                    .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
                 ;
             bars
+                .style('fill', function(d,i,j){ return color(d, j, i);  })
+                .style('stroke', function(d,i,j){ return color(d, j, i); })
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
@@ -284,34 +269,13 @@ nv.models.multiBar = function() {
                     });
                     d3.event.stopPropagation();
                 });
-
-            if (getYerr(data[0].values[0], 0)) {
-                barsEnter.append('polyline');
-
-                bars.select('polyline')
-                    .attr('fill', 'none')
-                    .attr('stroke', function(d, i, j) { return errorBarColor(d, j, i); })
-                    .attr('points', function(d,i) {
-                        var yerr = getYerr(d,i)
-                            , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        yerr = yerr.length ? yerr : [-Math.abs(yerr), Math.abs(yerr)];
-                        yerr = yerr.map(function(e) { return y(e) - y(0); });
-                        var a = [[-mid, yerr[0]], [mid, yerr[0]], [0, yerr[0]], [0, yerr[1]], [-mid, yerr[1]], [mid, yerr[1]]];
-                        return a.map(function (path) { return path.join(',') }).join(' ');
-                    })
-                    .attr('transform', function(d, i) {
-                        var xOffset = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        var yOffset = getY(d,i) < 0 ? y(getY(d, i)) - y(0) : 0;
-                        return 'translate(' + xOffset + ', ' + yOffset + ')';
-                    })
-            }
-
             bars
                 .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'})
+                .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',0)'; })
 
             if (barColor) {
                 if (!disabled) disabled = data.map(function() { return true });
-                bars.select('rect')
+                bars
                     .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); })
                     .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
             }
@@ -323,7 +287,7 @@ nv.models.multiBar = function() {
                     });
             if (stacked){
                 barSelection
-                    .attr('transform', function(d,i,j) {
+                    .attr('y', function(d,i,j) {
                         var yVal = 0;
                         // if stackable, stack it on top of the previous series
                         if (!data[j].nonStackable) {
@@ -339,6 +303,16 @@ nv.models.multiBar = function() {
                                 }
                             }
                         }
+                        return yVal;
+                    })
+                    .attr('height', function(d,i,j) {
+                        if (!data[j].nonStackable) {
+                            return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 0);
+                        } else {
+                            return Math.max(Math.abs(y(getY(d,i)) - y(0)), 0) || 0;
+                        }
+                    })
+                    .attr('x', function(d,i,j) {
                         var width = 0;
                         if (data[j].nonStackable) {
                             width = d.series * x.rangeBand() / data.length;
@@ -346,16 +320,7 @@ nv.models.multiBar = function() {
                                 width = data[j].nonStackableSeries * x.rangeBand()/(nonStackableCount*2); 
                             }
                         }
-                        var xVal = width + x(getX(d, i));
-                        return 'translate(' + xVal + ',' + yVal + ')';
-                    })
-                    .select('rect')
-                    .attr('height', function(d,i,j) {
-                        if (!data[j].nonStackable) {
-                            return Math.max(Math.abs(y(d.y+d.y0) - y(d.y0)), 1);
-                        } else {
-                            return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
-                        }
+                        return width;
                     })
                     .attr('width', function(d,i,j){
                         if (!data[j].nonStackable) {
@@ -373,17 +338,18 @@ nv.models.multiBar = function() {
                     });
             }
             else {
-                barSelection.attr('transform', function(d,i) {
-                    var xVal = d.series * x.rangeBand() / data.length + x(getX(d, i));
-                    var yVal = getY(d,i) < 0 ?
+                barSelection
+                    .attr('x', function(d,i) {
+                        return d.series * x.rangeBand() / data.length;
+                    })
+                    .attr('width', x.rangeBand() / data.length)
+                    .attr('y', function(d,i) {
+                        return getY(d,i) < 0 ?
                             y(0) :
                                 y(0) - y(getY(d,i)) < 1 ?
                             y(0) - 1 :
                             y(getY(d,i)) || 0;
-                    return 'translate(' + xVal + ',' + yVal + ')';
                     })
-                    .select('rect')
-                    .attr('width', x.rangeBand() / data.length)
                     .attr('height', function(d,i) {
                         return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
                     });
@@ -419,7 +385,6 @@ nv.models.multiBar = function() {
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}},
         y:       {get: function(){return getY;}, set: function(_){getY=_;}},
-        yErr:       {get: function(){return getYerr;}, set: function(_){getYerr=_;}},
         xScale:  {get: function(){return x;}, set: function(_){x=_;}},
         yScale:  {get: function(){return y;}, set: function(_){y=_;}},
         xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
@@ -451,9 +416,6 @@ nv.models.multiBar = function() {
         }},
         barColor:  {get: function(){return barColor;}, set: function(_){
             barColor = _ ? nv.utils.getColor(_) : null;
-        }},
-        errorBarColor:  {get: function(){return errorBarColor;}, set: function(_){
-            errorBarColor = _ ? nv.utils.getColor(_) : null;
         }}
     });
 

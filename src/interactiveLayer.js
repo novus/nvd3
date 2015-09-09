@@ -20,7 +20,7 @@ nv.interactiveGuideline = function() {
     //This is important for calculating the correct mouseX/Y positions.
     var margin = {left: 0, top: 0}
         , xScale = d3.scale.linear()
-        , dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
+        , dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick', 'elementMouseDown', 'elementMouseUp')
         , showGuideLine = true;
     //Must pass in the bounding chart's <svg> container.
     //The mousemove event is attached to this container.
@@ -138,12 +138,32 @@ nv.interactiveGuideline = function() {
                         pointXValue: pointXValue
                     });
                 }
+                
+                // if user presses mouse down the layer, fire elementMouseDown
+                if (d3.event.type === 'mousedown') {
+                	dispatch.elementMouseDown({
+                		mouseX: mouseX,
+                		mouseY: mouseY,
+                		pointXValue: pointXValue
+                	});
+                }
+                
+                // if user presses mouse down the layer, fire elementMouseUp
+                if (d3.event.type === 'mouseup') {
+                	dispatch.elementMouseUp({
+                		mouseX: mouseX,
+                		mouseY: mouseY,
+                		pointXValue: pointXValue
+                	});
+                }
             }
 
             svgContainer
                 .on("touchmove",mouseHandler)
                 .on("mousemove",mouseHandler, true)
                 .on("mouseout" ,mouseHandler,true)
+                .on("mousedown" ,mouseHandler,true)
+                .on("mouseup" ,mouseHandler,true)
                 .on("dblclick" ,mouseHandler)
                 .on("click", mouseHandler)
             ;
