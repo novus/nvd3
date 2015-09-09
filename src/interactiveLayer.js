@@ -13,7 +13,7 @@ nv.interactiveGuideline = function() {
         ,   width = null
         ,   height = null
         ,   xScale = d3.scale.linear()
-        ,   dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
+        ,   dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick', 'elementMouseDown', 'elementMouseUp')
         ,   showGuideLine = true
         ,   svgContainer = null // Must pass the chart's svg, we'll use its mousemove event.
         ,   tooltip = nv.models.tooltip()
@@ -133,12 +133,32 @@ nv.interactiveGuideline = function() {
                         pointXValue: pointXValue
                     });
                 }
+
+                // if user presses mouse down the layer, fire elementMouseDown
+                if (d3.event.type === 'mousedown') {
+                	dispatch.elementMouseDown({
+                		mouseX: mouseX,
+                		mouseY: mouseY,
+                		pointXValue: pointXValue
+                	});
+                }
+
+                // if user presses mouse down the layer, fire elementMouseUp
+                if (d3.event.type === 'mouseup') {
+                	dispatch.elementMouseUp({
+                		mouseX: mouseX,
+                		mouseY: mouseY,
+                		pointXValue: pointXValue
+                	});
+                }
             }
 
             svgContainer
                 .on("touchmove",mouseHandler)
                 .on("mousemove",mouseHandler, true)
                 .on("mouseout" ,mouseHandler,true)
+                .on("mousedown" ,mouseHandler,true)
+                .on("mouseup" ,mouseHandler,true)
                 .on("dblclick" ,mouseHandler)
                 .on("click", mouseHandler)
             ;

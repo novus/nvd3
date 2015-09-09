@@ -416,6 +416,7 @@ nv.models.lineWithFocusChart = function() {
                             return {
                                 key: d.key,
                                 area: d.area,
+                                classed: d.classed,
                                 values: d.values.filter(function(d,i) {
                                     return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                                 })
