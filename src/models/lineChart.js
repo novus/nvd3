@@ -235,6 +235,7 @@ nv.models.lineChart = function() {
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: pointYValue,
                             color: color(series,series.seriesIndex)
                         });

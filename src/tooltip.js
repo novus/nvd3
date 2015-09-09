@@ -71,6 +71,10 @@
             return d;
         };
 
+        var unitFormatter = function(d, i) {
+            return d;
+        };
+
         //By default, the tooltip model renders a beautiful table inside a DIV.
         //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
@@ -115,6 +119,10 @@
             trowEnter.append("td")
                 .classed("value",true)
                 .html(function(p, i) { return valueFormatter(p.value, i) });
+
+            trowEnter.append("td")
+                .classed("unit",true)
+                .html(function(p, i) { return unitFormatter(p.unit, i) });
 
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight) {

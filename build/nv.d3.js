@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2015-08-25 */
+/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2015-09-04 */
 (function(){
 
 // set up main nv object
@@ -543,6 +543,10 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             return d;
         };
 
+        var unitFormatter = function(d, i) {
+            return d;
+        };
+
         //By default, the tooltip model renders a beautiful table inside a DIV.
         //You can override this function if a custom tooltip is desired.
         var contentGenerator = function(d) {
@@ -587,6 +591,10 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             trowEnter.append("td")
                 .classed("value",true)
                 .html(function(p, i) { return valueFormatter(p.value, i) });
+
+            trowEnter.append("td")
+                .classed("unit",true)
+                .html(function(p, i) { return unitFormatter(p.unit, i) });
 
             trowEnter.selectAll("td").each(function(p) {
                 if (p.highlight) {
@@ -3622,6 +3630,7 @@ nv.models.cumulativeLineChart = function() {
                         if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: chart.y()(point, pointIndex),
                             color: color(series,series.seriesIndex)
                         });
@@ -5263,6 +5272,7 @@ nv.models.historicalBarChart = function(bar_model) {
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: chart.y()(point, pointIndex),
                             color: color(series,series.seriesIndex),
                             data: series.values[pointIndex]
@@ -6322,6 +6332,7 @@ nv.models.lineChart = function() {
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: pointYValue,
                             color: color(series,series.seriesIndex)
                         });
@@ -7420,6 +7431,7 @@ nv.models.lineWithFocusChart = function() {
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: chart.y()(point, pointIndex),
                             color: color(series,series.seriesIndex)
                         });
@@ -7525,6 +7537,7 @@ nv.models.lineWithFocusChart = function() {
                             return {
                                 key: d.key,
                                 area: d.area,
+                                classed: d.classed,
                                 values: d.values.filter(function(d,i) {
                                     return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                                 })
@@ -12888,6 +12901,7 @@ nv.models.stackedAreaChart = function() {
                         var tooltipValue = (stacked.style() == 'expand') ? point.display.y : chart.y()(point,pointIndex);
                         allData.push({
                             key: series.key,
+                            unit: series.unit,
                             value: tooltipValue,
                             color: color(series,series.seriesIndex),
                             stackedValue: point.display
