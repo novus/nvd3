@@ -53,8 +53,6 @@ describe 'NVD3', ->
             showYAxis: true
             rightAlignYAxis: true
             useInteractiveGuideline: true
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             duration: 0
             clipEdge: false
@@ -95,26 +93,6 @@ describe 'NVD3', ->
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 
-
-        it 'interactive tooltip', ->
-            builder = new ChartBuilder nv.models.lineChart()
-            builder.build options, sampleData2
-
-            evt =
-                mouseX: 243
-                mouseY: 96
-                pointXValue: 28.15
-
-            builder.model.interactiveLayer.dispatch.elementMousemove evt
-
-            getGuideline = ->
-                line = builder.$ '.nv-interactiveGuideLine line'
-                line[0]
-
-            should.exist getGuideline(), 'guideline exists'
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.exist tooltip, 'tooltip exists'
 
         it 'has correct structure', ->
           cssClasses = [

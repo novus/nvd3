@@ -1,18 +1,6 @@
 describe 'NVD3', ->
 
     describe 'Bullet Chart', ->
-        removeAllTooltips = ->
-            elements = document.getElementsByClassName('nvtooltip')
-            while(elements[0])
-              elements[0].parentNode.removeChild(elements[0])
-
-        eventTooltipData =
-          point: {series: 0, x: -1, y: 1}
-          pointIndex: 0
-          pos: [210, 119]
-          series: {key: 'Series 1'}
-          seriesIndex: 0
-
         sampleData1 =
             title: 'Revenue'
             subtitle: 'US$ in thousands'
@@ -34,8 +22,6 @@ describe 'NVD3', ->
             width: 100
             height: 110
             tickFormat: (d)-> d.toFixed 2
-            tooltips: true
-            tooltipContent: (evt)-> "<h3>test</h3>"
             noData: 'No Data Available'
 
         builder1 = null
@@ -79,16 +65,6 @@ describe 'NVD3', ->
           for cssClass in cssClasses
             do (cssClass) ->
               should.exist builder1.$("g.nvd3 #{cssClass}")[0]
-
-        it 'can show tooltip', ->
-
-          removeAllTooltips()
-
-          builder1.model.bullet.dispatch.elementMouseover eventTooltipData
-
-          tooltip = document.querySelector '.nvtooltip'
-          should.exist tooltip
-
 
         describe "applies correctly option", ->
 
@@ -191,29 +167,3 @@ describe 'NVD3', ->
             builder.build options, sampleData
             parseInt( builder.$(".nv-rangeMax")[0].getAttribute('height') ).should.be.equal 300
 
-          it 'tooltips', ->
-
-            removeAllTooltips()
-
-            options =
-              tooltips: false
-
-            builder.build options, sampleData
-
-            builder.model.bullet.dispatch.elementMouseover eventTooltipData
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.not.exist tooltip
-
-          it 'tooltipContent', ->
-
-            removeAllTooltips()
-
-            options =
-              tooltipContent: (evt)-> "<h2>test</h2>"
-            builder.build options, sampleData
-
-            builder.model.bullet.dispatch.elementMouseover eventTooltipData
-
-            tooltip = document.querySelectorAll '.nvtooltip'
-            expect(tooltip[0].innerHTML).to.contain "<h2>test</h2>"

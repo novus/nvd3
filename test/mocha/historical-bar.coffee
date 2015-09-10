@@ -25,8 +25,6 @@ describe 'NVD3', ->
             showXAxis: true
             showYAxis: true
             rightAlignYAxis: false
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
 
         builder = null
