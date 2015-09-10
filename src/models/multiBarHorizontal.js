@@ -269,7 +269,7 @@ nv.models.multiBarHorizontal = function() {
                     })
                     .select('rect')
                     .attr('width', function(d,i) {
-                        return Math.abs(y(getY(d,i) + d.y0) - y(d.y0))
+                        return Math.abs(y(getY(d,i) + d.y0) - y(d.y0)) || 0
                     })
                     .attr('height', x.rangeBand() );
             else
@@ -287,7 +287,7 @@ nv.models.multiBarHorizontal = function() {
                     .select('rect')
                     .attr('height', x.rangeBand() / data.length )
                     .attr('width', function(d,i) {
-                        return Math.max(Math.abs(y(getY(d,i)) - y(0)),1)
+                        return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0
                     });
 
             //store old scales for use in transitions on update
