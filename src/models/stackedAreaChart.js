@@ -426,7 +426,6 @@ nv.models.stackedAreaChart = function() {
                 }
 
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(valueFormatter)
                     .data(
@@ -476,7 +475,7 @@ nv.models.stackedAreaChart = function() {
     stacked.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt.point['x'] = stacked.x()(evt.point);
         evt.point['y'] = stacked.y()(evt.point);
-        tooltip.data(evt).position(evt.pos).hidden(false);
+        tooltip.data(evt).hidden(false);
     });
 
     stacked.dispatch.on('elementMouseout.tooltip', function(evt) {
@@ -514,18 +513,6 @@ nv.models.stackedAreaChart = function() {
         controlOptions:    {get: function(){return controlOptions;}, set: function(_){controlOptions=_;}},
         showTotalInTooltip:      {get: function(){return showTotalInTooltip;}, set: function(_){showTotalInTooltip=_;}},
         totalLabel:      {get: function(){return totalLabel;}, set: function(_){totalLabel=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2015-08-25 */
+/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2015-09-10 */
 (function(){
 
 // set up main nv object
@@ -184,26 +184,21 @@ nv.dom.read = function(callback) {
 nv.interactiveGuideline = function() {
     "use strict";
 
-    var tooltip = nv.models.tooltip();
-    tooltip.duration(0).hideDelay(0)._isInteractiveLayer(true).hidden(false);
+    var margin = { left: 0, top: 0 } //Pass the chart's top and left magins. Used to calculate the mouseX/Y.
+        ,   width = null
+        ,   height = null
+        ,   xScale = d3.scale.linear()
+        ,   dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick', 'elementMouseDown', 'elementMouseUp')
+        ,   showGuideLine = true
+        ,   svgContainer = null // Must pass the chart's svg, we'll use its mousemove event.
+        ,   tooltip = nv.models.tooltip()
+        ,   isMSIE = "ActiveXObject" in window // Checkt if IE by looking for activeX.
+    ;
 
-    //Public settings
-    var width = null;
-    var height = null;
-
-    //Please pass in the bounding chart's top and left margins
-    //This is important for calculating the correct mouseX/Y positions.
-    var margin = {left: 0, top: 0}
-        , xScale = d3.scale.linear()
-        , dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick')
-        , showGuideLine = true;
-    //Must pass in the bounding chart's <svg> container.
-    //The mousemove event is attached to this container.
-    var svgContainer = null;
-
-    // check if IE by looking for activeX
-    var isMSIE = "ActiveXObject" in window;
-
+    tooltip
+        .duration(0)
+        .hideDelay(0)
+        .hidden(false);
 
     function layer(selection) {
         selection.each(function(data) {
@@ -313,12 +308,32 @@ nv.interactiveGuideline = function() {
                         pointXValue: pointXValue
                     });
                 }
+
+                // if user presses mouse down the layer, fire elementMouseDown
+                if (d3.event.type === 'mousedown') {
+                	dispatch.elementMouseDown({
+                		mouseX: mouseX,
+                		mouseY: mouseY,
+                		pointXValue: pointXValue
+                	});
+                }
+
+                // if user presses mouse down the layer, fire elementMouseUp
+                if (d3.event.type === 'mouseup') {
+                	dispatch.elementMouseUp({
+                		mouseX: mouseX,
+                		mouseY: mouseY,
+                		pointXValue: pointXValue
+                	});
+                }
             }
 
             svgContainer
                 .on("touchmove",mouseHandler)
                 .on("mousemove",mouseHandler, true)
                 .on("mouseout" ,mouseHandler,true)
+                .on("mousedown" ,mouseHandler,true)
+                .on("mouseup" ,mouseHandler,true)
                 .on("dblclick" ,mouseHandler)
                 .on("click", mouseHandler)
             ;
@@ -470,447 +485,334 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
     });
     return indexToHighlight;
 };
-/* Tooltip rendering model for nvd3 charts.
- window.nv.models.tooltip is the updated,new way to render tooltips.
 
- window.nv.tooltip.show is the old tooltip code.
- window.nv.tooltip.* also has various helper methods.
+/* Model which can be instantiated to handle tooltip rendering.
+ Example usage:
+ var tip = nv.models.tooltip().gravity('w').distance(23)
+ .data(myDataObject);
+
+ tip();    //just invoke the returned function to render tooltip.
  */
-(function() {
+nv.models.tooltip = function() {
     "use strict";
 
-    /* Model which can be instantiated to handle tooltip rendering.
-     Example usage:
-     var tip = nv.models.tooltip().gravity('w').distance(23)
-     .data(myDataObject);
+    /*
+    Tooltip data. If data is given in the proper format, a consistent tooltip is generated.
+    Example Format of data:
+    {
+        key: "Date",
+        value: "August 2009",
+        series: [
+            {key: "Series 1", value: "Value 1", color: "#000"},
+            {key: "Series 2", value: "Value 2", color: "#00f"}
+        ]
+    }
+    */
+    var id = "nvtooltip-" + Math.floor(Math.random() * 100000) // Generates a unique id when you create a new tooltip() object.
+        ,   data = null
+        ,   gravity = 'w'   // Can be 'n','s','e','w'. Determines how tooltip is positioned.
+        ,   distance = 25 // Distance to offset tooltip from the mouse location.
+        ,   snapDistance = 0   // Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
+        ,   fixedTop = null // If not null, this fixes the top position of the tooltip.
+        ,   classes = null  // Attaches additional CSS classes to the tooltip DIV that is created.
+        ,   chartContainer = null // Parent dom element of the SVG that holds the chart.
+        ,   hidden = true  // Start off hidden, toggle with hide/show functions below.
+        ,   hideDelay = 200  // Delay (in ms) before the tooltip hides after calling hide().
+        ,   tooltip = null // d3 select of the tooltip div.
+        ,   lastPosition = { left: null, top: null } // Last position the tooltip was in.
+        ,   enabled = true  // True -> tooltips are rendered. False -> don't render tooltips.
+        ,   duration = 100 // Tooltip movement duration, in ms.
+        ,   headerEnabled = true // If is to show the tooltip header.
+        ,   nvPointerEventsClass = "nv-pointer-events-none" // CSS class to specify whether element should not have mouse events.
+    ;
 
-     tip();    //just invoke the returned function to render tooltip.
+    /*
+     Function that returns the position (relative to the viewport) the tooltip should be placed in.
+     Should return: {
+        left: <leftPos>,
+        top: <topPos>
+     }
      */
-    nv.models.tooltip = function() {
-
-        /*
-        Tooltip data. If data is given in the proper format, a consistent tooltip is generated.
-        Example Format of data:
-        {
-            key: "Date",
-            value: "August 2009",
-            series: [
-                {key: "Series 1", value: "Value 1", color: "#000"},
-                {key: "Series 2", value: "Value 2", color: "#00f"}
-            ]
-        }
-        */
-        var data = null;
-        var gravity = 'w'   //Can be 'n','s','e','w'. Determines how tooltip is positioned.
-            ,   distance = 25   //Distance to offset tooltip from the mouse location.
-            ,   snapDistance = 0   //Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
-            ,   fixedTop = null //If not null, this fixes the top position of the tooltip.
-            ,   classes = null  //Attaches additional CSS classes to the tooltip DIV that is created.
-            ,   chartContainer = null   //Parent dom element of the SVG that holds the chart.
-            ,   hidden = true  // start off hidden, toggle with hide/show functions below
-            ,   hideDelay = 400  // delay before the tooltip hides after calling hide()
-            ,   tooltip = null // d3 select of tooltipElem below
-            ,   tooltipElem = null  //actual DOM element representing the tooltip.
-            ,   position = {left: null, top: null}   //Relative position of the tooltip inside chartContainer.
-            ,   offset = {left: 0, top: 0}   //Offset of tooltip against the pointer
-            ,   enabled = true  //True -> tooltips are rendered. False -> don't render tooltips.
-            ,   duration = 100 // duration for tooltip movement
-            ,   headerEnabled = true
-        ;
-
-        // set to true by interactive layer to adjust tooltip positions
-        // eventually we should probably fix interactive layer to get the position better.
-        // for now this is needed if you want to set chartContainer for normal tooltips, else it "fixes" it to broken
-        var isInteractiveLayer = false;
-
-        //Generates a unique id when you create a new tooltip() object
-        var id = "nvtooltip-" + Math.floor(Math.random() * 100000);
-
-        //CSS class to specify whether element should not have mouse events.
-        var  nvPointerEventsClass = "nv-pointer-events-none";
-
-        //Format function for the tooltip values column
-        var valueFormatter = function(d,i) {
-            return d;
+    var position = function() {
+        return {
+            left: d3.event.clientX,
+            top: d3.event.clientY
         };
-
-        //Format function for the tooltip header value.
-        var headerFormatter = function(d) {
-            return d;
-        };
-
-        var keyFormatter = function(d, i) {
-            return d;
-        };
-
-        //By default, the tooltip model renders a beautiful table inside a DIV.
-        //You can override this function if a custom tooltip is desired.
-        var contentGenerator = function(d) {
-            if (d === null) {
-                return '';
-            }
-
-            var table = d3.select(document.createElement("table"));
-            if (headerEnabled) {
-                var theadEnter = table.selectAll("thead")
-                    .data([d])
-                    .enter().append("thead");
-
-                theadEnter.append("tr")
-                    .append("td")
-                    .attr("colspan", 3)
-                    .append("strong")
-                    .classed("x-value", true)
-                    .html(headerFormatter(d.value));
-            }
-
-            var tbodyEnter = table.selectAll("tbody")
-                .data([d])
-                .enter().append("tbody");
-
-            var trowEnter = tbodyEnter.selectAll("tr")
-                    .data(function(p) { return p.series})
-                    .enter()
-                    .append("tr")
-                    .classed("highlight", function(p) { return p.highlight});
-
-            trowEnter.append("td")
-                .classed("legend-color-guide",true)
-                .append("div")
-                .style("background-color", function(p) { return p.color});
-
-            trowEnter.append("td")
-                .classed("key",true)
-                .classed("total",function(p) { return !!p.total})
-                .html(function(p, i) { return keyFormatter(p.key, i)});
-
-            trowEnter.append("td")
-                .classed("value",true)
-                .html(function(p, i) { return valueFormatter(p.value, i) });
-
-            trowEnter.selectAll("td").each(function(p) {
-                if (p.highlight) {
-                    var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
-                    var opacity = 0.6;
-                    d3.select(this)
-                        .style("border-bottom-color", opacityScale(opacity))
-                        .style("border-top-color", opacityScale(opacity))
-                    ;
-                }
-            });
-
-            var html = table.node().outerHTML;
-            if (d.footer !== undefined)
-                html += "<div class='footer'>" + d.footer + "</div>";
-            return html;
-
-        };
-
-        var dataSeriesExists = function(d) {
-            if (d && d.series) {
-                if (d.series instanceof Array) {
-                    return !!d.series.length;
-                }
-                // if object, it's okay just convert to array of the object
-                if (d.series instanceof Object) {
-                    d.series = [d.series];
-                    return true;
-                }
-            }
-            return false;
-        };
-
-        var calcTooltipPosition = function(pos) {
-            if (!tooltipElem) return;
-
-            nv.dom.read(function() {
-                var height = parseInt(tooltipElem.offsetHeight, 10),
-                    width = parseInt(tooltipElem.offsetWidth, 10),
-                    windowWidth = nv.utils.windowSize().width,
-                    windowHeight = nv.utils.windowSize().height,
-                    scrollTop = window.pageYOffset,
-                    scrollLeft = window.pageXOffset,
-                    left, top;
-
-                windowHeight = window.innerWidth >= document.body.scrollWidth ? windowHeight : windowHeight - 16;
-                windowWidth = window.innerHeight >= document.body.scrollHeight ? windowWidth : windowWidth - 16;
-
-
-                //Helper functions to find the total offsets of a given DOM element.
-                //Looks up the entire ancestry of an element, up to the first relatively positioned element.
-                var tooltipTop = function ( Elem ) {
-                    var offsetTop = top;
-                    do {
-                        if( !isNaN( Elem.offsetTop ) ) {
-                            offsetTop += (Elem.offsetTop);
-                        }
-                        Elem = Elem.offsetParent;
-                    } while( Elem );
-                    return offsetTop;
-                };
-                var tooltipLeft = function ( Elem ) {
-                    var offsetLeft = left;
-                    do {
-                        if( !isNaN( Elem.offsetLeft ) ) {
-                            offsetLeft += (Elem.offsetLeft);
-                        }
-                        Elem = Elem.offsetParent;
-                    } while( Elem );
-                    return offsetLeft;
-                };
-
-                // calculate position based on gravity
-                var tLeft, tTop;
-                switch (gravity) {
-                    case 'e':
-                        left = pos[0] - width - distance;
-                        top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft < scrollLeft) left = pos[0] + distance > scrollLeft ? pos[0] + distance : scrollLeft - tLeft + left;
-                        if (tTop < scrollTop) top = scrollTop - tTop + top;
-                        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                        break;
-                    case 'w':
-                        left = pos[0] + distance;
-                        top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft + width > windowWidth) left = pos[0] - width - distance;
-                        if (tTop < scrollTop) top = scrollTop - tTop + top;
-                        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                        break;
-                    case 'n':
-                        left = pos[0] - (width / 2) - 5;
-                        top = pos[1] + distance;
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft < scrollLeft) left = scrollLeft + 5;
-                        if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                        if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
-                        break;
-                    case 's':
-                        left = pos[0] - (width / 2);
-                        top = pos[1] - height - distance;
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        if (tLeft < scrollLeft) left = scrollLeft + 5;
-                        if (tLeft + width > windowWidth) left = left - width/2 + 5;
-                        if (scrollTop > tTop) top = scrollTop;
-                        break;
-                    case 'none':
-                        left = pos[0];
-                        top = pos[1] - distance;
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        break;
-                    case 'center':
-                        left = pos[0] - (width / 2);
-                        top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(tooltipElem);
-                        tTop = tooltipTop(tooltipElem);
-                        break;
-                }
-
-                // adjust tooltip offsets
-                left -= offset.left;
-                top -= offset.top;
-
-                // using tooltip.style('transform') returns values un-usable for tween
-                var box = tooltipElem.getBoundingClientRect();
-                var scrollTop  = window.pageYOffset || document.documentElement.scrollTop;
-                var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-                var old_translate = 'translate(' + (box.left + scrollLeft) + 'px, ' + (box.top + scrollTop) + 'px)';
-                var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
-                var translateInterpolator = d3.interpolateString(old_translate, new_translate);
-
-                var is_hidden = tooltip.style('opacity') < 0.1;
-
-                // delay hiding a bit to avoid flickering
-                if (hidden) {
-                    tooltip
-                        .transition()
-                        .delay(hideDelay)
-                        .duration(0)
-                        .style('opacity', 0);
-                } else {
-                    tooltip
-                        .interrupt() // cancel running transitions
-                        .transition()
-                        .duration(is_hidden ? 0 : duration)
-                        // using tween since some versions of d3 can't auto-tween a translate on a div
-                        .styleTween('transform', function (d) {
-                            return translateInterpolator;
-                        }, 'important')
-                        // Safari has its own `-webkit-transform` and does not support `transform`
-                        .styleTween('-webkit-transform', function (d) {
-                            return translateInterpolator;
-                        })
-                        .style('-ms-transform', new_translate)
-                        .style('opacity', 1);
-                }
-
-
-
-            });
-        };
-
-        //In situations where the chart is in a 'viewBox', re-position the tooltip based on how far chart is zoomed.
-        function convertViewBoxRatio() {
-            if (chartContainer) {
-                var svg = d3.select(chartContainer);
-                if (svg.node().tagName !== "svg") {
-                    svg = svg.select("svg");
-                }
-                var viewBox = (svg.node()) ? svg.attr('viewBox') : null;
-                if (viewBox) {
-                    viewBox = viewBox.split(' ');
-                    var ratio = parseInt(svg.style('width'), 10) / viewBox[2];
-
-                    position.left = position.left * ratio;
-                    position.top  = position.top * ratio;
-                }
-            }
-        }
-
-        //Creates new tooltip container, or uses existing one on DOM.
-        function initTooltip() {
-            if (!tooltip) {
-                var body;
-                if (chartContainer) {
-                    body = chartContainer;
-                } else {
-                    body = document.body;
-                }
-                //Create new tooltip div if it doesn't exist on DOM.
-                tooltip = d3.select(body).append("div")
-                    .attr("class", "nvtooltip " + (classes ? classes : "xy-tooltip"))
-                    .attr("id", id);
-                tooltip.style("top", 0).style("left", 0);
-                tooltip.style('opacity', 0);
-                tooltip.selectAll("div, table, td, tr").classed(nvPointerEventsClass, true);
-                tooltip.classed(nvPointerEventsClass, true);
-                tooltipElem = tooltip.node();
-            }
-        }
-
-        //Draw the tooltip onto the DOM.
-        function nvtooltip() {
-            if (!enabled) return;
-            if (!dataSeriesExists(data)) return;
-
-            convertViewBoxRatio();
-
-            var left = position.left;
-            var top = (fixedTop !== null) ? fixedTop : position.top;
-
-            nv.dom.write(function () {
-                initTooltip();
-                // generate data and set it into tooltip
-                // Bonus - If you override contentGenerator and return falsey you can use something like
-                //         React or Knockout to bind the data for your tooltip
-                var newContent = contentGenerator(data);
-                if (newContent) {
-                    tooltipElem.innerHTML = newContent;
-                }
-
-                if (chartContainer && isInteractiveLayer) {
-                    nv.dom.read(function() {
-                        var svgComp = chartContainer.getElementsByTagName("svg")[0];
-                        var svgOffset = {left:0,top:0};
-                        if (svgComp) {
-                            var svgBound = svgComp.getBoundingClientRect();
-                            var chartBound = chartContainer.getBoundingClientRect();
-                            var svgBoundTop = svgBound.top;
-
-                            //Defensive code. Sometimes, svgBoundTop can be a really negative
-                            //  number, like -134254. That's a bug.
-                            //  If such a number is found, use zero instead. FireFox bug only
-                            if (svgBoundTop < 0) {
-                                var containerBound = chartContainer.getBoundingClientRect();
-                                svgBoundTop = (Math.abs(svgBoundTop) > containerBound.height) ? 0 : svgBoundTop;
-                            }
-                            svgOffset.top = Math.abs(svgBoundTop - chartBound.top);
-                            svgOffset.left = Math.abs(svgBound.left - chartBound.left);
-                        }
-                        //If the parent container is an overflow <div> with scrollbars, subtract the scroll offsets.
-                        //You need to also add any offset between the <svg> element and its containing <div>
-                        //Finally, add any offset of the containing <div> on the whole page.
-                        left += chartContainer.offsetLeft + svgOffset.left - 2*chartContainer.scrollLeft;
-                        top += chartContainer.offsetTop + svgOffset.top - 2*chartContainer.scrollTop;
-
-                        if (snapDistance && snapDistance > 0) {
-                            top = Math.floor(top/snapDistance) * snapDistance;
-                        }
-                        calcTooltipPosition([left,top]);
-                    });
-                } else {
-                    calcTooltipPosition([left,top]);
-                }
-            });
-
-            return nvtooltip;
-        }
-
-        nvtooltip.nvPointerEventsClass = nvPointerEventsClass;
-        nvtooltip.options = nv.utils.optionsFunc.bind(nvtooltip);
-
-        nvtooltip._options = Object.create({}, {
-            // simple read/write options
-            duration: {get: function(){return duration;}, set: function(_){duration=_;}},
-            gravity: {get: function(){return gravity;}, set: function(_){gravity=_;}},
-            distance: {get: function(){return distance;}, set: function(_){distance=_;}},
-            snapDistance: {get: function(){return snapDistance;}, set: function(_){snapDistance=_;}},
-            classes: {get: function(){return classes;}, set: function(_){classes=_;}},
-            chartContainer: {get: function(){return chartContainer;}, set: function(_){chartContainer=_;}},
-            fixedTop: {get: function(){return fixedTop;}, set: function(_){fixedTop=_;}},
-            enabled: {get: function(){return enabled;}, set: function(_){enabled=_;}},
-            hideDelay: {get: function(){return hideDelay;}, set: function(_){hideDelay=_;}},
-            contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
-            valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
-            headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
-            keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
-            headerEnabled:   {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
-
-            // internal use only, set by interactive layer to adjust position.
-            _isInteractiveLayer: {get: function(){return isInteractiveLayer;}, set: function(_){isInteractiveLayer=!!_;}},
-
-            // options with extra logic
-            position: {get: function(){return position;}, set: function(_){
-                position.left = _.left !== undefined ? _.left : position.left;
-                position.top  = _.top  !== undefined ? _.top  : position.top;
-            }},
-            offset: {get: function(){return offset;}, set: function(_){
-                offset.left = _.left !== undefined ? _.left : offset.left;
-                offset.top  = _.top  !== undefined ? _.top  : offset.top;
-            }},
-            hidden: {get: function(){return hidden;}, set: function(_){
-                if (hidden != _) {
-                    hidden = !!_;
-                    nvtooltip();
-                }
-            }},
-            data: {get: function(){return data;}, set: function(_){
-                // if showing a single data point, adjust data format with that
-                if (_.point) {
-                    _.value = _.point.x;
-                    _.series = _.series || {};
-                    _.series.value = _.point.y;
-                    _.series.color = _.point.color || _.series.color;
-                }
-                data = _;
-            }},
-
-            // read only properties
-            tooltipElem: {get: function(){return tooltipElem;}, set: function(_){}},
-            id: {get: function(){return id;}, set: function(_){}}
-        });
-
-        nv.utils.initOptions(nvtooltip);
-        return nvtooltip;
     };
 
-})();
+    // Format function for the tooltip values column.
+    var valueFormatter = function(d, i) {
+        return d;
+    };
+
+    // Format function for the tooltip header value.
+    var headerFormatter = function(d) {
+        return d;
+    };
+
+    var keyFormatter = function(d, i) {
+        return d;
+    };
+
+    // By default, the tooltip model renders a beautiful table inside a DIV.
+    // You can override this function if a custom tooltip is desired.
+    var contentGenerator = function(d) {
+        if (d === null) {
+            return '';
+        }
+
+        var table = d3.select(document.createElement("table"));
+        if (headerEnabled) {
+            var theadEnter = table.selectAll("thead")
+                .data([d])
+                .enter().append("thead");
+
+            theadEnter.append("tr")
+                .append("td")
+                .attr("colspan", 3)
+                .append("strong")
+                .classed("x-value", true)
+                .html(headerFormatter(d.value));
+        }
+
+        var tbodyEnter = table.selectAll("tbody")
+            .data([d])
+            .enter().append("tbody");
+
+        var trowEnter = tbodyEnter.selectAll("tr")
+                .data(function(p) { return p.series})
+                .enter()
+                .append("tr")
+                .classed("highlight", function(p) { return p.highlight});
+
+        trowEnter.append("td")
+            .classed("legend-color-guide",true)
+            .append("div")
+            .style("background-color", function(p) { return p.color});
+
+        trowEnter.append("td")
+            .classed("key",true)
+            .classed("total",function(p) { return !!p.total})
+            .html(function(p, i) { return keyFormatter(p.key, i)});
+
+        trowEnter.append("td")
+            .classed("value",true)
+            .html(function(p, i) { return valueFormatter(p.value, i) });
+
+        trowEnter.selectAll("td").each(function(p) {
+            if (p.highlight) {
+                var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
+                var opacity = 0.6;
+                d3.select(this)
+                    .style("border-bottom-color", opacityScale(opacity))
+                    .style("border-top-color", opacityScale(opacity))
+                ;
+            }
+        });
+
+        var html = table.node().outerHTML;
+        if (d.footer !== undefined)
+            html += "<div class='footer'>" + d.footer + "</div>";
+        return html;
+
+    };
+
+    var dataSeriesExists = function(d) {
+        if (d && d.series) {
+            if (d.series instanceof Array) {
+                return !!d.series.length;
+            }
+            // if object, it's okay just convert to array of the object
+            if (d.series instanceof Object) {
+                d.series = [d.series];
+                return true;
+            }
+        }
+        return false;
+    };
+
+    // Calculates the gravity offset of the tooltip. Parameter is position of tooltip
+    // relative to the viewport.
+    var calcGravityOffset = function(pos) {
+        var height = tooltip.node().offsetHeight,
+            width = tooltip.node().offsetWidth,
+            clientWidth = document.documentElement.clientWidth, // Don't want scrollbars.
+            clientHeight = document.documentElement.clientHeight, // Don't want scrollbars.
+            left, top, tmp;
+
+        // calculate position based on gravity
+        switch (gravity) {
+            case 'e':
+                left = - width - distance;
+                top = - (height / 2);
+                if(pos.left + left < 0) left = distance;
+                if((tmp = pos.top + top) < 0) top -= tmp;
+                if((tmp = pos.top + top + height) > clientHeight) top -= tmp - clientHeight;
+                break;
+            case 'w':
+                left = distance;
+                top = - (height / 2);
+                if (pos.left + left + width > clientWidth) left = - width - distance;
+                if ((tmp = pos.top + top) < 0) top -= tmp;
+                if ((tmp = pos.top + top + height) > clientHeight) top -= tmp - clientHeight;
+                break;
+            case 'n':
+                left = - (width / 2) - 5; // - 5 is an approximation of the mouse's height.
+                top = distance;
+                if (pos.top + top + height > clientHeight) top = - height - distance;
+                if ((tmp = pos.left + left) < 0) left -= tmp;
+                if ((tmp = pos.left + left + width) > clientWidth) left -= tmp - clientWidth;
+                break;
+            case 's':
+                left = - (width / 2);
+                top = - height - distance;
+                if (pos.top + top < 0) top = distance;
+                if ((tmp = pos.left + left) < 0) left -= tmp;
+                if ((tmp = pos.left + left + width) > clientWidth) left -= tmp - clientWidth;
+                break;
+            case 'center':
+                left = - (width / 2);
+                top = - (height / 2);
+                break;
+            default:
+                left = 0;
+                top = 0;
+                break;
+        }
+
+        return { 'left': left, 'top': top };
+    };
+
+    /*
+     Positions the tooltip in the correct place, as given by the position() function.
+     */
+    var positionTooltip = function() {
+        nv.dom.read(function() {
+            var pos = position(),
+                gravityOffset = calcGravityOffset(pos),
+                left = pos.left + gravityOffset.left,
+                top = pos.top + gravityOffset.top;
+
+            // delay hiding a bit to avoid flickering
+            if (hidden) {
+                tooltip
+                    .interrupt()
+                    .transition()
+                    .delay(hideDelay)
+                    .duration(0)
+                    .style('opacity', 0);
+            } else {
+                // using tooltip.style('transform') returns values un-usable for tween
+                var old_translate = 'translate(' + lastPosition.left + 'px, ' + lastPosition.top + 'px)';
+                var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
+                var translateInterpolator = d3.interpolateString(old_translate, new_translate);
+                var is_hidden = tooltip.style('opacity') < 0.1;
+
+                tooltip
+                    .interrupt() // cancel running transitions
+                    .transition()
+                    .duration(is_hidden ? 0 : duration)
+                    // using tween since some versions of d3 can't auto-tween a translate on a div
+                    .styleTween('transform', function (d) {
+                        return translateInterpolator;
+                    }, 'important')
+                    // Safari has its own `-webkit-transform` and does not support `transform`
+                    .styleTween('-webkit-transform', function (d) {
+                        return translateInterpolator;
+                    })
+                    .style('-ms-transform', new_translate)
+                    .style('opacity', 1);
+            }
+
+            lastPosition.left = left;
+            lastPosition.top = top;
+        });
+    };
+
+    // Creates new tooltip container, or uses existing one on DOM.
+    function initTooltip() {
+        if (!tooltip) {
+            var container = chartContainer ? chartContainer : document.body;
+
+            // Create new tooltip div if it doesn't exist on DOM.
+            tooltip = d3.select(container).append("div")
+                .attr("class", "nvtooltip " + (classes ? classes : "xy-tooltip"))
+                .attr("id", id);
+            tooltip.style("top", 0).style("left", 0);
+            tooltip.style('opacity', 0);
+            tooltip.style('position', 'fixed');
+            tooltip.selectAll("div, table, td, tr").classed(nvPointerEventsClass, true);
+            tooltip.classed(nvPointerEventsClass, true);
+        }
+    }
+
+    // Draw the tooltip onto the DOM.
+    function nvtooltip() {
+        if (!enabled) return;
+        if (!dataSeriesExists(data)) return;
+
+        nv.dom.write(function () {
+            initTooltip();
+            // Generate data and set it into tooltip.
+            // Bonus - If you override contentGenerator and return falsey you can use something like
+            //         React or Knockout to bind the data for your tooltip.
+            var newContent = contentGenerator(data);
+            if (newContent) {
+                tooltip.node().innerHTML = newContent;
+            }
+
+            positionTooltip();
+        });
+
+        return nvtooltip;
+    }
+
+    nvtooltip.nvPointerEventsClass = nvPointerEventsClass;
+    nvtooltip.options = nv.utils.optionsFunc.bind(nvtooltip);
+
+    nvtooltip._options = Object.create({}, {
+        // simple read/write options
+        duration: {get: function(){return duration;}, set: function(_){duration=_;}},
+        gravity: {get: function(){return gravity;}, set: function(_){gravity=_;}},
+        distance: {get: function(){return distance;}, set: function(_){distance=_;}},
+        snapDistance: {get: function(){return snapDistance;}, set: function(_){snapDistance=_;}},
+        classes: {get: function(){return classes;}, set: function(_){classes=_;}},
+        chartContainer: {get: function(){return chartContainer;}, set: function(_){chartContainer=_;}},
+        enabled: {get: function(){return enabled;}, set: function(_){enabled=_;}},
+        hideDelay: {get: function(){return hideDelay;}, set: function(_){hideDelay=_;}},
+        contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
+        valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
+        headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
+        keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
+        headerEnabled: {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
+        position: {get: function(){return position;}, set: function(_){position=_;}},
+
+        // options with extra logic
+        hidden: {get: function(){return hidden;}, set: function(_){
+            if (hidden != _) {
+                hidden = !!_;
+                nvtooltip();
+            }
+        }},
+        data: {get: function(){return data;}, set: function(_){
+            // if showing a single data point, adjust data format with that
+            if (_.point) {
+                _.value = _.point.x;
+                _.series = _.series || {};
+                _.series.value = _.point.y;
+                _.series.color = _.point.color || _.series.color;
+            }
+            data = _;
+        }},
+
+        // read only properties
+        node: {get: function(){return tooltip.node();}, set: function(_){}},
+        id: {get: function(){return id;}, set: function(_){}}
+    });
+
+    nv.utils.initOptions(nvtooltip);
+    return nvtooltip;
+};
 
 
 /*
@@ -1549,7 +1451,33 @@ nv.utils.noData = function(chart, container) {
         .attr('y', y)
         .text(function(t){ return t; });
 };
-nv.models.axis = function() {
+
+/*
+ Wrap long labels.
+ */
+nv.utils.wrapTicks = function (text, width) {
+    text.each(function() {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1,
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+        while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+            }
+        }
+    });
+};nv.models.axis = function() {
     "use strict";
 
     //============================================================
@@ -2264,9 +2192,8 @@ nv.models.boxPlotChart = function() {
         , x
         , y
         , noData = "No Data Available."
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'beforeUpdate', 'renderEnd')
+        , dispatch = d3.dispatch('beforeUpdate', 'renderEnd')
         , duration = 250
-        , tooltips
         ;
 
     xAxis
@@ -2278,7 +2205,7 @@ nv.models.boxPlotChart = function() {
         .orient((rightAlignYAxis) ? 'right' : 'left')
         .tickFormat(d3.format(',.1f'))
     ;
-    
+
     tooltip.duration(0);
 
     //============================================================
@@ -2309,7 +2236,7 @@ nv.models.boxPlotChart = function() {
             chart.container = this;
 
             // Display No Data message if there's nothing to show. (quartiles required at minimum)
-            if (!data || !data.length || 
+            if (!data || !data.length ||
                     !data.filter(function(d) { return d.values.hasOwnProperty("Q1") && d.values.hasOwnProperty("Q2") && d.values.hasOwnProperty("Q3"); }).length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
@@ -2429,7 +2356,7 @@ nv.models.boxPlotChart = function() {
     });
 
     boxplot.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -2451,7 +2378,6 @@ nv.models.boxPlotChart = function() {
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
         showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
-        tooltips:    {get: function(){return tooltips;}, set: function(_){tooltips=_;}},
         tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
 
@@ -2484,6 +2410,7 @@ nv.models.boxPlotChart = function() {
 
     return chart;
 }
+
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
@@ -2743,10 +2670,12 @@ nv.models.bulletChart = function() {
         , tickFormat = null
 	, ticks = null
         , noData = null
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide')
+        , dispatch = d3.dispatch()
         ;
 
-    tooltip.duration(0).headerEnabled(false);
+    tooltip
+        .duration(0)
+        .headerEnabled(false);
 
     function chart(selection) {
         selection.each(function(d, i) {
@@ -2884,7 +2813,7 @@ nv.models.bulletChart = function() {
     });
 
     bullet.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -2907,18 +2836,6 @@ nv.models.bulletChart = function() {
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
         ticks:    {get: function(){return ticks;}, set: function(_){ticks=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -2971,7 +2888,7 @@ nv.models.candlestickBar = function() {
         , yDomain
         , xRange
         , yRange
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove')
+        , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove')
         ;
 
     //============================================================
@@ -3639,7 +3556,6 @@ nv.models.cumulativeLineChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
                         return yAxis.tickFormat()(d);
@@ -3703,7 +3619,7 @@ nv.models.cumulativeLineChart = function() {
             color: evt.point.color
         };
         evt.point = point;
-        tooltip.data(evt).position(evt.pos).hidden(false);
+        tooltip.data(evt).hidden(false);
     });
 
     lines.dispatch.on('elementMouseout.tooltip', function(evt) {
@@ -3777,18 +3693,6 @@ nv.models.cumulativeLineChart = function() {
         showXAxis:    {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         noErrorCheck:    {get: function(){return noErrorCheck;}, set: function(_){noErrorCheck=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -4099,6 +4003,8 @@ nv.models.discreteBarChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , staggerLabels = false
+        , wrapLabels = false
+        , rotateLabels = 0
         , x
         , y
         , noData = null
@@ -4220,6 +4126,18 @@ nv.models.discreteBarChart = function() {
                         .selectAll('text')
                         .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
                 }
+
+                if (rotateLabels) {
+                    xTicks
+                        .selectAll('.tick text')
+                        .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
+                        .style('text-anchor', rotateLabels > 0 ? 'start' : 'end');
+                }
+
+                if (wrapLabels) {
+                    g.selectAll('.tick text')
+                        .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
+                }
             }
 
             if (showYAxis) {
@@ -4262,7 +4180,7 @@ nv.models.discreteBarChart = function() {
     });
 
     discretebar.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -4282,21 +4200,11 @@ nv.models.discreteBarChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
+        rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
+        wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
         showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -5271,7 +5179,6 @@ nv.models.historicalBarChart = function(bar_model) {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
                         return yAxis.tickFormat()(d);
@@ -5355,7 +5262,7 @@ nv.models.historicalBarChart = function(bar_model) {
     });
 
     bars.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -5382,18 +5289,6 @@ nv.models.historicalBarChart = function(bar_model) {
         showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -6338,7 +6233,6 @@ nv.models.lineChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
-                    .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
                         return d == null ? "N/A" : yAxis.tickFormat()(d);
@@ -6404,11 +6298,11 @@ nv.models.lineChart = function() {
     //------------------------------------------------------------
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.data(evt).position(evt.pos).hidden(false);
+        tooltip.data(evt).hidden(false);
     });
 
     lines.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.hidden(true)
+        tooltip.hidden(true);
     });
 
     //============================================================
@@ -6436,18 +6330,6 @@ nv.models.lineChart = function() {
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -6984,7 +6866,6 @@ nv.models.linePlusBarChart = function() {
                 return y2Axis.tickFormat()(d, i);
             })
             .data(evt)
-            .position(evt.pos)
             .hidden(false);
     });
 
@@ -7012,7 +6893,7 @@ nv.models.linePlusBarChart = function() {
     });
 
     bars.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -7052,18 +6933,6 @@ nv.models.linePlusBarChart = function() {
         focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
         legendLeftAxisHint:    {get: function(){return legendLeftAxisHint;}, set: function(_){legendLeftAxisHint=_;}},
         legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -7265,7 +7134,7 @@ nv.models.lineWithFocusChart = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            
+
             //Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
@@ -7408,7 +7277,7 @@ nv.models.lineWithFocusChart = function() {
                             var currentValues = series.values.filter(function(d,i) {
                             return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                         });
- 
+
                         pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
@@ -7436,7 +7305,6 @@ nv.models.lineWithFocusChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
-                    .position({left: e.mouseX + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
                         return d == null ? "N/A" : yAxis.tickFormat()(d);
@@ -7525,6 +7393,7 @@ nv.models.lineWithFocusChart = function() {
                             return {
                                 key: d.key,
                                 area: d.area,
+                                classed: d.classed,
                                 values: d.values.filter(function(d,i) {
                                     return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                                 })
@@ -7550,7 +7419,7 @@ nv.models.lineWithFocusChart = function() {
     //------------------------------------------------------------
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.data(evt).position(evt.pos).hidden(false);
+        tooltip.data(evt).hidden(false);
     });
 
     lines.dispatch.on('elementMouseout.tooltip', function(evt) {
@@ -7584,18 +7453,6 @@ nv.models.lineWithFocusChart = function() {
         brushExtent: {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -8108,6 +7965,7 @@ nv.models.multiBarChart = function() {
         , rightAlignYAxis = false
         , reduceXTicks = true // if false a tick will show for every data point
         , staggerLabels = false
+        , wrapLabels = false
         , rotateLabels = 0
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
@@ -8326,6 +8184,11 @@ nv.models.multiBarChart = function() {
                         });
                 }
 
+                if (wrapLabels) {
+                    g.selectAll('.tick text')
+                        .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
+                }
+
                 if (reduceXTicks)
                     xTicks
                         .filter(function(d,i) {
@@ -8429,7 +8292,7 @@ nv.models.multiBarChart = function() {
     });
 
     multibar.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -8462,18 +8325,7 @@ nv.models.multiBarChart = function() {
         reduceXTicks:    {get: function(){return reduceXTicks;}, set: function(_){reduceXTicks=_;}},
         rotateLabels:    {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         staggerLabels:    {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
+        wrapLabels:   {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -8779,7 +8631,7 @@ nv.models.multiBarHorizontal = function() {
                     })
                     .select('rect')
                     .attr('width', function(d,i) {
-                        return Math.abs(y(getY(d,i) + d.y0) - y(d.y0))
+                        return Math.abs(y(getY(d,i) + d.y0) - y(d.y0)) || 0
                     })
                     .attr('height', x.rangeBand() );
             else
@@ -8797,7 +8649,7 @@ nv.models.multiBarHorizontal = function() {
                     .select('rect')
                     .attr('height', x.rangeBand() / data.length )
                     .attr('width', function(d,i) {
-                        return Math.max(Math.abs(y(getY(d,i)) - y(0)),1)
+                        return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0
                     });
 
             //store old scales for use in transitions on update
@@ -9174,7 +9026,7 @@ nv.models.multiBarHorizontalChart = function() {
     });
 
     multibar.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -9204,18 +9056,6 @@ nv.models.multiBarHorizontalChart = function() {
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -9338,7 +9178,7 @@ nv.models.multiChart = function() {
                     })
                 });
 
-            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
+            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return getX(d) }))
                 .range([0, availableWidth]);
 
             var wrap = container.selectAll('g.wrap.multiChart').data([data]);
@@ -9525,12 +9365,11 @@ nv.models.multiChart = function() {
                     key: evt.series.key
                 };
                 tooltip
-                    .duration(100)
+                    .duration(0)
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(evt.pos)
                     .hidden(false);
             }
 
@@ -9539,7 +9378,8 @@ nv.models.multiChart = function() {
                 evt.value = evt.point.x;
                 evt.series = {
                     value: evt.point.y,
-                    color: evt.point.color
+                    color: evt.point.color,
+                    key: evt.series.key
                 };
                 tooltip
                     .duration(100)
@@ -9547,7 +9387,6 @@ nv.models.multiChart = function() {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(evt.pos)
                     .hidden(false);
             }
 
@@ -9556,12 +9395,11 @@ nv.models.multiChart = function() {
                 evt.point['x'] = stack1.x()(evt.point);
                 evt.point['y'] = stack1.y()(evt.point);
                 tooltip
-                    .duration(100)
+                    .duration(0)
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(evt.pos)
                     .hidden(false);
             }
 
@@ -9571,7 +9409,8 @@ nv.models.multiChart = function() {
                 evt.value = bars1.x()(evt.data);
                 evt['series'] = {
                     value: bars1.y()(evt.data),
-                    color: evt.color
+                    color: evt.color,
+                    key: evt.data.key
                 };
                 tooltip
                     .duration(0)
@@ -9619,10 +9458,10 @@ nv.models.multiChart = function() {
                 tooltip.hidden(true);
             });
             bars1.dispatch.on('elementMousemove.tooltip', function(evt) {
-                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+                tooltip();
             });
             bars2.dispatch.on('elementMousemove.tooltip', function(evt) {
-                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+                tooltip();
             });
 
         });
@@ -9660,18 +9499,6 @@ nv.models.multiChart = function() {
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -9749,7 +9576,7 @@ nv.models.ohlcBar = function() {
         , yDomain
         , xRange
         , yRange
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove')
+        , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd', 'chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove')
         ;
 
     //============================================================
@@ -10703,12 +10530,12 @@ nv.models.pieChart = function() {
         , defaultState = null
         , noData = null
         , duration = 250
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
+        , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
         ;
 
     tooltip
-        .headerEnabled(false)
         .duration(0)
+        .headerEnabled(false)
         .valueFormatter(function(d, i) {
             return pie.valueFormat()(d, i);
         });
@@ -10874,7 +10701,7 @@ nv.models.pieChart = function() {
     });
 
     pie.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -10895,18 +10722,6 @@ nv.models.pieChart = function() {
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
@@ -11774,7 +11589,7 @@ nv.models.scatterChart = function() {
                     .attr('y1', evt.relativePos[1] - availableHeight);
                 container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', evt.relativePos[0] + distX.size());
-                tooltip.position(evt.pos).data(evt).hidden(false);
+                tooltip.data(evt).hidden(false);
             });
 
             //store old scales for use in transitions on update
@@ -11815,26 +11630,6 @@ nv.models.scatterChart = function() {
         defaultState:     {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:     {get: function(){return noData;}, set: function(_){noData=_;}},
         duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
-        tooltipXContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'This option is removed, put values into main tooltip.');
-        }},
-        tooltipYContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'This option is removed, put values into main tooltip.');
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -12949,7 +12744,6 @@ nv.models.stackedAreaChart = function() {
                 }
 
                 interactiveLayer.tooltip
-                    .position({left: pointXLocation + margin.left, top: e.mouseY + margin.top})
                     .chartContainer(that.parentNode)
                     .valueFormatter(valueFormatter)
                     .data(
@@ -12999,7 +12793,7 @@ nv.models.stackedAreaChart = function() {
     stacked.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt.point['x'] = stacked.x()(evt.point);
         evt.point['y'] = stacked.y()(evt.point);
-        tooltip.data(evt).position(evt.pos).hidden(false);
+        tooltip.data(evt).hidden(false);
     });
 
     stacked.dispatch.on('elementMouseout.tooltip', function(evt) {
@@ -13037,18 +12831,6 @@ nv.models.stackedAreaChart = function() {
         controlOptions:    {get: function(){return controlOptions;}, set: function(_){controlOptions=_;}},
         showTotalInTooltip:      {get: function(){return showTotalInTooltip;}, set: function(_){showTotalInTooltip=_;}},
         totalLabel:      {get: function(){return totalLabel;}, set: function(_){totalLabel=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -13309,17 +13091,21 @@ nv.models.sunburstChart = function() {
         , defaultState = null
         , noData = null
         , duration = 250
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
+        , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
         ;
+
+    tooltip.duration(0);
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch);
-    tooltip.headerEnabled(false).duration(0).valueFormatter(function(d, i) {
-        return d;
-    });
+    tooltip
+        .headerEnabled(false)
+        .valueFormatter(function(d, i) {
+            return d;
+        });
 
     //============================================================
     // Chart function
@@ -13391,7 +13177,7 @@ nv.models.sunburstChart = function() {
     });
 
     sunburst.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
