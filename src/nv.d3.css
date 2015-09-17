@@ -634,6 +634,13 @@ svg.nvd3-svg {
   text-shadow: 0 1px 0 #fff;
 }
 
+.nvd3 .missingValuesline line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1;
+  stroke-opacity: 1;
+  stroke-dasharray: 5, 5; 
+}
 /****
 Interactive Layer
 */
