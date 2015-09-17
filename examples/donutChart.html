@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
     <script src="lib/stream_layers.js"></script>
 
@@ -15,9 +15,16 @@
         svg {
             display: block;
             float: left;
-            height: 350px;
-            width: 350px;
         }
+        #test2 {
+            height: 350px !important;
+            width: 350px !important;
+        }
+        #test1 {
+            height: 350px !important;
+            width: 350px !important;
+        }
+
         html, body {
             margin: 0px;
             padding: 0px;
@@ -30,7 +37,6 @@
         }
 
         .nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {
-            font-size: 45px;
             opacity: 0.4;
             fill: rgba(224, 116, 76, 0.91);
         }
@@ -43,6 +49,8 @@
 
 <svg id="test2" class="mypiechart"></svg>
 
+
+
 <script>
 
     var testdata = [
@@ -52,14 +60,15 @@
         {key: "Four", y: 7},
         {key: "Five", y: 4},
         {key: "Six", y: 3},
-        {key: "Seven", y: 0.5},
+        {key: "Seven", y: 0.5}
     ];
 
     var height = 350;
     var width = 350;
 
+    var chart1;
     nv.addGraph(function() {
-        var chart = nv.models.pieChart()
+        var chart1 = nv.models.pieChart()
             .x(function(d) { return d.key })
             .y(function(d) { return d.y })
             .donut(true)
@@ -69,22 +78,23 @@
             .cornerRadius(5)
             .id('donut1'); // allow custom CSS for this one svg
 
-        chart.title("100%");
-        chart.pie.donutLabelsOutside(true).donut(true);
+        chart1.title("100%");
+        chart1.pie.donutLabelsOutside(true).donut(true);
 
         d3.select("#test1")
             .datum(testdata)
             .transition().duration(1200)
-            .attr('width', width)
-            .attr('height', height)
-            .call(chart);
+            .call(chart1);
 
-        return chart;
+        //nv.utils.windowResize(chart1.update);
+
+        return chart1;
 
     });
 
+    var chart2;
     nv.addGraph(function() {
-        var chart = nv.models.pieChart()
+        var chart2 = nv.models.pieChart()
             .x(function(d) { return d.key })
             .y(function(d) { return d.y })
             //.labelThreshold(.08)
@@ -98,7 +108,7 @@
             .title("woot");
 
         // MAKES IT HALF CIRCLE
-        chart.pie
+        chart2.pie
             .startAngle(function(d) { return d.startAngle/2 -Math.PI/2 })
             .endAngle(function(d) { return d.endAngle/2 -Math.PI/2 });
 
@@ -106,12 +116,11 @@
             //.datum(historicalBarChart)
             .datum(testdata)
             .transition().duration(1200)
-            .attr('width', width)
-            .attr('height', height)
-            .call(chart);
+            .call(chart2);
 
-        return chart;
+        return chart2;
     });
+
 
 </script>
 </body>

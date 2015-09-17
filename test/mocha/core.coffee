@@ -5,7 +5,6 @@ describe 'NVD3', ->
     objects = [
       'window.nv'
       'd3_time_range'
-      'nv.tooltip'
       'nv.utils'
       'nv.models'
       'nv.charts'

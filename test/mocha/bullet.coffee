@@ -1,24 +1,12 @@
 describe 'NVD3', ->
 
     describe 'Bullet Chart', ->
-        removeAllTooltips = ->
-            elements = document.getElementsByClassName('nvtooltip')
-            while(elements[0])
-              elements[0].parentNode.removeChild(elements[0])
-
-        eventTooltipData =
-          point: {series: 0, x: -1, y: 1}
-          pointIndex: 0
-          pos: [210, 119]
-          series: {key: 'Series 1'}
-          seriesIndex: 0
-
         sampleData1 =
             title: 'Revenue'
             subtitle: 'US$ in thousands'
             ranges: [10,20,30]
             measures: [40]
-            markers: [50]
+            markers: [50, 100]
 
         options =
             orient: 'left'
@@ -34,8 +22,6 @@ describe 'NVD3', ->
             width: 100
             height: 110
             tickFormat: (d)-> d.toFixed 2
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
 
         builder1 = null
@@ -47,12 +33,17 @@ describe 'NVD3', ->
             builder1.teardown()
 
         it 'api check', ->
-            for opt of options
-                should.exist builder1.model[opt](), "#{opt} can be called"
+          should.exist builder1.model.options, 'options exposed'
+          for opt of options
+              should.exist builder1.model[opt](), "#{opt} can be called"
 
         it 'renders', ->
             wrap = builder1.$ 'g.nvd3.nv-bulletChart'
             should.exist wrap[0]
+
+        it 'displays multiple markers', ->
+          markers = document.querySelectorAll '.nv-markerTriangle'
+          markers.length.should.equal 2
 
         it 'has correct g.nvd3.nv-bulletChart position', ->
           chart = builder1.$ 'g.nvd3.nv-bulletChart'
@@ -74,16 +65,6 @@ describe 'NVD3', ->
           for cssClass in cssClasses
             do (cssClass) ->
               should.exist builder1.$("g.nvd3 #{cssClass}")[0]
-
-        it 'can show tooltip', ->
-
-          removeAllTooltips()
-
-          builder1.model.bullet.dispatch.elementMouseover eventTooltipData
-
-          tooltip = document.querySelector '.nvtooltip'
-          should.exist tooltip
-
 
         describe "applies correctly option", ->
 
@@ -139,6 +120,15 @@ describe 'NVD3', ->
             builder.build options, {}
             builder.svg.textContent.should.be.equal 'No Data Available'
 
+
+          it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.bulletChart()
+            builder.buildover options, sampleData, []
+            
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
+
+
           it 'margin', ->
             options =
               margin:
@@ -177,29 +167,3 @@ describe 'NVD3', ->
             builder.build options, sampleData
             parseInt( builder.$(".nv-rangeMax")[0].getAttribute('height') ).should.be.equal 300
 
-          it 'tooltips', ->
-
-            removeAllTooltips()
-
-            options =
-              tooltips: false
-
-            builder.build options, sampleData
-
-            builder.model.bullet.dispatch.elementMouseover eventTooltipData
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.not.exist tooltip
-
-          it 'tooltipContent', ->
-
-            removeAllTooltips()
-
-            options =
-              tooltipContent: (key)-> "<h2>#{key}</h2>"
-            builder.build options, sampleData
-
-            builder.model.bullet.dispatch.elementMouseover eventTooltipData
-
-            tooltip = document.querySelectorAll '.nvtooltip'
-            expect(tooltip[0].innerHTML).to.contain "<h2>Revenue</h2>"

@@ -47,10 +47,6 @@ describe 'NVD3', ->
             showXAxis: true
             showYAxis: true
             rightAlignYAxis: false
-            tooltips: true
-            tooltipContent: (d)-> "<h3>#{d}</h3>"
-            tooltipXContent: (d)-> 'x content'
-            tooltipYContent: (d)-> 'y content'
             noData: 'No Data Available'
             duration: 0
 
@@ -63,6 +59,7 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt], "#{opt} exists"
                 should.exist builder.model[opt](), "#{opt} can be called"
@@ -70,6 +67,13 @@ describe 'NVD3', ->
         it 'renders', ->
             wrap = builder.$ 'g.nvd3.nv-scatterChart'
             should.exist wrap[0]
+
+        it 'clears chart objects for no data', ->
+            builder = new ChartBuilder nv.models.scatterChart()
+            builder.buildover options, sampleData1, []
+
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
 
         it 'has correct structure', ->
           cssClasses = [
@@ -92,26 +96,6 @@ describe 'NVD3', ->
         it 'has a legend', ->
             legend = builder.$ '.nv-legendWrap'
             should.exist legend, 'legend exists'
-
-        it 'can show a tooltip', ->
-            eventData =
-                point:
-                    series: 0
-                    x: -1
-                    y: 1
-                pointIndex: 0
-                pos: [
-                    210
-                    119
-                ]
-                series:
-                    key: 'Series 1'
-                seriesIndex: 0
-
-            builder.model.scatter.dispatch.elementMouseover eventData
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.exist tooltip
 
         it 'shows no data message', ->
             builder.teardown()
@@ -152,3 +136,88 @@ describe 'NVD3', ->
 
             lines = builder.$ 'g.nvd3 .nv-regressionLinesWrap .nv-regLines'
             should.exist lines[0], 'regression lines exist'
+
+        it 'sets legend.width same as availableWidth', ->
+            builder.model.legend.width()
+            .should.equal builder.model.scatter.width()
+
+        it 'translates nv-wrap after legend height calculated', ->
+            builder.teardown()
+            sampleData4 = []
+            for i in [0..40]
+                sampleData4.push
+                    key: "Series #{i}"
+                    values: [
+                        [Math.random(),Math.random()]
+                    ]
+
+            builder.build options, sampleData4
+
+            transform = builder.$('.nv-wrap')[0].getAttribute('transform')
+            transform.should.equal 'translate(75,830)'
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
+
+        it 'only appends one nv-point-clips group', (done)->
+            builder2 = new ChartBuilder nv.models.scatterChart()
+
+            builder2.build options, sampleData1
+
+            window.setTimeout ->
+                builder2.model.update()
+                window.setTimeout((->
+                    pointClips = builder2.svg.querySelector '.nv-point-clips'
+                    should.exist pointClips, 'nv-point-clips exists'
+
+                    builder2.svg.querySelector('.nv-wrap.nv-scatter')
+                    .childElementCount.should.equal 3
+
+                    builder2.teardown()
+                    done()
+                ), 500)
+
+            , 500
+
+        it 'sets nv-single-point class if only one data point', ->
+            builder.teardown()
+
+            singleData = [
+                key: 'Series1'
+                values: [
+                    [1,1]
+                ]
+            ]
+
+            builder.build options, singleData
+
+            builder.svg.querySelector('.nv-wrap.nv-scatter')
+            .className.should.contain 'nv-single-point'
+
+            builder.updateData sampleData1
+
+            builder.svg.querySelector('.nv-wrap.nv-scatter')
+            .className.should.not.contain 'nv-single-point'
+
+            builder.updateData singleData
+
+            builder.svg.querySelector('.nv-wrap.nv-scatter')
+            .className.should.contain 'nv-single-point'
+
+        it 'should set color property if not specified', ->
+            builder.teardown()
+
+            singleData = [
+                key: 'Series1'
+                values: [
+                  [1,1]
+                ]
+            ]
+
+            builder.build options, singleData
+
+            should.exist singleData[0].color
