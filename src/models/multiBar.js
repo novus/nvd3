@@ -78,10 +78,10 @@ nv.models.multiBar = function() {
                 parsed.forEach(function(series, i){
                     // if series is non-stackable, use un-parsed data
                     if (series.nonStackable) {
-                        data[i].nonStackableSeries = nonStackableCount++; 
+                        data[i].nonStackableSeries = nonStackableCount++;
                         parsed[i] = data[i];
                     } else {
-                        // don't stack this seires on top of the nonStackable seriees 
+                        // don't stack this seires on top of the nonStackable seriees
                         if (i > 0 && parsed[i - 1].nonStackable){
                             parsed[i].values.map(function(d,j){
                                 d.y0 -= parsed[i - 1].values[j].y;
@@ -117,7 +117,7 @@ nv.models.multiBar = function() {
                                 posBase = posBase + f.size;
                             }
                         }
-                        
+
                     });
                 });
             }
@@ -254,10 +254,13 @@ nv.models.multiBar = function() {
                     });
                 })
                 .on('click', function(d,i) {
+                    var element = this;
                     dispatch.elementClick({
                         data: d,
                         index: i,
-                        color: d3.select(this).style("fill")
+                        color: d3.select(this).style("fill"),
+                        event: d3.event,
+                        element: element
                     });
                     d3.event.stopPropagation();
                 })
@@ -317,7 +320,7 @@ nv.models.multiBar = function() {
                         if (data[j].nonStackable) {
                             width = d.series * x.rangeBand() / data.length;
                             if (data.length !== nonStackableCount){
-                                width = data[j].nonStackableSeries * x.rangeBand()/(nonStackableCount*2); 
+                                width = data[j].nonStackableSeries * x.rangeBand()/(nonStackableCount*2);
                             }
                         }
                         return width;
@@ -328,7 +331,7 @@ nv.models.multiBar = function() {
                         } else {
                             // if all series are nonStacable, take the full width
                             var width = (x.rangeBand() / nonStackableCount);
-                            // otherwise, nonStackable graph will be only taking the half-width 
+                            // otherwise, nonStackable graph will be only taking the half-width
                             // of the x rangeBand
                             if (data.length !== nonStackableCount) {
                                 width = x.rangeBand()/(nonStackableCount*2);
