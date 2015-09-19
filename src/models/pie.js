@@ -182,7 +182,7 @@ nv.models.pie = function() {
                     data: d.data,
                     index: i,
                     color: d3.select(this).style("fill"),
-                    e: d3.event,
+                    event: d3.event,
                     element: element
                 });
             });

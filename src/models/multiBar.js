@@ -259,7 +259,7 @@ nv.models.multiBar = function() {
                         data: d,
                         index: i,
                         color: d3.select(this).style("fill"),
-                        e: d3.event,
+                        event: d3.event,
                         element: element
                     });
                     d3.event.stopPropagation();
