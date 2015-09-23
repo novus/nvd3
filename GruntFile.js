@@ -1,5 +1,8 @@
 module.exports = function(grunt) {
     var _pkg = grunt.file.readJSON('package.json');
+    // Meteor packages must have a number in order to play nicely
+    // with the packaging system
+    var versionNumber = _pkg.version.replace(/(\d\.\d\.\d).*$/g, "$1");
 
     //Project configuration.
     grunt.initConfig({
@@ -56,7 +59,7 @@ module.exports = function(grunt) {
                 overwrite: true,
                 replacements: [{
                     from: /(version?\s?=?\:?\s\')([\d\.]*)\'/gi,
-                    to: '$1' + _pkg.version + "'"
+                    to: '$1' + versionNumber + "'"
                 }]
             }
         },
@@ -125,6 +128,18 @@ module.exports = function(grunt) {
                     ]
                 }
             }
+        },
+        exec: {
+            "meteor-init": {
+                // Make sure that Meteor is installed.
+                command: "type meteor > /dev/null 2>&1 || { curl https://install.meteor.com/ | sh; }"
+            },
+            "meteor-test": {
+                command: "node_modules/.bin/spacejam test-packages ./"
+            },
+            "meteor-publish": {
+                command: "meteor publish"
+            }
         }
     });
 
@@ -136,9 +151,20 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-text-replace');
+    grunt.loadNpmTasks('grunt-exec');
 
     grunt.registerTask('default', ['concat','copy','karma:unit']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin', 'replace']);
-    grunt.registerTask('release', ['production']);
+    grunt.registerTask('release', ['production', 'meteor-publish']);
     grunt.registerTask('lint', ['jshint']);
+
+    // Meteor tasks
+    grunt.registerTask('meteor-test', ["exec:meteor-init", "exec:meteor-test"]);
+    grunt.registerTask(
+      'meteor-publish',
+      ["exec:meteor-init", "exec:meteor-test", "exec:meteor-publish"]
+    );
+
+    grunt.registerTask('cibuild', ["meteor-test"]);
 };
+

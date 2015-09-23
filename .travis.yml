@@ -14,5 +14,5 @@ install:
     - "npm install"
     - "bower install"
 
-script: "spacejam test-packages ./"
+script: "grunt cibuild"
 
