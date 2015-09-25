@@ -248,7 +248,7 @@ nv.models.lineChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    ._ticks(nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
                     .tickSize( -availableWidth, 0);
             }
             
