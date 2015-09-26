@@ -201,10 +201,10 @@ nv.models.lineChart = function() {
                 wrap.select(".nv-interactive").call(interactiveLayer);
             }
 
-            gEnter.select('.nv-background')
+            focusEnter.select('.nv-background')
                 .append('rect');
 
-            gEnter.select('.nv-background rect')
+            g.select('.nv-focus .nv-background rect')
                 .attr('width', availableWidth)
                 .attr('height', availableHeight1);
                 
