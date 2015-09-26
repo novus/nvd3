@@ -151,9 +151,6 @@ nv.models.lineChart = function() {
 
             gEnter.append('g').attr('class', 'nv-legendWrap');
 
-            g.select("rect")
-                .attr("width",availableWidth)
-                .attr("height",(availableHeight > 0) ? availableHeight : 0);
             var focusEnter = gEnter.append('g').attr('class', 'nv-focus');
             focusEnter.append('g').attr('class', 'nv-background');
             focusEnter.append('g').attr('class', 'nv-x nv-axis');
@@ -204,6 +201,13 @@ nv.models.lineChart = function() {
                 wrap.select(".nv-interactive").call(interactiveLayer);
             }
 
+            gEnter.select('.nv-background')
+                .append('rect');
+
+            gEnter.select('.nv-background rect')
+                .attr('width', availableWidth)
+                .attr('height', availableHeight1);
+                
             lines
                 .width(availableWidth)
                 .height(availableHeight1)
