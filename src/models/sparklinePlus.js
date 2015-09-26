@@ -21,9 +21,18 @@ nv.models.sparklinePlus = function() {
         , alignValue = true
         , rightAlignValue = false
         , noData = null
+        , dispatch = d3.dispatch('renderEnd')
         ;
+        
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    var renderWatch = nv.utils.renderWatch(dispatch);
 
     function chart(selection) {
+        renderWatch.reset();
+        renderWatch.models(sparkline);
         selection.each(function(data) {
             var container = d3.select(this);
             nv.utils.initSVG(container);
@@ -167,7 +176,8 @@ nv.models.sparklinePlus = function() {
             }
 
         });
-
+        
+        renderWatch.renderEnd('sparklinePlus immediate');
         return chart;
     }
 
