@@ -32,7 +32,7 @@ nv.models.sparklinePlus = function() {
 
     function chart(selection) {
         renderWatch.reset();
-        renderWatch.models(sparkline);
+       // renderWatch.models(sparkline);
         selection.each(function(data) {
             var container = d3.select(this);
             nv.utils.initSVG(container);
