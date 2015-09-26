@@ -71,9 +71,9 @@ nv.models.lineChart = function() {
     var stateGetter = function(data) {
         return function(){
             return {
-                active: data.map(function(d) { return !d.disabled })
+                active: data.map(function(d) { return !d.disabled; })
             };
-        }
+        };
     };
 
     var stateSetter = function(data) {
@@ -82,7 +82,7 @@ nv.models.lineChart = function() {
                 data.forEach(function(series,i) {
                     series.disabled = !state.active[i];
                 });
-        }
+        };
     };
 
     function chart(selection) {
@@ -116,7 +116,7 @@ nv.models.lineChart = function() {
                 .update();
 
             // DEPRECATED set state.disableddisabled
-            state.disabled = data.map(function(d) { return !!d.disabled });
+            state.disabled = data.map(function(d) { return !!d.disabled; });
 
             if (!defaultState) {
                 var key;
@@ -130,8 +130,8 @@ nv.models.lineChart = function() {
             }
 
             // Display noData message if there's nothing to show.
-            if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                nv.utils.noData(chart, container)
+            if (!data || !data.length || !data.filter(function(d) { return d.values.length; }).length) {
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();
@@ -180,7 +180,7 @@ nv.models.lineChart = function() {
                 }
 
                 wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
+                    .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -213,11 +213,11 @@ nv.models.lineChart = function() {
                 .height(availableHeight1)
                 .color(data.map(function(d,i) {
                     return d.color || color(d, i);
-                }).filter(function(d,i) { return !data[i].disabled }));
 
+                }).filter(function(d,i) { return !data[i].disabled; }));
 
             var linesWrap = g.select('.nv-linesWrap')
-                .datum(data.filter(function(d) { return !d.disabled }));
+                .datum(data.filter(function(d) { return !d.disabled; }));
 
             linesWrap.call(lines);
             
@@ -355,7 +355,7 @@ nv.models.lineChart = function() {
                         pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue != null) {
+                        if (pointYValue !== null) {
                             lines.highlightPoint(i, pointIndex, true);
                         }
                         if (point === undefined) return;
@@ -373,7 +373,7 @@ nv.models.lineChart = function() {
                     var yValue = chart.yScale().invert(e.mouseY);
                     var domainExtent = Math.abs(chart.yScale().domain()[0] - chart.yScale().domain()[1]);
                     var threshold = 0.03 * domainExtent;
-                    var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value}),yValue,threshold);
+                    var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value;}),yValue,threshold);
                     if (indexToHighlight !== null)
                         allData[indexToHighlight].highlight = true;
                 }
@@ -382,7 +382,7 @@ nv.models.lineChart = function() {
                 interactiveLayer.tooltip
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
-                        return d == null ? "N/A" : yAxis.tickFormat()(d);
+                        return d === null ? "N/A" : yAxis.tickFormat()(d);
                     })
                     .data({
                         value: xValue,
