@@ -176,7 +176,7 @@ nv.models.lineChart = function() {
 
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
-                    availableHeight1 = nv.utils.availableHeight(height, container, margin) - focusHeight;
+                    availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
                 }
 
                 wrap.select('.nv-legendWrap')
@@ -640,4 +640,10 @@ nv.models.lineChart = function() {
     nv.utils.initOptions(chart);
 
     return chart;
+};
+
+nv.models.lineWithFocusChart = function() {
+  return nv.models.lineChart()
+    .margin({ bottom: 30 }) 
+    .focusEnable( true );
 };
