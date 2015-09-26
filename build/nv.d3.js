@@ -12020,6 +12020,7 @@ nv.models.sparkline = function() {
         }}
     });
 
+    chart.dispatch = dispatch;
     nv.utils.initOptions(chart);
     return chart;
 };
@@ -12057,7 +12058,7 @@ nv.models.sparklinePlus = function() {
 
     function chart(selection) {
         renderWatch.reset();
-       // renderWatch.models(sparkline);
+        renderWatch.models(sparkline);
         selection.each(function(data) {
             var container = d3.select(this);
             nv.utils.initSVG(container);
@@ -12201,7 +12202,6 @@ nv.models.sparklinePlus = function() {
             }
 
         });
-        
         renderWatch.renderEnd('sparklinePlus immediate');
         return chart;
     }
@@ -12211,6 +12211,7 @@ nv.models.sparklinePlus = function() {
     //------------------------------------------------------------
 
     // expose chart's sub-components
+    chart.dispatch = dispatch;
     chart.sparkline = sparkline;
 
     chart.options = nv.utils.optionsFunc.bind(chart);

@@ -132,6 +132,7 @@ nv.models.sparkline = function() {
         }}
     });
 
+    chart.dispatch = dispatch;
     nv.utils.initOptions(chart);
     return chart;
 };
