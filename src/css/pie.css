@@ -22,8 +22,11 @@
     stroke-opacity: 1;
 }
 
-.nvd3.nv-pie .hover path {
+.nvd3.nv-pie path {
     fill-opacity: .7;
+}
+.nvd3.nv-pie .hover path {
+    fill-opacity: 1;
 }
 .nvd3.nv-pie .nv-label {
     pointer-events: none;
