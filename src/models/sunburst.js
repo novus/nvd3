@@ -80,7 +80,6 @@ nv.models.sunburst = function() {
                 .append("path")
                 .attr("d", arc)
                 .style("fill", function (d) {
-                    console.log(d, groupColorByParent);
                     if (d.color) {
                         return d.color;
                     }
