@@ -59,6 +59,15 @@ nv.models.sunburst = function() {
 
             var g = wrapEnter.selectAll('nv-sunburst');
 
+            chart.update = function() { 
+              if( duration === 0 )
+                 container.call(chart);
+               else
+                 container.transition().duration(duration).call(chart);
+            };
+            chart.container = this;
+
+
             wrap.attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
             container.on('click', function (d, i) {
