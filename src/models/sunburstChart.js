@@ -12,6 +12,7 @@ nv.models.sunburstChart = function() {
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
+        , groupColorByParent = true
         , id = Math.round(Math.random() * 100000)
         , defaultState = null
         , noData = null
@@ -125,6 +126,10 @@ nv.models.sunburstChart = function() {
         color: {get: function(){return color;}, set: function(_){
             color = _;
             sunburst.color(color);
+        }},
+        groupColorByParent: {get: function(){return groupColorByParent;}, set: function(_){
+          groupColorByParent = _;
+          sunburst.groupColorByParent(groupColorByParent);
         }},
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
