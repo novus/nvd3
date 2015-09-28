@@ -179,7 +179,7 @@
                         var desc = option_info[name]['desc'];
                         var def;
                         // if defaultValueGetter exists, it is a function to pull the actual default value from an instance of the chart
-                        if (option_info[name]['defaultValueGetter']) { 
+                        if (option_info[name]['defaultValueGetter']) {
                             var chartName = a.parent().attr('id').substring(3); // first 3 chars are a 'ul_' appended to the chart name
                             def = JSON.stringify(option_info[name]['defaultValueGetter'](nv.models[chartName]()), null, 1);
                         } else {
@@ -889,6 +889,11 @@ as well as used to print out examples using those example inputs.
             default: "count",
             refs: ["http://bl.ocks.org/kerryrodden/477c1bfb081b783f80ad"],
             examples: ["size"]
+        },
+        groupColorByParent: {
+            desc: "For sunburst only: specifies wether the leaf elements of a parent get the same color as the parent or if they are colored individually.",
+            default: "true",
+            examples: [true, false]
         }
     };
 </script>
