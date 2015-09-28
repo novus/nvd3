@@ -79,7 +79,7 @@ nv.models.sunburst = function() {
                 .append("path")
                 .attr("d", arc)
                 .style("fill", function (d) {
-                    return color((d.children ? d : d.parent).name);
+                    return color(d.name);
                 })
                 .style("stroke", "#FFF")
                 .on("click", function(d) {
