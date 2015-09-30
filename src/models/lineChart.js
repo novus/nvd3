@@ -378,7 +378,7 @@ nv.models.lineChart = function() {
                         allData[indexToHighlight].highlight = true;
                 }
 
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+                var xValue = tooltip.headerFormatter()( chart.x()(singlePoint,pointIndex) );
                 interactiveLayer.tooltip
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
