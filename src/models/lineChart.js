@@ -379,14 +379,13 @@ nv.models.lineChart = function() {
                         allData[indexToHighlight].highlight = true;
                 }
 
-                var xValue = tooltip.headerFormatter()( chart.x()(singlePoint,pointIndex) );
                 interactiveLayer.tooltip
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
                         return d === null ? "N/A" : yAxis.tickFormat()(d);
                     })
                     .data({
-                        value: xValue,
+                        value: chart.x()( singlePoint,pointIndex ),
                         index: pointIndex,
                         series: allData
                     })();
@@ -611,6 +610,8 @@ nv.models.lineChart = function() {
         xTickFormat: {get: function(){return xAxis.tickFormat();}, set: function(_){
             xAxis.tickFormat(_);
             x2Axis.tickFormat(_);
+            tooltip.headerFormatter(_);
+            interactiveLayer.tooltip.headerFormatter(_);
         }},
         yTickFormat: {get: function(){return yAxis.tickFormat();}, set: function(_){
             yAxis.tickFormat(_);
