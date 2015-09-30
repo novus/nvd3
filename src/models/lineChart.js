@@ -60,6 +60,12 @@ nv.models.lineChart = function() {
     }).headerFormatter(function(d, i) {
         return xAxis.tickFormat()(d, i);
     });
+    
+    interactiveLayer.tooltip.valueFormatter(function(d, i) {
+        return yAxis.tickFormat()(d, i);
+    }).headerFormatter(function(d, i) {
+        return xAxis.tickFormat()(d, i);
+    });
 
 
     //============================================================
@@ -348,8 +354,8 @@ nv.models.lineChart = function() {
                         return !series.disabled;
                     })
                     .forEach(function(series,i) {
-                            var extent = brush.empty() ? x2.domain() : brush.extent();
-                            var currentValues = series.values.filter(function(d,i) {
+                        var extent = brush.empty() ? x2.domain() : brush.extent();
+                        var currentValues = series.values.filter(function(d,i) {
                             return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                         });
 
@@ -366,7 +372,7 @@ nv.models.lineChart = function() {
                             key: series.key,
                             value: pointYValue,
                             color: color(series,series.seriesIndex),
-                            data: series.values[pointIndex]
+                            data: point
                         });
                     });
                 //Highlight the tooltip entry based on which point the mouse is closest to.
@@ -379,14 +385,13 @@ nv.models.lineChart = function() {
                         allData[indexToHighlight].highlight = true;
                 }
 
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
                 interactiveLayer.tooltip
                     .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
                         return d === null ? "N/A" : yAxis.tickFormat()(d);
                     })
                     .data({
-                        value: xValue,
+                        value: chart.x()( singlePoint,pointIndex ),
                         index: pointIndex,
                         series: allData
                     })();
