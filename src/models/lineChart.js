@@ -60,6 +60,12 @@ nv.models.lineChart = function() {
     }).headerFormatter(function(d, i) {
         return xAxis.tickFormat()(d, i);
     });
+    
+    interactiveLayer.tooltip.valueFormatter(function(d, i) {
+        return yAxis.tickFormat()(d, i);
+    }).headerFormatter(function(d, i) {
+        return xAxis.tickFormat()(d, i);
+    });
 
 
     //============================================================
@@ -610,8 +616,6 @@ nv.models.lineChart = function() {
         xTickFormat: {get: function(){return xAxis.tickFormat();}, set: function(_){
             xAxis.tickFormat(_);
             x2Axis.tickFormat(_);
-            tooltip.headerFormatter(_);
-            interactiveLayer.tooltip.headerFormatter(_);
         }},
         yTickFormat: {get: function(){return yAxis.tickFormat();}, set: function(_){
             yAxis.tickFormat(_);
