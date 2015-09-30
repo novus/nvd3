@@ -103,10 +103,11 @@ nv.models.lineChart = function() {
                 availableHeight2 = focusHeight - margin2.top - margin2.bottom;
 
             chart.update = function() { 
-              if( duration === 0 )
-                container.call( chart );
-              else
-                container.transition().duration(duration).call(chart);
+                if( duration === 0 ) {
+                    container.call( chart );
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
             };
             chart.container = this;
 
