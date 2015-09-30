@@ -365,7 +365,7 @@ nv.models.lineChart = function() {
                             key: series.key,
                             value: pointYValue,
                             color: color(series,series.seriesIndex),
-                            data: series.values[pointIndex]
+                            data: point
                         });
                     });
                 //Highlight the tooltip entry based on which point the mouse is closest to.
