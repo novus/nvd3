@@ -425,7 +425,9 @@ nv.models.scatter = function() {
                 timeoutID = setTimeout(updateInteractiveLayer, interactiveUpdateDelay );
             }
             else
+            {
                 updateInteractiveLayer();
+            }
 
             //store old scales for use in transitions on update
             x0 = x.copy();
