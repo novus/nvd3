@@ -222,27 +222,6 @@ nv.models.lineChart = function() {
             var linesWrap = g.select('.nv-linesWrap')
                 .datum(data.filter(function(d) { return !d.disabled; }));
 
-            linesWrap.call(lines);
-            
-            lines2
-                .defined(lines.defined())
-                .width(availableWidth)
-                .height(availableHeight2)
-                .color(data.map(function(d,i) {
-                    return d.color || color(d, i);
-                }).filter(function(d,i) { return !data[i].disabled; }));
-
-            g.select('.nv-context')
-                .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
-                .style('display', focusEnable ? 'initial' : 'none')
-            ;
-
-            var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
-                .datum(data.filter(function(d) { return !d.disabled; }))
-                ;
-                
-            d3.transition(contextLinesWrap).call(lines2);
-
 
             // Setup Main (Focus) Axes
             if (showXAxis) {
@@ -262,70 +241,98 @@ nv.models.lineChart = function() {
             g.select('.nv-focus .nv-x.nv-axis')
                 .attr('transform', 'translate(0,' + availableHeight1 + ')');
 
-            // Setup Brush
-            brush
-                .x(x2)
-                .on('brush', function() {
-                    onBrush();
-                });
 
-            if (brushExtent) brush.extent(brushExtent);
-
-            var brushBG = g.select('.nv-brushBackground').selectAll('g')
-                .data([brushExtent || brush.extent()]);
+            if( !focusEnable )
+            {
+                linesWrap.call(lines);
+            }
+            else
+            {
+                lines2
+                    .defined(lines.defined())
+                    .width(availableWidth)
+                    .height(availableHeight2)
+                    .color(data.map(function(d,i) {
+                        return d.color || color(d, i);
+                    }).filter(function(d,i) { return !data[i].disabled; }));
     
-            var brushBGenter = brushBG.enter()
-                .append('g');
-
-            brushBGenter.append('rect')
-                .attr('class', 'left')
-                .attr('x', 0)
-                .attr('y', 0)
-                .attr('height', availableHeight2);
-
-            brushBGenter.append('rect')
-                .attr('class', 'right')
-                .attr('x', 0)
-                .attr('y', 0)
-                .attr('height', availableHeight2);
-
-            var gBrush = g.select('.nv-x.nv-brush')
-                .call(brush);
-            gBrush.selectAll('rect')
-                .attr('height', availableHeight2);
-            gBrush.selectAll('.resize').append('path').attr('d', resizePath);
-
-            onBrush();
-
-            g.select('.nv-context .nv-background rect')
-                .attr('width', availableWidth)
-                .attr('height', availableHeight2);
-
-            // Setup Secondary (Context) Axes
-            if (focusShowAxisX) {
-              x2Axis
-                  .scale(x2)
-                  ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
-                  .tickSize(-availableHeight2, 0);
-  
-              g.select('.nv-context .nv-x.nv-axis')
-                  .attr('transform', 'translate(0,' + y2.range()[0] + ')');
-              d3.transition(g.select('.nv-context .nv-x.nv-axis'))
-                  .call(x2Axis);
-            }
-
-            if (focusShowAxisY) {
-              y2Axis
-                  .scale(y2)
-                  ._ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
-                  .tickSize( -availableWidth, 0);
-  
-              d3.transition(g.select('.nv-context .nv-y.nv-axis'))
-                  .call(y2Axis);
-            }
+                g.select('.nv-context')
+                    .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
+                    .style('display', focusEnable ? 'initial' : 'none')
+                ;
+    
+                var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
+                    .datum(data.filter(function(d) { return !d.disabled; }))
+                    ;
+                    
+                d3.transition(contextLinesWrap).call(lines2);
+                
             
-            g.select('.nv-context .nv-x.nv-axis')
-                .attr('transform', 'translate(0,' + y2.range()[0] + ')');
+                // Setup Brush
+                brush
+                    .x(x2)
+                    .on('brush', function() {
+                        onBrush();
+                    });
+    
+                if (brushExtent) brush.extent(brushExtent);
+    
+                var brushBG = g.select('.nv-brushBackground').selectAll('g')
+                    .data([brushExtent || brush.extent()]);
+        
+                var brushBGenter = brushBG.enter()
+                    .append('g');
+    
+                brushBGenter.append('rect')
+                    .attr('class', 'left')
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .attr('height', availableHeight2);
+    
+                brushBGenter.append('rect')
+                    .attr('class', 'right')
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .attr('height', availableHeight2);
+    
+                var gBrush = g.select('.nv-x.nv-brush')
+                    .call(brush);
+                gBrush.selectAll('rect')
+                    .attr('height', availableHeight2);
+                gBrush.selectAll('.resize').append('path').attr('d', resizePath);
+    
+                onBrush();
+    
+                g.select('.nv-context .nv-background rect')
+                    .attr('width', availableWidth)
+                    .attr('height', availableHeight2);
+    
+                // Setup Secondary (Context) Axes
+                if (focusShowAxisX) {
+                  x2Axis
+                      .scale(x2)
+                      ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                      .tickSize(-availableHeight2, 0);
+      
+                  g.select('.nv-context .nv-x.nv-axis')
+                      .attr('transform', 'translate(0,' + y2.range()[0] + ')');
+                  d3.transition(g.select('.nv-context .nv-x.nv-axis'))
+                      .call(x2Axis);
+                }
+    
+                if (focusShowAxisY) {
+                  y2Axis
+                      .scale(y2)
+                      ._ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
+                      .tickSize( -availableWidth, 0);
+      
+                  d3.transition(g.select('.nv-context .nv-y.nv-axis'))
+                      .call(y2Axis);
+                }
+                
+                g.select('.nv-context .nv-x.nv-axis')
+                    .attr('transform', 'translate(0,' + y2.range()[0] + ')');
+            }
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -347,7 +354,7 @@ nv.models.lineChart = function() {
                         return !series.disabled;
                     })
                     .forEach(function(series,i) {
-                        var extent = brush.empty() ? x2.domain() : brush.extent();
+                        var extent = focusEnable ? (brush.empty() ? x2.domain() : brush.extent()) : x.domain();
                         var currentValues = series.values.filter(function(d,i) {
                             return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                         });
