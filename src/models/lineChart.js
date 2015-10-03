@@ -101,8 +101,7 @@ nv.models.lineChart = function() {
         if (focusShowAxisX) renderWatch.models(x2Axis);
         if (focusShowAxisY) renderWatch.models(y2Axis);
         selection.each(function(data) {
-            var container = d3.select(this),
-                that = this;
+            var container = d3.select(this);
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0),
@@ -380,7 +379,7 @@ nv.models.lineChart = function() {
                 }
 
                 interactiveLayer.tooltip
-                    .chartContainer(that.parentNode)
+                    .chartContainer(chart.container.parentNode)
                     .valueFormatter(function(d,i) {
                         return d === null ? "N/A" : yAxis.tickFormat()(d);
                     })
