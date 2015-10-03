@@ -701,6 +701,11 @@ as well as used to print out examples using those example inputs.
             default: true,
             examples: [false]
         },
+        interactiveUpdateDelay: {
+            desc: "Advanced option.  This is the delay in milliseconds before updating the interactive elements in a chart.  If set to 0, the interactive components are synchronously updated during the chart's update cycle.  If set to a larger value, then a timeout is created and the interactive elements are updated asynchronously. There is a mild performance advantage to using 0, while the default of 300 is intended to allow smoother animations.",
+            default: 300,
+            examples: [0,300]
+        },
         staggerLabels: {
             desc: "Makes the X labels stagger at different distances from the axis so they're less likely to overlap.",
             default: false,

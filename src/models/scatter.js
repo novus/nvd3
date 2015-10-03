@@ -40,6 +40,7 @@ nv.models.scatter = function() {
         , dispatch     = d3.dispatch('elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
         , useVoronoi   = true
         , duration     = 250
+        , interactiveUpdateDelay = 300
         ;
 
 
@@ -418,9 +419,15 @@ nv.models.scatter = function() {
             );
 
             // Delay updating the invisible interactive layer for smoother animation
-            clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
-            timeoutID = setTimeout(updateInteractiveLayer, 300);
-            //updateInteractiveLayer();
+            if( interactiveUpdateDelay )
+            {
+                clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
+                timeoutID = setTimeout(updateInteractiveLayer, interactiveUpdateDelay );
+            }
+            else
+            {
+                updateInteractiveLayer();
+            }
 
             //store old scales for use in transitions on update
             x0 = x.copy();
@@ -491,6 +498,7 @@ nv.models.scatter = function() {
         clipRadius:   {get: function(){return clipRadius;}, set: function(_){clipRadius=_;}},
         showVoronoi:   {get: function(){return showVoronoi;}, set: function(_){showVoronoi=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
+        interactiveUpdateDelay: {get:function(){return interactiveUpdateDelay;}, set: function(_){interactiveUpdateDelay=_;}},
 
 
         // simple functor options
