@@ -159,14 +159,14 @@ nv.models.lineChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
 
             var focusEnter = gEnter.append('g').attr('class', 'nv-focus');
-            focusEnter.append('g').attr('class', 'nv-background');
+            focusEnter.append('g').attr('class', 'nv-background').append('rect');
             focusEnter.append('g').attr('class', 'nv-x nv-axis');
             focusEnter.append('g').attr('class', 'nv-y nv-axis');
             focusEnter.append('g').attr('class', 'nv-linesWrap');
             focusEnter.append('g').attr('class', 'nv-interactive');
 
             var contextEnter = gEnter.append('g').attr('class', 'nv-context');
-            contextEnter.append('g').attr('class', 'nv-background');
+            contextEnter.append('g').attr('class', 'nv-background').append('rect');
             contextEnter.append('g').attr('class', 'nv-x nv-axis');
             contextEnter.append('g').attr('class', 'nv-y nv-axis');
             contextEnter.append('g').attr('class', 'nv-linesWrap');
@@ -207,9 +207,6 @@ nv.models.lineChart = function() {
                     .xScale(x);
                 wrap.select(".nv-interactive").call(interactiveLayer);
             }
-
-            focusEnter.select('.nv-background')
-                .append('rect');
 
             g.select('.nv-focus .nv-background rect')
                 .attr('width', availableWidth)
@@ -300,9 +297,6 @@ nv.models.lineChart = function() {
             gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
             onBrush();
-
-            g.select('.nv-context .nv-background')
-                .append('rect');
 
             g.select('.nv-context .nv-background rect')
                 .attr('width', availableWidth)
