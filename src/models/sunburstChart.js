@@ -49,10 +49,11 @@ nv.models.sunburstChart = function() {
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
-                if (duration === 0)
+                if (duration === 0) {
                     container.call(chart);
-                else
-                    container.transition().duration(duration).call(chart)
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
             };
             chart.container = this;
 

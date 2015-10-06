@@ -179,7 +179,7 @@
                         var desc = option_info[name]['desc'];
                         var def;
                         // if defaultValueGetter exists, it is a function to pull the actual default value from an instance of the chart
-                        if (option_info[name]['defaultValueGetter']) { 
+                        if (option_info[name]['defaultValueGetter']) {
                             var chartName = a.parent().attr('id').substring(3); // first 3 chars are a 'ul_' appended to the chart name
                             def = JSON.stringify(option_info[name]['defaultValueGetter'](nv.models[chartName]()), null, 1);
                         } else {
@@ -701,6 +701,11 @@ as well as used to print out examples using those example inputs.
             default: true,
             examples: [false]
         },
+        interactiveUpdateDelay: {
+            desc: "Advanced option.  This is the delay in milliseconds before updating the interactive elements in a chart.  If set to 0, the interactive components are synchronously updated during the chart's update cycle.  If set to a larger value, then a timeout is created and the interactive elements are updated asynchronously. There is a mild performance advantage to using 0, while the default of 300 is intended to allow smoother animations.",
+            default: 300,
+            examples: [0,300]
+        },
         staggerLabels: {
             desc: "Makes the X labels stagger at different distances from the axis so they're less likely to overlap.",
             default: false,
@@ -889,6 +894,11 @@ as well as used to print out examples using those example inputs.
             default: "count",
             refs: ["http://bl.ocks.org/kerryrodden/477c1bfb081b783f80ad"],
             examples: ["size"]
+        },
+        groupColorByParent: {
+            desc: "For sunburst only: specifies wether the leaf elements of a parent get the same color as the parent or if they are colored individually.",
+            default: "true",
+            examples: [true, false]
         }
     };
 </script>

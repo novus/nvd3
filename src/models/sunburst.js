@@ -14,6 +14,7 @@ nv.models.sunburst = function() {
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , container = null
         , color = nv.utils.defaultColor()
+        , groupColorByParent = true
         , duration = 500
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMousemove', 'elementMouseover', 'elementMouseout', 'renderEnd')
         ;
@@ -59,6 +60,16 @@ nv.models.sunburst = function() {
 
             var g = wrapEnter.selectAll('nv-sunburst');
 
+            chart.update = function() { 
+                if ( duration === 0 ) {
+                    container.call(chart);
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
+            };
+            chart.container = this;
+
+
             wrap.attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
             container.on('click', function (d, i) {
@@ -79,7 +90,15 @@ nv.models.sunburst = function() {
                 .append("path")
                 .attr("d", arc)
                 .style("fill", function (d) {
-                    return color((d.children ? d : d.parent).name);
+                    if (d.color) {
+                        return d.color;
+                    }
+                    else if (groupColorByParent) {
+                        return color((d.children ? d : d.parent).name);
+                    }
+                    else {
+                        return color(d.name);
+                    }
                 })
                 .style("stroke", "#FFF")
                 .on("click", function(d) {
@@ -187,6 +206,7 @@ nv.models.sunburst = function() {
         mode:       {get: function(){return mode;}, set: function(_){mode=_;}},
         id:         {get: function(){return id;}, set: function(_){id=_;}},
         duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
+        groupColorByParent: {get: function(){return groupColorByParent;}, set: function(_){groupColorByParent=!!_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

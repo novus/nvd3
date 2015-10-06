@@ -177,10 +177,13 @@ nv.models.pie = function() {
                 dispatch.elementMousemove({data: d.data, index: i});
             });
             ae.on('click', function(d, i) {
+                var element = this;
                 dispatch.elementClick({
                     data: d.data,
                     index: i,
-                    color: d3.select(this).style("fill")
+                    color: d3.select(this).style("fill"),
+                    event: d3.event,
+                    element: element
                 });
             });
             ae.on('dblclick', function(d, i) {
