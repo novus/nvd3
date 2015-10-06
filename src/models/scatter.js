@@ -361,7 +361,9 @@ nv.models.scatter = function() {
             groups.exit()
                 .remove();
             groups
-                .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
+                .attr('class', function(d,i) {
+                    return (d.classed || '') + ' nv-group nv-series-' + i;
+                })
                 .classed('hover', function(d) { return d.hover });
             groups.watchTransition(renderWatch, 'scatter: groups')
                 .style('fill', function(d,i) { return color(d, i) })
