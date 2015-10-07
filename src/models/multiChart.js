@@ -451,7 +451,6 @@ nv.models.multiChart = function() {
                     var yAxis = allData[i].yAxis;
                     return d === null ? "N/A" : yAxis.tickFormat()(d);
                 })
-                .headerFormatter(xAxis.tickFormat())
                 .data({
                     value: chart.x()( singlePoint,pointIndex ),
                     index: pointIndex,
