@@ -243,17 +243,23 @@ nv.models.lineChart = function() {
             // Update Axes
             //============================================================
             function updateXAxis() {
-              g.select('.nv-focus .nv-x.nv-axis')
-                .transition()
-                .duration(duration)
-                .call(xAxis);
+              if(showXAxis) {
+                g.select('.nv-focus .nv-x.nv-axis')
+                  .transition()
+                  .duration(duration)
+                  .call(xAxis)
+                ;
+              }
             }
 
             function updateYAxis() {
+              if(showYAxis) {
                 g.select('.nv-focus .nv-y.nv-axis')
-                    .transition()
-                    .duration(duration)
-                    .call(yAxis);
+                  .transition()
+                  .duration(duration)
+                  .call(yAxis)
+                ;
+              }
             }
             
             g.select('.nv-focus .nv-x.nv-axis')
@@ -531,15 +537,8 @@ nv.models.lineChart = function() {
     
     
                 // Update Main (Focus) Axes
-                if( showXAxis )
-                {
-                  updateXAxis()
-                }
-                
-                if( showYAxis )
-                {
-                  updateYAxis();
-                }
+                updateXAxis();
+                updateYAxis();
             }
 
 
