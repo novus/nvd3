@@ -7,12 +7,12 @@ before_install:
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
 #   Meteor Tinytest support
-    - "curl https://install.meteor.com | /bin/sh"
-    - export PATH="$HOME/.meteor:$PATH"
     - "npm install -g spacejam"
 install:
     - "npm install"
     - "bower install"
 
-script: "spacejam test-packages ./"
+script: 
+    - "npm test"
+    - "spacejam test-packages nvd3:nvd3"
 
