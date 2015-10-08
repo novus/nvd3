@@ -14,5 +14,5 @@ install:
 
 script: 
     - "npm test"
-    - "spacejam test-packages nvd3:nvd3"
+    - "spacejam test-packages ./"
 
