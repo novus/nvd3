@@ -14,5 +14,7 @@ install:
     - "npm install"
     - "bower install"
 
-script: "spacejam test-packages ./"
+script: 
+    - "npm test"
+    - "spacejam test-packages ./"
 

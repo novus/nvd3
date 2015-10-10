@@ -229,6 +229,7 @@ nv.models.lineChart = function() {
                     .scale(x)
                     ._ticks(nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight1, 0);
+
             }
 
             if (showYAxis) {
@@ -237,14 +238,38 @@ nv.models.lineChart = function() {
                     ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
                     .tickSize( -availableWidth, 0);
             }
+
+            //============================================================
+            // Update Axes
+            //============================================================
+            function updateXAxis() {
+              if(showXAxis) {
+                g.select('.nv-focus .nv-x.nv-axis')
+                  .transition()
+                  .duration(duration)
+                  .call(xAxis)
+                ;
+              }
+            }
+
+            function updateYAxis() {
+              if(showYAxis) {
+                g.select('.nv-focus .nv-y.nv-axis')
+                  .transition()
+                  .duration(duration)
+                  .call(yAxis)
+                ;
+              }
+            }
             
             g.select('.nv-focus .nv-x.nv-axis')
                 .attr('transform', 'translate(0,' + availableHeight1 + ')');
 
-
             if( !focusEnable )
             {
                 linesWrap.call(lines);
+                updateXAxis();
+                updateYAxis();
             }
             else
             {
@@ -512,21 +537,8 @@ nv.models.lineChart = function() {
     
     
                 // Update Main (Focus) Axes
-                if( showXAxis )
-                {
-                  g.select('.nv-focus .nv-x.nv-axis')
-                    .transition()
-                    .duration(duration)
-                    .call(xAxis);
-                }
-                
-                if( showYAxis )
-                {
-                  g.select('.nv-focus .nv-y.nv-axis')
-                    .transition()
-                    .duration(duration)
-                    .call(yAxis);
-                }
+                updateXAxis();
+                updateYAxis();
             }
 
 
@@ -535,6 +547,7 @@ nv.models.lineChart = function() {
         renderWatch.renderEnd('lineChart immediate');
         return chart;
     }
+
 
     //============================================================
     // Event Handling/Dispatching (out of chart's scope)
