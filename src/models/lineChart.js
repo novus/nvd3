@@ -529,7 +529,8 @@ nv.models.lineChart = function() {
                                 classed: d.classed,
                                 values: d.values.filter(function(d,i) {
                                     return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
-                                })
+                                }),
+                                disableTooltip: d.disableTooltip
                             };
                         })
                 );
@@ -554,7 +555,9 @@ nv.models.lineChart = function() {
     //------------------------------------------------------------
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.data(evt).hidden(false);
+        if(!evt.series.disableTooltip){
+            tooltip.data(evt).hidden(false);
+        }
     });
 
     lines.dispatch.on('elementMouseout.tooltip', function(evt) {
