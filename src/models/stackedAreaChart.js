@@ -407,7 +407,7 @@ nv.models.stackedAreaChart = function() {
                     });
                 }
 
-                var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex));
+                var xValue = chart.x()(singlePoint,pointIndex);
 
                 var valueFormatter = interactiveLayer.tooltip.valueFormatter();
                 // Keeps track of the tooltip valueFormatter if the chart changes to expanded view
