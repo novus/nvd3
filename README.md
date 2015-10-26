@@ -129,7 +129,7 @@ only include the source files you changed!
 #### Meteor Tinytests
 * Any Meteor-specific features can be tested from the command line using `tinytest` and [Spacejam](https://www.npmjs.com/package/spacejam)
 * `spacejam` can be installed by running `npm install -g spacejam`.
-* Tinytests can then be executed by running `spacejam test-packages nvd3:nvd3`.
+* Tinytests can then be executed by running `spacejam test-packages ./` from this project's root.
 
 ---
 
