@@ -193,7 +193,7 @@ nv.models.discreteBarChart = function() {
             // Zero line
             g.select(".nv-zeroLine line")
                 .attr("x1",0)
-                .attr("x2",availableWidth)
+                .attr("x2",(rightAlignYAxis) ? -availableWidth : availableWidth)
                 .attr("y1", y(0))
                 .attr("y2", y(0))
             ;
