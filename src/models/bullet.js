@@ -28,8 +28,6 @@ nv.models.bullet = function() {
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
         ;
 
-    console.log markers
-
     function chart(selection) {
         selection.each(function(d, i) {
             var availableWidth = width - margin.left - margin.right,
