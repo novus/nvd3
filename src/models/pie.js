@@ -261,6 +261,9 @@ nv.models.pie = function() {
                 var createHashKey = function(coordinates) {
                     return Math.floor(coordinates[0]/avgWidth) * avgWidth + ',' + Math.floor(coordinates[1]/avgHeight) * avgHeight;
                 };
+                var getSlicePercentage = function(d) {
+                    return (d.endAngle - d.startAngle) / (2 * Math.PI);
+                };
 
                 pieLabels.watchTransition(renderWatch, 'pie labels').attr('transform', function (d, i) {
                     if (labelSunbeamLayout) {
@@ -283,7 +286,8 @@ nv.models.pie = function() {
                         Adjust the label's y-position to remove the overlap.
                         */
                         var center = labelsArc[i].centroid(d);
-                        if (d.value) {
+                        var percent = getSlicePercentage(d);
+                        if (d.value && percent >= labelThreshold) {
                             var hashKey = createHashKey(center);
                             if (labelLocationHash[hashKey]) {
                                 center[1] -= avgHeight;
@@ -300,7 +304,7 @@ nv.models.pie = function() {
                         return labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle';
                     })
                     .text(function(d, i) {
-                        var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
+                        var percent = getSlicePercentage(d);
                         var label = '';
                         if (!d.value || percent < labelThreshold) return '';
 
