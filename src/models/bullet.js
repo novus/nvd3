@@ -14,7 +14,7 @@ nv.models.bullet = function() {
         , orient = 'left' // TODO top & bottom
         , reverse = false
         , ranges = function(d) { return d.ranges }
-        , markers = function(d) { return d.markers ? d.markers : [0] }
+        , markers = function(d) { return d.markers ? d.markers : [] }
         , measures = function(d) { return d.measures }
         , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
         , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
@@ -27,6 +27,8 @@ nv.models.bullet = function() {
         , color = nv.utils.getColor(['#1f77b4'])
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
         ;
+
+    console.log markers
 
     function chart(selection) {
         selection.each(function(d, i) {
