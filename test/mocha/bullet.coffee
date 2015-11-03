@@ -53,9 +53,9 @@ describe 'NVD3', ->
           cssClasses = [
               '.nv-bulletWrap'
               '.nv-bullet'
-              '.nv-rangeMax'
-              '.nv-rangeAvg'
-              '.nv-rangeMin'
+              '.nv-range0'
+              '.nv-range1'
+              '.nv-range2'
               '.nv-measure'
               '.nv-markerTriangle'
               '.nv-titles'
@@ -124,7 +124,7 @@ describe 'NVD3', ->
           it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.bulletChart()
             builder.buildover options, sampleData, []
-            
+
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 
@@ -154,7 +154,7 @@ describe 'NVD3', ->
                 left: 0
               width: 300
             builder.build options, sampleData
-            parseInt( builder.$(".nv-rangeMax")[0].getAttribute('width') ).should.be.equal 300
+            parseInt( builder.$(".nv-range2")[0].getAttribute('width') ).should.be.equal 300
 
           it 'height', ->
             options =
@@ -165,5 +165,5 @@ describe 'NVD3', ->
                 left: 0
               height: 300
             builder.build options, sampleData
-            parseInt( builder.$(".nv-rangeMax")[0].getAttribute('height') ).should.be.equal 300
+            parseInt( builder.$(".nv-range2")[0].getAttribute('height') ).should.be.equal 300
 
