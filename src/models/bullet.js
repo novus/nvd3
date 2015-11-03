@@ -26,7 +26,16 @@ nv.models.bullet = function() {
         , tickFormat = null
         , color = nv.utils.getColor(['#1f77b4'])
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
+        , defaultRangeLabels = ["Maximum", "Mean", "Minimum"]
         ;
+
+    function sortLabels(labels, values){
+        labels.sort(function(a, b){
+            var iA = labels.indexOf(a);
+            var iB = labels.indexOf(b);
+            return values[iA] < values[iB];
+        });
+    };
 
     function chart(selection) {
         selection.each(function(d, i) {
@@ -42,6 +51,11 @@ nv.models.bullet = function() {
                 rangeLabelz = rangeLabels.call(this, d, i).slice(),
                 markerLabelz = markerLabels.call(this, d, i).slice(),
                 measureLabelz = measureLabels.call(this, d, i).slice();
+
+            // Sort labels according to their sorted values
+            sortLabels(rangeLabelz, rangez);
+            sortLabels(markerLabelz, markerz);
+            sortLabels(measureLabelz, measurez);
 
             // Setup Scales
             // Compute the new x-scale.
@@ -67,9 +81,10 @@ nv.models.bullet = function() {
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
 
-            gEnter.append('rect').attr('class', 'nv-range nv-rangeMax');
-            gEnter.append('rect').attr('class', 'nv-range nv-rangeAvg');
-            gEnter.append('rect').attr('class', 'nv-range nv-rangeMin');
+            for(var i=0,il=rangez.length; i<il; i++){
+                gEnter.append('rect').attr('class', 'nv-range nv-range'+i);
+            }
+
             gEnter.append('rect').attr('class', 'nv-measure');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -79,25 +94,14 @@ nv.models.bullet = function() {
             var xp0 = function(d) { return d < 0 ? x0(d) : x0(0) },
                 xp1 = function(d) { return d < 0 ? x1(d) : x1(0) };
 
-            g.select('rect.nv-rangeMax')
-                .attr('height', availableHeight)
-                .attr('width', w1(rangeMax > 0 ? rangeMax : rangeMin))
-                .attr('x', xp1(rangeMax > 0 ? rangeMax : rangeMin))
-                .datum(rangeMax > 0 ? rangeMax : rangeMin)
-
-            g.select('rect.nv-rangeAvg')
-                .attr('height', availableHeight)
-                .attr('width', w1(rangeAvg))
-                .attr('x', xp1(rangeAvg))
-                .datum(rangeAvg)
-
-            g.select('rect.nv-rangeMin')
-                .attr('height', availableHeight)
-                .attr('width', w1(rangeMax))
-                .attr('x', xp1(rangeMax))
-                .attr('width', w1(rangeMax > 0 ? rangeMin : rangeMax))
-                .attr('x', xp1(rangeMax > 0 ? rangeMin : rangeMax))
-                .datum(rangeMax > 0 ? rangeMin : rangeMax)
+            for(var i=0,il=rangez.length; i<il; i++){
+                var range = rangez[i];
+                g.select('rect.nv-range'+i)
+                    .attr('height', availableHeight)
+                    .attr('width', w1(range))
+                    .attr('x', xp1(range))
+                    .datum(range)
+            }
 
             g.select('rect.nv-measure')
                 .style('fill', color)
@@ -168,7 +172,7 @@ nv.models.bullet = function() {
 
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
-                    var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
+                    var label = rangeLabelz[i] || defaultRangeLabels[i];
                     dispatch.elementMouseover({
                         value: d,
                         label: label,
@@ -183,7 +187,7 @@ nv.models.bullet = function() {
                     })
                 })
                 .on('mouseout', function(d,i) {
-                    var label = rangeLabelz[i] || (!i ? "Maximum" : i == 1 ? "Mean" : "Minimum");
+                    var label = rangeLabelz[i] || defaultRangeLabels[i];
                     dispatch.elementMouseout({
                         value: d,
                         label: label,
