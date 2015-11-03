@@ -27,6 +27,7 @@ nv.models.bullet = function() {
         , color = nv.utils.getColor(['#1f77b4'])
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
         , defaultRangeLabels = ["Maximum", "Mean", "Minimum"]
+        , legacyRangeClassNames = ["Max", "Avg", "Min"]
         ;
 
     function sortLabels(labels, values){
@@ -88,7 +89,7 @@ nv.models.bullet = function() {
             var g = wrap.select('g');
 
             for(var i=0,il=rangez.length; i<il; i++){
-                gEnter.append('rect').attr('class', 'nv-range nv-range'+i);
+                gEnter.append('rect').attr('class', 'nv-range nv-range'+i+' nv-range'+legacyRangeClassNames[i]);
             }
 
             gEnter.append('rect').attr('class', 'nv-measure');
