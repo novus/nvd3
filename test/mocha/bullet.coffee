@@ -66,6 +66,37 @@ describe 'NVD3', ->
             do (cssClass) ->
               should.exist builder1.$("g.nvd3 #{cssClass}")[0]
 
+        describe "no markers", ->
+          builder = null
+          sampleData = null
+
+          beforeEach ->
+            builder = new ChartBuilder nv.models.bulletChart()
+            noMarkerOptions =
+              margin:
+                top: 0
+                right: 0
+                bottom: 0
+                left: 0
+              width: 300
+            sampleData =
+              title: 'Revenue'
+              subtitle: 'US$ in thousands'
+              ranges: [10,20,30]
+              measures: [40]
+              markers: []
+            builder.build noMarkerOptions, sampleData
+          afterEach ->
+            builder.teardown()
+
+          it "does not show marker if no marker provided", ->
+            markers = builder.$ '.nv-markerTriangle'
+            markers.length.should.equal 0
+
+          it "renders xAxis if empty markers", ->
+            ticks = builder.$ '.nv-tick'
+            ticks.length.should.equal 5
+
         describe "applies correctly option", ->
 
           builder = null
@@ -124,7 +155,7 @@ describe 'NVD3', ->
           it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.bulletChart()
             builder.buildover options, sampleData, []
-            
+
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 
