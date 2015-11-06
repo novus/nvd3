@@ -90,8 +90,18 @@ nv.models.scatter = function() {
             else
                 x.range(xRange || [0, availableWidth]);
 
-            y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
-                .range(yRange || [availableHeight, 0]);
+             if (chart.yScale().name === "o") {
+                    var min = d3.min(seriesData.map(function(d) { if (d.y !== 0) return d.y; }));
+                    y.clamp(true)
+                        .domain(yDomain || d3.extent(seriesData.map(function(d) {
+                            if (d.y !== 0) return d.y;
+                            else return min * 0.1;
+                        }).concat(forceY)))
+                        .range(yRange || [availableHeight, 0]);
+                } else {
+                        y.domain(yDomain || d3.extent(seriesData.map(function (d) { return d.y;}).concat(forceY)))
+                        .range(yRange || [availableHeight, 0]);
+                }
 
             z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
                 .range(sizeRange || _sizeRange_def);
