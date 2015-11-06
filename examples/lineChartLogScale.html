@@ -5,7 +5,7 @@
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
-	
+
     <style>
         text {
             font: 12px sans-serif;
@@ -36,23 +36,23 @@
   
     nv.addGraph(function() {
         chart = nv.models.lineChart()
-			.x(function (d) { return d.x; })
+            .x(function (d) { return d.x; })
             .options({
                 showLegend: true,
-				showYAxis: true,
-				showXAxis: true,
+                showYAxis: true,
+                showXAxis: true,
                 useInteractiveGuideline: true
             })
         ;
 
-		 data = GenerateData();
-		
+         data = GenerateData();
+        
         chart.xAxis
             .axisLabel("x axis")
             .tickFormat(d3.format('0.2f'))
         ;
 
-		chart.yScale( d3.scale.log());
+        chart.yScale( d3.scale.log());
         chart.yAxis
             .axisLabel("Log axis")
             .tickFormat( d3.format('.4e'))
