@@ -9,28 +9,28 @@ nv.models.sunburstChart = function() {
     var tooltip = nv.models.tooltip();
 
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
-        , width = null
-        , height = null
-        , color = nv.utils.defaultColor()
-        , id = Math.round(Math.random() * 100000)
-        , defaultState = null
-        , noData = null
-        , duration = 250
-        , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
-        ;
+    , width = null
+    , height = null
+    , color = nv.utils.defaultColor()
+    , id = Math.round(Math.random() * 100000)
+    , defaultState = null
+    , noData = null
+    , duration = 250
+    , tooltipValueFormatter = function(d,i) {return d;}
+    , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
+    ;
 
-    tooltip.duration(0);
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch);
+
     tooltip
-        .headerEnabled(false)
-        .valueFormatter(function(d, i) {
-            return d;
-        });
+    .duration(0)
+    .headerEnabled(false)
+    .valueFormatter(tooltipValueFormatter);
 
     //============================================================
     // Chart function
@@ -42,11 +42,11 @@ nv.models.sunburstChart = function() {
 
         selection.each(function(data) {
             var container = d3.select(this);
+
             nv.utils.initSVG(container);
 
-            var that = this;
-            var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight = nv.utils.availableHeight(height, container, margin);
+            var availableWidth = nv.utils.availableWidth(width, container, margin);
+            var availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
                 if (duration === 0) {
@@ -55,7 +55,7 @@ nv.models.sunburstChart = function() {
                     container.transition().duration(duration).call(chart);
                 }
             };
-            chart.container = this;
+            chart.container = container;
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
@@ -65,20 +65,8 @@ nv.models.sunburstChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            // Setup containers and skeleton of chart
-            var wrap = container.selectAll('g.nv-wrap.nv-sunburstChart').data(data);
-            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sunburstChart').append('g');
-            var g = wrap.select('g');
-
-            gEnter.append('g').attr('class', 'nv-sunburstWrap');
-
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            // Main Chart Component(s)
             sunburst.width(availableWidth).height(availableHeight);
-            var sunWrap = g.select('.nv-sunburstWrap').datum(data);
-            d3.transition(sunWrap).call(sunburst);
-
+            d3.transition(container).call(sunburst);
         });
 
         renderWatch.renderEnd('sunburstChart immediate');
@@ -92,7 +80,7 @@ nv.models.sunburstChart = function() {
     sunburst.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
             key: evt.data.name,
-            value: evt.data.size,
+            value: evt.data.value,
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -123,6 +111,10 @@ nv.models.sunburstChart = function() {
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
 
         // options that require extra logic in the setter
+        tooltipValueFormatter: {get: function(){return tooltipValueFormatter;}, set: function(_){
+            tooltipValueFormatter=_;
+            tooltip.valueFormatter(tooltipValueFormatter);
+        }},
         color: {get: function(){return color;}, set: function(_){
             color = _;
             sunburst.color(color);
