@@ -899,6 +899,26 @@ as well as used to print out examples using those example inputs.
             desc: "For sunburst only: specifies wether the leaf elements of a parent get the same color as the parent or if they are colored individually.",
             default: "true",
             examples: [true, false]
+        },
+        showLabels: {
+            desc: "For sunburst only: specifies if labels are displayed. The labels are centered on the arcs. The actual output can be adjusted by specifying the 'labelText' function.",
+            default: "false",
+            examples: [true, false]
+        },
+        labelText: {
+            desc: "For sunburst only: you can alter the label output by providing a callback function. The function gets the data of the current arc as parameter. It expects you to return the plain text to be shown.",
+            default: "function(d){if(mode === 'count'){return d.name + ' #' + d.value}else{return d.name + ' ' + d.value}}",
+            examples: [function(d){ return d.name;}]
+        },
+        sort: {
+            desc: "For sunburst only: let's you specify the sort order of the arcs.",
+            default: "function(d1, d2){return d1.name > d2.name;}",
+            examples: [function(d1, d2){return d1.value > d2.value;}]
+        },
+        tooltipValueFormatter: {
+            desc: "For sunburst only: let's you specify how the values in the tooltip should be formatted. It expects a callback function which is called with the value attribute of data as the only parameter.",
+            default: "function(v) {return v;}",
+            examples: [function(v){return Math.round(v);}]
         }
     };
 </script>

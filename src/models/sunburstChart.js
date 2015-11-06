@@ -16,7 +16,7 @@ nv.models.sunburstChart = function() {
     , defaultState = null
     , noData = null
     , duration = 250
-    , tooltipValueFormatter = function(d,i) {return d;}
+    , tooltipValueFormatter = function(v) {return v;}
     , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
     ;
 
