@@ -132,10 +132,13 @@ nv.models.discreteBar = function() {
                     });
                 })
                 .on('click', function(d,i) {
+                    var element = this;
                     dispatch.elementClick({
                         data: d,
                         index: i,
-                        color: d3.select(this).style("fill")
+                        color: d3.select(this).style("fill"),
+                        event: d3.event,
+                        element: element
                     });
                     d3.event.stopPropagation();
                 })
@@ -190,7 +193,7 @@ nv.models.discreteBar = function() {
                 })
                 .select('rect')
                 .attr('height', function(d,i) {
-                    return  Math.max(Math.abs(y(getY(d,i)) - y((yDomain && yDomain[0]) || 0)) || 1)
+                    return  Math.max(Math.abs(y(getY(d,i)) - y(0)), 1)
                 });
 
 

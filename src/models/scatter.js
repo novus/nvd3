@@ -40,6 +40,7 @@ nv.models.scatter = function() {
         , dispatch     = d3.dispatch('elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
         , useVoronoi   = true
         , duration     = 250
+        , interactiveUpdateDelay = 300
         ;
 
 
@@ -89,8 +90,18 @@ nv.models.scatter = function() {
             else
                 x.range(xRange || [0, availableWidth]);
 
-            y   .domain(yDomain || d3.extent(seriesData.map(function(d) { return d.y }).concat(forceY)))
-                .range(yRange || [availableHeight, 0]);
+             if (chart.yScale().name === "o") {
+                    var min = d3.min(seriesData.map(function(d) { if (d.y !== 0) return d.y; }));
+                    y.clamp(true)
+                        .domain(yDomain || d3.extent(seriesData.map(function(d) {
+                            if (d.y !== 0) return d.y;
+                            else return min * 0.1;
+                        }).concat(forceY)))
+                        .range(yRange || [availableHeight, 0]);
+                } else {
+                        y.domain(yDomain || d3.extent(seriesData.map(function (d) { return d.y;}).concat(forceY)))
+                        .range(yRange || [availableHeight, 0]);
+                }
 
             z   .domain(sizeDomain || d3.extent(seriesData.map(function(d) { return d.size }).concat(forceSize)))
                 .range(sizeRange || _sizeRange_def);
@@ -227,9 +238,9 @@ nv.models.scatter = function() {
                     if (clipVoronoi) {
                         // voronoi sections are already set to clip,
                         // just create the circles with the IDs they expect
-                        wrap.select('.nv-point-clips').selectAll('clipPath').remove();
-                        wrap.select('.nv-point-clips').selectAll("clipPath")
-                            .data(vertices)
+                        wrap.select('.nv-point-clips').selectAll('*').remove(); // must do * since it has sub-dom
+                        var pointClips = wrap.select('.nv-point-clips').selectAll('clipPath').data(vertices);
+                        var vPointClips = pointClips
                             .enter().append("svg:clipPath")
                             .attr("id", function(d, i) { return "nv-clip-"+id+"-"+i;})
                             .append("svg:circle")
@@ -263,6 +274,7 @@ nv.models.scatter = function() {
                             point: point,
                             series: series,
                             pos: pos,
+                            relativePos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                             seriesIndex: d.series,
                             pointIndex: d.point
                         });
@@ -297,7 +309,8 @@ nv.models.scatter = function() {
                             dispatch.elementClick({
                                 point: point,
                                 series: series,
-                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top], //TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i
                             });
@@ -310,7 +323,8 @@ nv.models.scatter = function() {
                             dispatch.elementDblClick({
                                 point: point,
                                 series: series,
-                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i
                             });
@@ -323,7 +337,8 @@ nv.models.scatter = function() {
                             dispatch.elementMouseover({
                                 point: point,
                                 series: series,
-                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i,
                                 color: color(d, i)
@@ -337,6 +352,8 @@ nv.models.scatter = function() {
                             dispatch.elementMouseout({
                                 point: point,
                                 series: series,
+                                pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
+                                relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
                                 seriesIndex: d.series,
                                 pointIndex: i,
                                 color: color(d, i)
@@ -354,7 +371,9 @@ nv.models.scatter = function() {
             groups.exit()
                 .remove();
             groups
-                .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
+                .attr('class', function(d,i) {
+                    return (d.classed || '') + ' nv-group nv-series-' + i;
+                })
                 .classed('hover', function(d) { return d.hover });
             groups.watchTransition(renderWatch, 'scatter: groups')
                 .style('fill', function(d,i) { return color(d, i) })
@@ -377,7 +396,7 @@ nv.models.scatter = function() {
                 .style('fill', function (d) { return d.color })
                 .style('stroke', function (d) { return d.color })
                 .attr('transform', function(d) {
-                    return 'translate(' + x0(getX(d[0],d[1])) + ',' + y0(getY(d[0],d[1])) + ')'
+                    return 'translate(' + nv.utils.NaNtoZero(x0(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y0(getY(d[0],d[1]))) + ')'
                 })
                 .attr('d',
                     nv.utils.symbol()
@@ -388,7 +407,7 @@ nv.models.scatter = function() {
             groups.exit().selectAll('path.nv-point')
                 .watchTransition(renderWatch, 'scatter exit')
                 .attr('transform', function(d) {
-                    return 'translate(' + x(getX(d[0],d[1])) + ',' + y(getY(d[0],d[1])) + ')'
+                    return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
             points.each(function(d) {
@@ -403,7 +422,7 @@ nv.models.scatter = function() {
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
-                    return 'translate(' + x(getX(d[0],d[1])) + ',' + y(getY(d[0],d[1])) + ')'
+                    return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .attr('d',
                     nv.utils.symbol()
@@ -412,9 +431,15 @@ nv.models.scatter = function() {
             );
 
             // Delay updating the invisible interactive layer for smoother animation
-            clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
-            timeoutID = setTimeout(updateInteractiveLayer, 300);
-            //updateInteractiveLayer();
+            if( interactiveUpdateDelay )
+            {
+                clearTimeout(timeoutID); // stop repeat calls to updateInteractiveLayer
+                timeoutID = setTimeout(updateInteractiveLayer, interactiveUpdateDelay );
+            }
+            else
+            {
+                updateInteractiveLayer();
+            }
 
             //store old scales for use in transitions on update
             x0 = x.copy();
@@ -443,8 +468,10 @@ nv.models.scatter = function() {
         };
         this.highlightPoint = function (seriesIndex, pointIndex, isHoverOver) {
             nv.dom.write(function() {
-                container.select(" .nv-series-" + seriesIndex + " .nv-point-" + pointIndex)
-                    .classed("hover", isHoverOver);
+                container.select('.nv-groups')
+                  .selectAll(".nv-series-" + seriesIndex)
+                  .selectAll(".nv-point-" + pointIndex)
+                  .classed("hover", isHoverOver);
             });
         };
     };
@@ -483,6 +510,7 @@ nv.models.scatter = function() {
         clipRadius:   {get: function(){return clipRadius;}, set: function(_){clipRadius=_;}},
         showVoronoi:   {get: function(){return showVoronoi;}, set: function(_){showVoronoi=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
+        interactiveUpdateDelay: {get:function(){return interactiveUpdateDelay;}, set: function(_){interactiveUpdateDelay=_;}},
 
 
         // simple functor options

@@ -20,9 +20,17 @@ nv.models.sparkline = function() {
         , yDomain
         , xRange
         , yRange
+        , dispatch = d3.dispatch('renderEnd')
         ;
 
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    var renderWatch = nv.utils.renderWatch(dispatch);
+    
     function chart(selection) {
+        renderWatch.reset();
         selection.each(function(data) {
             var availableWidth = width - margin.left - margin.right,
                 availableHeight = height - margin.top - margin.bottom;
@@ -85,7 +93,8 @@ nv.models.sparkline = function() {
                             getY(d, d.pointIndex) == y.domain()[0] ? 'nv-point nv-minValue' : 'nv-point nv-maxValue'
                 });
         });
-
+        
+        renderWatch.renderEnd('sparkline immediate');
         return chart;
     }
 
@@ -123,6 +132,7 @@ nv.models.sparkline = function() {
         }}
     });
 
+    chart.dispatch = dispatch;
     nv.utils.initOptions(chart);
     return chart;
 };

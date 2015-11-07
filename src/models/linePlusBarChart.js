@@ -85,6 +85,12 @@ nv.models.linePlusBarChart = function() {
         }
     };
 
+    var allDisabled = function(data) {
+      return data.every(function(series) {
+        return series.disabled;
+      });
+    }
+
     function chart(selection) {
         selection.each(function(data) {
             var container = d3.select(this),
@@ -241,9 +247,11 @@ nv.models.linePlusBarChart = function() {
                     {values: []}
                 ]);
             var lines2Wrap = g.select('.nv-context .nv-linesWrap')
-                .datum(!dataLines[0].disabled ? dataLines : [
-                    {values: []}
-                ]);
+                .datum(allDisabled(dataLines) ?
+                       [{values: []}] :
+                       dataLines.filter(function(dataLine) {
+                         return !dataLine.disabled;
+                       }));
 
             g.select('.nv-context')
                 .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')');
@@ -409,9 +417,10 @@ nv.models.linePlusBarChart = function() {
                 );
 
                 var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-                    .datum(dataLines[0].disabled ? [{values:[]}] :
-                        dataLines
-                            .map(function(d,i) {
+                    .datum(allDisabled(dataLines) ? [{values:[]}] :
+                           dataLines
+                           .filter(function(dataLine) { return !dataLine.disabled; })
+                           .map(function(d,i) {
                                 return {
                                     area: d.area,
                                     fillOpacity: d.fillOpacity,
@@ -460,7 +469,7 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-focus .nv-y1.nv-axis')
                     .style('opacity', dataBars.length ? 1 : 0);
                 g.select('.nv-focus .nv-y2.nv-axis')
-                    .style('opacity', dataLines.length && !dataLines[0].disabled ? 1 : 0)
+                    .style('opacity', dataLines.length && !allDisabled(dataLines) ? 1 : 0)
                     .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
                 g.select('.nv-focus .nv-y1.nv-axis').transition().duration(transitionDuration)
@@ -487,7 +496,6 @@ nv.models.linePlusBarChart = function() {
                 return y2Axis.tickFormat()(d, i);
             })
             .data(evt)
-            .position(evt.pos)
             .hidden(false);
     });
 
@@ -515,7 +523,7 @@ nv.models.linePlusBarChart = function() {
     });
 
     bars.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================
@@ -555,18 +563,6 @@ nv.models.linePlusBarChart = function() {
         focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
         legendLeftAxisHint:    {get: function(){return legendLeftAxisHint;}, set: function(_){legendLeftAxisHint=_;}},
         legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

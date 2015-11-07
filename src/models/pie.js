@@ -177,10 +177,13 @@ nv.models.pie = function() {
                 dispatch.elementMousemove({data: d.data, index: i});
             });
             ae.on('click', function(d, i) {
+                var element = this;
                 dispatch.elementClick({
                     data: d.data,
                     index: i,
-                    color: d3.select(this).style("fill")
+                    color: d3.select(this).style("fill"),
+                    event: d3.event,
+                    element: element
                 });
             });
             ae.on('dblclick', function(d, i) {
@@ -258,6 +261,9 @@ nv.models.pie = function() {
                 var createHashKey = function(coordinates) {
                     return Math.floor(coordinates[0]/avgWidth) * avgWidth + ',' + Math.floor(coordinates[1]/avgHeight) * avgHeight;
                 };
+                var getSlicePercentage = function(d) {
+                    return (d.endAngle - d.startAngle) / (2 * Math.PI);
+                };
 
                 pieLabels.watchTransition(renderWatch, 'pie labels').attr('transform', function (d, i) {
                     if (labelSunbeamLayout) {
@@ -280,7 +286,8 @@ nv.models.pie = function() {
                         Adjust the label's y-position to remove the overlap.
                         */
                         var center = labelsArc[i].centroid(d);
-                        if (d.value) {
+                        var percent = getSlicePercentage(d);
+                        if (d.value && percent >= labelThreshold) {
                             var hashKey = createHashKey(center);
                             if (labelLocationHash[hashKey]) {
                                 center[1] -= avgHeight;
@@ -297,7 +304,7 @@ nv.models.pie = function() {
                         return labelSunbeamLayout ? ((d.startAngle + d.endAngle) / 2 < Math.PI ? 'start' : 'end') : 'middle';
                     })
                     .text(function(d, i) {
-                        var percent = (d.endAngle - d.startAngle) / (2 * Math.PI);
+                        var percent = getSlicePercentage(d);
                         var label = '';
                         if (!d.value || percent < labelThreshold) return '';
 

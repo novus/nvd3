@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.1 (https://github.com/novus/nvd3) 2015-06-15 */
+/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2015-09-10 */
 .nvd3 .nv-axis {
     pointer-events:none;
     opacity: 1;
@@ -592,7 +592,10 @@ svg.nvd3-svg {
 }
 
 .nvtooltip table td.key {
-    font-weight:normal;
+    font-weight: normal;
+}
+.nvtooltip table td.key.total {
+    font-weight: bold;
 }
 .nvtooltip table td.value {
     text-align: right;

@@ -16,17 +16,21 @@ nv.models.sunburstChart = function() {
         , defaultState = null
         , noData = null
         , duration = 250
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState','renderEnd')
+        , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
         ;
+
+    tooltip.duration(0);
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch);
-    tooltip.headerEnabled(false).duration(0).valueFormatter(function(d, i) {
-        return d;
-    });
+    tooltip
+        .headerEnabled(false)
+        .valueFormatter(function(d, i) {
+            return d;
+        });
 
     //============================================================
     // Chart function
@@ -45,10 +49,11 @@ nv.models.sunburstChart = function() {
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
-                if (duration === 0)
+                if (duration === 0) {
                     container.call(chart);
-                else
-                    container.transition().duration(duration).call(chart)
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
             };
             chart.container = this;
 
@@ -98,7 +103,7 @@ nv.models.sunburstChart = function() {
     });
 
     sunburst.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+        tooltip();
     });
 
     //============================================================

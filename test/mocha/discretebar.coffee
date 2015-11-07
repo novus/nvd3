@@ -25,8 +25,6 @@ describe 'NVD3', ->
             staggerLabels: true
             showValues: true
             valueFormat: (d)-> d.toFixed 2
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             duration: 0
 

@@ -16,7 +16,8 @@ nv.models.multiChart = function() {
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
         interpolate = 'monotone',
-        useVoronoi = true
+        useVoronoi = true,
+        legendRightAxisHint = ' (right axis)'
         ;
 
     //============================================================
@@ -79,18 +80,18 @@ nv.models.multiChart = function() {
             var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
                 .map(function(d) {
                     return d.values.map(function(d,i) {
-                        return { x: d.x, y: d.y }
+                        return { x: getX(d), y: getY(d) }
                     })
                 });
 
             var series2 = data.filter(function(d) {return !d.disabled && d.yAxis == 2})
                 .map(function(d) {
                     return d.values.map(function(d,i) {
-                        return { x: d.x, y: d.y }
+                        return { x: getX(d), y: getY(d) }
                     })
                 });
 
-            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
+            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return getX(d) }))
                 .range([0, availableWidth]);
 
             var wrap = container.selectAll('g.wrap.multiChart').data([data]);
@@ -125,7 +126,7 @@ nv.models.multiChart = function() {
                 g.select('.legendWrap')
                     .datum(data.map(function(series) {
                         series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
-                        series.key = series.originalKey + (series.yAxis == 1 ? '' : ' (right axis)');
+                        series.key = series.originalKey + (series.yAxis == 1 ? '' : legendRightAxisHint);
                         return series;
                     }))
                     .call(legend);
@@ -273,15 +274,15 @@ nv.models.multiChart = function() {
                 evt.value = evt.point.x;
                 evt.series = {
                     value: evt.point.y,
-                    color: evt.point.color
+                    color: evt.point.color,
+                    key: evt.series.key
                 };
                 tooltip
-                    .duration(100)
+                    .duration(0)
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(evt.pos)
                     .hidden(false);
             }
 
@@ -290,7 +291,8 @@ nv.models.multiChart = function() {
                 evt.value = evt.point.x;
                 evt.series = {
                     value: evt.point.y,
-                    color: evt.point.color
+                    color: evt.point.color,
+                    key: evt.series.key
                 };
                 tooltip
                     .duration(100)
@@ -298,7 +300,6 @@ nv.models.multiChart = function() {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(evt.pos)
                     .hidden(false);
             }
 
@@ -307,12 +308,11 @@ nv.models.multiChart = function() {
                 evt.point['x'] = stack1.x()(evt.point);
                 evt.point['y'] = stack1.y()(evt.point);
                 tooltip
-                    .duration(100)
+                    .duration(0)
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
                     .data(evt)
-                    .position(evt.pos)
                     .hidden(false);
             }
 
@@ -322,7 +322,8 @@ nv.models.multiChart = function() {
                 evt.value = bars1.x()(evt.data);
                 evt['series'] = {
                     value: bars1.y()(evt.data),
-                    color: evt.color
+                    color: evt.color,
+                    key: evt.data.key
                 };
                 tooltip
                     .duration(0)
@@ -370,10 +371,10 @@ nv.models.multiChart = function() {
                 tooltip.hidden(true);
             });
             bars1.dispatch.on('elementMousemove.tooltip', function(evt) {
-                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+                tooltip();
             });
             bars2.dispatch.on('elementMousemove.tooltip', function(evt) {
-                tooltip.position({top: d3.event.pageY, left: d3.event.pageX})();
+                tooltip();
             });
 
         });
@@ -386,6 +387,7 @@ nv.models.multiChart = function() {
     //------------------------------------------------------------
 
     chart.dispatch = dispatch;
+    chart.legend = legend;
     chart.lines1 = lines1;
     chart.lines2 = lines2;
     chart.scatters1 = scatters1;
@@ -410,18 +412,7 @@ nv.models.multiChart = function() {
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
-
-        // deprecated options
-        tooltips:    {get: function(){return tooltip.enabled();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltips', 'use chart.tooltip.enabled() instead');
-            tooltip.enabled(!!_);
-        }},
-        tooltipContent:    {get: function(){return tooltip.contentGenerator();}, set: function(_){
-            // deprecated after 1.7.1
-            nv.deprecated('tooltipContent', 'use chart.tooltip.contentGenerator() instead');
-            tooltip.contentGenerator(_);
-        }},
+        legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -468,4 +459,3 @@ nv.models.multiChart = function() {
 
     return chart;
 };
-

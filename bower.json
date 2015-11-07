@@ -19,7 +19,7 @@
     "svg",
     "charts"
   ],
-  "license": "Apache License, v2.0",
+  "license": "Apache-2.0",
   "dependencies": {
     "d3": "^3.4.4"
   },

@@ -126,6 +126,11 @@ only include the source files you changed!
 * Also visually inspect the HTML pages in the **examples/ and test/ folders**.  Make sure there are no glaring errors.
 * Novus now uses Travis CI for continuous integration. Visit [our travis build page](https://travis-ci.org/novus/nvd3/) to see the latest status.
 
+#### Meteor Tinytests
+* Any Meteor-specific features can be tested from the command line using `tinytest` and [Spacejam](https://www.npmjs.com/package/spacejam)
+* `spacejam` can be installed by running `npm install -g spacejam`.
+* Tinytests can then be executed by running `spacejam test-packages ./` from this project's root.
+
 ---
 
 ## Building latest
