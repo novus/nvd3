@@ -21,6 +21,7 @@ nv.models.multiBarChart = function() {
         , showControls = true
         , controlLabels = {}
         , showLegend = true
+        , legendPosition = "top"
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -157,19 +158,34 @@ nv.models.multiBarChart = function() {
 
             // Legend
             if (showLegend) {
-                legend.width(availableWidth - controlWidth());
+                if (legendPosition === "top") {
+                    legend.width(availableWidth - controlWidth());
 
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
+                    g.select('.nv-legendWrap')
+                        .datum(data)
+                        .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
+                    if ( margin.top != legend.height()) {
+                        margin.top = legend.height();
+                        availableHeight = nv.utils.availableHeight(height, container, margin);
+                    }
+
+                    g.select('.nv-legendWrap')
+                        .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
+                } else if (legendPosition === "right") {
+                    var legendWidth = nv.models.legend().width();
+                    if (availableWidth / 2 < legendWidth) {
+                        legendWidth = (availableWidth / 2)
+                    }
+                    legend.height(availableHeight);
+                    legend.width(legendWidth);
+                    availableWidth -= legend.width();
+
+                    g.select('.nv-legendWrap')
+                        .datum(data)
+                        .call(legend)
+                        .attr('transform', 'translate(' + (availableWidth) +',0)');
                 }
-
-                g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
             }
 
             // Controls
@@ -377,6 +393,7 @@ nv.models.multiBarChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         showControls: {get: function(){return showControls;}, set: function(_){showControls=_;}},
         controlLabels: {get: function(){return controlLabels;}, set: function(_){controlLabels=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
