@@ -176,10 +176,10 @@ nv.models.parallelCoordinates = function() {
             foreground.exit().remove();
             foreground.attr('d', path)
                 .style("stroke-width", function (d, i) {
-                if (isNaN(d.stroke)) { d.stroke = 1;} return d.stroke;})
+                if (isNaN(d.strokeWidth)) { d.strokeWidth = 1;} return d.strokeWidth;})
                 .attr('stroke', function (d, i) { return d.color || color(d, i); });
             foreground.on("mouseover", function (d, i) {
-                d3.select(this).classed('hover', true).style("stroke-width", d.stroke + 2 + "px").style("stroke-opacity", 1);;
+                d3.select(this).classed('hover', true).style("stroke-width", d.strokeWidth + 2 + "px").style("stroke-opacity", 1);;
                 dispatch.elementMouseover({
                     label: d.name,
                     color: d.color || color(d, i)
@@ -187,7 +187,7 @@ nv.models.parallelCoordinates = function() {
 
             });
             foreground.on("mouseout", function (d, i) {
-                d3.select(this).classed('hover', false).style("stroke-width", d.stroke + "px").style("stroke-opacity", 0.7);
+                d3.select(this).classed('hover', false).style("stroke-width", d.strokeWidth + "px").style("stroke-opacity", 0.7);
                 dispatch.elementMouseout({
                     label: d.name,
                     index: i
