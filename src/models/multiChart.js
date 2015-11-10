@@ -16,7 +16,8 @@ nv.models.multiChart = function() {
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
         interpolate = 'monotone',
-        useVoronoi = true
+        useVoronoi = true,
+        legendRightAxisHint = ' (right axis)'
         ;
 
     //============================================================
@@ -125,7 +126,7 @@ nv.models.multiChart = function() {
                 g.select('.legendWrap')
                     .datum(data.map(function(series) {
                         series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
-                        series.key = series.originalKey + (series.yAxis == 1 ? '' : ' (right axis)');
+                        series.key = series.originalKey + (series.yAxis == 1 ? '' : legendRightAxisHint);
                         return series;
                     }))
                     .call(legend);
@@ -411,6 +412,7 @@ nv.models.multiChart = function() {
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
+        legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
