@@ -9,16 +9,14 @@ nv.models.sunburstChart = function() {
     var tooltip = nv.models.tooltip();
 
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
-    , width = null
-    , height = null
-    , color = nv.utils.defaultColor()
-    , id = Math.round(Math.random() * 100000)
-    , defaultState = null
-    , noData = null
-    , duration = 250
-    , tooltipValueFormatter = function(v) {return v;}
-    , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
-    ;
+        , width = null
+        , height = null
+        , color = nv.utils.defaultColor()
+        , id = Math.round(Math.random() * 100000)
+        , defaultState = null
+        , noData = null
+        , duration = 250
+        , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd');
 
 
     //============================================================
@@ -28,9 +26,9 @@ nv.models.sunburstChart = function() {
     var renderWatch = nv.utils.renderWatch(dispatch);
 
     tooltip
-    .duration(0)
-    .headerEnabled(false)
-    .valueFormatter(tooltipValueFormatter);
+        .duration(0)
+        .headerEnabled(false)
+        .valueFormatter(function(d){return d;});
 
     //============================================================
     // Chart function
@@ -42,7 +40,7 @@ nv.models.sunburstChart = function() {
 
         selection.each(function(data) {
             var container = d3.select(this);
-
+            
             nv.utils.initSVG(container);
 
             var availableWidth = nv.utils.availableWidth(width, container, margin);
@@ -66,7 +64,7 @@ nv.models.sunburstChart = function() {
             }
 
             sunburst.width(availableWidth).height(availableHeight);
-            d3.transition(container).call(sunburst);
+            container.call(sunburst);
         });
 
         renderWatch.renderEnd('sunburstChart immediate');
@@ -78,7 +76,7 @@ nv.models.sunburstChart = function() {
     //------------------------------------------------------------
 
     sunburst.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt['series'] = {
+        evt.series = {
             key: evt.data.name,
             value: evt.data.value,
             color: evt.color
@@ -111,10 +109,6 @@ nv.models.sunburstChart = function() {
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
 
         // options that require extra logic in the setter
-        tooltipValueFormatter: {get: function(){return tooltipValueFormatter;}, set: function(_){
-            tooltipValueFormatter=_;
-            tooltip.valueFormatter(tooltipValueFormatter);
-        }},
         color: {get: function(){return color;}, set: function(_){
             color = _;
             sunburst.color(color);
@@ -134,4 +128,5 @@ nv.models.sunburstChart = function() {
     nv.utils.inheritOptions(chart, sunburst);
     nv.utils.initOptions(chart);
     return chart;
+
 };

@@ -414,7 +414,7 @@ as well as used to print out examples using those example inputs.
             examples: [0.05]
         },
         labelThreshold: {
-            desc: "Pie/donut charts: The slice threshold size to not display the label because it woudl be too small of a space",
+            desc: "Pie/donut and Sunburst charts: The slice threshold size to not display the label because it would be too small of a space",
             default: 0.02,
             examples: [0.05]
         },
@@ -901,11 +901,11 @@ as well as used to print out examples using those example inputs.
             examples: [true, false]
         },
         showLabels: {
-            desc: "For sunburst only: specifies if labels are displayed. The labels are centered on the arcs. The actual output can be adjusted by specifying the 'labelText' function.",
+            desc: "For sunburst only: specifies if labels are displayed. The labels are centered on the arcs. The actual output can be adjusted by specifying the 'labelFormat' function.",
             default: "false",
             examples: [true, false]
         },
-        labelText: {
+        labelFormat: {
             desc: "For sunburst only: you can alter the label output by providing a callback function. The function gets the data of the current arc as parameter. It expects you to return the plain text to be shown.",
             default: "function(d){if(mode === 'count'){return d.name + ' #' + d.value}else{return d.name + ' ' + d.value}}",
             examples: [function(d){ return d.name;}]
@@ -915,11 +915,11 @@ as well as used to print out examples using those example inputs.
             default: "function(d1, d2){return d1.name > d2.name;}",
             examples: [function(d1, d2){return d1.value > d2.value;}]
         },
-        tooltipValueFormatter: {
-            desc: "For sunburst only: let's you specify how the values in the tooltip should be formatted. It expects a callback function which is called with the value attribute of data as the only parameter.",
-            default: "function(v) {return v;}",
-            examples: [function(v){return Math.round(v);}]
-        }
+        key: {
+            desc: "For sunburst only: you may specify how the elements are identified. The arc's data is passed into the provided function and expects an identifying string as return value. This is important when updating the chart with changed data.",
+            default: "function(d){return d.name;}",
+            examples: [function(d){return d._id;}]
+        },
     };
 </script>
 
