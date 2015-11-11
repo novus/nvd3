@@ -16,7 +16,7 @@ nv.models.sunburst = function() {
         , color = nv.utils.defaultColor()
         , showLabels = false
         , labelFormat = function(d){if(mode === 'count'){return d.name + ' #' + d.value}else{return d.name + ' ' + d.value}}
-        , labelThreshold = 0.05
+        , labelThreshold = 0.02
         , sort = function(d1, d2){return d1.name > d2.name;}
         , key = function(d,i){return d.name;}
         , groupColorByParent = true
