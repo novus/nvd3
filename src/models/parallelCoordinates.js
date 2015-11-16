@@ -179,7 +179,7 @@ nv.models.parallelCoordinates = function() {
                 if (isNaN(d.strokeWidth)) { d.strokeWidth = 1;} return d.strokeWidth;})
                 .attr('stroke', function (d, i) { return d.color || color(d, i); });
             foreground.on("mouseover", function (d, i) {
-                d3.select(this).classed('hover', true).style("stroke-width", d.strokeWidth + 2 + "px").style("stroke-opacity", 1);;
+                d3.select(this).classed('hover', true).style("stroke-width", d.strokeWidth + 2 + "px").style("stroke-opacity", 1);
                 dispatch.elementMouseover({
                     label: d.name,
                     color: d.color || color(d, i)
