@@ -579,7 +579,7 @@ nv.models.lineChart = function() {
     chart.y2Axis = y2Axis;
     chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
-
+    chart.state = state;
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
