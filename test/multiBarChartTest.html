@@ -224,6 +224,11 @@ defaultChartConfig("chart10",dataFactory(0,0),{
   delay:0
 });
 
+defaultChartConfig("chart11",dataFactoryWithStackable(5,8,null,3),{
+  delay:0,
+  useInteractiveGuideline: true
+});
+
 function defaultChartConfig(containerId, data, chartOptions) {
   nv.addGraph(function() {
       var chart;
