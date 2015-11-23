@@ -569,6 +569,18 @@ nv.utils.inheritOptions = function(target, source) {
     target._d3options = nv.utils.arrayUnique(d3ops.concat(target._d3options || []));
 };
 
+nv.utils.inheritDispatchers = function(target, source) {
+    var sourceDispatchKeys = Object.getOwnPropertyNames(source.dispatch)
+      , dispatchKey;
+
+    for (var i = 0; i < sourceDispatchKeys.length; i++) {
+        dispatchKey = sourceDispatchKeys[i];
+        if (!target.dispatch.hasOwnProperty(dispatchKey)) {
+            target.dispatch[dispatchKey] = source.dispatch[dispatchKey];
+        }
+    }
+}
+
 
 /*
 Runs common initialize code on the svg before the chart builds
