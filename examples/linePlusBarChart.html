@@ -22,12 +22,13 @@
         }
         button {
             margin: 2px;
-            margin-left: 70px;
+            margin-left: 80px;
         }
     </style>
 </head>
 <body>
 <div style="position:absolute; top: 0; left: 0;">
+    <button onclick="chart.switchYAxisOrder(!chart.switchYAxisOrder()); chart.update();">toggle axis</button>
     <button onclick="chart.focusEnable(!chart.focusEnable()); chart.update();">toggle focus</button>
     <span style="color: #C60;">&lt;-- turn focus on or off!</span>
 </div>
@@ -55,7 +56,7 @@
     var chart;
     nv.addGraph(function() {
         chart = nv.models.linePlusBarChart()
-            .margin({top: 50, right: 60, bottom: 30, left: 70})
+            .margin({top: 50, right: 80, bottom: 30, left: 80})
             .legendRightAxisHint(' [Using Right Axis]')
             .color(d3.scale.category10().range());
 
