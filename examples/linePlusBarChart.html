@@ -28,7 +28,7 @@
 </head>
 <body>
 <div style="position:absolute; top: 0; left: 0;">
-    <button onclick="chart.toggleAxis(); chart.update();">toggle axis</button>
+    <button onclick="chart.switchYAxisOrder(!chart.switchYAxisOrder()); chart.update();">toggle axis</button>
     <button onclick="chart.focusEnable(!chart.focusEnable()); chart.update();">toggle focus</button>
     <span style="color: #C60;">&lt;-- turn focus on or off!</span>
 </div>

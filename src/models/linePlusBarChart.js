@@ -589,7 +589,6 @@ nv.models.linePlusBarChart = function() {
         focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
         legendLeftAxisHint:    {get: function(){return legendLeftAxisHint;}, set: function(_){legendLeftAxisHint=_;}},
         legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
-        switchYAxisOrder:    {get: function(){return switchYAxisOrder;}, set: function(_){switchYAxisOrder=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -624,15 +623,17 @@ nv.models.linePlusBarChart = function() {
             lines2.y(_);
             bars.y(_);
             bars2.y(_);
+        }},
+        switchYAxisOrder:    {get: function(){return switchYAxisOrder;}, set: function(_){
+            // Switch the tick format for the yAxis
+            if(switchYAxisOrder !== _) {
+                var tickFormat = y1Axis.tickFormat();
+                y1Axis.tickFormat(y2Axis.tickFormat());
+                y2Axis.tickFormat(tickFormat);
+            }
+            switchYAxisOrder=_;
         }}
     });
-
-    chart.toggleAxis = function() {
-        switchYAxisOrder = !switchYAxisOrder;
-        var tickFormat = y1Axis.tickFormat();
-        y1Axis.tickFormat(y2Axis.tickFormat());
-        y2Axis.tickFormat(tickFormat);
-    }
 
     nv.utils.inheritOptions(chart, lines);
     nv.utils.initOptions(chart);
