@@ -172,11 +172,14 @@ nv.models.axis = function() {
                                 return 'translate(' + nv.utils.NaNtoZero((scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0))) + ',0)'
                             });
                     }
-                    if (staggerLabels)
+                    if (staggerLabels) {
                         xTicks
                             .attr('transform', function(d,i) {
                                 return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')'
                             });
+                    } else {
+                        xTicks.attr('transform', "translate(0,0)");
+                    }
 
                     break;
                 case 'right':
