@@ -131,6 +131,15 @@ nv.models.axis = function() {
                         xTicks
                             .attr('transform', rotateLabelsRule)
                             .style('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
+                    } else {
+                        if (staggerLabels) {
+                            xTicks
+                                .attr('transform', function(d,i) {
+                                    return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')'
+                                });
+                        } else {
+                            xTicks.attr('transform', "translate(0,0)");
+                        }
                     }
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
                     w = 0;
@@ -171,14 +180,6 @@ nv.models.axis = function() {
                             .attr('transform', function(d,i) {
                                 return 'translate(' + nv.utils.NaNtoZero((scale(d) + (isOrdinal ? scale.rangeBand() / 2 : 0))) + ',0)'
                             });
-                    }
-                    if (staggerLabels) {
-                        xTicks
-                            .attr('transform', function(d,i) {
-                                return 'translate(0,' + (i % 2 == 0 ? '0' : '12') + ')'
-                            });
-                    } else {
-                        xTicks.attr('transform', "translate(0,0)");
                     }
 
                     break;
