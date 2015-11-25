@@ -890,7 +890,7 @@ as well as used to print out examples using those example inputs.
             desc: "For tooltip: returns the dom element of the tooltip.  This is read-only, you cannot set this value."
         },
         mode: {
-            desc: "For sunburst only: specifies the mode of drawing the sunburst segments. Can be 'value' or 'count'. 'value' draws the segments according to the 'value' attribute of the leaf nodes, 'count' draws according to the amount of siblings a node has.",
+            desc: "For sunburst only: specifies the mode of drawing the sunburst segments. Can be 'value' or 'count'. 'value' draws the segments according to the 'value' attribute of the leaf nodes, 'count' draws according to the amount of siblings a node has. 'size' is deprecated.",
             default: "count",
             refs: ["http://bl.ocks.org/kerryrodden/477c1bfb081b783f80ad"],
             examples: ["value"]
@@ -920,6 +920,12 @@ as well as used to print out examples using those example inputs.
             default: "function(d){return d.name;}",
             examples: [function(d){return d._id;}]
         },
+        switchYAxisOrder: {
+            desc: "If two Y axis are used, this option changes the order of both axis.",
+            default: "false",
+            examples: [true, false]
+        }
+
     };
 </script>
 

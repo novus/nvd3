@@ -14,7 +14,7 @@ nv.models.bullet = function() {
         , orient = 'left' // TODO top & bottom
         , reverse = false
         , ranges = function(d) { return d.ranges }
-        , markers = function(d) { return d.markers ? d.markers : [0] }
+        , markers = function(d) { return d.markers ? d.markers : [] }
         , measures = function(d) { return d.measures }
         , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
         , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
@@ -140,7 +140,6 @@ nv.models.bullet = function() {
               .enter()
               .append('path')
               .attr('class', 'nv-markerTriangle')
-              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' })
               .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
               .on('mouseover', function(d) {
                 dispatch.elementMouseover({
@@ -165,6 +164,10 @@ nv.models.bullet = function() {
                       color: d3.select(this).style("fill")
                   })
               });
+
+            g.selectAll("path.nv-markerTriangle")
+              .data(markerData)
+              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
 
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
