@@ -10,12 +10,12 @@ nv.models.sunburst = function() {
         , width = 600
         , height = 600
         , mode = "count"
-        , modes = {count: function(d) { return 1; }, value: function(d) { return d.value }}
+        , modes = {count: function(d) { return 1; }, value: function(d) { return d.value || d.size }, size: function(d) { return d.value || d.size }}
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , container = null
         , color = nv.utils.defaultColor()
         , showLabels = false
-        , labelFormat = function(d){if(mode === 'count'){return d.name + ' #' + d.value}else{return d.name + ' ' + d.value}}
+        , labelFormat = function(d){if(mode === 'count'){return d.name + ' #' + d.value}else{return d.name + ' ' + (d.value || d.size)}}
         , labelThreshold = 0.02
         , sort = function(d1, d2){return d1.name > d2.name;}
         , key = function(d,i){return d.name;}
