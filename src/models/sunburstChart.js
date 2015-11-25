@@ -40,7 +40,7 @@ nv.models.sunburstChart = function() {
 
         selection.each(function(data) {
             var container = d3.select(this);
-            
+
             nv.utils.initSVG(container);
 
             var availableWidth = nv.utils.availableWidth(width, container, margin);
@@ -78,7 +78,7 @@ nv.models.sunburstChart = function() {
     sunburst.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt.series = {
             key: evt.data.name,
-            value: evt.data.value,
+            value: (evt.data.value || evt.data.size),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
