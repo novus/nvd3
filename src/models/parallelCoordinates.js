@@ -377,7 +377,7 @@ nv.models.parallelCoordinates = function() {
             }
 
             function dragMove(d) {
-                dragging[d.key] = Math.min(width, Math.max(0, this.parentNode.__origin__ += d3.event.x));
+                dragging[d.key] = Math.min(availableWidth, Math.max(0, this.parentNode.__origin__ += d3.event.x));
                 foreground.attr("d", path);
                 enabledDimensions.sort(function (a, b) { return dimensionPosition(a.key) - dimensionPosition(b.key); });
                 enabledDimensions.forEach(function (d, i) { return d.currentPosition = i; });
