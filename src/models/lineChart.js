@@ -121,7 +121,7 @@ nv.models.lineChart = function() {
                 .getter(stateGetter(data))
                 .update();
 
-            // DEPRECATED set state.disableddisabled
+            // DEPRECATED set state.disabled
             state.disabled = data.map(function(d) { return !!d.disabled; });
 
             if (!defaultState) {
