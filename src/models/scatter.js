@@ -374,6 +374,7 @@ nv.models.scatter = function() {
                 .attr('class', function(d,i) {
                     return (d.classed || '') + ' nv-group nv-series-' + i;
                 })
+                .classed('nv-noninteractive', !interactive)
                 .classed('hover', function(d) { return d.hover });
             groups.watchTransition(renderWatch, 'scatter: groups')
                 .style('fill', function(d,i) { return color(d, i) })
@@ -414,7 +415,6 @@ nv.models.scatter = function() {
                 d3.select(this)
                     .classed('nv-point', true)
                     .classed('nv-point-' + d[1], true)
-                    .classed('nv-noninteractive', !interactive)
                 ;
             });
             points
