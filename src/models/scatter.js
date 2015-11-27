@@ -415,7 +415,6 @@ nv.models.scatter = function() {
                     .classed('nv-point', true)
                     .classed('nv-point-' + d[1], true)
                     .classed('nv-noninteractive', !interactive)
-                    .classed('hover',false)
                 ;
             });
             points
