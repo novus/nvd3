@@ -442,8 +442,6 @@ nv.models.scatter = function() {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            points
-                .watchTransition(renderWatch, 'scatter points');
             points.filter(function (d) { return scaleDiff || getDiffs(d, 'x', 'y'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
