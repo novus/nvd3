@@ -157,6 +157,8 @@ nv.models.scatter = function() {
             y0 = y0 || y;
             z0 = z0 || z;
 
+            var scaleDiff = x(1) !== x0(1) || y(1) !== y0(1) || z(1) !== z0(1);
+
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id);
