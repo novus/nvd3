@@ -443,6 +443,8 @@ nv.models.scatter = function() {
                 })
                 .remove();
             points
+                .watchTransition(renderWatch, 'scatter points');
+            points.filter(function (d) { return scaleDiff || getDiffs(d, 'x', 'y'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
