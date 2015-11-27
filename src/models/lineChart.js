@@ -121,7 +121,7 @@ nv.models.lineChart = function() {
                 .getter(stateGetter(data))
                 .update();
 
-            // DEPRECATED set state.disableddisabled
+            // DEPRECATED set state.disabled
             state.disabled = data.map(function(d) { return !!d.disabled; });
 
             if (!defaultState) {
@@ -579,7 +579,7 @@ nv.models.lineChart = function() {
     chart.y2Axis = y2Axis;
     chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
-
+    chart.state = state;
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 

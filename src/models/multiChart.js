@@ -17,6 +17,8 @@ nv.models.multiChart = function() {
         getY = function(d) { return d.y},
         interpolate = 'monotone',
         useVoronoi = true,
+        interactiveLayer = nv.interactiveGuideline(),
+        useInteractiveGuideline = false,
         legendRightAxisHint = ' (right axis)'
         ;
 
@@ -47,6 +49,8 @@ nv.models.multiChart = function() {
         legend = nv.models.legend().height(30),
         tooltip = nv.models.tooltip(),
         dispatch = d3.dispatch();
+
+    var charts = [lines1, lines2, scatters1, scatters2, bars1, bars2, stack1, stack2];
 
     function chart(selection) {
         selection.each(function(data) {
@@ -100,15 +104,16 @@ nv.models.multiChart = function() {
             gEnter.append('g').attr('class', 'nv-x nv-axis');
             gEnter.append('g').attr('class', 'nv-y1 nv-axis');
             gEnter.append('g').attr('class', 'nv-y2 nv-axis');
-            gEnter.append('g').attr('class', 'lines1Wrap');
-            gEnter.append('g').attr('class', 'lines2Wrap');
-            gEnter.append('g').attr('class', 'scatters1Wrap');
-            gEnter.append('g').attr('class', 'scatters2Wrap');
-            gEnter.append('g').attr('class', 'bars1Wrap');
-            gEnter.append('g').attr('class', 'bars2Wrap');
             gEnter.append('g').attr('class', 'stack1Wrap');
             gEnter.append('g').attr('class', 'stack2Wrap');
+            gEnter.append('g').attr('class', 'bars1Wrap');
+            gEnter.append('g').attr('class', 'bars2Wrap');
+            gEnter.append('g').attr('class', 'scatters1Wrap');
+            gEnter.append('g').attr('class', 'scatters2Wrap');
+            gEnter.append('g').attr('class', 'lines1Wrap');
+            gEnter.append('g').attr('class', 'lines2Wrap');
             gEnter.append('g').attr('class', 'legendWrap');
+            gEnter.append('g').attr('class', 'nv-interactive');
 
             var g = wrap.select('g');
 
@@ -265,6 +270,16 @@ nv.models.multiChart = function() {
                 chart.update();
             });
 
+            if(useInteractiveGuideline){
+                interactiveLayer
+                    .width(availableWidth)
+                    .height(availableHeight)
+                    .margin({left:margin.left, top:margin.top})
+                    .svgContainer(container)
+                    .xScale(x);
+                wrap.select(".nv-interactive").call(interactiveLayer);
+            }
+
             //============================================================
             // Event Handling/Dispatching
             //------------------------------------------------------------
@@ -334,49 +349,121 @@ nv.models.multiChart = function() {
                     .hidden(false);
             }
 
-            lines1.dispatch.on('elementMouseover.tooltip', mouseover_line);
-            lines2.dispatch.on('elementMouseover.tooltip', mouseover_line);
-            lines1.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true)
-            });
-            lines2.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true)
-            });
 
-            scatters1.dispatch.on('elementMouseover.tooltip', mouseover_scatter);
-            scatters2.dispatch.on('elementMouseover.tooltip', mouseover_scatter);
-            scatters1.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true)
-            });
-            scatters2.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true)
-            });
 
-            stack1.dispatch.on('elementMouseover.tooltip', mouseover_stack);
-            stack2.dispatch.on('elementMouseover.tooltip', mouseover_stack);
-            stack1.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true)
-            });
-            stack2.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true)
-            });
+            function clearHighlights() {
+              for(var i=0, il=charts.length; i < il; i++){
+                var chart = charts[i];
+                try {
+                  chart.clearHighlights();
+                } catch(e){}
+              }
+            }
 
-            bars1.dispatch.on('elementMouseover.tooltip', mouseover_bar);
-            bars2.dispatch.on('elementMouseover.tooltip', mouseover_bar);
+            function highlightPoint(serieIndex, pointIndex, b){
+              for(var i=0, il=charts.length; i < il; i++){
+                var chart = charts[i];
+                try {
+                  chart.highlightPoint(serieIndex, pointIndex, b);
+                } catch(e){}
+              }
+            }
 
-            bars1.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true);
-            });
-            bars2.dispatch.on('elementMouseout.tooltip', function(evt) {
-                tooltip.hidden(true);
-            });
-            bars1.dispatch.on('elementMousemove.tooltip', function(evt) {
-                tooltip();
-            });
-            bars2.dispatch.on('elementMousemove.tooltip', function(evt) {
-                tooltip();
-            });
+            if(useInteractiveGuideline){
+                interactiveLayer.dispatch.on('elementMousemove', function(e) {
+                    clearHighlights();
+                    var singlePoint, pointIndex, pointXLocation, allData = [];
+                    data
+                    .filter(function(series, i) {
+                        series.seriesIndex = i;
+                        return !series.disabled;
+                    })
+                    .forEach(function(series,i) {
+                        var extent = x.domain();
+                        var currentValues = series.values.filter(function(d,i) {
+                            return chart.x()(d,i) >= extent[0] && chart.x()(d,i) <= extent[1];
+                        });
 
+                        pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, chart.x());
+                        var point = currentValues[pointIndex];
+                        var pointYValue = chart.y()(point, pointIndex);
+                        if (pointYValue !== null) {
+                            highlightPoint(i, pointIndex, true);
+                        }
+                        if (point === undefined) return;
+                        if (singlePoint === undefined) singlePoint = point;
+                        if (pointXLocation === undefined) pointXLocation = x(chart.x()(point,pointIndex));
+                        allData.push({
+                            key: series.key,
+                            value: pointYValue,
+                            color: color(series,series.seriesIndex),
+                            data: point,
+                            yAxis: series.yAxis == 2 ? yAxis2 : yAxis1
+                        });
+                    });
+
+                    interactiveLayer.tooltip
+                    .chartContainer(chart.container.parentNode)
+                    .valueFormatter(function(d,i) {
+                        var yAxis = allData[i].yAxis;
+                        return d === null ? "N/A" : yAxis.tickFormat()(d);
+                    })
+                    .data({
+                        value: chart.x()( singlePoint,pointIndex ),
+                        index: pointIndex,
+                        series: allData
+                    })();
+
+                    interactiveLayer.renderGuideLine(pointXLocation);
+                });
+
+                interactiveLayer.dispatch.on("elementMouseout",function(e) {
+                    clearHighlights();
+                });
+            } else {
+                lines1.dispatch.on('elementMouseover.tooltip', mouseover_line);
+                lines2.dispatch.on('elementMouseover.tooltip', mouseover_line);
+                lines1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true)
+                });
+                lines2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true)
+                });
+
+                scatters1.dispatch.on('elementMouseover.tooltip', mouseover_scatter);
+                scatters2.dispatch.on('elementMouseover.tooltip', mouseover_scatter);
+                scatters1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true)
+                });
+                scatters2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true)
+                });
+
+                stack1.dispatch.on('elementMouseover.tooltip', mouseover_stack);
+                stack2.dispatch.on('elementMouseover.tooltip', mouseover_stack);
+                stack1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true)
+                });
+                stack2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true)
+                });
+
+                bars1.dispatch.on('elementMouseover.tooltip', mouseover_bar);
+                bars2.dispatch.on('elementMouseover.tooltip', mouseover_bar);
+
+                bars1.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true);
+                });
+                bars2.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true);
+                });
+                bars1.dispatch.on('elementMousemove.tooltip', function(evt) {
+                    tooltip();
+                });
+                bars2.dispatch.on('elementMousemove.tooltip', function(evt) {
+                    tooltip();
+                });
+            }
         });
 
         return chart;
@@ -400,6 +487,7 @@ nv.models.multiChart = function() {
     chart.yAxis1 = yAxis1;
     chart.yAxis2 = yAxis2;
     chart.tooltip = tooltip;
+    chart.interactiveLayer = interactiveLayer;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -452,6 +540,22 @@ nv.models.multiChart = function() {
             lines2.useVoronoi(_);
             stack1.useVoronoi(_);
             stack2.useVoronoi(_);
+        }},
+
+        useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
+            useInteractiveGuideline = _;
+            if (useInteractiveGuideline) {
+                lines1.interactive(false);
+                lines1.useVoronoi(false);
+                lines2.interactive(false);
+                lines2.useVoronoi(false);
+                stack1.interactive(false);
+                stack1.useVoronoi(false);
+                stack2.interactive(false);
+                stack2.useVoronoi(false);
+                scatters1.interactive(false);
+                scatters2.interactive(false);
+            }
         }}
     });
 

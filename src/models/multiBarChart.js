@@ -1,4 +1,3 @@
-
 nv.models.multiBarChart = function() {
     "use strict";
 
@@ -9,6 +8,7 @@ nv.models.multiBarChart = function() {
     var multibar = nv.models.multiBar()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
+        , interactiveLayer = nv.interactiveGuideline()
         , legend = nv.models.legend()
         , controls = nv.models.legend()
         , tooltip = nv.models.tooltip()
@@ -36,6 +36,7 @@ nv.models.multiBarChart = function() {
         , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd')
         , controlWidth = function() { return showControls ? 180 : 0 }
         , duration = 250
+        , useInteractiveGuideline = false
         ;
 
     state.stacked = false // DEPRECATED Maintained for backward compatibility
@@ -154,6 +155,7 @@ nv.models.multiBarChart = function() {
             gEnter.append('g').attr('class', 'nv-barsWrap');
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-controlsWrap');
+            gEnter.append('g').attr('class', 'nv-interactive');
 
             // Legend
             if (showLegend) {
@@ -278,6 +280,17 @@ nv.models.multiBarChart = function() {
                     .call(yAxis);
             }
 
+            //Set up interactive layer
+            if (useInteractiveGuideline) {
+                interactiveLayer
+                    .width(availableWidth)
+                    .height(availableHeight)
+                    .margin({left:margin.left, top:margin.top})
+                    .svgContainer(container)
+                    .xScale(x);
+                wrap.select(".nv-interactive").call(interactiveLayer);
+            }
+
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
@@ -328,33 +341,73 @@ nv.models.multiBarChart = function() {
                 }
                 chart.update();
             });
+
+            if (useInteractiveGuideline) {
+                interactiveLayer.dispatch.on('elementMousemove', function(e) {
+                    if (e.pointXValue == undefined) return;
+
+                    var singlePoint, pointIndex, pointXLocation, xValue, allData = [];
+                    data
+                        .filter(function(series, i) {
+                            series.seriesIndex = i;
+                            return !series.disabled;
+                        })
+                        .forEach(function(series,i) {
+                            pointIndex = x.domain().indexOf(e.pointXValue)
+
+                            var point = series.values[pointIndex];
+                            if (point === undefined) return;
+
+                            xValue = point.x;
+                            if (singlePoint === undefined) singlePoint = point;
+                            if (pointXLocation === undefined) pointXLocation = e.mouseX
+                            allData.push({
+                                key: series.key,
+                                value: chart.y()(point, pointIndex),
+                                color: color(series,series.seriesIndex),
+                                data: series.values[pointIndex]
+                            });
+                        });
+
+                    interactiveLayer.tooltip
+                        .chartContainer(that.parentNode)
+                        .data({
+                            value: xValue,
+                            index: pointIndex,
+                            series: allData
+                        })();
+
+                    interactiveLayer.renderGuideLine(pointXLocation);
+                });
+
+                interactiveLayer.dispatch.on("elementMouseout",function(e) {
+                    interactiveLayer.tooltip.hidden(true);
+                });
+            }
+            else {
+                multibar.dispatch.on('elementMouseover.tooltip', function(evt) {
+                    evt.value = chart.x()(evt.data);
+                    evt['series'] = {
+                        key: evt.data.key,
+                        value: chart.y()(evt.data),
+                        color: evt.color
+                    };
+                    tooltip.data(evt).hidden(false);
+                });
+
+                multibar.dispatch.on('elementMouseout.tooltip', function(evt) {
+                    tooltip.hidden(true);
+                });
+
+                multibar.dispatch.on('elementMousemove.tooltip', function(evt) {
+                    tooltip();
+                });
+            }
         });
 
         renderWatch.renderEnd('multibarchart immediate');
         return chart;
     }
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-
-    multibar.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt.value = chart.x()(evt.data);
-        evt['series'] = {
-            key: evt.data.key,
-            value: chart.y()(evt.data),
-            color: evt.color
-        };
-        tooltip.data(evt).hidden(false);
-    });
-
-    multibar.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.hidden(true);
-    });
-
-    multibar.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip();
-    });
 
     //============================================================
     // Expose Public Variables
@@ -369,6 +422,7 @@ nv.models.multiBarChart = function() {
     chart.yAxis = yAxis;
     chart.state = state;
     chart.tooltip = tooltip;
+    chart.interactiveLayer = interactiveLayer;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -409,6 +463,9 @@ nv.models.multiBarChart = function() {
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( rightAlignYAxis ? 'right' : 'left');
+        }},
+        useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
+            useInteractiveGuideline = _;
         }},
         barColor:  {get: function(){return multibar.barColor;}, set: function(_){
             multibar.barColor(_);
