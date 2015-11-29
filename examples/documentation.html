@@ -38,6 +38,17 @@
             container.append(op);
         }
 
+        function getProps(obj, key) {
+            var props = [];
+            if (obj.hasOwnProperty(key)) {
+                var _obj = obj[key];
+                if (typeof _obj === 'object') {
+                    props.push.apply(props, Object.keys(_obj));
+                }
+            }
+            return props;
+        }
+
         $('body').ready(function () {
             var charts = [
                 'pieChart',
@@ -95,24 +106,42 @@
 
                     // build list of sub-components for this chart object
                     var props = Object.getOwnPropertyNames(chart);
-                    var propdom = $('<div></div>');
+                    var propdom = $('<div></div>').addClass('propdom');
                     var proplist = {};
+                    var dispatchList = [];
+
                     for (var p in props) {
                         try {
                             var prop = chart[props[p]];
                             if ((prop instanceof Object) && !(prop instanceof Array) && prop._options) {
                                 proplist[props[p]] = props[p];
                             }
-                        }catch(e) {}
+                        } catch(e) {}
                     }
+
                     // only add sub-component list if some exist.
                     if (Object.keys(proplist).length > 0) {
-                        propdom.append($('<span>Components: </span>'));
+                        propdom.append($('<span class="label">Components: </span>'));
                         var pstrings = [];
                         for (var p in proplist) {
                             pstrings.push('<span class="prop">' + p + '</span>');
                         }
                         propdom.append($(pstrings.join(', ')));
+                    }
+
+                    // add event dispatchers by the chart;
+                    dispatchList = getProps(chart, 'dispatch');
+                    if (dispatchList.length) {
+                        propdom.append($('<br/>'));
+                        propdom.append($('<span class="label">Events: </span>'));
+                        var dispatchString = dispatchList.map(function(dispatcherName) {
+                            return '<span class="event">' + dispatcherName + '</span>';
+                        }).join(' ');
+                        propdom.append(dispatchString);
+                    }
+
+                    if (propdom.children().length) {
+                        propdom.addClass('populated');
                         c.append(propdom);
                     }
 
