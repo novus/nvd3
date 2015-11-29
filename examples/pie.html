@@ -63,6 +63,18 @@
                 .attr('height', height)
                 .call(chart);
 
+        // LISTEN TO CLICK EVENTS ON THE PIE CONTAINER
+        // chart.dispatch.on('chartClick', function() {
+        //   code...
+        // });
+
+        // LISTEN TO CLICK EVENTS ON THE SLICES OF THE PIE
+        // chart.dispatch.on('elementClick', function() {
+        //   code...
+        // });
+
+        // OTHER EVENTS DISPATCHED BY THE PIE INCLUDE: elementDblClick, elementMouseover, elementMouseout, elementMousemove, renderEnd
+        // @see nv.models.pie
         return chart;
     });
 
