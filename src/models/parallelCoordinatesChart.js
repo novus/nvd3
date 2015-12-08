@@ -240,7 +240,7 @@ nv.models.parallelCoordinatesChart = function () {
              }      
             if(evt.values){
                 Object.keys(evt.values).forEach(function (d) {
-                    var dim = evt.dimensions.find(function (dd) {if(dd.key === d) return dd;});
+                    var dim = evt.dimensions.filter(function (dd) {return dd.key === d;})[0];
                     if(dim)
                         tp.series.push({idx:dim.currentPosition, key: d, value: d3.format(dim.format)(evt.values[d]), color: dim.color});
                 });
