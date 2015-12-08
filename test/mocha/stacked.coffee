@@ -127,3 +127,16 @@ describe 'NVD3', ->
             builder.model.stacked.offset 'wiggle'
             builder.model.update()
             builder.model.yAxis.ticks().should.equal 0
+
+        it 'should set color property if not specified', ->
+            sampleData3 = [
+              key: 'Series 1'
+              values: [
+                [-1,-1]
+                [0,0]
+                [1,1]
+                [2,2]
+              ]
+            ]
+            builder.build options, sampleData3
+            should.exist sampleData3[0].color
