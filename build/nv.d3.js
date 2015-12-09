@@ -9048,7 +9048,7 @@ nv.models.multiChart = function() {
         useInteractiveGuideline = false,
         legendRightAxisHint = ' (right axis)',
         showY1Axis = true,
-        showY2Axis = true,    
+        showY2Axis = true,
         stackBars = true
         ;
 
@@ -9132,13 +9132,13 @@ nv.models.multiChart = function() {
             var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
 
             gEnter.append('g').attr('class', 'nv-x nv-axis');
-            
-            
+
+
             if(showY1Axis) {
-                gEnter.append('g').attr('class', 'nv-y1 nv-axis');              
+                gEnter.append('g').attr('class', 'nv-y1 nv-axis');
             }
             if(showY2Axis) {
-                gEnter.append('g').attr('class', 'nv-y2 nv-axis');              
+                gEnter.append('g').attr('class', 'nv-y2 nv-axis');
             }
             // gEnter.append('g').attr('class', 'nv-y1 nv-axis');
             // // gEnter.append('g').attr('class', 'nv-y2 nv-axis');
@@ -9540,9 +9540,9 @@ nv.models.multiChart = function() {
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
-        legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},      
+        legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
         showY1Axis:    {get: function(){return showY1Axis;}, set: function(_){showY1Axis=_;}},
-        showY2Axis:    {get: function(){return showY2Axis;}, set: function(_){showY2Axis=_;}},      
+        showY2Axis:    {get: function(){return showY2Axis;}, set: function(_){showY2Axis=_;}},
         stackBars:    {get: function(){return stackBars;}, set: function(_){stackBars=_;}},
 
         // options that require extra logic in the setter
