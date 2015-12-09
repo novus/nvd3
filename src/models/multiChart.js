@@ -19,7 +19,10 @@ nv.models.multiChart = function() {
         useVoronoi = true,
         interactiveLayer = nv.interactiveGuideline(),
         useInteractiveGuideline = false,
-        legendRightAxisHint = ' (right axis)'
+        legendRightAxisHint = ' (right axis)',
+        showY1Axis = true,
+        showY2Axis = true,
+        stackBars = true
         ;
 
     //============================================================
@@ -36,8 +39,8 @@ nv.models.multiChart = function() {
         scatters1 = nv.models.scatter().yScale(yScale1),
         scatters2 = nv.models.scatter().yScale(yScale2),
 
-        bars1 = nv.models.multiBar().stacked(false).yScale(yScale1),
-        bars2 = nv.models.multiBar().stacked(false).yScale(yScale2),
+        bars1 = nv.models.multiBar().stacked(stackBars).yScale(yScale1),
+        bars2 = nv.models.multiBar().stacked(stackBars).yScale(yScale2),
 
         stack1 = nv.models.stackedArea().yScale(yScale1),
         stack2 = nv.models.stackedArea().yScale(yScale2),
@@ -102,8 +105,16 @@ nv.models.multiChart = function() {
             var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
 
             gEnter.append('g').attr('class', 'nv-x nv-axis');
-            gEnter.append('g').attr('class', 'nv-y1 nv-axis');
-            gEnter.append('g').attr('class', 'nv-y2 nv-axis');
+
+
+            if(showY1Axis) {
+                gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+            }
+            if(showY2Axis) {
+                gEnter.append('g').attr('class', 'nv-y2 nv-axis');
+            }
+            // gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+            // // gEnter.append('g').attr('class', 'nv-y2 nv-axis');
             gEnter.append('g').attr('class', 'stack1Wrap');
             gEnter.append('g').attr('class', 'stack2Wrap');
             gEnter.append('g').attr('class', 'bars1Wrap');
@@ -133,8 +144,10 @@ nv.models.multiChart = function() {
                         series.originalKey = series.originalKey === undefined ? series.key : series.originalKey;
                         series.key = series.originalKey + (series.yAxis == 1 ? '' : legendRightAxisHint);
                         return series;
-                    }))
-                    .call(legend);
+                      }).filter(function(elem) {
+                        return elem.showLegend === undefined || elem.showLegend;
+                      })
+                    ).call(legend);
 
                 if ( margin.top != legend.height()) {
                     margin.top = legend.height();
@@ -501,6 +514,9 @@ nv.models.multiChart = function() {
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
         legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
+        showY1Axis:    {get: function(){return showY1Axis;}, set: function(_){showY1Axis=_;}},
+        showY2Axis:    {get: function(){return showY2Axis;}, set: function(_){showY2Axis=_;}},
+        stackBars:    {get: function(){return stackBars;}, set: function(_){stackBars=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

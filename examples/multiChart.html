@@ -56,10 +56,19 @@
     testdata[8].type = "bar";
     testdata[8].yAxis = 2;
 
+    // To turn off an individual legend e.g.
+    // testdata[7].showLegend = false;
+
     nv.addGraph(function() {
         var chart = nv.models.multiChart()
             .margin({top: 30, right: 60, bottom: 50, left: 70})
             .color(d3.scale.category10().range());
+
+            // Example options
+            // .showY1Axis(true)
+            // .showY2Axis(false)
+            // .stackBars(true)
+            // .showLegend(true);
 
         chart.xAxis.tickFormat(d3.format(',f'));
         chart.yAxis1.tickFormat(d3.format(',.1f'));
