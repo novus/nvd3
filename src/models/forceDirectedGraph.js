@@ -10,6 +10,7 @@ nv.models.forceDirectedGraph = function() {
         , height = 32
         , container = null
         , dispatch = d3.dispatch('renderEnd')
+        , color = nv.utils.getColor(['#000'])
         // Force directed graph specific parameters [default values]
         , linkStrength = 0.1
         , friction = 0.9
@@ -18,7 +19,6 @@ nv.models.forceDirectedGraph = function() {
         , gravity = 0.1
         , theta = 0.8
         , alpha = 0.1
-        , color = nv.utils.getColor(['#000'])
         , radius = 5
         ;
 
@@ -30,7 +30,9 @@ nv.models.forceDirectedGraph = function() {
 
     function chart(selection) {
         renderWatch.reset();
+
         selection.each(function(data) {
+          console.log('DoFunction...');
           container = d3.select(this);
           nv.utils.initSVG(container);
 
@@ -57,15 +59,15 @@ nv.models.forceDirectedGraph = function() {
           var link = container.selectAll(".link")
                 .data(data.links)
                 .enter().append("line")
-                .attr("class", "link")
+                .attr("class", "nv-force-link")
                 .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
             var node = container.selectAll(".node")
                 .data(data.nodes)
                 .enter().append("circle")
-                .attr("class", "node")
+                .attr("class", "nv-force-node")
                 .attr("r", radius)
-                .style("fill", function(d) { return color(d.group); })
+                .style("fill", function(d) { return color(d) } )
                 .call(force.drag);
 
             node.append("title")
