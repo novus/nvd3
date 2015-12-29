@@ -1,125 +1,149 @@
 
-var nv = window.nv || {};
+// set up main nv object
+var nv = {};
 
-
-nv.version = '1.1.15b';
-nv.dev = true //set false when in production
-
-window.nv = nv;
-
+// the major global objects under the nv namespace
+nv.dev = false; //set false when in production
 nv.tooltip = nv.tooltip || {}; // For the tooltip system
 nv.utils = nv.utils || {}; // Utility subsystem
 nv.models = nv.models || {}; //stores all the possible models/components
 nv.charts = {}; //stores all the ready to use charts
-nv.graphs = []; //stores all the graphs currently on the page
 nv.logs = {}; //stores some statistics and potential error messages
+nv.dom = {}; //DOM manipulation functions
 
 nv.dispatch = d3.dispatch('render_start', 'render_end');
 
-// *************************************************************************
-//  Development render timers - disabled if dev = false
+// Function bind polyfill
+// Needed ONLY for phantomJS as it's missing until version 2.0 which is unreleased as of this comment
+// https://github.com/ariya/phantomjs/issues/10522
+// http://kangax.github.io/compat-table/es5/#Function.prototype.bind
+// phantomJS is used for running the test suite
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function (oThis) {
+        if (typeof this !== "function") {
+            // closest thing possible to the ECMAScript 5 internal IsCallable function
+            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+        }
 
-if (nv.dev) {
-  nv.dispatch.on('render_start', function(e) {
-    nv.logs.startTime = +new Date();
-  });
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function () {},
+            fBound = function () {
+                return fToBind.apply(this instanceof fNOP && oThis
+                        ? this
+                        : oThis,
+                    aArgs.concat(Array.prototype.slice.call(arguments)));
+            };
 
-  nv.dispatch.on('render_end', function(e) {
-    nv.logs.endTime = +new Date();
-    nv.logs.totalTime = nv.logs.endTime - nv.logs.startTime;
-    nv.log('total', nv.logs.totalTime); // used for development, to keep track of graph generation times
-  });
+        fNOP.prototype = this.prototype;
+        fBound.prototype = new fNOP();
+        return fBound;
+    };
 }
 
-// ********************************************
-//  Public Core NV functions
+//  Development render timers - disabled if dev = false
+if (nv.dev) {
+    nv.dispatch.on('render_start', function(e) {
+        nv.logs.startTime = +new Date();
+    });
+
+    nv.dispatch.on('render_end', function(e) {
+        nv.logs.endTime = +new Date();
+        nv.logs.totalTime = nv.logs.endTime - nv.logs.startTime;
+        nv.log('total', nv.logs.totalTime); // used for development, to keep track of graph generation times
+    });
+}
 
 // Logs all arguments, and returns the last so you can test things in place
 // Note: in IE8 console.log is an object not a function, and if modernizr is used
 // then calling Function.prototype.bind with with anything other than a function
 // causes a TypeError to be thrown.
 nv.log = function() {
-  if (nv.dev && console.log && console.log.apply)
-    console.log.apply(console, arguments)
-  else if (nv.dev && typeof console.log == "function" && Function.prototype.bind) {
-    var log = Function.prototype.bind.call(console.log, console);
-    log.apply(console, arguments);
-  }
-  return arguments[arguments.length - 1];
+    if (nv.dev && window.console && console.log && console.log.apply)
+        console.log.apply(console, arguments);
+    else if (nv.dev && window.console && typeof console.log == "function" && Function.prototype.bind) {
+        var log = Function.prototype.bind.call(console.log, console);
+        log.apply(console, arguments);
+    }
+    return arguments[arguments.length - 1];
 };
 
+// print console warning, should be used by deprecated functions
+nv.deprecated = function(name, info) {
+    if (console && console.warn) {
+        console.warn('nvd3 warning: `' + name + '` has been deprecated. ', info || '');
+    }
+};
 
+// The nv.render function is used to queue up chart rendering
+// in non-blocking async functions.
+// When all queued charts are done rendering, nv.dispatch.render_end is invoked.
 nv.render = function render(step) {
-  step = step || 1; // number of graphs to generate in each timeout loop
+    // number of graphs to generate in each timeout loop
+    step = step || 1;
 
-  nv.render.active = true;
-  nv.dispatch.render_start();
+    nv.render.active = true;
+    nv.dispatch.render_start();
 
-  setTimeout(function() {
-    var chart, graph;
+    var renderLoop = function() {
+        var chart, graph;
 
-    for (var i = 0; i < step && (graph = nv.render.queue[i]); i++) {
-      chart = graph.generate();
-      if (typeof graph.callback == typeof(Function)) graph.callback(chart);
-      nv.graphs.push(chart);
-    }
+        for (var i = 0; i < step && (graph = nv.render.queue[i]); i++) {
+            chart = graph.generate();
+            if (typeof graph.callback == typeof(Function)) graph.callback(chart);
+        }
 
-    nv.render.queue.splice(0, i);
+        nv.render.queue.splice(0, i);
 
-    if (nv.render.queue.length) setTimeout(arguments.callee, 0);
-    else {
-      nv.dispatch.render_end();
-      nv.render.active = false;
-    }
-  }, 0);
+        if (nv.render.queue.length) {
+            setTimeout(renderLoop);
+        }
+        else {
+            nv.dispatch.render_end();
+            nv.render.active = false;
+        }
+    };
+
+    setTimeout(renderLoop);
 };
 
 nv.render.active = false;
 nv.render.queue = [];
 
+/*
+Adds a chart to the async rendering queue. This method can take arguments in two forms:
+nv.addGraph({
+    generate: <Function>
+    callback: <Function>
+})
+
+or
+
+nv.addGraph(<generate Function>, <callback Function>)
+
+The generate function should contain code that creates the NVD3 model, sets options
+on it, adds data to an SVG element, and invokes the chart model. The generate function
+should return the chart model.  See examples/lineChart.html for a usage example.
+
+The callback function is optional, and it is called when the generate function completes.
+*/
 nv.addGraph = function(obj) {
-  if (typeof arguments[0] === typeof(Function))
-    obj = {generate: arguments[0], callback: arguments[1]};
-
-  nv.render.queue.push(obj);
-
-  if (!nv.render.active) nv.render();
-};
-
-nv.identity = function(d) { return d; };
-
-nv.strip = function(s) { return s.replace(/(\s|&)/g,''); };
-
-function daysInMonth(month,year) {
-  return (new Date(year, month+1, 0)).getDate();
-}
-
-function d3_time_range(floor, step, number) {
-  return function(t0, t1, dt) {
-    var time = floor(t0), times = [];
-    if (time < t0) step(time);
-    if (dt > 1) {
-      while (time < t1) {
-        var date = new Date(+time);
-        if ((number(date) % dt === 0)) times.push(date);
-        step(time);
-      }
-    } else {
-      while (time < t1) { times.push(new Date(+time)); step(time); }
+    if (typeof arguments[0] === typeof(Function)) {
+        obj = {generate: arguments[0], callback: arguments[1]};
     }
-    return times;
-  };
-}
 
-d3.time.monthEnd = function(date) {
-  return new Date(date.getFullYear(), date.getMonth(), 0);
+    nv.render.queue.push(obj);
+
+    if (!nv.render.active) {
+        nv.render();
+    }
 };
 
-d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
-    date.setUTCDate(date.getUTCDate() + 1);
-    date.setDate(daysInMonth(date.getMonth() + 1, date.getFullYear()));
-  }, function(date) {
-    return date.getMonth();
-  }
-);
+// Node/CommonJS exports
+if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined') {
+  module.exports = nv;
+}
 
+if (typeof(window) !== 'undefined') {
+  window.nv = nv;
+}

@@ -1,27 +1,14 @@
 
-# Jekyll Files #
-################
-_site
-
-
-# Random Files #
-################
+.idea
 *.swp
 *~
 *.log
-
-
-# Private Test Data #
-#####################
-*REALDATA*
-
-
-# OS generated files #
-######################
 .DS_Store*
 ehthumbs.db
 Icon?
 Thumbs.db
-#  nodejs packages   #
-######################
 node_modules
+bower_components
+coverage
+test-results.xml
+*.orig

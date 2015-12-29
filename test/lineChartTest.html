@@ -1,8 +1,11 @@
 <!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
-
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
-<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type="text/css">
+<script src="../bower_components/d3/d3.js" charset="utf-8"></script>
+<script src="../build/nv.d3.js"></script>
 <style>
 #chart13, #chart14 {
   overflow: scroll;
@@ -15,6 +18,7 @@
   height: 400px;
 }
 </style>
+</head>
 <body>
   <h3>Line chart test cases - feel free to add more tests</h3>
   <div style='position:relative;'>
@@ -25,9 +29,9 @@
           <a href="../examples/cumulativeLineChart.html">Cumulative Line</a>
           <a href="ScatterChartTest.html">Scatter</a>
           <a href="pieChartTest.html">Pie chart</a>
+          <a href="multiBarCharttest.html">Multi Bar Chart</a>
           <a href="realTimeChartTest.html">Real time test</a>
           <a href="polylinearTest.html">Polylinear test</a>
-          <a href="interactiveBisectTest.html">nv.interactiveBisect unit tests</a>
       </div>
       <div class='chart full' id='chart1'>
         Example of chart with many series', and new interactive guideline plus tooltip. A chunk of data was purposely removed
@@ -122,18 +126,16 @@
         <button>Select chart</button>
         <svg></svg>
       </div>
+
+      <div class='chart half' id='chart18'>
+        Chart with missing data (discontinuous lines). Check that all highlighted points
+        have the same x, matching the guideline. Check that "N/A" appears in tooltip for
+        points with undefined y.
+        <svg></svg>
+      </div>
+
     </div>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/interactiveLayer.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/lineChart.js"></script>
 <script src="testScript.js"></script>
 <script>
 
@@ -142,7 +144,7 @@ d3.select("body").on("keydown",function() {
      alert("keydowned");
   }
 });
-//------------ CHART 1 
+//------------ CHART 1
 defaultChartConfig("chart1", dummyStocks(),true, true, {forceY:false});
 
 //-------------- CHART 2  --- Chart without the interactive guideline.
@@ -171,6 +173,8 @@ nv.addGraph(function() {
 
   nv.utils.windowResize(chart.update);
 
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
   return chart;
 });
 
@@ -191,6 +195,7 @@ defaultChartConfig("chart14",hyperbole(), false, false, {width: 700, height: 400
 defaultChartConfig("chart15", withNaNs());
 defaultChartConfig("chart16", duplicateY(), false);
 defaultChartConfig("chart17", tinyPoints(), false);
+defaultChartConfig("chart18", missingData(), true);
 
 function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) {
   if (auxOptions === undefined) auxOptions = {};
@@ -200,17 +205,17 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
     chart = nv.models.lineChart().useInteractiveGuideline(guideline);
 
     chart
-        .x(function(d,i) { 
+        .x(function(d,i) {
           return d.x;
         });
 
-    if (auxOptions.width) 
+    if (auxOptions.width)
       chart.width(auxOptions.width);
 
     if (auxOptions.height)
       chart.height(auxOptions.height);
 
-    if (auxOptions.forceY) 
+    if (auxOptions.forceY)
       chart.forceY([0]);
 
     var formatter;
@@ -241,6 +246,8 @@ function defaultChartConfig(containerid, data, guideline, useDates, auxOptions) 
         .call(chart);
 
     nv.utils.windowResize(chart.update);
+
+    chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
     return chart;
   });
@@ -444,6 +451,59 @@ function tinyPoints() {
   return [rval];
 }
 
+function missingData() {
+  var sin = [],
+      sin2 = [],
+      cos = [],
+      rand = [],
+      rand2 = []
+      ;
+
+
+  for (var i = 0; i < 100; i++) {
+
+      sin.push(i % 17 === 0 ? {x: i, y: null} : {x: i, y: Math.sin(i/10) });
+      sin2.push(i % 19 === 0 ? {x: i, y: null} : {x: i, y: Math.sin(i/5) * 0.4 - 0.25});
+      cos.push(i % 7 === 0 ? {x: i, y:null} : {x: i, y:.5 * Math.cos(i/10)});
+      rand.push(i % 11 === 0 ? {x: i, y: null} : {x: i , y: Math.random() / 10});
+      rand2.push( i % 13 === 0 ? {x: i, y: null} : {x: i, y: Math.cos(i/10) + Math.random() / 10 });
+  }
+
+  return [
+      {
+          area: true,
+          values: sin,
+          key: "Sine Wave",
+          color: "#ff7f0e",
+          strokeWidth: 4,
+          classed: 'dashed'
+      },
+      {
+          values: cos,
+          key: "Cosine Wave",
+          color: "#2ca02c"
+      },
+      {
+          values: rand,
+          key: "Random Points",
+          color: "#2222ff"
+      },
+      {
+          values: rand2,
+          key: "Random Cosine",
+          color: "#667711",
+          strokeWidth: 3.5
+      },
+      {
+          area: true,
+          values: sin2,
+          key: "Fill opacity",
+          color: "#EF9CFB",
+          fillOpacity: .1
+      }
+  ];
+}
+
 function dummyStocks(numPoints) {
   numPoints = numPoints || 200;
   function volatileChart(key,startPrice, volatility, isArea) {
@@ -473,3 +533,5 @@ function dummyStocks(numPoints) {
 }
 
 </script>
+
+</body></html>

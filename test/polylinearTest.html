@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../build/nv.d3.js"></script>
 <style>
 
 </style>
@@ -38,21 +40,9 @@
       </div>
   </div>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
-<script src="../src/tooltip.js"></script>
-<script src="../src/utils.js"></script>
-<script src="../src/interactiveLayer.js"></script>
-<script src="../src/models/legend.js"></script>
-<script src="../src/models/axis.js"></script>
-<script src="../src/models/scatter.js"></script>
-<script src="../src/models/line.js"></script>
-<script src="../src/models/lineChart.js"></script>
-<script src="../src/models/historicalBar.js"></script>
-<script src="../src/models/historicalBarChart.js"></script>
 <script>
 
-//------------ CHART 1 
+//------------ CHART 1
 lineChartConfig("chart1", sinAndCos(),true, false);
 barChartConfig(dataWithSpikes());
 
@@ -66,14 +56,14 @@ function lineChartConfig(containerid, data, guideline, useDates, auxOptions) {
 
     var fullChartHeight = 500 - chart.margin().top - chart.margin().bottom;
     chart
-        .x(function(d,i) { 
+        .x(function(d,i) {
           return d.x;
         })
        .yDomain([0,2,200])   //Using a polylinear scale
         .yRange([fullChartHeight,50,0])
         ;
 
-    if (auxOptions.width) 
+    if (auxOptions.width)
       chart.width(auxOptions.width);
 
     if (auxOptions.height)
@@ -118,10 +108,9 @@ function barChartConfig(data) {
       chart.color(["#ff7f0e"])
       .yDomain([0,2,130])
       .yRange([fullChartHeight,50,0])
-      .transitionDuration(500)
       ;
 
-      chart.xAxis 
+      chart.xAxis
       .tickFormat(d3.format(',.1f'))
       .axisLabel("Time")
       ;
