@@ -19,6 +19,8 @@ describe 'NVD3', ->
             height: 200
             color: nv.utils.defaultColor()
             showLegend: true
+            arcInnerRadius: 150
+            arcOuterRadius: 180
             valueFormat: (d)-> d.toFixed 2
             showLabels: true
             labelsOutside: true
@@ -115,6 +117,14 @@ describe 'NVD3', ->
             builder.teardown()
             options.padAngle = 5
             options.cornerRadius = 5
+
+            builder.build options, sampleData1
+            done() 
+
+        it 'can handle arcInnerRadius and arcOuterRadius options', (done)->
+            builder.teardown()
+            options.arcInnerRadius = 150
+            options.arcOuterRadius = 180
 
             builder.build options, sampleData1
             done() 

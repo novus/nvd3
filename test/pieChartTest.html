@@ -65,6 +65,11 @@ text {
   <svg></svg>
 </div>
 
+<div class='chart third' id="test9">
+  <h2>Donut pie chart arc radius customized</h2>
+  <svg></svg>
+</div>
+
 <script>
 
 var testdata = [
@@ -151,6 +156,8 @@ function defaultDonutChart(containerId, data, options) {
                 .color(d3.scale.category10().range())
                 .width(width)
                 .height(height)
+                .arcInnerRadius(options.arcInnerRadius || undefined)
+                .arcOuterRadius(options.arcOuterRadius || undefined)
                 .donut(true);
 
         if (options.half){
@@ -192,4 +199,5 @@ defaultChart("test6", [
 
 defaultChart("test7",testdata, "percent");
 defaultDonutChart("test8", testdata, {half: true, donutLabelsOutside: true});
+defaultDonutChart("test9", testdata, {arcInnerRadius: 150, arcOuterRadius: 180});
 </script>
