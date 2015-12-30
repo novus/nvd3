@@ -20,6 +20,9 @@ nv.models.forceDirectedGraph = function() {
         , theta = 0.8
         , alpha = 0.1
         , radius = 5
+        // These functions allow to add extra attributes to ndes and links
+        ,nodeExtras = function(nodes) { /* Do nothing */ }
+        ,linkExtras = function(links) { /* Do nothing */ }
         ;
 
     //============================================================
@@ -32,7 +35,6 @@ nv.models.forceDirectedGraph = function() {
         renderWatch.reset();
 
         selection.each(function(data) {
-          console.log('DoFunction...');
           container = d3.select(this);
           nv.utils.initSVG(container);
 
@@ -62,7 +64,8 @@ nv.models.forceDirectedGraph = function() {
                 .attr("class", "nv-force-link")
                 .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
-            var node = container.selectAll(".node")
+
+          var node = container.selectAll(".node")
                 .data(data.nodes)
                 .enter().append("circle")
                 .attr("class", "nv-force-node")
@@ -70,10 +73,11 @@ nv.models.forceDirectedGraph = function() {
                 .style("fill", function(d) { return color(d) } )
                 .call(force.drag);
 
-            node.append("title")
-                .text(function(d) { return d.name; });
+          // Apply extra attributes to nodes and links (if any)
+          linkExtras(link);
+          nodeExtras(node);
 
-            force.on("tick", function() {
+          force.on("tick", function() {
               link.attr("x1", function(d) { return d.source.x; })
                   .attr("y1", function(d) { return d.source.y; })
                   .attr("x2", function(d) { return d.target.x; })
@@ -121,6 +125,12 @@ nv.models.forceDirectedGraph = function() {
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
+        }},
+        nodeExtras: {get: function(){return nodeExtras;}, set: function(_){
+            nodeExtras = _;
+        }},
+        linkExtras: {get: function(){return linkExtras;}, set: function(_){
+            linkExtras = _;
         }}
     });
 
