@@ -19,6 +19,8 @@ nv.models.pie = function() {
         , labelType = "key"
         , labelThreshold = .02 //if slice percentage is under this, don't show label
         , donut = false
+        , arcInnerRadius = null
+        , arcOuterRadius = null
         , title = false
         , growOnHover = true
         , titleOffset = 0
@@ -53,15 +55,15 @@ nv.models.pie = function() {
 
             container = d3.select(this)
             if (arcsRadius.length === 0) {
-                var outer = radius - radius / 5;
-                var inner = donutRatio * radius;
+                var outer = arcOuterRadius || (radius - radius / 5);
+                var inner = arcInnerRadius || (donutRatio * radius);
                 for (var i = 0; i < data[0].length; i++) {
                     arcsRadiusOuter.push(outer);
                     arcsRadiusInner.push(inner);
                 }
             } else {
-                arcsRadiusOuter = arcsRadius.map(function (d) { return (d.outer - d.outer / 5) * radius; });
-                arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
+                arcsRadiusOuter = arcOuterRadius || arcsRadius.map(function (d) { return (d.outer - d.outer / 5) * radius; });
+                arcsRadiusInner = arcInnerRadius || arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
                 donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 5); }));
             }
             nv.utils.initSVG(container);
@@ -376,6 +378,8 @@ nv.models.pie = function() {
         id:         {get: function(){return id;}, set: function(_){id=_;}},
         endAngle:   {get: function(){return endAngle;}, set: function(_){endAngle=_;}},
         startAngle: {get: function(){return startAngle;}, set: function(_){startAngle=_;}},
+        arcInnerRadius: {get: function(){return arcInnerRadius;}, set: function(_){arcInnerRadius=_;}},
+        arcOuterRadius: {get: function(){return arcOuterRadius;}, set: function(_){arcOuterRadius=_;}},
         padAngle:   {get: function(){return padAngle;}, set: function(_){padAngle=_;}},
         cornerRadius: {get: function(){return cornerRadius;}, set: function(_){cornerRadius=_;}},
         donutRatio:   {get: function(){return donutRatio;}, set: function(_){donutRatio=_;}},
