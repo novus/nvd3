@@ -9690,7 +9690,7 @@ nv.models.ohlcBar = function() {
             d3.transition(ticks)
                 .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
                 .attr('d', function(d,i) {
-                    var w = (availableWidth / data[0].values.length) * .9;
+                    var w = 6;
                     return 'm0,0l0,'
                         + (y(getOpen(d,i))
                             - y(getHigh(d,i)))
