@@ -50,20 +50,6 @@ nv.models.parallelCoordinatesChart = function () {
             }
         };
 
-        tooltip.contentGenerator(function(data) {
-            var str = '<table><thead><tr><td class="legend-color-guide"><div style="background-color:' + data.color + '"></div></td><td><strong>' + data.key + '</strong></td></tr></thead>';
-            if(data.series.length !== 0) 
-            {
-                str = str + '<tbody><tr><td height ="10px"></td></tr>';
-                data.series.forEach(function(d){
-                    str = str + '<tr><td class="legend-color-guide"><div style="background-color:' + d.color + '"></div></td><td class="key">' + d.key + '</td><td class="value">' + d.value + '</td></tr>';
-                }); 
-                str = str + '</tbody>';
-            }
-            str = str + '</table>';
-            return str;
-        });
-        
         //============================================================
         // Chart function
         //------------------------------------------------------------
@@ -165,6 +151,9 @@ nv.models.parallelCoordinatesChart = function () {
                 }
                 wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+                
+               
+
                 // Main Chart Component(s)
                 parallelCoordinates
                     .width(availableWidth)
@@ -233,20 +222,11 @@ nv.models.parallelCoordinatesChart = function () {
         //------------------------------------------------------------
 
         parallelCoordinates.dispatch.on('elementMouseover.tooltip', function (evt) {
-            var tp = {
+            evt['series'] = {
                 key: evt.label,
-                color: evt.color,
-                series: []
-             }      
-            if(evt.values){
-                Object.keys(evt.values).forEach(function (d) {
-                    var dim = evt.dimensions.filter(function (dd) {return dd.key === d;})[0];
-                    if(dim)
-                        tp.series.push({idx:dim.currentPosition, key: d, value: d3.format(dim.format)(evt.values[d]), color: dim.color});
-                });
-                tp.series.sort(function(a,b) {return a.idx - b.idx});
-             }
-            tooltip.data(tp).hidden(false);
+                color: evt.color
+            };
+            tooltip.data(evt).hidden(false);
         });
 
         parallelCoordinates.dispatch.on('elementMouseout.tooltip', function(evt) {
@@ -265,6 +245,7 @@ nv.models.parallelCoordinatesChart = function () {
         chart.parallelCoordinates = parallelCoordinates;
         chart.legend = legend;
         chart.tooltip = tooltip;
+
         chart.options = nv.utils.optionsFunc.bind(chart);
 
         chart._options = Object.create({}, {

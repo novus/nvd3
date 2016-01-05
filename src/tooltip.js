@@ -132,7 +132,7 @@ nv.models.tooltip = function() {
     var dataSeriesExists = function(d) {
         if (d && d.series) {
             if (d.series instanceof Array) {
-                return true;
+                return !!d.series.length;
             }
             // if object, it's okay just convert to array of the object
             if (d.series instanceof Object) {

@@ -72,7 +72,6 @@ nv.models.scatter = function() {
             });
 
             // Setup Scales
-            var logScale = chart.yScale().name === d3.scale.log().name ? true : false; 
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -91,7 +90,7 @@ nv.models.scatter = function() {
             else
                 x.range(xRange || [0, availableWidth]);
 
-             if (logScale) {
+             if (chart.yScale().name === "o") {
                     var min = d3.min(seriesData.map(function(d) { if (d.y !== 0) return d.y; }));
                     y.clamp(true)
                         .domain(yDomain || d3.extent(seriesData.map(function(d) {
@@ -175,8 +174,8 @@ nv.models.scatter = function() {
                                     var pX = getX(point,pointIndex);
                                     var pY = getY(point,pointIndex);
 
-                                    return [nv.utils.NaNtoZero(x(pX))+ Math.random() * 1e-4,
-                                            nv.utils.NaNtoZero(y(pY))+ Math.random() * 1e-4,
+                                    return [x(pX)+ Math.random() * 1e-4,
+                                            y(pY)+ Math.random() * 1e-4,
                                         groupIndex,
                                         pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
                                 })
