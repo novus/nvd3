@@ -73,14 +73,16 @@ nv.models.forceDirectedGraph = function() {
                 .attr("class", "nv-force-link")
                 .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
-
           var node = container.selectAll(".node")
                 .data(data.nodes)
-                .enter().append("circle")
+                .enter()
+                .append("g")
                 .attr("class", "nv-force-node")
-                .attr("r", radius)
-                .style("fill", function(d) { return color(d) } )
                 .call(force.drag);
+          node
+            .append("circle")
+            .attr("r", radius)
+            .style("fill", function(d) { return color(d) } )
 
           // Apply extra attributes to nodes and links (if any)
           linkExtras(link);
@@ -92,8 +94,9 @@ nv.models.forceDirectedGraph = function() {
                   .attr("x2", function(d) { return d.target.x; })
                   .attr("y2", function(d) { return d.target.y; });
 
-              node.attr("cx", function(d) { return d.x; })
-                  .attr("cy", function(d) { return d.y; });
+              node.attr("transform", function(d) {
+                return "translate(" + d.x + ", " + d.y + ")";
+              });
             });
         });
 
