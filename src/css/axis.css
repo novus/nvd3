@@ -28,7 +28,10 @@
     /*this selector may not be necessary*/ .nvd3 .nv-axis line.zero {
     stroke-opacity: .75;
 }
-
+.nvd3 .nv-axis .notext text,
+    /*this selector may not be necessary*/ .nvd3 .nv-axis text.notext {
+    opacity: 0;
+}
 .nvd3 .nv-axis .nv-axisMaxMin text {
     font-weight: bold;
 }
