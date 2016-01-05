@@ -11,6 +11,7 @@ nv.models.forceDirectedGraph = function() {
         , container = null
         , dispatch = d3.dispatch('renderEnd')
         , color = nv.utils.getColor(['#000'])
+        , noData = null
         // Force directed graph specific parameters [default values]
         , linkStrength = 0.1
         , friction = 0.9
@@ -44,6 +45,14 @@ nv.models.forceDirectedGraph = function() {
           container
                   .attr("width", availableWidth)
                   .attr("height", availableHeight);
+
+          // Display No Data message if there's nothing to show.
+          if (!data || !data.links || !data.nodes) {
+              nv.utils.noData(chart, container)
+              return chart;
+          } else {
+              container.selectAll('.nv-noData').remove();
+          }
 
           var force = d3.layout.force()
                 .nodes(data.nodes)
@@ -126,6 +135,7 @@ nv.models.forceDirectedGraph = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
         }},
+        noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         nodeExtras: {get: function(){return nodeExtras;}, set: function(_){
             nodeExtras = _;
         }},
