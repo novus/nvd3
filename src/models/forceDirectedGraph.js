@@ -53,6 +53,7 @@ nv.models.forceDirectedGraph = function() {
           } else {
               container.selectAll('.nv-noData').remove();
           }
+          container.selectAll('*').remove();
 
           var force = d3.layout.force()
                 .nodes(data.nodes)
