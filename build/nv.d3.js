@@ -9690,14 +9690,14 @@ nv.models.ohlcBar = function() {
             d3.transition(ticks)
                 .attr('transform', function(d,i) { return 'translate(' + x(getX(d,i)) + ',' + y(getHigh(d,i)) + ')'; })
                 .attr('d', function(d,i) {
-                    var w = (availableWidth / data[0].values.length) * .9;
+		    var w = (availableWidth / data[0].values.length) * .9;
                     return 'm0,0l0,'
                         + (y(getOpen(d,i))
                             - y(getHigh(d,i)))
                         + 'l'
-                        + (-w/2)
+                        + (-3)
                         + ',0l'
-                        + (w/2)
+                        + (3)
                         + ',0l0,'
                         + (y(getLow(d,i))
                             - y(getOpen(d,i)))
@@ -9705,9 +9705,9 @@ nv.models.ohlcBar = function() {
                         + (y(getClose(d,i))
                             - y(getLow(d,i)))
                         + 'l'
-                        + (w/2)
+                        + (3)
                         + ',0l'
-                        + (-w/2)
+                        + (-3)
                         + ',0z';
                 });
         });
