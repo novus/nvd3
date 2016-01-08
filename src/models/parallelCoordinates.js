@@ -387,12 +387,8 @@ nv.models.parallelCoordinates = function() {
                             if (f[0].extent[0] >= y[d.key].domain()[0])
                                 currentTicks[d.key].push(f[0].extent[0]);    
                         }
-   
-                        //If values format is integer, convert brush extent to integer.
-                        if(d.format.indexOf("d") >= 0)
-                            currentTicks[d.key] = currentTicks[d.key].map(function(d) {return parseInt(d,10)});
                             
-                        d3.select(this).call(axis.scale(y[d.key]).tickFormat(d3.format(d.format)).tickValues(currentTicks[d.key]));
+                        d3.select(this).call(axis.scale(y[d.key]).tickFormat(d.format).tickValues(currentTicks[d.key]));
                 });
             }
             function dragStart(d) {
