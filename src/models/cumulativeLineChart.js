@@ -211,7 +211,9 @@ nv.models.cumulativeLineChart = function() {
             gEnter.append('g').attr('class', 'nv-controlsWrap');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth);
 
                 g.select('.nv-legendWrap')

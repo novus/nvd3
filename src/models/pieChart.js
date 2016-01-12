@@ -107,7 +107,9 @@ nv.models.pieChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 if (legendPosition === "top") {
                     legend.width( availableWidth ).key(pie.x());
 

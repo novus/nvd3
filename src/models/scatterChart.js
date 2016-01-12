@@ -154,7 +154,9 @@ nv.models.scatterChart = function() {
             }
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 var legendWidth = availableWidth;
                 legend.width(legendWidth);
 

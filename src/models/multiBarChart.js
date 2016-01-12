@@ -158,7 +158,9 @@ nv.models.multiBarChart = function() {
             gEnter.append('g').attr('class', 'nv-interactive');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth - controlWidth());
 
                 g.select('.nv-legendWrap')

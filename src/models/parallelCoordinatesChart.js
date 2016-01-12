@@ -134,7 +134,9 @@ nv.models.parallelCoordinatesChart = function () {
                     .attr("height", (availableHeight > 0) ? availableHeight : 0);
 
                 // Legend
-                if (showLegend) {
+                if (!showLegend) {
+                    g.select('.nv-legendWrap').selectAll('*').remove();
+                } else {
                     legend.width(availableWidth)
                         .color(function (d) { return "rgb(188,190,192)"; });
 

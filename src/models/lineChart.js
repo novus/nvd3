@@ -173,7 +173,9 @@ nv.models.lineChart = function() {
             contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth);
 
                 g.select('.nv-legendWrap')
