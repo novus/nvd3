@@ -228,7 +228,9 @@ nv.models.cumulativeLineChart = function() {
             }
 
             // Controls
-            if (showControls) {
+            if (!showControls) {
+                 g.select('.nv-controlsWrap').selectAll('*').remove();
+            } else {
                 var controlsData = [
                     { key: 'Re-scale y-axis', disabled: !rescaleY }
                 ];

@@ -173,7 +173,9 @@ nv.models.stackedAreaChart = function() {
             }
 
             // Controls
-            if (showControls) {
+            if (!showControls) {
+                 g.select('.nv-controlsWrap').selectAll('*').remove();
+            } else {
                 var controlsData = [
                     {
                         key: controlLabels.stacked || 'Stacked',
