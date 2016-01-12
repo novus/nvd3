@@ -294,6 +294,9 @@ nv.models.multiChart = function() {
                 };
                 tooltip
                     .duration(0)
+                    .headerFormatter(function(d, i) {
+                    	return xAxis.tickFormat()(d, i);
+                    })
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
@@ -311,6 +314,9 @@ nv.models.multiChart = function() {
                 };
                 tooltip
                     .duration(100)
+                    .headerFormatter(function(d, i) {
+                    	return xAxis.tickFormat()(d, i);
+                    })
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
@@ -324,6 +330,9 @@ nv.models.multiChart = function() {
                 evt.point['y'] = stack1.y()(evt.point);
                 tooltip
                     .duration(0)
+                    .headerFormatter(function(d, i) {
+                    	return xAxis.tickFormat()(d, i);
+                    })
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
@@ -342,6 +351,9 @@ nv.models.multiChart = function() {
                 };
                 tooltip
                     .duration(0)
+                    .headerFormatter(function(d, i) {
+                    	return xAxis.tickFormat()(d, i);
+                    })
                     .valueFormatter(function(d, i) {
                         return yaxis.tickFormat()(d, i);
                     })
