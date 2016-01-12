@@ -154,6 +154,8 @@ nv.models.line = function() {
                     .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
             );
 
+            linePaths.style('stroke', function(d,i,j){ return color(d, j)});
+
             linePaths.watchTransition(renderWatch, 'line: linePaths')
                 .attr('d',
                     d3.svg.line()
