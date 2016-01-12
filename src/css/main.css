@@ -13,8 +13,6 @@ svg.nvd3-svg {
     -moz-user-select: none;
     user-select: none;
     display: block;
-    width:100%;
-    height:100%;
 }
 
 /********************
