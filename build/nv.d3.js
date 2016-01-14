@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2016-01-12 */
-=======
 /* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2016-01-14 */
->>>>>>> 1c98aa9... [multiBarHorizontal] Pass event & element params on click. New build.
 (function(){
 
 // set up main nv object
@@ -7218,7 +7214,6 @@ nv.models.linePlusBarChart = function() {
                     .scale(x)
                     ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight1, 0);
-<<<<<<< HEAD
 
                 xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
 
@@ -7255,44 +7250,6 @@ nv.models.linePlusBarChart = function() {
                     .style('opacity', y2Opacity)
                     .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
-=======
-
-                xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
-
-                g.select('.nv-x.nv-axis').transition().duration(transitionDuration)
-                    .call(xAxis);
-
-                // Update Main (Focus) Bars and Lines
-                focusBarsWrap.transition().duration(transitionDuration).call(bars);
-                focusLinesWrap.transition().duration(transitionDuration).call(lines);
-
-                // Setup and Update Main (Focus) Y Axes
-                g.select('.nv-focus .nv-x.nv-axis')
-                    .attr('transform', 'translate(0,' + y1.range()[0] + ')');
-
-                y1Axis
-                    .scale(y1)
-                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
-                    .tickSize(-availableWidth, 0);
-                y2Axis
-                    .scale(y2)
-                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
-                    .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
-
-                // Calculate opacity of the axis
-                var barsOpacity = dataBars.length ? 1 : 0;
-                var linesOpacity = dataLines.length && !allDisabled(dataLines) ? 1 : 0;
-
-                var y1Opacity = switchYAxisOrder ? linesOpacity : barsOpacity;
-                var y2Opacity = switchYAxisOrder ? barsOpacity : linesOpacity;
-
-                g.select('.nv-focus .nv-y1.nv-axis')
-                    .style('opacity', y1Opacity);
-                g.select('.nv-focus .nv-y2.nv-axis')
-                    .style('opacity', y2Opacity)
-                    .attr('transform', 'translate(' + x.range()[1] + ',0)');
-
->>>>>>> 1c98aa9... [multiBarHorizontal] Pass event & element params on click. New build.
                 g.select('.nv-focus .nv-y1.nv-axis').transition().duration(transitionDuration)
                     .call(y1Axis);
                 g.select('.nv-focus .nv-y2.nv-axis').transition().duration(transitionDuration)

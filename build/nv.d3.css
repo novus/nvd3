@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-/* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2016-01-12 */
-=======
 /* nvd3 version 1.8.1-dev (https://github.com/novus/nvd3) 2016-01-14 */
->>>>>>> 1c98aa9... [multiBarHorizontal] Pass event & element params on click. New build.
 .nvd3 .nv-axis {
     pointer-events:none;
     opacity: 1;
