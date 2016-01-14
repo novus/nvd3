@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../build/nv.d3.js"></script>
+<body class='with-3d-shadow with-transitions'>
+  <h3>Multi-chart test cases - feel free to add more tests</h3>
+  <div class='chart third' id="chart1">
+    2 non-stackable series, 1 line, no colors set, 1 y-axis, no labels.
+    <svg></svg>
+  </div>
+  <div class='chart third' id="chart2">
+    2 stackable series, 1 line, colors set, 2 y-axis, labels.
+    <svg></svg>
+  </div>
+  <div class='chart third' id="chart3">
+    3 stackables (right axis), 1 line per axis, colors set, 2 y-axis, show 0 on y-axes
+    <svg></svg>
+  </div>
+<script>
+
+function randomSeriesValues(perSeries) {
+  return new d3.range(0,perSeries).map( function(f,j) {
+    return {
+       y: 10 + Math.random()*100,
+       x: j
+     }
+  });
+}
+
+function dataFactoryWithBarsAndLines(perSeries,
+                                     barsNum,
+                                     linesNum,
+                                     barsAxes,
+                                     linesAxes,
+                                     barsColors,
+                                     linesColors) {
+
+  barsAxes = barsAxes || [];
+  barsColors = barsColors || [];
+  linesAxes = linesAxes || [];
+  linesColors = linesColors || [];
+
+  var bars = new d3.range(0, barsNum).map(function(d,i) {
+    var series = {
+      color: barsColors[i] || null,
+      key: 'Bar ' + i,
+      type: 'bar',
+      yAxis: barsAxes[i] || 1
+    };
+    series.values = randomSeriesValues(perSeries);
+    return series;
+  });
+
+  var lines = new d3.range(0, linesNum).map(function(d,i) {
+    var series = {
+      color: linesColors[i] || null,
+      key: 'Line ' + i,
+      type: 'line',
+      yAxis: linesAxes[i] || 1
+    };
+    series.values = randomSeriesValues(perSeries);
+    return series;
+  });
+
+  return bars.concat(lines);
+}
+
+// 2 non-stackable series, 1 line, no colors set, 1 y-axis, no labels.
+defaultChartConfig(
+    "chart1",
+    dataFactoryWithBarsAndLines(11, 2, 1, null, null, null, null),
+    {
+        barColor: d3.scale.category20().range(),
+        showLegend: false,
+    }
+);
+
+// 2 stackable series, 1 line, colors set, 2 y-axis, labels.
+defaultChartConfig(
+    "chart2",
+    dataFactoryWithBarsAndLines(11, 2, 1, [1,1], [2], ['blue', 'red'], ['green']),
+    {
+        barColor: d3.scale.category20().range(),
+        stackBars: true,
+        width: 400,
+    }
+);
+
+// 3 stackable (right axis), 1 line per axis, colors set, 2 y-axis, show 0 on y-axes
+defaultChartConfig(
+    "chart3",
+    dataFactoryWithBarsAndLines(11, 3, 2,
+                                [2,2,2],
+                                [1,2],
+                                ['blue','red','black'],
+                                ['green','yellow']),
+    {
+        barColor: d3.scale.category20().range(),
+        showY1AxisZero: true,
+        showY2AxisZero: true,
+        stackBars: true,
+        width: 400,
+    }
+);
+
+function defaultChartConfig(containerId, data, chartOptions) {
+  nv.addGraph(function() {
+      var chart;
+      chart = nv.models.multiChart()
+        .margin({bottom: 100})
+        ;
+
+      chart.options(chartOptions);
+
+      chart.xAxis
+          .axisLabel("Current Index")
+          .showMaxMin(false)
+          .tickFormat(d3.format(',0f'));
+
+      chart.yAxis1
+          .showMaxMin(false)
+          .tickFormat(d3.format(',.1f'));
+
+      chart.yAxis2
+          .showMaxMin(true)
+          .tickFormat(d3.format(',.1f'));
+
+      d3.select('#' + containerId + ' svg')
+          .datum(data)
+          .call(chart);
+
+      nv.utils.windowResize(chart.update);
+
+      return chart;
+  });
+}
+
+</script>
