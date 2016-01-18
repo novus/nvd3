@@ -57,7 +57,7 @@ nv.models.axis = function() {
                 var currentTicks = g.selectAll('.tick').filter(function () { return this.textContent !== ""; });
                 var mod = Math.round(currentTicks[0].length / ticks);
                 currentTicks.each(function (d, i) {
-                    d3.select(this).classed('notext', function () { return i % mod === 0 ? false : true; });
+                    d3.select(this).classed('notext', function () { return (mod === 0 || i % mod === 0) ? false : true; });
                 });
             }
             
