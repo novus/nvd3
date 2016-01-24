@@ -121,7 +121,10 @@ nv.models.multiChart = function() {
                 return data[i].color || color(d, i);
             });
 
-            if (showLegend) {
+            // Legend
+            if (!showLegend) {
+                g.select('.legendWrap').selectAll('*').remove();
+            } else {
                 var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
                 var legendXPosition = legend.align() ? legendWidth : 0;
 
