@@ -133,7 +133,7 @@ nv.models.multiBarHorizontalChart = function() {
 
             // Setup Scales
             x = multibar.xScale();
-            y = multibar.yScale();
+            y = multibar.yScale().clamp(true);
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-multiBarHorizontalChart').data([data]);
