@@ -36,6 +36,10 @@ NVD3 runs best on WebKit based browsers.
 
 ## Changelog
 
+**1.8.2** Changes:
+
+* Lots of community bugfixes and a few extra minor features
+
 **1.8.1** Changes:
 
 * Tooltips were refactored - If you have customized your tooltips, note that you may need to adjust your custom functions as the data passed has changed format.  See the new [tooltip options](https://nvd3-community.github.io/nvd3/examples/documentation.html#tooltip) for more details.
