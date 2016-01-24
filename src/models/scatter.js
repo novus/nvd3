@@ -53,7 +53,33 @@ nv.models.scatter = function() {
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         , _sizeRange_def = [16, 256]
+        , _caches
         ;
+
+    function getCache(d) {
+        var cache, i;
+        cache = _caches = _caches || {};
+        i = d[0].series;
+        cache = cache[i] = cache[i] || {};
+        i = d[1];
+        cache = cache[i] = cache[i] || {};
+        return cache;
+    }
+
+    function getDiffs(d) {
+        var i, key,
+            point = d[0],
+            cache = getCache(d),
+            diffs = false;
+        for (i = 1; i < arguments.length; i ++) {
+            key = arguments[i];
+            if (cache[key] !== point[key] || !cache.hasOwnProperty(key)) {
+                cache[key] = point[key];
+                diffs = true;
+            }
+        }
+        return diffs;
+    }
 
     function chart(selection) {
         renderWatch.reset();
@@ -130,6 +156,8 @@ nv.models.scatter = function() {
             x0 = x0 || x;
             y0 = y0 || y;
             z0 = z0 || z;
+
+            var scaleDiff = x(1) !== x0(1) || y(1) !== y0(1) || z(1) !== z0(1);
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
@@ -374,6 +402,7 @@ nv.models.scatter = function() {
                 .attr('class', function(d,i) {
                     return (d.classed || '') + ' nv-group nv-series-' + i;
                 })
+                .classed('nv-noninteractive', !interactive)
                 .classed('hover', function(d) { return d.hover });
             groups.watchTransition(renderWatch, 'scatter: groups')
                 .style('fill', function(d,i) { return color(d, i) })
@@ -393,6 +422,9 @@ nv.models.scatter = function() {
                             })
                     });
             points.enter().append('path')
+                .attr('class', function (d) {
+                    return 'nv-point nv-point-' + d[1];
+                })
                 .style('fill', function (d) { return d.color })
                 .style('stroke', function (d) { return d.color })
                 .attr('transform', function(d) {
@@ -410,20 +442,14 @@ nv.models.scatter = function() {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            points.each(function(d) {
-                d3.select(this)
-                    .classed('nv-point', true)
-                    .classed('nv-point-' + d[1], true)
-                    .classed('nv-noninteractive', !interactive)
-                    .classed('hover',false)
-                ;
-            });
-            points
+            points.filter(function (d) { return scaleDiff || getDiffs(d, 'x', 'y'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
-                })
+                });
+            points.filter(function (d) { return scaleDiff || getDiffs(d, 'shape', 'size'); })
+                .watchTransition(renderWatch, 'scatter points')
                 .attr('d',
                     nv.utils.symbol()
                     .type(function(d) { return getShape(d[0]); })
