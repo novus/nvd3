@@ -96,7 +96,7 @@
                 setInterval(function () {
                     var element = {
                         key: "P7",
-                        format: "p",
+                        format: d3.format("p"),
                         tooltip: "year",
                     }
                     if (dim.length === 7) {
@@ -115,37 +115,37 @@
                 return [
                     {
                         key: "P1",
-                        format: "0.5f",
+                        format: d3.format("0.5f"),
                         tooltip: "economy (mpg)",
                     },
                     {
                         key: "P2",
-                        format: "e",
+                        format: d3.format("e"),
                         tooltip: "cylinders",
                     },
                     {
                         key: "P3",
-                        format: "g",
+                        format: d3.format("g"),
                         tooltip: "displacement (cc)",
                     },
                     {
                         key: "P4",
-                        format: "d",
+                        format: d3.format("d"),
                         tooltip: "power (hp)",
                     },
                     {
                         key: "P5",
-                        format: "",
+                        format: d3.format(""),
                         tooltip: "weight (lb)",
                     },
                     {
                         key: "P6",
-                        format: "%",
+                        format: d3.format("%"),
                         tooltip: "0-60 mph (s)",
                     },
                     {
                         key: "P7",
-                        format: "p",
+                        format: d3.format("p"),
                         tooltip: "year",
                     }
                 ];
