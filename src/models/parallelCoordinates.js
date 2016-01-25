@@ -12,7 +12,7 @@ nv.models.parallelCoordinates = function() {
         , height = null
         , x = d3.scale.ordinal()
         , y = {}
-        , undefinedValues = "undefined values"
+        , undefinedValuesLabel = "undefined values"
         , dimensionData = []
         , enabledDimensions = []
         , dimensionNames = []
@@ -153,8 +153,8 @@ nv.models.parallelCoordinates = function() {
                         .attr("y2", function(d) { return d[3]; });
     
                 //Add the text "undefined values" under the missing value line
-                missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data([undefinedValues]);
-                missingValueslineText.append('text').data(["undefined values"]);
+                missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data([undefinedValuesLabel]);
+                missingValueslineText.append('text').data([undefinedValuesLabel]);
                 missingValueslineText.enter().append('text');
                 missingValueslineText.exit().remove();
                 missingValueslineText.attr("y", availableHeight)
@@ -448,7 +448,7 @@ nv.models.parallelCoordinates = function() {
         filters: { get: function () { return filters; }, set: function (_) { filters = _; } },
         active: { get: function () { return active; }, set: function (_) { active = _; } },
         lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
-        undefinedValues : {get: function(){return undefinedValues;}, set: function(_){undefinedValues=_;}},
+        undefinedValuesLabel : {get: function(){return undefinedValuesLabel;}, set: function(_){undefinedValuesLabel=_;}},
         
         // deprecated options
         dimensions: {get: function () { return dimensionData.map(function (d){return d.key}); }, set: function (_) {
