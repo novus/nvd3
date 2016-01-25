@@ -241,8 +241,9 @@ nv.models.parallelCoordinatesChart = function () {
             if(evt.values){
                 Object.keys(evt.values).forEach(function (d) {
                     var dim = evt.dimensions.filter(function (dd) {return dd.key === d;})[0];
-                    if(dim)
+                    if(dim){
                         tp.series.push({idx:dim.currentPosition, key: d, value: dim.format(evt.values[d]), color: dim.color});
+                    }
                 });
                 tp.series.sort(function(a,b) {return a.idx - b.idx});
              }
