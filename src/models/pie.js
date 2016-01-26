@@ -60,9 +60,15 @@ nv.models.pie = function() {
                     arcsRadiusInner.push(inner);
                 }
             } else {
-                arcsRadiusOuter = arcsRadius.map(function (d) { return (d.outer - d.outer / 5) * radius; });
-                arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
-                donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 5); }));
+                if(growOnHover){
+                    arcsRadiusOuter = arcsRadius.map(function (d) { return (d.outer - d.outer / 5) * radius; });
+                    arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
+                    donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 5); }));
+                } else {
+                    arcsRadiusOuter = arcsRadius.map(function (d) { return d.outer * radius; });
+                    arcsRadiusInner = arcsRadius.map(function (d) { return d.inner * radius; });
+                    donutRatio = d3.min(arcsRadius.map(function (d) { return d.inner; }));
+                }
             }
             nv.utils.initSVG(container);
 

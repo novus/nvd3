@@ -327,7 +327,7 @@
 
         <div style="height: 50px"></div>
 
-		<h3 class="option"><span class="expand all">[ <a href="javascript:$('#optionlist>ul').toggle()">toggle all</a> ]</span></h3>
+        <h3 class="option"><span class="expand all">[ <a href="javascript:$('#optionlist>ul').toggle()">toggle all</a> ]</span></h3>
 
         <div id="optionlist"></div>
 
@@ -443,7 +443,7 @@ as well as used to print out examples using those example inputs.
             examples: [0.05]
         },
         labelThreshold: {
-            desc: "Pie/donut charts: The slice threshold size to not display the label because it woudl be too small of a space",
+            desc: "Pie/donut and Sunburst charts: The slice threshold size to not display the label because it would be too small of a space",
             default: 0.02,
             examples: [0.05]
         },
@@ -919,20 +919,50 @@ as well as used to print out examples using those example inputs.
             desc: "For tooltip: returns the dom element of the tooltip.  This is read-only, you cannot set this value."
         },
         mode: {
-            desc: "For sunburst only: specifies the mode of drawing the sunburst segments. Can be 'size' or 'count'. 'size' draws the segments according to the 'size' attribute of the leaf nodes, 'count' draws according to the amount of siblings a node has.",
+            desc: "For sunburst only: specifies the mode of drawing the sunburst segments. Can be 'value' or 'count'. 'value' draws the segments according to the 'value' attribute of the leaf nodes, 'count' draws according to the amount of siblings a node has. 'size' is deprecated.",
             default: "count",
             refs: ["http://bl.ocks.org/kerryrodden/477c1bfb081b783f80ad"],
-            examples: ["size"]
+            examples: ["value"]
         },
         groupColorByParent: {
             desc: "For sunburst only: specifies wether the leaf elements of a parent get the same color as the parent or if they are colored individually.",
             default: "true",
             examples: [true, false]
         },
+        showLabels: {
+            desc: "For sunburst only: specifies if labels are displayed. The labels are centered on the arcs. The actual output can be adjusted by specifying the 'labelFormat' function.",
+            default: "false",
+            examples: [true, false]
+        },
+        labelFormat: {
+            desc: "For sunburst only: you can alter the label output by providing a callback function. The function gets the data of the current arc as parameter. It expects you to return the plain text to be shown.",
+            default: "function(d){if(mode === 'count'){return d.name + ' #' + d.value}else{return d.name + ' ' + d.value}}",
+            examples: [function(d){ return d.name;}]
+        },
+        sort: {
+            desc: "For sunburst only: let's you specify the sort order of the arcs.",
+            default: "function(d1, d2){return d1.name > d2.name;}",
+            examples: [function(d1, d2){return d1.value > d2.value;}]
+        },
+        key: {
+            desc: "For sunburst only: you may specify how the elements are identified. The arc's data is passed into the provided function and expects an identifying string as return value. This is important when updating the chart with changed data.",
+            default: "function(d){return d.name;}",
+            examples: [function(d){return d._id;}]
+        },
         switchYAxisOrder: {
             desc: "If two Y axis are used, this option changes the order of both axis.",
             default: "false",
             examples: [true, false]
+        },
+        wrapLabels: {
+            desc: "Splits long X labels by new lines in order to prevent overlapping.",
+            default: false,
+            examples: [true]
+        },
+        undefinedValuesLabel: {
+            desc: "For parallel coordinate: Label displayed under the undefined values line.",
+            default: 'undefined values',
+            examples: ["values not defined"]
         }
     };
 </script>
