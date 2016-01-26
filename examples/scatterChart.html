@@ -48,7 +48,6 @@
             .useVoronoi(true)
             .color(d3.scale.category10().range())
             .duration(300)
-            .showLabels(true)
         ;
         chart.dispatch.on('renderEnd', function(){
             console.log('render complete');
@@ -58,7 +57,7 @@
         chart.yAxis.tickFormat(d3.format('.02f'));
 
         d3.select('#test1 svg')
-            .datum(randomData(4,20))
+            .datum(randomData(4,40))
             .call(chart);
 
         nv.utils.windowResize(chart.update);
@@ -85,8 +84,7 @@
                     x: random(),
                     y: random(),
                     size: Math.round(Math.random() * 100) / 100,
-                    shape: shapes[j % shapes.length],
-                    label: 'G.'+ i + '-' + j
+                    shape: shapes[j % shapes.length]
                 });
             }
         }
