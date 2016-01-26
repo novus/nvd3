@@ -371,7 +371,7 @@ nv.models.stackedAreaChart = function() {
                             key: series.key,
                             value: tooltipValue,
                             color: color(series,series.seriesIndex),
-                            stackedValue: point.display
+                            point: point
                         });
 
                         if (showTotalInTooltip && stacked.style() != 'expand') {
