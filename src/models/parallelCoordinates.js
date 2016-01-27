@@ -43,7 +43,7 @@ nv.models.parallelCoordinates = function() {
         renderWatch.reset();
         selection.each(function(data) {
             var container = d3.select(this);
-            availableWidth = nv.utils.availableWidth(width, container, margin),
+            availableWidth = nv.utils.availableWidth(width, container, margin);
             availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
