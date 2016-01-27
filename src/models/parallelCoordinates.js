@@ -10,6 +10,8 @@ nv.models.parallelCoordinates = function() {
     var margin = {top: 30, right: 0, bottom: 10, left: 0}
         , width = null
         , height = null
+        , availableWidth = null
+        , availableHeight = null
         , x = d3.scale.ordinal()
         , y = {}
         , undefinedValuesLabel = "undefined values"
@@ -41,8 +43,8 @@ nv.models.parallelCoordinates = function() {
         renderWatch.reset();
         selection.each(function(data) {
             var container = d3.select(this);
-            var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight = nv.utils.availableHeight(height, container, margin);
+            availableWidth = nv.utils.availableWidth(width, container, margin);
+            availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
 
