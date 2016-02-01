@@ -128,11 +128,6 @@ nv.models.discreteBarChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }	    
 
-            if (rightAlignYAxis) {
-                g.select(".nv-y.nv-axis")
-                    .attr("transform", "translate(" + availableWidth + ",0)");
-            }
-
             // Main Chart Component(s)
             discretebar
                 .width(availableWidth)
