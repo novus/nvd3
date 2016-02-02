@@ -183,7 +183,7 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
     if (nv.utils.isFunction(svgTextElem.style) && nv.utils.isFunction(svgTextElem.text)) {
         var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""), 10);
         var textLength = svgTextElem.text().length;
-        return textLength * fontSize * 0.5;
+        return nv.utils.NaNtoZero(textLength * fontSize * 0.5);
     }
     return 0;
 };
