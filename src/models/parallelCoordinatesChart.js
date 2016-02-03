@@ -20,6 +20,7 @@ nv.models.parallelCoordinatesChart = function () {
         , displayBrush = true
         , defaultState = null
         , noData = null
+        , nanValue = "undefined"
         , dispatch = d3.dispatch('dimensionsOrder', 'brushEnd', 'stateChange', 'changeState', 'renderEnd')
         , controlWidth = function () { return showControls ? 180 : 0 }
         ;
@@ -244,7 +245,13 @@ nv.models.parallelCoordinatesChart = function () {
                 Object.keys(evt.values).forEach(function (d) {
                     var dim = evt.dimensions.filter(function (dd) {return dd.key === d;})[0];
                     if(dim){
-                        tp.series.push({idx:dim.currentPosition, key: d, value: dim.format(evt.values[d]), color: dim.color});
+                        var v;
+                        if (isNaN(evt.values[d]) || isNaN(parseFloat(evt.values[d]))) {
+                            v = nanValue;
+                        } else {
+                            v = dim.format(evt.values[d]);
+                        }
+                        tp.series.push({ idx: dim.currentPosition, key: d, value: v, color: dim.color });
                     }
                 });
                 tp.series.sort(function(a,b) {return a.idx - b.idx});
@@ -279,7 +286,8 @@ nv.models.parallelCoordinatesChart = function () {
             dimensionData: { get: function () { return dimensionData; }, set: function (_) { dimensionData = _; } },
             displayBrush: { get: function () { return displayBrush; }, set: function (_) { displayBrush = _; } },
             noData: { get: function () { return noData; }, set: function (_) { noData = _; } },
-
+            nanValue: { get: function () { return nanValue; }, set: function (_) { nanValue = _; } },
+            
             // options that require extra logic in the setter
             margin: {
                 get: function () { return margin; },
