@@ -16,8 +16,6 @@ nv.models.line = function() {
         , color = nv.utils.defaultColor() // a function that returns a color
         , getX = function(d) { return d.x } // accessor to get the x value from a data point
         , getY = function(d) { return d.y } // accessor to get the y value from a data point
-        , getYLower = function(d) {return d.ylower} // lower y in areaPaths
-        , getYUpper = function(d) {return d.yupper} // upper y in areaPaths
         , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
         , isArea = function(d) { return d.area } // decides if a line is an area or just a line
         , clipEdge = false // if true, masks lines within x and y scale
@@ -123,8 +121,8 @@ nv.models.line = function() {
                         .interpolate(interpolate)
                         .defined(defined)
                         .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
-                        .y0(function(d,i) { return y0(getYLower(d,i)).length == 0 ? nv.utils.NaNtoZero(y(getY(d,i))) :  y0(getYLower(d,i))})
-                        .y1(function(d,i) { return y0(getYUpper(d,i)).length == 0 ? y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) : y0(getYUpper(d,i))})
+                        .y0(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
+                        .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                         //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                         .apply(this, [d.values])
                 });
@@ -137,8 +135,8 @@ nv.models.line = function() {
                         .interpolate(interpolate)
                         .defined(defined)
                         .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-                        .y0(function(d,i) { return y0(getYLower(d,i)).length == 0 ? nv.utils.NaNtoZero(y(getY(d,i))) :  nv.utils.NaNtoZero(y0(getYLower(d,i)))})
-                        .y1(function(d,i) { return y0(getYUpper(d,i)).length == 0 ? y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) : nv.utils.NaNtoZero(y0(getYUpper(d,i)))})
+                        .y0(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
+                        .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
                         //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                         .apply(this, [d.values])
                 });
