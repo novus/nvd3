@@ -66,8 +66,8 @@ nv.models.pieChart = function() {
             nv.utils.initSVG(container);
 
             var that = this;
-            var availableWidth = nv.utils.availableWidth(pie.width(), container, margin),
-                availableHeight = nv.utils.availableHeight(pie.height(), container, margin);
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() { container.transition().call(chart); };
             chart.container = this;
