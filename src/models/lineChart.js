@@ -23,7 +23,6 @@ nv.models.lineChart = function() {
         , width = null
         , height = null
         , showLegend = true
-        , legendPosition = 'top'
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -183,18 +182,13 @@ nv.models.lineChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legendPosition === 'bottom') {
-                    wrap.select('.nv-legendWrap')
-                        .attr('transform', 'translate(0,' + (availableHeight1 + legend.height()) +')');
-                } else if (legendPosition === 'top') {
-                    if ( margin.top != legend.height()) {
-                        margin.top = legend.height();
-                        availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
-                    }
-
-                    wrap.select('.nv-legendWrap')
-                        .attr('transform', 'translate(0,' + (-margin.top) +')');
+                if ( margin.top != legend.height()) {
+                    margin.top = legend.height();
+                    availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
                 }
+
+                wrap.select('.nv-legendWrap')
+                    .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -598,7 +592,6 @@ nv.models.lineChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
-        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},
