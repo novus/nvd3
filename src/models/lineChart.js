@@ -185,7 +185,7 @@ nv.models.lineChart = function() {
 
                 if (legendPosition === 'bottom') {
                     wrap.select('.nv-legendWrap')
-                        .attr('transform', 'translate(0,' + (availableHeight1 + legend.height()) +')');
+                        .attr('transform', 'translate(0,' + (availableHeight1) +')');
                 } else if (legendPosition === 'top') {
                     if ( margin.top != legend.height()) {
                         margin.top = legend.height();
