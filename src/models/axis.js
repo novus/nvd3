@@ -53,6 +53,15 @@ nv.models.axis = function() {
             else if (axis.orient() == 'top' || axis.orient() == 'bottom')
                 axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
+            //Avoid ticks overlapping (needed especially for log scale).
+            if (ticks !== null && (axis.orient() == 'left' || axis.orient() == 'right')) {
+                var currentTicks = g.selectAll('.tick').filter(function () { return this.textContent !== ""; });
+                var mod = Math.round(currentTicks[0].length / ticks);
+                currentTicks.each(function (d, i) {
+                    d3.select(this).classed('notext', function () { return (mod === 0 || i % mod === 0) ? false : true; });
+                });
+            }
+            
             //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
             g.watchTransition(renderWatch, 'axis').call(axis);
 
