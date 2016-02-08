@@ -36,6 +36,9 @@ NVD3 runs best on WebKit based browsers.
 
 ## Changelog
 
+**1.8.3** Changes:
+* Added positioning of legend
+
 **1.8.2** Changes:
 
 * Lots of community bugfixes and a few extra minor features
