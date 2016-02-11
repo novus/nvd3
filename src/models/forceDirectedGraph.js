@@ -4,13 +4,13 @@ nv.models.forceDirectedGraph = function() {
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
-
     var margin = {top: 2, right: 0, bottom: 2, left: 0}
         , width = 400
         , height = 32
         , container = null
         , dispatch = d3.dispatch('renderEnd')
         , color = nv.utils.getColor(['#000'])
+        , tooltip      = nv.models.tooltip()
         , noData = null
         // Force directed graph specific parameters [default values]
         , linkStrength = 0.1
@@ -25,6 +25,7 @@ nv.models.forceDirectedGraph = function() {
         ,nodeExtras = function(nodes) { /* Do nothing */ }
         ,linkExtras = function(links) { /* Do nothing */ }
         ;
+
 
     //============================================================
     // Private Variables
@@ -55,6 +56,15 @@ nv.models.forceDirectedGraph = function() {
           }
           container.selectAll('*').remove();
 
+          // Collect names of all fields in the nodes
+          var nodeFieldSet = new Set();
+          data.nodes.forEach(function(node) {
+            var keys = Object.keys(node);
+            keys.forEach(function(key) {
+              nodeFieldSet.add(key);
+            });
+          });
+
           var force = d3.layout.force()
                 .nodes(data.nodes)
                 .links(data.links)
@@ -80,10 +90,34 @@ nv.models.forceDirectedGraph = function() {
                 .append("g")
                 .attr("class", "nv-force-node")
                 .call(force.drag);
+
           node
             .append("circle")
             .attr("r", radius)
             .style("fill", function(d) { return color(d) } )
+            .on("mouseover", function(evt) {
+              container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                  .attr('y1', evt.py);
+              container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                  .attr('x2', evt.px);
+
+              // Add 'series' object to
+              var nodeColor = color(evt);
+              evt.series = [];
+              nodeFieldSet.forEach(function(field) {
+                evt.series.push({
+                  color: nodeColor,
+                  key:   field,
+                  value: evt[field]
+                });
+              });
+              tooltip.data(evt).hidden(false);
+            })
+            .on("mouseout",  function(d) {
+              tooltip.hidden(true);
+            });
+
+          tooltip.headerFormatter(function(d) {return "Node";});
 
           // Apply extra attributes to nodes and links (if any)
           linkExtras(link);
@@ -149,6 +183,7 @@ nv.models.forceDirectedGraph = function() {
     });
 
     chart.dispatch = dispatch;
+    chart.tooltip = tooltip;
     nv.utils.initOptions(chart);
     return chart;
 };
