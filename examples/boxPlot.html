@@ -5,7 +5,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
-    
+
     <style>
         text {
             font: 12px sans-serif;
@@ -27,17 +27,16 @@
 <div class="gallery" id="chart1">
     <svg></svg>
 </div>
-      
+
 <script>
     nv.addGraph(function() {
       var chart = nv.models.boxPlotChart()
           .x(function(d) { return d.label })
-          .y(function(d) { return d.values.Q3 })
           .staggerLabels(true)
-          .maxBoxWidth(75) // prevent boxes from being incredibly wide 
+          .maxBoxWidth(75) // prevent boxes from being incredibly wide
           .yDomain([0, 500])
           ;
-      
+
       d3.select('#chart1 svg')
           .datum(exampleData())
           .call(chart);
@@ -48,10 +47,10 @@
     });
 
     function exampleData() {
-     return  [ 
+     return  [
         {
           label: "Sample A",
-          values: { 
+          values: {
             Q1: 120,
             Q2: 150,
             Q3: 200,
@@ -62,18 +61,18 @@
         },
         {
           label: "Sample B",
-          values: { 
+          values: {
             Q1: 300,
             Q2: 350,
             Q3: 400,
             whisker_low: 225,
             whisker_high: 425,
-            outliers: [175]          
+            outliers: [175]
           },
         },
         {
           label: "Sample C",
-          values: { 
+          values: {
             Q1: 50,
             Q2: 100,
             Q3: 125,

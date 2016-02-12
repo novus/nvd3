@@ -41,6 +41,7 @@ nv.models.scatter = function() {
         , useVoronoi   = true
         , duration     = 250
         , interactiveUpdateDelay = 300
+        , showLabels    = false 
         ;
 
 
@@ -53,7 +54,33 @@ nv.models.scatter = function() {
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         , _sizeRange_def = [16, 256]
+        , _caches
         ;
+
+    function getCache(d) {
+        var cache, i;
+        cache = _caches = _caches || {};
+        i = d[0].series;
+        cache = cache[i] = cache[i] || {};
+        i = d[1];
+        cache = cache[i] = cache[i] || {};
+        return cache;
+    }
+
+    function getDiffs(d) {
+        var i, key,
+            point = d[0],
+            cache = getCache(d),
+            diffs = false;
+        for (i = 1; i < arguments.length; i ++) {
+            key = arguments[i];
+            if (cache[key] !== point[key] || !cache.hasOwnProperty(key)) {
+                cache[key] = point[key];
+                diffs = true;
+            }
+        }
+        return diffs;
+    }
 
     function chart(selection) {
         renderWatch.reset();
@@ -72,6 +99,7 @@ nv.models.scatter = function() {
             });
 
             // Setup Scales
+            var logScale = chart.yScale().name === d3.scale.log().name ? true : false; 
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -90,7 +118,7 @@ nv.models.scatter = function() {
             else
                 x.range(xRange || [0, availableWidth]);
 
-             if (chart.yScale().name === "o") {
+             if (logScale) {
                     var min = d3.min(seriesData.map(function(d) { if (d.y !== 0) return d.y; }));
                     y.clamp(true)
                         .domain(yDomain || d3.extent(seriesData.map(function(d) {
@@ -130,6 +158,8 @@ nv.models.scatter = function() {
             x0 = x0 || x;
             y0 = y0 || y;
             z0 = z0 || z;
+
+            var scaleDiff = x(1) !== x0(1) || y(1) !== y0(1) || z(1) !== z0(1);
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
@@ -174,8 +204,8 @@ nv.models.scatter = function() {
                                     var pX = getX(point,pointIndex);
                                     var pY = getY(point,pointIndex);
 
-                                    return [x(pX)+ Math.random() * 1e-4,
-                                            y(pY)+ Math.random() * 1e-4,
+                                    return [nv.utils.NaNtoZero(x(pX))+ Math.random() * 1e-4,
+                                            nv.utils.NaNtoZero(y(pY))+ Math.random() * 1e-4,
                                         groupIndex,
                                         pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
                                 })
@@ -374,6 +404,7 @@ nv.models.scatter = function() {
                 .attr('class', function(d,i) {
                     return (d.classed || '') + ' nv-group nv-series-' + i;
                 })
+                .classed('nv-noninteractive', !interactive)
                 .classed('hover', function(d) { return d.hover });
             groups.watchTransition(renderWatch, 'scatter: groups')
                 .style('fill', function(d,i) { return color(d, i) })
@@ -393,6 +424,9 @@ nv.models.scatter = function() {
                             })
                     });
             points.enter().append('path')
+                .attr('class', function (d) {
+                    return 'nv-point nv-point-' + d[1];
+                })
                 .style('fill', function (d) { return d.color })
                 .style('stroke', function (d) { return d.color })
                 .attr('transform', function(d) {
@@ -410,25 +444,66 @@ nv.models.scatter = function() {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            points.each(function(d) {
-                d3.select(this)
-                    .classed('nv-point', true)
-                    .classed('nv-point-' + d[1], true)
-                    .classed('nv-noninteractive', !interactive)
-                    .classed('hover',false)
-                ;
-            });
-            points
+            points.filter(function (d) { return scaleDiff || getDiffs(d, 'x', 'y'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
-                })
+                });
+            points.filter(function (d) { return scaleDiff || getDiffs(d, 'shape', 'size'); })
+                .watchTransition(renderWatch, 'scatter points')
                 .attr('d',
                     nv.utils.symbol()
                     .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
+            
+            // add label a label to scatter chart 
+            if(showLabels)
+            {      
+                var titles =  groups.selectAll('.nv-label')
+                    .data(function(d) {
+                        return d.values.map(
+                            function (point, pointIndex) {
+                                return [point, pointIndex]
+                            }).filter(
+                                function(pointArray, pointIndex) {
+                                    return pointActive(pointArray[0], pointIndex)
+                                })
+                        });
+
+                titles.enter().append('text')
+                    .style('fill', function (d,i) { 
+                        return d.color })
+                    .style('stroke-opacity', 0)
+                    .style('fill-opacity', 1)
+                    .attr('transform', function(d) {
+                        var dx = nv.utils.NaNtoZero(x0(getX(d[0],d[1]))) + Math.sqrt(z(getSize(d[0],d[1]))/Math.PI) + 2;
+                        return 'translate(' + dx + ',' + nv.utils.NaNtoZero(y0(getY(d[0],d[1]))) + ')';
+                    })
+                    .text(function(d,i){
+                        return d[0].label;});
+
+                titles.exit().remove();
+                groups.exit().selectAll('path.nv-label')
+                    .watchTransition(renderWatch, 'scatter exit')
+                    .attr('transform', function(d) {
+                        var dx = nv.utils.NaNtoZero(x(getX(d[0],d[1])))+ Math.sqrt(z(getSize(d[0],d[1]))/Math.PI)+2;
+                        return 'translate(' + dx + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')';
+                    })
+                    .remove();
+               titles.each(function(d) {
+                  d3.select(this)
+                    .classed('nv-label', true)
+                    .classed('nv-label-' + d[1], false)
+                    .classed('hover',false);
+                });
+                titles.watchTransition(renderWatch, 'scatter labels')
+                    .attr('transform', function(d) {
+                        var dx = nv.utils.NaNtoZero(x(getX(d[0],d[1])))+ Math.sqrt(z(getSize(d[0],d[1]))/Math.PI)+2;
+                        return 'translate(' + dx + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
+                    });
+            }
 
             // Delay updating the invisible interactive layer for smoother animation
             if( interactiveUpdateDelay )
@@ -511,7 +586,7 @@ nv.models.scatter = function() {
         showVoronoi:   {get: function(){return showVoronoi;}, set: function(_){showVoronoi=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         interactiveUpdateDelay: {get:function(){return interactiveUpdateDelay;}, set: function(_){interactiveUpdateDelay=_;}},
-
+        showLabels: {get: function(){return showLabels;}, set: function(_){ showLabels = _;}},
 
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},

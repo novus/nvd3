@@ -19,6 +19,7 @@ nv.models.axis = function() {
         , isOrdinal = false
         , ticks = null
         , axisLabelDistance = 0
+        , fontSize = undefined
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')
         ;
@@ -65,6 +66,11 @@ nv.models.axis = function() {
             var axisLabel = g.selectAll('text.nv-axislabel')
                 .data([axisLabelText || null]);
             axisLabel.exit().remove();
+
+            //only skip when fontSize is undefined so it can be cleared with a null or blank string
+            if (fontSize !== undefined) {
+                g.selectAll('g').select("text").style('font-size', fontSize);
+            }
 
             var xLabelMargin;
             var axisMaxMin;
@@ -116,6 +122,8 @@ nv.models.axis = function() {
                     var xTicks = g.selectAll('g').select("text");
                     var rotateLabelsRule = '';
                     if (rotateLabels%360) {
+                        //Reset transform on ticks so textHeight can be calculated correctly
+                        xTicks.attr('transform', ''); 
                         //Calculate the longest xTick width
                         xTicks.each(function(d,i){
                             var box = this.getBoundingClientRect();
@@ -355,6 +363,7 @@ nv.models.axis = function() {
         height:            {get: function(){return height;}, set: function(_){height=_;}},
         ticks:             {get: function(){return ticks;}, set: function(_){ticks=_;}},
         width:             {get: function(){return width;}, set: function(_){width=_;}},
+        fontSize:          {get: function(){return fontSize;}, set: function(_){fontSize=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

@@ -10,8 +10,11 @@ nv.models.parallelCoordinates = function() {
     var margin = {top: 30, right: 0, bottom: 10, left: 0}
         , width = null
         , height = null
+        , availableWidth = null
+        , availableHeight = null
         , x = d3.scale.ordinal()
         , y = {}
+        , undefinedValuesLabel = "undefined values"
         , dimensionData = []
         , enabledDimensions = []
         , dimensionNames = []
@@ -34,18 +37,16 @@ nv.models.parallelCoordinates = function() {
     // Private Variables
     //------------------------------------------------------------
 
-
     var renderWatch = nv.utils.renderWatch(dispatch);
 
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
             var container = d3.select(this);
-            var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight = nv.utils.availableHeight(height, container, margin);
+            availableWidth = nv.utils.availableWidth(width, container, margin);
+            availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
-
 
            //Convert old data to new format (name, values)
             if (data[0].values === undefined) {
@@ -67,7 +68,6 @@ nv.models.parallelCoordinates = function() {
             dimensionNames = dimensionData.sort(function (a, b) { return a.currentPosition - b.currentPosition; }).map(function (d) { return d.key });
             enabledDimensions = dimensionData.filter(function (d) { return !d.disabled; });
             
-
             // Setup Scales
             x.rangePoints([0, availableWidth], 1).domain(enabledDimensions.map(function (d) { return d.key; }));
 
@@ -75,7 +75,8 @@ nv.models.parallelCoordinates = function() {
             // Extract the list of dimensions and create a scale for each.
             var oldDomainMaxValue = {};
             var displayMissingValuesline = false;
-
+            var currentTicks = [];
+            
             dimensionNames.forEach(function(d) {
                 var extent = d3.extent(dataValues, function (p) { return +p[d]; });
                 var min = extent[0];
@@ -118,7 +119,6 @@ nv.models.parallelCoordinates = function() {
                     .range([(availableHeight - 12) * 0.9, 0]);
 
                 axisWithUndefinedValues = [];
-
                 y[d].brush = d3.svg.brush().y(y[d]).on('brushstart', brushstart).on('brush', brush).on('brushend', brushend);
             });
 
@@ -155,8 +155,8 @@ nv.models.parallelCoordinates = function() {
                         .attr("y2", function(d) { return d[3]; });
     
                 //Add the text "undefined values" under the missing value line
-                missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data(["undefined values"]);
-                missingValueslineText.append('text').data(["undefined values"]);
+                missingValueslineText = wrap.select('.missingValuesline').selectAll('text').data([undefinedValuesLabel]);
+                missingValueslineText.append('text').data([undefinedValuesLabel]);
                 missingValueslineText.enter().append('text');
                 missingValueslineText.exit().remove();
                 missingValueslineText.attr("y", availableHeight)
@@ -182,7 +182,9 @@ nv.models.parallelCoordinates = function() {
                 d3.select(this).classed('hover', true).style("stroke-width", d.strokeWidth + 2 + "px").style("stroke-opacity", 1);
                 dispatch.elementMouseover({
                     label: d.name,
-                    color: d.color || color(d, i)
+                    color: d.color || color(d, i),
+                    values: d.values,
+                    dimensions: enabledDimensions
                 });
 
             });
@@ -210,13 +212,14 @@ nv.models.parallelCoordinates = function() {
 
             // Add an axis and title.
             dimensionsEnter.append('text')
-                    .attr('class', 'nv-label')
+                .attr('class', 'nv-label')
                 .style("cursor", "move")
                 .attr('dy', '-1em')
                 .attr('text-anchor', 'middle')
                 .on("mouseover", function(d, i) {
                     dispatch.elementMouseover({
-                        label: d.tooltip || d.key
+                        label: d.tooltip || d.key,
+                        color: d.color 
                     });
                 })
                 .on("mouseout", function(d, i) {
@@ -232,10 +235,6 @@ nv.models.parallelCoordinates = function() {
             dimensionsEnter.append('g').attr('class', 'nv-brushBackground');
             dimensions.exit().remove();
             dimensions.select('.nv-label').text(function (d) { return d.key });
-            dimensions.select('.nv-axis')
-                .each(function (d, i) {
-                    d3.select(this).call(axis.scale(y[d.key]).tickFormat(d3.format(d.format)));
-                });
 
             // Add and store a brush for each axis.
             restoreBrush(displayBrush);
@@ -313,27 +312,30 @@ nv.models.parallelCoordinates = function() {
                 });
                 
                 dimensions.select('.nv-brushBackground')
-                .each(function (d) {
-                    d3.select(this).call(y[d.key].brush);
+                    .each(function (d) {
+                        d3.select(this).call(y[d.key].brush);
 
-                })
-                .selectAll('rect')
-                .attr('x', -8)
-                .attr('width', 16);
+                    })
+                    .selectAll('rect')
+                    .attr('x', -8)
+                    .attr('width', 16);
+                
+                updateTicks();
             }
             
             // Handles a brush event, toggling the display of foreground lines.
             function brushstart() {
                 //If brush aren't visible, show it before brushing again.
                 if (displayBrush === false) {
+                    displayBrush = true;
                     restoreBrush(true);
                 }
             }
             
             // Handles a brush event, toggling the display of foreground lines.
             function brush() {
-                actives = dimensionNames.filter(function (p) { return !y[p].brush.empty(); }),
-                    extents = actives.map(function(p) { return y[p].brush.extent(); });
+                actives = dimensionNames.filter(function (p) { return !y[p].brush.empty(); });
+                extents = actives.map(function(p) { return y[p].brush.extent(); });
 
                 filters = []; //erase current filters
                 actives.forEach(function(d,i) {
@@ -354,7 +356,9 @@ nv.models.parallelCoordinates = function() {
                     if (isActive) active.push(d);
                     return isActive ? null : 'none';
                 });
-
+                
+                updateTicks();
+                
                 dispatch.brush({
                     filters: filters,
                     active: active
@@ -369,13 +373,30 @@ nv.models.parallelCoordinates = function() {
                         f.hasOnlyNaN = true;
                 });
                 dispatch.brushEnd(active, hasActiveBrush);
+            }           
+            function updateTicks() {
+                dimensions.select('.nv-axis')
+                    .each(function (d, i) {
+                        var f = filters.filter(function (k) { return k.dimension == d.key; });
+                        currentTicks[d.key] = y[d.key].domain();
+                        
+                        //If brush are available, display brush extent
+                        if (f.length != 0 && displayBrush)
+                        {
+                            currentTicks[d.key] = [];
+                            if (f[0].extent[1] > y[d.key].domain()[0]) 
+                                currentTicks[d.key] = [f[0].extent[1]];
+                            if (f[0].extent[0] >= y[d.key].domain()[0])
+                                currentTicks[d.key].push(f[0].extent[0]);    
+                        }
+                            
+                        d3.select(this).call(axis.scale(y[d.key]).tickFormat(d.format).tickValues(currentTicks[d.key]));
+                });
             }
             function dragStart(d) {
                 dragging[d.key] = this.parentNode.__origin__ = x(d.key);
                 background.attr("visibility", "hidden");
-
             }
-
             function dragMove(d) {
                 dragging[d.key] = Math.min(availableWidth, Math.max(0, this.parentNode.__origin__ += d3.event.x));
                 foreground.attr("d", path);
@@ -384,7 +405,6 @@ nv.models.parallelCoordinates = function() {
                 x.domain(enabledDimensions.map(function (d) { return d.key; }));
                 dimensions.attr("transform", function(d) { return "translate(" + dimensionPosition(d.key) + ")"; });
             }
-
             function dragEnd(d, i) {
                 delete this.parentNode.__origin__;
                 delete dragging[d.key];
@@ -406,13 +426,11 @@ nv.models.parallelCoordinates = function() {
                 dimensionName.map(function (d, i) { return d.currentPosition = d.originalPosition; });
                 dispatch.stateChange();
             }
-
             function dimensionPosition(d) {
                 var v = dragging[d];
                 return v == null ? x(d) : v;
             }
         });
-
         return chart;
     }
 
@@ -432,7 +450,8 @@ nv.models.parallelCoordinates = function() {
         filters: { get: function () { return filters; }, set: function (_) { filters = _; } },
         active: { get: function () { return active; }, set: function (_) { active = _; } },
         lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
-
+        undefinedValuesLabel : {get: function(){return undefinedValuesLabel;}, set: function(_){undefinedValuesLabel=_;}},
+        
         // deprecated options
         dimensions: {get: function () { return dimensionData.map(function (d){return d.key}); }, set: function (_) {
             // deprecated after 1.8.1
@@ -442,8 +461,7 @@ nv.models.parallelCoordinates = function() {
             } else {
                 _.forEach(function (k, i) { dimensionData[i].key= k })
             }
-        }
-        },
+        }},
         dimensionNames: {get: function () { return dimensionData.map(function (d){return d.key}); }, set: function (_) {
             // deprecated after 1.8.1
             nv.deprecated('dimensionNames', 'use dimensionData instead');
@@ -465,7 +483,6 @@ nv.models.parallelCoordinates = function() {
             }
 
         }},
-
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    =  _.top    !== undefined ? _.top    : margin.top;
@@ -477,7 +494,6 @@ nv.models.parallelCoordinates = function() {
             color = nv.utils.getColor(_);
         }}
     });
-
     nv.utils.initOptions(chart);
     return chart;
 };

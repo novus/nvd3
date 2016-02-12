@@ -5,26 +5,23 @@ nv.models.boxPlotChart = function() {
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var boxplot = nv.models.boxPlot()
-        , xAxis = nv.models.axis()
-        , yAxis = nv.models.axis()
-        ;
+    var boxplot = nv.models.boxPlot(),
+        xAxis = nv.models.axis(),
+        yAxis = nv.models.axis();
 
-    var margin = {top: 15, right: 10, bottom: 50, left: 60}
-        , width = null
-        , height = null
-        , color = nv.utils.getColor()
-        , showXAxis = true
-        , showYAxis = true
-        , rightAlignYAxis = false
-        , staggerLabels = false
-        , tooltip = nv.models.tooltip()
-        , x
-        , y
-        , noData = "No Data Available."
-        , dispatch = d3.dispatch('beforeUpdate', 'renderEnd')
-        , duration = 250
-        ;
+    var margin = {top: 15, right: 10, bottom: 50, left: 60},
+        width = null,
+        height = null,
+        color = nv.utils.getColor(),
+        showXAxis = true,
+        showYAxis = true,
+        rightAlignYAxis = false,
+        staggerLabels = false,
+        tooltip = nv.models.tooltip(),
+        x, y,
+        noData = 'No Data Available.',
+        dispatch = d3.dispatch('beforeUpdate', 'renderEnd'),
+        duration = 250;
 
     xAxis
         .orient('bottom')
@@ -51,13 +48,10 @@ nv.models.boxPlotChart = function() {
         if (showYAxis) renderWatch.models(yAxis);
 
         selection.each(function(data) {
-            var container = d3.select(this),
-                that = this;
+            var container = d3.select(this), that = this;
             nv.utils.initSVG(container);
-            var availableWidth = (width  || parseInt(container.style('width')) || 960)
-                    - margin.left - margin.right,
-                availableHeight = (height || parseInt(container.style('height')) || 400)
-                    - margin.top - margin.bottom;
+            var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
+            var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
             chart.update = function() {
                 dispatch.beforeUpdate();
@@ -65,9 +59,9 @@ nv.models.boxPlotChart = function() {
             };
             chart.container = this;
 
-            // Display No Data message if there's nothing to show. (quartiles required at minimum)
-            if (!data || !data.length ||
-                    !data.filter(function(d) { return d.values.hasOwnProperty("Q1") && d.values.hasOwnProperty("Q2") && d.values.hasOwnProperty("Q3"); }).length) {
+            // TODO still need to find a way to validate quartile data presence using boxPlot callbacks.
+            // Display No Data message if there's nothing to show. (quartiles required at minimum).
+            if (!data || !data.length) {
                 var noDataText = container.selectAll('.nv-noData').data([noData]);
 
                 noDataText.enter().append('text')
@@ -101,24 +95,20 @@ nv.models.boxPlotChart = function() {
                 .append('line');
 
             gEnter.append('g').attr('class', 'nv-barsWrap');
-
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
-                g.select(".nv-y.nv-axis")
-                    .attr("transform", "translate(" + availableWidth + ",0)");
+                g.select('.nv-y.nv-axis')
+                    .attr('transform', 'translate(' + availableWidth + ',0)');
             }
 
             // Main Chart Component(s)
-            boxplot
-                .width(availableWidth)
-                .height(availableHeight);
+            boxplot.width(availableWidth).height(availableHeight);
 
             var barsWrap = g.select('.nv-barsWrap')
                 .datum(data.filter(function(d) { return !d.disabled }))
 
             barsWrap.transition().call(boxplot);
-
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-x-label-clip-' + boxplot.id())
@@ -143,7 +133,7 @@ nv.models.boxPlotChart = function() {
                 if (staggerLabels) {
                     xTicks
                         .selectAll('text')
-                        .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
+                        .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 === 0 ? '5' : '17') + ')' })
                 }
             }
 
@@ -157,11 +147,11 @@ nv.models.boxPlotChart = function() {
             }
 
             // Zero line
-            g.select(".nv-zeroLine line")
-                .attr("x1",0)
-                .attr("x2",availableWidth)
-                .attr("y1", y(0))
-                .attr("y2", y(0))
+            g.select('.nv-zeroLine line')
+                .attr('x1',0)
+                .attr('x2',availableWidth)
+                .attr('y1', y(0))
+                .attr('y2', y(0))
             ;
 
             //============================================================

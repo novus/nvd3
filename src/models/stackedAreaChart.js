@@ -157,7 +157,9 @@ nv.models.stackedAreaChart = function() {
             g.select("rect").attr("width",availableWidth).attr("height",availableHeight);
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
 
                 legend.width(legendWidth);
@@ -173,7 +175,9 @@ nv.models.stackedAreaChart = function() {
             }
 
             // Controls
-            if (showControls) {
+            if (!showControls) {
+                 g.select('.nv-controlsWrap').selectAll('*').remove();
+            } else {
                 var controlsData = [
                     {
                         key: controlLabels.stacked || 'Stacked',
@@ -367,7 +371,7 @@ nv.models.stackedAreaChart = function() {
                             key: series.key,
                             value: tooltipValue,
                             color: color(series,series.seriesIndex),
-                            stackedValue: point.display
+                            point: point
                         });
 
                         if (showTotalInTooltip && stacked.style() != 'expand') {

@@ -211,7 +211,9 @@ nv.models.cumulativeLineChart = function() {
             gEnter.append('g').attr('class', 'nv-controlsWrap');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth);
 
                 g.select('.nv-legendWrap')
@@ -228,7 +230,9 @@ nv.models.cumulativeLineChart = function() {
             }
 
             // Controls
-            if (showControls) {
+            if (!showControls) {
+                 g.select('.nv-controlsWrap').selectAll('*').remove();
+            } else {
                 var controlsData = [
                     { key: 'Re-scale y-axis', disabled: !rescaleY }
                 ];

@@ -103,8 +103,11 @@ nv.models.discreteBarChart = function() {
 	    gEnter.append('g').attr('class', 'nv-legendWrap');
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-	    
-            if (showLegend) {
+
+            // Legend
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth);
 
                 g.select('.nv-legendWrap')
@@ -124,11 +127,6 @@ nv.models.discreteBarChart = function() {
                 g.select(".nv-y.nv-axis")
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }	    
-
-            if (rightAlignYAxis) {
-                g.select(".nv-y.nv-axis")
-                    .attr("transform", "translate(" + availableWidth + ",0)");
-            }
 
             // Main Chart Component(s)
             discretebar

@@ -23,6 +23,7 @@ nv.models.lineChart = function() {
         , width = null
         , height = null
         , showLegend = true
+        , legendPosition = 'top'
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -173,20 +174,27 @@ nv.models.lineChart = function() {
             contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth);
 
                 g.select('.nv-legendWrap')
                     .datum(data)
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
-                }
+                if (legendPosition === 'bottom') {
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(0,' + (availableHeight1 + legend.height()) +')');
+                } else if (legendPosition === 'top') {
+                    if ( margin.top != legend.height()) {
+                        margin.top = legend.height();
+                        availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
+                    }
 
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')');
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(0,' + (-margin.top) +')');
+                }
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -410,11 +418,13 @@ nv.models.lineChart = function() {
                         allData[indexToHighlight].highlight = true;
                 }
 
+                var defaultValueFormatter = function(d,i) {
+                    return d == null ? "N/A" : yAxis.tickFormat()(d);
+                };
+
                 interactiveLayer.tooltip
                     .chartContainer(chart.container.parentNode)
-                    .valueFormatter(function(d,i) {
-                        return d === null ? "N/A" : yAxis.tickFormat()(d);
-                    })
+                    .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
                     .data({
                         value: chart.x()( singlePoint,pointIndex ),
                         index: pointIndex,
@@ -588,6 +598,7 @@ nv.models.lineChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},

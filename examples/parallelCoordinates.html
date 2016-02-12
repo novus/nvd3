@@ -35,7 +35,7 @@ nv.addGraph(function() {
 
     chart = nv.models.parallelCoordinates()
         .dimensionNames(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"])
-        .dimensionFormats(["0.5f", "e", "g", "d", "", "%", "p"])
+        .dimensionFormats([d3.format("0.5f"), d3.format("e"), d3.format("g"), d3.format("d"), d3.format(""), d3.format("%"), d3.format("p")])
         .lineTension(0.85);
 		
 

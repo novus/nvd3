@@ -71,14 +71,14 @@ nv.models.linePlusBarChart = function() {
 
     var getBarsAxis = function() {
         return switchYAxisOrder
-            ? { main: y1Axis, focus: y3Axis }
-            : { main: y2Axis, focus: y4Axis }
+            ? { main: y2Axis, focus: y4Axis }
+            : { main: y1Axis, focus: y3Axis }
     }
 
     var getLinesAxis = function() {
         return switchYAxisOrder
-            ? { main: y2Axis, focus: y4Axis }
-            : { main: y1Axis, focus: y3Axis }
+            ? { main: y1Axis, focus: y3Axis }
+            : { main: y2Axis, focus: y4Axis }
     }
 
     var stateGetter = function(data) {
@@ -148,7 +148,12 @@ nv.models.linePlusBarChart = function() {
             var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
             var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
 
-            x = bars.xScale();
+            if (dataBars.length && !switchYAxisOrder) {
+                x = bars.xScale();
+            } else {
+                x = lines.xScale();
+            }
+
             x2 = x2Axis.scale();
 
             // select the scales and series based on the position of the yAxis
@@ -207,7 +212,9 @@ nv.models.linePlusBarChart = function() {
             // Legend
             //------------------------------------------------------------
 
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
                 var legendXPosition = legend.align() ? legendWidth : 0;
 
@@ -482,8 +489,14 @@ nv.models.linePlusBarChart = function() {
                     .tickSize(-availableWidth, 0);
                 y2Axis
                     .scale(y2)
-                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
-                    .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
+                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) );
+
+                // Show the y2 rules only if y1 has none
+                if(!switchYAxisOrder) {
+                    y2Axis.tickSize(dataBars.length ? 0 : -availableWidth, 0);
+                } else {
+                    y2Axis.tickSize(dataLines.length ? 0 : -availableWidth, 0);
+                }
 
                 // Calculate opacity of the axis
                 var barsOpacity = dataBars.length ? 1 : 0;
@@ -627,11 +640,20 @@ nv.models.linePlusBarChart = function() {
         switchYAxisOrder:    {get: function(){return switchYAxisOrder;}, set: function(_){
             // Switch the tick format for the yAxis
             if(switchYAxisOrder !== _) {
-                var tickFormat = y1Axis.tickFormat();
-                y1Axis.tickFormat(y2Axis.tickFormat());
-                y2Axis.tickFormat(tickFormat);
+                var y1 = y1Axis;
+                y1Axis = y2Axis;
+                y2Axis = y1;
+
+                var y3 = y3Axis;
+                y3Axis = y4Axis;
+                y4Axis = y3;
             }
             switchYAxisOrder=_;
+
+            y1Axis.orient('left');
+            y2Axis.orient('right');
+            y3Axis.orient('left');
+            y4Axis.orient('right');
         }}
     });
 

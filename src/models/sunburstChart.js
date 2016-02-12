@@ -16,21 +16,19 @@ nv.models.sunburstChart = function() {
         , defaultState = null
         , noData = null
         , duration = 250
-        , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd')
-        ;
+        , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd');
 
-    tooltip.duration(0);
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch);
+
     tooltip
+        .duration(0)
         .headerEnabled(false)
-        .valueFormatter(function(d, i) {
-            return d;
-        });
+        .valueFormatter(function(d){return d;});
 
     //============================================================
     // Chart function
@@ -42,11 +40,11 @@ nv.models.sunburstChart = function() {
 
         selection.each(function(data) {
             var container = d3.select(this);
+
             nv.utils.initSVG(container);
 
-            var that = this;
-            var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight = nv.utils.availableHeight(height, container, margin);
+            var availableWidth = nv.utils.availableWidth(width, container, margin);
+            var availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
                 if (duration === 0) {
@@ -55,7 +53,7 @@ nv.models.sunburstChart = function() {
                     container.transition().duration(duration).call(chart);
                 }
             };
-            chart.container = this;
+            chart.container = container;
 
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
@@ -65,20 +63,8 @@ nv.models.sunburstChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            // Setup containers and skeleton of chart
-            var wrap = container.selectAll('g.nv-wrap.nv-sunburstChart').data(data);
-            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-sunburstChart').append('g');
-            var g = wrap.select('g');
-
-            gEnter.append('g').attr('class', 'nv-sunburstWrap');
-
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            // Main Chart Component(s)
             sunburst.width(availableWidth).height(availableHeight);
-            var sunWrap = g.select('.nv-sunburstWrap').datum(data);
-            d3.transition(sunWrap).call(sunburst);
-
+            container.call(sunburst);
         });
 
         renderWatch.renderEnd('sunburstChart immediate');
@@ -90,9 +76,9 @@ nv.models.sunburstChart = function() {
     //------------------------------------------------------------
 
     sunburst.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt['series'] = {
+        evt.series = {
             key: evt.data.name,
-            value: evt.data.size,
+            value: (evt.data.value || evt.data.size),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -142,4 +128,5 @@ nv.models.sunburstChart = function() {
     nv.utils.inheritOptions(chart, sunburst);
     nv.utils.initOptions(chart);
     return chart;
+
 };

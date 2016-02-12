@@ -61,11 +61,10 @@
             .color(d3.scale.category10().range());
 
         chart.xAxis.tickFormat(function(d) {
-                return d3.time.format('%x')(new Date(d))
-            })
-            .showMaxMin(false);
+            return d3.time.format('%x')(new Date(d))
+        }).showMaxMin(false);
 
-        chart.y1Axis.tickFormat(function(d) { return '$' + d3.format(',f')(d) });
+        chart.y2Axis.tickFormat(function(d) { return '$' + d3.format(',f')(d) });
         chart.bars.forceY([0]).padData(false);
 
         chart.x2Axis.tickFormat(function(d) {

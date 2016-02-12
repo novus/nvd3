@@ -36,6 +36,25 @@ nv.utils.windowSize = function() {
     return (size);
 };
 
+
+/* handle dumb browser quirks...  isinstance breaks if you use frames
+typeof returns 'object' for null, NaN is a number, etc.
+ */
+nv.utils.isArray = Array.isArray;
+nv.utils.isObject = function(a) {
+    return a !== null && typeof a === 'object';
+};
+nv.utils.isFunction = function(a) {
+    return typeof a === 'function';
+};
+nv.utils.isDate = function(a) {
+    return toString.call(a) === '[object Date]';
+};
+nv.utils.isNumber = function(a) {
+    return !isNaN(a) && typeof a === 'number';
+};
+
+
 /*
 Binds callback function to run when window is resized
  */
@@ -67,8 +86,7 @@ nv.utils.getColor = function(color) {
         return nv.utils.defaultColor();
 
     //if passed an array, turn it into a color scale
-    // use isArray, instanceof fails if d3 range is created in an iframe
-    } else if(Array.isArray(color)) {
+    } else if(nv.utils.isArray(color)) {
         var color_scale = d3.scale.ordinal().range(color);
         return function(d, i) {
             var key = i === undefined ? d : i;
@@ -108,7 +126,7 @@ nv.utils.customTheme = function(dictionary, getKey, defaultColors) {
 
     return function(series, index) {
         var key = getKey(series);
-        if (typeof dictionary[key] === 'function') {
+        if (nv.utils.isFunction(dictionary[key])) {
             return dictionary[key]();
         } else if (dictionary[key] !== undefined) {
             return dictionary[key];
@@ -162,12 +180,10 @@ Most common instance is when the element is in a display:none; container.
 Forumla is : text.length * font-size * constant_factor
 */
 nv.utils.calcApproxTextWidth = function (svgTextElem) {
-    if (typeof svgTextElem.style === 'function'
-        && typeof svgTextElem.text === 'function') {
-
+    if (nv.utils.isFunction(svgTextElem.style) && nv.utils.isFunction(svgTextElem.text)) {
         var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""), 10);
         var textLength = svgTextElem.text().length;
-        return textLength * fontSize * 0.5;
+        return nv.utils.NaNtoZero(textLength * fontSize * 0.5);
     }
     return 0;
 };
@@ -177,7 +193,7 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
 Numbers that are undefined, null or NaN, convert them to zeros.
 */
 nv.utils.NaNtoZero = function(n) {
-    if (typeof n !== 'number'
+    if (!nv.utils.isNumber(n)
         || isNaN(n)
         || n === null
         || n === Infinity
@@ -295,9 +311,9 @@ nv.utils.deepExtend = function(dst){
     var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
     sources.forEach(function(source) {
         for (var key in source) {
-            var isArray = dst[key] instanceof Array;
-            var isObject = typeof dst[key] === 'object';
-            var srcObj = typeof source[key] === 'object';
+            var isArray = nv.utils.isArray(dst[key]);
+            var isObject = nv.utils.isObject(dst[key]);
+            var srcObj = nv.utils.isObject(source[key]);
 
             if (isObject && !isArray && srcObj) {
                 nv.utils.deepExtend(dst[key], source[key]);
@@ -396,7 +412,7 @@ chart.options = nv.utils.optionsFunc.bind(chart);
 nv.utils.optionsFunc = function(args) {
     if (args) {
         d3.map(args).forEach((function(key,value) {
-            if (typeof this[key] === "function") {
+            if (nv.utils.isFunction(this[key])) {
                 this[key](value);
             }
         }).bind(this));

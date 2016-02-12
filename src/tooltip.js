@@ -131,11 +131,11 @@ nv.models.tooltip = function() {
 
     var dataSeriesExists = function(d) {
         if (d && d.series) {
-            if (d.series instanceof Array) {
-                return !!d.series.length;
+            if (nv.utils.isArray(d.series)) {
+                return true;
             }
             // if object, it's okay just convert to array of the object
-            if (d.series instanceof Object) {
+            if (nv.utils.isObject(d.series)) {
                 d.series = [d.series];
                 return true;
             }
@@ -243,18 +243,23 @@ nv.models.tooltip = function() {
 
     // Creates new tooltip container, or uses existing one on DOM.
     function initTooltip() {
-        if (!tooltip) {
+        if (!tooltip || !tooltip.node()) {
             var container = chartContainer ? chartContainer : document.body;
-
             // Create new tooltip div if it doesn't exist on DOM.
-            tooltip = d3.select(container).append("div")
-                .attr("class", "nvtooltip " + (classes ? classes : "xy-tooltip"))
-                .attr("id", id);
-            tooltip.style("top", 0).style("left", 0);
-            tooltip.style('opacity', 0);
-            tooltip.style('position', 'fixed');
-            tooltip.selectAll("div, table, td, tr").classed(nvPointerEventsClass, true);
-            tooltip.classed(nvPointerEventsClass, true);
+
+            var data = [1];
+            tooltip = d3.select(container).selectAll('.nvtooltip').data(data);
+
+            tooltip.enter().append('div')
+                   .attr("class", "nvtooltip " + (classes ? classes : "xy-tooltip"))
+                   .attr("id", id)
+                   .style("top", 0).style("left", 0)
+                   .style('opacity', 0)
+                   .style('position', 'fixed')
+                   .selectAll("div, table, td, tr").classed(nvPointerEventsClass, true)
+                   .classed(nvPointerEventsClass, true);
+
+            tooltip.exit().remove()
         }
     }
 

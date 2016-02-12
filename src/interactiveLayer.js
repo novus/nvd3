@@ -83,7 +83,8 @@ nv.interactiveGuideline = function() {
                 /* If mouseX/Y is outside of the chart's bounds,
                  trigger a mouseOut event.
                  */
-                if (mouseX < 0 || mouseY < 0
+                if (d3.event.type === 'mouseout'
+                    || mouseX < 0 || mouseY < 0
                     || mouseX > availableWidth || mouseY > availableHeight
                     || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
                     || mouseOutAnyReason
