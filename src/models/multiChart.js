@@ -15,7 +15,7 @@ nv.models.multiChart = function() {
         yDomain2,
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
-        interpolate = 'monotone',
+        interpolate = 'linear',
         useVoronoi = true,
         interactiveLayer = nv.interactiveGuideline(),
         useInteractiveGuideline = false,
