@@ -419,6 +419,9 @@ nv.models.multiChart = function() {
 
                     interactiveLayer.tooltip
                     .chartContainer(chart.container.parentNode)
+                    .headerFormatter(function(d, i) {
+                        return xAxis.tickFormat()(d, i);
+                    })
                     .valueFormatter(function(d,i) {
                         var yAxis = allData[i].yAxis;
                         return d === null ? "N/A" : yAxis.tickFormat()(d);
