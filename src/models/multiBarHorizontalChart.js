@@ -24,6 +24,7 @@ nv.models.multiBarHorizontalChart = function() {
         , showXAxis = true
         , showYAxis = true
         , stacked = false
+        , reduceXTicks = true // if false a tick will show for every data point
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
         , state = nv.utils.state()
@@ -208,10 +209,19 @@ nv.models.multiBarHorizontalChart = function() {
 
                 g.select('.nv-x.nv-axis').call(xAxis);
 
-                var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+                var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
 
                 xTicks
-                    .selectAll('line, text');
+                    .selectAll('line, text')
+                    .style('opacity', 1);
+
+                if (reduceXTicks)
+                    xTicks
+                        .filter(function(d,i) {
+                            return i % Math.ceil(data[0].values.length / (availableHeight / 24)) !== 0;
+                        })
+                        .selectAll('text, line')
+                        .style('opacity', 0);
             }
 
             if (showYAxis) {
@@ -343,6 +353,7 @@ nv.models.multiBarHorizontalChart = function() {
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        reduceXTicks:    {get: function(){return reduceXTicks;}, set: function(_){reduceXTicks=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
