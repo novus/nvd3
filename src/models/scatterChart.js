@@ -310,16 +310,16 @@ nv.models.scatterChart = function() {
             // mouseover needs availableHeight so we just keep scatter mouse events inside the chart block
             scatter.dispatch.on('elementMouseout.tooltip', function(evt) {
                 tooltip.hidden(true);
-                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                g.select(' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                     .attr('y1', 0);
-                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                g.select(' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', distY.size());
             });
 
             scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
-                container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                g.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                     .attr('y1', evt.relativePos[1] - availableHeight);
-                container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                g.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', evt.relativePos[0] + distX.size());
                 tooltip.data(evt).hidden(false);
             });
