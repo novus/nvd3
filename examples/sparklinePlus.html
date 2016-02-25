@@ -70,7 +70,7 @@
         var sin = [];
         var now =+new Date();
 
-        for (var i = 0; i < 200; i++) {
+        for (var i = 0; i < 100; i++) {
             sin.push({x: now + i * 1000 * 60 * 60 * 24, y: Math.sin(i/10)});
         }
 
@@ -81,7 +81,7 @@
         var s = [];
         var now =+new Date();
 
-        for (var i = 0; i < 200; i+= 10) {
+        for (var i = 0; i < 100; i+= 10) {
             s.push({
                 x: now + i * 1000 * 60 * 60 * 24,
                 y: 5 * Math.cos(i/10) + Math.sin(i/10),
