@@ -21,6 +21,7 @@ nv.models.discreteBarChart = function() {
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
+        , reduceXTicks = false // if false a tick will show for every data point
         , staggerLabels = false
         , wrapLabels = false
         , rotateLabels = 0
@@ -159,12 +160,25 @@ nv.models.discreteBarChart = function() {
                     .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
                 g.select('.nv-x.nv-axis').call(xAxis);
 
-                var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+                var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
+                
+                xTicks
+                    .selectAll('text')
+                    .style('opacity', 1)
+                
                 if (staggerLabels) {
                     xTicks
                         .selectAll('text')
                         .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 == 0 ? '5' : '17') + ')' })
                 }
+                
+                if (reduceXTicks)
+                    xTicks
+                        .filter(function(d,i) {
+                            return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
+                        })
+                        .selectAll('.tick text')
+                        .style('opacity', 0);
 
                 if (rotateLabels) {
                     xTicks
@@ -241,6 +255,7 @@ nv.models.discreteBarChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
 	showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
+        reduceXTicks:    {get: function(){return reduceXTicks;}, set: function(_){reduceXTicks=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
         showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
