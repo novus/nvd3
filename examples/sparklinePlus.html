@@ -40,6 +40,7 @@
 <p><svg id="chart1" class="sparkline"></svg></p>
 <p><svg id="chart2" class="sparkline"></svg></p>
 <p><svg id="chart3" class="sparkline"></svg></p>
+<p><svg id="chart4" class="sparkline"></svg></p>
 
 <script>
 
@@ -62,9 +63,10 @@
         });
     }
 
-    defaultChartConfig("#chart1", sine(), spots());
+    defaultChartConfig("#chart1", sine());
     defaultChartConfig("#chart2", volatileChart(130.0, 0.02));
     defaultChartConfig("#chart3", volatileChart(25.0, 0.09,30));
+    defaultChartConfig("#chart4", sine(), spots());
 
     function sine() {
         var sin = [];

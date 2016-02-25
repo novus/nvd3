@@ -33,32 +33,46 @@
 </head>
 <body>
 
-<h2>Sparkline: <svg id="chart1" class="sparkline"></svg></h2>
+<h2>Sparkline:</h2>
+<svg id="chart1" class="sparkline"></svg>
+
+<h2>Sparkline with spots:</h2>
+<svg id="chart2" class="sparkline"></svg>
 
 <script>
 
-    nv.addGraph({
-        generate: function() {
-            var spots = [];
-            for (var i = 0; i < 20; ++i) {
-                spots.push({
-                    x: i * 5,
-                    y: 2 * Math.cos(i * 2),
-                    cssClass: i % 2 ? 'odd' : 'even'
-                });
+    drawChart("#chart1");
+    drawChart("#chart2", spots());
+
+    function drawChart(chartId, spots) {
+        nv.addGraph({
+            generate: function() {
+                var chart = nv.models.sparkline()
+                        .width(400)
+                        .height(30)
+                        .spots(spots);
+
+                d3.select(chartId)
+                        .datum(sine())
+                        .call(chart);
+
+                return chart;
             }
-            var chart = nv.models.sparkline()
-                    .width(400)
-                    .height(30)
-                    .spots(spots);
+        });
 
-            d3.select("#chart1")
-                    .datum(sine())
-                    .call(chart);
+    }
 
-            return chart;
+    function spots() {
+        var spots = [];
+        for (var i = 0; i < 20; ++i) {
+            spots.push({
+                x: i * 5,
+                y: Math.cos(i * 2),
+                cssClass: i % 2 ? 'odd' : 'even'
+            });
         }
-    });
+        return spots;
+    }
 
     function sine() {
         var sin = [];
