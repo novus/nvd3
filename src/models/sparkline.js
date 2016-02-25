@@ -21,6 +21,7 @@ nv.models.sparkline = function() {
         , xRange
         , yRange
         , dispatch = d3.dispatch('renderEnd')
+        , spots = []
         ;
 
     //============================================================
@@ -38,11 +39,13 @@ nv.models.sparkline = function() {
             container = d3.select(this);
             nv.utils.initSVG(container);
 
+            spots = spots || [];
+            var scaleSpots = data.concat(spots);
             // Setup Scales
-            x   .domain(xDomain || d3.extent(data, getX ))
+            x   .domain(xDomain || d3.extent(scaleSpots, getX ))
                 .range(xRange || [0, availableWidth]);
 
-            y   .domain(yDomain || d3.extent(data, getY ))
+            y   .domain(yDomain || d3.extent(scaleSpots, getY ))
                 .range(yRange || [availableHeight, 0]);
 
             // Setup containers and skeleton of chart
@@ -64,10 +67,13 @@ nv.models.sparkline = function() {
                     .y(function(d,i) { return y(getY(d,i)) })
             );
 
+            var yValues = data.map(function(d, i) { return getY(d,i); }),
+                maxY = d3.max(yValues),
+                minY = d3.min(yValues);
+
             // TODO: Add CURRENT data point (Need Min, Mac, Current / Most recent)
             var points = wrap.selectAll('circle.nv-point')
                 .data(function(data) {
-                    var yValues = data.map(function(d, i) { return getY(d,i); });
                     function pointIndex(index) {
                         if (index != -1) {
                             var result = data[index];
@@ -77,8 +83,8 @@ nv.models.sparkline = function() {
                             return null;
                         }
                     }
-                    var maxPoint = pointIndex(yValues.lastIndexOf(y.domain()[1])),
-                        minPoint = pointIndex(yValues.indexOf(y.domain()[0])),
+                    var maxPoint = pointIndex(yValues.lastIndexOf(maxY)),
+                        minPoint = pointIndex(yValues.indexOf(minY)),
                         currentPoint = pointIndex(yValues.length - 1);
                     return [minPoint, maxPoint, currentPoint].filter(function (d) {return d != null;});
                 });
@@ -89,8 +95,19 @@ nv.models.sparkline = function() {
                 .attr('cy', function(d,i) { return y(getY(d,d.pointIndex)) })
                 .attr('r', 2)
                 .attr('class', function(d,i) {
-                    return getX(d, d.pointIndex) == x.domain()[1] ? 'nv-point nv-currentValue' :
-                            getY(d, d.pointIndex) == y.domain()[0] ? 'nv-point nv-minValue' : 'nv-point nv-maxValue'
+                    return i == (data.length - 1) ? 'nv-point nv-currentValue' :
+                            getY(d, d.pointIndex) == minY ? 'nv-point nv-minValue' : 'nv-point nv-maxValue'
+                });
+
+            points = wrap.selectAll('circle.nv-spot').data(spots);
+            points.enter().append('circle');
+            points.exit().remove();
+            points
+                .attr('cx', function(d,i) { return x(getX(d, i)) })
+                .attr('cy', function(d,i) { return y(getY(d, i)) })
+                .attr('r', 2)
+                .attr('class', function(d, i) {
+                    return 'nv-spot' + (d.cssClass ? ' ' + d.cssClass : '');
                 });
         });
         
@@ -115,6 +132,7 @@ nv.models.sparkline = function() {
         xScale:    {get: function(){return x;}, set: function(_){x=_;}},
         yScale:    {get: function(){return y;}, set: function(_){y=_;}},
         animate:   {get: function(){return animate;}, set: function(_){animate=_;}},
+        spots:     {get: function(){return spots;}, set: function(_){spots=_;}},
 
         //functor options
         x: {get: function(){return getX;}, set: function(_){getX=d3.functor(_);}},
