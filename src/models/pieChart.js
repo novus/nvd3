@@ -107,7 +107,9 @@ nv.models.pieChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 if (legendPosition === "top") {
                     legend.width( availableWidth ).key(pie.x());
 
@@ -207,6 +209,8 @@ nv.models.pieChart = function() {
     // use Object get/set functionality to map between vars and chart functions
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},

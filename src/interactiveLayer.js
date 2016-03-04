@@ -83,7 +83,8 @@ nv.interactiveGuideline = function() {
                 /* If mouseX/Y is outside of the chart's bounds,
                  trigger a mouseOut event.
                  */
-                if (mouseX < 0 || mouseY < 0
+                if (d3.event.type === 'mouseout'
+                    || mouseX < 0 || mouseY < 0
                     || mouseX > availableWidth || mouseY > availableHeight
                     || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
                     || mouseOutAnyReason
@@ -109,7 +110,31 @@ nv.interactiveGuideline = function() {
                     tooltip.hidden(false);
                 }
 
-                var pointXValue = xScale.invert(mouseX);
+
+                var scaleIsOrdinal = typeof xScale.rangeBands === 'function';
+                var pointXValue = undefined;
+
+                // Ordinal scale has no invert method
+                if (scaleIsOrdinal) {
+                    var elementIndex = d3.bisect(xScale.range(), mouseX) - 1;
+                    // Check if mouseX is in the range band
+                    if (xScale.range()[elementIndex] + xScale.rangeBand() >= mouseX) {
+                        pointXValue = xScale.domain()[d3.bisect(xScale.range(), mouseX) - 1];
+                    }
+                    else {
+                        dispatch.elementMouseout({
+                            mouseX: mouseX,
+                            mouseY: mouseY
+                        });
+                        layer.renderGuideLine(null); //hide the guideline
+                        tooltip.hidden(true);
+                        return;
+                    }
+                }
+                else {
+                    pointXValue = xScale.invert(mouseX);
+                }
+
                 dispatch.elementMousemove({
                     mouseX: mouseX,
                     mouseY: mouseY,

@@ -33,6 +33,7 @@ nv.models.scatterChart = function() {
         , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd')
         , noData       = null
         , duration = 250
+        , showLabels    = false
         ;
 
     scatter.xScale(x).yScale(y);
@@ -154,7 +155,9 @@ nv.models.scatterChart = function() {
             }
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 var legendWidth = availableWidth;
                 legend.width(legendWidth);
 
@@ -180,7 +183,8 @@ nv.models.scatterChart = function() {
                 .color(data.map(function(d,i) {
                     d.color = d.color || color(d, i);
                     return d.color;
-                }).filter(function(d,i) { return !data[i].disabled }));
+                }).filter(function(d,i) { return !data[i].disabled }))
+                .showLabels(showLabels);
 
             wrap.select('.nv-scatterWrap')
                 .datum(data.filter(function(d) { return !d.disabled }))
@@ -358,6 +362,7 @@ nv.models.scatterChart = function() {
         defaultState:     {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:     {get: function(){return noData;}, set: function(_){noData=_;}},
         duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
+        showLabels: {get: function(){return showLabels;}, set: function(_){showLabels=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

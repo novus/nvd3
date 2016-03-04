@@ -86,7 +86,6 @@ describe 'NVD3', ->
             do (cssClass) ->
               should.exist builder.$("g.nvd3.nv-multiBarWithLegend #{cssClass}")[0]
 
-
         it 'renders bars', ->
           bars = builder.$("g.nvd3.nv-multiBarWithLegend .nv-multibar .nv-bar")
           bars.should.have.length 12
@@ -97,4 +96,14 @@ describe 'NVD3', ->
             builder.model.update()
             builder.model.xAxis.ticks().should.equal 34
             builder.model.yAxis.ticks().should.equal 56
-            
+
+        describe "useInteractiveGuideline", ->
+            it "true", ->
+              options.useInteractiveGuideline = true
+              builder.build options, sampleData1
+              builder.$(".nv-multiBarWithLegend .nv-interactiveLineLayer").should.have.length 1
+            it "false", ->
+              options.useInteractiveGuideline = false
+              builder.build options, sampleData1
+              builder.$(".nv-multiBarWithLegend .nv-interactiveLineLayer").should.have.length 0
+
