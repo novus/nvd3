@@ -164,7 +164,7 @@ nv.models.historicalBar = function() {
                         y(getY(d,i));
                     return nv.utils.NaNtoZero(rval);
                 })
-                .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.max(Math.abs(y(getY(d,i)) - y(0)),1)) });
+                .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.max(Math.abs(y(getY(d,i)) - y(0)),0)) });
 
         });
 

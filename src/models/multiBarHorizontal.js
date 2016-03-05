@@ -290,7 +290,7 @@ nv.models.multiBarHorizontal = function() {
                     .select('rect')
                     .attr('height', x.rangeBand() / data.length )
                     .attr('width', function(d,i) {
-                        return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0
+                        return Math.max(Math.abs(y(getY(d,i)) - y(0)),0) || 0
                     });
 
             //store old scales for use in transitions on update
