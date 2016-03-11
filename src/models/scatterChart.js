@@ -361,7 +361,6 @@ nv.models.scatterChart = function() {
         showYAxis:  {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         defaultState:     {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:     {get: function(){return noData;}, set: function(_){noData=_;}},
-        duration:   {get: function(){return duration;}, set: function(_){duration=_;}},
         showLabels: {get: function(){return showLabels;}, set: function(_){showLabels=_;}},
 
         // options that require extra logic in the setter
@@ -374,6 +373,11 @@ nv.models.scatterChart = function() {
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( (_) ? 'right' : 'left');
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration=_;
+            renderWatch.reset(duration);
+            scatter.duration(duration);
         }},
         color: {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
