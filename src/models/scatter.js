@@ -41,7 +41,8 @@ nv.models.scatter = function() {
         , useVoronoi   = true
         , duration     = 250
         , interactiveUpdateDelay = 300
-        , showLabels    = false 
+        , showLabels    = false
+        , fillOpacity   = 0.5
         ;
 
 
@@ -410,7 +411,7 @@ nv.models.scatter = function() {
                 .style('fill', function(d,i) { return color(d, i) })
                 .style('stroke', function(d,i) { return color(d, i) })
                 .style('stroke-opacity', 1)
-                .style('fill-opacity', .5);
+                .style('fill-opacity', fillOpacity);
 
             // create the points, maintaining their IDs from the original data set
             var points = groups.selectAll('path.nv-point')
@@ -586,6 +587,7 @@ nv.models.scatter = function() {
         showVoronoi:   {get: function(){return showVoronoi;}, set: function(_){showVoronoi=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         interactiveUpdateDelay: {get:function(){return interactiveUpdateDelay;}, set: function(_){interactiveUpdateDelay=_;}},
+        fillOpacity: {get: function(){return fillOpacity;}, set: function(_){fillOpacity=_;}},
         showLabels: {get: function(){return showLabels;}, set: function(_){ showLabels = _;}},
 
         // simple functor options
