@@ -12450,8 +12450,6 @@ nv.models.sparkline = function() {
         , yDomain
         , xRange
         , yRange
-        , showMinMaxPoints = true
-        , showCurrentPoint = true
         , dispatch = d3.dispatch('renderEnd')
         ;
 
@@ -12512,7 +12510,7 @@ nv.models.sparkline = function() {
                     var maxPoint = pointIndex(yValues.lastIndexOf(y.domain()[1])),
                         minPoint = pointIndex(yValues.indexOf(y.domain()[0])),
                         currentPoint = pointIndex(yValues.length - 1);
-                    return [(showMinMaxPoints ? minPoint : null), (showMinMaxPoints ? maxPoint : null), (showCurrentPoint ? currentPoint : null)].filter(function (d) {return d != null;});
+                    return [minPoint, maxPoint, currentPoint].filter(function (d) {return d != null;});
                 });
             points.enter().append('circle');
             points.exit().remove();
@@ -12538,17 +12536,15 @@ nv.models.sparkline = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        width:            {get: function(){return width;}, set: function(_){width=_;}},
-        height:           {get: function(){return height;}, set: function(_){height=_;}},
-        xDomain:          {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
-        yDomain:          {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
-        xRange:           {get: function(){return xRange;}, set: function(_){xRange=_;}},
-        yRange:           {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        xScale:           {get: function(){return x;}, set: function(_){x=_;}},
-        yScale:           {get: function(){return y;}, set: function(_){y=_;}},
-        animate:          {get: function(){return animate;}, set: function(_){animate=_;}},
-        showMinMaxPoints: {get: function(){return showMinMaxPoints;}, set: function(_){showMinMaxPoints=_;}},
-        showCurrentPoint: {get: function(){return showCurrentPoint;}, set: function(_){showCurrentPoint=_;}},
+        width:     {get: function(){return width;}, set: function(_){width=_;}},
+        height:    {get: function(){return height;}, set: function(_){height=_;}},
+        xDomain:   {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain:   {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        xRange:    {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:    {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        xScale:    {get: function(){return x;}, set: function(_){x=_;}},
+        yScale:    {get: function(){return y;}, set: function(_){y=_;}},
+        animate:   {get: function(){return animate;}, set: function(_){animate=_;}},
 
         //functor options
         x: {get: function(){return getX;}, set: function(_){getX=d3.functor(_);}},
