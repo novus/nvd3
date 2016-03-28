@@ -24,6 +24,11 @@ describe 'NVD3', ->
             alignValue: true
             rightAlignValue: false
             noData: 'No Data Available'
+            spots: [
+              {x: 2, y: 100}
+              {x: 5, y: 120}
+              {x: 20, y: 150}
+            ]
 
         builder = null
         beforeEach ->
@@ -59,6 +64,7 @@ describe 'NVD3', ->
             '.nv-maxValue'
             '.nv-currentValue'
             '.nv-valueWrap'
+            '.nv-spot'
           ]
           for cssClass in cssClasses
             do(cssClass) ->

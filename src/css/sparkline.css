@@ -3,6 +3,11 @@
     fill: none;
 }
 
+.nvd3.nv-sparkline .nv-spot {
+    stroke: #808080;
+    fill: #808080;
+}
+
 .nvd3.nv-sparklineplus g.nv-hoverValue {
     pointer-events: none;
 }

@@ -23,6 +23,16 @@
             font-size: 14px;
             margin-top: -6px;
         }
+
+        .nvd3.nv-sparkline .nv-spot.red {
+            stroke: red;
+            fill: red;
+        }
+
+        .nvd3.nv-sparkline .nv-spot.blue {
+            stroke: blue;
+            fill: blue;
+        }
     </style>
 </head>
 <body class='with-3d-shadow with-transitions'>
@@ -30,19 +40,20 @@
 <p><svg id="chart1" class="sparkline"></svg></p>
 <p><svg id="chart2" class="sparkline"></svg></p>
 <p><svg id="chart3" class="sparkline"></svg></p>
+<p><svg id="chart4" class="sparkline"></svg></p>
 
 <script>
 
-    function defaultChartConfig(containerId, data) {
+    function defaultChartConfig(containerId, data, spots) {
         nv.addGraph(function() {
 
             var chart = nv.models.sparklinePlus();
             chart.margin({left:70})
-                .x(function(d,i) { return i })
+                .x(function(d,i) { return d.x })
                 .showLastValue(true)
                 .xTickFormat(function(d) {
-                    return d3.time.format('%x')(new Date(data[d].x))
-                });
+                    return d3.time.format('%x')(new Date(d))
+                }).spots(spots);
 
             d3.select(containerId)
                     .datum(data)
@@ -52,9 +63,10 @@
         });
     }
 
-    defaultChartConfig("#chart1",sine());
+    defaultChartConfig("#chart1", sine());
     defaultChartConfig("#chart2", volatileChart(130.0, 0.02));
     defaultChartConfig("#chart3", volatileChart(25.0, 0.09,30));
+    defaultChartConfig("#chart4", sine(), spots());
 
     function sine() {
         var sin = [];
@@ -65,6 +77,21 @@
         }
 
         return sin;
+    }
+
+    function spots() {
+        var s = [];
+        var now =+new Date();
+
+        for (var i = 0; i < 100; i+= 10) {
+            s.push({
+                x: now + i * 1000 * 60 * 60 * 24,
+                y: 5 * Math.cos(i/10) + Math.sin(i/10),
+                cssClass: i % 15 ? 'red' : 'blue'
+            });
+        }
+
+        return s;
     }
 
     function volatileChart(startPrice, volatility, numPoints) {
