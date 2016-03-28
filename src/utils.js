@@ -640,17 +640,28 @@ nv.utils.noData = function(chart, container) {
     //Remove any previously created chart components
     container.selectAll('g').remove();
 
-    var noDataText = container.selectAll('.nv-noData').data(data);
+    data = noData.split(/<br.*?>/g);
+    var noDataText = container
+      .append('text')
+      .attr('class', 'nvd3 nv-noData')
+      .attr('x', x)
+      .attr('y', y)
+      .style('text-anchor', 'middle');
 
-    noDataText.enter().append('text')
-        .attr('class', 'nvd3 nv-noData')
-        .attr('dy', '-.7em')
-        .style('text-anchor', 'middle');
-
-    noDataText
-        .attr('x', x)
-        .attr('y', y)
-        .text(function(t){ return t; });
+    noDataText.selectAll('tspan')
+      .data(data)
+      .enter()
+      .append('tspan')
+      .attr("x", noDataText.attr("x"))
+      .attr("dy", function(text, index) {
+        if (index > 0) {
+          return '1.2em'
+        }
+        return '';
+      })
+      .text(function(d){
+        return d;
+      });
 };
 
 /*
@@ -690,7 +701,7 @@ nv.utils.arrayEquals = function (array1, array2) {
     if (!array1 || !array2)
         return false;
 
-    // compare lengths - can save a lot of time 
+    // compare lengths - can save a lot of time
     if (array1.length != array2.length)
         return false;
 
