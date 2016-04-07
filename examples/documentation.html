@@ -789,6 +789,15 @@ as well as used to print out examples using those example inputs.
                 {grouped: "Group em", stacked: "Stack em"}
             ]
         },
+        controlOptions: {
+            desc: "Override the labels for control items in the graph displayed",
+            default: "['Stacked', 'Stream', 'Expanded']",
+            examples: [
+                ['Stacked', 'Stream'],
+                ['Stacked', 'Expanded'],
+                ['Stream', 'Expanded'],
+            ]
+        },
         groupSpacing: {
             desc: "The padding between bar groups, this is passed as the padding attribute of rangeBands",
             refs: ["https://github.com/mbostock/d3/wiki/Ordinal-Scales#ordinal_rangeBands"],
