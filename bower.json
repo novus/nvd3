@@ -1,5 +1,6 @@
 {
   "name": "nvd3",
+  "version": "1.8.3", 
   "homepage": "http://www.nvd3.org",
   "authors": [
     "Bob Monteverde",
