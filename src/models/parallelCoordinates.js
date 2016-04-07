@@ -417,15 +417,6 @@ nv.models.parallelCoordinates = function() {
 
                 dispatch.dimensionsOrder(enabledDimensions);
             }
-            function resetBrush() {
-                filters = [];
-                active = [];
-                dispatch.stateChange();
-            }
-            function resetDrag() {
-                dimensionName.map(function (d, i) { return d.currentPosition = d.originalPosition; });
-                dispatch.stateChange();
-            }
             function dimensionPosition(d) {
                 var v = dragging[d];
                 return v == null ? x(d) : v;
