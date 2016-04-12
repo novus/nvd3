@@ -23,6 +23,7 @@ nv.models.lineChart = function() {
         , width = null
         , height = null
         , showLegend = true
+        , legendPosition = 'top'
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -121,7 +122,7 @@ nv.models.lineChart = function() {
                 .getter(stateGetter(data))
                 .update();
 
-            // DEPRECATED set state.disableddisabled
+            // DEPRECATED set state.disabled
             state.disabled = data.map(function(d) { return !!d.disabled; });
 
             if (!defaultState) {
@@ -173,20 +174,27 @@ nv.models.lineChart = function() {
             contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth);
 
                 g.select('.nv-legendWrap')
                     .datum(data)
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
-                }
+                if (legendPosition === 'bottom') {
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(0,' + (availableHeight1) +')');
+                } else if (legendPosition === 'top') {
+                    if ( margin.top != legend.height()) {
+                        margin.top = legend.height();
+                        availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
+                    }
 
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')');
+                    wrap.select('.nv-legendWrap')
+                        .attr('transform', 'translate(0,' + (-margin.top) +')');
+                }
             }
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -376,7 +384,7 @@ nv.models.lineChart = function() {
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
-                        return !series.disabled;
+                        return !series.disabled && !series.disableTooltip;
                     })
                     .forEach(function(series,i) {
                         var extent = focusEnable ? (brush.empty() ? x2.domain() : brush.extent()) : x.domain();
@@ -388,7 +396,7 @@ nv.models.lineChart = function() {
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
                         if (pointYValue !== null) {
-                            lines.highlightPoint(i, pointIndex, true);
+                            lines.highlightPoint(series.seriesIndex, pointIndex, true);
                         }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
@@ -410,11 +418,13 @@ nv.models.lineChart = function() {
                         allData[indexToHighlight].highlight = true;
                 }
 
+                var defaultValueFormatter = function(d,i) {
+                    return d == null ? "N/A" : yAxis.tickFormat()(d);
+                };
+
                 interactiveLayer.tooltip
                     .chartContainer(chart.container.parentNode)
-                    .valueFormatter(function(d,i) {
-                        return d === null ? "N/A" : yAxis.tickFormat()(d);
-                    })
+                    .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
                     .data({
                         value: chart.x()( singlePoint,pointIndex ),
                         index: pointIndex,
@@ -529,7 +539,8 @@ nv.models.lineChart = function() {
                                 classed: d.classed,
                                 values: d.values.filter(function(d,i) {
                                     return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
-                                })
+                                }),
+                                disableTooltip: d.disableTooltip
                             };
                         })
                 );
@@ -554,7 +565,9 @@ nv.models.lineChart = function() {
     //------------------------------------------------------------
 
     lines.dispatch.on('elementMouseover.tooltip', function(evt) {
-        tooltip.data(evt).hidden(false);
+        if(!evt.series.disableTooltip){
+            tooltip.data(evt).hidden(false);
+        }
     });
 
     lines.dispatch.on('elementMouseout.tooltip', function(evt) {
@@ -576,7 +589,7 @@ nv.models.lineChart = function() {
     chart.y2Axis = y2Axis;
     chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
-
+    chart.state = state;
     chart.dispatch = dispatch;
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -585,6 +598,7 @@ nv.models.lineChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},

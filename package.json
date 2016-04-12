@@ -1,6 +1,6 @@
 {
   "name": "nvd3",
-  "version": "1.8.1-dev",
+  "version": "1.8.2-dev",
   "description": "A reusable charting library written in d3.js",
   "url": "https://github.com/novus/nvd3",
   "main": "build/nv.d3.js",

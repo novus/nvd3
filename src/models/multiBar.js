@@ -101,7 +101,7 @@ nv.models.multiBar = function() {
             });
 
             // HACK for negative value stacking
-            if (stacked) {
+            if (stacked && data.length > 0) {
                 data[0].values.map(function(d,i) {
                     var posBase = 0, negBase = 0;
                     data.map(function(d, idx) {

@@ -16,7 +16,7 @@ nv.models.bulletChart = function() {
         , reverse = false
         , margin = {top: 5, right: 40, bottom: 20, left: 120}
         , ranges = function(d) { return d.ranges }
-        , markers = function(d) { return d.markers ? d.markers : [0] }
+        , markers = function(d) { return d.markers ? d.markers : [] }
         , measures = function(d) { return d.measures }
         , width = null
         , height = 55
@@ -67,7 +67,7 @@ nv.models.bulletChart = function() {
 
             // Compute the new x-scale.
             var x1 = d3.scale.linear()
-                .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+                .domain([0, Math.max(rangez[0], (markerz[0] || 0), measurez[0])])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
                 .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
             // Retrieve the old x-scale, if this is an update.

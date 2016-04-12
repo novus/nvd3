@@ -86,7 +86,30 @@
             .transition().duration(1200)
             .call(chart1);
 
-        //nv.utils.windowResize(chart1.update);
+        // LISTEN TO WINDOW RESIZE
+        // nv.utils.windowResize(chart1.update);
+
+        // LISTEN TO CLICK EVENTS ON SLICES OF THE PIE/DONUT
+        // chart.pie.dispatch.on('elementClick', function() {
+        //     code...
+        // });
+
+        // chart.pie.dispatch.on('chartClick', function() {
+        //     code...
+        // });
+
+        // LISTEN TO DOUBLECLICK EVENTS ON SLICES OF THE PIE/DONUT
+        // chart.pie.dispatch.on('elementDblClick', function() {
+        //     code...
+        // });
+
+        // LISTEN TO THE renderEnd EVENT OF THE PIE/DONUT
+        // chart.pie.dispatch.on('renderEnd', function() {
+        //     code...
+        // });
+
+        // OTHER EVENTS DISPATCHED BY THE PIE INCLUDE: elementMouseover, elementMouseout, elementMousemove
+        // @see nv.models.pie
 
         return chart1;
 

@@ -928,6 +928,19 @@ footer {
     padding-right: 5px;
 }
 
+.propdom {
+    height: 0;
+}
+
+.propdom.populated {
+    height: auto;
+    padding: 5px 10px;
+}
+
+.propdom .label {
+    font-weight: bold;
+}
+
 iframe {
     display: inline-block;
     width: 100%;
