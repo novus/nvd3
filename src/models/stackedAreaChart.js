@@ -216,7 +216,7 @@ nv.models.stackedAreaChart = function() {
             if (!showLegend) {
                 g.select('.nv-legendWrap').selectAll('*').remove();
             } else {
-                var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
+                var legendWidth = (showControls && legendPosition === 'top') ? availableWidth - controlWidth : availableWidth;
 
                 legend.width(legendWidth);
                 g.select('.nv-legendWrap').datum(data).call(legend);
