@@ -17,6 +17,7 @@ nv.models.legend = function() {
         , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
         , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
         , expanded = false
+        , reversed = false
         , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
         , vers = 'classic' //Options are "classic" and "furious"
         ;
@@ -197,6 +198,10 @@ nv.models.legend = function() {
 
                     seriesWidths.push(nodeTextLength + padding);
                 });
+                
+                if (reversed) {
+                	seriesWidths.reverse();
+                }
 
                 var seriesPerRow = 0;
                 var columnWidths = [];
@@ -230,6 +235,9 @@ nv.models.legend = function() {
 
                 series
                     .attr('transform', function(d, i) {
+                    	if (reversed) {
+                    		i = selection.selectAll('.nv-series').size() - i - 1;
+                    	}
                         return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * versPadding) + ')';
                     });
 
@@ -359,6 +367,7 @@ nv.models.legend = function() {
         updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
         radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
         expanded:   {get: function(){return expanded;}, set: function(_){expanded=_;}},
+        reversed:    {get: function(){return reversed;}, set: function(_){reversed=_;}},
         vers:   {get: function(){return vers;}, set: function(_){vers=_;}},
 
         // options that require extra logic in the setter
