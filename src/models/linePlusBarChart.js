@@ -215,8 +215,8 @@ nv.models.linePlusBarChart = function() {
             if (!showLegend) {
                 g.select('.nv-legendWrap').selectAll('*').remove();
             } else {
-                var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
-                var legendXPosition = legend.align() ? legendWidth : 0;
+                var legendWidth = legend.columnize() ? availableWidth / 2 : availableWidth;
+                var legendXPosition = legend.columnize() ? legendWidth : 0;
 
                 legend.width(legendWidth);
 

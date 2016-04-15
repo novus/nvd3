@@ -26,8 +26,8 @@ describe 'NVD3', ->
       height: 100
       key: (d) -> d.key
       color: nv.utils.defaultColor()
-      align: true
-      rightAlign: false
+      columnize: true
+      alignAnchor: 'left'
       updateState: true
       radioButtonMode: false
 
