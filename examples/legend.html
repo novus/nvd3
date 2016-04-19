@@ -27,12 +27,21 @@
 <svg id="test1" class="nvd3"></svg>
 
 <h3>Legend 2</h3>
-<p>Setting align(false)</p>
+<p>Setting columnize(false)</p>
 <svg id="test2" class="nvd3"></svg>
 
 <h3>Legend 3</h3>
 <p>Setting legend padding distance</p>
 <svg id="test3" class="nvd3"></svg>
+
+<h3>Legend 4</h3>
+<p>Using alignAnchor('center') and columnize(false)</p>
+<svg id="test4" class="nvd3"></svg>
+
+<h3>Legend 5</h3>
+<p>Using reversed(true)</p>
+<svg id="test5" class="nvd3"></svg>
+
 
 <script>
     var width = 500,
@@ -46,21 +55,40 @@
         .datum(sinAndCos());
 
     var legend2 = nv.models.legend()
-        .align(false);
+        .columnize(false);
 
     d3.select('#test2')
         .attr('width', width)
-        .attr('height', height)
+        .attr('height', 30)
         .datum(sinAndCos()).call(legend2);
 
     var legend3 = nv.models.legend()
-        .width(900)
+        .width(600)
         .padding(70);
 
     d3.select('#test3')
-        .attr('width', 900)
-        .attr('height', 200)
+        .attr('width', 600)
+        .attr('height', height)
         .datum(sinAndCos()).call(legend3);
+    
+    var legend4 = nv.models.legend()
+    	.width(600)
+    	.alignAnchor('center')
+    	.columnize(false);
+    
+    d3.select('#test4')
+    	.attr('width', 600)
+        .attr('height', 50)
+        .datum(sinAndCos()).call(legend4);
+    
+    var legend5 = nv.models.legend()
+    .reversed(true);
+    
+    d3.select('#test5')
+    .attr('width', width)
+    .attr('height', height)
+    .datum(sinAndCos()).call(legend5);
+    
 
     var update = function() {
         d3.select('#test1').call(legend);

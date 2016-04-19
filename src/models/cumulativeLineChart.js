@@ -240,7 +240,7 @@ nv.models.cumulativeLineChart = function() {
                 controls
                     .width(140)
                     .color(['#444', '#444', '#444'])
-                    .rightAlign(false)
+                    .alignAnchor('left')
                     .margin({top: 5, right: 0, bottom: 5, left: 20})
                 ;
 

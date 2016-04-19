@@ -15,6 +15,17 @@ describe 'NVD3', ->
     ,
       key: 'series 4'
     ]
+    
+    sampleData3 = [
+      key: 'a really lengthy series 1'
+    ,
+      key: 'some series 2'
+    ,
+      key: 'lengthy series 3'
+    ,
+      key: 'some other series 4'
+    ]
+    
 
     legendOptions =
       margin:
@@ -26,8 +37,8 @@ describe 'NVD3', ->
       height: 100
       key: (d) -> d.key
       color: nv.utils.defaultColor()
-      align: true
-      rightAlign: false
+      columnize: true
+      alignAnchor: 'left'
       updateState: true
       radioButtonMode: false
 
@@ -118,3 +129,44 @@ describe 'NVD3', ->
       for legend,i in legendItems
         transform = legend.getAttribute 'transform'
         transform.should.equal "translate(#{xSpacing[i]},5)"
+        
+    it 'columnize aligns items', ->
+      builder = new ChartBuilder nv.models.legend()
+      builder.build {columnize: true, width: 410}, sampleData3
+        
+      legendItems = builder.$ '.nv-legend .nv-series'
+      
+      extractCoords = (str) ->
+        str = str.substring 10
+        { x: str.substring(0, str.indexOf(',')), y: str.substring((str.indexOf ',') + 1, str.length - 1) } 
+      
+      transform = []
+      for legend,i in legendItems
+        transform[i] = extractCoords (legendItems[i].getAttribute 'transform') 
+      
+      transform[0].x.should.equal transform[2].x
+      transform[1].x.should.equal transform[3].x
+      transform[0].y.should.equal '5'
+      transform[1].y.should.equal '5'
+      transform[2].y.should.equal '25'
+      transform[3].y.should.equal '25'
+
+    it 'alignAnchor left', ->
+      builder = new ChartBuilder nv.models.legend()
+      builder.build {columnize: false, alignAnchor: 'left', width: 540}, sampleData3
+        
+      legendItems = builder.$ '.nv-legend .nv-series'
+      
+      extractCoords = (str) ->
+        str = str.substring 10
+        { x: str.substring(0, str.indexOf(',')), y: str.substring((str.indexOf ',') + 1, str.length - 1) } 
+      
+      transform = []
+      for legend,i in legendItems
+        transform[i] = extractCoords (legendItems[i].getAttribute 'transform') 
+      
+      transform[0].x.should.equal '0'
+      transform[1].x.should.not.equal '0'
+      transform[2].x.should.equal '0'
+      transform[3].x.should.not.equal '0'
+      transform[3].x.should.not.equal transform[1].x
