@@ -56,7 +56,7 @@ nv.models.stackedAreaChart = function() {
             return xAxis.tickFormat()(d, i);
         })
         .valueFormatter(function(d, i) {
-            return yAxis.tickFormat()(d, i);
+            return d == null ? "N/A" : yAxis.tickFormat()(d, i);
         });
 
     var oldYTickFormat = null,
@@ -348,7 +348,7 @@ nv.models.stackedAreaChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0;
+                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0, allNullValues = true;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -374,8 +374,9 @@ nv.models.stackedAreaChart = function() {
                             point: point
                         });
 
-                        if (showTotalInTooltip && stacked.style() != 'expand') {
+                        if (showTotalInTooltip && stacked.style() != 'expand' && tooltipValue != null) {
                           valueSum += tooltipValue;
+                          allNullValues = false;
                         };
                     });
 
@@ -403,7 +404,7 @@ nv.models.stackedAreaChart = function() {
                 }
 
                 //If we are not in 'expand' mode, add a 'Total' row to the tooltip.
-                if (showTotalInTooltip && stacked.style() != 'expand' && allData.length >= 2) {
+                if (showTotalInTooltip && stacked.style() != 'expand' && allData.length >= 2 && !allNullValues) {
                     allData.push({
                         key: totalLabel,
                         value: valueSum,
