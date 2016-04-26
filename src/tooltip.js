@@ -216,7 +216,7 @@ nv.models.tooltip = function() {
             } else {
                 // using tooltip.style('transform') returns values un-usable for tween
                 var old_translate = 'translate(' + lastPosition.left + 'px, ' + lastPosition.top + 'px)';
-                var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
+                var new_translate = 'translate(' + Math.round(left) + 'px, ' + Math.round(top) + 'px)';
                 var translateInterpolator = d3.interpolateString(old_translate, new_translate);
                 var is_hidden = tooltip.style('opacity') < 0.1;
 
