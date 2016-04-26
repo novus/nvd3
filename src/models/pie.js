@@ -167,7 +167,8 @@ nv.models.pie = function() {
                 dispatch.elementMouseover({
                     data: d.data,
                     index: i,
-                    color: d3.select(this).style("fill")
+                    color: d3.select(this).style("fill"),
+                    percent: (d.endAngle - d.startAngle) / (2 * Math.PI)
                 });
             });
             ae.on('mouseout', function(d, i) {

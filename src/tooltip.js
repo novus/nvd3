@@ -111,6 +111,10 @@ nv.models.tooltip = function() {
             .classed("value",true)
             .html(function(p, i) { return valueFormatter(p.value, i) });
 
+        trowEnter.filter(function (p,i) { return p.percent !== undefined }).append("td")
+            .classed("percent", true)
+            .html(function(p, i) { return "(" + d3.format('%')(p.percent) + ")" });
+
         trowEnter.selectAll("td").each(function(p) {
             if (p.highlight) {
                 var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
