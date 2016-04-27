@@ -29,6 +29,7 @@ nv.models.multiBar = function() {
         , xRange
         , yRange
         , groupSpacing = 0.1
+        , fillOpacity = 0.75
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
@@ -211,7 +212,7 @@ nv.models.multiBar = function() {
                 .style('stroke', function(d,i){ return color(d, i) });
             groups
                 .style('stroke-opacity', 1)
-                .style('fill-opacity', 0.75);
+                .style('fill-opacity', fillOpacity);
 
             var bars = groups.selectAll('rect.nv-bar')
                 .data(function(d) { return (hideable && !data.length) ? hideable.values : d.values });
@@ -402,6 +403,7 @@ nv.models.multiBar = function() {
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         hideable:    {get: function(){return hideable;}, set: function(_){hideable=_;}},
         groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
+        fillOpacity: {get: function(){return fillOpacity;}, set: function(_){fillOpacity=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

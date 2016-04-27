@@ -111,6 +111,10 @@ nv.models.tooltip = function() {
             .classed("value",true)
             .html(function(p, i) { return valueFormatter(p.value, i) });
 
+        trowEnter.filter(function (p,i) { return p.percent !== undefined }).append("td")
+            .classed("percent", true)
+            .html(function(p, i) { return "(" + d3.format('%')(p.percent) + ")" });
+
         trowEnter.selectAll("td").each(function(p) {
             if (p.highlight) {
                 var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
@@ -216,7 +220,7 @@ nv.models.tooltip = function() {
             } else {
                 // using tooltip.style('transform') returns values un-usable for tween
                 var old_translate = 'translate(' + lastPosition.left + 'px, ' + lastPosition.top + 'px)';
-                var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
+                var new_translate = 'translate(' + Math.round(left) + 'px, ' + Math.round(top) + 'px)';
                 var translateInterpolator = d3.interpolateString(old_translate, new_translate);
                 var is_hidden = tooltip.style('opacity') < 0.1;
 
