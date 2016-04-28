@@ -275,7 +275,8 @@ nv.models.lineChart = function() {
                 var singlePoint, pointIndex, pointXLocation, allData = [];
                 data
                     .filter(function(series, i) {
-                        series.seriesIndex = i;
+                        // Assign the index here instead of in the filter
+                        // as the DOM removes disabled series
                         return !series.disabled && !series.disableTooltip;
                     })
                     .forEach(function(series,i) {
@@ -293,10 +294,12 @@ nv.models.lineChart = function() {
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                        // Use the original data index rather than filtered series index for the color
+                        var colorIndex = data.findIndex(function(d) { return d.key === series.key });
                         allData.push({
                             key: series.key,
                             value: pointYValue,
-                            color: color(series,series.seriesIndex),
+                            color: color(series, colorIndex),
                             data: point
                         });
                     });
