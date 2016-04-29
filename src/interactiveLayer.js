@@ -253,6 +253,236 @@ nv.interactiveGuideline = function() {
     return layer;
 };
 
+/*
+ Utility class to handle creation of a zoom layer
+ */
+nv.zoomLayer = function() {
+    'use strict';
+    var margin = { left: 0, top: 0 } //Pass the chart's top and left magins. Used to calculate the mouseX/Y.
+        ,   width = null
+        ,   height = null
+        ,   xScale = d3.scale.linear()
+        ,   dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick', 'elementMouseDown', 'elementMouseUp', 'elementDragStart', 'elementDragEnd')
+        ,   showGuideLine = true
+        ,   svgContainer = null // Must pass the chart's svg, we'll use its mousemove event.
+        ,   tooltip = nv.models.tooltip()
+        ,   isMSIE = "ActiveXObject" in window // Checkt if IE by looking for activeX.
+        ;
+
+    function layer(selection) {
+        selection.each(function(data) {
+            var container = d3.select(this);
+            var availableWidth = (width || 960), availableHeight = (height || 400);
+            var wrap = container.selectAll("g.nv-wrap.nv-zoomLayer")
+                .data([data]);
+            var wrapEnter = wrap.enter()
+                .append("g").attr("class", " nv-wrap nv-zoomLayer");
+            wrapEnter.append("g").attr("class","nv-zoomGuideArea");
+
+            if (!svgContainer) {
+                return;
+            }
+
+            function mouseHandler() {
+                var d3mouse = d3.mouse(this);
+                var mouseX = d3mouse[0];
+                var mouseY = d3mouse[1];
+                var subtractMargin = true;
+                var mouseOutAnyReason = false;
+                if (isMSIE) {
+                    /*
+                     D3.js (or maybe SVG.getScreenCTM) has a nasty bug in Internet Explorer 10.
+                     d3.mouse() returns incorrect X,Y mouse coordinates when mouse moving
+                     over a rect in IE 10.
+                     However, d3.event.offsetX/Y also returns the mouse coordinates
+                     relative to the triggering <rect>. So we use offsetX/Y on IE.
+                     */
+                    mouseX = d3.event.offsetX;
+                    mouseY = d3.event.offsetY;
+
+                    /*
+                     On IE, if you attach a mouse event listener to the <svg> container,
+                     it will actually trigger it for all the child elements (like <path>, <circle>, etc).
+                     When this happens on IE, the offsetX/Y is set to where ever the child element
+                     is located.
+                     As a result, we do NOT need to subtract margins to figure out the mouse X/Y
+                     position under this scenario. Removing the line below *will* cause
+                     the interactive layer to not work right on IE.
+                     */
+                    if(d3.event.target.tagName !== "svg") {
+                        subtractMargin = false;
+                    }
+
+                    if (d3.event.target.className.baseVal.match("nv-legend")) {
+                        mouseOutAnyReason = true;
+                    }
+
+                }
+
+                if(subtractMargin) {
+                    mouseX -= margin.left;
+                    mouseY -= margin.top;
+                }
+
+                /* If mouseX/Y is outside of the chart's bounds,
+                 trigger a mouseOut event.
+                 */
+                if (d3.event.type === 'mouseout'
+                    || mouseX < 0 || mouseY < 0
+                    || mouseX > availableWidth || mouseY > availableHeight
+                    || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
+                    || mouseOutAnyReason
+                ) {
+
+                    if (isMSIE) {
+                        if (d3.event.relatedTarget
+                            && d3.event.relatedTarget.ownerSVGElement === undefined
+                            && (d3.event.relatedTarget.className === undefined
+                            || d3.event.relatedTarget.className.match(tooltip.nvPointerEventsClass))) {
+
+                            return;
+                        }
+                    }
+                    dispatch.elementMouseout({
+                        mouseX: mouseX,
+                        mouseY: mouseY
+                    });
+                    layer.removeSelectArea(null); //hide the guideline
+                    tooltip.hidden(true);
+                    return;
+                } else {
+                    tooltip.hidden(false);
+                }
+
+
+                var scaleIsOrdinal = typeof xScale.rangeBands === 'function';
+                var pointXValue = undefined;
+
+                // Ordinal scale has no invert method
+                if (scaleIsOrdinal) {
+                    var elementIndex = d3.bisect(xScale.range(), mouseX) - 1;
+                    // Check if mouseX is in the range band
+                    if (xScale.range()[elementIndex] + xScale.rangeBand() >= mouseX) {
+                        pointXValue = xScale.domain()[d3.bisect(xScale.range(), mouseX) - 1];
+                    }
+                    else {
+                        dispatch.elementMouseout({
+                            mouseX: mouseX,
+                            mouseY: mouseY
+                        });
+                        layer.removeSelectArea(null); //hide the guideline
+                        tooltip.hidden(true);
+                        return;
+                    }
+                }
+                else {
+                    pointXValue = xScale.invert(mouseX);
+                }
+
+                dispatch.elementMousemove({
+                    mouseX: mouseX,
+                    mouseY: mouseY,
+                    pointXValue: pointXValue
+                });
+
+                if (d3.event.type === 'mousedown') {
+                    dispatch.elementDragStart({
+                        mouseX: mouseX,
+                        mouseY: mouseY,
+                        pointXValue: pointXValue
+                    });
+                }
+
+                if (d3.event.type === 'mousemove') {
+                    dispatch.elementMousemove({
+                        mouseX: mouseX,
+                        mouseY: mouseY,
+                        pointXValue: pointXValue
+                    });
+                }
+
+                if (d3.event.type === 'mouseup') {
+                    dispatch.elementDragEnd({
+                        mouseX: mouseX,
+                        mouseY: mouseY,
+                        pointXValue: pointXValue
+                    });
+                }
+            }
+
+            svgContainer
+                .on('mousedown.drag', mouseHandler)
+                .on('mousemove.drag', mouseHandler)
+                .on('mouseup.drag', mouseHandler)
+            ;
+
+            layer.guideLine = null;
+
+
+            layer.renderSelectArea = function(x) {
+                if (!showGuideLine) return;
+                if (layer.guideLine && layer.guideLine.attr("x1") === x) return;
+                nv.dom.write(function() {
+                    var selectArea = wrap.select(".nv-zoomGuideArea");
+                    selectArea.append('rect')
+                        .attr('fill-opacity', 0.4)
+                        .attr('fill', '#C8D3E2')
+                        .attr('x', x)
+                        .attr('y', 0)
+                        .attr('width', 1)
+                        .attr('height', availableHeight)
+                });
+            };
+
+            layer.updateSelectArea = function(startX, currentX) {
+                wrap.select(".nv-zoomGuideArea")
+                    .selectAll('rect')
+                    .attr('x', d3.min([startX, currentX]))
+                    .attr('width', Math.abs(currentX - startX))
+            };
+
+            layer.removeSelectArea = function() {
+                wrap.select(".nv-zoomGuideArea").selectAll('rect').remove();
+            }
+        });
+    }
+
+    layer.dispatch = dispatch;
+
+    layer.margin = function(_) {
+        if (!arguments.length) return margin;
+        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        return layer;
+    };
+
+    layer.width = function(_) {
+        if (!arguments.length) return width;
+        width = _;
+        return layer;
+    };
+
+    layer.height = function(_) {
+        if (!arguments.length) return height;
+        height = _;
+        return layer;
+    };
+
+    layer.xScale = function(_) {
+        if (!arguments.length) return xScale;
+        xScale = _;
+        return layer;
+    };
+
+    layer.svgContainer = function(_) {
+        if (!arguments.length) return svgContainer;
+        svgContainer = _;
+        return layer;
+    };
+
+    return layer;
+};
+
 /* Utility class that uses d3.bisect to find the index in a given array, where a search value can be inserted.
  This is different from normal bisectLeft; this function finds the nearest index to insert the search value.
 
