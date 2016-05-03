@@ -123,7 +123,7 @@ nv.models.axis = function() {
                     var rotateLabelsRule = '';
                     if (rotateLabels%360) {
                         //Reset transform on ticks so textHeight can be calculated correctly
-                        xTicks.attr('transform', ''); 
+                        xTicks.attr('transform', '');
                         //Calculate the longest xTick width
                         xTicks.each(function(d,i){
                             var box = this.getBoundingClientRect();
@@ -331,11 +331,22 @@ nv.models.axis = function() {
                     and the arithmetic trick below solves that.
                     */
                     return !parseFloat(Math.round(d * 100000) / 1000000) && (d !== undefined)
-                }) 
+                })
                 .classed('zero', true);
-            
+
             //store old scales for use in transitions on update
             scale0 = scale.copy();
+
+            //calculate the maximum width of one axis tick by taking the entire width of the axis and dividing by the number of ticks
+            var maxTickWidth = wrap.node().getBoundingClientRect().width / g.selectAll('g').size();
+
+            g.selectAll('g').select('text').each(function (d,i) {
+                if (fmt(d) && this.getBoundingClientRect().width > maxTickWidth) {
+                    var maxKeyLength = Math.floor(maxTickWidth / (this.getBoundingClientRect().width / fmt(d).length)) - 3;
+                    var trimmedKey = fmt(d).toString().substring(0, maxKeyLength);
+                    d3.select(this).text(trimmedKey + "...");
+                }
+            })
 
         });
 
