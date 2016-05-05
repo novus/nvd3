@@ -339,14 +339,15 @@ nv.models.pie = function() {
                 return a > 90 ? a - 180 : a;
             }
 
-            function arcTween(a, idx) {
+            function arcTween(a) {
                 a.endAngle = isNaN(a.endAngle) ? 0 : a.endAngle;
                 a.startAngle = isNaN(a.startAngle) ? 0 : a.startAngle;
                 if (!donut) a.innerRadius = 0;
-                var i = d3.interpolate(this._current, a);
+                var i = d3.interpolate(a.startAngle, a.endAngle);
                 this._current = i(0);
-                return function (t) {
-                    return arcs[idx](i(t));
+                return function(t) {
+                    a.endAngle = i(t);
+                    return arc(a);
                 };
             }
         });
