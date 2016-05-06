@@ -170,7 +170,7 @@ nv.models.stackedAreaChart = function() {
                 legend.width(legendWidth);
                 g.select('.nv-legendWrap').datum(data).call(legend);
 
-                if ( margin.top != legend.height()) {
+                if (legend.height() > margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 }
@@ -651,6 +651,6 @@ nv.models.stackedAreaChart = function() {
 
 nv.models.stackedAreaWithFocusChart = function() {
   return nv.models.stackedAreaChart()
-    .margin({ bottom: 30 }) 
+    .margin({ bottom: 30 })
     .focusEnable( true );
 };
