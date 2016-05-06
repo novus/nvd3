@@ -223,7 +223,7 @@ nv.models.stackedAreaChart = function() {
                     .datum(controlsData)
                     .call(controls);
 
-                if ( margin.top != Math.max(controls.height(), legend.height()) ) {
+                if (Math.max(controls.height(), legend.height()) > margin.top) {
                     margin.top = Math.max(controls.height(), legend.height());
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
