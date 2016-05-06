@@ -232,12 +232,6 @@ nv.models.linePlusBarChart = function() {
                     }))
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    // FIXME: shouldn't this be "- (focusEnabled ? focusHeight : 0)"?
-                    availableHeight1 = nv.utils.availableHeight(height, container, margin) - focusHeight;
-                }
-
                 g.select('.nv-legendWrap')
                     .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }
