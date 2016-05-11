@@ -41,7 +41,7 @@ nv.models.scatter = function() {
         , useVoronoi   = true
         , duration     = 250
         , interactiveUpdateDelay = 300
-        , showLabels    = false 
+        , showLabels    = false
         ;
 
 
@@ -99,7 +99,7 @@ nv.models.scatter = function() {
             });
 
             // Setup Scales
-            var logScale = chart.yScale().name === d3.scale.log().name ? true : false; 
+            var logScale = chart.yScale().name === d3.scale.log().name ? true : false;
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -279,7 +279,7 @@ nv.models.scatter = function() {
                             .attr('r', clipRadius);
                     }
 
-                    var mouseEventCallback = function(d, mDispatch) {
+                    var mouseEventCallback = function(el, d, mDispatch) {
                         if (needsUpdate) return 0;
                         var series = data[d.series];
                         if (series === undefined) return;
@@ -306,22 +306,24 @@ nv.models.scatter = function() {
                             pos: pos,
                             relativePos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                             seriesIndex: d.series,
-                            pointIndex: d.point
+                            pointIndex: d.point,
+                            event: d3.event,
+                            element: el
                         });
                     };
 
                     pointPaths
                         .on('click', function(d) {
-                            mouseEventCallback(d, dispatch.elementClick);
+                            mouseEventCallback(this, d, dispatch.elementClick);
                         })
                         .on('dblclick', function(d) {
-                            mouseEventCallback(d, dispatch.elementDblClick);
+                            mouseEventCallback(this, d, dispatch.elementDblClick);
                         })
                         .on('mouseover', function(d) {
-                            mouseEventCallback(d, dispatch.elementMouseover);
+                            mouseEventCallback(this, d, dispatch.elementMouseover);
                         })
                         .on('mouseout', function(d, i) {
-                            mouseEventCallback(d, dispatch.elementMouseout);
+                            mouseEventCallback(this, d, dispatch.elementMouseout);
                         });
 
                 } else {
@@ -459,10 +461,10 @@ nv.models.scatter = function() {
                     .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
-            
-            // add label a label to scatter chart 
+
+            // add label a label to scatter chart
             if(showLabels)
-            {      
+            {
                 var titles =  groups.selectAll('.nv-label')
                     .data(function(d) {
                         return d.values.map(
@@ -475,7 +477,7 @@ nv.models.scatter = function() {
                         });
 
                 titles.enter().append('text')
-                    .style('fill', function (d,i) { 
+                    .style('fill', function (d,i) {
                         return d.color })
                     .style('stroke-opacity', 0)
                     .style('fill-opacity', 1)
