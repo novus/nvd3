@@ -46,9 +46,11 @@ nv.models.tooltip = function() {
      }
      */
     var position = function() {
+        var m = d3.mouse(chartContainer);
+
         return {
-            left: d3.event !== null ? d3.event.clientX : 0,
-            top: d3.event !== null ? d3.event.clientY : 0
+            left: m[0],
+            top: m[1]
         };
     };
 
@@ -259,11 +261,11 @@ nv.models.tooltip = function() {
                    .attr("id", id)
                    .style("top", 0).style("left", 0)
                    .style('opacity', 0)
-                   .style('position', 'fixed')
+                   .style('position', 'absolute')
                    .selectAll("div, table, td, tr").classed(nvPointerEventsClass, true)
                    .classed(nvPointerEventsClass, true);
 
-            tooltip.exit().remove()
+            tooltip.exit().remove();
         }
     }
 
