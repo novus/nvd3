@@ -315,7 +315,7 @@ nv.models.lineChart = function() {
                 };
 
                 interactiveLayer.tooltip
-                    .chartContainer(chart.container.parentNode)
+                    .chartContainer(interactiveLayer.tooltip.chartContainer() || chart.container.parentNode)
                     .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
                     .data({
                         value: chart.x()( singlePoint,pointIndex ),
