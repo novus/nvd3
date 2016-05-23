@@ -235,15 +235,15 @@ nv.models.sunburst = function() {
 
             cGE.append("path")
                 .attr("d", arc)
-                .style("fill", function (d) {
+                .style("fill", function (d, i) {
                     if (d.color) {
                         return d.color;
                     }
                     else if (groupColorByParent) {
-                        return color((d.children ? d : d.parent).name);
+                        return color((d.children ? d : d.parent), i);
                     }
                     else {
-                        return color(d.name);
+                        return color(d, i);
                     }
                 })
                 .style("stroke", "#FFF")
