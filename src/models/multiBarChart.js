@@ -373,6 +373,18 @@ nv.models.multiBarChart = function() {
                             });
                         });
 
+                    //Highlight the tooltip entry based on which bar(s) the mouse is hovering.
+                    if (allData.length >= 2 && multibar.stacked()) {
+                        var yValue = chart.yScale().invert(e.mouseY);
+                        allData.forEach(function(d, currentIdx) {
+                            var isStacked = !!d.data.y1;
+                            if(isStacked && yValue >= d.data.y0 && yValue < d.data.y1) 
+                                allData[currentIdx].highlight = true;
+                            else if(!isStacked && yValue >= 0 && yValue < d.data.y)
+                                allData[currentIdx].highlight = true;
+                        });
+                    }
+
                     interactiveLayer.tooltip
                         .chartContainer(that.parentNode)
                         .data({
