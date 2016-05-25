@@ -39,18 +39,19 @@ nv.models.tooltip = function() {
     ;
 
     /*
-     * If a parent of the container has a translate transformation, fix the positioning.
+     * If a parent of the container has a translate transformation, fix the
+     * positioning. The fixed position of the tooltip will be based starting
+     * at this element.
      */
-    var fixTranslate = function(pos) {
+    var fixTranslation = function(pos) {
         var obj = chartContainer;
 
         while(obj && obj.style) {
-            var style = getComputedStyle(obj);
-            if(style.transform != 'none') {
-                var match = style.transform.match(/^matrix\((.+)\)$/);
-                var split = match[1].split(', ');
-                pos.left -= match ? parseInt(split[4], 10) : 0;
-                pos.top -= match ? parseInt(split[5], 10) : 0;
+            if(getComputedStyle(obj).transform != 'none') {
+                var rect = obj.getBoundingClientRect();
+                pos.left -= rect.left;
+                pos.top -= rect.top;
+                break;
             }
 
             obj = obj.parentNode;
@@ -67,7 +68,7 @@ nv.models.tooltip = function() {
      }
      */
     var position = function() {
-        return fixTranslate({
+        return fixTranslation({
             left: d3.event !== null ? d3.event.clientX : 0,
             top: d3.event !== null ? d3.event.clientY : 0
         });
