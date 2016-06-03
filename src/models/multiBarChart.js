@@ -374,7 +374,6 @@ nv.models.multiBarChart = function() {
                         });
 
                     interactiveLayer.tooltip
-                        .chartContainer(that.parentNode)
                         .data({
                             value: xValue,
                             index: pointIndex,
