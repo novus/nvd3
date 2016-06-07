@@ -9,6 +9,7 @@ nv.models.discreteBar = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 960
         , height = 500
+        , barsZoomFactor = .96
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , container
         , x = d3.scale.ordinal()
@@ -61,8 +62,7 @@ nv.models.discreteBar = function() {
                 });
 
             x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-                // .rangeBands(xRange || [0, availableWidth], .1);
-                .rangeBands(xRange || [0, availableWidth], 0);
+                .rangeBands(xRange || [0, availableWidth], (1 - barsZoomFactor));
             y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)));
 
             // If showValues, pad the Y axis range to account for label height
@@ -107,7 +107,7 @@ nv.models.discreteBar = function() {
 
             var barsEnter = bars.enter().append('g')
                 .attr('transform', function(d,i,j) {
-                    return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05 ) + ', ' + y(0) + ')'
+                    return 'translate(' + (x(getX(d,i)) + x.rangeBand() * ((1 - barsZoomFactor) / 2) ) + ', ' + y(0) + ')'
                 })
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
@@ -154,7 +154,7 @@ nv.models.discreteBar = function() {
 
             barsEnter.append('rect')
                 .attr('height', 0)
-                .attr('width', x.rangeBand() * .9 / data.length )
+                .attr('width', x.rangeBand() * barsZoomFactor / data.length )
 
             if (showValues) {
                 barsEnter.append('text')
@@ -164,7 +164,7 @@ nv.models.discreteBar = function() {
                 bars.select('text')
                     .text(function(d,i) { return valueFormat(getY(d,i)) })
                     .watchTransition(renderWatch, 'discreteBar: bars text')
-                    .attr('x', x.rangeBand() * .9 / 2)
+                    .attr('x', x.rangeBand() * barsZoomFactor / 2)
                     .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
 
                 ;
@@ -179,11 +179,11 @@ nv.models.discreteBar = function() {
                 .select('rect')
                 .attr('class', rectClass)
                 .watchTransition(renderWatch, 'discreteBar: bars rect')
-                .attr('width', x.rangeBand() * .9 / data.length);
+                .attr('width', x.rangeBand() * barsZoomFactor / data.length);
             bars.watchTransition(renderWatch, 'discreteBar: bars')
                 //.delay(function(d,i) { return i * 1200 / data[0].values.length })
                 .attr('transform', function(d,i) {
-                    var left = x(getX(d,i)) + x.rangeBand() * .05,
+                    var left = x(getX(d,i)) + x.rangeBand() * ((1 - barsZoomFactor) / 2),
                         top = getY(d,i) < 0 ?
                             y(0) :
                                 y(0) - y(getY(d,i)) < 1 ?
@@ -229,6 +229,7 @@ nv.models.discreteBar = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        barsZoomFactor:  {get: function(){return barsZoomFactor;}, set: function(_){barsZoomFactor=_;}},
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},

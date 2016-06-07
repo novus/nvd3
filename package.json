@@ -5,7 +5,8 @@
   "url": "https://github.com/novus/nvd3",
   "main": "build/nv.d3.js",
   "scripts": {
-    "test": "grunt"
+    "test": "grunt",
+    "start": "grunt concat:js"
   },
   "repository": {
     "type": "git",
