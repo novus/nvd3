@@ -3925,7 +3925,8 @@ nv.models.discreteBar = function() {
                 });
 
             x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-                .rangeBands(xRange || [0, availableWidth], .1);
+                // .rangeBands(xRange || [0, availableWidth], .1);
+                .rangeBands(xRange || [0, availableWidth], 0);
             y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)));
 
             // If showValues, pad the Y axis range to account for label height
@@ -5539,7 +5540,7 @@ nv.models.historicalBar = function() {
                 .watchTransition(renderWatch, 'bars')
                 .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
                 //TODO: better width calculations that don't assume always uniform data spacing;w
-                .attr('width', (availableWidth / data[0].values.length) * .9 );
+                .attr('width', (availableWidth / data[0].values.length) * 1 );
 
             bars.watchTransition(renderWatch, 'bars')
                 .attr('y', function(d,i) {
