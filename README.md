@@ -2,7 +2,7 @@
 
 Inspired by the work of Mike Bostock's [Towards Reusable Charts](http://bost.ocks.org/mike/chart/), and supported by a combined effort of [Novus](http://www.novus.com) and the NVD3 community.
 
-[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/novus/nvd3.svg?branch=master)](https://travis-ci.org/novus/nvd3)
+[View Examples](http://nvd3-community.github.io/nvd3/) | [NEW Documentation!](http://nvd3-community.github.io/nvd3/examples/documentation.html) | Development build status: [![Build Status](https://travis-ci.org/AltxSF/nvd3.svg?branch=master)](https://travis-ci.org/AltxSF/nvd3)
 
 
 ## Usage
@@ -96,7 +96,7 @@ from the issues/pulls from the original project.
 
 # Bugs
 
-Found a bug?  Check out the latest from the `master` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/novus/nvd3/issues).
+Found a bug?  Check out the latest from the `master` branch and make sure it's not already fixed first! If you don't see a related fix, please [open an issue](https://github.com/AltxSF/nvd3/issues).
 
 ---
 
@@ -108,7 +108,7 @@ Including [Fastdom](https://github.com/wilsonpage/fastdom) in your project can g
 
 # Contributing
 
-If one of [the existing models](https://github.com/novus/nvd3/tree/master/src/models)
+If one of [the existing models](https://github.com/AltxSF/nvd3/tree/master/src/models)
 doesn't meet your needs, fork the project, implement the model and an example using it,
 send us a pull request, for consideration for inclusion in the project.
 
