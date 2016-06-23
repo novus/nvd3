@@ -139,11 +139,6 @@ nv.models.multiChart = function() {
                     }))
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
-                }
-
                 g.select('.legendWrap')
                     .attr('transform', 'translate(' + legendXPosition + ',' + (-margin.top) +')');
             }

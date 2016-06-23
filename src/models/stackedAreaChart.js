@@ -170,11 +170,6 @@ nv.models.stackedAreaChart = function() {
                 legend.width(legendWidth);
                 g.select('.nv-legendWrap').datum(data).call(legend);
 
-                if ( margin.top != legend.height()) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
-                }
-
                 g.select('.nv-legendWrap')
                     .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
             }
@@ -222,11 +217,6 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-controlsWrap')
                     .datum(controlsData)
                     .call(controls);
-
-                if ( margin.top != Math.max(controls.height(), legend.height()) ) {
-                    margin.top = Math.max(controls.height(), legend.height());
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
-                }
 
                 g.select('.nv-controlsWrap')
                     .attr('transform', 'translate(0,' + (-margin.top) +')');
