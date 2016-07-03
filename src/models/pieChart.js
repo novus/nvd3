@@ -118,7 +118,7 @@ nv.models.pieChart = function() {
                         .datum(data)
                         .call(legend);
 
-                    if ( margin.top != legend.height()) {
+                    if (legend.height() > margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
