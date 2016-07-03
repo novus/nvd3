@@ -123,6 +123,11 @@ nv.models.lineChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
+            /* Update `main' graph on brush update. */
+            focus.dispatch.on("onBrush", function(extent) {
+                onBrush(extent);
+            });
+
             // Setup Scales
             x = lines.xScale();
             y = lines.yScale();
@@ -352,11 +357,6 @@ nv.models.lineChart = function() {
 
             interactiveLayer.dispatch.on("elementMouseout",function(e) {
                 lines.clearHighlights();
-            });
-
-            /* Update `main' graph on brush update. */
-            focus.dispatch.on("onBrush", function(extent) {
-                onBrush(extent);
             });
 
             dispatch.on('changeState', function(e) {
