@@ -15,9 +15,11 @@ nv.models.bullet = function() {
         , reverse = false
         , ranges = function(d) { return d.ranges }
         , markers = function(d) { return d.markers ? d.markers : [] }
+        , markerLines = function(d) { return d.markerLines ? d.markerLines : [0] }
         , measures = function(d) { return d.measures }
         , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
         , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
+        , markerLineLabels = function(d) { return d.markerLineLabels ? d.markerLineLabels : []  }
         , measureLabels = function(d) { return d.measureLabels ? d.measureLabels : []  }
         , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
         , width = 380
@@ -49,14 +51,17 @@ nv.models.bullet = function() {
 
             var rangez = ranges.call(this, d, i).slice(),
                 markerz = markers.call(this, d, i).slice(),
+                markerLinez = markerLines.call(this, d, i).slice().sort(d3.descending),
                 measurez = measures.call(this, d, i).slice(),
                 rangeLabelz = rangeLabels.call(this, d, i).slice(),
                 markerLabelz = markerLabels.call(this, d, i).slice(),
+                markerLineLabelz = markerLineLabels.call(this, d, i).slice(),
                 measureLabelz = measureLabels.call(this, d, i).slice();
 
             // Sort labels according to their sorted values
             sortLabels(rangeLabelz, rangez);
             sortLabels(markerLabelz, markerz);
+            sortLabels(markerLineLabelz, markerLinez);
             sortLabels(measureLabelz, measurez);
 
             // sort values descending
@@ -182,6 +187,48 @@ nv.models.bullet = function() {
 
             g.selectAll("path.nv-markerTriangle")
               .data(markerData)
+              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
+
+            var markerLinesData = markerLinez.map( function(marker, index) {
+                return {value: marker, label: markerLineLabelz[index]}
+            });
+            gEnter
+              .selectAll("path.nv-markerLine")
+              .data(markerLinesData)
+              .enter()
+              .append('line')
+              .attr('cursor', '')
+              .attr('class', 'nv-markerLine')
+              .attr('x1', function(d) { return x1(d.value) })
+              .attr('y1', '2')
+              .attr('x2', function(d) { return x1(d.value) })
+              .attr('y2', availableHeight - 2)
+              .on('mouseover', function(d) {
+                dispatch.elementMouseover({
+                  value: d.value,
+                  label: d.label || 'Previous',
+                  color: d3.select(this).style("fill"),
+                  pos: [x1(d.value), availableHeight/2]
+                })
+
+              })
+              .on('mousemove', function(d) {
+                  dispatch.elementMousemove({
+                      value: d.value,
+                      label: d.label || 'Previous',
+                      color: d3.select(this).style("fill")
+                  })
+              })
+              .on('mouseout', function(d, i) {
+                  dispatch.elementMouseout({
+                      value: d.value,
+                      label: d.label || 'Previous',
+                      color: d3.select(this).style("fill")
+                  })
+              });
+
+            g.selectAll("path.nv-markerLines")
+              .data(markerLinesData)
               .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
 
             wrap.selectAll('.nv-range')
