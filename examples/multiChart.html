@@ -30,7 +30,7 @@
 
 <script>
 
-    var testdata = stream_layers(7,10+Math.random()*100,.1).map(function(data, i) {
+    var testdata = stream_layers(9,10+Math.random()*100,.1).map(function(data, i) {
         return {
             key: 'Stream' + i,
             values: data.map(function(a){a.y = a.y * (i <= 1 ? -1 : 1); return a})
@@ -45,12 +45,16 @@
     testdata[2].yAxis = 1;
     testdata[3].type = "line";
     testdata[3].yAxis = 2;
-    testdata[4].type = "bar";
-    testdata[4].yAxis = 2;
-    testdata[5].type = "bar";
+    testdata[4].type = "scatter";
+    testdata[4].yAxis = 1;
+    testdata[5].type = "scatter";
     testdata[5].yAxis = 2;
     testdata[6].type = "bar";
     testdata[6].yAxis = 2;
+    testdata[7].type = "bar";
+    testdata[7].yAxis = 2;
+    testdata[8].type = "bar";
+    testdata[8].yAxis = 2;
 
     nv.addGraph(function() {
         var chart = nv.models.multiChart()

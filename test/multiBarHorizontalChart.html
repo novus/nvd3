@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
-<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
 
 <style>
 
@@ -13,7 +13,7 @@ text {
   font: 12px sans-serif;
 }
 
-#chart1 {
+.chart {
   margin: 10px;
   min-width: 100px;
   min-height: 100px;
@@ -31,12 +31,17 @@ text {
 </style>
 <body>
 
-  <div id="chart1" class='with-3d-shadow with-transitions'>
+  <div id="chart1" class='chart with-3d-shadow with-transitions'>
     <svg></svg>
   </div>
 
-<script src="../lib/d3.v3.js"></script>
-<script src="../nv.d3.js"></script>
+  <div id="chart2" class='chart'>
+    Chart with forceY([10])
+    <svg></svg>
+  </div>
+
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../build/nv.d3.js"></script>
 <script src="../src/utils.js"></script>
 <script src="../src/tooltip.js"></script>
 <script src="../src/models/legend.js"></script>
@@ -349,17 +354,14 @@ long_short_neg_data = [
   }
 ];
 
-var chart;
-
 nv.addGraph(function() {
-  chart = nv.models.multiBarHorizontalChart()
+  var chart = nv.models.multiBarHorizontalChart()
       .x(function(d) { return d.label })
       .y(function(d) { return d.value })
       .margin({top: 30, right: 20, bottom: 50, left: 175})
       //.showValues(true)
       //.tooltips(false)
       .barColor(d3.scale.category20().range())
-      .transitionDuration(250)
       .stacked(true)
       //.showControls(false);
 
@@ -377,6 +379,36 @@ nv.addGraph(function() {
   return chart;
 });
 
+var forceY_test_data = [
+  {
+    "key": "Series 1",
+    "color": "#d67777",
+    "values": [
+      {"label": "Group A", "value": 10},
+      {"label": "Group B", "value": 20},
+      {"label": "Group C", "value": 30}
+    ]
+  }
+];
 
+nv.addGraph(function() {
+  var chart = nv.models.multiBarHorizontalChart()
+      .x(function(d) { return d.label })
+      .y(function(d) { return d.value })
+      .forceY([10])// To make 10 to be starting point.
+      .margin({top: 30, right: 20, bottom: 50, left: 175})
+      .showValues(true)           //Show bar value next to each bar.
+      .showControls(true);        //Allow user to switch between "Grouped" and "Stacked" mode.
+  chart.yAxis
+      .tickFormat(d3.format(',.2f'));
+  //chart.yScale().clamp(true);
+  d3.select('#chart2 svg')
+      .datum(forceY_test_data)
+      .call(chart);
+
+  nv.utils.windowResize(chart.update);
+
+  return chart;
+});
 
 </script>

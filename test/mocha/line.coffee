@@ -12,6 +12,7 @@ describe 'NVD3', ->
 
         sampleData2 = [
             key: 'Series 1'
+            classed: 'dashed'
             values: [
                 [-1,-3]
                 [0,6]
@@ -52,8 +53,6 @@ describe 'NVD3', ->
             showYAxis: true
             rightAlignYAxis: true
             useInteractiveGuideline: true
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             duration: 0
             clipEdge: false
@@ -70,6 +69,7 @@ describe 'NVD3', ->
             builder.teardown()
 
         it 'api check', ->
+            should.exist builder.model.options, 'options exposed'
             for opt of options
                 should.exist builder.model[opt](), "#{opt} can be called"
 
@@ -86,27 +86,13 @@ describe 'NVD3', ->
             noData = builder.$ '.nv-noData'
             noData[0].textContent.should.equal 'No Data Available'
 
-        it 'interactive tooltip', ->
+        it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.lineChart()
-            builder.build options, sampleData2
+            builder.buildover options, sampleData1, []
 
-            evt =
-                mouseX: 243
-                mouseY: 96
-                pointXValue: 28.15
+            groups = builder.$ 'g'
+            groups.length.should.equal 0, 'removes chart components'
 
-            builder.model.interactiveLayer.dispatch.elementMousemove evt
-
-            getGuideline = ->
-                line = builder.$ '.nv-interactiveGuideLine line'
-                line[0]
-
-            should.exist getGuideline(), 'guideline exists'
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.exist tooltip, 'tooltip exists'
-
-            builder.model.interactiveLayer.dispatch.elementMouseout()
 
         it 'has correct structure', ->
           cssClasses = [
@@ -121,3 +107,26 @@ describe 'NVD3', ->
           for cssClass in cssClasses
             do (cssClass) ->
               should.exist builder.$("g.nvd3.nv-lineChart #{cssClass}")[0]
+
+        it 'can override axis ticks', ->
+            builder.model.xAxis.ticks(34)
+            builder.model.yAxis.ticks(56)
+            builder.model.update()
+            builder.model.xAxis.ticks().should.equal 34
+            builder.model.yAxis.ticks().should.equal 56
+
+        it 'can add custom CSS class to series', ->
+            builder.updateData sampleData2
+
+            classed = builder.$ '.nv-linesWrap .nv-groups .nv-group.dashed'
+            
+            # Since classing has been implemented at the data-level for
+            # scatter points, there will actually be 2 elements matching
+            # the above selector, one for the scatter g element,
+            # and one for the line.
+            
+            classed.length.should.equal 2, 'dashed class exists'
+
+            scatter = builder.$ '.nv-scatterWrap .nv-groups .nv-group.dashed'
+            scatter.length.should.equal 1, 'one classed element is from scatter'
+

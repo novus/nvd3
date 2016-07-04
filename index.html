@@ -12,8 +12,8 @@ html, body, iframe {
     // force https to avoid stupid mixed content stuff.
     // don't force just http because http-everywhere plugins cause infinite redirect loop
     // can't use relative links because they break when loading the site locally on disk (browsers suck)
-    if (window.location.protocol == "http:")
-        window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
+    // if (window.location.protocol == "http:")
+    //     window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
 </script>
 <iframe src="examples/site.html"></iframe>
 </body>
