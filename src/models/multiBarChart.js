@@ -167,7 +167,7 @@ nv.models.multiBarChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
+                if (legend.height() > margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -374,7 +374,6 @@ nv.models.multiBarChart = function() {
                         });
 
                     interactiveLayer.tooltip
-                        .chartContainer(that.parentNode)
                         .data({
                             value: xValue,
                             index: pointIndex,

@@ -139,7 +139,7 @@ nv.models.multiChart = function() {
                     }))
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
+                if (legend.height() > margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -419,20 +419,21 @@ nv.models.multiChart = function() {
                         });
                     });
 
-                    interactiveLayer.tooltip
-                    .chartContainer(chart.container.parentNode)
-                    .headerFormatter(function(d, i) {
-                        return xAxis.tickFormat()(d, i);
-                    })
-                    .valueFormatter(function(d,i) {
+                    var defaultValueFormatter = function(d,i) {
                         var yAxis = allData[i].yAxis;
-                        return d === null ? "N/A" : yAxis.tickFormat()(d);
-                    })
-                    .data({
-                        value: chart.x()( singlePoint,pointIndex ),
-                        index: pointIndex,
-                        series: allData
-                    })();
+                        return d == null ? "N/A" : yAxis.tickFormat()(d);
+                    };
+
+                    interactiveLayer.tooltip
+                        .headerFormatter(function(d, i) {
+                            return xAxis.tickFormat()(d, i);
+                        })
+                        .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
+                        .data({
+                            value: chart.x()( singlePoint,pointIndex ),
+                            index: pointIndex,
+                            series: allData
+                        })();
 
                     interactiveLayer.renderGuideLine(pointXLocation);
                 });

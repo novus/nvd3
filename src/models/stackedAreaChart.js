@@ -175,18 +175,18 @@ nv.models.stackedAreaChart = function() {
                 	// constant from axis.js, plus some margin for better layout
                 	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
                    	margin.bottom = Math.max(legend.height() + xAxisHeight, margin.bottom);
-                   	availableHeight = nv.utils.availableHeight(height, container, margin);
+                   	availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 	var legendTop = availableHeight + xAxisHeight;
                     g.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + legendTop +')');
                 } else if (legendPosition === 'top') {
                     if ( margin.top != legend.height()) {
                         margin.top = legend.height();
-                        availableHeight = nv.utils.availableHeight(height, container, margin);
+                        availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
 
                     g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
+                    	.attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
                 }
             }
 
@@ -238,7 +238,7 @@ nv.models.stackedAreaChart = function() {
 
                 if ( margin.top != requiredTop ) {
                     margin.top = requiredTop;
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
+                    availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 }
 
                 g.select('.nv-controlsWrap')
@@ -484,7 +484,6 @@ nv.models.stackedAreaChart = function() {
                 }
 
                 interactiveLayer.tooltip
-                    .chartContainer(that.parentNode)
                     .valueFormatter(valueFormatter)
                     .data(
                     {
@@ -665,6 +664,6 @@ nv.models.stackedAreaChart = function() {
 
 nv.models.stackedAreaWithFocusChart = function() {
   return nv.models.stackedAreaChart()
-    .margin({ bottom: 30 }) 
+    .margin({ bottom: 30 })
     .focusEnable( true );
 };

@@ -220,7 +220,7 @@ nv.models.cumulativeLineChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
+                if (legend.height() > margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -475,7 +475,6 @@ nv.models.cumulativeLineChart = function() {
 
                 var xValue = xAxis.tickFormat()(chart.x()(singlePoint,pointIndex), pointIndex);
                 interactiveLayer.tooltip
-                    .chartContainer(that.parentNode)
                     .valueFormatter(function(d,i) {
                         return yAxis.tickFormat()(d);
                     })
