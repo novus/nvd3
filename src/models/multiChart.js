@@ -19,7 +19,12 @@ nv.models.multiChart = function() {
         useVoronoi = true,
         interactiveLayer = nv.interactiveGuideline(),
         useInteractiveGuideline = false,
-        legendRightAxisHint = ' (right axis)'
+        legendRightAxisHint = ' (right axis)',
+        showY1Axis = true,
+        showY1AxisZero = false,
+        showY2Axis = true,
+        showY2AxisZero = false,
+        bars = {stacked: false}
         ;
 
     //============================================================
@@ -102,8 +107,10 @@ nv.models.multiChart = function() {
             var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
 
             gEnter.append('g').attr('class', 'nv-x nv-axis');
-            gEnter.append('g').attr('class', 'nv-y1 nv-axis');
-            gEnter.append('g').attr('class', 'nv-y2 nv-axis');
+            if(showY1Axis)
+                gEnter.append('g').attr('class', 'nv-y1 nv-axis');
+            if(showY2Axis)
+                gEnter.append('g').attr('class', 'nv-y2 nv-axis');
             gEnter.append('g').attr('class', 'stack1Wrap');
             gEnter.append('g').attr('class', 'stack2Wrap');
             gEnter.append('g').attr('class', 'bars1Wrap');
@@ -169,11 +176,13 @@ nv.models.multiChart = function() {
             bars1
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'bar'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'bar'}))
+                .stacked(bars.stacked);
             bars2
                 .width(availableWidth)
                 .height(availableHeight)
-                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'bar'}));
+                .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'bar'}))
+                .stacked(bars.stacked);
             stack1
                 .width(availableWidth)
                 .height(availableHeight)
@@ -204,17 +213,32 @@ nv.models.multiChart = function() {
             var stack2Wrap = g.select('.stack2Wrap')
                 .datum(dataStack2.filter(function(d){return !d.disabled}));
 
-            var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
+            var extraValues1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
             }).concat([{x:0, y:0}]) : [];
-            var extraValue2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
+            var extraValues2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
             }).concat([{x:0, y:0}]) : [];
 
-            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
+            if (showY1AxisZero) { extraValues1 = extraValues1.concat({y: 0}); }
+            if (showY2AxisZero) { extraValues2 = extraValues2.concat({y: 0}); }
+
+            // If we're stacking the bars, the we need to calculate stacked Height
+            if (bars.stacked) {
+                var getStackedBarsData = function(bars) {
+                    var getHeight = function(d) { return d.y };
+                    var stackHeights = bars.map(function(d) { return d.values.map(getHeight); });
+                    stackHeights = d3.transpose(stackHeights);
+                    return stackHeights.map(function(d) { return {y: d3.sum(d)}; });
+                }
+                extraValues1 = extraValues1.concat(getStackedBarsData(dataBars1));
+                extraValues2 = extraValues2.concat(getStackedBarsData(dataBars2));
+            }
+
+            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValues1), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
-            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
+            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValues2), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
             lines1.yDomain(yScale1.domain());
@@ -522,6 +546,11 @@ nv.models.multiChart = function() {
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
         legendRightAxisHint:    {get: function(){return legendRightAxisHint;}, set: function(_){legendRightAxisHint=_;}},
+        showY1Axis:    {get: function(){return showY1Axis;}, set: function(_){showY1Axis=_;}},
+        showY1AxisZero:    {get: function(){return showY1AxisZero;}, set: function(_){showY1AxisZero=_;}},
+        showY2Axis:    {get: function(){return showY2Axis;}, set: function(_){showY2Axis=_;}},
+        showY2AxisZero:    {get: function(){return showY2AxisZero;}, set: function(_){showY2AxisZero=_;}},
+        bars:    {get: function(){return bars;}, set: function(_){bars=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
