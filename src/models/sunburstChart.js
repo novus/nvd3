@@ -12,6 +12,7 @@ nv.models.sunburstChart = function() {
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
+        , showTooltipPercent = false
         , id = Math.round(Math.random() * 100000)
         , defaultState = null
         , noData = null
@@ -63,7 +64,7 @@ nv.models.sunburstChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            sunburst.width(availableWidth).height(availableHeight);
+            sunburst.width(availableWidth).height(availableHeight).margin(margin);
             container.call(sunburst);
         });
 
@@ -79,8 +80,13 @@ nv.models.sunburstChart = function() {
         evt.series = {
             key: evt.data.name,
             value: (evt.data.value || evt.data.size),
-            color: evt.color
+            color: evt.color,
+            percent: evt.percent
         };
+        if (!showTooltipPercent) {
+            delete evt.percent;
+            delete evt.series.percent;
+        }
         tooltip.data(evt).hidden(false);
     });
 
@@ -105,8 +111,9 @@ nv.models.sunburstChart = function() {
     // use Object get/set functionality to map between vars and chart functions
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
-        defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+        noData:             {get: function(){return noData;},               set: function(_){noData=_;}},
+        defaultState:       {get: function(){return defaultState;},         set: function(_){defaultState=_;}},
+        showTooltipPercent: {get: function(){return showTooltipPercent;},   set: function(_){showTooltipPercent=_;}},
 
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
@@ -123,6 +130,7 @@ nv.models.sunburstChart = function() {
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
+            sunburst.margin(margin);
         }}
     });
     nv.utils.inheritOptions(chart, sunburst);

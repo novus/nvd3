@@ -89,3 +89,13 @@ svg.nvd3-svg {
     fill-opacity: .7;
 }
 
+/**********
+*  Print
+*/
+
+@media print {
+  .nvd3 text {
+    stroke-width: 0;
+    fill-opacity: 1;
+  }
+}

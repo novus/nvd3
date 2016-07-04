@@ -12,6 +12,7 @@ nv.models.pieChart = function() {
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
         , width = null
         , height = null
+        , showTooltipPercent = false
         , showLegend = true
         , legendPosition = "top"
         , color = nv.utils.defaultColor()
@@ -117,7 +118,7 @@ nv.models.pieChart = function() {
                         .datum(data)
                         .call(legend);
 
-                    if ( margin.top != legend.height()) {
+                    if (legend.height() > margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
@@ -182,8 +183,13 @@ nv.models.pieChart = function() {
         evt['series'] = {
             key: chart.x()(evt.data),
             value: chart.y()(evt.data),
-            color: evt.color
+            color: evt.color,
+            percent: evt.percent
         };
+        if (!showTooltipPercent) {
+            delete evt.percent;
+            delete evt.series.percent;
+        }
         tooltip.data(evt).hidden(false);
     });
 
@@ -209,12 +215,13 @@ nv.models.pieChart = function() {
     // use Object get/set functionality to map between vars and chart functions
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        width:      {get: function(){return width;}, set: function(_){width=_;}},
-        height:     {get: function(){return height;}, set: function(_){height=_;}},
-        noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
-        showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
-        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
-        defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+        width:              {get: function(){return width;},                set: function(_){width=_;}},
+        height:             {get: function(){return height;},               set: function(_){height=_;}},
+        noData:             {get: function(){return noData;},               set: function(_){noData=_;}},
+        showTooltipPercent: {get: function(){return showTooltipPercent;},   set: function(_){showTooltipPercent=_;}},
+        showLegend:         {get: function(){return showLegend;},           set: function(_){showLegend=_;}},
+        legendPosition:     {get: function(){return legendPosition;},       set: function(_){legendPosition=_;}},
+        defaultState:       {get: function(){return defaultState;},         set: function(_){defaultState=_;}},
 
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
@@ -225,6 +232,7 @@ nv.models.pieChart = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+            pie.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;

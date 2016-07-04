@@ -59,7 +59,8 @@
             .x(function(d) { return d.key })
             .y(function(d) { return d.y })
             .width(width)
-            .height(height);
+            .height(height)
+            .showTooltipPercent(true);
 
         d3.select("#test1")
             .datum(testdata2)
