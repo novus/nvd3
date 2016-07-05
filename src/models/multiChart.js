@@ -574,7 +574,7 @@ nv.models.multiChart = function() {
             }
         }},
 
-        transitionDuration: {get: function(){return duration;}, set: function(_) {
+        duration: {get: function(){return duration;}, set: function(_) {
             duration = _;
             [lines1, lines2, stack1, stack2, scatters1, scatters2, xAxis, yAxis1, yAxis2].forEach(function(model){
               model.duration(duration);
