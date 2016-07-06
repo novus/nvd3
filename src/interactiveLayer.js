@@ -211,7 +211,12 @@ nv.interactiveGuideline = function() {
     }
 
     layer.dispatch = dispatch;
-    layer.tooltip = tooltip;
+
+    layer.tooltip = function(_) {
+        if (!arguments.length) return tooltip;
+        tooltip = _;
+        return layer;
+    };
 
     layer.margin = function(_) {
         if (!arguments.length) return margin;
