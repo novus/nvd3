@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-07-03 */
+/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-07-05 */
 (function(){
 
 // set up main nv object
@@ -6508,6 +6508,7 @@ nv.models.line = function() {
         renderWatch.reset();
         renderWatch.models(scatter);
         selection.each(function(data) {
+            console.log('line chart selection', selection);
             container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
@@ -11828,6 +11829,564 @@ nv.models.pieChart = function() {
     });
     nv.utils.inheritOptions(chart, pie);
     nv.utils.initOptions(chart);
+    return chart;
+};
+
+nv.models.sankey = function() {
+    "use strict";
+
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var margin = {top: 0, right: 0, bottom: 0, left: 0}
+        , nodeWidth = 24
+        , nodePadding = 8
+        , size = [1, 1]
+        , nodes = []
+        , links = []
+        , sinksRight = true
+        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
+        ;
+
+    function chart(selection) {
+        // selection.each(function(data) {
+
+            chart.layout = function(iterations) {
+                computeNodeLinks();
+                computeNodeValues();
+                computeNodeBreadths();
+                computeNodeDepths(iterations);
+                return chart;
+            };
+
+            chart.relayout = function() {
+                computeLinkDepths();
+                return chart;
+            };
+
+            // SVG path data generator, to be used as "d" attribute on "path" element selection.
+            chart.link = function() {
+                var curvature = .5;
+
+                function link(d) {
+                    console.log('d', d);
+                    var x0 = d.source.x + d.source.dx,
+                        x1 = d.target.x,
+                        xi = d3.interpolateNumber(x0, x1),
+                        x2 = xi(curvature),
+                        x3 = xi(1 - curvature),
+                        y0 = d.source.y + d.sy + d.dy / 2,
+                        y1 = d.target.y + d.ty + d.dy / 2;
+                    return "M" + x0 + "," + y0
+                        + "C" + x2 + "," + y0
+                        + " " + x3 + "," + y1
+                        + " " + x1 + "," + y1;
+                }
+
+                link.curvature = function(_) {
+                    if (!arguments.length) return curvature;
+                    curvature = +_;
+                    return link;
+                };
+
+                return link;
+            };
+
+            // Populate the sourceLinks and targetLinks for each node.
+            // Also, if the source and target are not objects, assume they are indices.
+            function computeNodeLinks() {
+                nodes.forEach(function(node) {
+                    // Links that have this node as source.
+                    node.sourceLinks = [];
+                    // Links that have this node as target.
+                    node.targetLinks = [];
+                });
+                links.forEach(function(link) {
+                    var source = link.source,
+                        target = link.target;
+                    if (typeof source === "number") source = link.source = nodes[link.source];
+                    if (typeof target === "number") target = link.target = nodes[link.target];
+                    source.sourceLinks.push(link);
+                    target.targetLinks.push(link);
+                });
+            }
+
+            // Compute the value (size) of each node by summing the associated links.
+            function computeNodeValues() {
+                nodes.forEach(function(node) {
+                    node.value = Math.max(
+                        d3.sum(node.sourceLinks, value),
+                        d3.sum(node.targetLinks, value)
+                    );
+                });
+            }
+
+            // Iteratively assign the breadth (x-position) for each node.
+            // Nodes are assigned the maximum breadth of incoming neighbors plus one;
+            // nodes with no incoming links are assigned breadth zero, while
+            // nodes with no outgoing links are assigned the maximum breadth.
+            function computeNodeBreadths() {
+                var remainingNodes = nodes,
+                    nextNodes,
+                    x = 0;
+
+                // Work from left to right.
+                // Keep updating the breath (x-position) of nodes that are target of recently updated nodes.
+                while (remainingNodes.length && x < nodes.length) {
+                    nextNodes = [];
+                    remainingNodes.forEach(function(node) {
+                        node.x = x;
+                        node.dx = nodeWidth;
+                        node.sourceLinks.forEach(function(link) {
+                            if (nextNodes.indexOf(link.target) < 0) {
+                                nextNodes.push(link.target);
+                            }
+                        });
+                    });
+                    remainingNodes = nextNodes;
+                    ++x;
+                }
+
+                // Optionally move pure sinks always to the right.
+                if (sinksRight) {
+                    moveSinksRight(x);
+                }
+
+                scaleNodeBreadths((size[0] - nodeWidth) / (x - 1));
+            }
+
+            function moveSourcesRight() {
+                nodes.forEach(function(node) {
+                    if (!node.targetLinks.length) {
+                        node.x = d3.min(node.sourceLinks, function(d) { return d.target.x; }) - 1;
+                    }
+                });
+            }
+
+            function moveSinksRight(x) {
+                nodes.forEach(function(node) {
+                    if (!node.sourceLinks.length) {
+                        node.x = x - 1;
+                    }
+                });
+            }
+
+            function scaleNodeBreadths(kx) {
+                nodes.forEach(function(node) {
+                    node.x *= kx;
+                });
+            }
+
+            // Compute the depth (y-position) for each node.
+            function computeNodeDepths(iterations) {
+                // Group nodes by breath.
+                var nodesByBreadth = d3.nest()
+                    .key(function(d) { return d.x; })
+                    .sortKeys(d3.ascending)
+                    .entries(nodes)
+                    .map(function(d) { return d.values; });
+
+                //
+                initializeNodeDepth();
+                resolveCollisions();
+                computeLinkDepths();
+                for (var alpha = 1; iterations > 0; --iterations) {
+                    relaxRightToLeft(alpha *= .99);
+                    resolveCollisions();
+                    computeLinkDepths();
+                    relaxLeftToRight(alpha);
+                    resolveCollisions();
+                    computeLinkDepths();
+                }
+
+                function initializeNodeDepth() {
+                    // Calculate vertical scaling factor.
+                    var ky = d3.min(nodesByBreadth, function(nodes) {
+                        return (size[1] - (nodes.length - 1) * nodePadding) / d3.sum(nodes, value);
+                    });
+
+                    nodesByBreadth.forEach(function(nodes) {
+                        nodes.forEach(function(node, i) {
+                            node.y = i;
+                            node.dy = node.value * ky;
+                        });
+                    });
+
+                    links.forEach(function(link) {
+                        link.dy = link.value * ky;
+                    });
+                }
+
+                function relaxLeftToRight(alpha) {
+                    nodesByBreadth.forEach(function(nodes, breadth) {
+                        nodes.forEach(function(node) {
+                            if (node.targetLinks.length) {
+                                // Value-weighted average of the y-position of source node centers linked to this node.
+                                var y = d3.sum(node.targetLinks, weightedSource) / d3.sum(node.targetLinks, value);
+                                node.y += (y - center(node)) * alpha;
+                            }
+                        });
+                    });
+
+                    function weightedSource(link) {
+                        return (link.source.y + link.sy + link.dy / 2) * link.value;
+                    }
+                }
+
+                function relaxRightToLeft(alpha) {
+                    nodesByBreadth.slice().reverse().forEach(function(nodes) {
+                        nodes.forEach(function(node) {
+                            if (node.sourceLinks.length) {
+                                // Value-weighted average of the y-positions of target nodes linked to this node.
+                                var y = d3.sum(node.sourceLinks, weightedTarget) / d3.sum(node.sourceLinks, value);
+                                node.y += (y - center(node)) * alpha;
+                            }
+                        });
+                    });
+
+                    function weightedTarget(link) {
+                        return (link.target.y + link.ty + link.dy / 2) * link.value;
+                    }
+                }
+
+                function resolveCollisions() {
+                    nodesByBreadth.forEach(function(nodes) {
+                        var node,
+                            dy,
+                            y0 = 0,
+                            n = nodes.length,
+                            i;
+
+                        // Push any overlapping nodes down.
+                        nodes.sort(ascendingDepth);
+                        for (i = 0; i < n; ++i) {
+                            node = nodes[i];
+                            dy = y0 - node.y;
+                            if (dy > 0) node.y += dy;
+                            y0 = node.y + node.dy + nodePadding;
+                        }
+
+                        // If the bottommost node goes outside the bounds, push it back up.
+                        dy = y0 - nodePadding - size[1];
+                        if (dy > 0) {
+                            y0 = node.y -= dy;
+
+                            // Push any overlapping nodes back up.
+                            for (i = n - 2; i >= 0; --i) {
+                                node = nodes[i];
+                                dy = node.y + node.dy + nodePadding - y0;
+                                if (dy > 0) node.y -= dy;
+                                y0 = node.y;
+                            }
+                        }
+                    });
+                }
+
+                function ascendingDepth(a, b) {
+                    return a.y - b.y;
+                }
+            }
+
+            // Compute y-offset of the source endpoint (sy) and target endpoints (ty) of links,
+            // relative to the source/target node's y-position.
+            function computeLinkDepths() {
+                nodes.forEach(function(node) {
+                    node.sourceLinks.sort(ascendingTargetDepth);
+                    node.targetLinks.sort(ascendingSourceDepth);
+                });
+                nodes.forEach(function(node) {
+                    var sy = 0, ty = 0;
+                    node.sourceLinks.forEach(function(link) {
+                        link.sy = sy;
+                        sy += link.dy;
+                    });
+                    node.targetLinks.forEach(function(link) {
+                        link.ty = ty;
+                        ty += link.dy;
+                    });
+                });
+
+                function ascendingSourceDepth(a, b) {
+                    return a.source.y - b.source.y;
+                }
+
+                function ascendingTargetDepth(a, b) {
+                    return a.target.y - b.target.y;
+                }
+            }
+
+            // Y-position of the middle of a node.
+            function center(node) {
+                // return node.y + node.dy / 2;
+                return node.dy;
+            }
+
+            // Value property accessor.
+            function value(x) {
+                return x.value;
+            }
+        // });
+
+
+
+        return chart;
+    }
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+
+        // simple options, just get/set the necessary values
+
+        nodeWidth:   {get: function(){
+            console.log('nodeWidth', nodeWidth);return nodeWidth;}, set: function(_){nodeWidth=+_;}},
+        nodePadding:   {get: function(){return nodePadding;}, set: function(_){nodePadding=+_;}},
+        nodes:   {get: function(){return nodes;}, set: function(_){nodes=_;}},
+        links:   {get: function(){return links;}, set: function(_){links=_;}},
+        size:   {get: function(){return size;}, set: function(_){size=_;}},
+        sinksRight:   {get: function(){return sinksRight;}, set: function(_){sinksRight=_;}},
+
+
+    // width:   {get: function(){return width;}, set: function(_){width=_;}},
+        // height:  {get: function(){return height;}, set: function(_){height=_;}},
+        // x:       {get: function(){return getX;}, set: function(_){getX=_;}},
+        // y:       {get: function(){return getY;}, set: function(_){getY=_;}},
+        // xScale:  {get: function(){return x;}, set: function(_){x=_;}},
+        // yScale:  {get: function(){return y;}, set: function(_){y=_;}},
+        // xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        // yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        // xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        // yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        // forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        // stacked: {get: function(){return stacked;}, set: function(_){stacked=_;}},
+        // stackOffset: {get: function(){return stackOffset;}, set: function(_){stackOffset=_;}},
+        // clipEdge:    {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
+        // disabled:    {get: function(){return disabled;}, set: function(_){disabled=_;}},
+        // id:          {get: function(){return id;}, set: function(_){id=_;}},
+        // hideable:    {get: function(){return hideable;}, set: function(_){hideable=_;}},
+        // groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
+        // fillOpacity: {get: function(){return fillOpacity;}, set: function(_){fillOpacity=_;}},
+        //
+        // // options that require extra logic in the setter
+        // margin: {get: function(){return margin;}, set: function(_){
+        //     margin.top    = _.top    !== undefined ? _.top    : margin.top;
+        //     margin.right  = _.right  !== undefined ? _.right  : margin.right;
+        //     margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+        //     margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        // }},
+        // duration: {get: function(){return duration;}, set: function(_){
+        //     duration = _;
+        //     renderWatch.reset(duration);
+        // }},
+        // color:  {get: function(){return color;}, set: function(_){
+        //     color = nv.utils.getColor(_);
+        // }},
+        // barColor:  {get: function(){return barColor;}, set: function(_){
+        //     barColor = _ ? nv.utils.getColor(_) : null;
+        // }}
+    });
+
+    nv.utils.initOptions(chart);
+
+    return chart;
+};
+nv.models.sankeyChart = function() {
+    "use strict";
+
+
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var margin = {top: 5, right: 0, bottom: 5, left: 0}
+        , sankey = nv.models.sankey() // TODO sankey.js => sankey
+        , width = 600
+        , height = 400
+        , nodeWidth = 36
+        , nodePadding =  40
+        , units =  'units'
+        , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
+        ;
+
+    function chart(selection) {
+        selection.each(function(data) {
+            var availableWidth = width - margin.left - margin.right;
+            var container = d3.select(this);
+            // nv.utils.initSVG(container);
+
+            var formatNumber = d3.format(',.0f');    // zero decimal places
+            var format = function(d) { return formatNumber(d) + ' ' + units; };
+            var color = d3.scale.category20();
+
+
+            // append the svg canvas to the page
+            var svg = d3.select('#sankey-chart').append('svg')
+                .attr('width', 800)
+                .attr('height', 600)
+                .append('g');
+
+            console.log('svg', svg);
+
+// TODO margin
+
+            // Set the sankey diagram properties
+            // TODO sankey line 9 -> sankey.js
+            // var sankey = d3.sankey()
+            //     .nodeWidth(nodeWidth)
+            //     .nodePadding(nodePadding)
+            //     .size([width, height]);
+
+            var path = sankey().link();
+
+            // load the data
+            var data = {
+                "nodes":[
+                    {"node":0,"name":"node0"},
+                    {"node":1,"name":"node1"},
+                    {"node":2,"name":"node2"},
+                    {"node":3,"name":"node3"},
+                    {"node":4,"name":"node4"}
+                ],
+                "links":[
+                    {"source":0,"target":2,"value":2},
+                    {"source":1,"target":2,"value":2},
+                    {"source":1,"target":3,"value":2},
+                    {"source":0,"target":4,"value":2},
+                    {"source":2,"target":3,"value":2},
+                    {"source":2,"target":4,"value":2},
+                    {"source":3,"target":4,"value":4}
+                ]};
+            sankey
+                .nodes(data.nodes)
+                .links(data.links)
+                .layout(32);
+
+            // add in the links
+            var link = svg.append('g').selectAll('.link')
+                .data(data.links)
+                .enter().append('path')
+                .attr('class', 'link')
+                .attr('d', path)
+                .style('stroke-width', function(d) { return Math.max(1, d.dy); })
+            .sort(function(a,b) { return b.dy - a.dy; });
+
+            // add the link titles
+            link.append('title')
+                .text(function(d) {
+                return d.source.name + ' → ' +
+                    d.target.name + '\n' + format(d.value); });
+
+            // add in the nodes
+            var node = svg.append('g').selectAll('.node')
+                .data(data.nodes)
+                .enter().append('g')
+                .attr('class', 'node')
+                .attr('transform', function(d) {
+                return 'translate(' + d.x + ',' + d.y + ')'; })
+            .call(d3.behavior.drag()
+                .origin(function(d) { return d; })
+            .on('dragstart', function() {
+                this.parentNode.appendChild(this); })
+            .on('drag', dragmove));
+
+            // add the rectangles for the nodes
+            node.append('rect')
+                .attr('height', function(d) { return 50; })
+            .attr('width', sankey.nodeWidth())
+                .style('fill', function(d) {
+                return d.color = color(d.name.replace(/ .*/, '')); })
+            .style('stroke', function(d) {
+                return d3.rgb(d.color).darker(2); })
+            .append('title')
+                .text(function(d) {
+                return d.name + '\n' + format(d.value); });
+
+            // add in the title for the nodes
+            node.append('text')
+                .attr('x', -6)
+                .attr('y', function(d) { return d.dy / 2; })
+            .attr('dy', '.35em')
+                .attr('text-anchor', 'end')
+                .attr('transform', null)
+                .text(function(d) { return d.name; })
+            .filter(function(d) { return d.x < width / 2; })
+            .attr('x', 6 + sankey.nodeWidth())
+                .attr('text-anchor', 'start');
+
+            // the function for moving the nodes
+            function dragmove(d) {
+                d3.select(this).attr('transform',
+                'translate(' + d.x + ',' + (
+                    d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))
+                ) + ')');
+            sankey.relayout();
+            link.attr('d', path);
+        }
+//
+            ///////////////////////////////////////////////////////////////
+
+
+
+//             var series = g.selectAll('.nv-series')
+//                 .data(function(d) {
+//                     return d;
+//                 });
+            //
+            //
+            // series
+            //     .on('mouseover', function(d,i) {
+            //         dispatch.legendMouseover(d,i);
+            //     })
+            //     .on('mouseout', function(d,i) {
+            //         dispatch.legendMouseout(d,i);
+            //     })
+            //     .on('click', function(d,i) {
+            //
+            //     })
+            //     .on('dblclick', function(d,i) {
+            //
+            //     });
+            //
+            // series.exit().remove();
+
+
+        });
+
+
+        return chart;
+    }
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        units:          {get: function(){return units;}, set: function(_){units=_;}},
+        width:          {get: function(){return width;}, set: function(_){width=_;}},
+        height:         {get: function(){return height;}, set: function(_){height=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }}
+    });
+
+    nv.utils.initOptions(chart);
+
     return chart;
 };
 
