@@ -34,7 +34,7 @@ nv.models.legend = function() {
             var g = wrap.select('g');
 
             if (rightAlign)
-                wrap.attr('transform', 'translate(' - margin.right + ',' + margin.top + ')');
+                wrap.attr('transform', 'translate(' + -margin.right + ',' + margin.top + ')');
             else
                 wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
