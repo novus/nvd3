@@ -67,28 +67,7 @@ nv.models.sankeyChart = function() {
             //         {"source":3,"target":4,"value":4}
             //     ]};
 
-            var data = {
-                'links':
-                    [
-                        {"source":0,"target":1,"value":2295},
-                        {"source":0,"target":5,"value":1199},
-                        {"source":1,"target":2,"value":1119},
-                        {"source":1,"target":5,"value":1176},
-                        {"source":2,"target":3,"value":487},
-                        {"source":2,"target":5,"value":632},
-                        {"source":3,"target":4,"value":301},
-                        {"source":3,"target":5,"value":186}
-                    ],
-                'nodes':
-                    [
-                        {"node":0,"name":"Landed on main page"},
-                        {"node":1,"name":"Homepage search"},
-                        {"node":2,"name":"Restaurant-meal checked"},
-                        {"node":3,"name":"Items added to basket"},
-                        {"node":4,"name":"Orders made"},
-                        {"node":5,"name":"Left"}
-                    ]
-            };
+            var data = {"links":[{"source":0,"target":1,"value":2295},{"source":0,"target":5,"value":1199},{"source":1,"target":2,"value":1119},{"source":1,"target":5,"value":1176},{"source":2,"target":3,"value":487},{"source":2,"target":5,"value":632},{"source":3,"target":4,"value":301},{"source":3,"target":5,"value":186}],"nodes":[{"node":1,"name":"Landed on main page","source":null,"target":null},{"node":2,"name":"Homepage search","source":null,"target":null},{"node":3,"name":"Restaurant-meal checked","source":null,"target":null},{"node":4,"name":"Items added to basket","source":null,"target":null},{"node":5,"name":"Orders made","source":null,"target":null},{"node":6,"name":"Left","source":null,"target":null}]};
 
             console.log('data.nodes', data.nodes);
             sankey
@@ -126,7 +105,7 @@ nv.models.sankeyChart = function() {
 
             // add the rectangles for the nodes
             node.append('rect')
-                .attr('height', function(d) { return 50; })
+                .attr('height', function(d) { return d.dy; })
             .attr('width', sankey.nodeWidth())
                 .style('fill', function(d) {
                 return d.color = color(d.name.replace(/ .*/, '')); })
