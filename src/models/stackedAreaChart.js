@@ -16,12 +16,13 @@ nv.models.stackedAreaChart = function() {
         , focus = nv.models.focus(nv.models.stackedArea())
         ;
 
-    var margin = {top: 30, right: 25, bottom: 50, left: 60}
+    var margin = {top: 10, right: 25, bottom: 50, left: 60}
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
         , showControls = true
         , showLegend = true
+        , legendPosition = 'top'
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -165,18 +166,28 @@ nv.models.stackedAreaChart = function() {
             if (!showLegend) {
                 g.select('.nv-legendWrap').selectAll('*').remove();
             } else {
-                var legendWidth = (showControls) ? availableWidth - controlWidth : availableWidth;
+                var legendWidth = (showControls && legendPosition === 'top') ? availableWidth - controlWidth : availableWidth;
 
                 legend.width(legendWidth);
                 g.select('.nv-legendWrap').datum(data).call(legend);
+                
+                if (legendPosition === 'bottom') {
+                	// constant from axis.js, plus some margin for better layout
+                	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
+                   	margin.bottom = Math.max(legend.height() + xAxisHeight, margin.bottom);
+                   	availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
+                	var legendTop = availableHeight + xAxisHeight;
+                    g.select('.nv-legendWrap')
+                        .attr('transform', 'translate(0,' + legendTop +')');
+                } else if (legendPosition === 'top') {
+                    if ( margin.top != legend.height()) {
+                        margin.top = legend.height();
+                        availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
+                    }
 
-                if (legend.height() > margin.top) {
-                    margin.top = legend.height();
-                    availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
+                    g.select('.nv-legendWrap')
+                    	.attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
                 }
-
-                g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(' + (availableWidth-legendWidth) + ',' + (-margin.top) +')');
             }
 
             // Controls
@@ -222,16 +233,18 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-controlsWrap')
                     .datum(controlsData)
                     .call(controls);
+                
+                var requiredTop = Math.max(controls.height(), showLegend && (legendPosition === 'top') ? legend.height() : 0);
 
-                if (Math.max(controls.height(), legend.height()) > margin.top) {
-                    margin.top = Math.max(controls.height(), legend.height());
-                    availableHeight = nv.utils.availableHeight(height, container, margin);
+                if ( margin.top != requiredTop ) {
+                    margin.top = requiredTop;
+                    availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 }
 
                 g.select('.nv-controlsWrap')
                     .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
-
+            
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
@@ -583,6 +596,7 @@ nv.models.stackedAreaChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
