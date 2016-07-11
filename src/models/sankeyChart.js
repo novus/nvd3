@@ -29,8 +29,8 @@ nv.models.sankeyChart = function() {
 
             // append the svg canvas to the page
             var svg = d3.select('#sankey-chart').append('svg')
-                .attr('width', 800)
-                .attr('height', 600)
+                .attr('width', width)
+                .attr('height', height)
                 .append('g');
 
             console.log('svg', svg);
@@ -38,11 +38,10 @@ nv.models.sankeyChart = function() {
 // TODO margin
 
             // Set the sankey diagram properties
-            // TODO sankey line 9 -> sankey.js
-            // var sankey = d3.sankey()
-            //     .nodeWidth(nodeWidth)
-            //     .nodePadding(nodePadding)
-            //     .size([width, height]);
+            sankey
+                .nodeWidth(nodeWidth)
+                .nodePadding(nodePadding)
+                .size([width, height]);
 
             console.log('sankey.link', sankey.link);
 
@@ -50,23 +49,48 @@ nv.models.sankeyChart = function() {
             console.log('path');
 
             // load the data
+            // var data = {
+            //     "nodes":[
+            //         {"node":0,"name":"node0"},
+            //         {"node":1,"name":"node1"},
+            //         {"node":2,"name":"node2"},
+            //         {"node":3,"name":"node3"},
+            //         {"node":4,"name":"node4"}
+            //     ],
+            //     "links":[
+            //         {"source":0,"target":2,"value":2},
+            //         {"source":1,"target":2,"value":2},
+            //         {"source":1,"target":3,"value":2},
+            //         {"source":0,"target":4,"value":2},
+            //         {"source":2,"target":3,"value":2},
+            //         {"source":2,"target":4,"value":2},
+            //         {"source":3,"target":4,"value":4}
+            //     ]};
+
             var data = {
-                "nodes":[
-                    {"node":0,"name":"node0"},
-                    {"node":1,"name":"node1"},
-                    {"node":2,"name":"node2"},
-                    {"node":3,"name":"node3"},
-                    {"node":4,"name":"node4"}
-                ],
-                "links":[
-                    {"source":0,"target":2,"value":2},
-                    {"source":1,"target":2,"value":2},
-                    {"source":1,"target":3,"value":2},
-                    {"source":0,"target":4,"value":2},
-                    {"source":2,"target":3,"value":2},
-                    {"source":2,"target":4,"value":2},
-                    {"source":3,"target":4,"value":4}
-                ]};
+                'links':
+                    [
+                        {"source":0,"target":1,"value":2295},
+                        {"source":0,"target":5,"value":1199},
+                        {"source":1,"target":2,"value":1119},
+                        {"source":1,"target":5,"value":1176},
+                        {"source":2,"target":3,"value":487},
+                        {"source":2,"target":5,"value":632},
+                        {"source":3,"target":4,"value":301},
+                        {"source":3,"target":5,"value":186}
+                    ],
+                'nodes':
+                    [
+                        {"node":0,"name":"Landed on main page"},
+                        {"node":1,"name":"Homepage search"},
+                        {"node":2,"name":"Restaurant-meal checked"},
+                        {"node":3,"name":"Items added to basket"},
+                        {"node":4,"name":"Orders made"},
+                        {"node":5,"name":"Left"}
+                    ]
+            };
+
+            console.log('data.nodes', data.nodes);
             sankey
                 .nodes(data.nodes)
                 .links(data.links)
@@ -133,33 +157,6 @@ nv.models.sankeyChart = function() {
             sankey.relayout();
             link.attr('d', path);
         }
-//
-            ///////////////////////////////////////////////////////////////
-
-
-
-//             var series = g.selectAll('.nv-series')
-//                 .data(function(d) {
-//                     return d;
-//                 });
-            //
-            //
-            // series
-            //     .on('mouseover', function(d,i) {
-            //         dispatch.legendMouseover(d,i);
-            //     })
-            //     .on('mouseout', function(d,i) {
-            //         dispatch.legendMouseout(d,i);
-            //     })
-            //     .on('click', function(d,i) {
-            //
-            //     })
-            //     .on('dblclick', function(d,i) {
-            //
-            //     });
-            //
-            // series.exit().remove();
-
 
         });
 

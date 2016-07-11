@@ -242,6 +242,7 @@ nv.models.sankey = function() {
     sankey.nodes = function(_) {
         if (!arguments.length) return nodes;
         nodes = _;
+        console.log('sankey.nodes', JSON.stringify(JSON.decycle(nodes)));
         return sankey;
     };
 
@@ -264,11 +265,12 @@ nv.models.sankey = function() {
     };
 
     sankey.layout = function(iterations) {
-        console.log('layout', nodes);
+        console.log('layout', JSON.stringify(JSON.decycle(nodes)));
         computeNodeLinks();
         computeNodeValues();
         computeNodeBreadths();
         computeNodeDepths(iterations);
+        console.log('layout sankey', sankey);
         return sankey;
     };
 
@@ -308,7 +310,7 @@ nv.models.sankey = function() {
     // Populate the sourceLinks and targetLinks for each node.
     // Also, if the source and target are not objects, assume they are indices.
     function computeNodeLinks() {
-        console.log('computeNodeLinks', JSON.stringify(JSON.decycle(nodes)));
+        // console.log('computeNodeLinks', JSON.stringify(JSON.decycle(nodes)));
         nodes.forEach(function(node) {
             // Links that have this node as source.
             node.sourceLinks = [];
@@ -340,19 +342,19 @@ nv.models.sankey = function() {
     // nodes with no incoming links are assigned breadth zero, while
     // nodes with no outgoing links are assigned the maximum breadth.
     function computeNodeBreadths() {
-        console.log('computeNodeBreadths', nodes);
+        // console.log('computeNodeBreadths', JSON.stringify(JSON.decycle(nodes)));
         var remainingNodes = nodes,
             nextNodes,
             x = 0;
 
         // Work from left to right.
         // Keep updating the breath (x-position) of nodes that are target of recently updated nodes.
+        // console.log('remainingNodes.length, nodes.length', remainingNodes.length, nodes.length);
         while (remainingNodes.length && x < nodes.length) {
             nextNodes = [];
             remainingNodes.forEach(function(node) {
                 node.x = x;
                 node.dx = nodeWidth;
-                debugger;
                 node.sourceLinks.forEach(function(link) {
                     if (nextNodes.indexOf(link.target) < 0) {
                         nextNodes.push(link.target);
@@ -361,6 +363,7 @@ nv.models.sankey = function() {
             });
             remainingNodes = nextNodes;
             ++x;
+            // console.log('x', x);
         }
 
         // Optionally move pure sinks always to the right.
@@ -372,7 +375,6 @@ nv.models.sankey = function() {
     }
 
     function moveSourcesRight() {
-        console.log('moveSourcesRight', nodes);
         nodes.forEach(function(node) {
             if (!node.targetLinks.length) {
                 node.x = d3.min(node.sourceLinks, function(d) { return d.target.x; }) - 1;
