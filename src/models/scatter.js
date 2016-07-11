@@ -178,7 +178,7 @@ nv.models.scatter = function() {
             defsEnter.append('clipPath')
                 .attr('id', 'nv-edge-clip-' + id)
                 .append('rect')
-                .attr('transform', 'translate(-10, -10)');
+                .attr('transform', 'translate( -10, -10)');
                 
             wrap.select('#nv-edge-clip-' + id + ' rect')
                 .attr('width', availableWidth + 20)
