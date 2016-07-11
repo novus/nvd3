@@ -33,7 +33,7 @@ nv.models.sankeyChart = function() {
                 .attr('height', height)
                 .append('g');
 
-            console.log('svg', svg);
+            
 
 // TODO margin
 
@@ -43,10 +43,10 @@ nv.models.sankeyChart = function() {
                 .nodePadding(nodePadding)
                 .size([width, height]);
 
-            console.log('sankey.link', sankey.link);
+            
 
             var path = sankey.link();
-            console.log('path');
+            
 
             // load the data
             // var data = {
@@ -69,7 +69,7 @@ nv.models.sankeyChart = function() {
 
             var data = {"links":[{"source":0,"target":1,"value":2295},{"source":0,"target":5,"value":1199},{"source":1,"target":2,"value":1119},{"source":1,"target":5,"value":1176},{"source":2,"target":3,"value":487},{"source":2,"target":5,"value":632},{"source":3,"target":4,"value":301},{"source":3,"target":5,"value":186}],"nodes":[{"node":1,"name":"Landed on main page","source":null,"target":null},{"node":2,"name":"Homepage search","source":null,"target":null},{"node":3,"name":"Restaurant-meal checked","source":null,"target":null},{"node":4,"name":"Items added to basket","source":null,"target":null},{"node":5,"name":"Orders made","source":null,"target":null},{"node":6,"name":"Left","source":null,"target":null}]};
 
-            console.log('data.nodes', data.nodes);
+            
             sankey
                 .nodes(data.nodes)
                 .links(data.links)

@@ -242,7 +242,7 @@ nv.models.sankey = function() {
     sankey.nodes = function(_) {
         if (!arguments.length) return nodes;
         nodes = _;
-        console.log('sankey.nodes', JSON.stringify(JSON.decycle(nodes)));
+
         return sankey;
     };
 
@@ -265,12 +265,12 @@ nv.models.sankey = function() {
     };
 
     sankey.layout = function(iterations) {
-        console.log('layout', JSON.stringify(JSON.decycle(nodes)));
+
         computeNodeLinks();
         computeNodeValues();
         computeNodeBreadths();
         computeNodeDepths(iterations);
-        console.log('layout sankey', sankey);
+
         return sankey;
     };
 
@@ -284,7 +284,7 @@ nv.models.sankey = function() {
         var curvature = .5;
 
         function link(d) {
-            console.log('d', JSON.stringify(JSON.decycle(d, true)));
+
             var x0 = d.source.x + d.source.dx,
                 x1 = d.target.x,
                 xi = d3.interpolateNumber(x0, x1),
@@ -292,10 +292,12 @@ nv.models.sankey = function() {
                 x3 = xi(1 - curvature),
                 y0 = d.source.y + d.sy + d.dy / 2,
                 y1 = d.target.y + d.ty + d.dy / 2;
-            return "M" + x0 + "," + y0
+            var linkPath = "M" + x0 + "," + y0
                 + "C" + x2 + "," + y0
                 + " " + x3 + "," + y1
                 + " " + x1 + "," + y1;
+            console.log('linkPath', linkPath);
+            return linkPath;
         }
 
         link.curvature = function(_) {
@@ -310,7 +312,7 @@ nv.models.sankey = function() {
     // Populate the sourceLinks and targetLinks for each node.
     // Also, if the source and target are not objects, assume they are indices.
     function computeNodeLinks() {
-        // console.log('computeNodeLinks', JSON.stringify(JSON.decycle(nodes)));
+        //
         nodes.forEach(function(node) {
             // Links that have this node as source.
             node.sourceLinks = [];
@@ -342,14 +344,14 @@ nv.models.sankey = function() {
     // nodes with no incoming links are assigned breadth zero, while
     // nodes with no outgoing links are assigned the maximum breadth.
     function computeNodeBreadths() {
-        // console.log('computeNodeBreadths', JSON.stringify(JSON.decycle(nodes)));
+        //
         var remainingNodes = nodes,
             nextNodes,
             x = 0;
 
         // Work from left to right.
         // Keep updating the breath (x-position) of nodes that are target of recently updated nodes.
-        // console.log('remainingNodes.length, nodes.length', remainingNodes.length, nodes.length);
+        //
         while (remainingNodes.length && x < nodes.length) {
             nextNodes = [];
             remainingNodes.forEach(function(node) {
@@ -363,7 +365,7 @@ nv.models.sankey = function() {
             });
             remainingNodes = nextNodes;
             ++x;
-            // console.log('x', x);
+            //
         }
 
         // Optionally move pure sinks always to the right.
