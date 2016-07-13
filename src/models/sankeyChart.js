@@ -8,9 +8,9 @@ nv.models.sankeyChart = function() {
 
     var margin = {top: 5, right: 0, bottom: 5, left: 0}
         , sankey = nv.models.sankey()
+        // TODO add to example (html)
         , width = 600
         , height = 400
-        // TODO add fn for setting these:
         , nodeWidth = 36
         , nodePadding =  40
         , units =  'units'
@@ -22,6 +22,7 @@ nv.models.sankeyChart = function() {
     // Private Variables
     //------------------------------------------------------------
 
+    // TODO add to example (html)
     var formatNumber = d3.format(',.0f');    // zero decimal places
     var format = function(d) {
         return formatNumber(d) + ' ' + units;
@@ -45,6 +46,53 @@ nv.models.sankeyChart = function() {
 
     function chart(selection) {
         selection.each(function(data) {
+
+            //============================================================
+            // Error handling
+
+            var testData = {
+                "nodes":
+                    [
+                        {'node': 1, 'name': 'Test 1'},
+                        {'node': 2, 'name': 'Test 2'},
+                        {'node': 3, 'name': 'Test 3'},
+                        {'node': 4, 'name': 'Test 4'},
+                        {'node': 5, 'name': 'Test 5'},
+                        {'node': 6, 'name': 'Test 6'}
+                    ],
+                "links":
+                    [
+                        {'source': 0, 'target': 1, 'value': 2295},
+                        {'source': 0, 'target': 5, 'value': 1199},
+                        {'source': 1, 'target': 2, 'value': 1119},
+                        {'source': 1, 'target': 5, 'value': 1176},
+                        {'source': 2, 'target': 3, 'value': 487},
+                        {'source': 2, 'target': 5, 'value': 632},
+                        {'source': 3, 'target': 4, 'value': 301},
+                        {'source': 3, 'target': 5, 'value': 186}
+                    ]
+            };
+
+            var isDataValid = false;
+            if(
+                !!data['nodes'] &&
+                !!data['links'] &&
+                (typeof data['nodes'] && data['nodes'].length) >= 0 &&
+                (typeof data['links'] && data['links'].length) >= 0
+            ){
+                isDataValid = true;
+            }
+
+            if(!isDataValid) {
+                console.error('NVD3 Sankey chart error:', 'invalid data format for', data);
+                console.info('Valid data format is: ', testData, JSON.stringify(testData));
+                return false;
+            }
+
+            //============================================================
+            // No errors, continue
+
+
             // TODO apply chart for each "selection" element
 
             // var availableWidth = width - margin.left - margin.right;
@@ -67,8 +115,7 @@ nv.models.sankeyChart = function() {
 
             var path = sankey.link();
 
-            // TODO data from outside
-            // TODO error handling if data is invalid
+
 
             sankey
                 .nodes(data.nodes)
@@ -147,11 +194,13 @@ nv.models.sankeyChart = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        units:           {get: function(){return units;},     set: function(_){units=_;}},
-        width:           {get: function(){return width;},     set: function(_){width=_;}},
-        height:          {get: function(){return height;},    set: function(_){height=_;}},
-        format:          {get: function(){return format;},    set: function(_){format=_;}},
-        linkTitle:       {get: function(){return linkTitle;}, set: function(_){linkTitle=_;}},
+        units:           {get: function(){return units;},       set: function(_){units=_;}},
+        width:           {get: function(){return width;},       set: function(_){width=_;}},
+        height:          {get: function(){return height;},      set: function(_){height=_;}},
+        format:          {get: function(){return format;},      set: function(_){format=_;}},
+        linkTitle:       {get: function(){return linkTitle;},   set: function(_){linkTitle=_;}},
+        nodeWidth:       {get: function(){return nodeWidth;},   set: function(_){nodeWidth=_;}},
+        nodePadding:     {get: function(){return nodePadding;}, set: function(_){nodePadding=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
