@@ -7,9 +7,10 @@ nv.models.sankeyChart = function() {
     //------------------------------------------------------------
 
     var margin = {top: 5, right: 0, bottom: 5, left: 0}
-        , sankey = nv.models.sankey() // TODO sankey.js => sankey
+        , sankey = nv.models.sankey()
         , width = 600
         , height = 400
+        // TODO add fn for setting these:
         , nodeWidth = 36
         , nodePadding =  40
         , units =  'units'
@@ -33,43 +34,19 @@ nv.models.sankeyChart = function() {
                 .attr('height', height)
                 .append('g');
 
-            
-
-// TODO margin
-
             // Set the sankey diagram properties
             sankey
                 .nodeWidth(nodeWidth)
                 .nodePadding(nodePadding)
                 .size([width, height]);
 
-            
+
 
             var path = sankey.link();
-            
-
-            // load the data
-            // var data = {
-            //     "nodes":[
-            //         {"node":0,"name":"node0"},
-            //         {"node":1,"name":"node1"},
-            //         {"node":2,"name":"node2"},
-            //         {"node":3,"name":"node3"},
-            //         {"node":4,"name":"node4"}
-            //     ],
-            //     "links":[
-            //         {"source":0,"target":2,"value":2},
-            //         {"source":1,"target":2,"value":2},
-            //         {"source":1,"target":3,"value":2},
-            //         {"source":0,"target":4,"value":2},
-            //         {"source":2,"target":3,"value":2},
-            //         {"source":2,"target":4,"value":2},
-            //         {"source":3,"target":4,"value":4}
-            //     ]};
 
             var data = {"links":[{"source":0,"target":1,"value":2295},{"source":0,"target":5,"value":1199},{"source":1,"target":2,"value":1119},{"source":1,"target":5,"value":1176},{"source":2,"target":3,"value":487},{"source":2,"target":5,"value":632},{"source":3,"target":4,"value":301},{"source":3,"target":5,"value":186}],"nodes":[{"node":1,"name":"Landed on main page","source":null,"target":null},{"node":2,"name":"Homepage search","source":null,"target":null},{"node":3,"name":"Restaurant-meal checked","source":null,"target":null},{"node":4,"name":"Items added to basket","source":null,"target":null},{"node":5,"name":"Orders made","source":null,"target":null},{"node":6,"name":"Left","source":null,"target":null}]};
 
-            
+
             sankey
                 .nodes(data.nodes)
                 .links(data.links)
@@ -87,6 +64,7 @@ nv.models.sankeyChart = function() {
             // add the link titles
             link.append('title')
                 .text(function(d) {
+                    // TODO move "→" as an option
                 return d.source.name + ' → ' +
                     d.target.name + '\n' + format(d.value); });
 
@@ -108,11 +86,14 @@ nv.models.sankeyChart = function() {
                 .attr('height', function(d) { return d.dy; })
             .attr('width', sankey.nodeWidth())
                 .style('fill', function(d) {
+                    // TODO color as an optional fn
                 return d.color = color(d.name.replace(/ .*/, '')); })
             .style('stroke', function(d) {
+                // TODO stroke color as an optional fn
                 return d3.rgb(d.color).darker(2); })
             .append('title')
                 .text(function(d) {
+                    // TODO title as an optional fn
                 return d.name + '\n' + format(d.value); });
 
             // add in the title for the nodes
