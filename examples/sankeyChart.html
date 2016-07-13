@@ -12,6 +12,7 @@
     <script src="../src/utils.js"></script>
     <script src="../src/models/sankey.js"></script>
     <script src="../src/models/sankeyChart.js"></script>
+    <!--TODO change back to prod js files-->
 
 
     <style>
@@ -59,15 +60,38 @@
 <script>
     var width = 800,
     height = 600;
+    var data = {
+        "nodes":
+            [
+                {'node': 1, 'name': 'Landed on main page'},
+                {'node': 2, 'name': 'Homepage search'},
+                {'node': 3, 'name': 'Restaurant-meal checked'},
+                {'node': 4, 'name': 'Items added to basket'},
+                {'node': 5, 'name': 'Orders made'},
+                {'node': 6, 'name': 'Left'}
+            ],
+        "links":
+            [
+                {'source': 0, 'target': 1, 'value': 2295},
+                {'source': 0, 'target': 5, 'value': 1199},
+                {'source': 1, 'target': 2, 'value': 1119},
+                {'source': 1, 'target': 5, 'value': 1176},
+                {'source': 2, 'target': 3, 'value': 487},
+                {'source': 2, 'target': 5, 'value': 632},
+                {'source': 3, 'target': 4, 'value': 301},
+                {'source': 3, 'target': 5, 'value': 186}
+            ]
+    };
 
     nv.addGraph(function() {
         var chart = nv.models.sankeyChart()
             .width(width)
             .height(height);
 
-        d3.select("#sankey-chart")
+        d3.select('#sankey-chart')
             .attr('width', width)
             .attr('height', height)
+            .datum(data)
             .call(chart);
 
         return chart;
