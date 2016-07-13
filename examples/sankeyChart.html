@@ -29,6 +29,10 @@
             width: 100%;
         }
 
+        .nvd3 {
+            margin-bottom: 50px;
+        }
+
         /* TODO move to script as nvd3 properties? */
         .node rect {
             cursor: move;
@@ -55,7 +59,8 @@
 </head>
 <body>
 <h3>Sankey Chart</h3>
-<div id="sankey-chart" class="nvd3"></div>
+<div id="sankey-chart-simple" class="nvd3"></div>
+<div id="sankey-chart-advanced" class="nvd3"></div>
 
 <script>
     var width = 800,
@@ -86,9 +91,47 @@
     nv.addGraph(function() {
         var chart = nv.models.sankeyChart()
             .width(width)
-            .height(height);
+            .height(height)
+            .units('elephants');
 
-        d3.select('#sankey-chart')
+        d3.select('#sankey-chart-simple')
+            .attr('width', width)
+            .attr('height', height)
+            .datum(data)
+            .call(chart);
+
+        return chart;
+    });
+
+    nv.addGraph(function() {
+        var units = 'ducks';
+        var chart = nv.models.sankeyChart()
+            .width(width)
+            .height(height)
+            .format(function(d) {
+                return formatNumber(d) + ' ' + units;
+            })
+            .linkTitle(function(d){
+                return d.source.name + ' ----> ' + d.target.name + '\n' + d.value + ' ' + units;
+            })
+            .nodeStyle({
+                title: function(d){
+                    return d.name + ': ' + d.value + ' ' + units;
+                },
+                fillColor: function(d){
+                    return d3.rgb(d.color).brighter(2);
+                },
+                strokeColor: function(d){
+                    return d3.rgb(d.color).darker(2);
+                }
+            })
+            .nodeWidth(100)
+            .nodePadding(200)
+            .units('ducks');
+
+
+
+        d3.select('#sankey-chart-advanced')
             .attr('width', width)
             .attr('height', height)
             .datum(data)

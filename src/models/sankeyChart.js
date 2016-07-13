@@ -22,7 +22,6 @@ nv.models.sankeyChart = function() {
     // Private Variables
     //------------------------------------------------------------
 
-    // TODO add to example (html)
     var formatNumber = d3.format(',.0f');    // zero decimal places
     var format = function(d) {
         return formatNumber(d) + ' ' + units;
@@ -39,6 +38,15 @@ nv.models.sankeyChart = function() {
     };
     var nodeTitle = function(d){
         return d.name + '\n' + format(d.value);
+    };
+
+    var showError = function(element, message) {
+        element.append('text')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('class', 'nvd3-sankey-chart-error')
+            .attr('text-anchor', 'middle')
+            .text(message);
     };
 
 
@@ -74,33 +82,42 @@ nv.models.sankeyChart = function() {
             };
 
             var isDataValid = false;
+            var dataAvailable = false;
+
+            // check if data is valid
             if(
-                !!data['nodes'] &&
-                !!data['links'] &&
-                (typeof data['nodes'] && data['nodes'].length) >= 0 &&
-                (typeof data['links'] && data['links'].length) >= 0
+                (typeof data['nodes'] === 'object' && data['nodes'].length) >= 0 &&
+                (typeof data['links'] === 'object' && data['links'].length) >= 0
             ){
                 isDataValid = true;
             }
 
+            // check if data is available
+            if(
+                data['nodes'] && data['nodes'].length > 0 &&
+                data['links'] && data['links'].length > 0
+            ) {
+                dataAvailable = true;
+            }
+
+            // show error
             if(!isDataValid) {
                 console.error('NVD3 Sankey chart error:', 'invalid data format for', data);
                 console.info('Valid data format is: ', testData, JSON.stringify(testData));
+                showError(selection, 'Error loading chart, data is invalid');
+                return false;
+            }
+
+            if(!dataAvailable) {
+                showError(selection, 'No data available');
                 return false;
             }
 
             //============================================================
             // No errors, continue
 
-
-            // TODO apply chart for each "selection" element
-
-            // var availableWidth = width - margin.left - margin.right;
-            // var container = d3.select(this);
-            // nv.utils.initSVG(container);
-
             // append the svg canvas to the page
-            var svg = d3.select('#sankey-chart').append('svg')
+            var svg = selection.append('svg')
                 .attr('width', width)
                 .attr('height', height)
                 .append('g');
@@ -111,16 +128,12 @@ nv.models.sankeyChart = function() {
                 .nodePadding(nodePadding)
                 .size([width, height]);
 
-
-
             var path = sankey.link();
-
-
 
             sankey
                 .nodes(data.nodes)
                 .links(data.links)
-                .layout(2);
+                .layout(32);
 
             // add in the links
             var link = svg.append('g').selectAll('.link')
