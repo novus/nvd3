@@ -327,9 +327,7 @@ nv.models.sankey = function() {
 
     // Y-position of the middle of a node.
     function center(node) {
-        // TODO expose as a function?
-        // return node.y + node.dy / 2;
-        return node.dy;
+        return node.y + node.dy / 2;
     }
 
     // Value property accessor.

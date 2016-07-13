@@ -8,7 +8,6 @@ nv.models.sankeyChart = function() {
 
     var margin = {top: 5, right: 0, bottom: 5, left: 0}
         , sankey = nv.models.sankey()
-        // TODO add to example (html)
         , width = 600
         , height = 400
         , nodeWidth = 36
