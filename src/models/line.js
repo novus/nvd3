@@ -49,7 +49,6 @@ nv.models.line = function() {
         renderWatch.reset();
         renderWatch.models(scatter);
         selection.each(function(data) {
-            console.log('line chart selection', selection);
             container = d3.select(this);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
