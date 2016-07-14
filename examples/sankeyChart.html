@@ -4,16 +4,7 @@
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
-
-    <script src="../src/core.js"></script>
-    <script src="../src/dom.js"></script>
-    <script src="../src/interactiveLayer.js"></script>
-    <script src="../src/tooltip.js"></script>
-    <script src="../src/utils.js"></script>
-    <script src="../src/models/sankey.js"></script>
-    <script src="../src/models/sankeyChart.js"></script>
-    <!--TODO change back to prod js files-->
-
+    <script src="../build/nv.d3.js"></script>
 
     <style>
         text {
@@ -33,7 +24,14 @@
             margin-bottom: 50px;
         }
 
-        /* TODO move to script as nvd3 properties? */
+        pre {
+            padding: 20px;
+            background-color: #ddd;
+            display: inline-block;
+        }
+
+        /* --- Sankey chart styles --- */
+
         .node rect {
             cursor: move;
             fill-opacity: .9;
@@ -59,6 +57,31 @@
 </head>
 <body>
 <h3>Sankey Chart</h3>
+
+<h6>Basic CSS for Sankey chart:</h6>
+<pre>
+.node rect {
+    cursor: move;
+    fill-opacity: .9;
+    shape-rendering: crispEdges;
+}
+
+.node text {
+    pointer-events: none;
+    text-shadow: 0 1px 0 #fff;
+}
+
+.link {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: .2;
+}
+
+.link:hover {
+    stroke-opacity: .5;
+}
+</pre>
+
 <div id="sankey-chart-simple" class="nvd3"></div>
 <div id="sankey-chart-advanced" class="nvd3"></div>
 
@@ -137,8 +160,6 @@
 
         return chart;
     });
-
-
 </script>
 </body>
 </html>

@@ -1,7 +1,10 @@
 nv.models.sankeyChart = function() {
     "use strict";
 
-
+    // Sources:
+    // - https://bost.ocks.org/mike/sankey/
+    // - https://github.com/soxofaan/d3-plugin-captain-sankey
+    
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
