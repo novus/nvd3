@@ -4,7 +4,7 @@ nv.models.sankeyChart = function() {
     // Sources:
     // - https://bost.ocks.org/mike/sankey/
     // - https://github.com/soxofaan/d3-plugin-captain-sankey
-    
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -61,7 +61,7 @@ nv.models.sankeyChart = function() {
             // Error handling
 
             var testData = {
-                "nodes":
+                nodes:
                     [
                         {'node': 1, 'name': 'Test 1'},
                         {'node': 2, 'name': 'Test 2'},
@@ -70,7 +70,7 @@ nv.models.sankeyChart = function() {
                         {'node': 5, 'name': 'Test 5'},
                         {'node': 6, 'name': 'Test 6'}
                     ],
-                "links":
+                links:
                     [
                         {'source': 0, 'target': 1, 'value': 2295},
                         {'source': 0, 'target': 5, 'value': 1199},
@@ -122,7 +122,8 @@ nv.models.sankeyChart = function() {
             var svg = selection.append('svg')
                 .attr('width', width)
                 .attr('height', height)
-                .append('g');
+                .append('g')
+                .attr('class', 'nvd3 nv-wrap nv-sankeyChart');
 
             // Set the sankey diagram properties
             sankey
