@@ -17,8 +17,6 @@ nv.models.sankeyChart = function() {
         , nodePadding =  40
         , units =  'units'
         ;
-    //============================================================
-
 
     //============================================================
     // Private Variables
@@ -51,14 +49,8 @@ nv.models.sankeyChart = function() {
             .text(message);
     };
 
-
-    //============================================================
-
     function chart(selection) {
         selection.each(function(data) {
-
-            //============================================================
-            // Error handling
 
             var testData = {
                 nodes:
@@ -83,6 +75,7 @@ nv.models.sankeyChart = function() {
                     ]
             };
 
+            // Error handling
             var isDataValid = false;
             var dataAvailable = false;
 
@@ -115,7 +108,6 @@ nv.models.sankeyChart = function() {
                 return false;
             }
 
-            //============================================================
             // No errors, continue
 
             // append the svg canvas to the page
