@@ -17,60 +17,19 @@ nv.models.sankey = function() {
         links = [],
         sinksRight = true;
 
-    sankey.nodeWidth = function(_) {
-        if (!arguments.length) return nodeWidth;
-        nodeWidth = +_;
-        return sankey;
-    };
-
-    sankey.nodePadding = function(_) {
-        if (!arguments.length) return nodePadding;
-        nodePadding = +_;
-        return sankey;
-    };
-
-    sankey.nodes = function(_) {
-        if (!arguments.length) return nodes;
-        nodes = _;
-
-        return sankey;
-    };
-
-    sankey.links = function(_) {
-        if (!arguments.length) return links;
-        links = _;
-        return sankey;
-    };
-
-    sankey.size = function(_) {
-        if (!arguments.length) return size;
-        size = _;
-        return sankey;
-    };
-
-    sankey.sinksRight = function (_) {
-        if (!arguments.length) return sinksRight;
-        sinksRight = _;
-        return sankey;
-    };
-
-    sankey.layout = function(iterations) {
-
+    var layout = function(iterations) {
         computeNodeLinks();
         computeNodeValues();
         computeNodeBreadths();
         computeNodeDepths(iterations);
-
-        return sankey;
     };
 
-    sankey.relayout = function() {
+    var relayout = function() {
         computeLinkDepths();
-        return sankey;
     };
 
     // SVG path data generator, to be used as 'd' attribute on 'path' element selection.
-    sankey.link = function() {
+    var link = function() {
         var curvature = .5;
 
         function link(d) {
@@ -105,7 +64,6 @@ nv.models.sankey = function() {
     // Populate the sourceLinks and targetLinks for each node.
     // Also, if the source and target are not objects, assume they are indices.
     function computeNodeLinks() {
-        //
         nodes.forEach(function(node) {
             // Links that have this node as source.
             node.sourceLinks = [];
@@ -338,6 +296,27 @@ nv.models.sankey = function() {
     function value(x) {
         return x.value;
     }
+
+    sankey.options = nv.utils.optionsFunc.bind(sankey);
+    sankey._options = Object.create({}, {
+        nodeWidth:    {get: function(){return nodeWidth;},   set: function(_){nodeWidth=+_;}},
+        nodePadding:  {get: function(){return nodePadding;}, set: function(_){nodePadding=_;}},
+        nodes:        {get: function(){return nodes;},       set: function(_){nodes=_;}},
+        links:        {get: function(){return links ;},      set: function(_){links=_;}},
+        size:         {get: function(){return size;},        set: function(_){size=_;}},
+        sinksRight:   {get: function(){return sinksRight;},  set: function(_){sinksRight=_;}},
+
+        layout:       {get: function(){layout(32);},         set: function(_){layout(_);}},
+        relayout:     {get: function(){relayout();},         set: function(_){}},
+        link:         {get: function(){return link();},      set: function(_){
+            if(typeof _ === 'function'){
+                link=_;
+            }
+            return link();
+        }}
+    });
+
+    nv.utils.initOptions(sankey);
 
     return sankey;
 };
