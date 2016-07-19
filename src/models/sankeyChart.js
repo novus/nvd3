@@ -103,6 +103,7 @@ nv.models.sankeyChart = function() {
                 return false;
             }
 
+            // TODO use nv.utils.noData
             if(!dataAvailable) {
                 showError(selection, 'No data available');
                 return false;
