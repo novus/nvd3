@@ -15,7 +15,8 @@ nv.models.sankeyChart = function() {
         , height = 400
         , nodeWidth = 36
         , nodePadding =  40
-        , units =  'units'
+        , units = 'units'
+        , center = undefined
         ;
 
     //============================================================
@@ -222,7 +223,8 @@ nv.models.sankeyChart = function() {
             nodeFillColor   = _.fillColor   !== undefined ? _.fillColor   : nodeFillColor;
             nodeStrokeColor = _.strokeColor !== undefined ? _.strokeColor : nodeStrokeColor;
             nodeTitle       = _.title       !== undefined ? _.title       : nodeTitle;
-        }}
+        }},
+        center: {get: function(){sankey.center();}, set: function(_){sankey.center(_)}}
 
     });
 

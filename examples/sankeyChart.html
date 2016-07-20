@@ -150,7 +150,10 @@
             })
             .nodeWidth(100)
             .nodePadding(200)
-            .units('ducks');
+            .units('ducks')
+            .center(function(node){
+                return node.dy
+            });
 
         d3.select('#sankey-chart-advanced')
             .attr('width', width)
