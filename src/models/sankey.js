@@ -57,6 +57,11 @@ nv.models.sankey = function() {
         return link;
     };
 
+    // Y-position of the middle of a node.
+    var center = function(node) {
+        return node.y + node.dy / 2;
+    };
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
@@ -287,11 +292,6 @@ nv.models.sankey = function() {
         }
     }
 
-    // Y-position of the middle of a node.
-    function center(node) {
-        return node.y + node.dy / 2;
-    }
-
     // Value property accessor.
     function value(x) {
         return x.value;
@@ -308,6 +308,7 @@ nv.models.sankey = function() {
 
         layout:       {get: function(){layout(32);},         set: function(_){layout(_);}},
         relayout:     {get: function(){relayout();},         set: function(_){}},
+        center:       {get: function(){center();},           set: function(_){center=_}},
         link:         {get: function(){return link();},      set: function(_){
             if(typeof _ === 'function'){
                 link=_;
