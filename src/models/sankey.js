@@ -308,7 +308,11 @@ nv.models.sankey = function() {
 
         layout:       {get: function(){layout(32);},         set: function(_){layout(_);}},
         relayout:     {get: function(){relayout();},         set: function(_){}},
-        center:       {get: function(){center();},           set: function(_){center=_}},
+        center:       {get: function(){return center();},    set: function(_){
+            if(typeof _ === 'function'){
+                center=_;
+            }
+        }},
         link:         {get: function(){return link();},      set: function(_){
             if(typeof _ === 'function'){
                 link=_;

@@ -130,7 +130,8 @@ nv.models.sankeyChart = function() {
             sankey
                 .nodes(data.nodes)
                 .links(data.links)
-                .layout(32);
+                .layout(32)
+                .center(center);
 
             // add in the links
             var link = svg.append('g').selectAll('.link')
@@ -224,7 +225,7 @@ nv.models.sankeyChart = function() {
             nodeStrokeColor = _.strokeColor !== undefined ? _.strokeColor : nodeStrokeColor;
             nodeTitle       = _.title       !== undefined ? _.title       : nodeTitle;
         }},
-        center: {get: function(){sankey.center();}, set: function(_){sankey.center(_)}}
+        center: {get: function(){}, set: function(_){center=_}}
 
     });
 
