@@ -212,6 +212,7 @@ nv.models.sankeyChart = function() {
         linkTitle:       {get: function(){return linkTitle;},   set: function(_){linkTitle=_;}},
         nodeWidth:       {get: function(){return nodeWidth;},   set: function(_){nodeWidth=_;}},
         nodePadding:     {get: function(){return nodePadding;}, set: function(_){nodePadding=_;}},
+        center:          {get: function(){return center},       set: function(_){center=_}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -224,8 +225,7 @@ nv.models.sankeyChart = function() {
             nodeFillColor   = _.fillColor   !== undefined ? _.fillColor   : nodeFillColor;
             nodeStrokeColor = _.strokeColor !== undefined ? _.strokeColor : nodeStrokeColor;
             nodeTitle       = _.title       !== undefined ? _.title       : nodeTitle;
-        }},
-        center: {get: function(){}, set: function(_){center=_}}
+        }}
 
     });
 
