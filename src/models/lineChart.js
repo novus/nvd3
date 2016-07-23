@@ -278,6 +278,7 @@ nv.models.lineChart = function() {
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 lines.clearHighlights();
                 var singlePoint, pointIndex, pointXLocation, allData = [];
+                var maxSeriesSize = -1;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -296,7 +297,14 @@ nv.models.lineChart = function() {
                             lines.highlightPoint(series.seriesIndex, pointIndex, true);
                         }
                         if (point === undefined) return;
-                        if (singlePoint === undefined) singlePoint = point;
+
+                        // X value from biggest series should be used for tooltip header
+                        if (currentValues.length > maxSeriesSize || singlePoint === undefined) {
+                            maxSeriesSize = currentValues.length;
+                            singlePoint = point;
+                        }
+                        //if (singlePoint === undefined) singlePoint = point;
+
                         if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
                         allData.push({
                             key: series.key,
