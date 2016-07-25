@@ -293,7 +293,7 @@ nv.models.lineChart = function() {
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
                         if (pointYValue !== null) {
-                            lines.highlightPoint(series.seriesIndex, pointIndex, true);
+                            lines.highlightPoint(i, pointIndex, true);
                         }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
