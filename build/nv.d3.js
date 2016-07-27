@@ -12036,8 +12036,8 @@ nv.models.scatter = function() {
                                     var pX = getX(point,pointIndex);
                                     var pY = getY(point,pointIndex);
 
-                                    return [nv.utils.NaNtoZero(x(pX))+ Math.random() * 1e-4,
-                                            nv.utils.NaNtoZero(y(pY))+ Math.random() * 1e-4,
+                                    return [nv.utils.NaNtoZero(x(pX))+ Math.random() * 1e-3,
+                                            nv.utils.NaNtoZero(y(pY))+ Math.random() * 1e-3,
                                         groupIndex,
                                         pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
                                 })
