@@ -283,7 +283,7 @@ nv.models.focus = function(content) {
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( rightAlignYAxis ? 'right' : 'left');
-        }},
+        }}
     });
 
     nv.utils.inheritOptions(chart, content);
