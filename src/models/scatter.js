@@ -50,6 +50,8 @@ nv.models.scatter = function() {
     //------------------------------------------------------------
 
     var x0, y0, z0 // used to store previous scales
+        , width0
+        , height0
         , timeoutID
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
@@ -160,6 +162,11 @@ nv.models.scatter = function() {
             z0 = z0 || z;
 
             var scaleDiff = x(1) !== x0(1) || y(1) !== y0(1) || z(1) !== z0(1);
+
+            width0 = width0 || width;
+            height0 = height0 || height;
+
+            var sizeDiff = width0 !== width || height0 !== height;
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
@@ -447,13 +454,13 @@ nv.models.scatter = function() {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            points.filter(function (d) { return scaleDiff || getDiffs(d, 'x', 'y'); })
+            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'x', 'y'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 });
-            points.filter(function (d) { return scaleDiff || getDiffs(d, 'shape', 'size'); })
+            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'shape', 'size'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('d',
                     nv.utils.symbol()
@@ -523,6 +530,9 @@ nv.models.scatter = function() {
             x0 = x.copy();
             y0 = y.copy();
             z0 = z.copy();
+
+            width0 = width;
+            height0 = height;
 
         });
         renderWatch.renderEnd('scatter immediate');
