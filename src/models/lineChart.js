@@ -11,14 +11,10 @@ nv.models.lineChart = function() {
         , legend = nv.models.legend()
         , interactiveLayer = nv.interactiveGuideline()
         , tooltip = nv.models.tooltip()
-        , lines2 = nv.models.line()
-        , x2Axis = nv.models.axis()
-        , y2Axis = nv.models.axis()
-        , brush = d3.svg.brush()
+        , focus = nv.models.focus(nv.models.line())
         ;
 
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
-        , margin2 = {top: 0, right: 20, bottom: 20, left: 60}
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -30,17 +26,11 @@ nv.models.lineChart = function() {
         , useInteractiveGuideline = false
         , x
         , y
-        , x2
-        , y2
         , focusEnable = false
-        , focusShowAxisY = false
-        , focusShowAxisX = true
-        , focusHeight = 50
-        , brushExtent = null
         , state = nv.utils.state()
         , defaultState = null
         , noData = null
-        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState', 'renderEnd')
+        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , duration = 250
         ;
 
@@ -49,12 +39,6 @@ nv.models.lineChart = function() {
     yAxis.orient(rightAlignYAxis ? 'right' : 'left');
 
     lines.clipEdge(true).duration(0);
-    lines2.interactive(false);
-    // We don't want any points emitted for the focus chart's scatter graph.
-    lines2.pointActive(function(d) { return false; });
-
-    x2Axis.orient('bottom').tickPadding(5);
-    y2Axis.orient(rightAlignYAxis ? 'right' : 'left');
 
     tooltip.valueFormatter(function(d, i) {
         return yAxis.tickFormat()(d, i);
@@ -95,19 +79,14 @@ nv.models.lineChart = function() {
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(lines);
-        renderWatch.models(lines2);
         if (showXAxis) renderWatch.models(xAxis);
         if (showYAxis) renderWatch.models(yAxis);
 
-        if (focusShowAxisX) renderWatch.models(x2Axis);
-        if (focusShowAxisY) renderWatch.models(y2Axis);
         selection.each(function(data) {
             var container = d3.select(this);
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0),
-                availableHeight2 = focusHeight - margin2.top - margin2.bottom;
-
+                availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
             chart.update = function() { 
                 if( duration === 0 ) {
                     container.call( chart );
@@ -144,12 +123,9 @@ nv.models.lineChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-
             // Setup Scales
             x = lines.xScale();
             y = lines.yScale();
-            x2 = lines2.xScale();
-            y2 = lines2.yScale();
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-lineChart').data([data]);
@@ -165,13 +141,7 @@ nv.models.lineChart = function() {
             focusEnter.append('g').attr('class', 'nv-linesWrap');
             focusEnter.append('g').attr('class', 'nv-interactive');
 
-            var contextEnter = gEnter.append('g').attr('class', 'nv-context');
-            contextEnter.append('g').attr('class', 'nv-background').append('rect');
-            contextEnter.append('g').attr('class', 'nv-x nv-axis');
-            contextEnter.append('g').attr('class', 'nv-y nv-axis');
-            contextEnter.append('g').attr('class', 'nv-linesWrap');
-            contextEnter.append('g').attr('class', 'nv-brushBackground');
-            contextEnter.append('g').attr('class', 'nv-x nv-brush');
+            var contextEnter = gEnter.append('g').attr('class', 'nv-focusWrap');
 
             // Legend
             if (!showLegend) {
@@ -185,11 +155,11 @@ nv.models.lineChart = function() {
 
                 if (legendPosition === 'bottom') {
                     wrap.select('.nv-legendWrap')
-                        .attr('transform', 'translate(0,' + (availableHeight1 + legend.height()) +')');
+                        .attr('transform', 'translate(0,' + availableHeight +')');
                 } else if (legendPosition === 'top') {
                     if ( margin.top != legend.height()) {
                         margin.top = legend.height();
-                        availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
+                        availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
 
                     wrap.select('.nv-legendWrap')
@@ -208,7 +178,7 @@ nv.models.lineChart = function() {
             if (useInteractiveGuideline) {
                 interactiveLayer
                     .width(availableWidth)
-                    .height(availableHeight1)
+                    .height(availableHeight)
                     .margin({left:margin.left, top:margin.top})
                     .svgContainer(container)
                     .xScale(x);
@@ -217,14 +187,13 @@ nv.models.lineChart = function() {
 
             g.select('.nv-focus .nv-background rect')
                 .attr('width', availableWidth)
-                .attr('height', availableHeight1);
+                .attr('height', availableHeight);
                 
             lines
                 .width(availableWidth)
-                .height(availableHeight1)
+                .height(availableHeight)
                 .color(data.map(function(d,i) {
                     return d.color || color(d, i);
-
                 }).filter(function(d,i) { return !data[i].disabled; }));
 
             var linesWrap = g.select('.nv-linesWrap')
@@ -236,14 +205,13 @@ nv.models.lineChart = function() {
                 xAxis
                     .scale(x)
                     ._ticks(nv.utils.calcTicksX(availableWidth/100, data) )
-                    .tickSize(-availableHeight1, 0);
-
+                    .tickSize(-availableHeight, 0);
             }
 
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
             }
 
@@ -271,102 +239,26 @@ nv.models.lineChart = function() {
             }
             
             g.select('.nv-focus .nv-x.nv-axis')
-                .attr('transform', 'translate(0,' + availableHeight1 + ')');
+                .attr('transform', 'translate(0,' + availableHeight + ')');
 
-            if( !focusEnable )
-            {
+            //============================================================
+            // Update Focus
+            //============================================================
+            if(!focusEnable) {
                 linesWrap.call(lines);
                 updateXAxis();
                 updateYAxis();
-            }
-            else
-            {
-                lines2
-                    .defined(lines.defined())
-                    .width(availableWidth)
-                    .height(availableHeight2)
-                    .color(data.map(function(d,i) {
-                        return d.color || color(d, i);
-                    }).filter(function(d,i) { return !data[i].disabled; }));
-    
-                g.select('.nv-context')
-                    .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
-                    .style('display', focusEnable ? 'initial' : 'none')
-                ;
-    
-                var contextLinesWrap = g.select('.nv-context .nv-linesWrap')
+            } else {
+                focus.width(availableWidth);
+                g.select('.nv-focusWrap')
+                    .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + focus.margin().top) + ')')
                     .datum(data.filter(function(d) { return !d.disabled; }))
-                    ;
-                    
-                d3.transition(contextLinesWrap).call(lines2);
-                
-            
-                // Setup Brush
-                brush
-                    .x(x2)
-                    .on('brush', function() {
-                        onBrush();
-                    });
-    
-                if (brushExtent) brush.extent(brushExtent);
-    
-                var brushBG = g.select('.nv-brushBackground').selectAll('g')
-                    .data([brushExtent || brush.extent()]);
-        
-                var brushBGenter = brushBG.enter()
-                    .append('g');
-    
-                brushBGenter.append('rect')
-                    .attr('class', 'left')
-                    .attr('x', 0)
-                    .attr('y', 0)
-                    .attr('height', availableHeight2);
-    
-                brushBGenter.append('rect')
-                    .attr('class', 'right')
-                    .attr('x', 0)
-                    .attr('y', 0)
-                    .attr('height', availableHeight2);
-    
-                var gBrush = g.select('.nv-x.nv-brush')
-                    .call(brush);
-                gBrush.selectAll('rect')
-                    .attr('height', availableHeight2);
-                gBrush.selectAll('.resize').append('path').attr('d', resizePath);
-    
-                onBrush();
-    
-                g.select('.nv-context .nv-background rect')
-                    .attr('width', availableWidth)
-                    .attr('height', availableHeight2);
-    
-                // Setup Secondary (Context) Axes
-                if (focusShowAxisX) {
-                  x2Axis
-                      .scale(x2)
-                      ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
-                      .tickSize(-availableHeight2, 0);
-      
-                  g.select('.nv-context .nv-x.nv-axis')
-                      .attr('transform', 'translate(0,' + y2.range()[0] + ')');
-                  d3.transition(g.select('.nv-context .nv-x.nv-axis'))
-                      .call(x2Axis);
+                    .call(focus);
+                var extent = focus.brush.empty() ? focus.xDomain() : focus.brush.extent();
+                if(extent !== null){
+                    onBrush(extent);
                 }
-    
-                if (focusShowAxisY) {
-                  y2Axis
-                      .scale(y2)
-                      ._ticks( nv.utils.calcTicksY(availableHeight2/36, data) )
-                      .tickSize( -availableWidth, 0);
-      
-                  d3.transition(g.select('.nv-context .nv-y.nv-axis'))
-                      .call(y2Axis);
-                }
-                
-                g.select('.nv-context .nv-x.nv-axis')
-                    .attr('transform', 'translate(0,' + y2.range()[0] + ')');
             }
-
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
@@ -387,7 +279,7 @@ nv.models.lineChart = function() {
                         return !series.disabled && !series.disableTooltip;
                     })
                     .forEach(function(series,i) {
-                        var extent = focusEnable ? (brush.empty() ? x2.domain() : brush.extent()) : x.domain();
+                        var extent = focusEnable ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
                         var currentValues = series.values.filter(function(d,i) {
                             return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                         });
@@ -463,6 +355,11 @@ nv.models.lineChart = function() {
                 lines.clearHighlights();
             });
 
+            /* Update `main' graph on brush update. */
+            focus.dispatch.on("onBrush", function(extent) {
+                onBrush(extent);
+            });
+
             dispatch.on('changeState', function(e) {
                 if (typeof e.disabled !== 'undefined' && data.length === e.disabled.length) {
                     data.forEach(function(series,i) {
@@ -471,7 +368,6 @@ nv.models.lineChart = function() {
 
                     state.disabled = e.disabled;
                 }
-
                 chart.update();
             });
 
@@ -483,7 +379,7 @@ nv.models.lineChart = function() {
             function resizePath(d) {
                 var e = +(d == 'e'),
                     x = e ? 1 : -1,
-                    y = availableHeight2 / 3;
+                    y = availableHeight / 3;
                 return 'M' + (0.5 * x) + ',' + y
                     + 'A6,6 0 0 ' + e + ' ' + (6.5 * x) + ',' + (y + 6)
                     + 'V' + (2 * y - 6)
@@ -494,44 +390,12 @@ nv.models.lineChart = function() {
                     + 'M' + (4.5 * x) + ',' + (y + 8)
                     + 'V' + (2 * y - 8);
             }
-    
-    
-            function updateBrushBG() {
-                if (!brush.empty()) brush.extent(brushExtent);
-                brushBG
-                    .data([brush.empty() ? x2.domain() : brushExtent])
-                    .each(function(d,i) {
-                        var leftWidth = x2(d[0]) - x.range()[0],
-                            rightWidth = availableWidth - x2(d[1]);
-                        d3.select(this).select('.left')
-                            .attr('width',  leftWidth < 0 ? 0 : leftWidth);
-    
-                        d3.select(this).select('.right')
-                            .attr('x', x2(d[1]))
-                            .attr('width', rightWidth < 0 ? 0 : rightWidth);
-                    });
-            }
-    
-    
-            function onBrush() {
-                brushExtent = brush.empty() ? null : brush.extent();
-                var extent = brush.empty() ? x2.domain() : brush.extent();
-    
-                //The brush extent cannot be less than one.  If it is, don't update the line chart.
-                if (Math.abs(extent[0] - extent[1]) <= 1) {
-                    return;
-                }
-    
-                dispatch.brush({extent: extent, brush: brush});
-    
-    
-                updateBrushBG();
-    
+            
+            function onBrush(extent) {
                 // Update Main (Focus)
                 var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
                     .datum(
-                    data
-                        .filter(function(d) { return !d.disabled; })
+                    data.filter(function(d) { return !d.disabled; })
                         .map(function(d,i) {
                             return {
                                 key: d.key,
@@ -546,13 +410,10 @@ nv.models.lineChart = function() {
                 );
                 focusLinesWrap.transition().duration(duration).call(lines);
     
-    
                 // Update Main (Focus) Axes
                 updateXAxis();
                 updateYAxis();
             }
-
-
         });
 
         renderWatch.renderEnd('lineChart immediate');
@@ -581,12 +442,12 @@ nv.models.lineChart = function() {
     // expose chart's sub-components
     chart.dispatch = dispatch;
     chart.lines = lines;
-    chart.lines2 = lines2;
     chart.legend = legend;
+    chart.focus = focus;
     chart.xAxis = xAxis;
-    chart.x2Axis = x2Axis;
+    chart.x2Axis = focus.xAxis
     chart.yAxis = yAxis;
-    chart.y2Axis = y2Axis;
+    chart.y2Axis = focus.yAxis
     chart.interactiveLayer = interactiveLayer;
     chart.tooltip = tooltip;
     chart.state = state;
@@ -601,15 +462,22 @@ nv.models.lineChart = function() {
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
-        focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},
-        focusHeight:     {get: function(){return height2;}, set: function(_){focusHeight=_;}},
-        focusShowAxisX:    {get: function(){return focusShowAxisX;}, set: function(_){focusShowAxisX=_;}},
-        focusShowAxisY:    {get: function(){return focusShowAxisY;}, set: function(_){focusShowAxisY=_;}},
-        brushExtent: {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        // Focus options, mostly passed onto focus model.
+        focusEnable:    {get: function(){return focusEnable;}, set: function(_){focusEnable=_;}},
+        focusHeight:     {get: function(){return focus.height();}, set: function(_){focus.height(_);}},
+        focusShowAxisX:    {get: function(){return focus.showXAxis();}, set: function(_){focus.showXAxis(_);}},
+        focusShowAxisY:    {get: function(){return focus.showYAxis();}, set: function(_){focus.showYAxis(_);}},
+        brushExtent: {get: function(){return focus.brushExtent();}, set: function(_){focus.brushExtent(_);}},
 
         // options that require extra logic in the setter
+        focusMargin: {get: function(){return focus.margin}, set: function(_){
+            focus.margin.top    = _.top    !== undefined ? _.top    : focus.margin.top;
+            focus.margin.right  = _.right  !== undefined ? _.right  : focus.margin.right;
+            focus.margin.bottom = _.bottom !== undefined ? _.bottom : focus.margin.bottom;
+            focus.margin.left   = _.left   !== undefined ? _.left   : focus.margin.left;
+        }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
@@ -620,41 +488,35 @@ nv.models.lineChart = function() {
             duration = _;
             renderWatch.reset(duration);
             lines.duration(duration);
+            focus.duration(duration);
             xAxis.duration(duration);
-            x2Axis.duration(duration);
             yAxis.duration(duration);
-            y2Axis.duration(duration);
-        }},
-        focusMargin: {get: function(){return margin2;}, set: function(_){
-            margin2.top    = _.top    !== undefined ? _.top    : margin2.top;
-            margin2.right  = _.right  !== undefined ? _.right  : margin2.right;
-            margin2.bottom = _.bottom !== undefined ? _.bottom : margin2.bottom;
-            margin2.left   = _.left   !== undefined ? _.left   : margin2.left;
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             legend.color(color);
             lines.color(color);
+            focus.color(color);
         }},
         interpolate: {get: function(){return lines.interpolate();}, set: function(_){
             lines.interpolate(_);
-            lines2.interpolate(_);
+            focus.interpolate(_);
         }},
         xTickFormat: {get: function(){return xAxis.tickFormat();}, set: function(_){
             xAxis.tickFormat(_);
-            x2Axis.tickFormat(_);
+            focus.xTickFormat(_);
         }},
         yTickFormat: {get: function(){return yAxis.tickFormat();}, set: function(_){
             yAxis.tickFormat(_);
-            y2Axis.tickFormat(_);
+            focus.yTickFormat(_);
         }},
         x: {get: function(){return lines.x();}, set: function(_){
             lines.x(_);
-            lines2.x(_);
+            focus.x(_);
         }},
         y: {get: function(){return lines.y();}, set: function(_){
             lines.y(_);
-            lines2.y(_);
+            focus.y(_);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;

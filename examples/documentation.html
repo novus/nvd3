@@ -789,6 +789,15 @@ as well as used to print out examples using those example inputs.
                 {grouped: "Group em", stacked: "Stack em"}
             ]
         },
+        controlOptions: {
+            desc: "Override the labels for control items in the graph displayed",
+            default: "['Stacked', 'Stream', 'Expanded']",
+            examples: [
+                ['Stacked', 'Stream'],
+                ['Stacked', 'Expanded'],
+                ['Stream', 'Expanded'],
+            ]
+        },
         groupSpacing: {
             desc: "The padding between bar groups, this is passed as the padding attribute of rangeBands",
             refs: ["https://github.com/mbostock/d3/wiki/Ordinal-Scales#ordinal_rangeBands"],
@@ -940,7 +949,7 @@ as well as used to print out examples using those example inputs.
             examples: [function(d){ return d.name;}]
         },
         sort: {
-            desc: "For sunburst only: let's you specify the sort order of the arcs.",
+            desc: "For sunburst only: lets you specify the sort order of the arcs.",
             default: "function(d1, d2){return d1.name > d2.name;}",
             examples: [function(d1, d2){return d1.value > d2.value;}]
         },
@@ -973,6 +982,16 @@ as well as used to print out examples using those example inputs.
             desc: "For parallel coordinate: Text displayed in tooltip for NaN/Undefined values",
             default: 'undefined',
             examples: ["-"]
+        },
+        showMinMaxPoints: {
+            desc: "For sparklines: Toggle whether to highlight the minimum and maximum values with points",
+            default: true,
+            examples: [true, false]
+        },
+        showCurrentPoint: {
+            desc: "For sparklines: Toggle whether to highlight the current value with a point",
+            default: true,
+            examples: [true, false]
         }
     };
 </script>

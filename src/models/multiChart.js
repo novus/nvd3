@@ -15,7 +15,7 @@ nv.models.multiChart = function() {
         yDomain2,
         getX = function(d) { return d.x },
         getY = function(d) { return d.y},
-        interpolate = 'monotone',
+        interpolate = 'linear',
         useVoronoi = true,
         interactiveLayer = nv.interactiveGuideline(),
         useInteractiveGuideline = false,
@@ -95,7 +95,7 @@ nv.models.multiChart = function() {
                     })
                 });
 
-            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return getX(d) }))
+            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x }))
                 .range([0, availableWidth]);
 
             var wrap = container.selectAll('g.wrap.multiChart').data([data]);
@@ -177,10 +177,12 @@ nv.models.multiChart = function() {
             stack1
                 .width(availableWidth)
                 .height(availableHeight)
+                .interpolate(interpolate)
                 .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 1 && data[i].type == 'area'}));
             stack2
                 .width(availableWidth)
                 .height(availableHeight)
+                .interpolate(interpolate)
                 .color(color_array.filter(function(d,i) { return !data[i].disabled && data[i].yAxis == 2 && data[i].type == 'area'}));
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -419,6 +421,9 @@ nv.models.multiChart = function() {
 
                     interactiveLayer.tooltip
                     .chartContainer(chart.container.parentNode)
+                    .headerFormatter(function(d, i) {
+                        return xAxis.tickFormat()(d, i);
+                    })
                     .valueFormatter(function(d,i) {
                         var yAxis = allData[i].yAxis;
                         return d === null ? "N/A" : yAxis.tickFormat()(d);

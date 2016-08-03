@@ -97,6 +97,10 @@
     font-weight: bold;
 }
 
+.nvtooltip table td.percent {
+    color: darkgray;
+}
+
 .nvtooltip table tr.highlight td {
     padding: 1px 9px 1px 0;
     border-bottom-style: solid;

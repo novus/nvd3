@@ -70,13 +70,13 @@ nv.models.linePlusBarChart = function() {
     //------------------------------------------------------------
 
     var getBarsAxis = function() {
-        return switchYAxisOrder
+        return !switchYAxisOrder
             ? { main: y2Axis, focus: y4Axis }
             : { main: y1Axis, focus: y3Axis }
     }
 
     var getLinesAxis = function() {
-        return switchYAxisOrder
+        return !switchYAxisOrder
             ? { main: y1Axis, focus: y3Axis }
             : { main: y2Axis, focus: y4Axis }
     }
