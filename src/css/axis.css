@@ -36,7 +36,7 @@
 .nvd3 .x  .nv-axis .nv-axisMaxMin text,
 .nvd3 .x2 .nv-axis .nv-axisMaxMin text,
 .nvd3 .x3 .nv-axis .nv-axisMaxMin text {
-    text-anchor: middle
+    text-anchor: middle;
 }
 
 .nvd3 .nv-axis.nv-disabled {
