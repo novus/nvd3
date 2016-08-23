@@ -210,7 +210,7 @@ nv.models.pie = function() {
             });
 
             slices.select('path')
-                .watchTransition(renderWatch, 'pie labels')
+                .watchTransition(renderWatch, 'pie slices')
                 .duration(duration)
                 .attr('d', function (d, i) { return arcs[i](d); })
                 .attrTween('d', arcTween);
