@@ -10,7 +10,7 @@ nv.models.scatter = function() {
         , width        = null
         , height       = null
         , color        = nv.utils.defaultColor() // chooses color
-        , borderColor  = null
+        , pointBorderColor = null
         , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
         , container    = null
         , x            = d3.scale.linear()
@@ -419,7 +419,7 @@ nv.models.scatter = function() {
                 .classed('hover', function(d) { return d.hover });
             groups.watchTransition(renderWatch, 'scatter: groups')
                 .style('fill', function(d,i) { return color(d, i) })
-                .style('stroke', function(d,i) { return d.borderColor || borderColor || color(d, i) })
+                .style('stroke', function(d,i) { return d.pointBorderColor || pointBorderColor || color(d, i) })
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', .5);
 
@@ -601,7 +601,7 @@ nv.models.scatter = function() {
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         interactiveUpdateDelay: {get:function(){return interactiveUpdateDelay;}, set: function(_){interactiveUpdateDelay=_;}},
         showLabels: {get: function(){return showLabels;}, set: function(_){ showLabels = _;}},
-        borderColor: {get: function(){return borderColor;}, set: function(_){borderColor=_;}},
+        pointBorderColor: {get: function(){return pointBorderColor;}, set: function(_){pointBorderColor=_;}},
 
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},
