@@ -78,6 +78,15 @@ nv.models.multiBarChart = function() {
             return xAxis.tickFormat()(d, i);
         });
 
+    interactiveLayer.tooltip
+        .duration(0)
+        .valueFormatter(function(d, i) {
+            return yAxis.tickFormat()(d, i);
+        })
+        .headerFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        });
+
     controls.updateState(false);
 
     //============================================================
