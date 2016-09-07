@@ -44,9 +44,9 @@ Bullet Chart with Custom Labels
             .height(height - margin.top - margin.bottom);
 
     data = [
-        {"title":"Revenue","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[220],"markers":[250]},
-        {"title":"Order Size","subtitle":"US$, average","ranges":[350,500,600],"measures":[100],"markers":[550]},
-        {"title":"Satisfaction","subtitle":"out of 5","ranges":[3.5,4.25,5],"measures":[3.2,4.7],"markers":[4.4]}
+        {"title":"Revenue","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[220],"markers":[250],"markerLines":[270]},
+        {"title":"Order Size","subtitle":"US$, average","ranges":[350,500,600],"measures":[100],"markers":[550], "markerLines":[530]},
+        {"title":"Satisfaction","subtitle":"out of 5","ranges":[3.5,4.25,5],"measures":[3.2,4.7],"markers":[4.4], "markerLines":[3.8]}
     ];
 
     dataWithLabels = [{
@@ -55,7 +55,9 @@ Bullet Chart with Custom Labels
         "ranges":[150,225,300],
         "measures":[220],
         "markers":[250, 100],
+        "markerLines":[240, 120],
         "markerLabels":['Target Inventory', 'Low Inventory'],
+        "markerLineLabels":['Break even Inventory', 'Threshold Inventory'],
         "rangeLabels":['Maximum Inventory','Average Inventory','Minimum Inventory'],
         "measureLabels":['Current Inventory']
     }];
@@ -88,6 +90,7 @@ Bullet Chart with Custom Labels
         if (!d.randomizer) d.randomizer = randomizer(d);
         d.ranges = d.ranges.map(d.randomizer);
         d.markers = d.markers.map(d.randomizer);
+        d.markerLines = d.markerLines.map(d.randomizer);
         d.measures = d.measures.map(d.randomizer);
         return d;
     }

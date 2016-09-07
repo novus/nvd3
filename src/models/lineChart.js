@@ -78,6 +78,8 @@ nv.models.lineChart = function() {
         };
     };
 
+    var resetZoomButton;
+
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(lines);
@@ -125,6 +127,11 @@ nv.models.lineChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
+            /* Update `main' graph on brush update. */
+            focus.dispatch.on("onBrush", function(extent) {
+                onBrush(extent);
+            });
+
             // Setup Scales
             x = lines.xScale();
             y = lines.yScale();
@@ -160,7 +167,7 @@ nv.models.lineChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + availableHeight +')');
                 } else if (legendPosition === 'top') {
-                    if ( margin.top != legend.height()) {
+                    if (legend.height() > margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
@@ -198,7 +205,7 @@ nv.models.lineChart = function() {
 
             if (zoomType && zoomType == 'x') {
                 if (wrap.selectAll(".nv-zoomLayer g.button").node() == null) {
-                    var resetZoomButton = wrap.select(".nv-zoomLayer")
+                    resetZoomButton = wrap.select(".nv-zoomLayer")
                         .append('g')
                         .attr('class', 'button')
                         .attr('cursor', 'pointer')
@@ -215,11 +222,13 @@ nv.models.lineChart = function() {
 
                     resetZoomButton
                         .append('text')
-                        .attr('x', availableWidth - 72 - 10)
+                        .attr('x', availableWidth - 72 - 14)
                         .attr('y', 22)
-                        .text('Rest Zoom');
+                        .text('Reset Zoom');
 
+                    resetZoomButton.style('display', 'none')    
                     resetZoomButton.on('click', function() {
+                        resetZoomButton.style('display', 'none')
                         var min = d3.min(container.data()[0], function(d) {
                             return d3.min(d.values, function(d) {
                                 return chart.x()(d);
@@ -245,7 +254,7 @@ nv.models.lineChart = function() {
                     wrap.select(".nv-zoomLayer g.button rect")
                         .attr('x', availableWidth - 72 - 20)
                     wrap.select(".nv-zoomLayer g.button text")
-                        .attr('x', availableWidth - 72 - 10)
+                        .attr('x', availableWidth - 72 - 14)
                 }
             }
 
@@ -352,7 +361,7 @@ nv.models.lineChart = function() {
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
                         if (pointYValue !== null) {
-                            lines.highlightPoint(series.seriesIndex, pointIndex, true);
+                            lines.highlightPoint(i, pointIndex, true);
                         }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
@@ -379,7 +388,6 @@ nv.models.lineChart = function() {
                 };
 
                 interactiveLayer.tooltip
-                    .chartContainer(chart.container.parentNode)
                     .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
                     .data({
                         value: chart.x()( singlePoint,pointIndex ),
@@ -487,6 +495,7 @@ nv.models.lineChart = function() {
                     dragStartXValue = null;
                     dragStartX = null;
                     zoomLayer.removeSelectArea();
+                    resetZoomButton && resetZoomButton.style('display', 'block');
                 });
             }
             /* Update `main' graph on brush update. */

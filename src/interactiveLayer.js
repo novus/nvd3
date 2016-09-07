@@ -17,7 +17,7 @@ nv.interactiveGuideline = function() {
         ,   showGuideLine = true
         ,   svgContainer = null // Must pass the chart's svg, we'll use its mousemove event.
         ,   tooltip = nv.models.tooltip()
-        ,   isMSIE = "ActiveXObject" in window // Checkt if IE by looking for activeX.
+        ,   isMSIE =  window.ActiveXObject// Checkt if IE by looking for activeX. (excludes IE11)
     ;
 
     tooltip

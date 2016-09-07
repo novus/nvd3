@@ -58,6 +58,12 @@ nv.models.sunburst = function() {
         return centerAngle;
     }
 
+    function computeNodePercentage(d) {
+        var startAngle = Math.max(0, Math.min(2 * Math.PI, x(d.x)));
+        var endAngle = Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx)));
+        return (endAngle - startAngle) / (2 * Math.PI);
+    }
+
     function labelThresholdMatched(d) {
         var startAngle = Math.max(0, Math.min(2 * Math.PI, x(d.x)));
         var endAngle = Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx)));
@@ -207,7 +213,9 @@ nv.models.sunburst = function() {
             if( !wrap[0][0] ) {
                 wrap = container.append('g')
                     .attr('class', 'nvd3 nv-wrap nv-sunburst nv-chart-' + id)
-                    .attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
+                    .attr('transform', 'translate(' + ((availableWidth / 2) + margin.left + margin.right) + ',' + ((availableHeight / 2) + margin.top + margin.bottom) + ')');
+            } else {
+                wrap.attr('transform', 'translate(' + ((availableWidth / 2) + margin.left + margin.right) + ',' + ((availableHeight / 2) + margin.top + margin.bottom) + ')');
             }
 
             container.on('click', function (d, i) {
@@ -252,7 +260,8 @@ nv.models.sunburst = function() {
                     d3.select(this).classed('hover', true).style('opacity', 0.8);
                     dispatch.elementMouseover({
                         data: d,
-                        color: d3.select(this).style("fill")
+                        color: d3.select(this).style("fill"),
+                        percent: computeNodePercentage(d)
                     });
                 })
                 .on('mouseout', function(d,i){
