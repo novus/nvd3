@@ -255,7 +255,13 @@ nv.models.sunburst = function() {
                     }
                 })
                 .style("stroke", "#FFF")
-                .on("click", zoomClick)
+                .on("click", function(d,i){
+                    zoomClick(d);
+                    dispatch.elementClick({
+                        data: d,
+                        index: i
+                    })
+                })
                 .on('mouseover', function(d,i){
                     d3.select(this).classed('hover', true).style('opacity', 0.8);
                     dispatch.elementMouseover({
