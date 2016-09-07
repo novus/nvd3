@@ -30,7 +30,7 @@ nv.models.bullet = function() {
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
         , defaultRangeLabels = ["Maximum", "Mean", "Minimum"]
         , legacyRangeClassNames = ["Max", "Avg", "Min"]
-        , bulletDuration = 1000
+        , duration = 1000
         ;
 
     function sortLabels(labels, values){
@@ -117,7 +117,7 @@ nv.models.bullet = function() {
                     .datum(range)
                     .attr('height', availableHeight)
                     .transition()
-                    .duration(bulletDuration)
+                    .duration(duration)
                     .attr('width', w1(range))
                     .attr('x', xp1(range))
             }
@@ -148,7 +148,7 @@ nv.models.bullet = function() {
                     })
                 })
                 .transition()
-                .duration(bulletDuration)
+                .duration(duration)
                 .attr('width', measurez < 0 ?
                     x1(0) - x1(measurez[0])
                     : x1(measurez[0]) - x1(0))
@@ -193,7 +193,7 @@ nv.models.bullet = function() {
             g.selectAll("path.nv-markerTriangle")
               .data(markerData)
               .transition()
-              .duration(bulletDuration)
+              .duration(duration)
               .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
 
             var markerLinesData = markerLinez.map( function(marker, index) {
@@ -237,7 +237,7 @@ nv.models.bullet = function() {
             g.selectAll("path.nv-markerLines")
               .data(markerLinesData)
               .transition()
-              .duration(bulletDuration)
+              .duration(duration)
               .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
 
             wrap.selectAll('.nv-range')
@@ -285,7 +285,7 @@ nv.models.bullet = function() {
         width:    {get: function(){return width;}, set: function(_){width=_;}},
         height:    {get: function(){return height;}, set: function(_){height=_;}},
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
-        bulletDuration:    {get: function(){return bulletDuration;}, set: function(_){bulletDuration=_;}},
+        duration:    {get: function(){return duration;}, set: function(_){duration=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
