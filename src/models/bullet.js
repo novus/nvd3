@@ -51,7 +51,7 @@ nv.models.bullet = function() {
 
             var rangez = ranges.call(this, d, i).slice(),
                 markerz = markers.call(this, d, i).slice(),
-                markerLinez = markerLines.call(this, d, i).slice().sort(d3.descending),
+                markerLinez = markerLines.call(this, d, i).slice(),
                 measurez = measures.call(this, d, i).slice(),
                 rangeLabelz = rangeLabels.call(this, d, i).slice(),
                 markerLabelz = markerLabels.call(this, d, i).slice(),
@@ -67,6 +67,7 @@ nv.models.bullet = function() {
             // sort values descending
             rangez.sort(d3.descending);
             markerz.sort(d3.descending);
+            markerLinez.sort(d3.descending);
             measurez.sort(d3.descending);
 
             // Setup Scales
@@ -193,7 +194,7 @@ nv.models.bullet = function() {
                 return {value: marker, label: markerLineLabelz[index]}
             });
             gEnter
-              .selectAll("path.nv-markerLine")
+              .selectAll("line.nv-markerLine")
               .data(markerLinesData)
               .enter()
               .append('line')
@@ -227,9 +228,10 @@ nv.models.bullet = function() {
                   })
               });
 
-            g.selectAll("path.nv-markerLines")
+            g.selectAll("line.nv-markerLine")
               .data(markerLinesData)
-              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
+              .attr('x1', function(d) { return x1(d.value) })
+              .attr('x2', function(d) { return x1(d.value) })              ;
 
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
