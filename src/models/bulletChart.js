@@ -21,7 +21,7 @@ nv.models.bulletChart = function() {
         , width = null
         , height = 55
         , tickFormat = null
-	, ticks = null
+        , ticks = null
         , noData = null
         , dispatch = d3.dispatch()
         ;
@@ -95,7 +95,7 @@ nv.models.bulletChart = function() {
 
             bullet
                 .width(availableWidth)
-                .height(availableHeight)
+                .height(availableHeight);
 
             var bulletWrap = g.select('.nv-bulletWrap');
             d3.transition(bulletWrap).call(bullet);
@@ -127,6 +127,8 @@ nv.models.bulletChart = function() {
 
             // Transition the updating ticks to the new scale, x1.
             var tickUpdate = d3.transition(tick)
+                .transition()
+                .duration(bullet.duration())
                 .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
                 .style('opacity', 1);
 
@@ -139,6 +141,8 @@ nv.models.bulletChart = function() {
 
             // Transition the exiting ticks to the new scale, x1.
             d3.transition(tick.exit())
+                .transition()
+                .duration(bullet.duration())
                 .attr('transform', function(d) { return 'translate(' + x1(d) + ',0)' })
                 .style('opacity', 1e-6)
                 .remove();

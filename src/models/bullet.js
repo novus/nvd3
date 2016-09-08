@@ -30,6 +30,7 @@ nv.models.bullet = function() {
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
         , defaultRangeLabels = ["Maximum", "Mean", "Minimum"]
         , legacyRangeClassNames = ["Max", "Avg", "Min"]
+        , duration = 1000
         ;
 
     function sortLabels(labels, values){
@@ -114,20 +115,18 @@ nv.models.bullet = function() {
             for(var i=0,il=rangez.length; i<il; i++){
                 var range = rangez[i];
                 g.select('rect.nv-range'+i)
+                    .datum(range)
                     .attr('height', availableHeight)
+                    .transition()
+                    .duration(duration)
                     .attr('width', w1(range))
                     .attr('x', xp1(range))
-                    .datum(range)
             }
 
             g.select('rect.nv-measure')
                 .style('fill', color)
                 .attr('height', availableHeight / 3)
                 .attr('y', availableHeight / 3)
-                .attr('width', measurez < 0 ?
-                    x1(0) - x1(measurez[0])
-                    : x1(measurez[0]) - x1(0))
-                .attr('x', xp1(measurez))
                 .on('mouseover', function() {
                     dispatch.elementMouseover({
                         value: measurez[0],
@@ -148,7 +147,13 @@ nv.models.bullet = function() {
                         label: measureLabelz[0] || 'Current',
                         color: d3.select(this).style("fill")
                     })
-                });
+                })
+                .transition()
+                .duration(duration)
+                .attr('width', measurez < 0 ?
+                    x1(0) - x1(measurez[0])
+                    : x1(measurez[0]) - x1(0))
+                .attr('x', xp1(measurez));
 
             var h3 =  availableHeight / 6;
 
@@ -188,6 +193,8 @@ nv.models.bullet = function() {
 
             g.selectAll("path.nv-markerTriangle")
               .data(markerData)
+              .transition()
+              .duration(duration)
               .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
 
             var markerLinesData = markerLinez.map( function(marker, index) {
@@ -230,8 +237,10 @@ nv.models.bullet = function() {
 
             g.selectAll("line.nv-markerLine")
               .data(markerLinesData)
+              .transition()
+              .duration(duration)
               .attr('x1', function(d) { return x1(d.value) })
-              .attr('x2', function(d) { return x1(d.value) })              ;
+              .attr('x2', function(d) { return x1(d.value) });
 
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
@@ -278,6 +287,7 @@ nv.models.bullet = function() {
         width:    {get: function(){return width;}, set: function(_){width=_;}},
         height:    {get: function(){return height;}, set: function(_){height=_;}},
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
+        duration:    {get: function(){return duration;}, set: function(_){duration=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
