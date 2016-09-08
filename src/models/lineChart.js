@@ -285,6 +285,9 @@ nv.models.lineChart = function() {
                     })
                     .forEach(function(series,i) {
                         var extent = focusEnable ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
+                        if (extent[0] > extent[1])
+                            extent.reverse();
+
                         var currentValues = series.values.filter(function(d,i) {
                             return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                         });
