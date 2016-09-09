@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-07-03 */
+/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-09-09 */
 .nvd3 .nv-axis {
     pointer-events:none;
     opacity: 1;
@@ -37,7 +37,7 @@
 .nvd3 .x  .nv-axis .nv-axisMaxMin text,
 .nvd3 .x2 .nv-axis .nv-axisMaxMin text,
 .nvd3 .x3 .nv-axis .nv-axisMaxMin text {
-    text-anchor: middle
+    text-anchor: middle;
 }
 
 .nvd3 .nv-axis.nv-disabled {
@@ -174,7 +174,7 @@
   stroke-opacity: .6;
 }
 .nv-force-node text {
-  stroke-width: 0px
+  stroke-width: 0px;
 }
 
 .nvd3 .nv-legend .nv-disabled rect {
