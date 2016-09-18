@@ -67,6 +67,12 @@ nv.models.scatter = function() {
         return val;
     }
 
+    function delCache(d) {
+        var key, val;
+        key = d[0].series + ':' + d[1];
+        delete _cache[key];
+    }
+
     function getDiffs(d) {
         var i, key, val,
             cache = getCache(d),
@@ -445,7 +451,7 @@ nv.models.scatter = function() {
                     .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
-            points.exit().remove();
+            points.exit().each(delCache).remove();
             groups.exit().selectAll('path.nv-point')
                 .watchTransition(renderWatch, 'scatter exit')
                 .attr('transform', function(d) {
