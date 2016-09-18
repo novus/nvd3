@@ -21,6 +21,8 @@ nv.models.forceDirectedGraph = function() {
         , theta = 0.8
         , alpha = 0.1
         , radius = 5
+        , getX = d3.functor(0.0)
+        , getY = d3.functor(0.0)
         // These functions allow to add extra attributes to ndes and links
         ,nodeExtras = function(nodes) { /* Do nothing */ }
         ,linkExtras = function(links) { /* Do nothing */ }
