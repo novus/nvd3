@@ -57,17 +57,14 @@ nv.models.scatter = function() {
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         , _sizeRange_def = [16, 256]
-        , _caches
+        , _cache = {}
         ;
 
     function getCache(d) {
-        var cache, i;
-        cache = _caches = _caches || {};
-        i = d[0].series;
-        cache = cache[i] = cache[i] || {};
-        i = d[1];
-        cache = cache[i] = cache[i] || {};
-        return cache;
+        var key, val;
+        key = d[0].series + ':' + d[1];
+        val = _cache[key] = _cache[key] || {};
+        return val;
     }
 
     function getDiffs(d) {
