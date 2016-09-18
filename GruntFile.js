@@ -21,7 +21,10 @@ module.exports = function(grunt) {
                     separator: '',
                     banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
                         '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
-                    footer: '\nnv.version = "' + _pkg.version + '";\n})();'
+                    footer: '\nnv.version = "' + _pkg.version + '";\n})();',
+                    sourceMap: true,
+                    sourceMapName: 'build/nv.d3.js.map',
+                    sourceMapStyle: 'embed'
                 },
                 src: [
                     'src/core.js',
@@ -39,6 +42,8 @@ module.exports = function(grunt) {
         uglify: {
             options: {
                 sourceMap: true,
+                sourceMapIncludeSources : true,
+                sourceMapIn : 'build/nv.d3.js.map',
                 banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
