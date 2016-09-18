@@ -10,6 +10,7 @@ nv.models.scatter = function() {
         , width        = null
         , height       = null
         , color        = nv.utils.defaultColor() // chooses color
+        , pointBorderColor = null
         , id           = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
         , container    = null
         , x            = d3.scale.linear()
@@ -41,7 +42,7 @@ nv.models.scatter = function() {
         , useVoronoi   = true
         , duration     = 250
         , interactiveUpdateDelay = 300
-        , showLabels    = false 
+        , showLabels    = false
         ;
 
 
@@ -50,6 +51,8 @@ nv.models.scatter = function() {
     //------------------------------------------------------------
 
     var x0, y0, z0 // used to store previous scales
+        , width0
+        , height0
         , timeoutID
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
@@ -99,7 +102,7 @@ nv.models.scatter = function() {
             });
 
             // Setup Scales
-            var logScale = chart.yScale().name === d3.scale.log().name ? true : false; 
+            var logScale = chart.yScale().name === d3.scale.log().name ? true : false;
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -161,6 +164,11 @@ nv.models.scatter = function() {
 
             var scaleDiff = x(1) !== x0(1) || y(1) !== y0(1) || z(1) !== z0(1);
 
+            width0 = width0 || width;
+            height0 = height0 || height;
+
+            var sizeDiff = width0 !== width || height0 !== height;
+
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id);
@@ -177,11 +185,12 @@ nv.models.scatter = function() {
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-edge-clip-' + id)
-                .append('rect');
-
+                .append('rect')
+                .attr('transform', 'translate( -10, -10)');
+                
             wrap.select('#nv-edge-clip-' + id + ' rect')
-                .attr('width', availableWidth)
-                .attr('height', (availableHeight > 0) ? availableHeight : 0);
+                .attr('width', availableWidth + 20)
+                .attr('height', (availableHeight > 0) ? availableHeight + 20 : 0);
 
             g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
@@ -279,7 +288,7 @@ nv.models.scatter = function() {
                             .attr('r', clipRadius);
                     }
 
-                    var mouseEventCallback = function(d, mDispatch) {
+                    var mouseEventCallback = function(el, d, mDispatch) {
                         if (needsUpdate) return 0;
                         var series = data[d.series];
                         if (series === undefined) return;
@@ -306,22 +315,24 @@ nv.models.scatter = function() {
                             pos: pos,
                             relativePos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                             seriesIndex: d.series,
-                            pointIndex: d.point
+                            pointIndex: d.point,
+                            event: d3.event,
+                            element: el
                         });
                     };
 
                     pointPaths
                         .on('click', function(d) {
-                            mouseEventCallback(d, dispatch.elementClick);
+                            mouseEventCallback(this, d, dispatch.elementClick);
                         })
                         .on('dblclick', function(d) {
-                            mouseEventCallback(d, dispatch.elementDblClick);
+                            mouseEventCallback(this, d, dispatch.elementDblClick);
                         })
                         .on('mouseover', function(d) {
-                            mouseEventCallback(d, dispatch.elementMouseover);
+                            mouseEventCallback(this, d, dispatch.elementMouseover);
                         })
                         .on('mouseout', function(d, i) {
-                            mouseEventCallback(d, dispatch.elementMouseout);
+                            mouseEventCallback(this, d, dispatch.elementMouseout);
                         });
 
                 } else {
@@ -410,7 +421,7 @@ nv.models.scatter = function() {
                 .classed('hover', function(d) { return d.hover });
             groups.watchTransition(renderWatch, 'scatter: groups')
                 .style('fill', function(d,i) { return color(d, i) })
-                .style('stroke', function(d,i) { return color(d, i) })
+                .style('stroke', function(d,i) { return d.pointBorderColor || pointBorderColor || color(d, i) })
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', .5);
 
@@ -446,23 +457,23 @@ nv.models.scatter = function() {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            points.filter(function (d) { return scaleDiff || getDiffs(d, 'x', 'y'); })
+            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'x', 'y'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 });
-            points.filter(function (d) { return scaleDiff || getDiffs(d, 'shape', 'size'); })
+            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'shape', 'size'); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('d',
                     nv.utils.symbol()
                     .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
-            
-            // add label a label to scatter chart 
+
+            // add label a label to scatter chart
             if(showLabels)
-            {      
+            {
                 var titles =  groups.selectAll('.nv-label')
                     .data(function(d) {
                         return d.values.map(
@@ -475,7 +486,7 @@ nv.models.scatter = function() {
                         });
 
                 titles.enter().append('text')
-                    .style('fill', function (d,i) { 
+                    .style('fill', function (d,i) {
                         return d.color })
                     .style('stroke-opacity', 0)
                     .style('fill-opacity', 1)
@@ -522,6 +533,9 @@ nv.models.scatter = function() {
             x0 = x.copy();
             y0 = y.copy();
             z0 = z.copy();
+
+            width0 = width;
+            height0 = height;
 
         });
         renderWatch.renderEnd('scatter immediate');
@@ -589,6 +603,7 @@ nv.models.scatter = function() {
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         interactiveUpdateDelay: {get:function(){return interactiveUpdateDelay;}, set: function(_){interactiveUpdateDelay=_;}},
         showLabels: {get: function(){return showLabels;}, set: function(_){ showLabels = _;}},
+        pointBorderColor: {get: function(){return pointBorderColor;}, set: function(_){pointBorderColor=_;}},
 
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},

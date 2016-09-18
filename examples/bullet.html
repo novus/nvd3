@@ -31,11 +31,10 @@
         .attr("width", width)
         .attr("height", height);
 
-    vis.transition().duration(1000).call(chart);
+    vis.call(chart);
 
     window.transition = function() {
-        vis.datum(randomize);
-        vis.transition().duration(1000).call(chart);
+        vis.datum(randomize).call(chart);
     };
 
     function randomize(d) {

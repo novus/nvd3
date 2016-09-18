@@ -162,7 +162,7 @@ nv.models.lineChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + availableHeight +')');
                 } else if (legendPosition === 'top') {
-                    if (legend.height() > margin.top) {
+                    if (legend.height() !== margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
@@ -286,14 +286,20 @@ nv.models.lineChart = function() {
                     .forEach(function(series,i) {
                         var extent = focusEnable ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
                         var currentValues = series.values.filter(function(d,i) {
-                            return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                            // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1] 
+                            // (e.g. x domain is manually set to reverse the x-axis)
+                            if(extent[0] <= extent[1]) {
+                                return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                            } else {
+                                return lines.x()(d,i) >= extent[1] && lines.x()(d,i) <= extent[0];                                
+                            }
                         });
 
                         pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
                         if (pointYValue !== null) {
-                            lines.highlightPoint(series.seriesIndex, pointIndex, true);
+                            lines.highlightPoint(i, pointIndex, true);
                         }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;

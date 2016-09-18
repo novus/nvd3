@@ -70,7 +70,7 @@ Bullet Chart with Custom Labels
         .attr("width", width)
         .attr("height", height);
 
-    vis.transition().duration(1000).call(chart);
+    vis.call(chart);
 
     var vis2 = d3.select("#chart2").selectAll("svg")
         .data(dataWithLabels)
@@ -79,11 +79,11 @@ Bullet Chart with Custom Labels
         .attr("width",width)
         .attr("height",height);
 
-    vis2.transition().duration(1000).call(chart2);
+    vis2.call(chart2);
 
     window.transition = function() {
-        vis.datum(randomize).transition().duration(1000).call(chart);
-        vis2.datum(randomize).transition().duration(1000).call(chart2);
+        vis.datum(randomize).call(chart);
+        vis2.datum(randomize).call(chart2);
     };
 
     function randomize(d) {

@@ -992,6 +992,16 @@ as well as used to print out examples using those example inputs.
             desc: "For sparklines: Toggle whether to highlight the current value with a point",
             default: true,
             examples: [true, false]
+        },
+        pointBorderColor: {
+            desc: "For scatter plot: colors the border of the different data points",
+            default: "Uses color attribute value",
+            examples: ['#FF0000', '#00FF00', '#0000FF']
+        },
+        syncBrushing: {
+            desc: "For focus: Toggle whether to constantly dispatch onBrush event when zooming or just when zoom end",
+            default: true,
+            examples: [true, false]
         }
     };
 </script>

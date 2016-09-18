@@ -33,7 +33,10 @@ nv.models.legend = function() {
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
             var g = wrap.select('g');
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            if (rightAlign)
+                wrap.attr('transform', 'translate(' + (- margin.right) + ',' + margin.top + ')');
+            else
+                wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var series = g.selectAll('.nv-series')
                 .data(function(d) {

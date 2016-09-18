@@ -24,6 +24,7 @@ nv.models.focus = function(content) {
         , brushExtent = null
         , duration = 250
         , dispatch = d3.dispatch('brush', 'onBrush', 'renderEnd')
+        , syncBrushing = true
         ;
 
     content.interactive(false);
@@ -99,8 +100,18 @@ nv.models.focus = function(content) {
             brush
                 .x(x)
                 .on('brush', function() {
-                    onBrush();
+                    onBrush(syncBrushing);
                 });
+
+            brush.on('brushend', function () {
+                if (!syncBrushing) {
+                    var extent = brush.empty() ? x.domain() : brush.extent();
+                    if (Math.abs(extent[0] - extent[1]) <= 1) {
+                        return;
+                    }
+                    dispatch.onBrush(extent);
+                }
+            });
 
             if (brushExtent) brush.extent(brushExtent);
 
@@ -128,7 +139,7 @@ nv.models.focus = function(content) {
                 .attr('height', availableHeight);
             gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
-            onBrush();
+            onBrush(true);
 
             g.select('.nv-background rect')
                 .attr('width', availableWidth)
@@ -198,24 +209,23 @@ nv.models.focus = function(content) {
                             .attr('width', rightWidth < 0 ? 0 : rightWidth);
                     });
             }
-    
-    
-            function onBrush() {
+
+
+            function onBrush(shouldDispatch) {
                 brushExtent = brush.empty() ? null : brush.extent();
                 var extent = brush.empty() ? x.domain() : brush.extent();
-    
+
                 //The brush extent cannot be less than one.  If it is, don't update the line chart.
                 if (Math.abs(extent[0] - extent[1]) <= 1) {
                     return;
                 }
-    
+
                 dispatch.brush({extent: extent, brush: brush});
- 
                 updateBrushBG();
-                dispatch.onBrush(extent);
+                if (shouldDispatch) {
+                    dispatch.onBrush(extent);
+                }
             }
-
-
         });
 
         renderWatch.renderEnd('focus immediate');
@@ -246,6 +256,7 @@ nv.models.focus = function(content) {
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         brushExtent: {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
+        syncBrushing: {get: function(){return syncBrushing;}, set: function(_){syncBrushing=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -283,7 +294,7 @@ nv.models.focus = function(content) {
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( rightAlignYAxis ? 'right' : 'left');
-        }},
+        }}
     });
 
     nv.utils.inheritOptions(chart, content);

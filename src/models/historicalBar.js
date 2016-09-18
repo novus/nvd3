@@ -130,10 +130,13 @@ nv.models.historicalBar = function() {
                 })
                 .on('click', function(d,i) {
                     if (!interactive) return;
+                    var element = this;
                     dispatch.elementClick({
                         data: d,
                         index: i,
-                        color: d3.select(this).style("fill")
+                        color: d3.select(this).style("fill"),
+                        event: d3.event,
+                        element: element
                     });
                     d3.event.stopPropagation();
                 })

@@ -61,6 +61,31 @@ nv.models.multiBarChart = function() {
         .headerFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         });
+        
+    interactiveLayer.tooltip
+        .valueFormatter(function(d, i) {
+            return d == null ? "N/A" : yAxis.tickFormat()(d, i);
+        })
+        .headerFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        });
+
+    interactiveLayer.tooltip
+        .valueFormatter(function (d, i) {
+            return d == null ? "N/A" : yAxis.tickFormat()(d, i);
+        })
+        .headerFormatter(function (d, i) {
+            return xAxis.tickFormat()(d, i);
+        });
+
+    interactiveLayer.tooltip
+        .duration(0)
+        .valueFormatter(function(d, i) {
+            return yAxis.tickFormat()(d, i);
+        })
+        .headerFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        });
 
     controls.updateState(false);
 
@@ -167,7 +192,7 @@ nv.models.multiBarChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }

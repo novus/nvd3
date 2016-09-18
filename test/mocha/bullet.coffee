@@ -128,7 +128,9 @@ describe 'NVD3', ->
               for tick, i in ticks
                 offsetPrevious = offsetCurrent
                 offsetCurrent = parseInt ticks[i].getAttribute('transform').match(pattern)[1]
-                expect(offsetPrevious).to.be.below(offsetCurrent) if i > 0
+                window.setTimeout ->
+                    expect(offsetPrevious).to.be.below(offsetCurrent) if i > 0
+                , 1500
 
             it 'right', ->
               options =
@@ -143,7 +145,9 @@ describe 'NVD3', ->
               for tick, i in ticks
                 offsetPrevious = offsetCurrent
                 offsetCurrent = parseInt ticks[i].getAttribute('transform').match(pattern)[1]
-                expect(offsetPrevious).to.be.above(offsetCurrent) if i > 0
+                window.setTimeout ->
+                    expect(offsetPrevious).to.be.above(offsetCurrent) if i > 0
+                , 1500
 
           it "noData", ->
             options =
