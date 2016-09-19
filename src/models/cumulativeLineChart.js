@@ -221,7 +221,7 @@ nv.models.cumulativeLineChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (!marginTop && legend.height() != margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
