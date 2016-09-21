@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-09-09 */
+/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-09-21 */
 (function(){
 
 // set up main nv object
@@ -3509,7 +3509,7 @@ nv.models.cumulativeLineChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -4307,7 +4307,7 @@ nv.models.discreteBarChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -4656,6 +4656,7 @@ nv.models.focus = function(content) {
         , brushExtent = null
         , duration = 250
         , dispatch = d3.dispatch('brush', 'onBrush', 'renderEnd')
+        , syncBrushing = true
         ;
 
     content.interactive(false);
@@ -4731,8 +4732,18 @@ nv.models.focus = function(content) {
             brush
                 .x(x)
                 .on('brush', function() {
-                    onBrush();
+                    onBrush(syncBrushing);
                 });
+
+            brush.on('brushend', function () {
+                if (!syncBrushing) {
+                    var extent = brush.empty() ? x.domain() : brush.extent();
+                    if (Math.abs(extent[0] - extent[1]) <= 1) {
+                        return;
+                    }
+                    dispatch.onBrush(extent);
+                }
+            });
 
             if (brushExtent) brush.extent(brushExtent);
 
@@ -4760,7 +4771,7 @@ nv.models.focus = function(content) {
                 .attr('height', availableHeight);
             gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
-            onBrush();
+            onBrush(true);
 
             g.select('.nv-background rect')
                 .attr('width', availableWidth)
@@ -4830,24 +4841,23 @@ nv.models.focus = function(content) {
                             .attr('width', rightWidth < 0 ? 0 : rightWidth);
                     });
             }
-    
-    
-            function onBrush() {
+
+
+            function onBrush(shouldDispatch) {
                 brushExtent = brush.empty() ? null : brush.extent();
                 var extent = brush.empty() ? x.domain() : brush.extent();
-    
+
                 //The brush extent cannot be less than one.  If it is, don't update the line chart.
                 if (Math.abs(extent[0] - extent[1]) <= 1) {
                     return;
                 }
-    
+
                 dispatch.brush({extent: extent, brush: brush});
- 
                 updateBrushBG();
-                dispatch.onBrush(extent);
+                if (shouldDispatch) {
+                    dispatch.onBrush(extent);
+                }
             }
-
-
         });
 
         renderWatch.renderEnd('focus immediate');
@@ -4878,6 +4888,7 @@ nv.models.focus = function(content) {
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         brushExtent: {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
+        syncBrushing: {get: function(){return syncBrushing;}, set: function(_){syncBrushing=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -5812,7 +5823,7 @@ nv.models.historicalBarChart = function(bar_model) {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -6872,7 +6883,7 @@ nv.models.lineChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + availableHeight +')');
                 } else if (legendPosition === 'top') {
-                    if (legend.height() > margin.top) {
+                    if (legend.height() !== margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
@@ -7491,7 +7502,7 @@ nv.models.linePlusBarChart = function() {
                     }))
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     // FIXME: shouldn't this be "- (focusEnabled ? focusHeight : 0)"?
                     availableHeight1 = nv.utils.availableHeight(height, container, margin) - focusHeight;
@@ -8546,7 +8557,7 @@ nv.models.multiBarChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -9382,7 +9393,7 @@ nv.models.multiBarHorizontalChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -9739,7 +9750,7 @@ nv.models.multiChart = function() {
                     }))
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -11058,7 +11069,7 @@ nv.models.parallelCoordinatesChart = function () {
                         .datum(dimensionData.sort(function (a, b) { return a.originalPosition - b.originalPosition; }))
                         .call(legend);
 
-                    if (legend.height() > margin.top) {
+                    if (legend.height() !== margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
@@ -11765,7 +11776,7 @@ nv.models.pieChart = function() {
                         .datum(data)
                         .call(legend);
 
-                    if (legend.height() > margin.top) {
+                    if (legend.height() !== margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
@@ -12498,7 +12509,7 @@ nv.models.scatter = function() {
         , useVoronoi   = true
         , duration     = 250
         , interactiveUpdateDelay = 300
-        , showLabels    = false 
+        , showLabels    = false
         ;
 
 
@@ -12558,7 +12569,7 @@ nv.models.scatter = function() {
             });
 
             // Setup Scales
-            var logScale = chart.yScale().name === d3.scale.log().name ? true : false; 
+            var logScale = chart.yScale().name === d3.scale.log().name ? true : false;
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -12744,7 +12755,7 @@ nv.models.scatter = function() {
                             .attr('r', clipRadius);
                     }
 
-                    var mouseEventCallback = function(d, mDispatch) {
+                    var mouseEventCallback = function(el, d, mDispatch) {
                         if (needsUpdate) return 0;
                         var series = data[d.series];
                         if (series === undefined) return;
@@ -12771,22 +12782,24 @@ nv.models.scatter = function() {
                             pos: pos,
                             relativePos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                             seriesIndex: d.series,
-                            pointIndex: d.point
+                            pointIndex: d.point,
+                            event: d3.event,
+                            element: el
                         });
                     };
 
                     pointPaths
                         .on('click', function(d) {
-                            mouseEventCallback(d, dispatch.elementClick);
+                            mouseEventCallback(this, d, dispatch.elementClick);
                         })
                         .on('dblclick', function(d) {
-                            mouseEventCallback(d, dispatch.elementDblClick);
+                            mouseEventCallback(this, d, dispatch.elementDblClick);
                         })
                         .on('mouseover', function(d) {
-                            mouseEventCallback(d, dispatch.elementMouseover);
+                            mouseEventCallback(this, d, dispatch.elementMouseover);
                         })
                         .on('mouseout', function(d, i) {
-                            mouseEventCallback(d, dispatch.elementMouseout);
+                            mouseEventCallback(this, d, dispatch.elementMouseout);
                         });
 
                 } else {
@@ -12924,10 +12937,10 @@ nv.models.scatter = function() {
                     .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
-            
-            // add label a label to scatter chart 
+
+            // add label a label to scatter chart
             if(showLabels)
-            {      
+            {
                 var titles =  groups.selectAll('.nv-label')
                     .data(function(d) {
                         return d.values.map(
@@ -12940,7 +12953,7 @@ nv.models.scatter = function() {
                         });
 
                 titles.enter().append('text')
-                    .style('fill', function (d,i) { 
+                    .style('fill', function (d,i) {
                         return d.color })
                     .style('stroke-opacity', 0)
                     .style('fill-opacity', 1)
@@ -13257,7 +13270,7 @@ nv.models.scatterChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -15366,3 +15379,4 @@ nv.models.sunburstChart = function() {
 
 nv.version = "1.8.4-dev";
 })();
+//# sourceMappingURL=nv.d3.js.map
