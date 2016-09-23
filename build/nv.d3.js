@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-09-09 */
+/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-09-23 */
 (function(){
 
 // set up main nv object
@@ -3305,6 +3305,7 @@ nv.models.cumulativeLineChart = function() {
         ;
 
     var margin = {top: 30, right: 30, bottom: 50, left: 60}
+        , marginTop = null
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -3509,7 +3510,7 @@ nv.models.cumulativeLineChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -3903,7 +3904,10 @@ nv.models.cumulativeLineChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -4207,6 +4211,7 @@ nv.models.discreteBarChart = function() {
         ;
 
     var margin = {top: 15, right: 10, bottom: 50, left: 60}
+        , marginTop = null
         , width = null
         , height = null
         , color = nv.utils.getColor()
@@ -4307,7 +4312,7 @@ nv.models.discreteBarChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -4442,7 +4447,10 @@ nv.models.discreteBarChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -4656,6 +4664,7 @@ nv.models.focus = function(content) {
         , brushExtent = null
         , duration = 250
         , dispatch = d3.dispatch('brush', 'onBrush', 'renderEnd')
+        , syncBrushing = true
         ;
 
     content.interactive(false);
@@ -4731,8 +4740,18 @@ nv.models.focus = function(content) {
             brush
                 .x(x)
                 .on('brush', function() {
-                    onBrush();
+                    onBrush(syncBrushing);
                 });
+
+            brush.on('brushend', function () {
+                if (!syncBrushing) {
+                    var extent = brush.empty() ? x.domain() : brush.extent();
+                    if (Math.abs(extent[0] - extent[1]) <= 1) {
+                        return;
+                    }
+                    dispatch.onBrush(extent);
+                }
+            });
 
             if (brushExtent) brush.extent(brushExtent);
 
@@ -4760,7 +4779,7 @@ nv.models.focus = function(content) {
                 .attr('height', availableHeight);
             gBrush.selectAll('.resize').append('path').attr('d', resizePath);
 
-            onBrush();
+            onBrush(true);
 
             g.select('.nv-background rect')
                 .attr('width', availableWidth)
@@ -4830,24 +4849,23 @@ nv.models.focus = function(content) {
                             .attr('width', rightWidth < 0 ? 0 : rightWidth);
                     });
             }
-    
-    
-            function onBrush() {
+
+
+            function onBrush(shouldDispatch) {
                 brushExtent = brush.empty() ? null : brush.extent();
                 var extent = brush.empty() ? x.domain() : brush.extent();
-    
+
                 //The brush extent cannot be less than one.  If it is, don't update the line chart.
                 if (Math.abs(extent[0] - extent[1]) <= 1) {
                     return;
                 }
-    
+
                 dispatch.brush({extent: extent, brush: brush});
- 
                 updateBrushBG();
-                dispatch.onBrush(extent);
+                if (shouldDispatch) {
+                    dispatch.onBrush(extent);
+                }
             }
-
-
         });
 
         renderWatch.renderEnd('focus immediate');
@@ -4878,6 +4896,7 @@ nv.models.focus = function(content) {
         showXAxis:      {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis:    {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         brushExtent: {get: function(){return brushExtent;}, set: function(_){brushExtent=_;}},
+        syncBrushing: {get: function(){return syncBrushing;}, set: function(_){syncBrushing=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -5713,6 +5732,7 @@ nv.models.historicalBarChart = function(bar_model) {
 
 
     var margin = {top: 30, right: 90, bottom: 50, left: 90}
+        , marginTop = null
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -5812,7 +5832,7 @@ nv.models.historicalBarChart = function(bar_model) {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -6015,7 +6035,10 @@ nv.models.historicalBarChart = function(bar_model) {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -6725,6 +6748,7 @@ nv.models.lineChart = function() {
         ;
 
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
+        , marginTop = null
         , color = nv.utils.defaultColor()
         , width = null
         , height = null
@@ -6872,7 +6896,7 @@ nv.models.lineChart = function() {
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + availableHeight +')');
                 } else if (legendPosition === 'top') {
-                    if (legend.height() > margin.top) {
+                    if (!marginTop && legend.height() !== margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
@@ -6996,12 +7020,12 @@ nv.models.lineChart = function() {
                     .forEach(function(series,i) {
                         var extent = focusEnable ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
                         var currentValues = series.values.filter(function(d,i) {
-                            // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1] 
+                            // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1]
                             // (e.g. x domain is manually set to reverse the x-axis)
                             if(extent[0] <= extent[1]) {
                                 return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                             } else {
-                                return lines.x()(d,i) >= extent[1] && lines.x()(d,i) <= extent[0];                                
+                                return lines.x()(d,i) >= extent[1] && lines.x()(d,i) <= extent[0];
                             }
                         });
 
@@ -7188,7 +7212,10 @@ nv.models.lineChart = function() {
 
         // options that require extra logic in the setter
         focusMargin: {get: function(){return focus.margin}, set: function(_){
-            focus.margin.top    = _.top    !== undefined ? _.top    : focus.margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             focus.margin.right  = _.right  !== undefined ? _.right  : focus.margin.right;
             focus.margin.bottom = _.bottom !== undefined ? _.bottom : focus.margin.bottom;
             focus.margin.left   = _.left   !== undefined ? _.left   : focus.margin.left;
@@ -7280,6 +7307,7 @@ nv.models.linePlusBarChart = function() {
         ;
 
     var margin = {top: 30, right: 30, bottom: 30, left: 60}
+        , marginTop = null
         , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
         , width = null
         , height = null
@@ -7491,7 +7519,7 @@ nv.models.linePlusBarChart = function() {
                     }))
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     // FIXME: shouldn't this be "- (focusEnabled ? focusHeight : 0)"?
                     availableHeight1 = nv.utils.availableHeight(height, container, margin) - focusHeight;
@@ -7865,7 +7893,10 @@ nv.models.linePlusBarChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -8369,6 +8400,7 @@ nv.models.multiBarChart = function() {
         ;
 
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
+        , marginTop = null
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
@@ -8415,7 +8447,7 @@ nv.models.multiBarChart = function() {
         .headerFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         });
-        
+
     interactiveLayer.tooltip
         .valueFormatter(function(d, i) {
             return d == null ? "N/A" : yAxis.tickFormat()(d, i);
@@ -8546,7 +8578,7 @@ nv.models.multiBarChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -8826,7 +8858,10 @@ nv.models.multiBarChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -9239,6 +9274,7 @@ nv.models.multiBarHorizontalChart = function() {
         ;
 
     var margin = {top: 30, right: 20, bottom: 50, left: 60}
+        , marginTop = null
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
@@ -9382,7 +9418,7 @@ nv.models.multiBarHorizontalChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -9570,7 +9606,10 @@ nv.models.multiBarHorizontalChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -9605,6 +9644,7 @@ nv.models.multiChart = function() {
     //------------------------------------------------------------
 
     var margin = {top: 30, right: 20, bottom: 50, left: 60},
+        marginTop = null,
         color = nv.utils.defaultColor(),
         width = null,
         height = null,
@@ -9739,7 +9779,7 @@ nv.models.multiChart = function() {
                     }))
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -10125,7 +10165,10 @@ nv.models.multiChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -10925,10 +10968,11 @@ nv.models.parallelCoordinatesChart = function () {
         var dimensionTooltip = nv.models.tooltip();
 
         var margin = { top: 0, right: 0, bottom: 0, left: 0 }
+        , marginTop = null
         , width = null
-		, height = null
+        , height = null
         , showLegend = true
-		, color = nv.utils.defaultColor()
+        , color = nv.utils.defaultColor()
         , state = nv.utils.state()
         , dimensionData = []
         , displayBrush = true
@@ -11058,7 +11102,7 @@ nv.models.parallelCoordinatesChart = function () {
                         .datum(dimensionData.sort(function (a, b) { return a.originalPosition - b.originalPosition; }))
                         .call(legend);
 
-                    if (legend.height() > margin.top) {
+                    if (!marginTop && legend.height() !== margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
@@ -11191,7 +11235,10 @@ nv.models.parallelCoordinatesChart = function () {
             margin: {
                 get: function () { return margin; },
                 set: function (_) {
-                    margin.top = _.top !== undefined ? _.top : margin.top;
+                    if (_.top !== undefined) {
+                        margin.top = _.top;
+                        marginTop = _.top;
+                    }
                     margin.right = _.right !== undefined ? _.right : margin.right;
                     margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
                     margin.left = _.left !== undefined ? _.left : margin.left;
@@ -11657,6 +11704,7 @@ nv.models.pieChart = function() {
     var tooltip = nv.models.tooltip();
 
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
+        , marginTop = null
         , width = null
         , height = null
         , showTooltipPercent = false
@@ -11765,7 +11813,7 @@ nv.models.pieChart = function() {
                         .datum(data)
                         .call(legend);
 
-                    if (legend.height() > margin.top) {
+                    if (!marginTop && legend.height() !== margin.top) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin);
                     }
@@ -11882,7 +11930,10 @@ nv.models.pieChart = function() {
             pie.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -12498,7 +12549,7 @@ nv.models.scatter = function() {
         , useVoronoi   = true
         , duration     = 250
         , interactiveUpdateDelay = 300
-        , showLabels    = false 
+        , showLabels    = false
         ;
 
 
@@ -12558,7 +12609,7 @@ nv.models.scatter = function() {
             });
 
             // Setup Scales
-            var logScale = chart.yScale().name === d3.scale.log().name ? true : false; 
+            var logScale = chart.yScale().name === d3.scale.log().name ? true : false;
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -12744,7 +12795,7 @@ nv.models.scatter = function() {
                             .attr('r', clipRadius);
                     }
 
-                    var mouseEventCallback = function(d, mDispatch) {
+                    var mouseEventCallback = function(el, d, mDispatch) {
                         if (needsUpdate) return 0;
                         var series = data[d.series];
                         if (series === undefined) return;
@@ -12771,22 +12822,24 @@ nv.models.scatter = function() {
                             pos: pos,
                             relativePos: [x(getX(point, d.point)) + margin.left, y(getY(point, d.point)) + margin.top],
                             seriesIndex: d.series,
-                            pointIndex: d.point
+                            pointIndex: d.point,
+                            event: d3.event,
+                            element: el
                         });
                     };
 
                     pointPaths
                         .on('click', function(d) {
-                            mouseEventCallback(d, dispatch.elementClick);
+                            mouseEventCallback(this, d, dispatch.elementClick);
                         })
                         .on('dblclick', function(d) {
-                            mouseEventCallback(d, dispatch.elementDblClick);
+                            mouseEventCallback(this, d, dispatch.elementDblClick);
                         })
                         .on('mouseover', function(d) {
-                            mouseEventCallback(d, dispatch.elementMouseover);
+                            mouseEventCallback(this, d, dispatch.elementMouseover);
                         })
                         .on('mouseout', function(d, i) {
-                            mouseEventCallback(d, dispatch.elementMouseout);
+                            mouseEventCallback(this, d, dispatch.elementMouseout);
                         });
 
                 } else {
@@ -12924,10 +12977,10 @@ nv.models.scatter = function() {
                     .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
-            
-            // add label a label to scatter chart 
+
+            // add label a label to scatter chart
             if(showLabels)
-            {      
+            {
                 var titles =  groups.selectAll('.nv-label')
                     .data(function(d) {
                         return d.values.map(
@@ -12940,7 +12993,7 @@ nv.models.scatter = function() {
                         });
 
                 titles.enter().append('text')
-                    .style('fill', function (d,i) { 
+                    .style('fill', function (d,i) {
                         return d.color })
                     .style('stroke-opacity', 0)
                     .style('fill-opacity', 1)
@@ -13108,6 +13161,7 @@ nv.models.scatterChart = function() {
         ;
 
     var margin       = {top: 30, right: 20, bottom: 50, left: 75}
+        , marginTop = null
         , width        = null
         , height       = null
         , container    = null
@@ -13257,7 +13311,7 @@ nv.models.scatterChart = function() {
                     .datum(data)
                     .call(legend);
 
-                if (legend.height() > margin.top) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -13458,7 +13512,10 @@ nv.models.scatterChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -14188,6 +14245,7 @@ nv.models.stackedAreaChart = function() {
         ;
 
     var margin = {top: 10, right: 25, bottom: 50, left: 60}
+        , marginTop = null
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
@@ -14341,7 +14399,7 @@ nv.models.stackedAreaChart = function() {
 
                 legend.width(legendWidth);
                 g.select('.nv-legendWrap').datum(data).call(legend);
-                
+
                 if (legendPosition === 'bottom') {
                 	// constant from axis.js, plus some margin for better layout
                 	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
@@ -14351,7 +14409,7 @@ nv.models.stackedAreaChart = function() {
                     g.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + legendTop +')');
                 } else if (legendPosition === 'top') {
-                    if ( margin.top != legend.height()) {
+                    if (!marginTop && margin.top != legend.height()) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
@@ -14404,7 +14462,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-controlsWrap')
                     .datum(controlsData)
                     .call(controls);
-                
+
                 var requiredTop = Math.max(controls.height(), showLegend && (legendPosition === 'top') ? legend.height() : 0);
 
                 if ( margin.top != requiredTop ) {
@@ -14415,7 +14473,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-controlsWrap')
                     .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
-            
+
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
@@ -14783,7 +14841,10 @@ nv.models.stackedAreaChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
