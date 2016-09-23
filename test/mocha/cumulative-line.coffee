@@ -36,7 +36,6 @@ describe 'NVD3', ->
             x: (d)-> d[0]
             y: (d)-> d[1]
             margin:
-                top: 10
                 right: 20
                 bottom: 30
                 left: 40
@@ -80,7 +79,7 @@ describe 'NVD3', ->
         it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.cumulativeLineChart()
             builder.buildover options, sampleData1, []
-            
+
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 

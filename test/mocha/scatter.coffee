@@ -34,7 +34,6 @@ describe 'NVD3', ->
             x: (d)-> d[0]
             y: (d)-> d[1]
             margin:
-                top: 30
                 right: 20
                 bottom: 50
                 left: 75
