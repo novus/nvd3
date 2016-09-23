@@ -17,6 +17,7 @@ nv.models.stackedAreaChart = function() {
         ;
 
     var margin = {top: 10, right: 25, bottom: 50, left: 60}
+        , marginTop = null
         , width = null
         , height = null
         , color = nv.utils.defaultColor()
@@ -170,7 +171,7 @@ nv.models.stackedAreaChart = function() {
 
                 legend.width(legendWidth);
                 g.select('.nv-legendWrap').datum(data).call(legend);
-                
+
                 if (legendPosition === 'bottom') {
                 	// constant from axis.js, plus some margin for better layout
                 	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
@@ -180,7 +181,7 @@ nv.models.stackedAreaChart = function() {
                     g.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + legendTop +')');
                 } else if (legendPosition === 'top') {
-                    if ( margin.top != legend.height()) {
+                    if (!marginTop && margin.top != legend.height()) {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
@@ -233,7 +234,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-controlsWrap')
                     .datum(controlsData)
                     .call(controls);
-                
+
                 var requiredTop = Math.max(controls.height(), showLegend && (legendPosition === 'top') ? legend.height() : 0);
 
                 if ( margin.top != requiredTop ) {
@@ -244,7 +245,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-controlsWrap')
                     .attr('transform', 'translate(0,' + (-margin.top) +')');
             }
-            
+
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
@@ -612,7 +613,10 @@ nv.models.stackedAreaChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
