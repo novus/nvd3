@@ -32,11 +32,11 @@ svg.nvd3-svg {
 
 
 .nvd3 text {
-    font: normal 12px Arial;
+    font: normal 12px Arial, sans-serif;
 }
 
 .nvd3 .title {
-    font: bold 14px Arial;
+    font: bold 14px Arial, sans-serif;
 }
 
 .nvd3 .nv-background {
