@@ -57,28 +57,31 @@ nv.models.scatter = function() {
         , needsUpdate = false // Flag for when the points are visually updating, but the interactive layer is behind, to disable tooltips
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         , _sizeRange_def = [16, 256]
-        , _caches
+        , _cache = {}
         ;
 
     function getCache(d) {
-        var cache, i;
-        cache = _caches = _caches || {};
-        i = d[0].series;
-        cache = cache[i] = cache[i] || {};
-        i = d[1];
-        cache = cache[i] = cache[i] || {};
-        return cache;
+        var key, val;
+        key = d[0].series + ':' + d[1];
+        val = _cache[key] = _cache[key] || {};
+        return val;
+    }
+
+    function delCache(d) {
+        var key, val;
+        key = d[0].series + ':' + d[1];
+        delete _cache[key];
     }
 
     function getDiffs(d) {
-        var i, key,
-            point = d[0],
+        var i, key, val,
             cache = getCache(d),
             diffs = false;
-        for (i = 1; i < arguments.length; i ++) {
+        for (i = 1; i < arguments.length; i += 2) {
             key = arguments[i];
-            if (cache[key] !== point[key] || !cache.hasOwnProperty(key)) {
-                cache[key] = point[key];
+            val = arguments[i + 1](d[0], d[1]);
+            if (cache[key] !== val || !cache.hasOwnProperty(key)) {
+                cache[key] = val;
                 diffs = true;
             }
         }
@@ -450,20 +453,22 @@ nv.models.scatter = function() {
                     .type(function(d) { return getShape(d[0]); })
                     .size(function(d) { return z(getSize(d[0],d[1])) })
             );
-            points.exit().remove();
+            points.exit().each(delCache).remove();
             groups.exit().selectAll('path.nv-point')
                 .watchTransition(renderWatch, 'scatter exit')
                 .attr('transform', function(d) {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'x', 'y'); })
+            // Update points position only if "x" or "y" have changed
+            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'x', getX, 'y', getY); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 });
-            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'shape', 'size'); })
+            // Update points appearance only if "shape" or "size" have changed
+            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'shape', getShape, 'size', getSize); })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('d',
                     nv.utils.symbol()
