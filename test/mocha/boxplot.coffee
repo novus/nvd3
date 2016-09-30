@@ -125,7 +125,7 @@ describe 'NVD3', ->
             outliers = builder.$ '.nv-boxplot-outlier'
             outliers.length.should.equal 0, 'empty outliers'
 
-        it 'Displays whisker_high whose value are <= 0', ->
+        it 'Displays whiskers whose value are <= 0', ->
             builder = new ChartBuilder nv.models.boxPlotChart()
             builder.buildover options, sampleData4, []
 
