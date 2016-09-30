@@ -131,4 +131,3 @@ describe 'NVD3', ->
 
             whiskers = builder.$ '.nv-boxplot-whisker'
             whiskers.length.should.equal 2, 'zero whiskers'
-            
