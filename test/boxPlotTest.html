@@ -43,6 +43,10 @@
     Bad outliers
     <svg></svg>
   </div>
+  <div class='chart half' id="zeroWhiskers">
+    Zero whiskers
+    <svg></svg>
+  </div>
 <script>
 
 function testData1() {
@@ -286,6 +290,33 @@ function badOutliers() {
     ]
 }
 
+function zeroWhiskers() {
+  return [
+    {
+      label: 'Zero Whisker Low',
+      values: {
+        Q1: 1,
+        Q2: 2,
+        Q3: 3,
+        whisker_high: 10,
+        whisker_low: 0,
+        outliers: [-1, 11]
+      }
+    },
+    {
+      label: 'Zero Whisker High',
+      values: {
+        Q1: -3,
+        Q2: -2,
+        Q3: -1,
+        whisker_high: 0,
+        whisker_low: -5,
+        outliers: [-10, 1]
+      }
+    }
+  ];
+};
+
 defaultChartConfig("outlierObjects", testOutlierObjects, {
   outlierValue: function (d) { return d.value },
   outlierColor: function (d) { return d.color },
@@ -334,6 +365,7 @@ defaultChartConfig("bad_whiskers", badWhiskers, {
   staggerLabels: true
 });
 defaultChartConfig("bad_outliers", badOutliers, {});
+defaultChartConfig("zeroWhiskers", zeroWhiskers, {});
 
 function defaultChartConfig(containerId, data, chartOptions) {
   nv.addGraph(function() {
