@@ -32,6 +32,17 @@ describe 'NVD3', ->
               values: { Q1: 300, Q2: 350, Q3: 400, whisker_low: 2255, whisker_high: 400, outliers: [175] } 
             }
         ]
+
+        sampleData4 = [
+            label: 'Sample A',
+            values:  
+                Q1: -3,
+                Q2: -2,
+                Q3: -1,
+                whisker_low: -5,
+                whisker_high: 0,
+                outliers: [-10, 10]
+        ]
         
         options =
             x: (d)-> d.label
@@ -112,4 +123,11 @@ describe 'NVD3', ->
             builder.buildover options, sampleData2, []
 
             outliers = builder.$ '.nv-boxplot-outlier'
-            
+            outliers.length.should.equal 0, 'empty outliers'
+
+        it 'Displays whiskers whose value are <= 0', ->
+            builder = new ChartBuilder nv.models.boxPlotChart()
+            builder.buildover options, sampleData4, []
+
+            whiskers = builder.$ '.nv-boxplot-whisker'
+            whiskers.length.should.equal 2, 'zero whiskers'
