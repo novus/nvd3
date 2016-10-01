@@ -86,6 +86,16 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        postcss: {
+            options: {
+                processors: [
+                    require('autoprefixer')
+                ]
+            },
+            dist: {
+                src: 'build/nv.d3.css'
+            }
+        },
         cssmin: {
             options: {
                 sourceMap: true
@@ -138,12 +148,13 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-postcss');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-text-replace');
 
-    grunt.registerTask('default', ['concat','copy','karma:unit']);
-    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'cssmin', 'replace']);
+    grunt.registerTask('default', ['concat', 'copy', 'postcss', 'karma:unit']);
+    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'postcss', 'cssmin', 'replace']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
 };

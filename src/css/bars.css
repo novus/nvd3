@@ -2,8 +2,6 @@
     fill-opacity: .75;
 
     transition: fill-opacity 250ms linear;
-    -moz-transition: fill-opacity 250ms linear;
-    -webkit-transition: fill-opacity 250ms linear;
 }
 
 .nvd3 .nv-bars rect.hover {
@@ -28,8 +26,6 @@
     stroke-opacity: 0;
 
     transition: fill-opacity 250ms linear;
-    -moz-transition: fill-opacity 250ms linear;
-    -webkit-transition: fill-opacity 250ms linear;
 }
 
 .nvd3 .nv-multibar .nv-groups rect:hover,

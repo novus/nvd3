@@ -12,11 +12,11 @@
 .nvd3.nv-bullet .nv-title { font-size: 14px; font-weight: bold; }
 .nvd3.nv-bullet .nv-subtitle { fill: #999; }
 
-
 .nvd3.nv-bullet .nv-range {
     fill: #bababa;
     fill-opacity: .4;
 }
+
 .nvd3.nv-bullet .nv-range:hover {
     fill-opacity: .7;
 }

@@ -19,9 +19,6 @@
 
 .with-transitions .nvd3 .nv-groups .nv-point {
     transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
-    -moz-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
-    -webkit-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
-
 }
 
 .nvd3.nv-scatter .nv-groups .nv-point.hover,
@@ -38,7 +35,6 @@
     fill: #eee;
     fill-opacity: 0;
 }
-
 
 
 .nvd3 .nv-indexLine {

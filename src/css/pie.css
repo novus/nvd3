@@ -1,9 +1,6 @@
 .nvd3.nv-pie path {
     stroke-opacity: 0;
     transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
-    -moz-transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
-    -webkit-transition: fill-opacity 250ms linear, stroke-width 250ms linear, stroke-opacity 250ms linear;
-
 }
 
 .nvd3.nv-pie .nv-pie-title {
@@ -25,12 +22,15 @@
 .nvd3.nv-pie path {
     fill-opacity: .7;
 }
+
 .nvd3.nv-pie .hover path {
     fill-opacity: 1;
 }
+
 .nvd3.nv-pie .nv-label {
     pointer-events: none;
 }
+
 .nvd3.nv-pie .nv-label rect {
     fill-opacity: 0;
     stroke-opacity: 0;
