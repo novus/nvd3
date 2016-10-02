@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-    - "0.10"
+    - "0.12"
 before_install:
     - "npm install -g bower"
     - "npm install -g grunt-cli"
@@ -14,7 +14,6 @@ install:
     - "npm install"
     - "bower install"
 
-script: 
+script:
     - "npm test"
     - "spacejam test-packages ./"
-
