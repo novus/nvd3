@@ -3,8 +3,6 @@
     fill-opacity: .7;
     stroke-opacity: 0;
     transition: fill-opacity 250ms linear, stroke-opacity 250ms linear;
-    -moz-transition: fill-opacity 250ms linear, stroke-opacity 250ms linear;
-    -webkit-transition: fill-opacity 250ms linear, stroke-opacity 250ms linear;
 }
 
 .nvd3.nv-stackedarea path.nv-area.hover {

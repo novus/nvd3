@@ -1,5 +1,3 @@
-
-
 .nvtooltip {
     position: absolute;
     background-color: rgba(255,255,255,1.0);
@@ -16,11 +14,6 @@
 
     white-space: nowrap;
 
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
 }
 
@@ -35,12 +28,8 @@
 */
 .nvtooltip.with-transitions, .with-transitions .nvtooltip {
     transition: opacity 50ms linear;
-    -moz-transition: opacity 50ms linear;
-    -webkit-transition: opacity 50ms linear;
 
     transition-delay: 200ms;
-    -moz-transition-delay: 200ms;
-    -webkit-transition-delay: 200ms;
 }
 
 .nvtooltip.x-nvtooltip,
@@ -59,8 +48,6 @@
 
     border-bottom: 1px solid #ebebeb;
 
-    -webkit-border-radius: 5px 5px 0 0;
-    -moz-border-radius: 5px 5px 0 0;
     border-radius: 5px 5px 0 0;
 }
 
@@ -89,9 +76,11 @@
 .nvtooltip table td.key {
     font-weight: normal;
 }
+
 .nvtooltip table td.key.total {
     font-weight: bold;
 }
+
 .nvtooltip table td.value {
     text-align: right;
     font-weight: bold;
@@ -138,6 +127,7 @@ Interactive Layer
 .nvd3 .nv-interactiveGuideLine {
     pointer-events:none;
 }
+
 .nvd3 line.nv-guideline {
     stroke: #ccc;
 }
