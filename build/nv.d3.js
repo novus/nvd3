@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-09-26 */
+/* nvd3 version 1.8.4-dev (https://github.com/novus/nvd3) 2016-10-02 */
 (function(){
 
 // set up main nv object
@@ -2085,7 +2085,7 @@ nv.models.boxPlot = function() {
             boxEnter.each(function(d,i) {
                 var box = d3.select(this);
                 [getWl, getWh].forEach(function (f) {
-                    if (f(d)) {
+                    if (f(d) !== undefined && f(d) !== null) {
                         var key = (f === getWl) ? 'low' : 'high';
                         box.append('line')
                           .style('stroke', getColor(d) || color(d,i))
