@@ -105,11 +105,7 @@ nv.models.focus = function(content) {
 
             brush.on('brushend', function () {
                 if (!syncBrushing) {
-                    var extent = brush.empty() ? x.domain() : brush.extent();
-                    if (Math.abs(extent[0] - extent[1]) <= 1) {
-                        return;
-                    }
-                    dispatch.onBrush(extent);
+                    dispatch.onBrush(brush.empty() ? x.domain() : brush.extent());
                 }
             });
 
