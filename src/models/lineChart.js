@@ -250,20 +250,15 @@ nv.models.lineChart = function() {
             //============================================================
             // Update Focus
             //============================================================
-            if(!focusEnable) {
-                linesWrap.call(lines);
-                updateXAxis();
-                updateYAxis();
-            } else {
-                focus.width(availableWidth);
-                g.select('.nv-focusWrap')
-                    .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + focus.margin().top) + ')')
-                    .datum(data.filter(function(d) { return !d.disabled; }))
-                    .call(focus);
-                var extent = focus.brush.empty() ? focus.xDomain() : focus.brush.extent();
-                if(extent !== null){
-                    onBrush(extent);
-                }
+            g.select('.nv-focusWrap').style('display', focusEnable ? 'initial' : 'none');
+            focus.width(availableWidth);
+            g.select('.nv-focusWrap')
+                .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + focus.margin().top) + ')')
+                .datum(data.filter(function(d) { return !d.disabled; }))
+                .call(focus);
+            var extent = focus.brush.empty() ? focus.xDomain() : focus.brush.extent();
+            if(extent !== null){
+                onBrush(extent);
             }
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -285,7 +280,7 @@ nv.models.lineChart = function() {
                         return !series.disabled && !series.disableTooltip;
                     })
                     .forEach(function(series,i) {
-                        var extent = focusEnable ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
+                        var extent = focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent();
                         var currentValues = series.values.filter(function(d,i) {
                             // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1]
                             // (e.g. x domain is manually set to reverse the x-axis)
