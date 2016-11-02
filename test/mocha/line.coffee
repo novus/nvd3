@@ -130,3 +130,21 @@ describe 'NVD3', ->
             scatter = builder.$ '.nv-scatterWrap .nv-groups .nv-group.dashed'
             scatter.length.should.equal 1, 'one classed element is from scatter'
 
+        it 'shows focus chart when focusEnable is set to true', ->
+            builder.model.focusEnable(true).update();
+            focus = builder.$ '.nv-focusWrap .nv-focus'
+            should.exist focus[0]
+
+        it 'hides focus chart when focusEnable is set to false', ->
+            builder.model.focusEnable(true).update();
+            builder.model.focusEnable(false).update();
+            focusWrap = builder.$ '.nv-focusWrap'
+            focusWrap[0].style.display.should.equal 'none'
+
+        it 'does not reset selected focus range when focusEnable is set to false', ->
+            builder.model.focusEnable(true).update();
+            builder.model.brushExtent([0, 1]).update();
+            builder.model.focusEnable(false).update();
+            builder.model.brushExtent()[0].should.equal 0
+            builder.model.brushExtent()[1].should.equal 1
+
