@@ -250,15 +250,21 @@ nv.models.lineChart = function() {
             //============================================================
             // Update Focus
             //============================================================
-            g.select('.nv-focusWrap').style('display', focusEnable ? 'initial' : 'none');
-            focus.width(availableWidth);
-            g.select('.nv-focusWrap')
-                .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + focus.margin().top) + ')')
-                .datum(data.filter(function(d) { return !d.disabled; }))
-                .call(focus);
-            var extent = focus.brush.empty() ? focus.xDomain() : focus.brush.extent();
-            if(extent !== null){
-                onBrush(extent);
+            if (!focusEnable && focus.brush.extent() === null) {
+                linesWrap.call(lines);
+                updateXAxis();
+                updateYAxis();
+            } else {
+                focus.width(availableWidth);
+                g.select('.nv-focusWrap')
+                    .style('display', focusEnable ? 'initial' : 'none')
+                    .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + focus.margin().top) + ')')
+                    .datum(data.filter(function(d) { return !d.disabled; }))
+                    .call(focus);
+                var extent = focus.brush.empty() ? focus.xDomain() : focus.brush.extent();
+                if (extent !== null) {
+                    onBrush(extent);
+                }
             }
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -280,7 +286,7 @@ nv.models.lineChart = function() {
                         return !series.disabled && !series.disableTooltip;
                     })
                     .forEach(function(series,i) {
-                        var extent = focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent();
+                        var extent = focus.brush.extent() === null ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
                         var currentValues = series.values.filter(function(d,i) {
                             // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1]
                             // (e.g. x domain is manually set to reverse the x-axis)
