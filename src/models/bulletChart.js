@@ -72,7 +72,7 @@ nv.models.bulletChart = function() {
 
             // Retrieve the old x-scale, if this is an update.
             var x0 = this.__chart__ || d3.scale.linear()
-                .domain([-Infinity, Infinity])
+                .domain([0, Infinity])
                 .range(x1.range());
 
             // Stash the new scale.
@@ -112,7 +112,6 @@ nv.models.bulletChart = function() {
             // Initialize the ticks with the old scale, x0.
             var tickEnter = tick.enter().append('g')
                 .attr('class', 'nv-tick')
-                .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
                 .style('opacity', 1e-6);
 
             tickEnter.append('line')

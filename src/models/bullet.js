@@ -108,9 +108,9 @@ nv.models.bullet = function() {
             // wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var w0 = function(d) { return x0(d) }, // TODO: could optimize by precalculating x0(0) and x1(0)
-                w1 = function(d) { return min < 0 ? x1(d) : x1(d)-x1(min) };
+                w1 = function(d) { return x1(d) };
             var xp0 = function(d) { return 0 },
-                xp1 = function(d) { return min < 0 ? 0 : 0 };
+                xp1 = function(d) { return 0 };
 
             for(var i=0,il=rangez.length; i<il; i++){
                 var range = rangez[i];
@@ -193,7 +193,9 @@ nv.models.bullet = function() {
               .data(markerData)
               .transition()
               .duration(duration)
-              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
+              .attr('transform', function(d) {
+                  return 'translate(' + (x1(d.value) || x1(min)) + ',' + (availableHeight / 2) + ')'
+              });
 
             var markerLinesData = markerLinez.map( function(marker, index) {
                 return {value: marker, label: markerLineLabelz[index]}
