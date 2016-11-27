@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
 
     <style>
@@ -44,15 +44,15 @@ Bullet Chart with Custom Labels
             .height(height - margin.top - margin.bottom);
 
     data = [
-        {"title":"Revenue","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[220],"markers":[250],"markerLines":[270]},
-        {"title":"Order Size","subtitle":"US$, average","ranges":[350,500,600],"measures":[100],"markers":[550], "markerLines":[530]},
+        {"title":"Revenue","subtitle":"US$, in thousands","ranges":[-1150,225,300],"measures":[-220],"markers":[-250],"markerLines":[270]},
+        {"title":"Order Size","subtitle":"US$, average","ranges":[-1350,500,600],"measures":[100],"markers":[-350,550], "markerLines":[530]},
         {"title":"Satisfaction","subtitle":"out of 5","ranges":[3.5,4.25,5],"measures":[3.2,4.7],"markers":[4.4], "markerLines":[3.8]}
     ];
 
     dataWithLabels = [{
         "title":"Revenue",
         "subtitle":"US$, in thousands",
-        "ranges":[150,225,300],
+        "ranges":[110,150,230],
         "measures":[220],
         "markers":[250, 100],
         "markerLines":[240, 120],
@@ -98,7 +98,7 @@ Bullet Chart with Custom Labels
     function randomizer(d) {
         var k = d3.max(d.ranges) * .2;
         return function(d) {
-            return Math.max(0, d + k * (Math.random() - .5));
+            return Math.max(-1000, d + k * (Math.random() - .5));
         };
     }
 
