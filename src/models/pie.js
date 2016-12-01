@@ -54,7 +54,7 @@ nv.models.pie = function() {
 
             container = d3.select(this)
             if (arcsRadius.length === 0) {
-                var outer = radius - radius / 5;
+                var outer = radius - radius / 10;
                 var inner = donutRatio * radius;
                 for (var i = 0; i < data[0].length; i++) {
                     arcsRadiusOuter.push(outer);
@@ -62,9 +62,9 @@ nv.models.pie = function() {
                 }
             } else {
                 if(growOnHover){
-                    arcsRadiusOuter = arcsRadius.map(function (d) { return (d.outer - d.outer / 5) * radius; });
-                    arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
-                    donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 5); }));
+                    arcsRadiusOuter = arcsRadius.map(function (d) { return (d.outer - d.outer / 10) * radius; });
+                    arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 10) * radius; });
+                    donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 10); }));
                 } else {
                     arcsRadiusOuter = arcsRadius.map(function (d) { return d.outer * radius; });
                     arcsRadiusInner = arcsRadius.map(function (d) { return d.inner * radius; });
