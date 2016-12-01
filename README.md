@@ -34,7 +34,16 @@ NVD3 runs best on WebKit based browsers.
 * Firefox: latest version
 * Internet Explorer: 10+
 
+## Do we support D3 v4.x?
+
+No, we do not...  we are very interested in taking this on but could use some help.  Please let us know if you'd like to help make this a reality!  :)
+
 ## Changelog
+
+**1.8.5** Changes:
+
+* Community bugfixes
+* New force-directed graph
 
 **1.8.4** Changes:
 
