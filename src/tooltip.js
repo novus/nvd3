@@ -38,7 +38,10 @@ nv.models.tooltip = function() {
     ;
 
     // Format function for the tooltip values column.
-    var valueFormatter = function(d, i) {
+    // d is value,
+    // i is series index
+    // p is point containing the value
+    var valueFormatter = function(d, i, p) {
         return d;
     };
 
@@ -94,7 +97,7 @@ nv.models.tooltip = function() {
 
         trowEnter.append("td")
             .classed("value",true)
-            .html(function(p, i) { return valueFormatter(p.value, i) });
+            .html(function(p, i) { return valueFormatter(p.value, i, p) });
 
         trowEnter.filter(function (p,i) { return p.percent !== undefined }).append("td")
             .classed("percent", true)
