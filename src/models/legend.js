@@ -9,6 +9,7 @@ nv.models.legend = function() {
         , width = 400
         , height = 20
         , getKey = function(d) { return d.key }
+        , keyFormatter = function (d) { return d }
         , color = nv.utils.getColor()
         , maxKeyLength = 20 //default value for key lengths
         , align = true
@@ -32,7 +33,10 @@ nv.models.legend = function() {
             var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
             var g = wrap.select('g');
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            if (rightAlign)
+                wrap.attr('transform', 'translate(' + (- margin.right) + ',' + margin.top + ')');
+            else
+                wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var series = g.selectAll('.nv-series')
                 .data(function(d) {
@@ -61,7 +65,7 @@ nv.models.legend = function() {
                     .attr('class','nv-legend-symbol')
                     .attr('r', 5);
 
-                seriesShape = series.select('circle');
+                seriesShape = series.select('.nv-legend-symbol');
             } else if (vers == 'furious') {
                 seriesEnter.append('rect')
                     .style('stroke-width', 2)
@@ -168,7 +172,7 @@ nv.models.legend = function() {
 
             seriesText
                 .attr('fill', setTextColor)
-                .text(getKey);
+                .text(function (d) { return keyFormatter(getKey(d)) });
 
             //TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
             // NEW ALIGNING CODE, TODO: clean up
@@ -178,13 +182,13 @@ nv.models.legend = function() {
                 var seriesWidths = [];
                 series.each(function(d,i) {
                     var legendText;
-                    if (getKey(d).length > maxKeyLength) { 
-                        var trimmedKey = getKey(d).substring(0, maxKeyLength);
+                    if (keyFormatter(getKey(d)) && keyFormatter(getKey(d)).length > maxKeyLength) {
+                        var trimmedKey = keyFormatter(getKey(d)).substring(0, maxKeyLength);
                         legendText = d3.select(this).select('text').text(trimmedKey + "...");
-                        d3.select(this).append("svg:title").text(getKey(d));
+                        d3.select(this).append("svg:title").text(keyFormatter(getKey(d)));
                     } else {
                         legendText = d3.select(this).select('text');
-                    } 
+                    }
                     var nodeTextLength;
                     try {
                         nodeTextLength = legendText.node().getComputedTextLength();
@@ -349,17 +353,18 @@ nv.models.legend = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        width:      {get: function(){return width;}, set: function(_){width=_;}},
-        height:     {get: function(){return height;}, set: function(_){height=_;}},
-        key:        {get: function(){return getKey;}, set: function(_){getKey=_;}},
-        align:      {get: function(){return align;}, set: function(_){align=_;}},
+        width:          {get: function(){return width;}, set: function(_){width=_;}},
+        height:         {get: function(){return height;}, set: function(_){height=_;}},
+        key:            {get: function(){return getKey;}, set: function(_){getKey=_;}},
+        keyFormatter:   {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
+        align:          {get: function(){return align;}, set: function(_){align=_;}},
         maxKeyLength:   {get: function(){return maxKeyLength;}, set: function(_){maxKeyLength=_;}},
-        rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
-        padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
-        updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
-        radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
-        expanded:   {get: function(){return expanded;}, set: function(_){expanded=_;}},
-        vers:   {get: function(){return vers;}, set: function(_){vers=_;}},
+        rightAlign:     {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
+        padding:        {get: function(){return padding;}, set: function(_){padding=_;}},
+        updateState:    {get: function(){return updateState;}, set: function(_){updateState=_;}},
+        radioButtonMode:{get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
+        expanded:       {get: function(){return expanded;}, set: function(_){expanded=_;}},
+        vers:           {get: function(){return vers;}, set: function(_){vers=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

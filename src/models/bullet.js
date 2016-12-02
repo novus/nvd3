@@ -15,9 +15,11 @@ nv.models.bullet = function() {
         , reverse = false
         , ranges = function(d) { return d.ranges }
         , markers = function(d) { return d.markers ? d.markers : [] }
+        , markerLines = function(d) { return d.markerLines ? d.markerLines : [0] }
         , measures = function(d) { return d.measures }
         , rangeLabels = function(d) { return d.rangeLabels ? d.rangeLabels : [] }
         , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
+        , markerLineLabels = function(d) { return d.markerLineLabels ? d.markerLineLabels : []  }
         , measureLabels = function(d) { return d.measureLabels ? d.measureLabels : []  }
         , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
         , width = 380
@@ -28,6 +30,7 @@ nv.models.bullet = function() {
         , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
         , defaultRangeLabels = ["Maximum", "Mean", "Minimum"]
         , legacyRangeClassNames = ["Max", "Avg", "Min"]
+        , duration = 1000
         ;
 
     function sortLabels(labels, values){
@@ -49,19 +52,23 @@ nv.models.bullet = function() {
 
             var rangez = ranges.call(this, d, i).slice(),
                 markerz = markers.call(this, d, i).slice(),
+                markerLinez = markerLines.call(this, d, i).slice(),
                 measurez = measures.call(this, d, i).slice(),
                 rangeLabelz = rangeLabels.call(this, d, i).slice(),
                 markerLabelz = markerLabels.call(this, d, i).slice(),
+                markerLineLabelz = markerLineLabels.call(this, d, i).slice(),
                 measureLabelz = measureLabels.call(this, d, i).slice();
 
             // Sort labels according to their sorted values
             sortLabels(rangeLabelz, rangez);
             sortLabels(markerLabelz, markerz);
+            sortLabels(markerLineLabelz, markerLinez);
             sortLabels(measureLabelz, measurez);
 
             // sort values descending
             rangez.sort(d3.descending);
             markerz.sort(d3.descending);
+            markerLinez.sort(d3.descending);
             measurez.sort(d3.descending);
 
             // Setup Scales
@@ -108,20 +115,18 @@ nv.models.bullet = function() {
             for(var i=0,il=rangez.length; i<il; i++){
                 var range = rangez[i];
                 g.select('rect.nv-range'+i)
+                    .datum(range)
                     .attr('height', availableHeight)
+                    .transition()
+                    .duration(duration)
                     .attr('width', w1(range))
                     .attr('x', xp1(range))
-                    .datum(range)
             }
 
             g.select('rect.nv-measure')
                 .style('fill', color)
                 .attr('height', availableHeight / 3)
                 .attr('y', availableHeight / 3)
-                .attr('width', measurez < 0 ?
-                    x1(0) - x1(measurez[0])
-                    : x1(measurez[0]) - x1(0))
-                .attr('x', xp1(measurez))
                 .on('mouseover', function() {
                     dispatch.elementMouseover({
                         value: measurez[0],
@@ -142,7 +147,13 @@ nv.models.bullet = function() {
                         label: measureLabelz[0] || 'Current',
                         color: d3.select(this).style("fill")
                     })
-                });
+                })
+                .transition()
+                .duration(duration)
+                .attr('width', measurez < 0 ?
+                    x1(0) - x1(measurez[0])
+                    : x1(measurez[0]) - x1(0))
+                .attr('x', xp1(measurez));
 
             var h3 =  availableHeight / 6;
 
@@ -182,7 +193,54 @@ nv.models.bullet = function() {
 
             g.selectAll("path.nv-markerTriangle")
               .data(markerData)
+              .transition()
+              .duration(duration)
               .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
+
+            var markerLinesData = markerLinez.map( function(marker, index) {
+                return {value: marker, label: markerLineLabelz[index]}
+            });
+            gEnter
+              .selectAll("line.nv-markerLine")
+              .data(markerLinesData)
+              .enter()
+              .append('line')
+              .attr('cursor', '')
+              .attr('class', 'nv-markerLine')
+              .attr('x1', function(d) { return x1(d.value) })
+              .attr('y1', '2')
+              .attr('x2', function(d) { return x1(d.value) })
+              .attr('y2', availableHeight - 2)
+              .on('mouseover', function(d) {
+                dispatch.elementMouseover({
+                  value: d.value,
+                  label: d.label || 'Previous',
+                  color: d3.select(this).style("fill"),
+                  pos: [x1(d.value), availableHeight/2]
+                })
+
+              })
+              .on('mousemove', function(d) {
+                  dispatch.elementMousemove({
+                      value: d.value,
+                      label: d.label || 'Previous',
+                      color: d3.select(this).style("fill")
+                  })
+              })
+              .on('mouseout', function(d, i) {
+                  dispatch.elementMouseout({
+                      value: d.value,
+                      label: d.label || 'Previous',
+                      color: d3.select(this).style("fill")
+                  })
+              });
+
+            g.selectAll("line.nv-markerLine")
+              .data(markerLinesData)
+              .transition()
+              .duration(duration)
+              .attr('x1', function(d) { return x1(d.value) })
+              .attr('x2', function(d) { return x1(d.value) });
 
             wrap.selectAll('.nv-range')
                 .on('mouseover', function(d,i) {
@@ -229,6 +287,7 @@ nv.models.bullet = function() {
         width:    {get: function(){return width;}, set: function(_){width=_;}},
         height:    {get: function(){return height;}, set: function(_){height=_;}},
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
+        duration:    {get: function(){return duration;}, set: function(_){duration=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
