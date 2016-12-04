@@ -97,8 +97,12 @@ nv.models.multiChart = function() {
                     })
                 });
 
-            x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x }))
-                .range([0, availableWidth]);
+            var ex = d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x }); // Allow extent to be used multiple times
+            for(var i = 0; i < charts.length; i++){ // Loop through all charts except bars1 and bars2 (because it's ordinal)
+                if(!(i === 4 || i === 5)){ charts[i].xDomain(ex); } // Set xDomain for each chart individually
+            }
+
+            x.domain(ex).range([0, availableWidth]);
 
             var wrap = container.selectAll('g.wrap.multiChart').data([data]);
             var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 multiChart').append('g');
