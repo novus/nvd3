@@ -29,6 +29,8 @@
 <div style="position:absolute; top: 0; left: 0;">
     <button onclick="randomizeFillOpacity();">Randomize fill opacity</button>
     <button onclick="expandLegend();">Expand/Contract Legend</button>
+    <button onclick="toggleLegend();">Toggle Legend Top/Bottom</button>
+
     <script>
         var expandLegend = function() {
             var exp = chart.legend.expanded();
@@ -43,6 +45,7 @@
     // Wrapping in nv.addGraph allows for '0 timeout render', stores rendered charts in nv.graphs, and may do more in the future... it's NOT required
     var chart;
     var data;
+    var legendPosition = "top";
 
     var randomizeFillOpacity = function() {
         var rand = Math.random(0,1);
@@ -50,6 +53,16 @@
             data[4].values[i].y = Math.sin(i/(5 + rand)) * .4 * rand - .25;
         }
         data[4].fillOpacity = rand;
+        chart.update();
+    };
+
+    var toggleLegend = function() {
+        if (legendPosition == "top") {
+            legendPosition = "bottom";
+        } else {
+            legendPosition = "top";
+        }
+        chart.legendPosition(legendPosition);
         chart.update();
     };
 
