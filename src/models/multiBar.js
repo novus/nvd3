@@ -231,44 +231,49 @@ nv.models.multiBar = function() {
             bars
                 .style('fill', function(d,i,j){ return color(d, j, i);  })
                 .style('stroke', function(d,i,j){ return color(d, j, i); })
-                .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
+                .on('mouseover', function(d,i,j) {
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('mouseout', function(d,i) {
+                .on('mouseout', function(d,i,j) {
                     d3.select(this).classed('hover', false);
                     dispatch.elementMouseout({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('mousemove', function(d,i) {
+                .on('mousemove', function(d,i,j) {
                     dispatch.elementMousemove({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('click', function(d,i) {
+                .on('click', function(d,i,j) {
                     var element = this;
                     dispatch.elementClick({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill"),
                         event: d3.event,
                         element: element
                     });
                     d3.event.stopPropagation();
                 })
-                .on('dblclick', function(d,i) {
+                .on('dblclick', function(d,i,j) {
                     dispatch.elementDblClick({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
