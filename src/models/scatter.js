@@ -217,6 +217,10 @@ nv.models.scatter = function() {
 
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
+                    
+                    // nuke all voronoi paths on reload and recreate them
+                    wrap.select('.nv-point-paths').selectAll('path').remove();
+                    
                     var vertices = d3.merge(data.map(function(group, groupIndex) {
                             return group.values
                                 .map(function(point, pointIndex) {
@@ -264,8 +268,6 @@ nv.models.scatter = function() {
                         }
                     });
 
-                    // nuke all voronoi paths on reload and recreate them
-                    wrap.select('.nv-point-paths').selectAll('path').remove();
                     var pointPaths = wrap.select('.nv-point-paths').selectAll('path').data(voronoi);
                     var vPointPaths = pointPaths
                         .enter().append("svg:path")
