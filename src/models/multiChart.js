@@ -44,7 +44,7 @@ nv.models.multiChart = function() {
         stack1 = nv.models.stackedArea().yScale(yScale1).duration(duration),
         stack2 = nv.models.stackedArea().yScale(yScale2).duration(duration),
 
-        xAxis = nv.models.axis().scale(x).orient('bottom').tickPadding(5).duration(duration),
+        xAxis = nv.models.axis().orient('bottom').tickPadding(5).duration(duration),
         yAxis1 = nv.models.axis().scale(yScale1).orient('left').duration(duration),
         yAxis2 = nv.models.axis().scale(yScale2).orient('right').duration(duration),
 
@@ -212,6 +212,9 @@ nv.models.multiChart = function() {
             var extraValue2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
             }).concat([{x:0, y:0}]) : [];
+
+            x = lines1.xScale();
+            xAxis.scale(x);
 
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
                 .range([0, availableHeight]);
