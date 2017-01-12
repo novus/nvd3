@@ -212,11 +212,18 @@ nv.models.multiChart = function() {
             var extraValue2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
                 return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
             }).concat([{x:0, y:0}]) : [];
+            
+            var extraValue1BarStacked = bars1.stacked() && dataBars1.length ? dataBars1.filter(function(d){return !d.disabled}).map(function(a){return a.values}).reduce(function(a,b){
+                return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
+            }).concat([{x:0, y:0}]) : [];
+            var extraValue2BarStacked = bars2.stacked() && dataBars2.length ? dataBars2.filter(function(d){return !d.disabled}).map(function(a){return a.values}).reduce(function(a,b){
+                return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
+            }).concat([{x:0, y:0}]) : [];
 
-            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
+            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
-            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
+            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2).concat(extraValue2BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
             lines1.yDomain(yScale1.domain());
