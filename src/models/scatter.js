@@ -222,13 +222,12 @@ nv.models.scatter = function() {
                                 .map(function(point, pointIndex) {
                                     // *Adding noise to make duplicates very unlikely
                                     // *Injecting series and point index for reference
-                                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                                     */
+                                    // *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
                                     var pX = getX(point,pointIndex);
                                     var pY = getY(point,pointIndex);
 
-                                    return [nv.utils.NaNtoZero(x(pX)),
-                                            nv.utils.NaNtoZero(y(pY)),
+                                    return [nv.utils.NaNtoZero(x(pX)) + Math.random() * 1e-4,
+                                            nv.utils.NaNtoZero(y(pY)) + Math.random() * 1e-4,
                                         groupIndex,
                                         pointIndex, point];
                                 })
@@ -257,7 +256,7 @@ nv.models.scatter = function() {
                     ]);
 
                     // delete duplicates from vertices - essential assumption for d3.geom.voronoi
-                    var epsilon = 1e-6; // d3 uses 1e-6 to determine equivalence.
+                    var epsilon = 1e-4; // Uses 1e-4 to determine equivalence.
                     vertices = vertices.sort(function(a,b){return ((a[0] - b[0]) || (a[1] - b[1]))});
                     for (var i = 0; i < vertices.length - 1; ) {
                         if ((Math.abs(vertices[i][0] - vertices[i+1][0]) < epsilon) &&
