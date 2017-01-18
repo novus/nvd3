@@ -1,4 +1,4 @@
-nv.models.multiChart = function() {
+nv.models.multiChart = function () {
     "use strict";
 
     //============================================================
@@ -38,8 +38,10 @@ nv.models.multiChart = function() {
         scatters1 = nv.models.scatter().yScale(yScale1).duration(duration),
         scatters2 = nv.models.scatter().yScale(yScale2).duration(duration),
 
-        bars1 = nv.models.multiBar().stacked(false).yScale(yScale1).duration(duration),
-        bars2 = nv.models.multiBar().stacked(false).yScale(yScale2).duration(duration),
+        barsModel,
+
+        bars1 = getBarModel(yScale1),
+        bars2 = getBarModel(yScale2),
 
         stack1 = nv.models.stackedArea().yScale(yScale1).duration(duration),
         stack2 = nv.models.stackedArea().yScale(yScale2).duration(duration),
@@ -54,6 +56,18 @@ nv.models.multiChart = function() {
 
     var charts = [lines1, lines2, scatters1, scatters2, bars1, bars2, stack1, stack2];
 
+    function getBarModel(yScale) {
+        var model;
+
+        if (typeof barsModel === 'function') {
+            model = barsModel();
+        } else {
+            model = nv.models.multiBar().stacked(false).duration(duration);
+        }
+
+        return model.yScale(yScale);
+    }
+
     function chart(selection) {
         selection.each(function(data) {
             var container = d3.select(this),
@@ -66,6 +80,11 @@ nv.models.multiChart = function() {
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
+            charts.forEach(function (chart) {
+                chart.x(getX);
+                chart.y(getY);
+            });
+
             var dataLines1 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 1});
             var dataLines2 = data.filter(function(d) {return d.type == 'line' && d.yAxis == 2});
             var dataScatters1 = data.filter(function(d) {return d.type == 'scatter' && d.yAxis == 1});
@@ -75,6 +94,15 @@ nv.models.multiChart = function() {
             var dataStack1 = data.filter(function(d) {return d.type == 'area' && d.yAxis == 1});
             var dataStack2 = data.filter(function(d) {return d.type == 'area' && d.yAxis == 2});
 
+            // fixes tooltips for bar models other than multibar
+            data.forEach(function(series, i) {
+                series.values.forEach(function(point) {
+                    point.series = i;
+                    point.key = series.key;
+                });
+            });
+
+            // TODO: duplicate in linePlusBarChart.js#
             // Display noData message if there's nothing to show.
             if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
                 nv.utils.noData(chart, container);
@@ -516,6 +544,16 @@ nv.models.multiChart = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
+        barsModel: {get: function(){return barsModel}, set: function(_){
+            var bars1Idx = charts.indexOf(bars1),
+                bars2Idx = charts.indexOf(bars2);
+
+            barsModel = _;
+            bars1 = getBarModel(yScale1);
+            bars2 = getBarModel(yScale2);
+            charts.splice(bars1Idx, bars1Idx + 1, bars1);
+            charts.splice(bars2Idx, bars2Idx + 1, bars2);
+        }},
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
@@ -541,25 +579,9 @@ nv.models.multiChart = function() {
         }},
         x: {get: function(){return getX;}, set: function(_){
             getX = _;
-            lines1.x(_);
-            lines2.x(_);
-            scatters1.x(_);
-            scatters2.x(_);
-            bars1.x(_);
-            bars2.x(_);
-            stack1.x(_);
-            stack2.x(_);
         }},
         y: {get: function(){return getY;}, set: function(_){
             getY = _;
-            lines1.y(_);
-            lines2.y(_);
-            scatters1.y(_);
-            scatters2.y(_);
-            stack1.y(_);
-            stack2.y(_);
-            bars1.y(_);
-            bars2.y(_);
         }},
         useVoronoi: {get: function(){return useVoronoi;}, set: function(_){
             useVoronoi=_;
