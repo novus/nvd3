@@ -363,6 +363,7 @@
             .y(function(d) {
                 return d[1]
             })
+            .xScale(d3.time.scale())
         ;
 
         chart.xAxis.tickFormat(function (d, i, e) {
