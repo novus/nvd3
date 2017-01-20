@@ -473,14 +473,33 @@ nv.models.scatter = function() {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            // Update points position only if "x" or "y" have changed
+
+            //============================================================
+            // Point Update Optimisation Notes
+            //------------------------------------------------------------
+            // The following update selections are filtered with getDiffs
+            // (defined at the top of this file) this brings a performance
+            // benefit for charts with large data sets that accumulate a
+            // subset of changes or additions over time.
+            //
+            // Uneccesary and expensive DOM calls are avoided by culling
+            // unchanged points from the selection in exchange for the
+            // cheaper overhead of caching and diffing each point first.
+            //
+            // Due to the way D3 and NVD3 work, other global changes need
+            // to be considered in addition to local point properties.
+            // This is a potential source of bugs (if any of the global
+            // changes that possibly affect points are missed).
+
+            // Update Point Positions [x, y]
             points.filter(function (d) { return getDiffs(d, 'x', getX, 'y', getY) || scaleDiff || sizeDiff || domainDiff; })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 });
-            // Update points appearance only if "shape" or "size" have changed
+
+            // Update Point Appearance [shape, size]
             points.filter(function (d) { return getDiffs(d, 'shape', getShape, 'size', getSize) || scaleDiff || sizeDiff; })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('d',
