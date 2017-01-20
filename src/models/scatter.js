@@ -201,7 +201,7 @@ nv.models.scatter = function() {
                 .attr('id', 'nv-edge-clip-' + id)
                 .append('rect')
                 .attr('transform', 'translate( -10, -10)');
-                
+
             wrap.select('#nv-edge-clip-' + id + ' rect')
                 .attr('width', availableWidth + 20)
                 .attr('height', (availableHeight > 0) ? availableHeight + 20 : 0);
@@ -217,10 +217,10 @@ nv.models.scatter = function() {
 
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
-                    
+
                     // nuke all voronoi paths on reload and recreate them
                     wrap.select('.nv-point-paths').selectAll('path').remove();
-                    
+
                     var vertices = d3.merge(data.map(function(group, groupIndex) {
                             return group.values
                                 .map(function(point, pointIndex) {
