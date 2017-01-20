@@ -517,20 +517,28 @@ nv.models.scatter = function() {
             // changes that possibly affect points are missed).
 
             // Update Point Positions [x, y]
-            points.filter(function (d) { return getDiffs(d, 'x', getX, 'y', getY) || scaleDiff || sizeDiff || domainDiff; })
-                .watchTransition(renderWatch, 'scatter points')
-                .attr('transform', function(d) {
-                    //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
-                    return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
-                });
+            points.filter(function (d) {
+                // getDiffs must always be called to update cache
+                return getDiffs(d, 'x', getX, 'y', getY) ||
+                    scaleDiff || sizeDiff || domainDiff;
+            })
+            .watchTransition(renderWatch, 'scatter points')
+            .attr('transform', function (d) {
+                return 'translate(' +
+                    nv.utils.NaNtoZero(x(getX(d[0], d[1]))) + ',' +
+                    nv.utils.NaNtoZero(y(getY(d[0], d[1]))) + ')'
+            });
 
             // Update Point Appearance [shape, size]
-            points.filter(function (d) { return getDiffs(d, 'shape', getShape, 'size', getSize) || scaleDiff || sizeDiff; })
-                .watchTransition(renderWatch, 'scatter points')
-                .attr('d',
-                    nv.utils.symbol()
-                    .type(function(d) { return getShape(d[0]); })
-                    .size(function(d) { return z(getSize(d[0],d[1])) })
+            points.filter(function (d) {
+                // getDiffs must always be called to update cache
+                return getDiffs(d, 'shape', getShape, 'size', getSize) ||
+                    scaleDiff || sizeDiff || domainDiff;
+            })
+            .watchTransition(renderWatch, 'scatter points')
+            .attr('d', nv.utils.symbol()
+                .type(function (d) { return getShape(d[0]) })
+                .size(function (d) { return z(getSize(d[0], d[1])) })
             );
 
             // add label a label to scatter chart
