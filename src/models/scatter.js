@@ -474,14 +474,14 @@ nv.models.scatter = function() {
                 })
                 .remove();
             // Update points position only if "x" or "y" have changed
-            points.filter(function (d) { return scaleDiff || sizeDiff || domainDiff || getDiffs(d, 'x', getX, 'y', getY); })
+            points.filter(function (d) { return getDiffs(d, 'x', getX, 'y', getY) || scaleDiff || sizeDiff || domainDiff; })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('transform', function(d) {
                     //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 });
             // Update points appearance only if "shape" or "size" have changed
-            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'shape', getShape, 'size', getSize); })
+            points.filter(function (d) { return getDiffs(d, 'shape', getShape, 'size', getSize) || scaleDiff || sizeDiff; })
                 .watchTransition(renderWatch, 'scatter points')
                 .attr('d',
                     nv.utils.symbol()
