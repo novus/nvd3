@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2016-12-08 */
+/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-01-19 */
 (function(){
 
 // set up main nv object
@@ -13850,14 +13850,17 @@ nv.models.sparklinePlus = function() {
                     .attr('x2', 0)
                     .attr('y2', availableHeight);
 
-                hoverEnter.append('text').attr('class', 'nv-xValue')
-                    .attr('x', -6)
-                    .attr('y', -margin.top)
-                    .attr('text-anchor', 'end')
-                    .attr('dy', '.9em');
+                hoverEnter
+                    .append('circle')
+                    .attr('class', 'nv-yValue-Point')
+                    .attr('cx', 0)
+                    .attr('cy', 0)
+                    .attr('r', 5)
 
-                g.select('.nv-hoverValue .nv-xValue')
-                    .text(xTickFormat(sparkline.x()(data[index[0]], index[0])));
+                g.select('.nv-hoverValue .nv-yValue-Point')
+                    .attr('cy', function(d) {
+                        return y(sparkline.y()(data[index[0]], index[0]));
+                    });
 
                 hoverEnter.append('text').attr('class', 'nv-yValue')
                     .attr('x', 6)
