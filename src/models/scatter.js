@@ -61,6 +61,31 @@ nv.models.scatter = function() {
         , _cache = {}
         ;
 
+    //============================================================
+    // Diff and Cache Utilities
+    //------------------------------------------------------------
+    // getDiffs is used to filter unchanged points from the update
+    // selection. It implicitly updates it's cache when called and
+    // therefor the diff is based upon the previous invocation NOT
+    // the previous update.
+    //
+    // getDiffs takes a point as its first argument followed by n
+    // key getter pairs (d, [key, get... key, get]) this approach
+    // was chosen for efficiency. (The filter will call it a LOT).
+    //
+    // It is important to call delCache on point exit to prevent a
+    // memory leak. It is also needed to prevent invalid caches if
+    // a new point uses the same series and point id key.
+    //
+    // Argument Performance Concerns:
+    // - Object property lists for key getter pairs would be very
+    // expensive (points * objects for the GC every update).
+    // - ES6 function names for implicit keys would be nice but
+    // they are not guaranteed to be unique.
+    // - function.toString to obtain implicit keys is possible
+    // but long object keys are not free (internal hash).
+    // - Explicit key without objects are the most efficient.
+
     function getCache(d) {
         var key, val;
         key = d[0].series + ':' + d[1];
