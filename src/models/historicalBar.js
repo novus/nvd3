@@ -41,14 +41,30 @@ nv.models.historicalBar = function() {
             nv.utils.initSVG(container);
 
             // Setup Scales
-            x.domain(xDomain || d3.extent(data[0].values.map(getX).concat(forceX) ));
+            // remap and flatten the data for use in calculating the scales' domains
+            var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
+                data.map(function(d, idx) {
+                    return d.values.map(function(d,i) {
+                        return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx }
+                    })
+                });
 
+            var _getX = function (d) { return d.x; };
+            var _getY = function (d) { return d.y; };
+            var merged = d3.merge(seriesData);
+
+            var dataValuesLength = data[0] ? data[0].values.length : 0;
+
+            // Setup Scales
+            x.domain(xDomain || d3.extent(merged.map(_getX).concat(forceX) ).filter(function (el) { return el !== undefined }));
+
+            // TODO: multichart with historicalBar will throw when data is empty
             if (padData)
-                x.range(xRange || [availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
+                x.range(xRange || [availableWidth * .5 / dataValuesLength, availableWidth * (dataValuesLength - .5)  / dataValuesLength ]);
             else
                 x.range(xRange || [0, availableWidth]);
 
-            y.domain(yDomain || d3.extent(data[0].values.map(getY).concat(forceY) ))
+            y.domain(yDomain || d3.extent(merged.map(_getY).concat(forceY) ))
                 .range(yRange || [availableHeight, 0]);
 
             // If scale's domain don't have a range, slightly adjust to make one... so a chart can show a single data point
@@ -63,7 +79,7 @@ nv.models.historicalBar = function() {
                     : y.domain([-1,1]);
 
             // Setup containers and skeleton of chart
-            var wrap = container.selectAll('g.nv-wrap.nv-historicalBar-' + id).data([data[0].values]);
+            var wrap = container.selectAll('g.nv-wrap.nv-historicalBar-' + id).data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-historicalBar-' + id);
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
@@ -93,12 +109,12 @@ nv.models.historicalBar = function() {
             g.attr('clip-path', clipEdge ? 'url(#nv-chart-clip-path-' + id + ')' : '');
 
             var bars = wrap.select('.nv-bars').selectAll('.nv-bar')
-                .data(function(d) { return d }, function(d,i) {return getX(d,i)});
+                .data(function(d) { return d[0] ? d[0].values: []; });
             bars.exit().remove();
 
             bars.enter().append('rect')
                 .attr('x', 0 )
-                .attr('y', function(d,i) {  return nv.utils.NaNtoZero(y(Math.max(0, getY(d,i)))) })
+                .attr('y', function(d,i) { return nv.utils.NaNtoZero(y(Math.max(0, getY(d,i)))) })
                 .attr('height', function(d,i) { return nv.utils.NaNtoZero(Math.abs(y(getY(d,i)) - y(0))) })
                 .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
                 .on('mouseover', function(d,i) {
@@ -153,10 +169,9 @@ nv.models.historicalBar = function() {
             bars
                 .attr('fill', function(d,i) { return color(d, i); })
                 .attr('class', function(d,i,j) { return (getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i })
-                .watchTransition(renderWatch, 'bars')
-                .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
+                .attr('transform', function(d,i) { return 'translate(' + (x(getX(d,i)) - availableWidth / dataValuesLength * .45) + ',0)'; })
                 //TODO: better width calculations that don't assume always uniform data spacing;w
-                .attr('width', (availableWidth / data[0].values.length) * .9 );
+                .attr('width', (availableWidth / dataValuesLength) * .9 );
 
             bars.watchTransition(renderWatch, 'bars')
                 .attr('y', function(d,i) {
