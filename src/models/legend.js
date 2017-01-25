@@ -367,6 +367,7 @@ nv.models.legend = function() {
         rightAlign:     {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
         padding:        {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:    {get: function(){return updateState;}, set: function(_){updateState=_;}},
+        enableDoubleClick: {get: function(){return enableDoubleClick;}, set: function(_){enableDoubleClick=_;}},
         radioButtonMode:{get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
         expanded:       {get: function(){return expanded;}, set: function(_){expanded=_;}},
         vers:           {get: function(){return vers;}, set: function(_){vers=_;}},
