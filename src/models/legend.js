@@ -149,7 +149,7 @@ nv.models.legend = function() {
                     }
                 })
                 .on('dblclick', function(d,i) {
-                    if (!enableDoubleClick) {
+                    if (enableDoubleClick) {
                         if (vers == 'furious' && expanded) return;
                         dispatch.legendDblclick(d, i);
                         if (updateState) {
