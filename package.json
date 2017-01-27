@@ -5,7 +5,8 @@
   "url": "https://github.com/novus/nvd3",
   "main": "build/nv.d3.js",
   "scripts": {
-    "test": "grunt"
+    "test": "grunt",
+    "build": "grunt"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "es6-promise": "^4.0.3",
     "autoprefixer": "^6.5.0",
+    "grunt-cli": "^1.2.0",
     "grunt": "^0.4.5",
     "grunt-contrib-concat": "~1.0.1",
     "grunt-contrib-copy": "~0.4.1",
