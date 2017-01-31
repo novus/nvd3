@@ -289,7 +289,7 @@ nv.models.tooltip = function() {
             // Generate data and set it into tooltip.
             // Bonus - If you override contentGenerator and return falsey you can use something like
             //         React or Knockout to bind the data for your tooltip.
-            var newContent = contentGenerator(data);
+            var newContent = contentGenerator(data, tooltip.node());
             if (newContent) {
                 tooltip.node().innerHTML = newContent;
             }
