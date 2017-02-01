@@ -897,7 +897,7 @@ as well as used to print out examples using those example inputs.
         contentGenerator: {
             desc: "For tooltip: Function that generates the tooltip content html.  This replaces the 'tooltipContent' option that was on most charts.  Please note that the data passed this function is usually different depending on the chart, so you'll probably need to console.log() the input object.  Also, the data passed is always a single object now, so previous functions written for the tooltipContent option will have to be adjusted accordingly.",
             default: "See contentGenerator function in tooltip.js",
-            examples: [function(obj) { return JSON.stringify(obj)}],
+            examples: [function(obj, elem) { return JSON.stringify(obj)}],
             example_object: 'chart.tooltip'
         },
         valueFormatter: {
