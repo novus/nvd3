@@ -20,7 +20,7 @@ nv.models.sunburst = function() {
         , sort = function(d1, d2){return d1.name > d2.name;}
         , key = function(d,i){
             if (d.parent !== undefined) {
-                return d.name + '-' + d.parent.name;
+                return d.name + '-' + d.parent.name + '-' + i;
             } else {
                 return d.name;
             }
