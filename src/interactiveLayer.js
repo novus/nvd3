@@ -40,9 +40,9 @@ nv.interactiveGuideline = function() {
             }
 
             function mouseHandler() {
-                var d3mouse = d3.mouse(this);
-                var mouseX = d3mouse[0];
-                var mouseY = d3mouse[1];
+                var mouseX = d3.event.clientX - this.getBoundingClientRect().left;
+                var mouseY = d3.event.clientY - this.getBoundingClientRect().top;
+
                 var subtractMargin = true;
                 var mouseOutAnyReason = false;
                 if (isMSIE) {
