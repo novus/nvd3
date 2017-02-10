@@ -412,7 +412,12 @@ nv.models.stackedAreaChart = function() {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
                         var point = series.values[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue != null) {
+                        if (pointYValue != null && pointYValue > 0) {
+                            stacked.highlightPoint(i, pointIndex, true);
+                        }
+                    
+                        // Draw at least one point if all values are zero.
+                        if (i === (data.length - 1) && !atleastOnePoint) {
                             stacked.highlightPoint(i, pointIndex, true);
                         }
                         if (typeof point === 'undefined') return;
