@@ -205,15 +205,15 @@ nv.models.multiChart = function() {
                 .datum(dataStack2.filter(function(d){return !d.disabled}));
 
             var extraValue1BarStacked = [];
-                if (bars1.stacked() && dataBars1.length) {
-                    var extraValue1BarStacked = dataBars1.filter(function(d){return !d.disabled}).map(function(a){return a.values});
-                    
-                    if (extraValue1BarStacked.length > 0)
-                        extraValue1BarStacked = extraValue1BarStacked.reduce(function(a,b){
-                            return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-                        }).concat([{x:0, y:0}]);
-                }
-                var extraValue2BarStacked = [];
+            if (bars1.stacked() && dataBars1.length) {
+                var extraValue1BarStacked = dataBars1.filter(function(d){return !d.disabled}).map(function(a){return a.values});
+                
+                if (extraValue1BarStacked.length > 0)
+                    extraValue1BarStacked = extraValue1BarStacked.reduce(function(a,b){
+                        return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
+                    }).concat([{x:0, y:0}]);
+            }
+            var extraValue2BarStacked = [];
             if (bars2.stacked() && dataBars2.length) {
                 var extraValue2BarStacked = dataBars2.filter(function(d){return !d.disabled}).map(function(a){return a.values});
                 
@@ -221,7 +221,7 @@ nv.models.multiChart = function() {
                     extraValue2BarStacked = extraValue2BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
                     }).concat([{x:0, y:0}]);
-                }
+            }
             
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
