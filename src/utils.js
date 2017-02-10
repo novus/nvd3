@@ -511,6 +511,8 @@ Also use _d3options so we can track what we inherit for documentation and chaine
 */
 nv.utils.inheritOptionsD3 = function(target, d3_source, oplist) {
     target._d3options = oplist.concat(target._d3options || []);
+    // Find unique d3 options (string) and update d3options
+    target._d3options = (target._d3options || []).filter(function(item, i, ar){ return ar.indexOf(item) === i; });
     oplist.unshift(d3_source);
     oplist.unshift(target);
     d3.rebind.apply(this, oplist);
