@@ -16,6 +16,7 @@ nv.models.legend = function() {
         , padding = 32 //define how much space between legend items. - recommend 32 for furious version
         , rightAlign = true
         , updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
+        , enableDoubleClick = true   //If true, legend will enable double click handling
         , radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
         , expanded = false
         , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
@@ -148,22 +149,26 @@ nv.models.legend = function() {
                     }
                 })
                 .on('dblclick', function(d,i) {
-                    if(vers == 'furious' && expanded) return;
-                    dispatch.legendDblclick(d,i);
-                    if (updateState) {
-                        // make sure we re-get data in case it was modified
-                        var data = series.data();
-                        //the default behavior of NVD3 legends, when double clicking one,
-                        // is to set all other series' to false, and make the double clicked series enabled.
-                        data.forEach(function(series) {
-                            series.disabled = true;
-                            if(vers == 'furious') series.userDisabled = series.disabled;
-                        });
-                        d.disabled = false;
-                        if(vers == 'furious') d.userDisabled = d.disabled;
-                        dispatch.stateChange({
-                            disabled: data.map(function(d) { return !!d.disabled })
-                        });
+                    if (enableDoubleClick) {
+                        if (vers == 'furious' && expanded) return;
+                        dispatch.legendDblclick(d, i);
+                        if (updateState) {
+                            // make sure we re-get data in case it was modified
+                            var data = series.data();
+                            //the default behavior of NVD3 legends, when double clicking one,
+                            // is to set all other series' to false, and make the double clicked series enabled.
+                            data.forEach(function (series) {
+                                series.disabled = true;
+                                if (vers == 'furious') series.userDisabled = series.disabled;
+                            });
+                            d.disabled = false;
+                            if (vers == 'furious') d.userDisabled = d.disabled;
+                            dispatch.stateChange({
+                                disabled: data.map(function (d) {
+                                    return !!d.disabled
+                                })
+                            });
+                        }
                     }
                 });
 
@@ -362,6 +367,7 @@ nv.models.legend = function() {
         rightAlign:     {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
         padding:        {get: function(){return padding;}, set: function(_){padding=_;}},
         updateState:    {get: function(){return updateState;}, set: function(_){updateState=_;}},
+        enableDoubleClick: {get: function(){return enableDoubleClick;}, set: function(_){enableDoubleClick=_;}},
         radioButtonMode:{get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
         expanded:       {get: function(){return expanded;}, set: function(_){expanded=_;}},
         vers:           {get: function(){return vers;}, set: function(_){vers=_;}},
