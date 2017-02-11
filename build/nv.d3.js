@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-10 */
+/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-11 */
 (function(){
 
 // set up main nv object
@@ -12828,15 +12828,14 @@ nv.models.scatter = function() {
                                 .map(function(point, pointIndex) {
                                     // *Adding noise to make duplicates very unlikely
                                     // *Injecting series and point index for reference
-                                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                                     */
+                                    // *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
                                     var pX = getX(point,pointIndex);
                                     var pY = getY(point,pointIndex);
 
-                                    return [nv.utils.NaNtoZero(x(pX))+ Math.random() * 1e-4,
-                                            nv.utils.NaNtoZero(y(pY))+ Math.random() * 1e-4,
+                                    return [nv.utils.NaNtoZero(x(pX)) + Math.random() * 1e-4,
+                                            nv.utils.NaNtoZero(y(pY)) + Math.random() * 1e-4,
                                         groupIndex,
-                                        pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
+                                        pointIndex, point];
                                 })
                                 .filter(function(pointArray, pointIndex) {
                                     return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
@@ -12861,6 +12860,18 @@ nv.models.scatter = function() {
                         [width + 10,height + 10],
                         [width + 10,-10]
                     ]);
+
+                    // delete duplicates from vertices - essential assumption for d3.geom.voronoi
+                    var epsilon = 1e-4; // Uses 1e-4 to determine equivalence.
+                    vertices = vertices.sort(function(a,b){return ((a[0] - b[0]) || (a[1] - b[1]))});
+                    for (var i = 0; i < vertices.length - 1; ) {
+                        if ((Math.abs(vertices[i][0] - vertices[i+1][0]) < epsilon) &&
+                        (Math.abs(vertices[i][1] - vertices[i+1][1]) < epsilon)) {
+                            vertices.splice(i+1, 1);
+                        } else {
+                            i++;
+                        }
+                    }
 
                     var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
                         return {
