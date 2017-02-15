@@ -341,8 +341,6 @@ nv.models.pie = function() {
                     .each(function (d, i) {
                       var bb = this.getBBox(),
                         center = labelsArc[i].centroid(d);
-                      console.log({center: center})
-                      console.log({bb: bb})
                       var topLeft = {
                           x : center[0] + bb.x,
                           y : center[1] + bb.y
