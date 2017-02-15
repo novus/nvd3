@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-11 */
+/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-15 */
 (function(){
 
 // set up main nv object
@@ -9911,10 +9911,10 @@ nv.models.multiChart = function() {
                     }).concat([{x:0, y:0}]);
             }
             
-            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1).concat(extraValue1BarStacked), function(d) { return d.y } ))
+            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
-            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2).concat(extraValue2BarStacked), function(d) { return d.y } ))
+            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
             lines1.yDomain(yScale1.domain());
