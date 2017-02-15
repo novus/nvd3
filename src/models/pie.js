@@ -338,6 +338,39 @@ nv.models.pie = function() {
                         }
                         return label;
                     })
+                    .each(function (d, i) {
+                      var bb = this.getBBox(),
+                        center = labelsArc[i].centroid(d);
+                      console.log({center: center})
+                      console.log({bb: bb})
+                      var topLeft = {
+                          x : center[0] + bb.x,
+                          y : center[1] + bb.y
+                      };
+
+                      var topRight = {
+                          x : topLeft.x + bb.width,
+                          y : topLeft.y
+                      };
+
+                      var bottomLeft = {
+                          x : topLeft.x,
+                          y : topLeft.y + bb.height
+                      };
+
+                      var bottomRight = {
+                          x : topLeft.x + bb.width,
+                          y : topLeft.y + bb.height
+                      };
+
+                      d.visible = nv.utils.pointIsInArc(topLeft, d, arc) &&
+                        nv.utils.pointIsInArc(topRight, d, arc) &&
+                        nv.utils.pointIsInArc(bottomLeft, d, arc) &&
+                        nv.utils.pointIsInArc(bottomRight, d, arc);
+                    })
+                    .style('display', function (d) {
+                      return d.visible ? null : 'none';
+                    })
                 ;
             }
 
