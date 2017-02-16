@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
 
     <style>
@@ -34,8 +34,7 @@ var chart;
 nv.addGraph(function() {
 
     chart = nv.models.parallelCoordinates()
-        .dimensionNames(["economy (mpg)", "cylinders", "displacement (cc)", "power (hp)", "weight (lb)", "0-60 mph (s)", "year"])
-        .dimensionFormats([d3.format("0.5f"), d3.format("e"), d3.format("g"), d3.format("d"), d3.format(""), d3.format("%"), d3.format("p")])
+        .dimensionData([{"key":"economy (mpg)","format":d3.format("0.5f")}, {"key":"cylinders","format":d3.format("e")},{"key":"displacement (cc)","format":d3.format("g")},{"key":"power (hp)","format": d3.format("d")},{"key":"weight (lb)","format":d3.format("")},{"key":"0-60 mph (s)","format":d3.format("%")},{"key":"year","format":d3.format("p")}])
         .lineTension(0.85);
 		
 
