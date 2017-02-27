@@ -40,9 +40,7 @@
 
       chart
         .brushExtent([50,70])
-        .showLegend(true)
         .height(900)
-        .focusHeight(80)
 
       chart.xAxis
         .tickFormat(d3.format(',f'))
@@ -50,8 +48,7 @@
         .domain(d3.extent(data, function(d) {
           return d.x;
         }))
-      chart.y1Axis.tickFormat(d3.format(',.2f'));
-      chart.y2Axis.tickFormat(d3.format(',.2f'));
+      chart.x2Axis.tickFormat(d3.format(',f'));
 
       d3.select('#chart svg')
           .datum(data)
@@ -64,7 +61,6 @@
 
     d3.select('#changeChartType').on('click', () => {
       showBars = !showBars;
-      numSecondarySeries = 0;
       const newData = showBars ? testDataWithBar() : testData(colorScale);
       d3.select('#chart svg')
           .datum(newData);
@@ -74,7 +70,7 @@
     function testDataWithBar() {
       return testData(colorScale).map((data, i) => {
         return Object.assign({}, data, {
-          chart_type: (i === 0) ? 'scatter' : ''
+          chart_type: (i === 0) ? 'historicalBar' : ''
         });
       });
     }
@@ -83,26 +79,16 @@
       return stream_layers(3,128,.1).map(function(data, i) {
         return {
           key: 'Stream' + i,
-          color: colorScale(+(i * Math.random())),
+          color: colorScale(i),
           values: data.map((datum, i) => {
             return Object.assign({}, datum, {
               y: +datum.y.toFixed(2)
             });
           }),
-          secondary: shouldBeSecondary(),
+          secondary: i < 2,
           chart_type: 'line'
         };
       });
-    }
-
-    let numSecondarySeries = 0;
-    function shouldBeSecondary() {
-      const shouldBeSecondary = Math.random() > .5;
-      if (numSecondarySeries === 0 || (shouldBeSecondary && numSecondarySeries < 2)) {
-        numSecondarySeries++;
-        return true;
-      }
-      return false;
     }
 
 </script>

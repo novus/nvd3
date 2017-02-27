@@ -7,11 +7,6 @@ module.exports = function(config) {
     coverageAnalysis: 'perTest',
     reporter: ['html', 'clear-text', 'progress'],
     files: [
-      {
-        pattern: 'src/models/lineWithFocusPlusSecondaryChart.js',
-        mutated: true,
-        included: false
-      },
       { pattern: 'src/**/*.js', mutated: false, included: false },
       { pattern: 'test/**/*.coffee', mutated: false, included: false },
       'test/mocha/lineWithFocusPlusSecondaryChart.js'
