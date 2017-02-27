@@ -72,7 +72,6 @@ nv.models.line = function() {
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
             scatter
                 .width(availableWidth)
                 .height(availableHeight);

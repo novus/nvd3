@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    body {
+        font: 10px sans-serif;
+    }
+
+    text.shadow {
+        stroke: white;
+        stroke-width: 2px;
+        opacity: 0.9;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+        display: none;
+    }
+
+    .area-above {
+      fill: rgb(145, 207, 96);
+    }
+
+    .area-below {
+      fill: rgb(252, 141, 89);
+    }
+
+    .line {
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5px;
+    }
+
+    .brush .extent {
+      stroke: #fff;
+      fill-opacity: .125;
+      shape-rendering: crispEdges;
+      clip-path: url(#clip);
+    }
+
+    rect.pane {
+      cursor: move;
+      fill: none;
+      pointer-events: all;
+    }
+</style>
+
+<body>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="/examples/lib/moment.js"></script>
+    <script src="/examples/lib/moment-timezone-with-data.js"></script>
+    <script src="../build/nv.d3.js"></script>
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+
+    <script>
+        async function readTextFile(file) {
+            return new Promise((resolve) => {
+                var rawFile = new XMLHttpRequest();
+                rawFile.overrideMimeType("application/json");
+                rawFile.open("GET", file, true);
+                rawFile.onreadystatechange = function() {
+                    if (rawFile.readyState === 4 && rawFile.status == "200") {
+                        resolve(rawFile.responseText);
+                    }
+                }
+                rawFile.send(null);
+            })
+        }
+        async function main() {
+
+            var title = "Science vs Style - Daily Leanpub Book Sales";
+
+            var parsedtg = d3.time.format("%Y-%m-%d").parse;
+            var margin = {top: 20, right: 20, bottom: 30, left: 50},
+                width = 960 - margin.left - margin.right,
+                height2 = 150,
+                height = 700 - height2 - margin.top - margin.bottom,
+                margin2 = {top: height + 20, right: 20, bottom: 30, left: 0};
+
+            var x = d3.time.scale().range([0, width]);
+            var y = d3.scale.linear().range([height, 0]);
+
+            var xAxis = d3.svg.axis().scale(x).orient("bottom");
+            var yAxis = d3.svg.axis().scale(y).orient("left");
+
+            //usage:
+            const actual = await readTextFile("./actual.json");
+            const predicted = await readTextFile("./predicted.json");
+
+            var actualData = JSON.parse(actual);
+            var predictedData = JSON.parse(predicted);
+            var x = d3.time.scale()
+                .range([0, width]);
+            var zoom = d3.behavior.zoom()
+                .on("zoom", draw);
+            var x2 = d3.time.scale()
+                .range([0, width]);
+
+            var brush = d3.svg.brush()
+              .x(x2)
+              .on("brush", brushed);
+
+            function drawGraphs() {
+
+              var svg = d3.select("body").append("svg")
+                  .attr("width", width + margin.left + margin.right)
+                  .attr("height", height + height2 + margin.top + margin.bottom)
+                  .append("g")
+                  .attr("transform",
+                      "translate(" + margin.left + "," + margin.top + ")");
+              const data = actualData[0]['values'];
+
+              data.forEach(function(d, i) {
+                  data[i]['recorded_at'] = new moment(d['recorded_at']);
+                  if (predictedData[i]) {
+                      data[i]['predicted_val'] = predictedData[i]["attributes"]["value"]
+                  } else {
+                      data[i]['predicted_val'] = 10
+                  }
+              });
+
+              const totalSaving = data.reduce((totalSaving, dataPoint) => {
+                return totalSaving + (dataPoint.predicted_val - dataPoint.value);
+              }, 0);
+
+              var parseDate = d3.time.format("%Y%m%d").parse;
+
+              var y = d3.scale.linear()
+                  .range([height, 0]);
+              var y2 = d3.scale.linear()
+                  .range([height2, 0]);
+
+              var xAxis = d3.svg.axis()
+                  .scale(x)
+                  .orient("bottom");
+
+              var xAxis2 = d3.svg.axis()
+                            .scale(x)
+                            .orient("bottom");
+
+              var yAxis = d3.svg.axis()
+                  .scale(y)
+                  .orient("left");
+
+              var areaActual = d3.svg.area()
+                  .interpolate("basis")
+                  .x(function(d) {
+                    d["recorded_at"] = new moment(d["recorded_at"]);
+                    return x(d["recorded_at"]);
+                  })
+                  .y(function(d) {
+                    return y(d["value"]);
+                  });
+
+              const focusAreaActual = d3.svg.area()
+                  .interpolate("basis")
+                  .x(function(d) {
+                    d["recorded_at"] = new moment(d["recorded_at"]);
+                    return x(d["recorded_at"]);
+                  })
+                  .y0(height2)
+                  .y1(function(d) {
+                    return y2(d["value"]);
+                  });
+
+              var areaPredicted = d3.svg.area()
+                  .interpolate("basis")
+                  .x(function(d) {
+                    d["recorded_at"] = new moment(d["recorded_at"]);
+                    return x(d["recorded_at"]);
+                  })
+                  .y(function(d) {
+                      return y(d["predicted_val"]);
+                  });
+
+              svg
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                x.domain(d3.extent(data, function(d) { return d['recorded_at']; }));
+                x2.domain(d3.extent(data, function(d) { return d['recorded_at']; }));
+
+                y.domain([
+                  d3.min(data, function(d) { return Math.min(d['value'], d['predicted_val']); }),
+                  d3.max(data, function(d) { return Math.max(d['value'], d['predicted_val']); })
+                ]);
+
+                svg.datum(data);
+
+                var focus = svg.append("g")
+                  .attr("class", "focus")
+                  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                focus.append("clipPath")
+                    .attr("id", "clip-below")
+                  .append("path")
+                    .attr("d", areaActual.y0(height));
+
+                focus.append("clipPath")
+                    .attr("id", "clip-above")
+                  .append("path")
+                    .attr("d", areaActual.y0(0));
+
+                focus.append("path")
+                    .attr("class", "area-above")
+                    .attr("clip-path", "url(#clip-above)")
+                    .attr("d", areaActual.y0(function(d) {
+                      return y(d['predicted_val']);
+                    }));
+
+                focus.append("path")
+                    .attr("class", "area-below")
+                    .attr("clip-path", "url(#clip-below)")
+                    .attr("d", areaActual);
+
+                // focus.append("path")
+                //     .attr("class", "line")
+                //     .attr("d", areaPredicted)
+                //     .style('stroke', 'red')
+
+                const xAxisWrapper = focus.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis);
+
+                const totalSavingText = xAxisWrapper
+                    .append("text")
+                    .attr("y", -50)
+                    .attr("x", 506)
+                    .text(`Total saving: $${totalSaving.toFixed(2)}`);
+
+                focus.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis)
+                    .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 6)
+                    .attr("dy", ".71em")
+                    .style("text-anchor", "end")
+                    .text("Power Usage");
+
+                var context = svg.append("g")
+                    .attr("class", "context")
+                    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+                zoom.x(x);
+
+                // Add rect cover the zoomed graph and attach zoom event.
+                var rect = svg.append("svg:rect")
+                    .attr("class", "pane")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                    .call(zoom);
+
+                const focusChart = nv.models.lineChart()
+                  .margin({ bottom: 30 })
+                  .x(function(d) {
+                    d["recorded_at"] = new moment(d["recorded_at"]);
+                    return x(d["recorded_at"]);
+                  })
+                  .y(function(d) {
+                    return y(d["value"]);
+                  })
+                  .height(150)
+
+                focusChart.xAxis.scale(x)
+
+                context.append("g")
+                    .attr("class", "actualUsage")
+                    .datum([{
+                      values: data
+                    }])
+                    .call(focusChart)
+
+                // context.append("g")
+                //     .attr("class", "axis axis--x")
+                //     .attr("transform", "translate(0," + height2 + ")")
+                //     .call(xAxis2);
+
+                context.append("g")
+                  .attr("class", "x brush")
+                  .attr("transform", "translate(0," + 29 + ")")
+                  .call(brush)
+                .selectAll("rect")
+                  .attr("y", -6)
+                  .attr("height", height2 + 7);
+              }
+
+              function brushed() {
+                x.domain(brush.empty() ? x2.domain() : brush.extent())
+                 .range([0, width]);
+
+                d3.select("svg").remove();
+
+                drawGraphs();
+
+                zoom.x(x);
+              }
+
+              function draw() {
+                focus.select(".area-above")
+                  .attr("d", areaActual.y0(function(d) { return y(d['predicted_val']); }));
+
+                focus.select(".area-below")
+                  .attr("d", areaActual);
+
+                focus.select(".x.axis").call(xAxis);
+                // Force changing brush range
+                brush.extent(x.domain());
+                svg.select(".brush").call(brush);
+              }
+
+              drawGraphs();
+        }
+
+        main();
+    </script>
+</body>

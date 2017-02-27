@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    body {
+        font: 10px sans-serif;
+    }
+
+    text.shadow {
+        stroke: white;
+        stroke-width: 2px;
+        opacity: 0.9;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+        display: none;
+    }
+
+    .area.above {
+        fill: rgb(252, 141, 89);
+    }
+
+    .area.below {
+        fill: rgb(145, 207, 96);
+    }
+
+    .line {
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5px;
+    }
+</style>
+
+<body>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+        var title = "Science vs Style - Daily Leanpub Book Sales";
+
+        var margin = {
+                top: 20,
+                right: 20,
+                bottom: 50,
+                left: 50
+            },
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        var parsedtg = d3.time.format("%Y-%m-%d").parse;
+
+        var x = d3.time.scale().range([0, width]);
+        var y = d3.scale.linear().range([height, 0]);
+
+        var xAxis = d3.svg.axis().scale(x).orient("bottom");
+        var yAxis = d3.svg.axis().scale(y).orient("left");
+
+        var lineScience = d3.svg.area()
+            .interpolate("step-before")
+            .x(function(d) {
+                return x(d.dtg);
+            })
+            .y(function(d) {
+                return y(d["Science"]);
+            });
+
+        var lineStyle = d3.svg.area()
+            .interpolate("step-before")
+            .x(function(d) {
+                return x(d.dtg);
+            })
+            .y(function(d) {
+                return y(d["Style"]);
+            });
+
+        var area = d3.svg.area()
+            .interpolate("step-before")
+            .x(function(d) {
+                return x(d.dtg);
+            })
+            .y1(function(d) {
+                return y(d["Science"]);
+            });
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        d3.csv("downloads.csv", function(error, dataNest) {
+            debugger;
+
+            dataNest.forEach(function(d) {
+                d.dtg = parsedtg(d.date_entered);
+                d.downloaded = +d.downloaded;
+            });
+            debugger;
+
+            var data = d3.nest()
+                .key(function(d) {
+                    return d.dtg;
+                })
+                .entries(dataNest);
+            debugger;
+            data.forEach(function(d) {
+                d.dtg = d.values[0]['dtg'];
+                d["Science"] = d.values[0]['downloaded'];
+                d["Style"] = d.values[1]['downloaded'];
+            });
+            debugger;
+
+            for (i = data.length - 1; i > 0; i--) {
+                data[i].Science = data[i].Science - data[(i - 1)].Science;
+                data[i].Style = data[i].Style - data[(i - 1)].Style;
+            }
+
+            data.shift(); // Removes the first element in the array
+            debugger;
+
+            x.domain(d3.extent(data, function(d) {
+                return d.dtg;
+            }));
+            y.domain([
+                //      d3.min(data, function(d) {
+                //          return Math.min(d["Science"], d["Style"]); }),
+                //      d3.max(data, function(d) {
+                //          return Math.max(d["Science"], d["Style"]); })
+                0, 1400
+            ]);
+
+            svg.datum(data);
+
+            svg.append("clipPath")
+                .attr("id", "clip-above")
+                .append("path")
+                .attr("d", area.y0(0));
+
+            svg.append("clipPath")
+                .attr("id", "clip-below")
+                .append("path")
+                .attr("d", area.y0(height));
+
+            svg.append("path")
+                .attr("class", "area above")
+                .attr("clip-path", "url(#clip-above)")
+                .attr("d", area.y0(function(d) {
+                    return y(d["Style"]);
+                }));
+            debugger;
+            svg.append("path")
+                .attr("class", "area below")
+                .attr("clip-path", "url(#clip-below)")
+                .attr("d", area.y0(function(d) {
+                    return y(d["Style"]);
+                }));
+
+            svg.append("path")
+                .attr("class", "line")
+                .style("stroke", "darkgreen")
+                .attr("d", lineScience);
+
+            svg.append("path")
+                .attr("class", "line")
+                .style("stroke", "red")
+                .attr("d", lineStyle);
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis);
+
+        });
+    </script>
+</body>
+d("path") .attr("d", area.y0(0)); svg.append("clipPath") .attr("id", "clip-below") .append("path") .attr("d", area.y0(height)); svg.append("path") .attr("class", "area above") .attr("clip-path", "url(#clip-above)") .attr("d", area.y0(function(d) { return
+y(d["Style"]); })); svg.append("path") .attr("class", "area below") .attr("clip-path", "url(#clip-below)") .attr("d", area.y0(function(d) { return y(d["Style"]); })); svg.append("path") .attr("class", "line") .style("stroke", "darkgreen") .attr("d", lineScience);
+svg.append("path") .attr("class", "line") .style("stroke", "red") .attr("d", lineStyle); svg.append("g") .attr("class", "x axis") .attr("transform", "translate(0," + height + ")") .call(xAxis); svg.append("g") .attr("class", "y axis") .call(yAxis); });
+</script>
+</body>

@@ -1,0 +1,460 @@
+<!-- http://jsfiddle.net/jeznag/L69e32hu/ -->
+
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.area.above {
+  fill: rgb(145,207,96);
+}
+
+.area.below {
+  fill: rgb(252,141,89);
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+</style>
+<body>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="/examples/lib/moment.js"></script>
+  <script src="/examples/lib/moment-timezone-with-data.js"></script>
+  <script src="../build/nv.d3.js"></script>
+  <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<script>
+let actual, predicted, brush, focus, x, x2, area, height, y, line, xAxis, data;
+var lines = nv.models.line()
+
+async function readTextFile(file) {
+  return new Promise((resolve) => {
+    var rawFile = new XMLHttpRequest();
+    rawFile.overrideMimeType("application/json");
+    rawFile.open("GET", file, true);
+    rawFile.onreadystatechange = function() {
+      if (rawFile.readyState === 4 && rawFile.status == "200") {
+        resolve(rawFile.responseText);
+      }
+    }
+    rawFile.send(null);
+  })
+}
+
+async function loadData() {
+  actual = await readTextFile("./actual.json");
+  predicted = await readTextFile("./predicted.json");
+}
+
+async function drawChart() {
+  var margin = {top: 10, right: 10, bottom: 100, left: 10},
+      margin2 = {top: 430, right: 10, bottom: 40, left: 10},
+      width = 960 - margin.left - margin.right,
+      height2 = 500 - margin2.top - margin2.bottom;
+
+  height = 500 - margin.top - margin.bottom;
+
+  await loadData();
+  var actualData = JSON.parse(actual);
+  var predictedData = JSON.parse(predicted);
+
+  data = actualData[0]['values'];
+
+  data.forEach(function(d, i) {
+      data[i]['recorded_at'] = new Date(d['recorded_at']);
+      if (predictedData[i]) {
+          data[i]['predicted_val'] = predictedData[i]["attributes"]["value"]
+      } else {
+          data[i]['predicted_val'] = 10
+      }
+  });
+
+	var parseDate = d3.time.format("%Y%m%d").parse;
+
+	x = d3.time.scale()
+	    .range([0, width]);
+
+	x2 = d3.time.scale().
+		range([0, width]);
+
+	y = d3.scale.linear()
+	    .range([height, 0]);
+
+	var y2 = d3.scale.linear()
+		.range([height2, 0]);
+
+	xAxis = d3.svg.axis()
+	    .scale(x)
+	    .orient("bottom");
+
+	var xAxis2 = d3.svg.axis()
+		.scale(x2)
+		.orient("bottom");
+
+	var yAxis = d3.svg.axis()
+	    .scale(y)
+	    .orient("left");
+
+	brush = d3.svg.brush()
+    	.x(x2)
+    	.on("brush", brushed);
+
+	line = d3.svg.area()
+	    .interpolate("step-before")
+	    .x(function(d) { return x(d.recorded_at); })
+	    .y(function(d) { return y(d['value']); });
+
+  var line_pred = d3.svg.area()
+	    .interpolate("step-before")
+	    .x(function(d) { return x(d.recorded_at); })
+	    .y(function(d) { return y(d['predicted_val']); });
+
+	area = d3.svg.area()
+	    .interpolate("step-before")
+	    .x(function(d) { return x(d.recorded_at); })
+	    .y1(function(d) { return y(d['value']); });
+
+	var line2 = d3.svg.area()
+	    .interpolate("basis")
+	    .x(function(d) { return x2(d.recorded_at); })
+	    .y(function(d) { return y2(d['value']); });
+
+	var area2 = d3.svg.area()
+	    .interpolate("basis")
+	    .x(function(d) { return x2(d.recorded_at); })
+	    .y0(height2)
+	    .y1(function(d) { return y2(d['value']); });
+
+
+	var svg = d3.select("body").append("svg")
+	    .attr("width", width + margin.left + margin.right)
+	    .attr("height", height + margin.top + margin.bottom)
+	  .append("g")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	svg.append("defs").append("clipPath")
+	    .attr("id", "clip")
+	  .append("rect")
+	    .attr("width", width)
+	    .attr("height", height);
+
+	focus = svg.append("g")
+	    .attr("class", "focus")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	var context = svg.append("g")
+	    .attr("class", "context")
+	    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+	  x.domain(d3.extent(data, function(d) { return d.recorded_at; }));
+
+	  y.domain([
+	    d3.min(data, function(d) { return Math.min(d['value'], d["predicted_val"]); }),
+	    d3.max(data, function(d) { return Math.max(d['value'], d["predicted_val"]); })
+	  ]);
+
+  	x2.domain(x.domain());
+		y2.domain(y.domain());
+
+	  focus.datum(data);
+
+	  focus.append("clipPath")
+	      .attr("id", "clip-below")
+	    .append("path")
+	      .attr("d", area.y0(height));
+
+	  const clipAbove = focus.append("clipPath")
+	      .attr("id", "clip-above");
+
+	  clipAbove.append("path")
+	      .attr("d", area.y0(0));
+
+    clipAbove
+      .append('rect')
+      .attr({
+        x: 0,
+        y: 0,
+        height: 900,
+        width: 120
+      })
+
+    const interactiveLayer = nv.interactiveGuideline();
+    interactiveLayer
+      .width(width)
+      .height(height)
+      .margin({ left: margin.left, top: margin.top })
+      .svgContainer(d3.select(document.body))
+      .xScale(x);
+
+    lines
+        .width(width)
+        .height(height)
+        // .color(#ff7f0e)
+
+    focus
+      .append('g')
+      .attr('class', "nv-interactive")
+      .call(interactiveLayer);
+
+    interactiveLayer.dispatch.on('elementMousemove', function(e) {
+        // var container = d3.select(this)
+        // nv.utils.initSVG(container);
+        // console.log(container)
+        // lines.clearHighlights();
+        //
+        d3.selectAll('.highlight-point').remove();
+        var singlePoint, pointIndex, pointXLocation, allData = [];
+        var extent = brush.extent() !== null ? (brush.empty() ? x2.domain() : brush.extent()) : x.domain();
+
+        var currentValues = data.filter(function(d,i) {
+            // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1]
+            // (e.g. x domain is manually set to reverse the x-axis)
+            if(extent[0] <= extent[1]) {
+                return d.recorded_at >= extent[0] && d.recorded_at <= extent[1];
+            } else {
+                return d.recorded_at >= extent[1] && d.recorded_at <= extent[0];
+            }
+        });
+
+        pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, (d) => {
+          return new Date(d.recorded_at);
+        });
+
+        var point = currentValues[pointIndex];
+        var pointYValue = y(point.value);
+        if (pointYValue !== null) {
+          // console.log(e);
+          // debugger;
+
+          d3.selectAll('.highlight-point').remove();
+
+          svg
+            .append('circle')
+            .attr('class', 'highlight-point')
+        		.attr("cx", x(point.recorded_at))
+        		.attr("cy", y(point.value) + margin.top)
+        		.attr("r", "4px")
+        		.attr("fill", "green")
+
+          svg
+            .append('circle')
+            .attr('class', 'highlight-point')
+        		.attr("cx", x(point.recorded_at))
+        		.attr("cy", y(point.predicted_val) + margin.top)
+        		.attr("r", "4px")
+        		.attr("fill", "red")
+
+          svg
+            .append("line")
+            .attr("class", 'highlight-point')
+            .attr("x1", x(point.recorded_at))
+            .attr("y1", height)
+            .attr("x2", x(point.recorded_at))
+            .attr("y2", 0)
+            .style("stroke", "grey")
+            .style("stroke-opacity", 0.5)
+
+          // lines.highlightPoint(0, pointIndex, true);
+        }
+        if (point === undefined) return;
+        if (singlePoint === undefined) singlePoint = point;
+        // if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+        allData.push({
+          key: 'Actual usage (kWh)',
+          value: point.value.toFixed(2),
+          color: 'green',
+          data: point
+        });
+
+        allData.push({
+          key: 'Predicted Usage (kWh)',
+          value: point.predicted_val.toFixed(2),
+          color: 'red',
+          data: point
+        });
+
+        allData.push({
+          key: 'Total Savings (kWh)',
+          value: (point.predicted_val - point.value).toFixed(2),
+          color: 'white',
+          data: point
+        });
+        //Highlight the tooltip entry based on which point the mouse is closest to.
+        if (allData.length > 2) {
+            var yValue = y.invert(e.mouseY);
+            var domainExtent = Math.abs(y.domain()[0] - y.domain()[1]);
+            var threshold = 0.03 * domainExtent;
+            var indexToHighlight = nv.nearestValueIndex(allData.map(function(d){return d.value;}),yValue,threshold);
+            if (indexToHighlight !== null)
+                allData[indexToHighlight].highlight = true;
+        }
+
+        var defaultValueFormatter = function(d,i) {
+          return d.value;
+        };
+
+        interactiveLayer.tooltip
+            .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
+            .data({
+                value: `${point.recorded_at}`,
+                index: pointIndex,
+                series: allData
+            })();
+
+        interactiveLayer.renderGuideLine(pointXLocation);
+
+    });
+
+	  focus.append("path")
+	      .attr("class", "area above")
+	      .attr("clip-path", "url(#clip-above)")
+	      .attr("d", area.y0(function(d) { return y(d["predicted_val"]); }));
+
+	  focus.append("path")
+	      .attr("class", "area below")
+	      .attr("clip-path", "url(#clip-below)")
+	      .attr("d", area);
+
+	  focus.append("path")
+	      .attr("class", "line")
+	      .attr("d", line);
+    // debugger;
+
+
+	  focus.append("g")
+	      .attr("class", "x axis")
+	      .attr("transform", "translate(0," + height + ")")
+	      .call(xAxis);
+
+	  focus.append("g")
+	      .attr("class", "y axis")
+	      .call(yAxis)
+	    .append("text")
+	      .attr("transform", "rotate(-90)")
+	      .attr("y", 6)
+	      .attr("dy", ".71em")
+	      .style("text-anchor", "end")
+	      .text("kWh usage");
+
+    lines
+      .width(width)
+      .height(height)
+      .x((d) => {
+        return new Date(d.recorded_at)
+      })
+      .y((d) => {
+        return d.value;
+      })
+      .margin(margin)
+
+    focus.append("g")
+      .attr("id", "lines")
+      .datum([{
+        key: 'blah',
+        values: data,
+        color:'black'
+      }])
+      .transition().duration(150)
+
+	  context.datum(data);
+
+ 	  context.append("clipPath")
+	      .attr("id", "clip-below2")
+	    .append("path")
+	      .attr("d", area2.y0(height2));
+
+	  context.append("clipPath")
+	      .attr("id", "clip-above2")
+	    .append("path")
+	      .attr("d", area2.y0(0));
+
+	  context.append("path")
+	      .attr("class", "area above")
+	      .attr("clip-path", "url(#clip-above2)")
+	      .attr("d", area2.y0(function(d) { return y2(d["predicted_val"]); }));
+
+	  context.append("path")
+	      .attr("class", "area below")
+	      .attr("clip-path", "url(#clip-below2)")
+	      .attr("d", area2);
+
+	  // context.append("path")
+	  //     .attr("class", "line")
+	  //     .attr("d", line2);
+
+	  context.append("g")
+	      .attr("class", "x axis")
+	      .attr("transform", "translate(0," + height2 + ")")
+	      .call(xAxis2);
+
+	  context.append("g")
+	      .attr("class", "x brush")
+	      .call(brush)
+	    .selectAll("rect")
+        .attr('x', 0)
+	      .attr("y", -6)
+	      .attr("height", height2 + 7);
+
+    context.append('rect')
+        .attr('class', 'left')
+        .attr('x', 0)
+        .attr('y', -6)
+        .attr('height', height2 + 7);
+
+    context.append('rect')
+        .attr('class', 'right')
+        .attr('x', 0)
+        .attr('y', -6)
+        .attr('height',height2 + 7);
+}
+
+drawChart();
+
+function brushed() {
+	  x.domain(brush.empty() ? x2.domain() : brush.extent());
+    // debugger;
+      focus.select("#clip-below>path").attr("d", area.y0(height));
+      focus.select("#clip-above>path").attr("d", area.y0(0));
+	    focus.select(".area.above").attr("d", area.y0(function(d) { return y(d["predicted_val"]); }));
+      focus.select(".area.below").attr("d", area);
+	    focus.select("path.line").attr("d", line(data));
+      // lines.xDomain(brush.empty() ? x2.domain() : brush.extent());
+
+      lines.interpolate('step-before');
+      focus.select("#lines")
+        .datum(
+          [{
+            key: 'blay',
+            values: data.filter((d, i) => {
+              return lines.x()(d,i) >= brush.extent()[0] && lines.x()(d,i) <= brush.extent()[1];
+            })
+          }]
+        )
+        .transition().duration(150)
+        // .call(lines);
+
+      focus.select(".x.axis").call(xAxis);
+	}
+
+  </script>
+
+</body>

@@ -153,3 +153,18 @@ describe 'NVD3', ->
 
             tick = builder.$ '.nv-y.nv-axis .tick.zero'
             tick.length.should.equal 1, 'y axis zero'
+
+        it 'default tick format for max/min should be integer based', ->
+            axis = builder.model.xAxis
+            builder.model.update()
+            minAxisText = builder.$('.nv-axisMaxMin.nv-axisMaxMin-x.nv-axisMin-x text')[0].textContent
+
+            minAxisText.should.equal('-1')
+
+        it 'tickFormatMaxMin should change tick format of max/min', ->
+            axis = builder.model.xAxis
+            axis.tickFormatMaxMin(d3.format(',.2f'))
+            builder.model.update()
+            minAxisText = builder.$('.nv-axisMaxMin.nv-axisMaxMin-x.nv-axisMin-x text')[0].textContent
+
+            minAxisText.should.equal('-1.00')
