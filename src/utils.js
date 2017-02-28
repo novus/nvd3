@@ -36,6 +36,25 @@ nv.utils.windowSize = function() {
     return (size);
 };
 
+
+/* handle dumb browser quirks...  isinstance breaks if you use frames
+typeof returns 'object' for null, NaN is a number, etc.
+ */
+nv.utils.isArray = Array.isArray;
+nv.utils.isObject = function(a) {
+    return a !== null && typeof a === 'object';
+};
+nv.utils.isFunction = function(a) {
+    return typeof a === 'function';
+};
+nv.utils.isDate = function(a) {
+    return toString.call(a) === '[object Date]';
+};
+nv.utils.isNumber = function(a) {
+    return !isNaN(a) && typeof a === 'number';
+};
+
+
 /*
 Binds callback function to run when window is resized
  */
@@ -67,8 +86,7 @@ nv.utils.getColor = function(color) {
         return nv.utils.defaultColor();
 
     //if passed an array, turn it into a color scale
-    // use isArray, instanceof fails if d3 range is created in an iframe
-    } else if(Array.isArray(color)) {
+    } else if(nv.utils.isArray(color)) {
         var color_scale = d3.scale.ordinal().range(color);
         return function(d, i) {
             var key = i === undefined ? d : i;
@@ -108,7 +126,7 @@ nv.utils.customTheme = function(dictionary, getKey, defaultColors) {
 
     return function(series, index) {
         var key = getKey(series);
-        if (typeof dictionary[key] === 'function') {
+        if (nv.utils.isFunction(dictionary[key])) {
             return dictionary[key]();
         } else if (dictionary[key] !== undefined) {
             return dictionary[key];
@@ -162,12 +180,10 @@ Most common instance is when the element is in a display:none; container.
 Forumla is : text.length * font-size * constant_factor
 */
 nv.utils.calcApproxTextWidth = function (svgTextElem) {
-    if (typeof svgTextElem.style === 'function'
-        && typeof svgTextElem.text === 'function') {
-
+    if (nv.utils.isFunction(svgTextElem.style) && nv.utils.isFunction(svgTextElem.text)) {
         var fontSize = parseInt(svgTextElem.style("font-size").replace("px",""), 10);
         var textLength = svgTextElem.text().length;
-        return textLength * fontSize * 0.5;
+        return nv.utils.NaNtoZero(textLength * fontSize * 0.5);
     }
     return 0;
 };
@@ -177,7 +193,7 @@ nv.utils.calcApproxTextWidth = function (svgTextElem) {
 Numbers that are undefined, null or NaN, convert them to zeros.
 */
 nv.utils.NaNtoZero = function(n) {
-    if (typeof n !== 'number'
+    if (!nv.utils.isNumber(n)
         || isNaN(n)
         || n === null
         || n === Infinity
@@ -295,9 +311,9 @@ nv.utils.deepExtend = function(dst){
     var sources = arguments.length > 1 ? [].slice.call(arguments, 1) : [];
     sources.forEach(function(source) {
         for (var key in source) {
-            var isArray = dst[key] instanceof Array;
-            var isObject = typeof dst[key] === 'object';
-            var srcObj = typeof source[key] === 'object';
+            var isArray = nv.utils.isArray(dst[key]);
+            var isObject = nv.utils.isObject(dst[key]);
+            var srcObj = nv.utils.isObject(source[key]);
 
             if (isObject && !isArray && srcObj) {
                 nv.utils.deepExtend(dst[key], source[key]);
@@ -396,7 +412,7 @@ chart.options = nv.utils.optionsFunc.bind(chart);
 nv.utils.optionsFunc = function(args) {
     if (args) {
         d3.map(args).forEach((function(key,value) {
-            if (typeof this[key] === "function") {
+            if (nv.utils.isFunction(this[key])) {
                 this[key](value);
             }
         }).bind(this));
@@ -495,6 +511,8 @@ Also use _d3options so we can track what we inherit for documentation and chaine
 */
 nv.utils.inheritOptionsD3 = function(target, d3_source, oplist) {
     target._d3options = oplist.concat(target._d3options || []);
+    // Find unique d3 options (string) and update d3options
+    target._d3options = (target._d3options || []).filter(function(item, i, ar){ return ar.indexOf(item) === i; });
     oplist.unshift(d3_source);
     oplist.unshift(target);
     d3.rebind.apply(this, oplist);
@@ -598,14 +616,14 @@ nv.utils.sanitizeWidth = function(width, container) {
 Calculate the available height for a chart.
 */
 nv.utils.availableHeight = function(height, container, margin) {
-    return nv.utils.sanitizeHeight(height, container) - margin.top - margin.bottom;
+    return Math.max(0,nv.utils.sanitizeHeight(height, container) - margin.top - margin.bottom);
 };
 
 /*
 Calculate the available width for a chart.
 */
 nv.utils.availableWidth = function(width, container, margin) {
-    return nv.utils.sanitizeWidth(width, container) - margin.left - margin.right;
+    return Math.max(0,nv.utils.sanitizeWidth(width, container) - margin.left - margin.right);
 };
 
 /*
@@ -636,3 +654,80 @@ nv.utils.noData = function(chart, container) {
         .attr('y', y)
         .text(function(t){ return t; });
 };
+
+/*
+ Wrap long labels.
+ */
+nv.utils.wrapTicks = function (text, width) {
+    text.each(function() {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1,
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+        while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+            }
+        }
+    });
+};
+
+/*
+Check equality of 2 array
+*/
+nv.utils.arrayEquals = function (array1, array2) {
+    if (array1 === array2)
+        return true;
+
+    if (!array1 || !array2)
+        return false;
+
+    // compare lengths - can save a lot of time
+    if (array1.length != array2.length)
+        return false;
+
+    for (var i = 0,
+        l = array1.length; i < l; i++) {
+        // Check if we have nested arrays
+        if (array1[i] instanceof Array && array2[i] instanceof Array) {
+            // recurse into the nested arrays
+            if (!nv.arrayEquals(array1[i], array2[i]))
+                return false;
+        } else if (array1[i] != array2[i]) {
+            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+            return false;
+        }
+    }
+    return true;
+};
+
+/*
+ Check if a point within an arc
+ */
+nv.utils.pointIsInArc = function(pt, ptData, d3Arc) {
+    // Center of the arc is assumed to be 0,0
+    // (pt.x, pt.y) are assumed to be relative to the center
+    var r1 = d3Arc.innerRadius()(ptData), // Note: Using the innerRadius
+      r2 = d3Arc.outerRadius()(ptData),
+      theta1 = d3Arc.startAngle()(ptData),
+      theta2 = d3Arc.endAngle()(ptData);
+
+    var dist = pt.x * pt.x + pt.y * pt.y,
+      angle = Math.atan2(pt.x, -pt.y); // Note: different coordinate system.
+
+    angle = (angle < 0) ? (angle + Math.PI * 2) : angle;
+
+    return (r1 * r1 <= dist) && (dist <= r2 * r2) &&
+      (theta1 <= angle) && (angle <= theta2);
+};
+

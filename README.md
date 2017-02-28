@@ -18,7 +18,7 @@ Simply add the `nv.d3` assets to your project and include them in your HTML.
 
 ### Dependencies
 
-NVD3 should work with the latest [d3.js](http://d3js.org/) version 3.5.3 and later.
+NVD3 is recommended to go with [d3.js](http://d3js.org/) version 3.5.3 and later, but NOT d3 4.x yet.
 
 **Minimum D3 version required: 3.4.4**
 
@@ -34,7 +34,29 @@ NVD3 runs best on WebKit based browsers.
 * Firefox: latest version
 * Internet Explorer: 10+
 
+## Do we support D3 v4.x?
+
+No, we do not...  we are very interested in taking this on but could use some help.  Please let us know if you'd like to help make this a reality!  :)
+
 ## Changelog
+
+**1.8.5** Changes:
+
+* Community bugfixes
+* New force-directed graph
+
+**1.8.4** Changes:
+
+* Community bugfixes including tooltip fixes.
+
+**1.8.3** Changes:
+
+* Lots of community bugfixes
+* Added force-directed chart
+
+**1.8.2** Changes:
+
+* Lots of community bugfixes and a few extra minor features
 
 **1.8.1** Changes:
 
@@ -125,6 +147,11 @@ only include the source files you changed!
 * Run `grunt` to start the unit tests.
 * Also visually inspect the HTML pages in the **examples/ and test/ folders**.  Make sure there are no glaring errors.
 * Novus now uses Travis CI for continuous integration. Visit [our travis build page](https://travis-ci.org/novus/nvd3/) to see the latest status.
+
+#### Meteor Tinytests
+* Any Meteor-specific features can be tested from the command line using `tinytest` and [Spacejam](https://www.npmjs.com/package/spacejam)
+* `spacejam` can be installed by running `npm install -g spacejam`.
+* Tinytests can then be executed by running `spacejam test-packages ./` from this project's root.
 
 ---
 

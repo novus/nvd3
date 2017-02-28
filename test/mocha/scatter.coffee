@@ -34,7 +34,6 @@ describe 'NVD3', ->
             x: (d)-> d[0]
             y: (d)-> d[1]
             margin:
-                top: 30
                 right: 20
                 bottom: 50
                 left: 75
@@ -47,10 +46,6 @@ describe 'NVD3', ->
             showXAxis: true
             showYAxis: true
             rightAlignYAxis: false
-            tooltips: true
-            tooltipContent: (d)-> "<h3>#{d}</h3>"
-            tooltipXContent: (d)-> 'x content'
-            tooltipYContent: (d)-> 'y content'
             noData: 'No Data Available'
             duration: 0
 
@@ -100,26 +95,6 @@ describe 'NVD3', ->
         it 'has a legend', ->
             legend = builder.$ '.nv-legendWrap'
             should.exist legend, 'legend exists'
-
-        it 'can show a tooltip', ->
-            eventData =
-                point:
-                    series: 0
-                    x: -1
-                    y: 1
-                pointIndex: 0
-                pos: [
-                    210
-                    119
-                ]
-                series:
-                    key: 'Series 1'
-                seriesIndex: 0
-
-            builder.model.scatter.dispatch.elementMouseover eventData
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.exist tooltip
 
         it 'shows no data message', ->
             builder.teardown()

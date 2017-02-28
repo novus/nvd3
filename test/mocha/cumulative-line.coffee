@@ -36,7 +36,6 @@ describe 'NVD3', ->
             x: (d)-> d[0]
             y: (d)-> d[1]
             margin:
-                top: 10
                 right: 20
                 bottom: 30
                 left: 40
@@ -46,8 +45,6 @@ describe 'NVD3', ->
             showYAxis: true
             rightAlignYAxis: false
             useInteractiveGuideline: true
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             average: (d)-> d.average
             duration: 0
@@ -82,7 +79,7 @@ describe 'NVD3', ->
         it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.cumulativeLineChart()
             builder.buildover options, sampleData1, []
-            
+
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 
@@ -197,22 +194,6 @@ describe 'NVD3', ->
               builder.$(".nv-cumulativeLine .nv-interactiveLineLayer").should.have.length 0
 
           # todo: pass this
-          describe 'tooltips', ->
-            xit "true", ->
-              options.tooltips = true
-              builder.build options, sampleData
-              builder.model.interactiveLayer.dispatch.elementMousemove eventTooltipData
-              tooltip = document.querySelector '.nvtooltip'
-              should.exist tooltip
-
-            xit "false", ->
-              options.tooltips = false
-              builder.build options, sampleData
-              builder.model.interactiveLayer.dispatch.elementMousemove eventTooltipData
-              tooltip = document.querySelector '.nvtooltip'
-              should.not.exist tooltip
-
-          # todo: pass this
           describe "noErrorCheck", ->
             xit "true", ->
               options.noErrorCheck = true
@@ -220,11 +201,6 @@ describe 'NVD3', ->
             xit "false", ->
               options.noErrorCheck = false
               builder.build options, sampleData
-            xit "tooltipContent", ->
-              options.tooltipContent = (key,x,y)-> "<h2>#{key}</h2>"
-              builder.build options, sampleData
-              # show a tooltip
-              expect(builder.$(".nv-cumulativeLine .nv-tooltip")).to.contain "<h2>#{sampleData1[0].key}</h2>"
 
           it "noData", ->
             options.noData = "error error"

@@ -1,18 +1,6 @@
 describe 'NVD3', ->
 
     describe 'Bullet Chart', ->
-        removeAllTooltips = ->
-            elements = document.getElementsByClassName('nvtooltip')
-            while(elements[0])
-              elements[0].parentNode.removeChild(elements[0])
-
-        eventTooltipData =
-          point: {series: 0, x: -1, y: 1}
-          pointIndex: 0
-          pos: [210, 119]
-          series: {key: 'Series 1'}
-          seriesIndex: 0
-
         sampleData1 =
             title: 'Revenue'
             subtitle: 'US$ in thousands'
@@ -34,8 +22,6 @@ describe 'NVD3', ->
             width: 100
             height: 110
             tickFormat: (d)-> d.toFixed 2
-            tooltips: true
-            tooltipContent: (evt)-> "<h3>test</h3>"
             noData: 'No Data Available'
 
         builder1 = null
@@ -80,15 +66,36 @@ describe 'NVD3', ->
             do (cssClass) ->
               should.exist builder1.$("g.nvd3 #{cssClass}")[0]
 
-        it 'can show tooltip', ->
+        describe "no markers", ->
+          builder = null
+          sampleData = null
 
-          removeAllTooltips()
+          beforeEach ->
+            builder = new ChartBuilder nv.models.bulletChart()
+            noMarkerOptions =
+              margin:
+                top: 0
+                right: 0
+                bottom: 0
+                left: 0
+              width: 300
+            sampleData =
+              title: 'Revenue'
+              subtitle: 'US$ in thousands'
+              ranges: [10,20,30]
+              measures: [40]
+              markers: []
+            builder.build noMarkerOptions, sampleData
+          afterEach ->
+            builder.teardown()
 
-          builder1.model.bullet.dispatch.elementMouseover eventTooltipData
+          it "does not show marker if no marker provided", ->
+            markers = builder.$ '.nv-markerTriangle'
+            markers.length.should.equal 0
 
-          tooltip = document.querySelector '.nvtooltip'
-          should.exist tooltip
-
+          it "renders xAxis if empty markers", ->
+            ticks = builder.$ '.nv-tick'
+            ticks.length.should.equal 5
 
         describe "applies correctly option", ->
 
@@ -121,7 +128,9 @@ describe 'NVD3', ->
               for tick, i in ticks
                 offsetPrevious = offsetCurrent
                 offsetCurrent = parseInt ticks[i].getAttribute('transform').match(pattern)[1]
-                expect(offsetPrevious).to.be.below(offsetCurrent) if i > 0
+                window.setTimeout ->
+                    expect(offsetPrevious).to.be.below(offsetCurrent) if i > 0
+                , 1500
 
             it 'right', ->
               options =
@@ -136,7 +145,9 @@ describe 'NVD3', ->
               for tick, i in ticks
                 offsetPrevious = offsetCurrent
                 offsetCurrent = parseInt ticks[i].getAttribute('transform').match(pattern)[1]
-                expect(offsetPrevious).to.be.above(offsetCurrent) if i > 0
+                window.setTimeout ->
+                    expect(offsetPrevious).to.be.above(offsetCurrent) if i > 0
+                , 1500
 
           it "noData", ->
             options =
@@ -148,7 +159,7 @@ describe 'NVD3', ->
           it 'clears chart objects for no data', ->
             builder = new ChartBuilder nv.models.bulletChart()
             builder.buildover options, sampleData, []
-            
+
             groups = builder.$ 'g'
             groups.length.should.equal 0, 'removes chart components'
 
@@ -191,29 +202,3 @@ describe 'NVD3', ->
             builder.build options, sampleData
             parseInt( builder.$(".nv-rangeMax")[0].getAttribute('height') ).should.be.equal 300
 
-          it 'tooltips', ->
-
-            removeAllTooltips()
-
-            options =
-              tooltips: false
-
-            builder.build options, sampleData
-
-            builder.model.bullet.dispatch.elementMouseover eventTooltipData
-
-            tooltip = document.querySelector '.nvtooltip'
-            should.not.exist tooltip
-
-          it 'tooltipContent', ->
-
-            removeAllTooltips()
-
-            options =
-              tooltipContent: (evt)-> "<h2>test</h2>"
-            builder.build options, sampleData
-
-            builder.model.bullet.dispatch.elementMouseover eventTooltipData
-
-            tooltip = document.querySelectorAll '.nvtooltip'
-            expect(tooltip[0].innerHTML).to.contain "<h2>test</h2>"

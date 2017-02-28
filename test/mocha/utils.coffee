@@ -172,8 +172,6 @@ describe 'NVD3', ->
             showYAxis: true
             rightAlignYAxis: true
             useInteractiveGuideline: true
-            tooltips: true
-            tooltipContent: (key,x,y)-> "<h3>#{key}</h3>"
             noData: 'No Data Available'
             duration: 0
             clipEdge: false
