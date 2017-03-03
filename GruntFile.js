@@ -7,6 +7,21 @@ module.exports = function(grunt) {
     //Project configuration.
     grunt.initConfig({
         pkg: _pkg,
+        babel: {
+          options: {
+            sourceMap: true,
+            presets: ['env']
+          },
+          dist: {
+            files: [{
+              expand: true,
+              cwd: 'src',
+              src: ['**/*.js'],
+              dest: 'transpiled',
+              ext:'.js'
+            }]
+          }
+        },
         concat: {
             css: {
                 options: {
@@ -30,14 +45,14 @@ module.exports = function(grunt) {
                     sourceMapStyle: 'embed'
                 },
                 src: [
-                    'src/core.js',
-                    'src/dom.js',
-                    'src/interactiveLayer.js',
-                    'src/tooltip.js',
-                    'src/utils.js',
-                    //Include all files in src/models
-                    'src/models/*.js'
-                    // example to exclude files: '!src/models/excludeMe*'
+                    'transpiled/core.js',
+                    'transpiled/dom.js',
+                    'transpiled/interactiveLayer.js',
+                    'transpiled/tooltip.js',
+                    'transpiled/utils.js',
+                    //Include all files in transpiled/models
+                    'transpiled/models/*.js'
+                    // example to exclude files: '!transpiled/models/excludeMe*'
                 ],
                 dest: 'build/nv.d3.js'
             }
@@ -161,9 +176,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-text-replace');
+    grunt.loadNpmTasks('grunt-babel');
 
-    grunt.registerTask('default', ['concat', 'copy', 'postcss', 'karma:unit']);
-    grunt.registerTask('production', ['concat', 'uglify', 'copy', 'postcss', 'cssmin', 'replace']);
+    grunt.registerTask('default', ['babel:dist', 'concat', 'copy', 'postcss', 'karma:unit']);
+    grunt.registerTask('production', ['babel:dist', 'concat', 'uglify', 'copy', 'postcss', 'cssmin', 'replace']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
 };
