@@ -182,7 +182,7 @@ nv.models.lineChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-            //Set up interactive layer
+            // Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
                     .width(availableWidth)
