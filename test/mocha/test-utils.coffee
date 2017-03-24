@@ -20,7 +20,6 @@ class ChartBuilder
                 console.warn "#{opt} not property of model."
             else
                 @model[opt](val)
-
         @updateData data
 
     ###
@@ -53,9 +52,8 @@ class ChartBuilder
             .call(@model)
 
         #Reset the data
-        chart.datum(data2)
+        return chart.datum(data2)
             .call(@model)
-
 
 
     # Removes chart from <body> element.
@@ -66,3 +64,6 @@ class ChartBuilder
     # Runs a simple CSS selector to retrieve elements
     $: (cssSelector)->
         @svg.querySelectorAll cssSelector
+
+if (typeof require != 'undefined')
+  module.exports = ChartBuilder

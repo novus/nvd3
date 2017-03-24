@@ -115,40 +115,16 @@ module.exports = function(grunt) {
                 }
             }
         },
+        stryker: {
+           options: {
+               configFile: 'stryker.conf.js'
+           },
+           mutationTest: { /* Can be empty */ }
+        },
         karma: {
-            unit: {
-                options: {
-                    logLevel: 'ERROR',
-                    browsers: ['Firefox'],
-                    frameworks: [ 'mocha', 'sinon-chai' ],
-                    reporters: [ 'spec', 'junit', 'coverage'],
-                    singleRun: true,
-                    preprocessors: {
-                        'src/*.js': ['coverage'],
-                        'src/models/*.js': ['coverage'],
-                        'test/mocha/*.coffee': ['coffee']
-                    },
-                    files: [
-                        'bower_components/d3/d3.js',
-                        'src/*.js',
-                        'src/models/*.js',
-                        'test/mocha/*.coffee'
-                    ],
-                    exclude: [
-                        'src/intro.js',
-                        'src/outro.js',
-                        //Files we don't want to test.
-                        'src/models/lineWith*',
-                        'src/models/parallelCoordinates*',
-                        'src/models/multiBarTime*',
-                        'src/models/indented*',
-                        'src/models/linePlus*',
-                        'src/models/ohlcBar.js',
-                        'src/models/candlestickBar.js',
-                        'src/models/multiChart.js'
-                    ]
-                }
-            }
+          unit: {
+            configFile: 'karma.conf.js'
+          }
         }
     });
 
@@ -161,6 +137,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-text-replace');
+    grunt.loadNpmTasks('grunt-stryker');
 
     grunt.registerTask('default', ['concat', 'copy', 'postcss', 'karma:unit']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'postcss', 'cssmin', 'replace']);
