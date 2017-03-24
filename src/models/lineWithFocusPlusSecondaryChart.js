@@ -173,13 +173,22 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
       }
 
       function processData(data) {
-        const dataSecondary = data.filter((d) => {
-          return !d.disabled && d.secondary;
-        });
-
-        const dataPrimary = data.filter((d) => {
-          return !d.secondary && !d.disabled;
-        });
+        const dataSecondaryWithDisabled = data
+          .filter((d) => d.secondary)
+          .map((dataset, i) => {
+            dataset.color = dataset.color || color(dataset, i);
+            return dataset;
+          });
+        const dataSecondary = dataSecondaryWithDisabled.filter(
+          (d) => !d.disabled
+        );
+        const dataPrimaryWithDisabled = data
+          .filter((d) => !d.secondary)
+          .map((dataset, i) => {
+            dataset.color = dataset.color || color(dataset, i);
+            return dataset;
+          });
+        const dataPrimary = dataPrimaryWithDisabled.filter((d) => !d.disabled);
 
         const seriesPrimary = dataPrimary.map((d) => {
           return d.values.map((d, i) => {
