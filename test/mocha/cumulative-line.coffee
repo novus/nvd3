@@ -3,7 +3,7 @@ describe 'NVD3', ->
         sampleData1 = [
             key: 'Series 1'
             values: [
-                [-1,-1]
+                [0.000001, 0.000001]
                 [0,0]
                 [1,1]
                 [2,2]
