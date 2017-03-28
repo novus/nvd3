@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script src="lib/stream_layers.js"></script>
+
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+        html, body, #chart, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<button id="changeChartType">Change secondary chart type</button>
+<div id="chart" class='with-3d-shadow with-transitions'>
+  <svg></svg>
+</div>
+
+<script>
+    let showBars = false, chart;
+    const colorScale = d3.scale.category10();
+
+    nv.addGraph(function() {
+      chart = nv.models.lineWithFocusPlusSecondaryChart();
+
+      const data = testData(colorScale);
+
+      chart
+        .brushExtent([50,70])
+        .showLegend(true)
+        .height(900)
+        .focusHeight(80)
+
+      chart.y1Axis.tickFormat(d3.format(',.2f'));
+      chart.y2Axis.tickFormat(d3.format(',.2f'));
+
+      d3.select('#chart svg')
+          .datum(data)
+          .call(chart);
+
+      nv.utils.windowResize(chart.update);
+
+      return chart;
+    });
+
+    d3.select('#changeChartType').on('click', () => {
+      showBars = !showBars;
+      numSecondarySeries = 0;
+      const newData = showBars ? testDataWithBar() : testData(colorScale);
+      d3.select('#chart svg')
+          .datum(newData);
+      chart.update();
+    });
+
+    function testDataWithBar() {
+      return testData(colorScale).map((data, i) => {
+        return Object.assign({}, data, {
+          chart_type: (i === 0) ? 'scatter' : ''
+        });
+      });
+    }
+
+    function testData(colorScale) {
+      return stream_layers(3,128,.1).map(function(data, i) {
+        return {
+          key: 'Stream' + i,
+          color: colorScale(+(i * Math.random())),
+          values: data.map((datum, i) => {
+            return Object.assign({}, datum, {
+              y: +datum.y.toFixed(2)
+            });
+          }),
+          secondary: shouldBeSecondary(),
+          chart_type: 'line'
+        };
+      });
+    }
+
+    let numSecondarySeries = 0;
+    function shouldBeSecondary() {
+      const shouldBeSecondary = Math.random() > .5;
+      if (numSecondarySeries === 0 || (shouldBeSecondary && numSecondarySeries < 2)) {
+        numSecondarySeries++;
+        return true;
+      }
+      return false;
+    }
+
+</script>
+</body>
+</html>

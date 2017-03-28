@@ -67,13 +67,6 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
       const container = d3.select(this);
       nv.utils.initSVG(container);
       const availableWidth = nv.utils.availableWidth(width, container, margin);
-      let availableHeight1 = nv.utils.availableHeight(
-        height,
-        container,
-        margin
-      ) -
-        (focusEnable ? focusHeight : 0) -
-        (secondaryChartHeight + marginSecondary.top + marginSecondary.bottom);
 
       chart.container = this;
 
@@ -89,11 +82,21 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
         dataSecondary
       } = processData(container.datum());
 
+      let availableHeight1 = nv.utils.availableHeight(
+        height,
+        container,
+        margin
+      ) -
+        (focusEnable ? focusHeight : 0) -
+        (seriesSecondary.length
+          ? secondaryChartHeight + marginSecondary.top + marginSecondary.bottom
+          : 0);
+
       setupScales(seriesPrimary, seriesSecondary);
-      setupContainers(container, container.datum());
+      setupContainers(container, container.datum(), seriesSecondary);
       renderCharts(dataPrimary, dataSecondary);
       setupAxes(seriesPrimary, seriesSecondary, dataPrimary, dataSecondary);
-      setUpBrush(dataPrimary);
+      setUpBrush(dataPrimary, seriesSecondary);
       addEventListeners();
 
       /*
@@ -222,8 +225,8 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
             .width(availableWidth)
             .height(secondaryChartHeight)
             .color(
-              dataSecondary.map((d, i) => {
-                return d.color || color(d, i);
+              dataSecondary.map((d) => {
+                return d.color;
               })
             );
 
@@ -235,21 +238,11 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
             .call(secondaryChart);
         } else {
           g.selectAll('.nv-secondary *').remove();
-          secondaryChart.options().noData = () => noData;
-          nv.utils.noData(secondaryChart, g.select('.nv-secondary'));
         }
 
-        lines.width(availableWidth).height(availableHeight1).color(
-          dataPrimary.map((d, i) => {
-            return d.color || color(d, i);
-          })
-        );
+        lines.width(availableWidth).height(availableHeight1);
 
-        viewFinder.height(focusHeight).width(availableWidth).color(
-          dataPrimary.map((d, i) => {
-            return d.color || color(d, i);
-          })
-        );
+        viewFinder.height(focusHeight).width(availableWidth);
 
         // Update Main (Focus) Bars and Lines
         g
@@ -260,7 +253,7 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
           .call(lines);
       }
 
-      function setupContainers(container, data) {
+      function setupContainers(container, data, seriesSecondary) {
         const wrap = container.selectAll('g').data([data]);
 
         wrap.exit().remove();
@@ -295,18 +288,14 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
           .attr('class', 'nv-secondaryChartWrap');
 
         // this is the main chart
+        const primaryChartY = seriesSecondary.length
+          ? secondaryChartHeight + marginSecondary.top + marginSecondary.bottom
+          : 0;
         const primaryChart = gEnter.append('g').attr('class', 'nv-primary');
         primaryChart.append('g').attr('class', 'nv-y2 nv-y nv-axis');
         primaryChart.append('g').attr('class', 'nv-x nv-axis');
         primaryChart.append('g').attr('class', 'nv-linesWrap');
-        primaryChart.attr(
-          'transform',
-          'translate(0, ' +
-            (secondaryChartHeight +
-              marginSecondary.top +
-              marginSecondary.bottom) +
-            ')'
-        );
+        primaryChart.attr('transform', 'translate(0, ' + primaryChartY + ')');
 
         primaryChart.append('g').attr('class', 'nv-interactive');
         // This adds a nice semi-transparent layer between main and secondary chart
@@ -365,11 +354,11 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
         if (!showLegend) {
           g.select('.nv-legendWrap').selectAll('*').remove();
         } else {
-          renderLegend(data);
+          renderLegend(data, seriesSecondary);
         }
       }
 
-      function setUpBrush(dataPrimary) {
+      function setUpBrush(dataPrimary, seriesSecondary) {
         if (!focusEnable) {
           g.selectAll('.nv-context *').remove();
           return;
@@ -381,20 +370,18 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
         viewFinder.xAxis.rotateLabels(0);
         viewFinder.brushExtent(brushExtent);
 
+        const viewFinderY = availableHeight1 +
+          margin.bottom +
+          focusMargin.top +
+          (seriesSecondary.length
+            ? secondaryChartHeight +
+                marginSecondary.top +
+                marginSecondary.bottom
+            : 0);
         container
           .select('.nv-context')
           .style('display', 'initial')
-          .attr(
-            'transform',
-            'translate(0,' +
-              (availableHeight1 +
-                margin.bottom +
-                focusMargin.top +
-                (secondaryChartHeight +
-                  marginSecondary.top +
-                  marginSecondary.bottom)) +
-              ')'
-          )
+          .attr('transform', 'translate(0,' + viewFinderY + ')')
           .datum(dataPrimary)
           .call(viewFinder);
 
@@ -499,7 +486,7 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
           .range([0, availableWidth]);
       }
 
-      function renderLegend(data) {
+      function renderLegend(data, seriesSecondary) {
         const legendWidth = availableWidth / 2;
         const legendXPosition = legend.align() ? legendWidth : 0;
 
@@ -513,38 +500,40 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
           .datum(data.filter((series) => !series.secondary))
           .call(legend);
 
-        g
-          .select('.nv-legendWrap.secondary')
-          .datum(data.filter((series) => series.secondary))
-          .call(legendSecondary);
+        if (seriesSecondary.length) {
+          g
+            .select('.nv-legendWrap.secondary')
+            .datum(dataSecondary)
+            .call(legendSecondary);
 
-        g
-          .select('.nv-legendWrap.secondary')
-          .attr(
-            'transform',
-            'translate(' +
-              legendXPosition +
-              ',' +
-              -1 *
-                (margin.top +
-                  marginSecondary.bottom +
-                  marginSecondary.top +
-                  secondaryChartHeight) +
-              ')'
-          );
+          g
+            .select('.nv-legendWrap.secondary')
+            .attr(
+              'transform',
+              'translate(' +
+                legendXPosition +
+                ',' +
+                -1 *
+                  (margin.top +
+                    marginSecondary.bottom +
+                    marginSecondary.top +
+                    secondaryChartHeight) +
+                ')'
+            );
+        }
+
+        const primaryLegendY = seriesSecondary.length
+          ? secondaryChartHeight +
+              marginSecondary.top +
+              marginSecondary.bottom -
+              margin.top
+          : -margin.top;
 
         g
           .select('.nv-legendWrap.primary')
           .attr(
             'transform',
-            'translate(' +
-              legendXPosition +
-              ',' +
-              (-margin.top +
-                secondaryChartHeight +
-                marginSecondary.top +
-                marginSecondary.bottom) +
-              ')'
+            'translate(' + legendXPosition + ',' + primaryLegendY + ')'
           );
       }
 
@@ -576,11 +565,6 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
           secondaryChart = nv.models[secondaryChartType]();
           secondaryChart.x(getX);
           secondaryChart.y(getY);
-          secondaryChart.color(
-            dataSecondary.map((d, i) => {
-              return d.color || color(d, i);
-            })
-          );
 
           addSecondaryChartEventListeners(dataSecondary);
         }
@@ -743,6 +727,9 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
   chart.tooltip = tooltip;
   chart.state = state;
   chart.focus = viewFinder;
+  chart.update = () => {
+    d3.select(chart.container).call(chart);
+  };
 
   chart.options = nv.utils.optionsFunc.bind(chart);
 

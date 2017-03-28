@@ -108,6 +108,11 @@ describe('NVD3', () =>
         builder.$('.nv-noData').length.should.equal(1);
       });
 
+      it('has an update function even if data is null', () => {
+        builder.updateData(null);
+        (typeof builder.model.update).should.equal('function');
+      });
+
       it('clears chart components if chart has no values', () => {
         const dataWithNoValues = testData().map((dataset) => {
           dataset.values = [];
@@ -128,7 +133,7 @@ describe('NVD3', () =>
       });
 
       describe('given that there is no secondary data', () => {
-        it('clears secondary chart for empty data', () => {
+        beforeEach(() => {
           const dataWithNoSecondaryData = testData().map((dataset) => {
             if (dataset.secondary) {
               dataset.disabled = true;
@@ -136,10 +141,27 @@ describe('NVD3', () =>
             return dataset;
           });
           builder.updateData(dataWithNoSecondaryData);
+        });
 
+        it('clears secondary chart for empty data', () => {
           let groups = builder.$('.nv-secondary .nv-y1');
           groups.length.should.equal(0, 'removes secondary chart');
-          builder.$('.nv-secondary .nv-noData').length.should.equal(1);
+        });
+
+        it('should not show no data for secondary chart if empty data', () => {
+          builder.$('.nv-secondary .nv-noData').length.should.equal(0);
+        });
+
+        it('should increase the height of the primary chart to compensate', () => {
+          builder.$('.nv-primary')[0].getAttribute('transform').should.equal('translate(0, 0)');
+          builder.$('.nv-primary .nv-axis.nv-x')[0].getAttribute('transform').should.equal('translate(0,280)');
+          const availableWidth = nv.utils.availableWidth(
+            builder.model.width(),
+            d3.select(builder.model.container),
+            builder.model.margin()
+          );
+          const expectedX = availableWidth / 2;
+          builder.$('.nv-legendWrap.primary')[0].getAttribute('transform').should.equal(`translate(${expectedX},-30)`);
         });
       });
     });
