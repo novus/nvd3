@@ -107,7 +107,7 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
         legend.dispatch.on('stateChange', (newState) => {
           const dataPrimary = data.filter((dataset) => !dataset.secondary);
 
-          for (let key in newState) {
+          Object.keys(newState).forEach((key) => {
             // remap state using series key instead of series index because
             // the series index is just for the primary data but full dataset
             // includes secondary data
@@ -120,7 +120,7 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
               {}
             );
             state[key] = remappedState;
-          }
+          });
 
           dispatch.stateChange(state);
           chart.update();
@@ -129,7 +129,7 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
         legendSecondary.dispatch.on('stateChange', (newState) => {
           const dataSecondary = data.filter((dataset) => dataset.secondary);
 
-          for (let key in newState) {
+          Object.keys(newState).forEach((key) => {
             // remap state using series key instead of series index because
             // the series index is just for the secondary data but full dataset
             // includes primary data
@@ -142,7 +142,7 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
               {}
             );
             state[key] = remappedState;
-          }
+          });
           dispatch.stateChange(state);
           chart.update();
         });
@@ -428,6 +428,11 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
             Math.ceil(currentExtent[0]),
             Math.floor(currentExtent[1])
           ]);
+
+          secondaryChart.xDomain([
+            Math.ceil(currentExtent[0]),
+            Math.floor(currentExtent[1])
+          ]);
         }
 
         g
@@ -547,7 +552,6 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
         const {
           dataSecondary,
           dataPrimary,
-          seriesPrimary,
           seriesSecondary
         } = processData(container.datum());
 
@@ -572,13 +576,10 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
           updateChartData(
             brushExtent,
             dataPrimary,
-            dataSecondary,
-            seriesPrimary,
-            seriesSecondary
+            dataSecondary
           );
         }
         container.call(chart);
-        onBrush();
       };
 
       /**
@@ -606,9 +607,7 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
         updateChartData(
           extent,
           dataPrimary,
-          dataSecondary,
-          seriesPrimary,
-          seriesSecondary
+          dataSecondary
         );
       }
 
@@ -682,25 +681,12 @@ nv.models.lineWithFocusPlusSecondaryChart = function() {
 
   function addSecondaryChartEventListeners() {
     secondaryChart.dispatch.on('elementMouseover.tooltip', (evt) => {
-      const secondaryDataSet = d3
-        .select(chart.container)
-        .data()[0]
-        .filter((dataset) => dataset.secondary)[0];
-
-      const tooltipEvent = Object.assign({}, evt);
-      tooltipEvent.value = chart.x()(tooltipEvent.data || tooltipEvent.point);
-      tooltipEvent['series'] = {
-        value: chart.y()(tooltipEvent.data || tooltipEvent.point),
-        color: tooltipEvent.color,
-        key: secondaryDataSet.key
-      };
-
       tooltip
         .duration(0)
         .valueFormatter((d, i) => {
           return y1Axis.tickFormat()(d, i);
         })
-        .data(tooltipEvent)
+        .data(evt)
         .hidden(false);
     });
 

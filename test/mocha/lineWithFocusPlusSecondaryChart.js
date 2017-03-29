@@ -256,6 +256,26 @@ describe('NVD3', () =>
       });
     });
 
+    describe('has a default update function even if no data supplied', () => {
+      let testBuilder;
+
+      beforeEach(() => {
+        testBuilder = new ChartFactory(nv.models.lineWithFocusPlusSecondaryChart());
+        testBuilder.build(options, null);
+      });
+
+      it('which should be defined', () => {
+        (typeof testBuilder.model.update).should.equal('function');
+      });
+
+      it('which should call the chart if invoked', () => {
+        testBuilder.$('.nv-noData')[0].remove();
+        testBuilder.$('.nv-noData').length.should.equal(0);
+        testBuilder.model.update();
+        testBuilder.$('.nv-noData').length.should.equal(1);
+      });
+    });
+
     it('can override axis ticks', () => {
       builder.model.primaryXAxis.ticks(34);
       builder.model.y1Axis.ticks(56);
@@ -443,35 +463,25 @@ describe('NVD3', () =>
         });
       });
 
+      describe('when brush extent is changed', () => {
+        it('should update the xDomain of the secondary chart', () => {
+          builder.model.focus.brushExtent([1,300]).update();
+          builder.model.secondaryChart.xDomain().should.deep.equal([1,300]);
+        });
+      });
+
       describe('secondary chart value formatter', () => {
         it('should use the tickFormat of the secondary chart y axis', () => {
           const fakeFormatter = sandbox.stub().returns('BLAH!');
           builder.model.y1Axis.tickFormat(fakeFormatter);
 
           builder.model.secondaryChart.dispatch['elementMouseover']({
-            data: 'blah'
+            data: 'blah',
+            point: {
+              x: 1
+            }
           });
           fakeFormatter.callCount.should.equal(1);
-        });
-
-        it('should work if event payload has point instead of data', () => {
-          const fakeFormatter = sandbox.stub().returns('BLAH!');
-          builder.model.y1Axis.tickFormat(fakeFormatter);
-          builder.model.x((d) => d);
-          builder.model.y((d) => d);
-          const tooltipDataSpy = sandbox
-            .stub(builder.model.tooltip, 'data')
-            .returns({
-              hidden: sandbox.stub()
-            });
-
-          builder.model.secondaryChart.dispatch['elementMouseover']({
-            point: 'blah',
-            color: '#345ccc'
-          });
-          tooltipDataSpy.args[0][0].value.should.equal('blah');
-          tooltipDataSpy.args[0][0].series.value.should.equal('blah');
-          tooltipDataSpy.args[0][0].series.color.should.equal('#345ccc');
         });
       });
 
@@ -1157,7 +1167,8 @@ describe('NVD3', () =>
           return dataset;
         });
 
-        builder.updateData(disabledData);
+        builder.build(options, disabledData);
+        builder.model.brushExtent([1,2]).update();
         d3
           .select(builder.$('.nv-primary .nv-linesWrap'))[0][0][0]
           .__data__.should.deep.equal([
