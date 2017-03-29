@@ -61,6 +61,31 @@ nv.models.scatter = function() {
         , _cache = {}
         ;
 
+    //============================================================
+    // Diff and Cache Utilities
+    //------------------------------------------------------------
+    // getDiffs is used to filter unchanged points from the update
+    // selection. It implicitly updates it's cache when called and
+    // therefor the diff is based upon the previous invocation NOT
+    // the previous update.
+    //
+    // getDiffs takes a point as its first argument followed by n
+    // key getter pairs (d, [key, get... key, get]) this approach
+    // was chosen for efficiency. (The filter will call it a LOT).
+    //
+    // It is important to call delCache on point exit to prevent a
+    // memory leak. It is also needed to prevent invalid caches if
+    // a new point uses the same series and point id key.
+    //
+    // Argument Performance Concerns:
+    // - Object property lists for key getter pairs would be very
+    // expensive (points * objects for the GC every update).
+    // - ES6 function names for implicit keys would be nice but
+    // they are not guaranteed to be unique.
+    // - function.toString to obtain implicit keys is possible
+    // but long object keys are not free (internal hash).
+    // - Explicit key without objects are the most efficient.
+
     function getCache(d) {
         var key, val;
         key = d[0].series + ':' + d[1];
@@ -201,7 +226,7 @@ nv.models.scatter = function() {
                 .attr('id', 'nv-edge-clip-' + id)
                 .append('rect')
                 .attr('transform', 'translate( -10, -10)');
-                
+
             wrap.select('#nv-edge-clip-' + id + ' rect')
                 .attr('width', availableWidth + 20)
                 .attr('height', (availableHeight > 0) ? availableHeight + 20 : 0);
@@ -217,20 +242,23 @@ nv.models.scatter = function() {
 
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
+
+                    // nuke all voronoi paths on reload and recreate them
+                    wrap.select('.nv-point-paths').selectAll('path').remove();
+
                     var vertices = d3.merge(data.map(function(group, groupIndex) {
                             return group.values
                                 .map(function(point, pointIndex) {
                                     // *Adding noise to make duplicates very unlikely
                                     // *Injecting series and point index for reference
-                                    /* *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
-                                     */
+                                    // *Adding a 'jitter' to the points, because there's an issue in d3.geom.voronoi.
                                     var pX = getX(point,pointIndex);
                                     var pY = getY(point,pointIndex);
 
-                                    return [nv.utils.NaNtoZero(x(pX))+ Math.random() * 1e-4,
-                                            nv.utils.NaNtoZero(y(pY))+ Math.random() * 1e-4,
+                                    return [nv.utils.NaNtoZero(x(pX)) + Math.random() * 1e-4,
+                                            nv.utils.NaNtoZero(y(pY)) + Math.random() * 1e-4,
                                         groupIndex,
-                                        pointIndex, point]; //temp hack to add noise until I think of a better way so there are no duplicates
+                                        pointIndex, point];
                                 })
                                 .filter(function(pointArray, pointIndex) {
                                     return pointActive(pointArray[4], pointIndex); // Issue #237.. move filter to after map, so pointIndex is correct!
@@ -256,6 +284,18 @@ nv.models.scatter = function() {
                         [width + 10,-10]
                     ]);
 
+                    // delete duplicates from vertices - essential assumption for d3.geom.voronoi
+                    var epsilon = 1e-4; // Uses 1e-4 to determine equivalence.
+                    vertices = vertices.sort(function(a,b){return ((a[0] - b[0]) || (a[1] - b[1]))});
+                    for (var i = 0; i < vertices.length - 1; ) {
+                        if ((Math.abs(vertices[i][0] - vertices[i+1][0]) < epsilon) &&
+                        (Math.abs(vertices[i][1] - vertices[i+1][1]) < epsilon)) {
+                            vertices.splice(i+1, 1);
+                        } else {
+                            i++;
+                        }
+                    }
+
                     var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
                         return {
                             'data': bounds.clip(d),
@@ -264,8 +304,6 @@ nv.models.scatter = function() {
                         }
                     });
 
-                    // nuke all voronoi paths on reload and recreate them
-                    wrap.select('.nv-point-paths').selectAll('path').remove();
                     var pointPaths = wrap.select('.nv-point-paths').selectAll('path').data(voronoi);
                     var vPointPaths = pointPaths
                         .enter().append("svg:path")
@@ -471,20 +509,47 @@ nv.models.scatter = function() {
                     return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
                 })
                 .remove();
-            // Update points position only if "x" or "y" have changed
-            points.filter(function (d) { return scaleDiff || sizeDiff || domainDiff || getDiffs(d, 'x', getX, 'y', getY); })
-                .watchTransition(renderWatch, 'scatter points')
-                .attr('transform', function(d) {
-                    //nv.log(d, getX(d[0],d[1]), x(getX(d[0],d[1])));
-                    return 'translate(' + nv.utils.NaNtoZero(x(getX(d[0],d[1]))) + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
-                });
-            // Update points appearance only if "shape" or "size" have changed
-            points.filter(function (d) { return scaleDiff || sizeDiff || getDiffs(d, 'shape', getShape, 'size', getSize); })
-                .watchTransition(renderWatch, 'scatter points')
-                .attr('d',
-                    nv.utils.symbol()
-                    .type(function(d) { return getShape(d[0]); })
-                    .size(function(d) { return z(getSize(d[0],d[1])) })
+
+            //============================================================
+            // Point Update Optimisation Notes
+            //------------------------------------------------------------
+            // The following update selections are filtered with getDiffs
+            // (defined at the top of this file) this brings a performance
+            // benefit for charts with large data sets that accumulate a
+            // subset of changes or additions over time.
+            //
+            // Uneccesary and expensive DOM calls are avoided by culling
+            // unchanged points from the selection in exchange for the
+            // cheaper overhead of caching and diffing each point first.
+            //
+            // Due to the way D3 and NVD3 work, other global changes need
+            // to be considered in addition to local point properties.
+            // This is a potential source of bugs (if any of the global
+            // changes that possibly affect points are missed).
+
+            // Update Point Positions [x, y]
+            points.filter(function (d) {
+                // getDiffs must always be called to update cache
+                return getDiffs(d, 'x', getX, 'y', getY) ||
+                    scaleDiff || sizeDiff || domainDiff;
+            })
+            .watchTransition(renderWatch, 'scatter points')
+            .attr('transform', function (d) {
+                return 'translate(' +
+                    nv.utils.NaNtoZero(x(getX(d[0], d[1]))) + ',' +
+                    nv.utils.NaNtoZero(y(getY(d[0], d[1]))) + ')'
+            });
+
+            // Update Point Appearance [shape, size]
+            points.filter(function (d) {
+                // getDiffs must always be called to update cache
+                return getDiffs(d, 'shape', getShape, 'size', getSize) ||
+                    scaleDiff || sizeDiff || domainDiff;
+            })
+            .watchTransition(renderWatch, 'scatter points')
+            .attr('d', nv.utils.symbol()
+                .type(function (d) { return getShape(d[0]) })
+                .size(function (d) { return z(getSize(d[0], d[1])) })
             );
 
             // add label a label to scatter chart

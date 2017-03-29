@@ -206,17 +206,36 @@ nv.models.multiChart = function() {
             var stack2Wrap = g.select('.stack2Wrap')
                 .datum(dataStack2.filter(function(d){return !d.disabled}));
 
-            var extraValue1 = dataStack1.length ? dataStack1.map(function(a){return a.values}).reduce(function(a,b){
-                return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-            }).concat([{x:0, y:0}]) : [];
-            var extraValue2 = dataStack2.length ? dataStack2.map(function(a){return a.values}).reduce(function(a,b){
-                return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-            }).concat([{x:0, y:0}]) : [];
-
-            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1), function(d) { return d.y } ))
+            var extraValue1BarStacked = [];
+            if (bars1.stacked() && dataBars1.length) {
+                var extraValue1BarStacked = dataBars1.filter(function(d){return !d.disabled}).map(function(a){return a.values});
+                
+                if (extraValue1BarStacked.length > 0)
+                    extraValue1BarStacked = extraValue1BarStacked.reduce(function(a,b){
+                        return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
+                    });
+            }
+            if (dataBars1.length) {
+                extraValue1BarStacked.push({x:0, y:0});
+            }
+            
+            var extraValue2BarStacked = [];
+            if (bars2.stacked() && dataBars2.length) {
+                var extraValue2BarStacked = dataBars2.filter(function(d){return !d.disabled}).map(function(a){return a.values});
+                
+                if (extraValue2BarStacked.length > 0)
+                    extraValue2BarStacked = extraValue2BarStacked.reduce(function(a,b){
+                        return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
+                    });
+            }
+            if (dataBars2.length) {
+                extraValue2BarStacked.push({x:0, y:0});
+            }
+            
+            yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
-            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2), function(d) { return d.y } ))
+            yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
             lines1.yDomain(yScale1.domain());
@@ -292,7 +311,7 @@ nv.models.multiChart = function() {
             //------------------------------------------------------------
 
             function mouseover_line(evt) {
-                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                var yaxis = evt.series.yAxis === 2 ? yAxis2 : yAxis1;
                 evt.value = evt.point.x;
                 evt.series = {
                     value: evt.point.y,
@@ -312,7 +331,7 @@ nv.models.multiChart = function() {
             }
 
             function mouseover_scatter(evt) {
-                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                var yaxis = evt.series.yAxis === 2 ? yAxis2 : yAxis1;
                 evt.value = evt.point.x;
                 evt.series = {
                     value: evt.point.y,
@@ -332,7 +351,7 @@ nv.models.multiChart = function() {
             }
 
             function mouseover_stack(evt) {
-                var yaxis = data[evt.seriesIndex].yAxis === 2 ? yAxis2 : yAxis1;
+                var yaxis = evt.series.yAxis === 2 ? yAxis2 : yAxis1;
                 evt.point['x'] = stack1.x()(evt.point);
                 evt.point['y'] = stack1.y()(evt.point);
                 tooltip
@@ -348,7 +367,7 @@ nv.models.multiChart = function() {
             }
 
             function mouseover_bar(evt) {
-                var yaxis = data[evt.data.series].yAxis === 2 ? yAxis2 : yAxis1;
+                var yaxis = evt.series.yAxis === 2 ? yAxis2 : yAxis1;
 
                 evt.value = bars1.x()(evt.data);
                 evt['series'] = {

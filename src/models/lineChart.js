@@ -160,8 +160,10 @@ nv.models.lineChart = function() {
                     .call(legend);
 
                 if (legendPosition === 'bottom') {
-                    wrap.select('.nv-legendWrap')
-                        .attr('transform', 'translate(0,' + availableHeight +')');
+                     margin.bottom = xAxis.height() + legend.height();
+                     availableHeight = nv.utils.availableHeight(height, container, margin);
+                     g.select('.nv-legendWrap')
+                         .attr('transform', 'translate(0,' + (availableHeight + xAxis.height())  +')');
                 } else if (legendPosition === 'top') {
                     if (!marginTop && legend.height() !== margin.top) {
                         margin.top = legend.height();
@@ -259,7 +261,6 @@ nv.models.lineChart = function() {
                 g.select('.nv-focusWrap')
                     .style('display', focusEnable ? 'initial' : 'none')
                     .attr('transform', 'translate(0,' + ( availableHeight + margin.bottom + focus.margin().top) + ')')
-                    .datum(data.filter(function(d) { return !d.disabled; }))
                     .call(focus);
                 var extent = focus.brush.empty() ? focus.xDomain() : focus.brush.extent();
                 if (extent !== null) {

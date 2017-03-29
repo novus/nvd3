@@ -402,7 +402,7 @@ nv.models.stackedAreaChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0, allNullValues = true;
+                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0, allNullValues = true, atleastOnePoint = false;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -412,7 +412,13 @@ nv.models.stackedAreaChart = function() {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
                         var point = series.values[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue != null) {
+                        if (pointYValue != null && pointYValue > 0) {
+                            stacked.highlightPoint(i, pointIndex, true);
+                            atleastOnePoint = true;
+                        }
+                    
+                        // Draw at least one point if all values are zero.
+                        if (i === (data.length - 1) && !atleastOnePoint) {
                             stacked.highlightPoint(i, pointIndex, true);
                         }
                         if (typeof point === 'undefined') return;

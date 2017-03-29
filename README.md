@@ -51,7 +51,7 @@ No, we do not...  we are very interested in taking this on but could use some he
 
 **1.8.3** Changes:
 
-* Logs of community bugfixes
+* Lots of community bugfixes
 * Added force-directed chart
 
 **1.8.2** Changes:

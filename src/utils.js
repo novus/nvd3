@@ -511,6 +511,8 @@ Also use _d3options so we can track what we inherit for documentation and chaine
 */
 nv.utils.inheritOptionsD3 = function(target, d3_source, oplist) {
     target._d3options = oplist.concat(target._d3options || []);
+    // Find unique d3 options (string) and update d3options
+    target._d3options = (target._d3options || []).filter(function(item, i, ar){ return ar.indexOf(item) === i; });
     oplist.unshift(d3_source);
     oplist.unshift(target);
     d3.rebind.apply(this, oplist);
@@ -708,3 +710,24 @@ nv.utils.arrayEquals = function (array1, array2) {
     }
     return true;
 };
+
+/*
+ Check if a point within an arc
+ */
+nv.utils.pointIsInArc = function(pt, ptData, d3Arc) {
+    // Center of the arc is assumed to be 0,0
+    // (pt.x, pt.y) are assumed to be relative to the center
+    var r1 = d3Arc.innerRadius()(ptData), // Note: Using the innerRadius
+      r2 = d3Arc.outerRadius()(ptData),
+      theta1 = d3Arc.startAngle()(ptData),
+      theta2 = d3Arc.endAngle()(ptData);
+
+    var dist = pt.x * pt.x + pt.y * pt.y,
+      angle = Math.atan2(pt.x, -pt.y); // Note: different coordinate system.
+
+    angle = (angle < 0) ? (angle + Math.PI * 2) : angle;
+
+    return (r1 * r1 <= dist) && (dist <= r2 * r2) &&
+      (theta1 <= angle) && (angle <= theta2);
+};
+
