@@ -8,7 +8,6 @@ if (typeof require !== 'undefined') {
   ChartFactory = require('./test-utils.coffee');
   snapshot = require('snap-shot');
   moment = require('moment');
-  console.log(moment);
 } else {
   ChartFactory = window.ChartBuilder;
   _sinon = window.sinon;
@@ -640,42 +639,40 @@ describe('NVD3', () => describe.only('Difference Chart', () => {
   });
 
   describe('x axis', () => {
-    it.only('should use a multi time formatter to format x axis ticks', () => {
-      console.log('new date', new Date());
+    it('should use a multi time formatter to format x axis ticks', () => {
       const testDataForXAxis = [
-        {
-          testDatum: new Date('2017-01-03T09:15:00.000Z'),
-          expectedValue: '09:15'
-        },
-        {
-          testDatum: moment('2017-01-03T09:00:00+1100Z'),
-          expectedValue: '09 AM'
-        },
-        {
-          testDatum: moment('2017-01-03T00:00:00+1100'),
-          expectedValue: 'Tue 03'
-        },
-        {
-          //d.getDate() != 1
-          testDatum: moment('2017-13-08T00:00:00+1100'),
-          expectedValue: ' NaN'
-        },
-        {
-          testDatum: moment('2000-05-01T00:00:00+1100'),
-          expectedValue: 'May'
-        },
-        {
-          testDatum: moment('2000-01-01T00:00:00+1100'),
-          expectedValue: '2000'
-        }
-      ];
+        {
+          testDatum: moment('2017-01-03T09:15:00').toDate(),
+          expectedValue: '09:15'
+        },
+        {
+          testDatum: moment('2017-01-03T09:00:00').toDate(),
+          expectedValue: '09 AM'
+        },
+        {
+          testDatum: moment('2017-01-03T00:00:00').toDate(),
+          expectedValue: 'Tue 03'
+        },
+        {
+          //d.getDate() != 1
+          testDatum: moment('2017-04-02T00:00:00').toDate(),
+          expectedValue: 'Apr 02'
+        },
+        {
+          testDatum: moment('2000-05-01T00:00:00').toDate(),
+          expectedValue: 'May'
+        },
+        {
+          testDatum: moment('2000-01-01T00:00:00').toDate(),
+          expectedValue: '2000'
+        }
+      ];
 
-      testDataForXAxis.forEach((testDataset) => {
-        console.log('SDFDSF', testDataset.testDatum)
-        builder.model.multiChart.xAxis
-          .tickFormat()(testDataset.testDatum)
-          .should.equal(testDataset.expectedValue);
-      });
+      testDataForXAxis.forEach((testDataset) => {
+        builder.model.multiChart.xAxis
+          .tickFormat()(testDataset.testDatum)
+          .should.equal(testDataset.expectedValue);
+      });
     });
 
     it('has default range value', () => {
