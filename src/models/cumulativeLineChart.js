@@ -563,10 +563,8 @@ nv.models.cumulativeLineChart = function() {
             }
             var v = indexifyYGetter(indexValue, idx);
 
-            //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
-            if (v < -.95 && !noErrorCheck) {
-                //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
-
+            // avoid divide by zero
+            if (Math.abs(v) < 0.00001 && !noErrorCheck) {
                 line.tempDisabled = true;
                 return line;
             }
@@ -574,7 +572,7 @@ nv.models.cumulativeLineChart = function() {
             line.tempDisabled = false;
 
             line.values = line.values.map(function(point, pointIndex) {
-                point.display = {'y': (indexifyYGetter(point, pointIndex) - v) / (1 + v) };
+                point.display = {'y': (indexifyYGetter(point, pointIndex) - v) / v };
                 return point;
             });
 
