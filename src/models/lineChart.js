@@ -24,7 +24,7 @@ nv.models.lineChart = function() {
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
-        , useInteractiveGuideline = false
+        , useInteractiveGuideline = true
         , x
         , y
         , focusEnable = false
@@ -32,7 +32,7 @@ nv.models.lineChart = function() {
         , defaultState = null
         , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
-        , duration = 250
+        , duration = 300
         ;
 
     // set options on sub-objects for this chart
@@ -85,6 +85,7 @@ nv.models.lineChart = function() {
 
         selection.each(function(data) {
             var container = d3.select(this);
+            console.log(container)
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
@@ -182,7 +183,7 @@ nv.models.lineChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-            //Set up interactive layer
+            // Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
                     .width(availableWidth)

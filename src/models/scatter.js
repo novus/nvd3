@@ -122,7 +122,6 @@ nv.models.scatter = function() {
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
-
             //add series index to each data point for reference
             data.forEach(function(series, i) {
                 series.values.forEach(function(point) {
@@ -634,6 +633,7 @@ nv.models.scatter = function() {
     chart._calls = new function() {
         this.clearHighlights = function () {
             nv.dom.write(function() {
+
                 container.selectAll(".nv-point.hover").classed("hover", false);
             });
             return null;
@@ -662,7 +662,8 @@ nv.models.scatter = function() {
         width:        {get: function(){return width;}, set: function(_){width=_;}},
         height:       {get: function(){return height;}, set: function(_){height=_;}},
         xScale:       {get: function(){return x;}, set: function(_){x=_;}},
-        yScale:       {get: function(){return y;}, set: function(_){y=_;}},
+        yScale:       {get: function(){return y;}, set: function(_){if (!_.domain) debugger;
+          y=_;}},
         pointScale:   {get: function(){return z;}, set: function(_){z=_;}},
         xDomain:      {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         yDomain:      {get: function(){return yDomain;}, set: function(_){yDomain=_;}},

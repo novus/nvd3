@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-15 */
+/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-03-24 */
 (function(){
 
 // set up main nv object
@@ -1614,6 +1614,7 @@ nv.models.axis = function() {
         , fontSize = undefined
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')
+        , tickFormatMaxMin
         ;
     axis
         .scale(scale)
@@ -1698,7 +1699,8 @@ nv.models.axis = function() {
                             .attr('y', -axis.tickPadding())
                             .attr('text-anchor', 'middle')
                             .text(function(d,i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max top')
@@ -1715,7 +1717,7 @@ nv.models.axis = function() {
                     var rotateLabelsRule = '';
                     if (rotateLabels%360) {
                         //Reset transform on ticks so textHeight can be calculated correctly
-                        xTicks.attr('transform', ''); 
+                        xTicks.attr('transform', '');
                         //Calculate the longest xTick width
                         xTicks.each(function(d,i){
                             var box = this.getBoundingClientRect();
@@ -1773,7 +1775,8 @@ nv.models.axis = function() {
                             .attr('transform', rotateLabelsRule)
                             .style('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
                             .text(function(d,i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max bottom')
@@ -1808,7 +1811,8 @@ nv.models.axis = function() {
                             .attr('x', axis.tickPadding())
                             .style('text-anchor', 'start')
                             .text(function(d, i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
@@ -1852,7 +1856,8 @@ nv.models.axis = function() {
                             .attr('x', -axis.tickPadding())
                             .attr('text-anchor', 'end')
                             .text(function(d,i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
@@ -1923,9 +1928,9 @@ nv.models.axis = function() {
                     and the arithmetic trick below solves that.
                     */
                     return !parseFloat(Math.round(d * 100000) / 1000000) && (d !== undefined)
-                }) 
+                })
                 .classed('zero', true);
-            
+
             //store old scales for use in transitions on update
             scale0 = scale.copy();
 
@@ -1956,6 +1961,7 @@ nv.models.axis = function() {
         ticks:             {get: function(){return ticks;}, set: function(_){ticks=_;}},
         width:             {get: function(){return width;}, set: function(_){width=_;}},
         fontSize:          {get: function(){return fontSize;}, set: function(_){fontSize=_;}},
+        tickFormatMaxMin:  {get: function(){return tickFormatMaxMin;}, set: function(_){tickFormatMaxMin=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -3946,6 +3952,431 @@ nv.models.cumulativeLineChart = function() {
     nv.utils.initOptions(chart);
 
     return chart;
+};
+nv.models.differenceChart = function() {
+  'use strict';
+  let container;
+  const multiChart = nv.models.multiChart();
+  const focus = nv.models.focus(nv.models.line());
+  const dispatch = d3.dispatch();
+  // yAccessor for multi chart
+  // Not modifiable by end user. They can
+  // overload yAccessor which is used during the processData step
+  const yForMultiChart = (d) => {
+    // check if the data is for an area chart
+    // which has y0 and y1 values
+    if (isDefined(d.y0)) {
+      return d.y0;
+    }
+    // otherwise assume it's for a line chart
+    return d.y;
+  };
+  const xForMultiChart = (d) => d.x;
+  let xAccessor = (d) => d.x;
+  let yAccessor = (d) => d.y;
+  let duration = 300;
+  let keyForActualLessThanPredicted = null;
+  let keyForActualGreaterThanPredicted = null;
+  let height = null;
+  let width = null;
+  let margin = { top: 30, right: 10, bottom: 20, left: 70 };
+  let focusMargin = { top: 0, right: 60, bottom: 0, left: 20 };
+  let showPredictedLine = true;
+  let interpolate = 'linear';
+  let strokeWidth = 1;
+
+  function chart(selection) {
+    selection.each(function(data) {
+      const processedData = processData(data);
+      container = d3.select(this);
+      container.attr('class', 'nv-differenceChart');
+
+      nv.utils.initSVG(container);
+
+      if (!processedData.length) {
+        nv.utils.noData(chart, container);
+        return chart;
+      } else {
+        container.selectAll('.nv-noData').remove();
+      }
+
+      chart.container = this;
+
+      multiChart
+        .margin(margin)
+        .color(d3.scale.category10().range())
+        .y(yForMultiChart)
+        .width(width)
+        .height(height)
+        .interpolate(interpolate)
+        .useInteractiveGuideline(true);
+
+      multiChart.interactiveLayer.tooltip.valueFormatter((value, i, datum) => {
+        if (
+          datum.key === keyForActualGreaterThanPredicted ||
+          datum.key === keyForActualLessThanPredicted
+        ) {
+          const diff = Math.abs(datum.data.y0 - datum.data.y1);
+          if (diff === 0) {
+            return '-';
+          }
+          return diff;
+        }
+        return value;
+      });
+
+      multiChart.stack1.areaY1((d) => {
+        // if ('callCount' in multiChart.stack1.scatter.yScale)
+        return multiChart.stack1.scatter.yScale()(d.display.y);
+      });
+
+      multiChart.stack1.transformData((d) => {
+        d.display = { y: d.y1, y0: d.y0 };
+      });
+      const timeFormatter = d3.time.format.multi([
+        [
+          '%I:%M',
+          function(d) {
+            return d.getMinutes();
+          }
+        ],
+        [
+          '%I %p',
+          function(d) {
+            return d.getHours();
+          }
+        ],
+        [
+          '%a %d',
+          function(d) {
+            return d.getDay() && d.getDate() != 1;
+          }
+        ],
+        [
+          '%b %d',
+          function(d) {
+            return d.getDate() != 1;
+          }
+        ],
+        [
+          '%B',
+          function(d) {
+            return d.getMonth();
+          }
+        ],
+        [
+          '%Y',
+          function() {
+            return true;
+          }
+        ]
+      ]);
+      multiChart.xAxis.scale(d3.time.scale());
+      multiChart.xAxis.tickFormat(timeFormatter);
+      const allValues = processedData
+        .filter((dataset) => !dataset.filtered)
+        .map((dataset) => dataset.values);
+      const dateExtent = d3.extent(d3.merge(allValues), (d) => {
+        return xForMultiChart(d);
+      });
+      multiChart.xAxis
+        .domain(dateExtent)
+        .range([0, width - margin.left - margin.right]);
+
+      const yExtent = d3.extent(d3.merge(allValues), (d) => yForMultiChart(d));
+      multiChart.yDomain1(yExtent);
+      multiChart.yAxis1.tickFormat(d3.format(',.1f'));
+      multiChart.yAxis2.tickFormat(d3.format(',.1f'));
+
+      focus.width(width);
+      focus.margin(focusMargin);
+      focus.xScale(d3.time.scale());
+      focus.xAxis.tickFormat(timeFormatter);
+
+      focus.xAxis.rotateLabels(0);
+
+      container
+        .append('g')
+        .attr('class', 'nv-focusWrap')
+        .style('display', 'initial')
+        .attr('transform', 'translate(50, 750)')
+        .datum(processedData.filter((dataset) => dataset.type === 'line'))
+        .call(focus);
+
+      container.datum(processedData).call(multiChart);
+
+      focus.dispatch.on('onBrush', (extent) => {
+        const filteredData = processedData.map((datum) => {
+          return Object.assign({}, datum, {
+            values: datum.values.filter((val) => {
+              return val.x > extent[0] && val.x < extent[1];
+            })
+          });
+        });
+
+        container.datum(filteredData);
+
+        multiChart.xAxis.domain(extent);
+
+        multiChart.update();
+      });
+
+      chart.update = function() {
+        container.selectAll('*').remove();
+        //   container.select('.multiChart g').remove();
+        //   g.select('.nv-secondaryChartWrap').datum(dataSecondary);
+        //  g.select('.nv-linesWrap').datum(dataLines);
+        // multiChart.update();
+        if (duration === 0) {
+          container.call(chart);
+        } else {
+          container.transition().duration(duration).call(chart);
+        }
+      };
+
+      return chart;
+    });
+  }
+
+  chart.options = nv.utils.optionsFunc.bind(chart);
+
+  chart._options = Object.create({}, {
+    width: {
+      get: function() {
+        return width;
+      },
+      set: function(_) {
+        width = _;
+      }
+    },
+    height: {
+      get: function() {
+        return height;
+      },
+      set: function(_) {
+        height = _;
+      }
+    },
+    strokeWidth: {
+      get: function() {
+        return strokeWidth;
+      },
+      set: function(_) {
+        strokeWidth = _;
+      }
+    },
+    x: {
+      get: function() {
+        return xAccessor;
+      },
+      set: function(_) {
+        xAccessor = _;
+      }
+    },
+    y: {
+      get: function() {
+        return yAccessor;
+      },
+      set: function(_) {
+        yAccessor = _;
+      }
+    },
+    keyForActualLessThanPredicted: {
+      get: function() {
+        return keyForActualLessThanPredicted;
+      },
+      set: function(_) {
+        keyForActualLessThanPredicted = _;
+      }
+    },
+    keyForActualGreaterThanPredicted: {
+      get: function() {
+        return keyForActualGreaterThanPredicted;
+      },
+      set: function(_) {
+        keyForActualGreaterThanPredicted = _;
+      }
+    },
+    showPredictedLine: {
+      get: function() {
+        return showPredictedLine;
+      },
+      set: function(_) {
+        showPredictedLine = _;
+      }
+    },
+    interpolate: {
+      get: function() {
+        return interpolate;
+      },
+      set: function(_) {
+        interpolate = _;
+      }
+    },
+    focusMargin: {
+      get: function() {
+        return focusMargin;
+      },
+      set: function(_) {
+        focusMargin.top = _.top !== undefined ? _.top : focusMargin.top;
+        focusMargin.right = _.right !== undefined ? _.right : focusMargin.right;
+        focusMargin.bottom = _.bottom !== undefined
+          ? _.bottom
+          : focusMargin.bottom;
+        focusMargin.left = _.left !== undefined ? _.left : focusMargin.left;
+      }
+    },
+    margin: {
+      get: function() {
+        return margin;
+      },
+      set: function(_) {
+        margin.top = _.top !== undefined ? _.top : margin.top;
+        margin.right = _.right !== undefined ? _.right : margin.right;
+        margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+        margin.left = _.left !== undefined ? _.left : margin.left;
+      }
+    }
+  });
+
+  function processData(data) {
+    const clonedData = data.slice(0);
+    const allProcessed = clonedData.every((dataset) => dataset.processed);
+    const actualData = clonedData.filter((dataSet) => dataSet.type === 'actual');
+    const predictedData = clonedData.filter(
+      (dataSet) => dataSet.type === 'expected'
+    );
+
+    if (allProcessed) {
+      return clonedData;
+    } else if (!actualData.length || !predictedData.length) {
+      return [];
+    }
+
+    const defaultKeyForActualLessThanPredicted = `${predictedData[0].key} minus ${actualData[0].key} (Predicted > Actual)`;
+    const defaultKeyForActualGreaterThanPredicted = `${predictedData[0].key} minus ${actualData[0].key} (Predicted < Actual)`;
+    // processedData is mapped as follows:
+    //  [0] => Savings (actual under predicted) area
+    //  [1] => 'Loss' (actual over predicted) area
+    //  [2] => Actual profile
+    //  [3] => Predicted profile
+    const processedData = [
+      {
+        key: keyForActualLessThanPredicted ||
+          defaultKeyForActualLessThanPredicted,
+        type: 'area',
+        values: [],
+        yAxis: 1,
+        color: 'rgba(44,160,44,.9)',
+        processed: true
+      },
+      {
+        key: keyForActualGreaterThanPredicted ||
+          defaultKeyForActualGreaterThanPredicted,
+        type: 'area',
+        values: [],
+        yAxis: 1,
+        color: 'rgba(214,39,40,.9)',
+        processed: true
+      },
+      {
+        key: actualData[0].key,
+        type: 'line',
+        values: [],
+        yAxis: 1,
+        color: '#666666',
+        processed: true,
+        strokeWidth: strokeWidth
+      }
+    ];
+
+    if (showPredictedLine) {
+      processedData[3] = {
+        key: predictedData[0].key,
+        type: 'line',
+        values: [],
+        yAxis: 1,
+        color: '#aec7e8',
+        processed: true,
+        strokeWidth: strokeWidth
+      };
+    }
+
+    actualData[0].values.forEach((d, i) => {
+      if (!predictedData[0].values[i]) {
+        return;
+      }
+
+      const actualUsage = yAccessor(actualData[0].values[i]);
+      const predictedUsage = yAccessor(predictedData[0].values[i]);
+      const predictedActualDelta = predictedUsage - actualUsage;
+      // The below code generates data for the difference chart.
+      // We have four series: two for the area (processedData[0] and processedData[1]) charts
+      // and two for the line charts ([2] and [3]). The way we achieve difference chart
+      // is that for each datapoint, we calculate whether it represents a 'savings'
+      // (actual less than predicted) or a 'loss' (actual greater than predicted).
+      // The two areas are different colours (e.g. out of the box, a loss is red and a
+      // saving is green).
+      // If it's a loss, then we add an area datapoint in the loss dataset ranging from actual to predicted
+      // (the area represents the magnitude of the loss).
+      // At the same time, for the savings dataset, we make the datapoint equivalent to actual usage so that
+      // a dot renders rather than a proper area. This basically makes the savings area invisible
+      // when there is a loss.
+      //
+      // The opposite occurs when predicted is greater than savings (a saving).
+      if (predictedActualDelta < 0) {
+        // actual greater than predicted - this is a loss
+        // add area for loss between actualUsage (y0) and predictedUsage(y1)
+        processedData[1].values[i] = {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: predictedUsage
+        };
+        // for the saving data series, render a dot (y0 and y1) at actualUsage - need
+        // this rather than NaN because otherwise if the next datapoint is a saving,
+        // D3 won't be able to link the two areas together
+        processedData[0].values[i] = {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      } else {
+        processedData[0].values[i] = {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: predictedUsage
+        };
+        processedData[1].values[i] = {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      }
+      // Set actual
+      processedData[2].values[i] = { x: xAccessor(d), y: actualUsage };
+      // Set predicted
+      if (showPredictedLine) {
+        processedData[3].values[i] = { x: xAccessor(d), y: predictedUsage };
+      }
+    });
+
+    return processedData;
+  }
+
+  function isDefined(thingToCheck) {
+    // NB: void 0 === undefined
+    return thingToCheck !== void 0;
+  }
+
+  chart.xAxis = multiChart.xAxis;
+  chart.yAxis = multiChart.yAxis1;
+  chart.multiChart = multiChart;
+  chart.focus = focus;
+  chart.processData = processData;
+  nv.utils.inheritOptions(chart, multiChart);
+  nv.utils.initOptions(chart);
+
+  return chart;
 };
 //TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
@@ -6580,7 +7011,6 @@ nv.models.line = function() {
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
             scatter
                 .width(availableWidth)
                 .height(availableHeight);
@@ -6761,7 +7191,7 @@ nv.models.lineChart = function() {
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
-        , useInteractiveGuideline = false
+        , useInteractiveGuideline = true
         , x
         , y
         , focusEnable = false
@@ -6769,7 +7199,7 @@ nv.models.lineChart = function() {
         , defaultState = null
         , noData = null
         , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
-        , duration = 250
+        , duration = 300
         ;
 
     // set options on sub-objects for this chart
@@ -6822,6 +7252,7 @@ nv.models.lineChart = function() {
 
         selection.each(function(data) {
             var container = d3.select(this);
+            console.log(container)
             nv.utils.initSVG(container);
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
@@ -6919,7 +7350,7 @@ nv.models.lineChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-            //Set up interactive layer
+            // Set up interactive layer
             if (useInteractiveGuideline) {
                 interactiveLayer
                     .width(availableWidth)
@@ -9895,7 +10326,7 @@ nv.models.multiChart = function() {
             var extraValue1BarStacked = [];
             if (bars1.stacked() && dataBars1.length) {
                 var extraValue1BarStacked = dataBars1.filter(function(d){return !d.disabled}).map(function(a){return a.values});
-                
+
                 if (extraValue1BarStacked.length > 0)
                     extraValue1BarStacked = extraValue1BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
@@ -9904,13 +10335,13 @@ nv.models.multiChart = function() {
             var extraValue2BarStacked = [];
             if (bars2.stacked() && dataBars2.length) {
                 var extraValue2BarStacked = dataBars2.filter(function(d){return !d.disabled}).map(function(a){return a.values});
-                
+
                 if (extraValue2BarStacked.length > 0)
                     extraValue2BarStacked = extraValue2BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
                     }).concat([{x:0, y:0}]);
             }
-            
+
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
@@ -10077,13 +10508,60 @@ nv.models.multiChart = function() {
               }
             }
 
-            function highlightPoint(serieIndex, pointIndex, b){
-              for(var i=0, il=charts.length; i < il; i++){
-                var chart = charts[i];
-                try {
-                  chart.highlightPoint(serieIndex, pointIndex, b);
-                } catch(e){}
-              }
+            function highlightPoint(series, pointIndex, b, pointYValue) {
+
+              const chartMap = {
+                'line': {
+                  'yAxis1': {
+                    chart: lines1,
+                    data: dataLines1
+                  },
+                  'yAxis2': {
+                    chart: lines2,
+                    data: dataLines2
+                  }
+                },
+                'scatter': {
+                  'yAxis1': {
+                    chart: scatters1,
+                    data: dataScatters1
+                  },
+                  'yAxis2': {
+                    chart: scatters2,
+                    data: dataScatters2
+                  }
+                },
+                'bar': {
+                  'yAxis1': {
+                    chart: bars1,
+                    data: dataBars1
+                  },
+                  'yAxis2': {
+                    chart: bars2,
+                    data: dataBars2
+                  }
+                },
+                'area': {
+                  'yAxis1': {
+                    chart: stack1,
+                    data: dataStack1
+                  },
+                  'yAxis2': {
+                    chart: stack2,
+                    data: dataStack2
+                  }
+                }
+              };
+
+              const relevantChart = chartMap[series.type]['yAxis' + series.yAxis].chart;
+              const relevantDatasets = chartMap[series.type]['yAxis' + series.yAxis].data;
+              const seriesIndex = relevantDatasets.reduce((seriesIndex, dataSet, i) => {
+                return dataSet.key === series.key ? i : seriesIndex;
+              }, 0);
+
+              try {
+                relevantChart.highlightPoint(seriesIndex, pointIndex, b, pointYValue);
+              } catch(e){}
             }
 
             if(useInteractiveGuideline){
@@ -10095,7 +10573,7 @@ nv.models.multiChart = function() {
                         series.seriesIndex = i;
                         return !series.disabled;
                     })
-                    .forEach(function(series,i) {
+                    .forEach(function(series, i) {
                         var extent = x.domain();
                         var currentValues = series.values.filter(function(d,i) {
                             return chart.x()(d,i) >= extent[0] && chart.x()(d,i) <= extent[1];
@@ -10104,8 +10582,8 @@ nv.models.multiChart = function() {
                         pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, chart.x());
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue !== null) {
-                            highlightPoint(i, pointIndex, true);
+                        if (pointYValue !== null && !isNaN(pointYValue)) {
+                          highlightPoint(series, pointIndex, true);
                         }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
@@ -12699,7 +13177,6 @@ nv.models.scatter = function() {
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
             nv.utils.initSVG(container);
-
             //add series index to each data point for reference
             data.forEach(function(series, i) {
                 series.values.forEach(function(point) {
@@ -13211,6 +13688,7 @@ nv.models.scatter = function() {
     chart._calls = new function() {
         this.clearHighlights = function () {
             nv.dom.write(function() {
+
                 container.selectAll(".nv-point.hover").classed("hover", false);
             });
             return null;
@@ -13239,7 +13717,8 @@ nv.models.scatter = function() {
         width:        {get: function(){return width;}, set: function(_){width=_;}},
         height:       {get: function(){return height;}, set: function(_){height=_;}},
         xScale:       {get: function(){return x;}, set: function(_){x=_;}},
-        yScale:       {get: function(){return y;}, set: function(_){y=_;}},
+        yScale:       {get: function(){return y;}, set: function(_){if (!_.domain) debugger;
+          y=_;}},
         pointScale:   {get: function(){return z;}, set: function(_){z=_;}},
         xDomain:      {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         yDomain:      {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
@@ -14072,6 +14551,8 @@ nv.models.stackedArea = function() {
         , y //can be accessed via chart.yScale()
         , scatter = nv.models.scatter()
         , duration = 250
+        , transformData = function(d, y0, y) { d.display = { y: y, y0: y0 }; }
+        , areaY1 = function(d) { return y(d.display.y + d.display.y0) }
         , dispatch =  d3.dispatch('areaClick', 'areaMouseover', 'areaMouseout','renderEnd', 'elementClick', 'elementMouseover', 'elementMouseout')
         ;
 
@@ -14129,12 +14610,7 @@ nv.models.stackedArea = function() {
                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
                 .x(getX)
                 .y(getY)
-                .out(function(d, y0, y) {
-                    d.display = {
-                        y: y,
-                        y0: y0
-                    };
-                })
+                .out(transformData)
             (dataFiltered);
 
             // Setup containers and skeleton of chart
@@ -14148,13 +14624,13 @@ nv.models.stackedArea = function() {
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-            
+
             // If the user has not specified forceY, make sure 0 is included in the domain
             // Otherwise, use user-specified values for forceY
             if (scatter.forceY().length == 0) {
                 scatter.forceY().push(0);
             }
-            
+
             scatter
                 .width(availableWidth)
                 .height(availableHeight)
@@ -14188,9 +14664,7 @@ nv.models.stackedArea = function() {
                 .y0(function(d) {
                     return y(d.display.y0)
                 })
-                .y1(function(d) {
-                    return y(d.display.y + d.display.y0)
-                })
+                .y1(areaY1)
                 .interpolate(interpolate);
 
             var zeroArea = d3.svg.area()
@@ -14329,6 +14803,9 @@ nv.models.stackedArea = function() {
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},
         y:     {get: function(){return getY;}, set: function(_){getY = d3.functor(_);}},
+
+        areaY1:     {get: function(){return areaY1;}, set: function(_){ areaY1 = d3.functor(_);}},
+        transformData:     {get: function(){return transformData;}, set: function(_){ transformData = d3.functor(_);}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -14781,7 +15258,7 @@ nv.models.stackedAreaChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0, allNullValues = true;
+                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0, allNullValues = true, atleastOnePoint = false;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -14793,8 +15270,9 @@ nv.models.stackedAreaChart = function() {
                         var pointYValue = chart.y()(point, pointIndex);
                         if (pointYValue != null && pointYValue > 0) {
                             stacked.highlightPoint(i, pointIndex, true);
+                            atleastOnePoint = true;
                         }
-                    
+
                         // Draw at least one point if all values are zero.
                         if (i === (data.length - 1) && !atleastOnePoint) {
                             stacked.highlightPoint(i, pointIndex, true);

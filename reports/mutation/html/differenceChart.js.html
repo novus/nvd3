@@ -1,0 +1,553 @@
+<html>
+<head>
+    <title>differenceChart.js - Stryker report</title>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="highlightjs/styles/default.css">
+    <link rel="stylesheet" href="stryker.css">
+</head>
+
+<body>  
+    <img class="stryker-image" alt="Stryker" src="stryker-80x80.png">
+
+    <div class="container-fluid">
+        <h1>differenceChart.js - Stryker report</h1><div class="col-md-12">
+    <h2>Summary</h2>
+    <div class="row">
+        <div class="col-xs-11">
+            <table class="table table-hover table-bordered table-no-top">
+                <thead>
+                    <tr>
+                        <th style="width: 20%"><div><span>File</span></div></th>
+                        <th colspan="2"><div><span>Mutation score</span></div></th>
+                        <th class="rotate text-center" style="width: 50px"><div><span># Killed</span></div></th>
+                        <th class="rotate text-center" style="width: 50px"><div><span># Survived</span></div></th>
+                        <th class="rotate text-center" style="width: 50px"><div><span># Timeout</span></div></th>
+                        <th class="rotate text-center" style="width: 50px"><div><span># No coverage</span></div></th>
+                        <th class="rotate text-center" style="width: 50px"><div><span># Errors</span></div></th>
+                        <th class="rotate rotate-width-70 text-center" style="width: 70px"><div><span>Total detected</span></div></th>
+                        <th class="rotate rotate-width-70 text-center" style="width: 70px"><div><span>Total undetected</span></div></th>
+                        <th class="rotate rotate-width-70 text-center" style="width: 70px"><div><span>Total mutants</span></div></th>
+                    </tr>
+                </thead>                <tbody>
+                    <tr>
+                        <td><a href="differenceChart.js.html">differenceChart.js</a></td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"
+                                    style="width: 92%;">
+                                    92%
+                                </div>
+                            </div>
+                        </td>
+                        <th class="text-center" style="width: 10%">127/137</th>
+                        <td class="text-center">127</td>
+                        <td class="text-center">10</td>
+                        <td class="text-center">0</td>
+                        <td class="text-center">0</td>
+                        <td class="text-center">0</td>
+                        <th class="text-center">127</th>
+                        <th class="text-center">10</th>
+                        <th class="text-center">137</th>
+                    </tr>                </tbody>
+            </table>
+        </div>
+    </div>
+    <h2>Code</h2>
+    <div class="row">
+        <div class="col-sm-6">
+           <a href="#" class="stryker-collapse-expand-all">Expand all</a>
+        </div>
+        <div class="col-sm-offset-2 col-sm-4">
+            <label>
+                <input class="stryker-display-killed" type="checkbox"> Also show killed mutants
+            </label>
+        </div>
+    </div>
+    <pre><code class="lang-javascript"><span class="bg-null">nv.models.differenceChart &#x3D; function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="0"><span class="label label-success">0</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="0">{
+}</span><span class="stryker-original-code" data-mutant="0"><span class="bg-success">{
+  &#x27;use strict&#x27;;
+  let container;
+  const multiChart &#x3D; nv.models.multiChart();
+  const focus &#x3D; nv.models.focus(nv.models.line());
+  const dispatch &#x3D; d3.dispatch();
+  // yAccessor for multi chart
+  // Not modifiable by end user. They can
+  // overload yAccessor which is used during the processData step
+  const yForMultiChart &#x3D; (d) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="1"><span class="label label-success">1</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="1">{
+}</span><span class="stryker-original-code" data-mutant="1"><span class="bg-success">{
+    // check if the data is for an area chart
+    // which has y0 and y1 values
+    if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="2"><span class="label label-success">2</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="2">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="3"><span class="label label-success">3</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="3">true</span><span class="stryker-original-code" data-mutant="2"><span class="stryker-original-code" data-mutant="3"><span class="bg-success">isDefined(d.y0)</span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="4"><span class="label label-success">4</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="4">{
+}</span><span class="stryker-original-code" data-mutant="4"><span class="bg-success">{
+      return d.y0;
+    }</span></span><span class="bg-success">
+    // otherwise assume it&#x27;s for a line chart
+    return d.y;
+  }</span></span><span class="bg-success">;
+  const xForMultiChart &#x3D; (d) &#x3D;&gt; d.x;
+  let xAccessor &#x3D; (d) &#x3D;&gt; d.x;
+  let yAccessor &#x3D; (d) &#x3D;&gt; d.y;
+  let duration &#x3D; 300;
+  let keyForActualLessThanPredicted &#x3D; null;
+  let keyForActualGreaterThanPredicted &#x3D; null;
+  let height &#x3D; null;
+  let width &#x3D; null;
+  let margin &#x3D; { top: 30, right: 10, bottom: 20, left: 70 };
+  let focusMargin &#x3D; { top: 0, right: 60, bottom: 0, left: 20 };
+  let showPredictedLine &#x3D; true;
+  let interpolate &#x3D; &#x27;linear&#x27;;
+  let strokeWidth &#x3D; 1;
+
+  function chart(selection) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="5"><span class="label label-success">5</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="5">{
+}</span><span class="stryker-original-code" data-mutant="5"><span class="bg-success">{
+    selection.each(function(data) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="6"><span class="label label-success">6</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="6">{
+}</span><span class="stryker-original-code" data-mutant="6"><span class="bg-success">{
+      container &#x3D; d3.select(this);
+      if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="7"><span class="label label-success">7</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="7">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="8"><span class="label label-success">8</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="8">true</span><span class="stryker-original-code" data-mutant="7"><span class="stryker-original-code" data-mutant="8"><span class="bg-success">!data</span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="9"><span class="label label-success">9</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="9">{
+}</span><span class="stryker-original-code" data-mutant="9"><span class="bg-success">{
+        nv.utils.noData(chart, container);
+        return chart;
+      }</span></span><span class="bg-success">
+      const processedData &#x3D; processData(data);
+      container.attr(&#x27;class&#x27;, &#x27;nv-differenceChart&#x27;);
+
+      nv.utils.initSVG(container);
+
+      chart.container &#x3D; this;
+
+      multiChart
+        .margin(margin)
+        .color(d3.scale.category10().range())
+        .y(yForMultiChart)
+        .width(width)
+        .height(height)
+        .interpolate(interpolate)
+        .useInteractiveGuideline(true);
+
+      multiChart.interactiveLayer.tooltip.valueFormatter((value, i, datum) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="10"><span class="label label-success">10</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="10">{
+}</span><span class="stryker-original-code" data-mutant="10"><span class="bg-success">{
+        if (
+          </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="11"><span class="label label-success">11</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="11">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="12"><span class="label label-success">12</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="12">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="13"><span class="label label-success">13</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="13">datum.key &#x3D;&#x3D;&#x3D; keyForActualGreaterThanPredicted &amp;&amp; datum.key &#x3D;&#x3D;&#x3D; keyForActualLessThanPredicted</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="14"><span class="label label-success">14</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="14">datum.key !&#x3D;&#x3D; keyForActualGreaterThanPredicted</span><span class="stryker-original-code" data-mutant="11"><span class="stryker-original-code" data-mutant="12"><span class="stryker-original-code" data-mutant="13"><span class="stryker-original-code" data-mutant="14"><span class="bg-success">datum.key &#x3D;&#x3D;&#x3D; keyForActualGreaterThanPredicted</span></span><span class="bg-success"> ||
+          </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="15"><span class="label label-success">15</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="15">datum.key !&#x3D;&#x3D; keyForActualLessThanPredicted</span><span class="stryker-original-code" data-mutant="15"><span class="bg-success">datum.key &#x3D;&#x3D;&#x3D; keyForActualLessThanPredicted</span></span></span></span></span><span class="bg-success">
+        ) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="16"><span class="label label-success">16</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="16">{
+}</span><span class="stryker-original-code" data-mutant="16"><span class="bg-success">{
+          const diff &#x3D; Math.abs(</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="17"><span class="label label-success">17</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="17">datum.data.y0 + datum.data.y1</span><span class="stryker-original-code" data-mutant="17"><span class="bg-success">datum.data.y0 - datum.data.y1</span></span><span class="bg-success">);
+          if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="18"><span class="label label-success">18</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="18">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="19"><span class="label label-success">19</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="19">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="20"><span class="label label-success">20</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="20">diff !&#x3D;&#x3D; 0</span><span class="stryker-original-code" data-mutant="18"><span class="stryker-original-code" data-mutant="19"><span class="stryker-original-code" data-mutant="20"><span class="bg-success">diff &#x3D;&#x3D;&#x3D; 0</span></span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="21"><span class="label label-success">21</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="21">{
+}</span><span class="stryker-original-code" data-mutant="21"><span class="bg-success">{
+            return &#x27;-&#x27;;
+          }</span></span><span class="bg-success">
+          return diff;
+        }</span></span><span class="bg-success">
+        return value;
+      }</span></span><span class="bg-success">);
+
+      multiChart.stack1.areaY1((d) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="22"><span class="label label-success">22</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="22">{
+}</span><span class="stryker-original-code" data-mutant="22"><span class="bg-success">{
+        // if (&#x27;callCount&#x27; in multiChart.stack1.scatter.yScale)
+        return multiChart.stack1.scatter.yScale()(d.display.y);
+      }</span></span><span class="bg-success">);
+
+      multiChart.stack1.transformData((d) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="23"><span class="label label-success">23</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="23">{
+}</span><span class="stryker-original-code" data-mutant="23"><span class="bg-success">{
+        d.display &#x3D; { y: d.y1, y0: d.y0 };
+      }</span></span><span class="bg-success">);
+      const timeFormatter &#x3D; d3.time.format.multi(</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="24"><span class="label label-success">24</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="24">[]</span><span class="stryker-original-code" data-mutant="24"><span class="bg-success">[
+        </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="25"><span class="label label-success">25</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="25">[]</span><span class="stryker-original-code" data-mutant="25"><span class="bg-success">[
+          &#x27;%I:%M&#x27;,
+          function(d) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="26"><span class="label label-success">26</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="26">{
+}</span><span class="stryker-original-code" data-mutant="26"><span class="bg-success">{
+            return d.getMinutes();
+          }</span></span><span class="bg-success">
+        ]</span></span><span class="bg-success">,
+        </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="27"><span class="label label-success">27</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="27">[]</span><span class="stryker-original-code" data-mutant="27"><span class="bg-success">[
+          &#x27;%I %p&#x27;,
+          function(d) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="28"><span class="label label-success">28</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="28">{
+}</span><span class="stryker-original-code" data-mutant="28"><span class="bg-success">{
+            return d.getHours();
+          }</span></span><span class="bg-success">
+        ]</span></span><span class="bg-success">,
+        </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="29"><span class="label label-success">29</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="29">[]</span><span class="stryker-original-code" data-mutant="29"><span class="bg-success">[
+          &#x27;%a %d&#x27;,
+          function(d) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="30"><span class="label label-success">30</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="30">{
+}</span><span class="stryker-original-code" data-mutant="30"><span class="bg-success">{
+            return </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="31"><span class="label label-success">31</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="31">d.getDay() || d.getDate() !&#x3D; 1</span><span class="stryker-original-code" data-mutant="31"><span class="bg-success">d.getDay() &amp;&amp; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="32"><span class="label label-success">32</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="32">d.getDate() &#x3D;&#x3D; 1</span><span class="stryker-original-code" data-mutant="32"><span class="bg-success">d.getDate() !&#x3D; 1</span></span></span><span class="bg-success">;
+          }</span></span><span class="bg-success">
+        ]</span></span><span class="bg-success">,
+        </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="33"><span class="label label-success">33</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="33">[]</span><span class="stryker-original-code" data-mutant="33"><span class="bg-success">[
+          &#x27;%b %d&#x27;,
+          function(d) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="34"><span class="label label-success">34</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="34">{
+}</span><span class="stryker-original-code" data-mutant="34"><span class="bg-success">{
+            return </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="35"><span class="label label-success">35</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="35">d.getDate() &#x3D;&#x3D; 1</span><span class="stryker-original-code" data-mutant="35"><span class="bg-success">d.getDate() !&#x3D; 1</span></span><span class="bg-success">;
+          }</span></span><span class="bg-success">
+        ]</span></span><span class="bg-success">,
+        </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="36"><span class="label label-success">36</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="36">[]</span><span class="stryker-original-code" data-mutant="36"><span class="bg-success">[
+          &#x27;%B&#x27;,
+          function(d) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="37"><span class="label label-success">37</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="37">{
+}</span><span class="stryker-original-code" data-mutant="37"><span class="bg-success">{
+            return d.getMonth();
+          }</span></span><span class="bg-success">
+        ]</span></span><span class="bg-success">,
+        </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="38"><span class="label label-success">38</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="38">[]</span><span class="stryker-original-code" data-mutant="38"><span class="bg-success">[
+          &#x27;%Y&#x27;,
+          function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="39"><span class="label label-success">39</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="39">{
+}</span><span class="stryker-original-code" data-mutant="39"><span class="bg-success">{
+            return true;
+          }</span></span><span class="bg-success">
+        ]</span></span><span class="bg-success">
+      ]</span></span><span class="bg-success">);
+      multiChart.xAxis.scale(d3.time.scale());
+      multiChart.xAxis.tickFormat(timeFormatter);
+      const allValues &#x3D; processedData
+        .filter((dataset) &#x3D;&gt; !dataset.filtered)
+        .map((dataset) &#x3D;&gt; dataset.values);
+      const dateExtent &#x3D; d3.extent(d3.merge(allValues), (d) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="40"><span class="label label-danger">40</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="40">{
+}</span><span class="stryker-original-code" data-mutant="40"><span class="bg-danger">{
+        return xForMultiChart(d);
+      }</span></span><span class="bg-success">);
+      multiChart.xAxis
+        .domain(dateExtent)
+        .range(</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="41"><span class="label label-success">41</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="41">[]</span><span class="stryker-original-code" data-mutant="41"><span class="bg-success">[0, </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="42"><span class="label label-success">42</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="42">width - margin.left + margin.right</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="43"><span class="label label-success">43</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="43">width + margin.left</span><span class="stryker-original-code" data-mutant="42"><span class="stryker-original-code" data-mutant="43"><span class="bg-success">width - margin.left</span></span><span class="bg-success"> - margin.right</span></span><span class="bg-success">]</span></span><span class="bg-success">);
+
+      const yExtent &#x3D; d3.extent(d3.merge(allValues), (d) &#x3D;&gt; yForMultiChart(d));
+      multiChart.yDomain1(yExtent);
+      multiChart.yAxis1.tickFormat(d3.format(&#x27;,.1f&#x27;));
+      multiChart.yAxis2.tickFormat(d3.format(&#x27;,.1f&#x27;));
+
+      focus.width(width);
+      focus.margin(focusMargin);
+      focus.xScale(d3.time.scale());
+      focus.xAxis.tickFormat(timeFormatter);
+
+      focus.xAxis.rotateLabels(0);
+
+      container
+        .append(&#x27;g&#x27;)
+        .attr(&#x27;class&#x27;, &#x27;nv-focusWrap&#x27;)
+        .style(&#x27;display&#x27;, &#x27;initial&#x27;)
+        .attr(&#x27;transform&#x27;, &#x27;translate(50, 750)&#x27;)
+        .datum(processedData.filter((dataset) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="44"><span class="label label-danger">44</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="44">dataset.type !&#x3D;&#x3D; &#x27;line&#x27;</span><span class="stryker-original-code" data-mutant="44"><span class="bg-danger">dataset.type &#x3D;&#x3D;&#x3D; &#x27;line&#x27;</span></span><span class="bg-success">))
+        .call(focus);
+
+      container.datum(processedData).call(multiChart);
+
+      focus.dispatch.on(&#x27;onBrush&#x27;, (extent) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="45"><span class="label label-success">45</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="45">{
+}</span><span class="stryker-original-code" data-mutant="45"><span class="bg-success">{
+
+        const filteredData &#x3D; processedData.map((datum) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="46"><span class="label label-success">46</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="46">{
+}</span><span class="stryker-original-code" data-mutant="46"><span class="bg-success">{
+          return Object.assign({}, datum, {
+            values: datum.values.filter((val) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="47"><span class="label label-danger">47</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="47">{
+}</span><span class="stryker-original-code" data-mutant="47"><span class="bg-danger">{
+
+              return </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="48"><span class="label label-success">48</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="48">val.x &gt;&#x3D; extent[0] || val.x &lt;&#x3D; extent[1]</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="49"><span class="label label-danger">49</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="49">val.x &gt; extent[0]</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="50"><span class="label label-success">50</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="50">val.x &lt; extent[0]</span><span class="stryker-original-code" data-mutant="48"><span class="stryker-original-code" data-mutant="49"><span class="stryker-original-code" data-mutant="50"><span class="bg-danger">val.x &gt;&#x3D; extent[0]</span></span></span><span class="bg-danger"> &amp;&amp; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="51"><span class="label label-danger">51</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="51">val.x &lt; extent[1]</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="52"><span class="label label-success">52</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="52">val.x &gt; extent[1]</span><span class="stryker-original-code" data-mutant="51"><span class="stryker-original-code" data-mutant="52"><span class="bg-danger">val.x &lt;&#x3D; extent[1]</span></span></span></span><span class="bg-danger">;
+            }</span></span><span class="bg-success">)
+          });
+        }</span></span><span class="bg-success">);
+
+        container.datum(filteredData);
+
+        multiChart.xAxis.domain(extent);
+
+        multiChart.update();
+      }</span></span><span class="bg-success">);
+
+      chart.update &#x3D; function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="53"><span class="label label-success">53</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="53">{
+}</span><span class="stryker-original-code" data-mutant="53"><span class="bg-success">{
+        container.selectAll(&#x27;*&#x27;).remove();
+        //   container.select(&#x27;.multiChart g&#x27;).remove();
+        //   g.select(&#x27;.nv-secondaryChartWrap&#x27;).datum(dataSecondary);
+        //  g.select(&#x27;.nv-linesWrap&#x27;).datum(dataLines);
+        // multiChart.update();
+        if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="54"><span class="label label-danger">54</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="54">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="55"><span class="label label-danger">55</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="55">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="56"><span class="label label-danger">56</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="56">duration !&#x3D;&#x3D; 0</span><span class="stryker-original-code" data-mutant="54"><span class="stryker-original-code" data-mutant="55"><span class="stryker-original-code" data-mutant="56"><span class="bg-danger">duration &#x3D;&#x3D;&#x3D; 0</span></span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="57"><span class="label label-danger">57</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="57">{
+}</span><span class="stryker-original-code" data-mutant="57"><span class="bg-danger">{
+          container.call(chart);
+        }</span></span><span class="bg-success"> else </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="58"><span class="label label-success">58</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="58">{
+}</span><span class="stryker-original-code" data-mutant="58"><span class="bg-success">{
+          container.transition().duration(duration).call(chart);
+        }</span></span><span class="bg-success">
+      }</span></span><span class="bg-success">;
+
+      return chart;
+    }</span></span><span class="bg-success">);
+  }</span></span><span class="bg-success">
+
+  chart.options &#x3D; nv.utils.optionsFunc.bind(chart);
+
+  chart._options &#x3D; Object.create({}, {
+    width: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="59"><span class="label label-success">59</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="59">{
+}</span><span class="stryker-original-code" data-mutant="59"><span class="bg-success">{
+        return width;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="60"><span class="label label-success">60</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="60">{
+}</span><span class="stryker-original-code" data-mutant="60"><span class="bg-success">{
+        width &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    height: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="61"><span class="label label-success">61</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="61">{
+}</span><span class="stryker-original-code" data-mutant="61"><span class="bg-success">{
+        return height;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="62"><span class="label label-success">62</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="62">{
+}</span><span class="stryker-original-code" data-mutant="62"><span class="bg-success">{
+        height &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    strokeWidth: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="63"><span class="label label-success">63</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="63">{
+}</span><span class="stryker-original-code" data-mutant="63"><span class="bg-success">{
+        return strokeWidth;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="64"><span class="label label-success">64</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="64">{
+}</span><span class="stryker-original-code" data-mutant="64"><span class="bg-success">{
+        strokeWidth &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    x: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="65"><span class="label label-success">65</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="65">{
+}</span><span class="stryker-original-code" data-mutant="65"><span class="bg-success">{
+        return xAccessor;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="66"><span class="label label-success">66</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="66">{
+}</span><span class="stryker-original-code" data-mutant="66"><span class="bg-success">{
+        xAccessor &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    y: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="67"><span class="label label-success">67</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="67">{
+}</span><span class="stryker-original-code" data-mutant="67"><span class="bg-success">{
+        return yAccessor;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="68"><span class="label label-success">68</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="68">{
+}</span><span class="stryker-original-code" data-mutant="68"><span class="bg-success">{
+        yAccessor &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    keyForActualLessThanPredicted: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="69"><span class="label label-success">69</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="69">{
+}</span><span class="stryker-original-code" data-mutant="69"><span class="bg-success">{
+        return keyForActualLessThanPredicted;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="70"><span class="label label-success">70</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="70">{
+}</span><span class="stryker-original-code" data-mutant="70"><span class="bg-success">{
+        keyForActualLessThanPredicted &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    keyForActualGreaterThanPredicted: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="71"><span class="label label-success">71</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="71">{
+}</span><span class="stryker-original-code" data-mutant="71"><span class="bg-success">{
+        return keyForActualGreaterThanPredicted;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="72"><span class="label label-success">72</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="72">{
+}</span><span class="stryker-original-code" data-mutant="72"><span class="bg-success">{
+        keyForActualGreaterThanPredicted &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    showPredictedLine: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="73"><span class="label label-success">73</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="73">{
+}</span><span class="stryker-original-code" data-mutant="73"><span class="bg-success">{
+        return showPredictedLine;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="74"><span class="label label-success">74</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="74">{
+}</span><span class="stryker-original-code" data-mutant="74"><span class="bg-success">{
+        showPredictedLine &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    interpolate: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="75"><span class="label label-success">75</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="75">{
+}</span><span class="stryker-original-code" data-mutant="75"><span class="bg-success">{
+        return interpolate;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="76"><span class="label label-success">76</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="76">{
+}</span><span class="stryker-original-code" data-mutant="76"><span class="bg-success">{
+        interpolate &#x3D; _;
+      }</span></span><span class="bg-success">
+    },
+    focusMargin: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="77"><span class="label label-success">77</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="77">{
+}</span><span class="stryker-original-code" data-mutant="77"><span class="bg-success">{
+        return focusMargin;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="78"><span class="label label-success">78</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="78">{
+}</span><span class="stryker-original-code" data-mutant="78"><span class="bg-success">{
+        focusMargin.top &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="79"><span class="label label-success">79</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="79">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="80"><span class="label label-success">80</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="80">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="81"><span class="label label-success">81</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="81">_.top &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="79"><span class="stryker-original-code" data-mutant="80"><span class="stryker-original-code" data-mutant="81"><span class="bg-success">_.top !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success"> ? _.top : focusMargin.top;
+        focusMargin.right &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="82"><span class="label label-success">82</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="82">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="83"><span class="label label-success">83</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="83">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="84"><span class="label label-success">84</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="84">_.right &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="82"><span class="stryker-original-code" data-mutant="83"><span class="stryker-original-code" data-mutant="84"><span class="bg-success">_.right !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success"> ? _.right : focusMargin.right;
+        focusMargin.bottom &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="85"><span class="label label-success">85</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="85">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="86"><span class="label label-success">86</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="86">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="87"><span class="label label-success">87</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="87">_.bottom &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="85"><span class="stryker-original-code" data-mutant="86"><span class="stryker-original-code" data-mutant="87"><span class="bg-success">_.bottom !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success">
+          ? _.bottom
+          : focusMargin.bottom;
+        focusMargin.left &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="88"><span class="label label-success">88</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="88">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="89"><span class="label label-success">89</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="89">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="90"><span class="label label-success">90</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="90">_.left &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="88"><span class="stryker-original-code" data-mutant="89"><span class="stryker-original-code" data-mutant="90"><span class="bg-success">_.left !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success"> ? _.left : focusMargin.left;
+      }</span></span><span class="bg-success">
+    },
+    margin: {
+      get: function() </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="91"><span class="label label-success">91</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="91">{
+}</span><span class="stryker-original-code" data-mutant="91"><span class="bg-success">{
+        return margin;
+      }</span></span><span class="bg-success">,
+      set: function(_) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="92"><span class="label label-success">92</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="92">{
+}</span><span class="stryker-original-code" data-mutant="92"><span class="bg-success">{
+        margin.top &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="93"><span class="label label-success">93</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="93">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="94"><span class="label label-success">94</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="94">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="95"><span class="label label-success">95</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="95">_.top &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="93"><span class="stryker-original-code" data-mutant="94"><span class="stryker-original-code" data-mutant="95"><span class="bg-success">_.top !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success"> ? _.top : margin.top;
+        margin.right &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="96"><span class="label label-success">96</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="96">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="97"><span class="label label-success">97</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="97">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="98"><span class="label label-success">98</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="98">_.right &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="96"><span class="stryker-original-code" data-mutant="97"><span class="stryker-original-code" data-mutant="98"><span class="bg-success">_.right !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success"> ? _.right : margin.right;
+        margin.bottom &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="99"><span class="label label-success">99</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="99">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="100"><span class="label label-success">100</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="100">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="101"><span class="label label-success">101</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="101">_.bottom &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="99"><span class="stryker-original-code" data-mutant="100"><span class="stryker-original-code" data-mutant="101"><span class="bg-success">_.bottom !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success"> ? _.bottom : margin.bottom;
+        margin.left &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="102"><span class="label label-success">102</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="102">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="103"><span class="label label-success">103</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="103">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="104"><span class="label label-success">104</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="104">_.left &#x3D;&#x3D;&#x3D; undefined</span><span class="stryker-original-code" data-mutant="102"><span class="stryker-original-code" data-mutant="103"><span class="stryker-original-code" data-mutant="104"><span class="bg-success">_.left !&#x3D;&#x3D; undefined</span></span></span></span><span class="bg-success"> ? _.left : margin.left;
+      }</span></span><span class="bg-success">
+    }
+  });
+
+  function processData(data) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="105"><span class="label label-success">105</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="105">{
+}</span><span class="stryker-original-code" data-mutant="105"><span class="bg-success">{
+    const clonedData &#x3D; data.slice(0);
+    const allProcessed &#x3D; clonedData.every((dataset) &#x3D;&gt; dataset.processed);
+    const actualData &#x3D; clonedData.filter((dataSet) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="106"><span class="label label-success">106</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="106">dataSet.type !&#x3D;&#x3D; &#x27;actual&#x27;</span><span class="stryker-original-code" data-mutant="106"><span class="bg-success">dataSet.type &#x3D;&#x3D;&#x3D; &#x27;actual&#x27;</span></span><span class="bg-success">);
+    const predictedData &#x3D; clonedData.filter(
+      (dataSet) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="107"><span class="label label-success">107</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="107">dataSet.type !&#x3D;&#x3D; &#x27;expected&#x27;</span><span class="stryker-original-code" data-mutant="107"><span class="bg-success">dataSet.type &#x3D;&#x3D;&#x3D; &#x27;expected&#x27;</span></span><span class="bg-success">
+    );
+
+    if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="108"><span class="label label-success">108</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="108">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="109"><span class="label label-success">109</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="109">true</span><span class="stryker-original-code" data-mutant="108"><span class="stryker-original-code" data-mutant="109"><span class="bg-success">allProcessed</span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="110"><span class="label label-success">110</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="110">{
+}</span><span class="stryker-original-code" data-mutant="110"><span class="bg-success">{
+      return clonedData;
+    }</span></span><span class="bg-success"> else if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="111"><span class="label label-success">111</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="111">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="112"><span class="label label-success">112</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="112">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="113"><span class="label label-success">113</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="113">!actualData.length &amp;&amp; !predictedData.length</span><span class="stryker-original-code" data-mutant="111"><span class="stryker-original-code" data-mutant="112"><span class="stryker-original-code" data-mutant="113"><span class="bg-success">!actualData.length || !predictedData.length</span></span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="114"><span class="label label-success">114</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="114">{
+}</span><span class="stryker-original-code" data-mutant="114"><span class="bg-success">{
+      return [];
+    }</span></span><span class="bg-success">
+
+    const defaultKeyForActualLessThanPredicted &#x3D; &#x60;${predictedData[0].key} minus ${actualData[0].key} (Predicted &gt; Actual)&#x60;;
+    const defaultKeyForActualGreaterThanPredicted &#x3D; &#x60;${predictedData[0].key} minus ${actualData[0].key} (Predicted &lt; Actual)&#x60;;
+    // processedData is mapped as follows:
+    //  [0] &#x3D;&gt; Savings (actual under predicted) area
+    //  [1] &#x3D;&gt; &#x27;Loss&#x27; (actual over predicted) area
+    //  [2] &#x3D;&gt; Actual profile
+    //  [3] &#x3D;&gt; Predicted profile
+    const processedData &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="115"><span class="label label-success">115</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="115">[]</span><span class="stryker-original-code" data-mutant="115"><span class="bg-success">[
+      {
+        key: </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="116"><span class="label label-success">116</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="116">keyForActualLessThanPredicted &amp;&amp; defaultKeyForActualLessThanPredicted</span><span class="stryker-original-code" data-mutant="116"><span class="bg-success">keyForActualLessThanPredicted ||
+          defaultKeyForActualLessThanPredicted</span></span><span class="bg-success">,
+        type: &#x27;area&#x27;,
+        values: [],
+        yAxis: 1,
+        color: &#x27;rgba(44,160,44,.9)&#x27;,
+        processed: true
+      },
+      {
+        key: </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="117"><span class="label label-success">117</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="117">keyForActualGreaterThanPredicted &amp;&amp; defaultKeyForActualGreaterThanPredicted</span><span class="stryker-original-code" data-mutant="117"><span class="bg-success">keyForActualGreaterThanPredicted ||
+          defaultKeyForActualGreaterThanPredicted</span></span><span class="bg-success">,
+        type: &#x27;area&#x27;,
+        values: [],
+        yAxis: 1,
+        color: &#x27;rgba(214,39,40,.9)&#x27;,
+        processed: true
+      },
+      {
+        key: actualData[0].key,
+        type: &#x27;line&#x27;,
+        values: [],
+        yAxis: 1,
+        color: &#x27;#666666&#x27;,
+        processed: true,
+        strokeWidth: strokeWidth
+      }
+    ]</span></span><span class="bg-success">;
+
+    if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="118"><span class="label label-success">118</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="118">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="119"><span class="label label-success">119</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="119">true</span><span class="stryker-original-code" data-mutant="118"><span class="stryker-original-code" data-mutant="119"><span class="bg-success">showPredictedLine</span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="120"><span class="label label-success">120</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="120">{
+}</span><span class="stryker-original-code" data-mutant="120"><span class="bg-success">{
+      processedData[3] &#x3D; {
+        key: predictedData[0].key,
+        type: &#x27;line&#x27;,
+        values: [],
+        yAxis: 1,
+        color: &#x27;#aec7e8&#x27;,
+        processed: true,
+        strokeWidth: strokeWidth
+      };
+    }</span></span><span class="bg-success">
+
+    actualData[0].values.forEach((d, i) &#x3D;&gt; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="121"><span class="label label-success">121</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="121">{
+}</span><span class="stryker-original-code" data-mutant="121"><span class="bg-success">{
+      if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="122"><span class="label label-success">122</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="122">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="123"><span class="label label-success">123</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="123">true</span><span class="stryker-original-code" data-mutant="122"><span class="stryker-original-code" data-mutant="123"><span class="bg-success">!predictedData[0].values[i]</span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="124"><span class="label label-success">124</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="124">{
+}</span><span class="stryker-original-code" data-mutant="124"><span class="bg-success">{
+        return;
+      }</span></span><span class="bg-success">
+
+      const actualUsage &#x3D; yAccessor(actualData[0].values[i]);
+      const predictedUsage &#x3D; yAccessor(predictedData[0].values[i]);
+      const predictedActualDelta &#x3D; </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="125"><span class="label label-success">125</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="125">predictedUsage + actualUsage</span><span class="stryker-original-code" data-mutant="125"><span class="bg-success">predictedUsage - actualUsage</span></span><span class="bg-success">;
+      // The below code generates data for the difference chart.
+      // We have four series: two for the area (processedData[0] and processedData[1]) charts
+      // and two for the line charts ([2] and [3]). The way we achieve difference chart
+      // is that for each datapoint, we calculate whether it represents a &#x27;savings&#x27;
+      // (actual less than predicted) or a &#x27;loss&#x27; (actual greater than predicted).
+      // The two areas are different colours (e.g. out of the box, a loss is red and a
+      // saving is green).
+      // If it&#x27;s a loss, then we add an area datapoint in the loss dataset ranging from actual to predicted
+      // (the area represents the magnitude of the loss).
+      // At the same time, for the savings dataset, we make the datapoint equivalent to actual usage so that
+      // a dot renders rather than a proper area. This basically makes the savings area invisible
+      // when there is a loss.
+      //
+      // The opposite occurs when predicted is greater than savings (a saving).
+      if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="126"><span class="label label-success">126</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="126">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="127"><span class="label label-success">127</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="127">true</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="danger" data-mutant="128"><span class="label label-danger">128</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="128">predictedActualDelta &lt;&#x3D; 0</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="129"><span class="label label-success">129</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="129">predictedActualDelta &gt;&#x3D; 0</span><span class="stryker-original-code" data-mutant="126"><span class="stryker-original-code" data-mutant="127"><span class="stryker-original-code" data-mutant="128"><span class="stryker-original-code" data-mutant="129"><span class="bg-danger">predictedActualDelta &lt; 0</span></span></span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="130"><span class="label label-success">130</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="130">{
+}</span><span class="stryker-original-code" data-mutant="130"><span class="bg-success">{
+        // actual greater than predicted - this is a loss
+        // add area for loss between actualUsage (y0) and predictedUsage(y1)
+        processedData[1].values[i] &#x3D; {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: predictedUsage
+        };
+        // for the saving data series, render a dot (y0 and y1) at actualUsage - need
+        // this rather than NaN because otherwise if the next datapoint is a saving,
+        // D3 won&#x27;t be able to link the two areas together
+        processedData[0].values[i] &#x3D; {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      }</span></span><span class="bg-success"> else </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="131"><span class="label label-success">131</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="131">{
+}</span><span class="stryker-original-code" data-mutant="131"><span class="bg-success">{
+        processedData[0].values[i] &#x3D; {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: predictedUsage
+        };
+        processedData[1].values[i] &#x3D; {
+          x: xAccessor(d),
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      }</span></span><span class="bg-success">
+      // Set actual
+      processedData[2].values[i] &#x3D; { x: xAccessor(d), y: actualUsage };
+      // Set predicted
+      if (</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="132"><span class="label label-success">132</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="132">false</span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="133"><span class="label label-success">133</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="133">true</span><span class="stryker-original-code" data-mutant="132"><span class="stryker-original-code" data-mutant="133"><span class="bg-success">showPredictedLine</span></span></span><span class="bg-success">) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="134"><span class="label label-success">134</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="134">{
+}</span><span class="stryker-original-code" data-mutant="134"><span class="bg-success">{
+        processedData[3].values[i] &#x3D; { x: xAccessor(d), y: predictedUsage };
+      }</span></span><span class="bg-success">
+    }</span></span><span class="bg-success">);
+
+    return processedData;
+  }</span></span><span class="bg-success">
+
+  function isDefined(thingToCheck) </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="135"><span class="label label-success">135</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="135">{
+}</span><span class="stryker-original-code" data-mutant="135"><span class="bg-success">{
+    // NB: void 0 &#x3D;&#x3D;&#x3D; undefined
+    return </span><a href="#" class="stryker-mutant-button" data-mutant-status-annotation="success" data-mutant="136"><span class="label label-success">136</span></a><span class="label label-info stryker-mutant-replacement" hidden data-mutant="136">thingToCheck &#x3D;&#x3D;&#x3D; void 0</span><span class="stryker-original-code" data-mutant="136"><span class="bg-success">thingToCheck !&#x3D;&#x3D; void 0</span></span><span class="bg-success">;
+  }</span></span><span class="bg-success">
+
+  chart.xAxis &#x3D; multiChart.xAxis;
+  chart.yAxis &#x3D; multiChart.yAxis1;
+  chart.multiChart &#x3D; multiChart;
+  chart.focus &#x3D; focus;
+  chart.processData &#x3D; processData;
+  nv.utils.inheritOptions(chart, multiChart);
+  nv.utils.initOptions(chart);
+
+  return chart;
+}</span></span><span class="bg-null">;</span>
+</code></pre>
+</div><footer>
+    Generated with stryker-html-reporter generator. Visit the <a href="http://stryker-mutator.github.io" target="_blank">Stryker website</a></footer>
+</div>
+<script src="stryker.js" defer></script>
+</body>
+</html>

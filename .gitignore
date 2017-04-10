@@ -12,3 +12,6 @@ bower_components
 coverage
 test-results.xml
 *.orig
+transpiled/
+.stryker-tmp
+reports/
