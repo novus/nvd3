@@ -21,7 +21,7 @@ nv.models.bullet = function() {
         , markerLabels = function(d) { return d.markerLabels ? d.markerLabels : []  }
         , markerLineLabels = function(d) { return d.markerLineLabels ? d.markerLineLabels : []  }
         , measureLabels = function(d) { return d.measureLabels ? d.measureLabels : []  }
-        , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
+        , forceX = [] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
         , width = 380
         , height = 30
         , container = null
@@ -74,7 +74,7 @@ nv.models.bullet = function() {
             // Setup Scales
             // Compute the new x-scale.
             var x1 = d3.scale.linear()
-                .domain( d3.extent(d3.merge([forceX, rangez])) )
+                .domain( d3.extent(d3.merge([forceX, rangez, markerz, measurez])) )
                 .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
             // Retrieve the old x-scale, if this is an update.
@@ -88,7 +88,7 @@ nv.models.bullet = function() {
             var rangeMin = d3.min(rangez), //rangez[2]
                 rangeMax = d3.max(rangez), //rangez[0]
                 rangeAvg = rangez[1];
-
+            var min = d3.min([].concat(rangez, markerz, measurez));
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-bullet').data([d]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
@@ -105,12 +105,12 @@ nv.models.bullet = function() {
 
             gEnter.append('rect').attr('class', 'nv-measure');
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            // wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
-                w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
-            var xp0 = function(d) { return d < 0 ? x0(d) : x0(0) },
-                xp1 = function(d) { return d < 0 ? x1(d) : x1(0) };
+            var w0 = function(d) { return x0(d) }, // TODO: could optimize by precalculating x0(0) and x1(0)
+                w1 = function(d) { return x1(d) };
+            var xp0 = function(d) { return 0 },
+                xp1 = function(d) { return 0 };
 
             for(var i=0,il=rangez.length; i<il; i++){
                 var range = rangez[i];
@@ -150,9 +150,7 @@ nv.models.bullet = function() {
                 })
                 .transition()
                 .duration(duration)
-                .attr('width', measurez < 0 ?
-                    x1(0) - x1(measurez[0])
-                    : x1(measurez[0]) - x1(0))
+                .attr('width', w1(measurez[0]))
                 .attr('x', xp1(measurez));
 
             var h3 =  availableHeight / 6;
@@ -195,7 +193,9 @@ nv.models.bullet = function() {
               .data(markerData)
               .transition()
               .duration(duration)
-              .attr('transform', function(d) { return 'translate(' + x1(d.value) + ',' + (availableHeight / 2) + ')' });
+              .attr('transform', function(d) {
+                  return 'translate(' + (x1(d.value) || x1(min)) + ',' + (availableHeight / 2) + ')'
+              });
 
             var markerLinesData = markerLinez.map( function(marker, index) {
                 return {value: marker, label: markerLineLabelz[index]}

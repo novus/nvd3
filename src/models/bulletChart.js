@@ -67,7 +67,7 @@ nv.models.bulletChart = function() {
 
             // Compute the new x-scale.
             var x1 = d3.scale.linear()
-                .domain([0, Math.max(rangez[0], (markerz[0] || 0), measurez[0])])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
+                .domain([d3.min([].concat(rangez, markerz, measurez)), d3.max([].concat(rangez, markerz, measurez))])  // TODO: need to allow forceX and forceY, and xDomain, yDomain
                 .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
             // Retrieve the old x-scale, if this is an update.
@@ -78,8 +78,8 @@ nv.models.bulletChart = function() {
             // Stash the new scale.
             this.__chart__ = x1;
 
-            var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
-                w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
+            // var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
+            //     w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
 
             var title = gEnter.select('.nv-titles').append('g')
                 .attr('text-anchor', 'end')
@@ -112,7 +112,6 @@ nv.models.bulletChart = function() {
             // Initialize the ticks with the old scale, x0.
             var tickEnter = tick.enter().append('g')
                 .attr('class', 'nv-tick')
-                .attr('transform', function(d) { return 'translate(' + x0(d) + ',0)' })
                 .style('opacity', 1e-6);
 
             tickEnter.append('line')
