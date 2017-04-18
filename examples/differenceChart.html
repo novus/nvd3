@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width" />
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+        html, body, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class='with-3d-shadow with-transitions'>
+<button onclick="expandLegend();">Expand/Contract Legend</button>
+<script>
+  var expandLegend = function() {
+      var exp = chart.multiChart.legend.expanded();
+      chart.multiChart.legend.align(false);
+      chart.update();
+  }
+</script>
+<svg id="chart2"></svg>
+
+<script>
+  let actual, predicted, data, chart;
+
+  async function readTextFile(file) {
+    return new Promise((resolve) => {
+      var rawFile = new XMLHttpRequest();
+      rawFile.overrideMimeType('application/json');
+      rawFile.open('GET', file, true);
+      rawFile.onreadystatechange = function() {
+        if (rawFile.readyState === 4 && rawFile.status == '200') {
+          resolve(rawFile.responseText);
+        }
+      }
+      rawFile.send(null);
+    });
+  }
+
+  const keyForActualLessThanPredicted = 'Savings (kWh)';
+  const keyForActualGreaterThanPredicted = 'Excess Usage (kWh)';
+
+  async function loadData() {
+    actual = await readTextFile('./actual.json');
+    predicted = await readTextFile('./predicted.json');
+    const actualData = JSON.parse(actual);
+    const predictedData = JSON.parse(predicted);
+
+    data = [{
+      key: 'Actual usage (kWh)',
+      type: 'actual',
+      values: actualData[0].values,
+      color: 'black'
+    }, {
+      key: 'Predicted usage (kWh)',
+      type: 'expected',
+      values: predictedData.map(d => {
+        return {
+          recorded_at: d.recorded_at,
+          value: d.attributes.value
+        };
+      }),
+      color: 'blue'
+    }];
+  }
+
+  async function main() {
+    const colors = d3.scale.category20();
+
+    await loadData();
+
+    nv.addGraph(function() {
+      chart = nv.models.differenceChart();
+      chart
+        .x(d => new Date(d.recorded_at))
+        .y(d => d.value)
+        .keyForActualLessThanPredicted(keyForActualLessThanPredicted)
+        .keyForActualGreaterThanPredicted(keyForActualGreaterThanPredicted)
+        .height(500)
+        .showPredictedLine(true)
+        .interpolate('step-before')
+        .strokeWidth(0.5);
+
+      chart.multiChart.interactiveLayer.tooltip.contentGenerator(function (d) {
+        var header = d.value;
+        var headerhtml = "<thead><tr><td colspan='3'><strong class='x-value'>" + header + "</strong></td></tr></thead>";
+        var bodyhtml = "<tbody>";
+        var series = d.series;
+        series.forEach(function(c) {
+          var value = c.value.toFixed(2);
+          if (c.key === keyForActualGreaterThanPredicted || c.key === keyForActualLessThanPredicted) {
+            var diff = Math.abs(c.data.y0 - c.data.y1);
+            if (diff === 0) {
+              value = '-';
+            } else {
+              value = diff.toFixed(2);
+            }
+          }
+          bodyhtml = bodyhtml + "<tr><td class='legend-color-guide'><div style='background-color: " + c.color + ";'></div></td><td class='key'>" + c.key + "</td><td class='value'>" + value + "</td></tr>";
+        });
+        bodyhtml = bodyhtml+"</tbody>";
+        return "<table>"+headerhtml+''+bodyhtml+"</table>";
+      });
+      chart.xAxis.tickFormatMaxMin(d3.time.format('%b %d'));
+      chart.focus.xAxis.tickFormatMaxMin(d3.time.format('%b %d'));
+      chart.focus.height(40);
+      chart.focusMargin({top:10})
+
+      d3.select('svg#chart2')
+        .datum(data)
+        .call(chart);
+
+      nv.utils.windowResize(chart.update);
+      return chart;
+    });
+  }
+
+  main();
+
+</script>
+</body>
+</html>
