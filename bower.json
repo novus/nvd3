@@ -1,0 +1,12 @@
+{
+    "name": "gh-pages",
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components"
+    ],
+    "devDependencies": {
+        "jquery": "~2.1.1",
+        "d3": "~3.4.11"
+    }
+}
