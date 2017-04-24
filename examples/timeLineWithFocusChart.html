@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<link href="../src/nv.d3.css" rel="stylesheet" type="text/css">
+
+<style>
+
+body {
+  overflow-y:scroll;
+}
+
+text {
+  font: 12px sans-serif;
+}
+
+svg {
+  display: block;
+}
+
+#chart1 svg {
+  height: 500px;
+  min-width: 100px;
+  min-height: 100px;
+/*
+  margin: 50px;
+  Minimum height and width is a good idea to prevent negative SVG dimensions...
+  For example width should be =< margin.left + margin.right + 1,
+  of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
+*/
+}
+
+</style>
+<body>
+
+  <div id="chart" class='with-3d-shadow with-transitions'>
+    <svg style="height: 500px;"></svg>
+  </div>
+
+<script src="../lib/d3.v3.js"></script>
+<script src="../nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/scatter.js"></script>
+<script src="../src/models/line.js"></script>
+<script src="../src/models/timeLineWithFocusChart.js"></script>
+<script src="stream_layers.js"></script>
+<script>
+
+
+nv.addGraph(function() {
+  var chart = nv.models.timeLineWithFocusChart();
+
+  // chart.transitionDuration(500);
+  var day = 1000 * 60 * 60 * 24;
+
+  var dateFormat = d3.time.format("%x");
+  var timeFormat = d3.time.format("%X");
+  
+  chart.x2Axis
+      .tickFormat(d3.format(',f'));
+
+  chart.yAxis
+      .tickFormat(d3.format(',.2f'));
+  chart.y2Axis
+      .tickFormat(d3.format(',.2f'));
+
+  chart.xTickFormat.re(function (data) {
+    range = d3.extent(d3.merge(data.map(function(d) { return d.values })).map(function(d) { return d.x }).concat([]));
+    return function (d) {
+      if((range[1] - range[0]) > day)
+        return dateFormat(new Date(d));
+      else
+        return timeFormat(new Date(d));
+    }
+  });
+  
+  d3.select('#chart svg')
+      .datum(testData())
+      .call(chart);
+
+  nv.utils.windowResize(chart.update);
+
+  return chart;
+});
+
+
+
+function testData() {
+  return stream_layers(3,128,.1).map(function(data, i) {
+    var time = data.map( function (d) { d.x = d.x * 1000 * 60 * 24; return d; } ); //convert to hours
+    return { 
+      key: 'Stream' + i,
+      values: time
+    };
+  });
+}
+
+
+</script>
