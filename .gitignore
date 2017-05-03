@@ -1,5 +1,6 @@
 
 .idea
+transpiled/
 *.swp
 *~
 *.log
@@ -12,3 +13,4 @@ bower_components
 coverage
 test-results.xml
 *.orig
+.stryker-tmp

@@ -260,7 +260,11 @@ nv.models.legend = function() {
                     xpos;
                 series
                     .attr('transform', function(d, i) {
-                        var length = d3.select(this).select('text').node().getComputedTextLength() + padding;
+                        var textNode = d3.select(this).select('text').node();
+                        var length = padding;
+                        if (textNode.getComputedTextLength) {
+                          length = textNode.getComputedTextLength() + padding;
+                        }
                         xpos = newxpos;
 
                         if (width < margin.left + margin.right + xpos + length) {
