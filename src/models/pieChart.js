@@ -255,6 +255,7 @@ nv.models.pieChart = function() {
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
         }}
     });
+    nv.utils.inheritDispatchers(chart, pie);
     nv.utils.inheritOptions(chart, pie);
     nv.utils.initOptions(chart);
     return chart;
