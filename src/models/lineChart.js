@@ -200,6 +200,9 @@ nv.models.lineChart = function() {
             lines
                 .width(availableWidth)
                 .height(availableHeight)
+                .interpolate(data.map(function(d,i) {
+                    return d.interpolate;
+                }).filter(function(d,i) { return !data[i].disabled}))
                 .color(data.map(function(d,i) {
                     return d.color || color(d, i);
                 }).filter(function(d,i) { return !data[i].disabled; }));

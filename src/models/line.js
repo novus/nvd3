@@ -145,23 +145,29 @@ nv.models.line = function() {
                 .data(function(d) { return [d.values] });
 
             linePaths.enter().append('path')
+              .each(function (d, i) {
+                d3.select(this)
                 .attr('class', 'nv-line')
                 .attr('d',
                     d3.svg.line()
-                    .interpolate(interpolate)
+                    .interpolate(interpolate[d[0].series])
                     .defined(defined)
                     .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
                     .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
-            );
+                  );
+              });
 
             linePaths.watchTransition(renderWatch, 'line: linePaths')
+              .each(function (d, i) {
+                d3.select(this)
                 .attr('d',
                     d3.svg.line()
-                    .interpolate(interpolate)
+                    .interpolate(interpolate[d[0].series])
                     .defined(defined)
                     .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
                     .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
-            );
+                );
+              });
 
             //store old scales for use in transitions on update
             x0 = x.copy();
