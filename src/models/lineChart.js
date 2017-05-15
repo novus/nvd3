@@ -169,7 +169,19 @@ nv.models.lineChart = function() {
                         margin.top = legend.height();
                         availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                     }
+                
+                //Do not display the legend if there isn't enough space
+                if (availableHeight1 === 0) {
+                    g.select('.nv-legendWrap')
+                        .datum([])
+                        .call(legend);
 
+                    if (margin.top != legend.height()) {
+                        margin.top = legend.height();
+                        availableHeight1 = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focusHeight : 0);
+                    }
+                }
+                
                     wrap.select('.nv-legendWrap')
                         .attr('transform', 'translate(0,' + (-margin.top) +')');
                 }
