@@ -409,7 +409,7 @@ nv.models.multiBarChart = function() {
                                 key: series.key,
                                 value: chart.y()(point, pointIndex),
                                 color: color(series,series.seriesIndex),
-                                data: series.values[pointIndex]
+                                data: point  
                             });
                         });
 
