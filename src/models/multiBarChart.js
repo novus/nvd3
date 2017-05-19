@@ -331,7 +331,8 @@ nv.models.multiBarChart = function() {
                     .height(availableHeight)
                     .margin({left:margin.left, top:margin.top})
                     .svgContainer(container)
-                    .xScale(x);
+                    .xScale(x)
+                    .tooltip(tooltip);
                 wrap.select(".nv-interactive").call(interactiveLayer);
             }
 
@@ -413,7 +414,7 @@ nv.models.multiBarChart = function() {
                             });
                         });
 
-                    interactiveLayer.tooltip
+                    interactiveLayer.tooltip()
                         .data({
                             value: xValue,
                             index: pointIndex,
@@ -424,7 +425,7 @@ nv.models.multiBarChart = function() {
                 });
 
                 interactiveLayer.dispatch.on("elementMouseout",function(e) {
-                    interactiveLayer.tooltip.hidden(true);
+                    interactiveLayer.tooltip().hidden(true);
                 });
             }
             else {
