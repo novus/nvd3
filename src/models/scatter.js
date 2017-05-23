@@ -562,12 +562,9 @@ nv.models.scatter = function() {
                     .attr('class', 'nv-scatter-title')
                     .style("text-anchor", "middle")
                     .style("font-size", "150%")
-                    .text(function (d) {
-                        return title;
-                    })
-                    .attr('transform', function(d, i) {
-                        return 'translate(' + (availableWidth / 2) + ', '+ titleOffset + ')';
-                    });
+                    .text(function (d) { return title; })
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ', '+ titleOffset + ')'; }) // center title
+                    .attr('dy','-10px'); // nudge title up a bit
             }
 
 
