@@ -37,7 +37,7 @@ nv.models.scatter = function() {
         , yRange       = null // Override y range
         , sizeDomain   = null // Override point size domain
         , title = false
-        , titleOffset = 0
+        , titleOffset = {top: 0, left: 0}
         , sizeRange    = null
         , singlePoint  = false
         , dispatch     = d3.dispatch('elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -563,8 +563,9 @@ nv.models.scatter = function() {
                     .style("text-anchor", "middle")
                     .style("font-size", "150%")
                     .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ', '+ titleOffset + ')'; }) // center title
-                    .attr('dy','-10px'); // nudge title up a bit
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
+                    .attr('dx',titleOffset.left)
+                    .attr('dy',titleOffset.top)
             }
 
 
@@ -688,8 +689,8 @@ nv.models.scatter = function() {
         pointRange:   {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
         forceX:       {get: function(){return forceX;}, set: function(_){forceX=_;}},
         forceY:       {get: function(){return forceY;}, set: function(_){forceY=_;}},
-        title:      {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:    {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
+        title:        {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         forcePoint:   {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
         interactive:  {get: function(){return interactive;}, set: function(_){interactive=_;}},
         pointActive:  {get: function(){return pointActive;}, set: function(_){pointActive=_;}},
