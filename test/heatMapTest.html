@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="../build/nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/heatMap.js"></script>
+<script src="../src/models/heatMapChart.js"></script>
+
+<head>
+    <style>
+          g.cell rect {
+            stroke: #E6E6E6;
+            stroke-width:2px;   
+          }
+
+          g.cell text.mono {
+            font-size: 9pt;
+            font-family: Consolas, courier;
+            fill: #aaa;
+          }
+
+          path.domain, g.tick.zero line {
+            stroke-opacity: 0 !important; /* axis model does not have a way of turning off the zero line, this is a workaround ... */
+          }
+
+          #heatMap1 {
+          }
+
+          #heatMap2 {
+            height: 400px;
+          }
+
+          html, body, #heatMap1, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+          }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="heatMap1">
+        <svg></svg>
+    </div>
+    <div id="heatMap2">
+        <svg></svg>
+    </div>
+
+</body>
+
+<script>
+
+
+var data = [
+    {day: "Mo", hour: "1a", value: 16},
+    {day: "Mo", hour: "2a", value: 20},
+    {day: "Mo", hour: "3a", value: 0},
+    {day: "Mo", hour: "4a", value: 0},
+    {day: "Mo", hour: "5a", value: 0},
+    {day: "Mo", hour: "6a", value: 2},
+    {day: "Mo", hour: "7a", value: 0},
+    {day: "Mo", hour: "8a", value: 9},
+    {day: "Mo", hour: "9a", value: 25},
+    {day: "Mo", hour: "10a", value: 49},
+    {day: "Mo", hour: "11a", value: 57},
+    {day: "Mo", hour: "12a", value: 61},
+    {day: "Mo", hour: "1p", value: 37},
+    {day: "Mo", hour: "2p", value: 66},
+    {day: "Mo", hour: "3p", value: 70},
+    {day: "Mo", hour: "4p", value: 55},
+    {day: "Mo", hour: "5p", value: 51},
+    {day: "Mo", hour: "6p", value: 55},
+    {day: "Mo", hour: "7p", value: 17},
+    {day: "Mo", hour: "8p", value: 20},
+    {day: "Mo", hour: "9p", value: 9},
+    {day: "Mo", hour: "10p", value: 4},
+    {day: "Mo", hour: "11p", value: 0},
+    {day: "Mo", hour: "12p", value: 12},
+    {day: "Tu", hour: "1a", value: 6},
+    {day: "Tu", hour: "2a", value: 2},
+    {day: "Tu", hour: "3a", value: 0},
+    {day: "Tu", hour: "4a", value: 0},
+    {day: "Tu", hour: "5a", value: 0},
+    {day: "Tu", hour: "6a", value: 2},
+    {day: "Tu", hour: "7a", value: 4},
+    {day: "Tu", hour: "8a", value: 11},
+    {day: "Tu", hour: "9a", value: 28},
+    {day: "Tu", hour: "10a", value: 49},
+    {day: "Tu", hour: "11a", value: 51},
+    {day: "Tu", hour: "12a", value: 47},
+    {day: "Tu", hour: "1p", value: 38},
+    {day: "Tu", hour: "2p", value: 65},
+    {day: "Tu", hour: "3p", value: 60},
+    {day: "Tu", hour: "4p", value: 50},
+    {day: "Tu", hour: "5p", value: 65},
+    {day: "Tu", hour: "6p", value: 50},
+    {day: "Tu", hour: "7p", value: 22},
+    {day: "Tu", hour: "8p", value: 11},
+    {day: "Tu", hour: "9p", value: 12},
+    {day: "Tu", hour: "10p", value: 9},
+    {day: "Tu", hour: "11p", value: 0},
+    {day: "Tu", hour: "12p", value: 13},
+    {day: "We", hour: "1a", value: 5},
+    {day: "We", hour: "2a", value: 8},
+    {day: "We", hour: "3a", value: 8},
+    {day: "We", hour: "4a", value: 0},
+    {day: "We", hour: "5a", value: 0},
+    {day: "We", hour: "6a", value: 2},
+    {day: "We", hour: "7a", value: 5},
+    {day: "We", hour: "8a", value: 12},
+    {day: "We", hour: "9a", value: 34},
+    {day: "We", hour: "10a", value: 43},
+    {day: "We", hour: "11a", value: 54},
+    {day: "We", hour: "12a", value: 44},
+    {day: "We", hour: "1p", value: 40},
+    {day: "We", hour: "2p", value: 48},
+    {day: "We", hour: "3p", value: 54},
+    {day: "We", hour: "4p", value: 59},
+    {day: "We", hour: "5p", value: 60},
+    {day: "We", hour: "6p", value: 51},
+    {day: "We", hour: "7p", value: 21},
+    {day: "We", hour: "8p", value: 16},
+    {day: "We", hour: "9p", value: 9},
+    {day: "We", hour: "10p", value: 5},
+    {day: "We", hour: "11p", value: 4},
+    {day: "We", hour: "12p", value: 7},
+    {day: "Th", hour: "1a", value: 0},
+    {day: "Th", hour: "2a", value: 0},
+    {day: "Th", hour: "3a", value: 0},
+    {day: "Th", hour: "4a", value: 0},
+    {day: "Th", hour: "5a", value: 0},
+    {day: "Th", hour: "6a", value: 2},
+    {day: "Th", hour: "7a", value: 4},
+    {day: "Th", hour: "8a", value: 13},
+    {day: "Th", hour: "9a", value: 26},
+    {day: "Th", hour: "10a", value: 58},
+    {day: "Th", hour: "11a", value: 61},
+    {day: "Th", hour: "12a", value: 59},
+    {day: "Th", hour: "1p", value: 53},
+    {day: "Th", hour: "2p", value: 54},
+    {day: "Th", hour: "3p", value: 64},
+    {day: "Th", hour: "4p", value: 55},
+    {day: "Th", hour: "5p", value: 52},
+    {day: "Th", hour: "6p", value: 53},
+    {day: "Th", hour: "7p", value: 18},
+    {day: "Th", hour: "8p", value: 3},
+    {day: "Th", hour: "9p", value: 9},
+    {day: "Th", hour: "10p", value: 12},
+    {day: "Th", hour: "11p", value: 2},
+    {day: "Th", hour: "12p", value: 8},
+    {day: "Fr", hour: "1a", value: 2},
+    {day: "Fr", hour: "2a", value: 0},
+    {day: "Fr", hour: "3a", value: 8},
+    {day: "Fr", hour: "4a", value: 2},
+    {day: "Fr", hour: "5a", value: 0},
+    {day: "Fr", hour: "6a", value: 2},
+    {day: "Fr", hour: "7a", value: 4},
+    {day: "Fr", hour: "8a", value: 14},
+    {day: "Fr", hour: "9a", value: 31},
+    {day: "Fr", hour: "10a", value: 48},
+    {day: "Fr", hour: "11a", value: 46},
+    {day: "Fr", hour: "12a", value: 50},
+    {day: "Fr", hour: "1p", value: 66},
+    {day: "Fr", hour: "2p", value: 54},
+    {day: "Fr", hour: "3p", value: 56},
+    {day: "Fr", hour: "4p", value: 67},
+    {day: "Fr", hour: "5p", value: 54},
+    {day: "Fr", hour: "6p", value: 23},
+    {day: "Fr", hour: "7p", value: 14},
+    {day: "Fr", hour: "8p", value: 6},
+    {day: "Fr", hour: "9p", value: 8},
+    {day: "Fr", hour: "10p", value: 7},
+    {day: "Fr", hour: "11p", value: 0},
+    {day: "Fr", hour: "12p", value: 8},
+    {day: "Sa", hour: "1a", value: 2},
+    {day: "Sa", hour: "2a", value: 0},
+    {day: "Sa", hour: "3a", value: 2},
+    {day: "Sa", hour: "4a", value: 0},
+    {day: "Sa", hour: "5a", value: 0},
+    {day: "Sa", hour: "6a", value: 0},
+    {day: "Sa", hour: "7a", value: 4},
+    {day: "Sa", hour: "8a", value: 8},
+    {day: "Sa", hour: "9a", value: 8},
+    {day: "Sa", hour: "10a", value: 6},
+    {day: "Sa", hour: "11a", value: 14},
+    {day: "Sa", hour: "12a", value: 12},
+    {day: "Sa", hour: "1p", value: 9},
+    {day: "Sa", hour: "2p", value: 14},
+    {day: "Sa", hour: "3p", value: 0},
+    {day: "Sa", hour: "4p", value: 4},
+    {day: "Sa", hour: "5p", value: 7},
+    {day: "Sa", hour: "6p", value: 6},
+    {day: "Sa", hour: "7p", value: 0},
+    {day: "Sa", hour: "8p", value: 0},
+    {day: "Sa", hour: "9p", value: 0},
+    {day: "Sa", hour: "10p", value: 0},
+    {day: "Sa", hour: "11p", value: 0},
+    {day: "Sa", hour: "12p", value: 0},
+    {day: "Su", hour: "1a", value: 7},
+    {day: "Su", hour: "2a", value: 6},
+    {day: "Su", hour: "3a", value: 0},
+    {day: "Su", hour: "4a", value: 0},
+    {day: "Su", hour: "5a", value: 0},
+    {day: "Su", hour: "6a", value: 0},
+    {day: "Su", hour: "7a", value: 0},
+    {day: "Su", hour: "8a", value: 0},
+    {day: "Su", hour: "9a", value: 0},
+    {day: "Su", hour: "10a", value: 0},
+    {day: "Su", hour: "11a", value: 2},
+    {day: "Su", hour: "12a", value: 2},
+    {day: "Su", hour: "1p", value: 5},
+    {day: "Su", hour: "2p", value: 6},
+    {day: "Su", hour: "3p", value: 0},
+    {day: "Su", hour: "4p", value: 4},
+    {day: "Su", hour: "5p", value: 0},
+    {day: "Su", hour: "6p", value: 2},
+    {day: "Su", hour: "7p", value: 10},
+    {day: "Su", hour: "8p", value: 7},
+    {day: "Su", hour: "9p", value: 0},
+    {day: "Su", hour: "10p", value: 19},
+    {day: "Su", hour: "11p", value: 9},
+    {day: "Su", hour: "12p", value: 4}
+]
+
+
+  nv.addGraph(function() {
+      var chart1 = nv.models.heatMapChart()
+        .x(function(d) { return d.hour })
+        .y(function(d) { return d.day })
+        .color(function(d) { return d.value })
+        .showValues(false)
+        .normalize('robustCenterScaleAll')
+        .showLegend(false)
+        .cellWidth(30)
+        .cellHeight(30)
+
+      d3.select('#heatMap1 svg')
+        .datum(data)
+        .call(chart1);
+
+      nv.utils.windowResize(chart1.update);
+
+      return chart1;
+  });
+
+  nv.addGraph(function() {
+      var chart2 = nv.models.heatMapChart()
+        .x(function(d) { return d.hour })
+        .y(function(d) { return d.day })
+        .color(function(d) { return d.value })
+        .showValues(true)
+        .showLegend(false)
+
+      d3.select('#heatMap2 svg')
+        .datum(data)
+        .call(chart2);
+
+      nv.utils.windowResize(chart2.update);
+
+      return chart2;
+  });
+</script>
+
+
+
+
