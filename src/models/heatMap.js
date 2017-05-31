@@ -19,8 +19,7 @@ nv.models.heatMap = function() {
         , getColor = function(d) { return d.color }
         , showValues = false
         , valueFormat = d3.format(',.1f')
-        , cellWidth = false
-        , cellHeight = false
+        , cellAspectRatio = false
         , xDomain
         , yDomain
         , title = false
@@ -28,19 +27,19 @@ nv.models.heatMap = function() {
         , normalize = false
         , xRange
         , yRange
+        , datX = d3.set()
+        , datY = d3.set()
+        , cellHeight
+        , cellWidth
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , rectClass = 'heatMap'
         , duration = 250
         ;
 
     //============================================================
-    // Private Variables
+    // Aux helper function for heatmap
     //------------------------------------------------------------
 
-    var x0, y0, colorScale0;
-    var datX = d3.set(), datY = d3.set(); // set of unique values for horizontal and vertical axes
-    var datZ = []; // all cell values as array
-    var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
     /* go through heatmap data and generate array of values
      * for each row/column or for entire dataset; for use in
@@ -137,6 +136,70 @@ nv.models.heatMap = function() {
         }
     }
 
+    /* Notes on normalizing data
+
+    normalize must be one of centerX, robustCenterX, centerScaleX, robustCenterScaleX, centerAll, robustCenterAll, centerScaleAll, robustCenterScaleAll
+    where X is either 'Row' or 'Column'
+
+    - centerX: subtract row/column mean from cell
+    - centerAll: subtract mean of whole data set from cell
+    - centerScaleX: scale so that row/column has mean 0 and variance 1 (Z-score)
+    - centerScaleAll: scale by overall normalization factor so that the whole data set has mean 0 and variance 1 (Z-score)
+    - robustCenterX: subtract row/column median from cell
+    - robustCenterScaleX: subtract row/column median from cell and then scale row/column by median absolute deviation
+    - robustCenterAll: subtract median of whole data set from cell
+    - robustCenterScaleAll: subtract overall median from cell and scale by overall median absolute deviation
+    */
+    function normalizeHeatmap() {
+        if (normalize.includes('Row')) {
+            var axis = 'row';
+            var calc = getHeatmapDat(axis);
+            var scale = false;
+            var agg = 'mean';
+
+            if (normalize.includes('robust')) {
+                var agg = 'median';
+            }
+            if (normalize.includes('Scale')) {
+                var scale = true;
+            }
+        } else if (normalize.includes('Column')) {
+            var axis = 'col';
+            var calc = getHeatmapDat(axis);
+            var scale = false;
+            var agg = 'mean';
+
+            if (normalize.includes('robust')) {
+                var agg = 'median';
+            }
+            if (normalize.includes('Scale')) {
+                var scale = true;
+            }
+        } else if (normalize.includes('All')) {
+            var axis = null;
+            var calc = getHeatmapDat() 
+            var scale = false;
+            var agg = 'mean';
+
+            if (normalize.includes('robust')) {
+                var agg = 'median';
+            }
+            if (normalize.includes('Scale')) {
+                var scale = true;
+            }
+        }
+        normHeatmapDat(data, calc, axis, agg, scale);
+    }
+
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    var x0, y0, colorScale0;
+    var datZ = []; // all cell values as array
+    var renderWatch = nv.utils.renderWatch(dispatch, duration);
+
+
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
@@ -167,68 +230,18 @@ nv.models.heatMap = function() {
                 cell.iz = i;
             });
 
-            /* Notes on normalizing data
+            // normalize data is needed
+            if (normalize) normalizeHeatmap();
 
-            normalize must be one of centerX, robustCenterX, centerScaleX, robustCenterScaleX, centerAll, robustCenterAll, centerScaleAll, robustCenterScaleAll
-            where X is either 'Row' or 'Column'
+            var availableWidth = width - margin.left - margin.right,
+                availableHeight = height - margin.top - margin.bottom;
 
-            - centerX: subtract row/column mean from cell
-            - centerAll: subtract mean of whole data set from cell
-            - centerScaleX: scale so that row/column has mean 0 and variance 1 (Z-score)
-            - centerScaleAll: scale by overall normalization factor so that the whole data set has mean 0 and variance 1 (Z-score)
-            - robustCenterX: subtract row/column median from cell
-            - robustCenterScaleX: subtract row/column median from cell and then scale row/column by median absolute deviation
-            - robustCenterAll: subtract median of whole data set from cell
-            - robustCenterScaleAll: subtract overall median from cell and scale by overall median absolute deviation
-            */
-            if (normalize) {
-                if (normalize.includes('Row')) {
-                    var axis = 'row';
-                    var calc = getHeatmapDat(axis);
-                    var scale = false;
-                    var agg = 'mean';
-
-                    if (normalize.includes('robust')) {
-                        var agg = 'median';
-                    }
-                    if (normalize.includes('Scale')) {
-                        var scale = true;
-                    }
-                } else if (normalize.includes('Column')) {
-                    var axis = 'col';
-                    var calc = getHeatmapDat(axis);
-                    var scale = false;
-                    var agg = 'mean';
-
-                    if (normalize.includes('robust')) {
-                        var agg = 'median';
-                    }
-                    if (normalize.includes('Scale')) {
-                        var scale = true;
-                    }
-                } else if (normalize.includes('All')) {
-                    var axis = null;
-                    var calc = getHeatmapDat() 
-                    var scale = false;
-                    var agg = 'mean';
-
-                    if (normalize.includes('robust')) {
-                        var agg = 'median';
-                    }
-                    if (normalize.includes('Scale')) {
-                        var scale = true;
-                    }
-                }
-                normHeatmapDat(data, calc, axis, agg, scale);
-            }
-
-
-            // note that specifying cellWidth or cellHeight will trump the chart Width or Height
-            var availableWidth = cellWidth ? datX.size() * cellWidth : width - margin.left - margin.right,
-                availableHeight = cellHeight ? datY.size() * cellHeight : height - margin.top - margin.bottom;
-
-            cellHeight = cellHeight || availableHeight / datY.size();
-            cellWidth = cellWidth || availableWidth / datX.size();
+            // available width/height set the cell dimenions unless
+            // the aspect ratio is defined - in that case the cell
+            // height is adjusted and availableHeight updated
+            cellWidth = availableWidth / datX.size();
+            cellHeight = cellAspectRatio ? cellWidth / cellAspectRatio : availableHeight / datY.size();
+            if (cellAspectRatio) availableHeight = cellHeight * datY.size() - margin.top - margin.bottom;
 
             container = d3.select(this);
             nv.utils.initSVG(container);
@@ -273,11 +286,11 @@ nv.models.heatMap = function() {
             }
 
             // setup cells
-            var cells = gEnter.selectAll(".cell")
+            var cells = g.selectAll("g.nv-cell")
                 .data(data);
+            cells.exit().remove();
 
             var cellsEnter = cells.enter().append('g')
-                .attr("class", "cell")
                 .style('opacity', 1e-6) // will transition to full opacity w/ renderWatch
                 .on('mouseover', function(d,i) {
                     d3.select(this).classed('hover', true);
@@ -303,17 +316,17 @@ nv.models.heatMap = function() {
                     });
                 })
 
-            cellsEnter.append("rect")
-                .watchTransition(renderWatch, 'heatMap: cell rect')
+            cellsEnter.append("rect") // set x,y,width,height with renderWatch...
+
+            cells.style('fill', function(d,i) { return setCellColor(d); })
+                .attr("class", "nv-cell")
+                .select("rect")
+                .attr("class", rectClass)
+                .watchTransition(renderWatch, 'heatMap: cells rect')
                 .attr("x", function(d) { return d.ix * cellWidth; })
                 .attr("y", function(d) { return d.iy * cellHeight; })
-                .attr("rx", 4)
-                .attr("ry", 4)
                 .attr("width", cellWidth)
                 .attr("height", cellHeight)
-                .style('fill', function(d,i) { return setCellColor(d); })
-
-            cells.exit().remove();
 
             cells.watchTransition(renderWatch, 'heatMap: cells')
                 .style('opacity', 1)
@@ -325,7 +338,7 @@ nv.models.heatMap = function() {
 
                 cells.select('text')
                     .text(function(d,i) { return showValues == 'norm' ? valueFormat(d.norm) : valueFormat(getColor(d)) })
-                    .watchTransition(renderWatch, 'heatMap: cell text')
+                    .watchTransition(renderWatch, 'heatMap: cells text')
                     .attr("x", function(d) { return d.ix * cellWidth + cellWidth / 2; })
                     .attr("y", function(d) { return d.iy * cellHeight + cellHeight / 2; })
                     .attr("dy", 4)
@@ -344,7 +357,7 @@ nv.models.heatMap = function() {
         });
 
 
-        renderWatch.renderEnd('discreteMap immediate');
+        renderWatch.renderEnd('heatMap immediate');
         return chart;
     }
 
@@ -360,8 +373,6 @@ nv.models.heatMap = function() {
         width:   {get: function(){return width;}, set: function(_){width=_;}},
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
-        cellHeight: {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
-        cellWidth: {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
         legendElementWidth: {get: function(){return legendElementWidth;}, set: function(_){legendElementWidth=_;}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
         y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
@@ -373,6 +384,11 @@ nv.models.heatMap = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        datY:  {get: function(){return datY;}, set: function(_){datY=_;}},
+        cellAspectRatio: {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
+        datX:  {get: function(){return datX;}, set: function(_){datX=_;}},
+        cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
+        cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
         normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
         title:        {get: function(){return title;}, set: function(_){title=_;}},
         titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},

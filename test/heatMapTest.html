@@ -13,12 +13,12 @@
 
 <head>
     <style>
-          g.cell rect {
+          g.nv-cell rect {
             stroke: #E6E6E6;
             stroke-width:2px;   
           }
 
-          g.cell text.mono {
+          g.nv-cell text.mono {
             font-size: 9pt;
             font-family: Consolas, courier;
             fill: #aaa;
@@ -29,13 +29,14 @@
           }
 
           #heatMap1 {
+            height: 400px;
           }
 
           #heatMap2 {
             height: 400px;
           }
 
-          html, body, #heatMap1, svg {
+          html, body, svg {
             margin: 0px;
             padding: 0px;
             height: 100%;
@@ -236,11 +237,10 @@ var data = [
         .x(function(d) { return d.hour })
         .y(function(d) { return d.day })
         .color(function(d) { return d.value })
-        .showValues(false)
+        .showValues(true)
         .normalize('robustCenterScaleAll')
         .showLegend(false)
-        .cellWidth(30)
-        .cellHeight(30)
+        .cellAspectRatio(1)
 
       d3.select('#heatMap1 svg')
         .datum(data)

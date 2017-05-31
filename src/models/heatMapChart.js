@@ -25,8 +25,6 @@ nv.models.heatMapChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , rotateLabels = 0
-        , cellWidth = false
-        , cellHeight = false
         , x
         , y
         , noData = null
@@ -72,22 +70,8 @@ nv.models.heatMapChart = function() {
                 that = this;
             nv.utils.initSVG(container);
 
-            /*
-                I need to make an updated availableWidth/Height function that can take into account
-                the user defined cellWidth/cellHeight OR! maybe I setup a cellAspectRatio instead!!
-            */
-
-
-
-            // need to know number of cells in x & y direction if cellWidth or cellHeight are specified
-            // not sure of best way to get at this so I'm doing this hacky thing ...
-            var getX = heatmap.x();
-            var getY = heatmap.y();
-            var numCellX = d3.set(data.map(function(d) { return getX(d); })).size();
-            var numCellY = d3.set(data.map(function(d) { return getY(d); })).size();
-
-            //var availableWidth = cellWidth ? cellWidth * numCellX : nv.utils.availableWidth(width, container, margin),
-            //    availableHeight = cellHeight ? cellHeight * numCellY : nv.utils.availableHeight(height, container, margin);
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
                 dispatch.beforeUpdate();
@@ -150,11 +134,15 @@ nv.models.heatMapChart = function() {
             heatmap
                 .width(availableWidth)
                 .height(availableHeight);
+                    
 
             var heatMapWrap = g.select('.nv-heatMapWrap')
                 .datum(data.filter(function(d) { return !d.disabled }));
 
             heatMapWrap.transition().call(heatmap);
+
+            if (heatmap.cellAspectRatio()) availableHeight = heatmap.cellHeight() * heatmap.datY().size();
+            heatmap.height(availableHeight);
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-x-label-clip-' + heatmap.id())
@@ -164,7 +152,6 @@ nv.models.heatMapChart = function() {
                 .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
                 .attr('height', 16)
                 .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
-
 
             // Setup Axes
             if (showXAxis) {
@@ -249,8 +236,6 @@ nv.models.heatMapChart = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
-        cellWidth:      {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
-        cellHeight:     {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
