@@ -25,6 +25,7 @@ nv.models.heatMapChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , rotateLabels = 0
+        , title = false
         , x
         , y
         , noData = null
@@ -70,6 +71,10 @@ nv.models.heatMapChart = function() {
                 that = this;
             nv.utils.initSVG(container);
 
+            // title is assumed to be 30px tall, check that there 
+            // is enough space in the margin
+            if (title && margin.top < 30) margin.top += 30;
+
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -90,7 +95,6 @@ nv.models.heatMapChart = function() {
             // Setup Scales
             x = heatmap.xScale();
             y = heatmap.yScale();
-
 
 
             // Setup containers and skeleton of chart
@@ -134,6 +138,8 @@ nv.models.heatMapChart = function() {
             heatmap
                 .width(availableWidth)
                 .height(availableHeight);
+
+            if (title) heatmap.title(title);
                     
 
             var heatMapWrap = g.select('.nv-heatMapWrap')
@@ -141,8 +147,10 @@ nv.models.heatMapChart = function() {
 
             heatMapWrap.transition().call(heatmap);
 
-            if (heatmap.cellAspectRatio()) availableHeight = heatmap.cellHeight() * heatmap.datY().size();
-            heatmap.height(availableHeight);
+            if (heatmap.cellAspectRatio()) {
+                availableHeight = heatmap.cellHeight() * heatmap.datY().size();
+                heatmap.height(availableHeight);
+            }
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-x-label-clip-' + heatmap.id())
@@ -241,6 +249,7 @@ nv.models.heatMapChart = function() {
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        title:    {get: function(){return title;}, set: function(_){title=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

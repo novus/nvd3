@@ -233,8 +233,12 @@ nv.models.heatMap = function() {
             // normalize data is needed
             if (normalize) normalizeHeatmap();
 
+            // title is assumed to be 30px tall, adjust top margin if title is specified
+            //if (title & margin.top < 30) margin.top += 30;
+
             var availableWidth = width - margin.left - margin.right,
                 availableHeight = height - margin.top - margin.bottom;
+
 
             // available width/height set the cell dimenions unless
             // the aspect ratio is defined - in that case the cell
@@ -268,21 +272,28 @@ nv.models.heatMap = function() {
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-heatmap');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
-            var g_heatmap = wrapEnter.append('g').attr('class', 'nv-heatmap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             // add a title if specified
             if (title) {
-                var plotTitle = g_heatmap
-                    .append("text")
-                    .attr('class', 'nv-heatmap-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
+                var g_title = g.selectAll("g.nv-title")
+                    .data([title]);
+
+                var titleEnter = g_title.enter().append('g')
+                    .attr('class', 'nv-title')
                     .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
                     .attr('dx',titleOffset.left)
                     .attr('dy',titleOffset.top)
+                
+                titleEnter.append("text")
+                    .style("text-anchor", "middle")
+                    .style("font-size", "150%")
+                    .text(function (d) { return d; })
+
+                g_title
+                    .watchTransition(renderWatch, 'heatMap: g_title')
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
             }
 
             // setup cells
@@ -317,6 +328,8 @@ nv.models.heatMap = function() {
                 })
 
             cellsEnter.append("rect") // set x,y,width,height with renderWatch...
+                .attr("rx", 4)
+                .attr("ry", 4)
 
             cells.style('fill', function(d,i) { return setCellColor(d); })
                 .attr("class", "nv-cell")
