@@ -13,7 +13,7 @@ nv.models.heatMapChart = function() {
         , yAxis = nv.models.axis()
         ;
 
-    var margin = {top: 15, right: 10, bottom: 50, left: 60}
+    var margin = {top: 20, right: 10, bottom: 50, left: 60}
         , marginTop = null
         , width = null
         , height = null
@@ -24,6 +24,7 @@ nv.models.heatMapChart = function() {
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
+        , bottomAlignXAxis = false
         , rotateLabels = 0
         , title = false
         , x
@@ -34,7 +35,7 @@ nv.models.heatMapChart = function() {
         ;
 
     xAxis
-        .orient('bottom')
+        .orient((bottomAlignXAxis) ? 'bottom' : 'top')
         .showMaxMin(false)
         .tickFormat(function(d) { return d })
     ;
@@ -71,9 +72,9 @@ nv.models.heatMapChart = function() {
                 that = this;
             nv.utils.initSVG(container);
 
-            // title is assumed to be 30px tall, check that there 
+            // title is assumed to be 40px tall, check that there 
             // is enough space in the margin
-            if (title && margin.top < 30) margin.top += 30;
+            if (title && margin.top < 40) margin.top += 40;
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
@@ -129,10 +130,7 @@ nv.models.heatMapChart = function() {
                     .attr('transform', 'translate(0,' + (-margin.top) +')')
             }
 
-            if (rightAlignYAxis) {
-                g.select(".nv-y.nv-axis")
-                    .attr("transform", "translate(" + availableWidth + ",0)");
-            }
+
 
             // Main Chart Component(s)
             heatmap
@@ -140,7 +138,6 @@ nv.models.heatMapChart = function() {
                 .height(availableHeight);
 
             if (title) heatmap.title(title);
-                    
 
             var heatMapWrap = g.select('.nv-heatMapWrap')
                 .datum(data.filter(function(d) { return !d.disabled }));
@@ -164,13 +161,19 @@ nv.models.heatMapChart = function() {
             // Setup Axes
             if (showXAxis) {
 
+                if (bottomAlignXAxis) {
+                    g.select(".nv-x.nv-axis")
+                        .attr("transform", "translate(0," + (availableHeight + 2) + ")");
+                } else {
+                    g.select(".nv-x.nv-axis")
+                        .attr("transform", "translate(0,-2)");
+                }
+
                 xAxis
                     .scale(x)
                     ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
-                g.select('.nv-x.nv-axis')
-                    .attr('transform', 'translate(0,' + availableHeight + ')');
                 g.select('.nv-x.nv-axis').call(xAxis);
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
@@ -191,6 +194,12 @@ nv.models.heatMapChart = function() {
             }
 
             if (showYAxis) {
+
+                if (rightAlignYAxis) {
+                    g.select(".nv-y.nv-axis")
+                        .attr("transform", "translate(" + availableWidth + ",0)");
+                }
+
                 yAxis
                     .scale(y)
                     ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
@@ -212,7 +221,7 @@ nv.models.heatMapChart = function() {
 
     heatmap.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: chart.x()(evt.data) + ' ' + chart.y()(evt.data),
+            key: chart.column()(evt.data) + ' ' + chart.row()(evt.data),
             value: chart.color()(evt.data),
             color: evt.color
         };
@@ -271,12 +280,16 @@ nv.models.heatMapChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             heatmap.color(color);
-	    legend.color(color);
+            legend.color(color);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( (_) ? 'right' : 'left');
-        }}
+        }},
+        bottomAlignXAxis: {get: function(){return bottomAlignXAxis;}, set: function(_){
+            bottomAlignXAxis = _;
+            xAxis.orient( (_) ? 'bottom' : 'top');
+        }},
     });
 
     nv.utils.inheritOptions(chart, heatmap);

@@ -233,12 +233,8 @@ nv.models.heatMap = function() {
             // normalize data is needed
             if (normalize) normalizeHeatmap();
 
-            // title is assumed to be 30px tall, adjust top margin if title is specified
-            //if (title & margin.top < 30) margin.top += 30;
-
             var availableWidth = width - margin.left - margin.right,
                 availableHeight = height - margin.top - margin.bottom;
-
 
             // available width/height set the cell dimenions unless
             // the aspect ratio is defined - in that case the cell
@@ -282,7 +278,7 @@ nv.models.heatMap = function() {
 
                 var titleEnter = g_title.enter().append('g')
                     .attr('class', 'nv-title')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-20)'; }) // center title
                     .attr('dx',titleOffset.left)
                     .attr('dy',titleOffset.top)
                 
@@ -293,7 +289,7 @@ nv.models.heatMap = function() {
 
                 g_title
                     .watchTransition(renderWatch, 'heatMap: g_title')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-20)'; }) // center title
             }
 
             // setup cells
@@ -387,8 +383,8 @@ nv.models.heatMap = function() {
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
         legendElementWidth: {get: function(){return legendElementWidth;}, set: function(_){legendElementWidth=_;}},
-        x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
-        y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
+        row:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
+        column:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
         color:       {get: function(){return getColor;}, set: function(_){getColor=_;}}, // data attribute that sets cell value and color
         xScale:  {get: function(){return x;}, set: function(_){x=_;}},
         yScale:  {get: function(){return y;}, set: function(_){y=_;}},
