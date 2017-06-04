@@ -9,6 +9,7 @@ nv.models.heatMapChart = function() {
     var heatmap = nv.models.heatMap()
         , legend = nv.models.legend()
         , tooltip = nv.models.tooltip()
+        , metaTooltip = nv.models.tooltip()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
         ;
@@ -27,6 +28,8 @@ nv.models.heatMapChart = function() {
         , bottomAlignXAxis = false
         , rotateLabels = 0
         , title = false
+        , metaXcolor = nv.utils.defaultColor()
+        , metaYcolor = nv.utils.defaultColor()
         , x
         , y
         , noData = null
@@ -55,9 +58,26 @@ nv.models.heatMapChart = function() {
             return xAxis.tickFormat()(d, i);
         });
 
+    metaTooltip
+        .duration(0)
+        .headerEnabled(false)
+        .valueFormatter(function(d, i) {
+            return yAxis.tickFormat()(d, i);
+        })
+        .keyFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        });
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
+
+    function hasRowMeta() {
+        return Object.keys(heatmap.datRowMeta()).length > 0;
+    }
+    function hasColumnMeta() {
+        return Object.keys(heatmap.datColumnMeta()).length > 0;
+    }
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -145,7 +165,7 @@ nv.models.heatMapChart = function() {
             heatMapWrap.transition().call(heatmap);
 
             if (heatmap.cellAspectRatio()) {
-                availableHeight = heatmap.cellHeight() * heatmap.datY().size();
+                availableHeight = heatmap.cellHeight() * Object.keys(heatmap.datY()).length;
                 heatmap.height(availableHeight);
             }
 
@@ -160,14 +180,6 @@ nv.models.heatMapChart = function() {
 
             // Setup Axes
             if (showXAxis) {
-
-                if (bottomAlignXAxis) {
-                    g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (availableHeight + 2) + ")");
-                } else {
-                    g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0,-2)");
-                }
 
                 xAxis
                     .scale(x)
@@ -191,13 +203,72 @@ nv.models.heatMapChart = function() {
                     g.selectAll('.tick text')
                         .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
                 }
+
+                // setup metadata colors horizontal axis
+                if (hasColumnMeta()) {
+
+                    var metaXGroup = g.select('.nv-x.nv-axis .nv-wrap g').selectAll('g');
+
+                    var metaX = metaXGroup.selectAll('rect')
+                      .data(Object.values([null])); // add dummy data so we can add a single rect to each tick group
+
+
+                    metaX.enter()
+                        .append('rect')
+                        .style('fill', function(d) { 
+                            var prev = d3.select(this.previousSibling).text();
+                            var metaVal = heatmap.datColumnMeta()[prev];
+                            return metaXcolor(metaVal);
+                        })
+                        .on('mouseover', function(d,i) {
+                            d3.select(this).classed('hover', true);
+                            dispatch.elementMouseover({
+                                data: d,
+                                index: i,
+                                color: d3.select(this).select('rect').style("fill")
+                            });
+                        })
+                        .on('mouseout', function(d,i) {
+                            d3.select(this).classed('hover', false);
+                            dispatch.elementMouseout({
+                                data: d,
+                                index: i,
+                                color: d3.select(this).select('rect').style("fill")
+                            });
+                        })
+                        .on('mousemove', function(d,i) {
+                            dispatch.elementMousemove({
+                                data: d,
+                                index: i,
+                                color: d3.select(this).select('rect').style("fill")
+                            });
+                        })
+
+
+                    metaX.watchTransition(renderWatch, 'heatMap: metaX rect')
+                        .attr('width', heatmap.cellWidth())
+                        .attr('height', heatmap.cellWidth() / 3)
+                        .attr('x', -heatmap.cellWidth()/2)
+                        .attr('y', -17)
+                }
+
+                if (bottomAlignXAxis) {
+                    g.select(".nv-x.nv-axis")
+                        .attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? 20 : 2)) + ")");
+                } else {
+                    g.select(".nv-x.nv-axis")
+                        .attr("transform", "translate(0," + (hasColumnMeta() ? -20 : -2) + ")");
+                }
             }
 
             if (showYAxis) {
 
                 if (rightAlignYAxis) {
                     g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + availableWidth + ",0)");
+                        .attr("transform", "translate(" + (availableWidth + hasRowMeta() ? 18: 0) + ",0)");
+                } else { 
+                    g.select(".nv-y.nv-axis")
+                        .attr("transform", "translate(" + (hasRowMeta() ? -18 : 0) + ",0)");
                 }
 
                 yAxis
@@ -206,6 +277,55 @@ nv.models.heatMapChart = function() {
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis').call(yAxis);
+
+                // setup metadata colors vertical axis
+                if (hasRowMeta()) {
+
+                    var metaYGroup = g.select('.nv-y.nv-axis .nv-wrap g').selectAll('g');
+
+                    var metaY = metaYGroup.selectAll('rect')
+                      .data(Object.values([null])); // add dummy data so we can add a single rect to each tick group
+
+
+                    metaY.enter()
+                        .append('rect')
+                        .style('fill', function(d) { 
+                            var prev = d3.select(this.previousSibling).text();
+                            var metaVal = heatmap.datRowMeta()[prev];
+                            return metaYcolor(metaVal);
+                        })
+                        .on('mouseover', function(d,i) {
+                            d3.select(this).classed('hover', true);
+                            dispatch.elementMouseover({
+                                data: d,
+                                index: i,
+                                color: d3.select(this).select('rect').style("fill")
+                            });
+                        })
+                        .on('mouseout', function(d,i) {
+                            d3.select(this).classed('hover', false);
+                            dispatch.elementMouseout({
+                                data: d,
+                                index: i,
+                                color: d3.select(this).select('rect').style("fill")
+                            });
+                        })
+                        .on('mousemove', function(d,i) {
+                            dispatch.elementMousemove({
+                                data: d,
+                                index: i,
+                                color: d3.select(this).select('rect').style("fill")
+                            });
+                        })
+
+
+                    metaY.watchTransition(renderWatch, 'heatMap: metaX rect')
+                        .attr('width', heatmap.cellHeight() / 3)
+                        .attr('height', heatmap.cellHeight())
+                        .attr('x', 0)
+                        .attr('y', -heatmap.cellHeight()/2)
+                }
+
             }
         });
 

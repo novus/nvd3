@@ -14,8 +14,10 @@ nv.models.heatMap = function() {
         , x = d3.scale.ordinal()
         , y = d3.scale.ordinal()
         , colorScale = false // if not set by user a color brewer quantized scale (RdYlBu 11) is setup
-        , getX = function(d) { return d.x }
-        , getY = function(d) { return d.y }
+        , getX = function(d) { return d.column }
+        , getY = function(d) { return d.row }
+        , getXMeta = function(d) { return d.columnMeta }
+        , getYMeta = function(d) { return d.rowMeta }
         , getColor = function(d) { return d.color }
         , showValues = false
         , valueFormat = d3.format(',.1f')
@@ -27,8 +29,10 @@ nv.models.heatMap = function() {
         , normalize = false
         , xRange
         , yRange
-        , datX = d3.set()
-        , datY = d3.set()
+        , datX = {} // keys are unique, ordered data columns
+        , datY = {} // keys are unique, ordered data rows
+        , datRowMeta = {} // ordered dict of row labels mapped to row metadata category
+        , datColumnMeta = {} // ordered dict of col labels mapped to col metadata category
         , cellHeight
         , cellWidth
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
@@ -40,6 +44,12 @@ nv.models.heatMap = function() {
     // Aux helper function for heatmap
     //------------------------------------------------------------
 
+    function hasRowMeta() {
+        return typeof getXMeta(data[0]) !== 'undefined';
+    }
+    function hasColumnMeta() {
+        return typeof getYMeta(data[0]) !== 'undefined';
+    }
 
     /* go through heatmap data and generate array of values
      * for each row/column or for entire dataset; for use in
@@ -206,27 +216,32 @@ nv.models.heatMap = function() {
 
             // add series index to each cell (d.iz), column (d.ix) and row (d.iy) for reference
             // generate unique set of x & y axes
-            var tmpX = {}, tmpY = {};
             var ix = 0, iy = 0
             data.forEach(function(cell, i) {
                 var valX = getX(cell);
                 var valY = getY(cell);
                 var valZ = getColor(cell);
-                datX.add(valX);
-                datY.add(valY);
                 datZ.push(parseInt(valZ));
 
-                if (!(valX in tmpX)) {
-                    tmpX[valX] = ix;
+                if (!(valX in datX)) {
+                    datX[valX] = ix;
                     ix ++;
                 }
-                if (!(valY in tmpY)) {
-                    tmpY[valY] = iy;
+                if (!(valY in datY)) {
+                    datY[valY] = iy;
                     iy ++;
                 }
 
-                cell.ix = tmpX[valX];
-                cell.iy = tmpY[valY];
+                if (hasRowMeta() && !(valY in datRowMeta)) {
+                    datRowMeta[valY] = getYMeta(cell);
+                }
+
+                if (hasColumnMeta() && !(valX in datColumnMeta)) {
+                    datColumnMeta[valX] = getXMeta(cell);
+                }
+
+                cell.ix = datX[valX];
+                cell.iy = datY[valY];
                 cell.iz = i;
             });
 
@@ -239,17 +254,17 @@ nv.models.heatMap = function() {
             // available width/height set the cell dimenions unless
             // the aspect ratio is defined - in that case the cell
             // height is adjusted and availableHeight updated
-            cellWidth = availableWidth / datX.size();
+            cellWidth = availableWidth / Object.keys(datX).length;
             cellHeight = cellAspectRatio ? cellWidth / cellAspectRatio : availableHeight / datY.size();
-            if (cellAspectRatio) availableHeight = cellHeight * datY.size() - margin.top - margin.bottom;
+            if (cellAspectRatio) availableHeight = cellHeight * Object.keys(datY).length - margin.top - margin.bottom;
 
             container = d3.select(this);
             nv.utils.initSVG(container);
 
             // Setup Scales
-            x   .domain(xDomain || datX.values())
+            x   .domain(xDomain || Object.keys(datX))
                 .rangeBands(xRange || [0, availableWidth], .1);
-            y   .domain(yDomain || datY.values())
+            y   .domain(yDomain || Object.keys(datY))
                 .rangeBands(yRange || [0, availableHeight], .1);
             if (!colorScale) {
                 colorScale = d3.scale.quantize()
@@ -296,6 +311,7 @@ nv.models.heatMap = function() {
             var cells = g.selectAll("g.nv-cell")
                 .data(data);
             cells.exit().remove();
+
 
             var cellsEnter = cells.enter().append('g')
                 .style('opacity', 1e-6) // will transition to full opacity w/ renderWatch
@@ -357,7 +373,6 @@ nv.models.heatMap = function() {
                 cells.selectAll('text').remove();
             }
 
-
             //store old scales for use in transitions on update
             x0 = x.copy();
             y0 = y.copy();
@@ -393,9 +408,13 @@ nv.models.heatMap = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        datY:  {get: function(){return datY;}, set: function(_){datY=_;}},
+        rowMeta:       {get: function(){return getYMeta;}, set: function(_){getYMeta=_;}}, // data attribute for horizontal metadata grouping legend
+        columnMeta:       {get: function(){return getXMeta;}, set: function(_){getXMeta=_;}}, // data attribute for vertical metadata grouping legend
         cellAspectRatio: {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
         datX:  {get: function(){return datX;}, set: function(_){datX=_;}},
+        datY:  {get: function(){return datY;}, set: function(_){datY=_;}},
+        datRowMeta:  {get: function(){return datRowMeta;}, set: function(_){datRowMeta=_;}},
+        datColumnMeta:  {get: function(){return datColumnMeta;}, set: function(_){datColumnMeta=_;}},
         cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
         cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
         normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
