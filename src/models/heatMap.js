@@ -31,12 +31,15 @@ nv.models.heatMap = function() {
         , yRange
         , datX = {} // keys are unique, ordered data columns
         , datY = {} // keys are unique, ordered data rows
-        , datRowMeta = {} // ordered dict of row labels mapped to row metadata category
-        , datColumnMeta = {} // ordered dict of col labels mapped to col metadata category
+        , datZ = [] // all cell values as array
+        , datRowMeta = {} // ordered obj of row labels mapped to row metadata category
+        , datColumnMeta = {} // ordered obj of col labels mapped to col metadata category
         , cellHeight
         , cellWidth
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , rectClass = 'heatMap'
+        , groupRowMeta = false
+        , groupColumnMeta = false
         , duration = 250
         ;
 
@@ -109,7 +112,6 @@ nv.models.heatMap = function() {
             if (scale) dev[key] = agg == 'mean' ? d3.deviation(calc[key]) : mad(calc[key]);
         }
 
-
         dat.forEach(function(cell, i) {
             if (axis == 'row') {
                 var key = cell.iy;
@@ -161,52 +163,149 @@ nv.models.heatMap = function() {
     - robustCenterScaleAll: subtract overall median from cell and scale by overall median absolute deviation
     */
     function normalizeHeatmap() {
-        if (normalize.includes('Row')) {
-            var axis = 'row';
-            var calc = getHeatmapDat(axis);
-            var scale = false;
-            var agg = 'mean';
 
-            if (normalize.includes('robust')) {
-                var agg = 'median';
-            }
-            if (normalize.includes('Scale')) {
-                var scale = true;
-            }
-        } else if (normalize.includes('Column')) {
-            var axis = 'col';
-            var calc = getHeatmapDat(axis);
-            var scale = false;
-            var agg = 'mean';
+        if (['centerRow', 
+            'robustCenterRow', 
+            'centerScaleRow', 
+            'robustCenterScaleRow', 
+            'centerColumn', 
+            'robustCenterColumn', 
+            'centerScaleColumn', 
+            'robustCenterScaleColumn', 
+            'centerAll', 
+            'robustCenterAll', 
+            'centerScaleAll', 
+            'robustCenterScaleAll'].indexOf(normalize) > 0) {
+            if (normalize.includes('Row')) {
+                var axis = 'row';
+                var calc = getHeatmapDat(axis);
+                var scale = false;
+                var agg = 'mean';
 
-            if (normalize.includes('robust')) {
-                var agg = 'median';
-            }
-            if (normalize.includes('Scale')) {
-                var scale = true;
-            }
-        } else if (normalize.includes('All')) {
-            var axis = null;
-            var calc = getHeatmapDat() 
-            var scale = false;
-            var agg = 'mean';
+                if (normalize.includes('robust')) {
+                    var agg = 'median';
+                }
+                if (normalize.includes('Scale')) {
+                    var scale = true;
+                }
+            } else if (normalize.includes('Column')) {
+                var axis = 'col';
+                var calc = getHeatmapDat(axis);
+                var scale = false;
+                var agg = 'mean';
 
-            if (normalize.includes('robust')) {
-                var agg = 'median';
+                if (normalize.includes('robust')) {
+                    var agg = 'median';
+                }
+                if (normalize.includes('Scale')) {
+                    var scale = true;
+                }
+            } else if (normalize.includes('All')) {
+                var axis = null;
+                var calc = getHeatmapDat() 
+                var scale = false;
+                var agg = 'mean';
+
+                if (normalize.includes('robust')) {
+                    var agg = 'median';
+                }
+                if (normalize.includes('Scale')) {
+                    var scale = true;
+                }
             }
-            if (normalize.includes('Scale')) {
-                var scale = true;
-            }
+
+            normHeatmapDat(data, calc, axis, agg, scale);
+        } else {
+            normalize = false; // proper normalize option was not provided, disable it so heatmap still shows colors
         }
-        normHeatmapDat(data, calc, axis, agg, scale);
     }
+
+
+    // restructure incoming data
+    // add series index to each cell (d.iz), column (d.ix) and row (d.iy) for reference
+    // generate unique set of x & y values (datX & datY)
+    function prepHeatmapData() {
+
+        // sort data by key if needed
+        if (groupRowMeta && groupColumnMeta) {
+            data = data.sort(keySortMultiple(getXMeta, getYMeta));
+        } else if (groupRowMeta) {
+            data = data.sort(keySort(getXMeta));
+        } else if (groupColumnMeta) {
+            data = data.sort(keySort(getYMeta));
+        }
+
+        var ix = 0, iy = 0
+        data.forEach(function(cell, i) {
+            var valX = getX(cell);
+            var valY = getY(cell);
+            var valZ = getColor(cell);
+            datZ.push(parseInt(valZ));
+
+            if (!(valX in datX)) {
+                datX[valX] = ix;
+                ix ++;
+            }
+            if (!(valY in datY)) {
+                datY[valY] = iy;
+                iy ++;
+            }
+
+            // generated ordered objects of row/col metadata
+            if (hasRowMeta() && !(valY in datRowMeta)) {
+                datRowMeta[valY] = getYMeta(cell);
+            }
+            if (hasColumnMeta() && !(valX in datColumnMeta)) {
+                datColumnMeta[valX] = getXMeta(cell);
+            }
+
+            cell.ix = datX[valX];
+            cell.iy = datY[valY];
+            cell.iz = i;
+        });
+
+        // normalize data is needed
+        if (normalize) normalizeHeatmap();
+
+        return data;
+
+    }
+
+
+    // https://stackoverflow.com/a/4760279/1153897
+    // TODO - sorting on a single axis, will reorder the other axis, user probably doesn't want this ...
+    function keySort(getMeta) {
+        return function (a,b) {
+            return (getMeta(a) < getMeta(b)) ? -1 : (getMeta(a) > getMeta(b)) ? 1 : 0;
+        }
+    }
+
+    function keySortMultiple() {
+        /*
+         * save the arguments object as it will be overwritten
+         * note that arguments object is an array-like object
+         * consisting of the names of the properties to sort by
+         */
+        var props = arguments;
+        return function (obj1, obj2) {
+            var i = 0, result = 0, numberOfProperties = props.length;
+            /* try getting a different result from 0 (equal)
+             * as long as we have extra properties to compare
+             */
+            while(result === 0 && i < numberOfProperties) {
+                result = keySort(props[i])(obj1, obj2);
+                i++;
+            }
+            return result;
+        }
+    }
+
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var x0, y0, colorScale0;
-    var datZ = []; // all cell values as array
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
 
@@ -214,39 +313,7 @@ nv.models.heatMap = function() {
         renderWatch.reset();
         selection.each(function(data) {
 
-            // add series index to each cell (d.iz), column (d.ix) and row (d.iy) for reference
-            // generate unique set of x & y axes
-            var ix = 0, iy = 0
-            data.forEach(function(cell, i) {
-                var valX = getX(cell);
-                var valY = getY(cell);
-                var valZ = getColor(cell);
-                datZ.push(parseInt(valZ));
-
-                if (!(valX in datX)) {
-                    datX[valX] = ix;
-                    ix ++;
-                }
-                if (!(valY in datY)) {
-                    datY[valY] = iy;
-                    iy ++;
-                }
-
-                if (hasRowMeta() && !(valY in datRowMeta)) {
-                    datRowMeta[valY] = getYMeta(cell);
-                }
-
-                if (hasColumnMeta() && !(valX in datColumnMeta)) {
-                    datColumnMeta[valX] = getXMeta(cell);
-                }
-
-                cell.ix = datX[valX];
-                cell.iy = datY[valY];
-                cell.iz = i;
-            });
-
-            // normalize data is needed
-            if (normalize) normalizeHeatmap();
+            data = prepHeatmapData();
 
             var availableWidth = width - margin.left - margin.right,
                 availableHeight = height - margin.top - margin.bottom;
@@ -263,9 +330,9 @@ nv.models.heatMap = function() {
 
             // Setup Scales
             x   .domain(xDomain || Object.keys(datX))
-                .rangeBands(xRange || [0, availableWidth], .1);
+                .rangeBands(xRange || [0, availableWidth]);
             y   .domain(yDomain || Object.keys(datY))
-                .rangeBands(yRange || [0, availableHeight], .1);
+                .rangeBands(yRange || [0, availableHeight]);
             if (!colorScale) {
                 colorScale = d3.scale.quantize()
                     .domain(heatmapExtent(data))
@@ -339,7 +406,7 @@ nv.models.heatMap = function() {
                     });
                 })
 
-            cellsEnter.append("rect") // set x,y,width,height with renderWatch...
+            cellsEnter.append("rect") // will set x,y,width,height with renderWatch...
                 .attr("rx", 4)
                 .attr("ry", 4)
 
@@ -397,7 +464,6 @@ nv.models.heatMap = function() {
         width:   {get: function(){return width;}, set: function(_){width=_;}},
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
-        legendElementWidth: {get: function(){return legendElementWidth;}, set: function(_){legendElementWidth=_;}},
         row:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
         column:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
         color:       {get: function(){return getColor;}, set: function(_){getColor=_;}}, // data attribute that sets cell value and color
@@ -423,6 +489,9 @@ nv.models.heatMap = function() {
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
+        groupRowMeta: {get: function(){return groupRowMeta;}, set: function(_){groupRowMeta=_;}},
+        groupColumnMeta: {get: function(){return groupColumnMeta;}, set: function(_){groupColumnMeta=_;}},
+
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

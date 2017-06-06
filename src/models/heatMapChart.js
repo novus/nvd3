@@ -8,11 +8,14 @@ nv.models.heatMapChart = function() {
 
     var heatmap = nv.models.heatMap()
         , legend = nv.models.legend()
+        , legendRowMeta = nv.models.legend()
+        , legendColumnMeta = nv.models.legend()
         , tooltip = nv.models.tooltip()
         , metaTooltip = nv.models.tooltip()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
         ;
+
 
     var margin = {top: 20, right: 10, bottom: 50, left: 60}
         , marginTop = null
@@ -20,6 +23,8 @@ nv.models.heatMapChart = function() {
         , height = null
         , color = nv.utils.getColor()
         , showLegend = true
+        , showLegendColumnMeta = true
+        , showLegendRowMeta = true
         , staggerLabels = false
         , wrapLabels = false
         , showXAxis = true
@@ -33,7 +38,8 @@ nv.models.heatMapChart = function() {
         , x
         , y
         , noData = null
-        , dispatch = d3.dispatch('beforeUpdate','renderEnd')
+        //, dispatch = d3.dispatch('beforeUpdate','renderEnd')
+        , dispatch = d3.dispatch('beforeUpdate', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , duration = 250
         ;
 
@@ -151,7 +157,6 @@ nv.models.heatMapChart = function() {
             }
 
 
-
             // Main Chart Component(s)
             heatmap
                 .width(availableWidth)
@@ -168,6 +173,8 @@ nv.models.heatMapChart = function() {
                 availableHeight = heatmap.cellHeight() * Object.keys(heatmap.datY()).length;
                 heatmap.height(availableHeight);
             }
+
+            console.log(availableWidth, availableHeight, margin)
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-x-label-clip-' + heatmap.id())
@@ -220,36 +227,13 @@ nv.models.heatMapChart = function() {
                             var metaVal = heatmap.datColumnMeta()[prev];
                             return metaXcolor(metaVal);
                         })
-                        .on('mouseover', function(d,i) {
-                            d3.select(this).classed('hover', true);
-                            dispatch.elementMouseover({
-                                data: d,
-                                index: i,
-                                color: d3.select(this).select('rect').style("fill")
-                            });
-                        })
-                        .on('mouseout', function(d,i) {
-                            d3.select(this).classed('hover', false);
-                            dispatch.elementMouseout({
-                                data: d,
-                                index: i,
-                                color: d3.select(this).select('rect').style("fill")
-                            });
-                        })
-                        .on('mousemove', function(d,i) {
-                            dispatch.elementMousemove({
-                                data: d,
-                                index: i,
-                                color: d3.select(this).select('rect').style("fill")
-                            });
-                        })
-
 
                     metaX.watchTransition(renderWatch, 'heatMap: metaX rect')
                         .attr('width', heatmap.cellWidth())
                         .attr('height', heatmap.cellWidth() / 3)
                         .attr('x', -heatmap.cellWidth()/2)
                         .attr('y', -17)
+
                 }
 
                 if (bottomAlignXAxis) {
@@ -294,38 +278,78 @@ nv.models.heatMapChart = function() {
                             var metaVal = heatmap.datRowMeta()[prev];
                             return metaYcolor(metaVal);
                         })
-                        .on('mouseover', function(d,i) {
-                            d3.select(this).classed('hover', true);
-                            dispatch.elementMouseover({
-                                data: d,
-                                index: i,
-                                color: d3.select(this).select('rect').style("fill")
-                            });
-                        })
-                        .on('mouseout', function(d,i) {
-                            d3.select(this).classed('hover', false);
-                            dispatch.elementMouseout({
-                                data: d,
-                                index: i,
-                                color: d3.select(this).select('rect').style("fill")
-                            });
-                        })
-                        .on('mousemove', function(d,i) {
-                            dispatch.elementMousemove({
-                                data: d,
-                                index: i,
-                                color: d3.select(this).select('rect').style("fill")
-                            });
-                        })
 
-
-                    metaY.watchTransition(renderWatch, 'heatMap: metaX rect')
+                    metaY.watchTransition(renderWatch, 'heatMap: metaY rect')
                         .attr('width', heatmap.cellHeight() / 3)
                         .attr('height', heatmap.cellHeight())
                         .attr('x', 0)
                         .attr('y', -heatmap.cellHeight()/2)
                 }
 
+            }
+
+
+            // Legend for column metadata
+            if (!showLegendColumnMeta) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
+                legendColumnMeta.width(availableWidth);
+
+                var metaVals = d3.set(Object.values(heatmap.datColumnMeta())).values().map(function (d) { // unique list of column meta values
+                    return {key: d}
+                });
+
+                g.select('.nv-legendWrap')
+                    .append('g')
+                    .attr('class','nv-legendMeta columnMeta')
+                    .datum(metaVals)
+                    .call(legendColumnMeta);
+
+                if (!marginTop && legend.height() !== margin.top) {
+                    margin.top = legend.height();
+                }
+
+                // legend title
+                g.select('.columnMeta .nv-legend g')
+                    .append('text')
+                    .text('Column metadata')
+                    .attr('transform','translate(-5,-5)')
+
+                wrap.select('.nv-legendWrap .columnMeta')
+                    .attr('transform', 'translate(0,' + (availableHeight + 50) +')')
+            }
+
+            console.log(data)
+
+            // Legend for row metadata
+            if (!showLegendRowMeta) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
+                legendRowMeta.width(availableWidth)
+                    .rightAlign(false);
+
+                var metaVals = d3.set(Object.values(heatmap.datRowMeta())).values().map(function (d) { // unique list of column meta values
+                    return {key: d}
+                });
+
+                g.select('.nv-legendWrap')
+                    .append('g')
+                    .attr('class','nv-legendMeta rowMeta')
+                    .datum(metaVals)
+                    .call(legendRowMeta);
+
+                if (!marginTop && legend.height() !== margin.top) {
+                    margin.top = legend.height();
+                }
+
+                // legend title
+                g.select('.rowMeta .nv-legend g')
+                    .append('text')
+                    .text('Row metadata')
+                    .attr('transform','translate(-5,-5)')
+
+                wrap.select('.nv-legendWrap .rowMeta')
+                    .attr('transform', 'translate(0,' + (availableHeight + 50) +')')
             }
         });
 
@@ -363,6 +387,8 @@ nv.models.heatMapChart = function() {
     chart.dispatch = dispatch;
     chart.heatmap = heatmap;
     chart.legend = legend;
+    chart.legendRowMeta = legendRowMeta;
+    chart.legendColumnMeta = legendColumnMeta;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
@@ -374,6 +400,8 @@ nv.models.heatMapChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        showLegendRowMeta: {get: function(){return showLegendRowMeta;}, set: function(_){showLegendRowMeta=_;}},
+        showLegendColumnMeta: {get: function(){return showLegendColumnMeta;}, set: function(_){showLegendColumnMeta=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
@@ -401,6 +429,8 @@ nv.models.heatMapChart = function() {
             color = nv.utils.getColor(_);
             heatmap.color(color);
             legend.color(color);
+            legendColumnMeta.color(metaXcolor);
+            legendRowMeta.color(metaYcolor);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
