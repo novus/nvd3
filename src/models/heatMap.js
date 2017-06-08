@@ -19,7 +19,7 @@ nv.models.heatMap = function() {
         , getXMeta = function(d) { return d.columnMeta }
         , getYMeta = function(d) { return d.rowMeta }
         , getColor = function(d) { return d.color }
-        , showValues = false
+        , showValues = true
         , valueFormat = d3.format(',.1f')
         , cellAspectRatio = false
         , xDomain
@@ -27,13 +27,16 @@ nv.models.heatMap = function() {
         , title = false
         , titleOffset = {top: 0, left: 0}
         , normalize = false
+        , highContrastText = true
         , xRange
         , yRange
-        , datX = {} // keys are unique, ordered data columns
-        , datY = {} // keys are unique, ordered data rows
+        , datX = {} // unique data row values as keys, with increment counter as value
+        , datY = {} // unique data row values as keys, with increment counter as value
         , datZ = [] // all cell values as array
-        , datRowMeta = {} // ordered obj of row labels mapped to row metadata category
-        , datColumnMeta = {} // ordered obj of col labels mapped to col metadata category
+        , datRowMeta = new Map() // ordered obj of row labels mapped to row metadata category
+        , datColumnMeta = new Map() // ordered obj of col labels mapped to col metadata category
+        , datRowMetaUnique = [] // unique, ordered list of row metadata values
+        , datColumnMetaUnique = [] // unique, ordered list of col metadata values
         , cellHeight
         , cellWidth
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
@@ -47,11 +50,24 @@ nv.models.heatMap = function() {
     // Aux helper function for heatmap
     //------------------------------------------------------------
 
+    // return true if row metadata specified by user
     function hasRowMeta() {
+        return typeof getYMeta(data[0]) !== 'undefined';
+    }
+    // return true if col metadata specified by user
+    function hasColumnMeta() {
         return typeof getXMeta(data[0]) !== 'undefined';
     }
-    function hasColumnMeta() {
-        return typeof getYMeta(data[0]) !== 'undefined';
+
+    // choose high contrast text color based on background
+    // shameful steal: https://github.com/alexandersimoes/d3plus/blob/master/src/color/text.coffee
+    function cellTextColor(bgColor) {
+        var rgbColor = d3.rgb(bgColor);
+        var r = rgbColor.r;
+        var g = rgbColor.g;
+        var b = rgbColor.b;
+        var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+        return yiq >= 128 ? "#404040" : "#EDEDED"; // dark text else light text
     }
 
     /* go through heatmap data and generate array of values
@@ -230,9 +246,9 @@ nv.models.heatMap = function() {
         if (groupRowMeta && groupColumnMeta) {
             data = data.sort(keySortMultiple(getXMeta, getYMeta));
         } else if (groupRowMeta) {
-            data = data.sort(keySort(getXMeta));
-        } else if (groupColumnMeta) {
             data = data.sort(keySort(getYMeta));
+        } else if (groupColumnMeta) {
+            data = data.sort(keySort(getXMeta));
         }
 
         var ix = 0, iy = 0
@@ -252,11 +268,15 @@ nv.models.heatMap = function() {
             }
 
             // generated ordered objects of row/col metadata
-            if (hasRowMeta() && !(valY in datRowMeta)) {
-                datRowMeta[valY] = getYMeta(cell);
+            if (hasRowMeta() && !datRowMeta.has(valY)) {
+                var metaVal = getYMeta(cell);
+                datRowMeta.set(valY, metaVal);
+                if (datRowMetaUnique.indexOf(metaVal) == -1) datRowMetaUnique.push(metaVal);
             }
-            if (hasColumnMeta() && !(valX in datColumnMeta)) {
-                datColumnMeta[valX] = getXMeta(cell);
+            if (hasColumnMeta() && !datColumnMeta.has(valX)) {
+                var metaVal = getXMeta(cell);
+                datColumnMeta.set(valX, metaVal);
+                if (datColumnMetaUnique.indexOf(metaVal) == -1) datColumnMetaUnique.push(metaVal);
             }
 
             cell.ix = datX[valX];
@@ -270,6 +290,7 @@ nv.models.heatMap = function() {
         return data;
 
     }
+
 
 
     // https://stackoverflow.com/a/4760279/1153897
@@ -322,11 +343,14 @@ nv.models.heatMap = function() {
             // the aspect ratio is defined - in that case the cell
             // height is adjusted and availableHeight updated
             cellWidth = availableWidth / Object.keys(datX).length;
-            cellHeight = cellAspectRatio ? cellWidth / cellAspectRatio : availableHeight / datY.size();
+            cellHeight = cellAspectRatio ? cellWidth / cellAspectRatio : availableHeight / Object.keys(datY).length;
             if (cellAspectRatio) availableHeight = cellHeight * Object.keys(datY).length - margin.top - margin.bottom;
 
             container = d3.select(this);
             nv.utils.initSVG(container);
+
+
+
 
             // Setup Scales
             x   .domain(xDomain || Object.keys(datX))
@@ -360,7 +384,7 @@ nv.models.heatMap = function() {
 
                 var titleEnter = g_title.enter().append('g')
                     .attr('class', 'nv-title')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-20)'; }) // center title
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-30)'; }) // center title
                     .attr('dx',titleOffset.left)
                     .attr('dy',titleOffset.top)
                 
@@ -371,7 +395,7 @@ nv.models.heatMap = function() {
 
                 g_title
                     .watchTransition(renderWatch, 'heatMap: g_title')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-20)'; }) // center title
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-30)'; }) // center title
             }
 
             // setup cells
@@ -435,6 +459,7 @@ nv.models.heatMap = function() {
                     .attr("y", function(d) { return d.iy * cellHeight + cellHeight / 2; })
                     .attr("dy", 4)
                     .attr("class","mono")
+                    .style("fill", function() { return highContrastText ? cellTextColor(d3.select(this.previousSibling).style('fill')) : null; })
                 ;
             } else {
                 cells.selectAll('text').remove();
@@ -469,7 +494,7 @@ nv.models.heatMap = function() {
         color:       {get: function(){return getColor;}, set: function(_){getColor=_;}}, // data attribute that sets cell value and color
         xScale:  {get: function(){return x;}, set: function(_){x=_;}},
         yScale:  {get: function(){return y;}, set: function(_){y=_;}},
-        colorScale:  {get: function(){return colorScale;}, set: function(_){y=_;}},
+        colorScale:  {get: function(){return colorScale;}, set: function(_){colorScale=_;}},
         xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
@@ -481,9 +506,12 @@ nv.models.heatMap = function() {
         datY:  {get: function(){return datY;}, set: function(_){datY=_;}},
         datRowMeta:  {get: function(){return datRowMeta;}, set: function(_){datRowMeta=_;}},
         datColumnMeta:  {get: function(){return datColumnMeta;}, set: function(_){datColumnMeta=_;}},
+        datRowMetaUnique:  {get: function(){return datRowMetaUnique;}, set: function(_){datRowMetaUnique=_;}},
+        datColumnMetaUnique:  {get: function(){return datColumnMetaUnique;}, set: function(_){datColumnMetaUnique=_;}},
         cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
         cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
         normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
+        highContrastText:  {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
         title:        {get: function(){return title;}, set: function(_){title=_;}},
         titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},

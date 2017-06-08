@@ -11,7 +11,6 @@ nv.models.heatMapChart = function() {
         , legendRowMeta = nv.models.legend()
         , legendColumnMeta = nv.models.legend()
         , tooltip = nv.models.tooltip()
-        , metaTooltip = nv.models.tooltip()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
         ;
@@ -23,8 +22,8 @@ nv.models.heatMapChart = function() {
         , height = null
         , color = nv.utils.getColor()
         , showLegend = true
-        , showLegendColumnMeta = true
-        , showLegendRowMeta = true
+        , showColumnMetaLegend = true
+        , showRowMetaLegend = true
         , staggerLabels = false
         , wrapLabels = false
         , showXAxis = true
@@ -33,13 +32,13 @@ nv.models.heatMapChart = function() {
         , bottomAlignXAxis = false
         , rotateLabels = 0
         , title = false
-        , metaXcolor = nv.utils.defaultColor()
-        , metaYcolor = nv.utils.defaultColor()
+        , metaXcolor = nv.utils.getColor()
+        , metaYcolor = nv.utils.getColor()
         , x
         , y
         , noData = null
-        //, dispatch = d3.dispatch('beforeUpdate','renderEnd')
-        , dispatch = d3.dispatch('beforeUpdate', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
+        , dispatch = d3.dispatch('beforeUpdate','renderEnd')
+        //, dispatch = d3.dispatch('beforeUpdate', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , duration = 250
         ;
 
@@ -58,31 +57,41 @@ nv.models.heatMapChart = function() {
         .duration(0)
         .headerEnabled(false)
         .valueFormatter(function(d, i) {
-            return yAxis.tickFormat()(d, i);
+            return d.toFixed(2);
         })
         .keyFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         });
 
-    metaTooltip
-        .duration(0)
-        .headerEnabled(false)
-        .valueFormatter(function(d, i) {
-            return yAxis.tickFormat()(d, i);
-        })
-        .keyFormatter(function(d, i) {
-            return xAxis.tickFormat()(d, i);
-        });
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
-    function hasRowMeta() {
-        return Object.keys(heatmap.datRowMeta()).length > 0;
+    // https://bl.ocks.org/mbostock/4573883
+    // get max/min range for all the quantized cell values
+    // returns an array where each element is [start,stop]
+    // of color bin
+    function quantize_legend_values() {
+
+        var e = heatmap.colorScale();
+
+        return e.range().map(function(color) {
+          var d = e.invertExtent(color);
+          if (d[0] == null) d[0] = e.domain()[0];
+          if (d[1] == null) d[1] = e.domain()[1];
+          return d;
+        })
+
     }
+
+    // return true if row metadata specified by user
+    function hasRowMeta() {
+        return heatmap.datRowMeta().size > 0;
+    }
+    // return true if col metadata specified by user
     function hasColumnMeta() {
-        return Object.keys(heatmap.datColumnMeta()).length > 0;
+        return heatmap.datColumnMeta().size > 0;
     }
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
@@ -101,6 +110,7 @@ nv.models.heatMapChart = function() {
             // title is assumed to be 40px tall, check that there 
             // is enough space in the margin
             if (title && margin.top < 40) margin.top += 40;
+            
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
@@ -138,24 +148,6 @@ nv.models.heatMapChart = function() {
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            // Legend
-            if (!showLegend) {
-                g.select('.nv-legendWrap').selectAll('*').remove();
-            } else {
-                legend.width(availableWidth);
-
-                g.select('.nv-legendWrap')
-                    .datum(data)
-                    .call(legend);
-
-                if (!marginTop && legend.height() !== margin.top) {
-                    margin.top = legend.height();
-                }
-
-                wrap.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (-margin.top) +')')
-            }
-
 
             // Main Chart Component(s)
             heatmap
@@ -174,7 +166,6 @@ nv.models.heatMapChart = function() {
                 heatmap.height(availableHeight);
             }
 
-            console.log(availableWidth, availableHeight, margin)
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-x-label-clip-' + heatmap.id())
@@ -184,6 +175,9 @@ nv.models.heatMapChart = function() {
                 .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
                 .attr('height', 16)
                 .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
+
+
+
 
             // Setup Axes
             if (showXAxis) {
@@ -224,7 +218,7 @@ nv.models.heatMapChart = function() {
                         .append('rect')
                         .style('fill', function(d) { 
                             var prev = d3.select(this.previousSibling).text();
-                            var metaVal = heatmap.datColumnMeta()[prev];
+                            var metaVal = heatmap.datColumnMeta().get(prev);
                             return metaXcolor(metaVal);
                         })
 
@@ -232,16 +226,16 @@ nv.models.heatMapChart = function() {
                         .attr('width', heatmap.cellWidth())
                         .attr('height', heatmap.cellWidth() / 3)
                         .attr('x', -heatmap.cellWidth()/2)
-                        .attr('y', -17)
+                        .attr('y', bottomAlignXAxis ? -heatmap.cellWidth()/3 : 0)
 
                 }
 
                 if (bottomAlignXAxis) {
                     g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? 20 : 2)) + ")");
+                        .attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? heatmap.cellWidth()/2 : 0)) + ")");
                 } else {
                     g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (hasColumnMeta() ? -20 : -2) + ")");
+                        .attr("transform", "translate(0," + (hasColumnMeta() ? -heatmap.cellWidth()/2 : 0) + ")");
                 }
             }
 
@@ -249,7 +243,7 @@ nv.models.heatMapChart = function() {
 
                 if (rightAlignYAxis) {
                     g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (availableWidth + hasRowMeta() ? 18: 0) + ",0)");
+                        .attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatmap.cellHeight()/2: 0)) + ",0)");
                 } else { 
                     g.select(".nv-y.nv-axis")
                         .attr("transform", "translate(" + (hasRowMeta() ? -18 : 0) + ",0)");
@@ -273,31 +267,51 @@ nv.models.heatMapChart = function() {
 
                     metaY.enter()
                         .append('rect')
-                        .style('fill', function(d) { 
+                        .style('fill', function(d, i) { 
                             var prev = d3.select(this.previousSibling).text();
-                            var metaVal = heatmap.datRowMeta()[prev];
+                            var metaVal = heatmap.datRowMeta().get(prev);
                             return metaYcolor(metaVal);
                         })
 
                     metaY.watchTransition(renderWatch, 'heatMap: metaY rect')
                         .attr('width', heatmap.cellHeight() / 3)
                         .attr('height', heatmap.cellHeight())
-                        .attr('x', 0)
+                        .attr('x', rightAlignYAxis ? -heatmap.cellHeight()/3 : 0)
                         .attr('y', -heatmap.cellHeight()/2)
                 }
 
             }
 
+            // Legend
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
+                legend.width(availableWidth);
+
+                 var legendVal = quantize_legend_values().map(function(d) {
+                    return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
+                })
+
+                g.select('.nv-legendWrap')
+                    .append('g')
+                    .attr('class','nv-legendCells')
+                    .datum(legendVal)
+                    .call(legend);
+
+                wrap.select('.nv-legendCells')
+                    .attr('transform', 'translate(0,' + (-legend.height() + (!bottomAlignXAxis ? -10 : 0)) +')')
+
+            }
 
             // Legend for column metadata
-            if (!showLegendColumnMeta) {
-                g.select('.nv-legendWrap').selectAll('*').remove();
+            if (!showColumnMetaLegend || !hasColumnMeta()) {
+                g.select('.columnMeta').selectAll('*').remove();
             } else {
                 legendColumnMeta.width(availableWidth);
 
-                var metaVals = d3.set(Object.values(heatmap.datColumnMeta())).values().map(function (d) { // unique list of column meta values
-                    return {key: d}
-                });
+                var metaVals = heatmap.datColumnMetaUnique().map(function (d) {
+                    return {key: d};
+                })
 
                 g.select('.nv-legendWrap')
                     .append('g')
@@ -305,32 +319,26 @@ nv.models.heatMapChart = function() {
                     .datum(metaVals)
                     .call(legendColumnMeta);
 
-                if (!marginTop && legend.height() !== margin.top) {
-                    margin.top = legend.height();
-                }
-
                 // legend title
                 g.select('.columnMeta .nv-legend g')
                     .append('text')
                     .text('Column metadata')
-                    .attr('transform','translate(-5,-5)')
+                    .attr('transform','translate(-5,-8)')
 
                 wrap.select('.nv-legendWrap .columnMeta')
                     .attr('transform', 'translate(0,' + (availableHeight + 50) +')')
             }
 
-            console.log(data)
-
             // Legend for row metadata
-            if (!showLegendRowMeta) {
-                g.select('.nv-legendWrap').selectAll('*').remove();
+            if (!showRowMetaLegend || !hasRowMeta()) {
+                g.select('.rowMeta').selectAll('*').remove();
             } else {
                 legendRowMeta.width(availableWidth)
-                    .rightAlign(false);
+                    .rightAlign(false)
 
-                var metaVals = d3.set(Object.values(heatmap.datRowMeta())).values().map(function (d) { // unique list of column meta values
-                    return {key: d}
-                });
+                var metaVals = heatmap.datRowMetaUnique().map(function (d) {
+                    return {key: d};
+                })
 
                 g.select('.nv-legendWrap')
                     .append('g')
@@ -338,23 +346,18 @@ nv.models.heatMapChart = function() {
                     .datum(metaVals)
                     .call(legendRowMeta);
 
-                if (!marginTop && legend.height() !== margin.top) {
-                    margin.top = legend.height();
-                }
-
                 // legend title
                 g.select('.rowMeta .nv-legend g')
                     .append('text')
                     .text('Row metadata')
-                    .attr('transform','translate(-5,-5)')
+                    .attr('transform','translate(0,-8)')
 
                 wrap.select('.nv-legendWrap .rowMeta')
-                    .attr('transform', 'translate(0,' + (availableHeight + 50) +')')
+                    .attr('transform', 'translate(5,' + (availableHeight + 50) +')')
             }
         });
 
         renderWatch.renderEnd('heatMap chart immediate');
-
 
         return chart;
     }
@@ -366,7 +369,7 @@ nv.models.heatMapChart = function() {
     heatmap.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
             key: chart.column()(evt.data) + ' ' + chart.row()(evt.data),
-            value: chart.color()(evt.data),
+            value: !chart.normalize() ? chart.color()(evt.data) : evt.data.norm,
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -400,8 +403,8 @@ nv.models.heatMapChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
-        showLegendRowMeta: {get: function(){return showLegendRowMeta;}, set: function(_){showLegendRowMeta=_;}},
-        showLegendColumnMeta: {get: function(){return showLegendColumnMeta;}, set: function(_){showLegendColumnMeta=_;}},
+        showRowMetaLegend: {get: function(){return showRowMetaLegend;}, set: function(_){showRowMetaLegend=_;}},
+        showColumnMetaLegend: {get: function(){return showColumnMetaLegend;}, set: function(_){showColumnMetaLegend=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
@@ -428,9 +431,7 @@ nv.models.heatMapChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             heatmap.color(color);
-            legend.color(color);
-            legendColumnMeta.color(metaXcolor);
-            legendRowMeta.color(metaYcolor);
+            legend.color(nv.utils.getColor(["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]));
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
