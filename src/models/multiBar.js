@@ -183,7 +183,7 @@ nv.models.multiBar = function() {
 
             g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-            var g_bar = wrapEnter.append('g').attr('class', 'nv-bar');
+            var g_bar = wrapEnter.append('g').attr('class', 'nv-title');
 
             // add a title if specified
             if (title) {

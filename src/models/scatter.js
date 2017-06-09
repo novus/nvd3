@@ -212,11 +212,11 @@ nv.models.scatter = function() {
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
-            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter moo nv-chart-' + id);
+            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id);
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
-            var g_scatter = wrapEnter.append('g').attr('class', 'nv-scatter');
+            var g_scatter = gEnter.append('g').attr('class', 'nv-title');
 
             wrap.classed('nv-single-point', singlePoint);
             gEnter.append('g').attr('class', 'nv-groups');
