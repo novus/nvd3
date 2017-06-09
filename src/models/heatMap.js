@@ -24,8 +24,6 @@ nv.models.heatMap = function() {
         , cellAspectRatio = false
         , xDomain
         , yDomain
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , normalize = false
         , highContrastText = true
         , xRange
@@ -377,26 +375,6 @@ nv.models.heatMap = function() {
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            // add a title if specified
-            if (title) {
-                var g_title = g.selectAll("g.nv-title")
-                    .data([title]);
-
-                var titleEnter = g_title.enter().append('g')
-                    .attr('class', 'nv-title')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-30)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-                
-                titleEnter.append("text")
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return d; })
-
-                g_title
-                    .watchTransition(renderWatch, 'heatMap: g_title')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-30)'; }) // center title
-            }
 
             // setup cells
             var cells = g.selectAll("g.nv-cell")
@@ -453,7 +431,7 @@ nv.models.heatMap = function() {
                 ;
 
                 cells.select('text')
-                    .text(function(d,i) { return showValues == 'norm' ? valueFormat(d.norm) : valueFormat(getColor(d)) })
+                    .text(function(d,i) { return !normalize ? valueFormat(getColor(d)) : valueFormat(d.norm) })
                     .watchTransition(renderWatch, 'heatMap: cells text')
                     .attr("x", function(d) { return d.ix * cellWidth + cellWidth / 2; })
                     .attr("y", function(d) { return d.iy * cellHeight + cellHeight / 2; })
@@ -512,8 +490,6 @@ nv.models.heatMap = function() {
         cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
         normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
         highContrastText:  {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
-        title:        {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},

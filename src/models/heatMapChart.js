@@ -32,6 +32,7 @@ nv.models.heatMapChart = function() {
         , bottomAlignXAxis = false
         , rotateLabels = 0
         , title = false
+        , titleOffset = {top: -5, left: 0}
         , metaXcolor = nv.utils.getColor()
         , metaYcolor = nv.utils.getColor()
         , x
@@ -107,9 +108,15 @@ nv.models.heatMapChart = function() {
                 that = this;
             nv.utils.initSVG(container);
 
-            // title is assumed to be 40px tall, check that there 
-            // is enough space in the margin
-            if (title && margin.top < 40) margin.top += 40;
+            var top0 = margin.top; // store original top margin in case we start adjusting it later
+
+            // check that we have enough top margin space for the title
+            // and any rendered legends
+            // we compare to the original top margin to account for
+            // space for each element (since we will adjust top.maring
+            // on each check)
+            if (title && top0 < 40) margin.top += 40; // check for title space
+            if (!bottomAlignXAxis && top0 < 35) margin.top += 35; // check for metadata axis space
             
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
@@ -143,8 +150,11 @@ nv.models.heatMapChart = function() {
 
             gEnter.append('g').attr('class', 'nv-heatMapWrap');
             gEnter.append('g').attr('class', 'nv-legendWrap');
+            gEnter.append('g').attr('class', 'nv-legendWrapColumn');
+            gEnter.append('g').attr('class', 'nv-legendWrapRow');
             gEnter.append('g').attr('class', 'nv-x nv-axis');
             gEnter.append('g').attr('class', 'nv-y nv-axis')
+            gEnter.append('g').attr('class', 'nv-title')
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -154,7 +164,7 @@ nv.models.heatMapChart = function() {
                 .width(availableWidth)
                 .height(availableHeight);
 
-            if (title) heatmap.title(title);
+
 
             var heatMapWrap = g.select('.nv-heatMapWrap')
                 .datum(data.filter(function(d) { return !d.disabled }));
@@ -175,7 +185,6 @@ nv.models.heatMapChart = function() {
                 .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
                 .attr('height', 16)
                 .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
-
 
 
 
@@ -293,14 +302,11 @@ nv.models.heatMapChart = function() {
                 })
 
                 g.select('.nv-legendWrap')
-                    .append('g')
-                    .attr('class','nv-legendCells')
                     .datum(legendVal)
                     .call(legend);
 
-                wrap.select('.nv-legendCells')
-                    .attr('transform', 'translate(0,' + (-legend.height() + (!bottomAlignXAxis ? -10 : 0)) +')')
-
+                g.select('.nv-legendWrap .nv-legend')
+                    .attr('transform', 'translate(0,' + (-legend.height() + ((!bottomAlignXAxis && hasColumnMeta()) ? -25 : -5)) +')')
             }
 
             // Legend for column metadata
@@ -313,20 +319,18 @@ nv.models.heatMapChart = function() {
                     return {key: d};
                 })
 
-                g.select('.nv-legendWrap')
-                    .append('g')
-                    .attr('class','nv-legendMeta columnMeta')
+                g.select('.nv-legendWrapColumn')
                     .datum(metaVals)
                     .call(legendColumnMeta);
 
                 // legend title
-                g.select('.columnMeta .nv-legend g')
+                gEnter.select('.nv-legendWrapColumn .nv-legend g')
                     .append('text')
                     .text('Column metadata')
                     .attr('transform','translate(-5,-8)')
 
-                wrap.select('.nv-legendWrap .columnMeta')
-                    .attr('transform', 'translate(0,' + (availableHeight + 50) +')')
+                g.select('.nv-legendWrapColumn')
+                    .attr('transform', 'translate(0,' + (availableHeight + (!bottomAlignXAxis ? 20 : 50)) +')')
             }
 
             // Legend for row metadata
@@ -340,21 +344,46 @@ nv.models.heatMapChart = function() {
                     return {key: d};
                 })
 
-                g.select('.nv-legendWrap')
-                    .append('g')
-                    .attr('class','nv-legendMeta rowMeta')
+                g.select('.nv-legendWrapRow')
                     .datum(metaVals)
                     .call(legendRowMeta);
 
+
                 // legend title
-                g.select('.rowMeta .nv-legend g')
+                gEnter.select('.nv-legendWrapRow .nv-legend g')
                     .append('text')
                     .text('Row metadata')
-                    .attr('transform','translate(0,-8)')
+                    .attr('transform','translate(-5,-8)')
 
-                wrap.select('.nv-legendWrap .rowMeta')
-                    .attr('transform', 'translate(5,' + (availableHeight + 50) +')')
+                g.select('.nv-legendWrapRow')
+                    .attr('transform', 'translate(5,' + (availableHeight + (!bottomAlignXAxis ? 20 : 50)) +')')
             }
+
+            // add a title if specified
+            if (title) {
+                var g_title = g.select(".nv-title").selectAll('g')
+                    .data([title]);
+
+                // adjust dy position of title based on the various
+                // legends and axes that can be present at the top
+                if (hasColumnMeta() && !bottomAlignXAxis) titleOffset.top -= 30;
+
+                var titleEnter = g_title.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (-20 -(showLegend ? d3.select("g.nv-legend").node().getBBox().height : 0)) + ')'; }) // center title
+
+                titleEnter.append("text")
+                    .style("text-anchor", "middle")
+                    .style("font-size", "150%")
+                    .text(function (d) { return d; })
+                    .attr('dx',titleOffset.left)
+                    .attr('dy',titleOffset.top)
+
+                g_title
+                    .watchTransition(renderWatch, 'heatMap: g_title')
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (-20 -(showLegend ? d3.select("g.nv-legend").node().getBBox().height : 0)) + ')'; }) // center title
+            }
+
         });
 
         renderWatch.renderEnd('heatMap chart immediate');
