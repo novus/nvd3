@@ -119,7 +119,7 @@ nv.models.multiBarHorizontal = function() {
             gEnter.append('g').attr('class', 'nv-groups');
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var g_bar = wrapEnter.append('g').attr('class', 'nv-bar');
+            var g_bar = wrapEnter.append('g').attr('class', 'nv-title');
 
             // add a title if specified
             if (title) {
