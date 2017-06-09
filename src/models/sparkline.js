@@ -20,6 +20,8 @@ nv.models.sparkline = function() {
         , yDomain
         , xRange
         , yRange
+        , title = false
+        , titleOffset = {top: 0, left: 0}
         , showMinMaxPoints = true
         , showCurrentPoint = true
         , dispatch = d3.dispatch('renderEnd')
@@ -54,6 +56,21 @@ nv.models.sparkline = function() {
             var g = wrap.select('g');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+            var g_spark = wrapEnter.append('g').attr('class', 'nv-spark');
+
+            // add a title if specified
+            if (title) {
+                var plotTitle = g_spark
+                    .append("text")
+                    .attr('class', 'nv-spark-title')
+                    .style("text-anchor", "middle")
+                    .style("font-size", "150%")
+                    .text(function (d) { return title; })
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
+                    .attr('dx',titleOffset.left)
+                    .attr('dy',titleOffset.top)
+            }
 
             var paths = wrap.selectAll('path')
                 .data(function(d) { return [d] });
@@ -119,6 +136,8 @@ nv.models.sparkline = function() {
         animate:          {get: function(){return animate;}, set: function(_){animate=_;}},
         showMinMaxPoints: {get: function(){return showMinMaxPoints;}, set: function(_){showMinMaxPoints=_;}},
         showCurrentPoint: {get: function(){return showCurrentPoint;}, set: function(_){showCurrentPoint=_;}},
+        title:        {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
 
         //functor options
         x: {get: function(){return getX;}, set: function(_){getX=d3.functor(_);}},

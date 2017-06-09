@@ -21,6 +21,8 @@ nv.models.line = function() {
         , clipEdge = false // if true, masks lines within x and y scale
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
+        , title = false
+        , titleOffset = {top: 0, left: 0}
         , interpolate = "linear" // controls the line interpolation
         , duration = 250
         , dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -67,11 +69,25 @@ nv.models.line = function() {
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
+            var g_line = wrapEnter.append('g').attr('class', 'nv-line');
 
             gEnter.append('g').attr('class', 'nv-groups');
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            // add a title if specified
+            if (title) {
+                var plotTitle = g_line
+                    .append("text")
+                    .attr('class', 'nv-line-title')
+                    .style("text-anchor", "middle")
+                    .style("font-size", "150%")
+                    .text(function (d) { return title; })
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
+                    .attr('dx',titleOffset.left)
+                    .attr('dy',titleOffset.top)
+            }
 
             scatter
                 .width(availableWidth)
@@ -192,6 +208,8 @@ nv.models.line = function() {
         defined: {get: function(){return defined;}, set: function(_){defined=_;}},
         interpolate:      {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
         clipEdge:    {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
+        title:        {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
