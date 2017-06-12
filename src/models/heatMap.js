@@ -232,6 +232,8 @@ nv.models.heatMap = function() {
         } else {
             normalize = false; // proper normalize option was not provided, disable it so heatmap still shows colors
         }
+
+        return data;
     }
 
 

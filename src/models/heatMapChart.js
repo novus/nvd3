@@ -291,23 +291,6 @@ nv.models.heatMapChart = function() {
 
             }
 
-            // Legend
-            if (!showLegend) {
-                g.select('.nv-legendWrap').selectAll('*').remove();
-            } else {
-                legend.width(availableWidth);
-
-                 var legendVal = quantize_legend_values().map(function(d) {
-                    return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
-                })
-
-                g.select('.nv-legendWrap')
-                    .datum(legendVal)
-                    .call(legend);
-
-                g.select('.nv-legendWrap .nv-legend')
-                    .attr('transform', 'translate(0,' + (-legend.height() + ((!bottomAlignXAxis && hasColumnMeta()) ? -25 : -5)) +')')
-            }
 
             // Legend for column metadata
             if (!showColumnMetaLegend || !hasColumnMeta()) {
@@ -357,6 +340,24 @@ nv.models.heatMapChart = function() {
 
                 g.select('.nv-legendWrapRow')
                     .attr('transform', 'translate(5,' + (availableHeight + (!bottomAlignXAxis ? 20 : 50)) +')')
+            }
+
+            // Legend
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
+                legend.width(availableWidth);
+
+                 var legendVal = quantize_legend_values().map(function(d) {
+                    return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
+                })
+
+                g.select('.nv-legendWrap')
+                    .datum(legendVal)
+                    .call(legend);
+
+                g.select('.nv-legendWrap .nv-legend')
+                    .attr('transform', 'translate(0,' + (-legend.height() + ((!bottomAlignXAxis && hasColumnMeta()) ? -15-heatmap.cellWidth()/3 : -5)) +')')
             }
 
             // add a title if specified
