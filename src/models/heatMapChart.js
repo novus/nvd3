@@ -117,7 +117,7 @@ nv.models.heatMapChart = function() {
             // on each check)
             if (title && top0 < 40) margin.top += 40; // check for title space
             if (!bottomAlignXAxis && top0 < 35) margin.top += 35; // check for metadata axis space
-            
+
 
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
@@ -225,7 +225,7 @@ nv.models.heatMapChart = function() {
 
                     metaX.enter()
                         .append('rect')
-                        .style('fill', function(d) { 
+                        .style('fill', function(d) {
                             var prev = d3.select(this.previousSibling).text();
                             var metaVal = heatmap.datColumnMeta().get(prev);
                             return metaXcolor(metaVal);
@@ -253,7 +253,7 @@ nv.models.heatMapChart = function() {
                 if (rightAlignYAxis) {
                     g.select(".nv-y.nv-axis")
                         .attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatmap.cellHeight()/2: 0)) + ",0)");
-                } else { 
+                } else {
                     g.select(".nv-y.nv-axis")
                         .attr("transform", "translate(" + (hasRowMeta() ? -18 : 0) + ",0)");
                 }
@@ -276,7 +276,7 @@ nv.models.heatMapChart = function() {
 
                     metaY.enter()
                         .append('rect')
-                        .style('fill', function(d, i) { 
+                        .style('fill', function(d, i) {
                             var prev = d3.select(this.previousSibling).text();
                             var metaVal = heatmap.datRowMeta().get(prev);
                             return metaYcolor(metaVal);

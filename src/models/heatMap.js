@@ -49,11 +49,11 @@ nv.models.heatMap = function() {
     //------------------------------------------------------------
 
     // return true if row metadata specified by user
-    function hasRowMeta() {
+    function hasRowMeta(data) {
         return typeof getYMeta(data[0]) !== 'undefined';
     }
     // return true if col metadata specified by user
-    function hasColumnMeta() {
+    function hasColumnMeta(data) {
         return typeof getXMeta(data[0]) !== 'undefined';
     }
 
@@ -71,7 +71,7 @@ nv.models.heatMap = function() {
     /* go through heatmap data and generate array of values
      * for each row/column or for entire dataset; for use in
      * calculating means/medians of data for normalizing
-     * @param {str} axis - 'row', 'col' or null 
+     * @param {str} axis - 'row', 'col' or null
      *
      * @returns {row/column index: [array of values for row/col]}
      * note that if axis is not specified, the return will be
@@ -105,7 +105,7 @@ nv.models.heatMap = function() {
     function mad(dat) {
         var med = d3.median(dat);
         var vals = dat.map(function(d) { return Math.abs(d - med); })
-        return d3.median(vals); 
+        return d3.median(vals);
     }
 
     /* normalize heatmap cell value by calculated metric
@@ -135,13 +135,13 @@ nv.models.heatMap = function() {
                 var key = 0;
             }
             var normVal = getColor(cell) - stat[key];
-            if (scale) { 
+            if (scale) {
                 cell.norm = normVal / dev[key];
             } else {
                 cell.norm = normVal;
             }
         })
-    
+
         return dat;
     }
 
@@ -176,19 +176,19 @@ nv.models.heatMap = function() {
     - robustCenterAll: subtract median of whole data set from cell
     - robustCenterScaleAll: subtract overall median from cell and scale by overall median absolute deviation
     */
-    function normalizeHeatmap() {
+    function normalizeHeatmap(data) {
 
-        if (['centerRow', 
-            'robustCenterRow', 
-            'centerScaleRow', 
-            'robustCenterScaleRow', 
-            'centerColumn', 
-            'robustCenterColumn', 
-            'centerScaleColumn', 
-            'robustCenterScaleColumn', 
-            'centerAll', 
-            'robustCenterAll', 
-            'centerScaleAll', 
+        if (['centerRow',
+            'robustCenterRow',
+            'centerScaleRow',
+            'robustCenterScaleRow',
+            'centerColumn',
+            'robustCenterColumn',
+            'centerScaleColumn',
+            'robustCenterScaleColumn',
+            'centerAll',
+            'robustCenterAll',
+            'centerScaleAll',
             'robustCenterScaleAll'].indexOf(normalize) > 0) {
             if (normalize.includes('Row')) {
                 var axis = 'row';
@@ -216,7 +216,7 @@ nv.models.heatMap = function() {
                 }
             } else if (normalize.includes('All')) {
                 var axis = null;
-                var calc = getHeatmapDat() 
+                var calc = getHeatmapDat()
                 var scale = false;
                 var agg = 'mean';
 
@@ -238,7 +238,7 @@ nv.models.heatMap = function() {
     // restructure incoming data
     // add series index to each cell (d.iz), column (d.ix) and row (d.iy) for reference
     // generate unique set of x & y values (datX & datY)
-    function prepHeatmapData() {
+    function prepHeatmapData(data) {
 
         // sort data by key if needed
         if (groupRowMeta && groupColumnMeta) {
@@ -266,12 +266,12 @@ nv.models.heatMap = function() {
             }
 
             // generated ordered objects of row/col metadata
-            if (hasRowMeta() && !datRowMeta.has(valY)) {
+            if (hasRowMeta(data) && !datRowMeta.has(valY)) {
                 var metaVal = getYMeta(cell);
                 datRowMeta.set(valY, metaVal);
                 if (datRowMetaUnique.indexOf(metaVal) == -1) datRowMetaUnique.push(metaVal);
             }
-            if (hasColumnMeta() && !datColumnMeta.has(valX)) {
+            if (hasColumnMeta(data) && !datColumnMeta.has(valX)) {
                 var metaVal = getXMeta(cell);
                 datColumnMeta.set(valX, metaVal);
                 if (datColumnMetaUnique.indexOf(metaVal) == -1) datColumnMetaUnique.push(metaVal);
@@ -283,7 +283,7 @@ nv.models.heatMap = function() {
         });
 
         // normalize data is needed
-        if (normalize) normalizeHeatmap();
+        if (normalize) data  = normalizeHeatmap(data);
 
         return data;
 
@@ -332,7 +332,7 @@ nv.models.heatMap = function() {
         renderWatch.reset();
         selection.each(function(data) {
 
-            data = prepHeatmapData();
+            data = prepHeatmapData(data);
 
             var availableWidth = width - margin.left - margin.right,
                 availableHeight = height - margin.top - margin.bottom;
@@ -360,7 +360,7 @@ nv.models.heatMap = function() {
                     .domain(heatmapExtent(data))
                     .range(["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]) // color brewer RdYlBu 11
             }
-            
+
 
             //store old scales if they exist
             x0 = x0 || x;
