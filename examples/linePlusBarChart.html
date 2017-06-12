@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
 
     <style>
@@ -61,11 +61,10 @@
             .color(d3.scale.category10().range());
 
         chart.xAxis.tickFormat(function(d) {
-                return d3.time.format('%x')(new Date(d))
-            })
-            .showMaxMin(false);
+            return d3.time.format('%x')(new Date(d))
+        }).showMaxMin(false);
 
-        chart.y1Axis.tickFormat(function(d) { return '$' + d3.format(',f')(d) });
+        chart.y2Axis.tickFormat(function(d) { return '$' + d3.format(',f')(d) });
         chart.bars.forceY([0]).padData(false);
 
         chart.x2Axis.tickFormat(function(d) {

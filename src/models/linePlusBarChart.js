@@ -21,6 +21,7 @@ nv.models.linePlusBarChart = function() {
         ;
 
     var margin = {top: 30, right: 30, bottom: 30, left: 60}
+        , marginTop = null
         , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
         , width = null
         , height = null
@@ -71,14 +72,14 @@ nv.models.linePlusBarChart = function() {
 
     var getBarsAxis = function() {
         return switchYAxisOrder
-            ? { main: y1Axis, focus: y3Axis }
-            : { main: y2Axis, focus: y4Axis }
+            ? { main: y2Axis, focus: y4Axis }
+            : { main: y1Axis, focus: y3Axis }
     }
 
     var getLinesAxis = function() {
         return switchYAxisOrder
-            ? { main: y2Axis, focus: y4Axis }
-            : { main: y1Axis, focus: y3Axis }
+            ? { main: y1Axis, focus: y3Axis }
+            : { main: y2Axis, focus: y4Axis }
     }
 
     var stateGetter = function(data) {
@@ -148,7 +149,12 @@ nv.models.linePlusBarChart = function() {
             var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
             var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
 
-            x = bars.xScale();
+            if (dataBars.length && !switchYAxisOrder) {
+                x = bars.xScale();
+            } else {
+                x = lines.xScale();
+            }
+
             x2 = x2Axis.scale();
 
             // select the scales and series based on the position of the yAxis
@@ -207,7 +213,9 @@ nv.models.linePlusBarChart = function() {
             // Legend
             //------------------------------------------------------------
 
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 var legendWidth = legend.align() ? availableWidth / 2 : availableWidth;
                 var legendXPosition = legend.align() ? legendWidth : 0;
 
@@ -225,7 +233,7 @@ nv.models.linePlusBarChart = function() {
                     }))
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     // FIXME: shouldn't this be "- (focusEnabled ? focusHeight : 0)"?
                     availableHeight1 = nv.utils.availableHeight(height, container, margin) - focusHeight;
@@ -443,6 +451,7 @@ nv.models.linePlusBarChart = function() {
                                 return {
                                     area: d.area,
                                     fillOpacity: d.fillOpacity,
+                                    strokeWidth: d.strokeWidth,
                                     key: d.key,
                                     values: d.values.filter(function(d,i) {
                                         return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
@@ -482,8 +491,14 @@ nv.models.linePlusBarChart = function() {
                     .tickSize(-availableWidth, 0);
                 y2Axis
                     .scale(y2)
-                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) )
-                    .tickSize(dataBars.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
+                    ._ticks( nv.utils.calcTicksY(availableHeight1/36, data) );
+
+                // Show the y2 rules only if y1 has none
+                if(!switchYAxisOrder) {
+                    y2Axis.tickSize(dataBars.length ? 0 : -availableWidth, 0);
+                } else {
+                    y2Axis.tickSize(dataLines.length ? 0 : -availableWidth, 0);
+                }
 
                 // Calculate opacity of the axis
                 var barsOpacity = dataBars.length ? 1 : 0;
@@ -592,7 +607,10 @@ nv.models.linePlusBarChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;
@@ -627,11 +645,20 @@ nv.models.linePlusBarChart = function() {
         switchYAxisOrder:    {get: function(){return switchYAxisOrder;}, set: function(_){
             // Switch the tick format for the yAxis
             if(switchYAxisOrder !== _) {
-                var tickFormat = y1Axis.tickFormat();
-                y1Axis.tickFormat(y2Axis.tickFormat());
-                y2Axis.tickFormat(tickFormat);
+                var y1 = y1Axis;
+                y1Axis = y2Axis;
+                y2Axis = y1;
+
+                var y3 = y3Axis;
+                y3Axis = y4Axis;
+                y4Axis = y3;
             }
             switchYAxisOrder=_;
+
+            y1Axis.orient('left');
+            y2Axis.orient('right');
+            y3Axis.orient('left');
+            y4Axis.orient('right');
         }}
     });
 

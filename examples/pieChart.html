@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
     <script src="lib/stream_layers.js"></script>
 
@@ -59,7 +59,8 @@
             .x(function(d) { return d.key })
             .y(function(d) { return d.y })
             .width(width)
-            .height(height);
+            .height(height)
+            .showTooltipPercent(true);
 
         d3.select("#test1")
             .datum(testdata2)

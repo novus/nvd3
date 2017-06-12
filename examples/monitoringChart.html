@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
         <script src="../build/nv.d3.js"></script>
         <script src="lib/stream_layers.js"></script>
         <style>
@@ -140,7 +140,7 @@
             .width(width)
             .height(height)
 			.arcsRadius(arcRadius2)
-			.donutLabelsOutside(true)
+			.labelsOutside(true)
 			.labelSunbeamLayout(true)
             .id('donut2'); // allow custom CSS for this one svg
 
@@ -164,7 +164,7 @@
             .width(width)
             .height(height)
 			.arcsRadius(arcRadius3)
-			.donutLabelsOutside(true)
+			.labelsOutside(true)
             .id('donut3'); // allow custom CSS for this one svg
 
             d3.select("#test3")

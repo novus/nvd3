@@ -29,6 +29,7 @@ nv.models.multiBar = function() {
         , xRange
         , yRange
         , groupSpacing = 0.1
+        , fillOpacity = 0.75
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
@@ -101,7 +102,7 @@ nv.models.multiBar = function() {
             });
 
             // HACK for negative value stacking
-            if (stacked) {
+            if (stacked && data.length > 0) {
                 data[0].values.map(function(d,i) {
                     var posBase = 0, negBase = 0;
                     data.map(function(d, idx) {
@@ -211,7 +212,7 @@ nv.models.multiBar = function() {
                 .style('stroke', function(d,i){ return color(d, i) });
             groups
                 .style('stroke-opacity', 1)
-                .style('fill-opacity', 0.75);
+                .style('fill-opacity', fillOpacity);
 
             var bars = groups.selectAll('rect.nv-bar')
                 .data(function(d) { return (hideable && !data.length) ? hideable.values : d.values });
@@ -230,44 +231,49 @@ nv.models.multiBar = function() {
             bars
                 .style('fill', function(d,i,j){ return color(d, j, i);  })
                 .style('stroke', function(d,i,j){ return color(d, j, i); })
-                .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
+                .on('mouseover', function(d,i,j) {
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('mouseout', function(d,i) {
+                .on('mouseout', function(d,i,j) {
                     d3.select(this).classed('hover', false);
                     dispatch.elementMouseout({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('mousemove', function(d,i) {
+                .on('mousemove', function(d,i,j) {
                     dispatch.elementMousemove({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                 })
-                .on('click', function(d,i) {
+                .on('click', function(d,i,j) {
                     var element = this;
                     dispatch.elementClick({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill"),
                         event: d3.event,
                         element: element
                     });
                     d3.event.stopPropagation();
                 })
-                .on('dblclick', function(d,i) {
+                .on('dblclick', function(d,i,j) {
                     dispatch.elementDblClick({
                         data: d,
                         index: i,
+                        series: data[j],
                         color: d3.select(this).style("fill")
                     });
                     d3.event.stopPropagation();
@@ -402,6 +408,7 @@ nv.models.multiBar = function() {
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         hideable:    {get: function(){return hideable;}, set: function(_){hideable=_;}},
         groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
+        fillOpacity: {get: function(){return fillOpacity;}, set: function(_){fillOpacity=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

@@ -19,8 +19,10 @@ nv.models.axis = function() {
         , isOrdinal = false
         , ticks = null
         , axisLabelDistance = 0
+        , fontSize = undefined
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')
+        , tickFormatMaxMin
         ;
     axis
         .scale(scale)
@@ -66,6 +68,11 @@ nv.models.axis = function() {
                 .data([axisLabelText || null]);
             axisLabel.exit().remove();
 
+            //only skip when fontSize is undefined so it can be cleared with a null or blank string
+            if (fontSize !== undefined) {
+                g.selectAll('g').select("text").style('font-size', fontSize);
+            }
+
             var xLabelMargin;
             var axisMaxMin;
             var w;
@@ -100,7 +107,8 @@ nv.models.axis = function() {
                             .attr('y', -axis.tickPadding())
                             .attr('text-anchor', 'middle')
                             .text(function(d,i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max top')
@@ -116,6 +124,8 @@ nv.models.axis = function() {
                     var xTicks = g.selectAll('g').select("text");
                     var rotateLabelsRule = '';
                     if (rotateLabels%360) {
+                        //Reset transform on ticks so textHeight can be calculated correctly
+                        xTicks.attr('transform', '');
                         //Calculate the longest xTick width
                         xTicks.each(function(d,i){
                             var box = this.getBoundingClientRect();
@@ -173,7 +183,8 @@ nv.models.axis = function() {
                             .attr('transform', rotateLabelsRule)
                             .style('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
                             .text(function(d,i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max bottom')
@@ -188,7 +199,7 @@ nv.models.axis = function() {
                     axisLabel
                         .style('text-anchor', rotateYLabel ? 'middle' : 'begin')
                         .attr('transform', rotateYLabel ? 'rotate(90)' : '')
-                        .attr('y', rotateYLabel ? (-Math.max(margin.right, width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+                        .attr('y', rotateYLabel ? (-Math.max(margin.right, width) + 12 - (axisLabelDistance || 0)) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
                         .attr('x', rotateYLabel ? (d3.max(scale.range()) / 2) : axis.tickPadding());
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -208,7 +219,8 @@ nv.models.axis = function() {
                             .attr('x', axis.tickPadding())
                             .style('text-anchor', 'start')
                             .text(function(d, i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
@@ -252,7 +264,8 @@ nv.models.axis = function() {
                             .attr('x', -axis.tickPadding())
                             .attr('text-anchor', 'end')
                             .text(function(d,i) {
-                                var v = fmt(d);
+                                var formatter = tickFormatMaxMin || fmt;
+                                var v = formatter(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
@@ -323,9 +336,9 @@ nv.models.axis = function() {
                     and the arithmetic trick below solves that.
                     */
                     return !parseFloat(Math.round(d * 100000) / 1000000) && (d !== undefined)
-                }) 
+                })
                 .classed('zero', true);
-            
+
             //store old scales for use in transitions on update
             scale0 = scale.copy();
 
@@ -355,6 +368,8 @@ nv.models.axis = function() {
         height:            {get: function(){return height;}, set: function(_){height=_;}},
         ticks:             {get: function(){return ticks;}, set: function(_){ticks=_;}},
         width:             {get: function(){return width;}, set: function(_){width=_;}},
+        fontSize:          {get: function(){return fontSize;}, set: function(_){fontSize=_;}},
+        tickFormatMaxMin:  {get: function(){return tickFormatMaxMin;}, set: function(_){tickFormatMaxMin=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

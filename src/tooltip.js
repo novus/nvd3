@@ -27,7 +27,6 @@ nv.models.tooltip = function() {
         ,   distance = 25 // Distance to offset tooltip from the mouse location.
         ,   snapDistance = 0   // Tolerance allowed before tooltip is moved from its current position (creates 'snapping' effect)
         ,   classes = null  // Attaches additional CSS classes to the tooltip DIV that is created.
-        ,   chartContainer = null // Parent dom element of the SVG that holds the chart.
         ,   hidden = true  // Start off hidden, toggle with hide/show functions below.
         ,   hideDelay = 200  // Delay (in ms) before the tooltip hides after calling hide().
         ,   tooltip = null // d3 select of the tooltip div.
@@ -38,22 +37,11 @@ nv.models.tooltip = function() {
         ,   nvPointerEventsClass = "nv-pointer-events-none" // CSS class to specify whether element should not have mouse events.
     ;
 
-    /*
-     Function that returns the position (relative to the viewport) the tooltip should be placed in.
-     Should return: {
-        left: <leftPos>,
-        top: <topPos>
-     }
-     */
-    var position = function() {
-        return {
-            left: d3.event !== null ? d3.event.clientX : 0,
-            top: d3.event !== null ? d3.event.clientY : 0
-        };
-    };
-
     // Format function for the tooltip values column.
-    var valueFormatter = function(d, i) {
+    // d is value,
+    // i is series index
+    // p is point containing the value
+    var valueFormatter = function(d, i, p) {
         return d;
     };
 
@@ -66,9 +54,10 @@ nv.models.tooltip = function() {
         return d;
     };
 
-    // By default, the tooltip model renders a beautiful table inside a DIV.
-    // You can override this function if a custom tooltip is desired.
-    var contentGenerator = function(d) {
+    // By default, the tooltip model renders a beautiful table inside a DIV, returned as HTML
+    // You can override this function if a custom tooltip is desired. For instance, you could directly manipulate
+    // the DOM by accessing elem and returning false.
+    var contentGenerator = function(d, elem) {
         if (d === null) {
             return '';
         }
@@ -109,7 +98,11 @@ nv.models.tooltip = function() {
 
         trowEnter.append("td")
             .classed("value",true)
-            .html(function(p, i) { return valueFormatter(p.value, i) });
+            .html(function(p, i) { return valueFormatter(p.value, i, p) });
+
+        trowEnter.filter(function (p,i) { return p.percent !== undefined }).append("td")
+            .classed("percent", true)
+            .html(function(p, i) { return "(" + d3.format('%')(p.percent) + ")" });
 
         trowEnter.selectAll("td").each(function(p) {
             if (p.highlight) {
@@ -129,10 +122,35 @@ nv.models.tooltip = function() {
 
     };
 
+    /*
+     Function that returns the position (relative to the viewport/document.body)
+     the tooltip should be placed in.
+     Should return: {
+        left: <leftPos>,
+        top: <topPos>
+     }
+     */
+    var position = function() {
+        var pos = {
+            left: d3.event !== null ? d3.event.clientX : 0,
+            top: d3.event !== null ? d3.event.clientY : 0
+        };
+
+        if(getComputedStyle(document.body).transform != 'none') {
+            // Take the offset into account, as now the tooltip is relative
+            // to document.body.
+            var client = document.body.getBoundingClientRect();
+            pos.left -= client.left;
+            pos.top -= client.top;
+        }
+
+        return pos;
+    };
+
     var dataSeriesExists = function(d) {
         if (d && d.series) {
             if (nv.utils.isArray(d.series)) {
-                return !!d.series.length;
+                return true;
             }
             // if object, it's okay just convert to array of the object
             if (nv.utils.isObject(d.series)) {
@@ -216,7 +234,7 @@ nv.models.tooltip = function() {
             } else {
                 // using tooltip.style('transform') returns values un-usable for tween
                 var old_translate = 'translate(' + lastPosition.left + 'px, ' + lastPosition.top + 'px)';
-                var new_translate = 'translate(' + left + 'px, ' + top + 'px)';
+                var new_translate = 'translate(' + Math.round(left) + 'px, ' + Math.round(top) + 'px)';
                 var translateInterpolator = d3.interpolateString(old_translate, new_translate);
                 var is_hidden = tooltip.style('opacity') < 0.1;
 
@@ -243,18 +261,22 @@ nv.models.tooltip = function() {
 
     // Creates new tooltip container, or uses existing one on DOM.
     function initTooltip() {
-        if (!tooltip) {
-            var container = chartContainer ? chartContainer : document.body;
-
+        if (!tooltip || !tooltip.node()) {
             // Create new tooltip div if it doesn't exist on DOM.
-            tooltip = d3.select(container).append("div")
-                .attr("class", "nvtooltip " + (classes ? classes : "xy-tooltip"))
-                .attr("id", id);
-            tooltip.style("top", 0).style("left", 0);
-            tooltip.style('opacity', 0);
-            tooltip.style('position', 'fixed');
-            tooltip.selectAll("div, table, td, tr").classed(nvPointerEventsClass, true);
-            tooltip.classed(nvPointerEventsClass, true);
+
+            var data = [1];
+            tooltip = d3.select(document.body).select('#'+id).data(data);
+
+            tooltip.enter().append('div')
+                   .attr("class", "nvtooltip " + (classes ? classes : "xy-tooltip"))
+                   .attr("id", id)
+                   .style("top", 0).style("left", 0)
+                   .style('opacity', 0)
+                   .style('position', 'fixed')
+                   .selectAll("div, table, td, tr").classed(nvPointerEventsClass, true)
+                   .classed(nvPointerEventsClass, true);
+
+            tooltip.exit().remove()
         }
     }
 
@@ -266,9 +288,9 @@ nv.models.tooltip = function() {
         nv.dom.write(function () {
             initTooltip();
             // Generate data and set it into tooltip.
-            // Bonus - If you override contentGenerator and return falsey you can use something like
-            //         React or Knockout to bind the data for your tooltip.
-            var newContent = contentGenerator(data);
+            // Bonus - If you override contentGenerator and return false, you can use something like
+            //         Angular, React or Knockout to bind the data for your tooltip directly to the DOM.
+            var newContent = contentGenerator(data, tooltip.node());
             if (newContent) {
                 tooltip.node().innerHTML = newContent;
             }
@@ -289,7 +311,6 @@ nv.models.tooltip = function() {
         distance: {get: function(){return distance;}, set: function(_){distance=_;}},
         snapDistance: {get: function(){return snapDistance;}, set: function(_){snapDistance=_;}},
         classes: {get: function(){return classes;}, set: function(_){classes=_;}},
-        chartContainer: {get: function(){return chartContainer;}, set: function(_){chartContainer=_;}},
         enabled: {get: function(){return enabled;}, set: function(_){enabled=_;}},
         hideDelay: {get: function(){return hideDelay;}, set: function(_){hideDelay=_;}},
         contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
@@ -300,6 +321,10 @@ nv.models.tooltip = function() {
         position: {get: function(){return position;}, set: function(_){position=_;}},
 
         // Deprecated options
+        chartContainer: {get: function(){return document.body;}, set: function(_){
+            // deprecated after 1.8.3
+            nv.deprecated('chartContainer', 'feature removed after 1.8.3');
+        }},
         fixedTop: {get: function(){return null;}, set: function(_){
             // deprecated after 1.8.1
             nv.deprecated('fixedTop', 'feature removed after 1.8.1');

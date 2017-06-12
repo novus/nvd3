@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
     <script src="lib/stream_layers.js"></script>
 
@@ -165,6 +165,10 @@
             .yErr(function(d) { return [-Math.abs(d.value * Math.random() * 0.3), Math.abs(d.value * Math.random() * 0.3)] })
             .barColor(d3.scale.category20().range())
             .duration(250)
+            .showControls(true)
+            .showLegend(true)
+            .legendPosition("bottom")
+            .controlsPosition("bottom")
             .margin({left: 100})
             .stacked(true);
 

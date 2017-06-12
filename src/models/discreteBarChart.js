@@ -14,6 +14,7 @@ nv.models.discreteBarChart = function() {
         ;
 
     var margin = {top: 15, right: 10, bottom: 50, left: 60}
+        , marginTop = null
         , width = null
         , height = null
         , color = nv.utils.getColor()
@@ -103,15 +104,18 @@ nv.models.discreteBarChart = function() {
 	    gEnter.append('g').attr('class', 'nv-legendWrap');
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-	    
-            if (showLegend) {
+
+            // Legend
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 legend.width(availableWidth);
 
                 g.select('.nv-legendWrap')
                     .datum(data)
                     .call(legend);
 
-                if ( margin.top != legend.height()) {
+                if (!marginTop && legend.height() !== margin.top) {
                     margin.top = legend.height();
                     availableHeight = nv.utils.availableHeight(height, container, margin);
                 }
@@ -119,11 +123,6 @@ nv.models.discreteBarChart = function() {
                 wrap.select('.nv-legendWrap')
                     .attr('transform', 'translate(0,' + (-margin.top) +')')
             }
-            
-            if (rightAlignYAxis) {
-                g.select(".nv-y.nv-axis")
-                    .attr("transform", "translate(" + availableWidth + ",0)");
-            }	    
 
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
@@ -251,7 +250,10 @@ nv.models.discreteBarChart = function() {
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
             margin.right  = _.right  !== undefined ? _.right  : margin.right;
             margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
             margin.left   = _.left   !== undefined ? _.left   : margin.left;

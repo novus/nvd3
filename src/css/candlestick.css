@@ -18,12 +18,8 @@
 
 .with-transitions .nv-candlestickBar .nv-ticks .nv-tick {
     transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
-    -moz-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
-    -webkit-transition: stroke-width 250ms linear, stroke-opacity 250ms linear;
-
 }
 
 .nvd3.nv-candlestickBar .nv-ticks line {
     stroke: #333;
 }
-

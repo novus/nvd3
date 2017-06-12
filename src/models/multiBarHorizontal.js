@@ -25,6 +25,7 @@ nv.models.multiBarHorizontal = function() {
         , showBarLabels = false
         , valuePadding = 60
         , groupSpacing = 0.1
+        , fillOpacity = 0.75
         , valueFormat = d3.format(',.2f')
         , delay = 1200
         , xDomain
@@ -132,7 +133,7 @@ nv.models.multiBarHorizontal = function() {
                 .style('stroke', function(d,i){ return color(d, i) });
             groups.watchTransition(renderWatch, 'multibarhorizontal: groups')
                 .style('stroke-opacity', 1)
-                .style('fill-opacity', .75);
+                .style('fill-opacity', fillOpacity);
 
             var bars = groups.selectAll('g.nv-bar')
                 .data(function(d) { return d.values });
@@ -179,10 +180,13 @@ nv.models.multiBarHorizontal = function() {
                     });
                 })
                 .on('click', function(d,i) {
+                    var element = this;
                     dispatch.elementClick({
                         data: d,
                         index: i,
-                        color: d3.select(this).style("fill")
+                        color: d3.select(this).style("fill"),
+                        event: d3.event,
+                        element: element
                     });
                     d3.event.stopPropagation();
                 })
@@ -204,13 +208,13 @@ nv.models.multiBarHorizontal = function() {
                         var xerr = getYerr(d,i)
                             , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
                         xerr = xerr.length ? xerr : [-Math.abs(xerr), Math.abs(xerr)];
-                        xerr = xerr.map(function(e) { return y(e) - y(0); });
+                        xerr = xerr.map(function(e) { return y(e + ((getY(d,i) < 0) ? 0 : getY(d,i))) - y(0); });
                         var a = [[xerr[0],-mid], [xerr[0],mid], [xerr[0],0], [xerr[1],0], [xerr[1],-mid], [xerr[1],mid]];
                         return a.map(function (path) { return path.join(',') }).join(' ');
                     })
                     .attr('transform', function(d,i) {
                         var mid = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        return 'translate(' + (getY(d,i) < 0 ? 0 : y(getY(d,i)) - y(0)) + ', ' + mid + ')'
+                        return 'translate(0, ' + mid + ')';
                     });
             }
 
@@ -330,7 +334,8 @@ nv.models.multiBarHorizontal = function() {
         id:           {get: function(){return id;}, set: function(_){id=_;}},
         valueFormat:  {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         valuePadding: {get: function(){return valuePadding;}, set: function(_){valuePadding=_;}},
-        groupSpacing:{get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
+        groupSpacing: {get: function(){return groupSpacing;}, set: function(_){groupSpacing=_;}},
+        fillOpacity:  {get: function(){return fillOpacity;}, set: function(_){fillOpacity=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
