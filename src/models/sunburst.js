@@ -235,6 +235,7 @@ nv.models.sunburst = function() {
                     .attr('class', 'nv-sunburst-title')
                     .style("text-anchor", "middle")
                     .style("font-size", "150%")
+                    .style('opacity',1)
                     .text(function (d) { return title; })
                     .attr('transform', function(d, i) { return 'translate(' + ((availableWidth / 2) + margin.left + margin.right) + ',30)'; }) // center title
                     .attr('dx',titleOffset.left)
