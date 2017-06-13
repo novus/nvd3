@@ -15,17 +15,13 @@
     <style>
           g.nv-cell rect {
             stroke: #E6E6E6;
-            stroke-width:2px;   
+            stroke-width:2px;
           }
 
-          g.nv-cell text.mono {
+          g.nv-cell text.cell-text {
             font-size: 9pt;
             font-family: Consolas, courier;
             fill: #aaa;
-          }
-
-          path.domain, g.tick.zero line {
-            stroke-opacity: 0 !important; /* axis model does not have a way of turning off the zero line, this is a workaround ... */
           }
 
           #heatMap1 {
@@ -43,14 +39,26 @@
             width: 100%;
           }
 
+          body {
+              width: 800px;
+          }
+
+          h4 {
+              margin-left: 25px;
+          }
+
     </style>
 </head>
 
 <body>
 
+    <h4>Default options</h4>
     <div id="heatMap1">
         <svg></svg>
     </div>
+
+
+    <h4>Row normalized data with specified row/column metadata, grouped by columns</h4>
     <div id="heatMap2">
         <svg></svg>
     </div>
@@ -237,21 +245,7 @@ var data = [
         .row(function(d) { return d.hour })
         .column(function(d) { return d.day })
         .color(function(d) { return d.value })
-        //.showValues(false)
-        //.highContrastText(false)
-        .normalize('centerScaleRow')
-        .rowMeta(function(d) { return d.weekperiod })
-        //.groupRowMeta(true)
-        .columnMeta(function(d) { return d.category })
-        //.showRowMetaLegend(false)
-        //.groupColumnMeta(true)
-        //.showColumnMetaLegend(false)
-        //.showLegend(false)
-        //.cellAspectRatio(1)
-        .title('heatmap title!')
-        //.bottomAlignXAxis(true)
-        //.rightAlignYAxis(true)
-        .margin({top: 30, right: 60, bottom: 80})
+        .margin({bottom: 0})
 
       d3.select('#heatMap1 svg')
         .datum(data)
@@ -262,14 +256,19 @@ var data = [
       return chart1;
   });
 
-/*
   nv.addGraph(function() {
       var chart2 = nv.models.heatMapChart()
         .row(function(d) { return d.hour })
         .column(function(d) { return d.day })
         .color(function(d) { return d.value })
-        .showValues(true)
-        .showLegend(false)
+        .margin({bottom: 0})
+        .columnMeta(function(d) { return d.category })
+        .rowMeta(function(d) { return d.weekperiod })
+        .normalize('centerScaleRow')
+        .groupColumnMeta(true)
+        .cellAspectRatio(1)
+        .showValues(false)
+        .margin({top: 80})
 
       d3.select('#heatMap2 svg')
         .datum(data)
@@ -279,9 +278,4 @@ var data = [
 
       return chart2;
   });
-*/
 </script>
-
-
-
-
