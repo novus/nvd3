@@ -1,11 +1,11 @@
-nv.models.boxPlotChart = function() {
+nv.models.distroPlotChart = function() {
     "use strict";
 
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var boxplot = nv.models.boxPlot(),
+    var distroplot = nv.models.distroPlot(),
         xAxis = nv.models.axis(),
         yAxis = nv.models.axis();
 
@@ -43,7 +43,7 @@ nv.models.boxPlotChart = function() {
 
     function chart(selection) {
         renderWatch.reset();
-        renderWatch.models(boxplot);
+        renderWatch.models(distroplot);
         if (showXAxis) renderWatch.models(xAxis);
         if (showYAxis) renderWatch.models(yAxis);
 
@@ -80,12 +80,12 @@ nv.models.boxPlotChart = function() {
             }
 
             // Setup Scales
-            x = boxplot.xScale();
-            y = boxplot.yScale().clamp(true);
+            x = distroplot.xScale();
+            y = distroplot.yScale().clamp(true);
 
             // Setup containers and skeleton of chart
-            var wrap = container.selectAll('g.nv-wrap.nv-boxPlotWithAxes').data([data]);
-            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-boxPlotWithAxes').append('g');
+            var wrap = container.selectAll('g.nv-wrap.nv-distroPlot').data([data]);
+            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-distroPlot').append('g');
             var defsEnter = gEnter.append('defs');
             var g = wrap.select('g');
 
@@ -94,7 +94,7 @@ nv.models.boxPlotChart = function() {
                 .append('g').attr('class', 'nv-zeroLine')
                 .append('line');
 
-            gEnter.append('g').attr('class', 'nv-barsWrap');
+            gEnter.append('g').attr('class', 'nv-distroWrap');
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
@@ -103,18 +103,18 @@ nv.models.boxPlotChart = function() {
             }
 
             // Main Chart Component(s)
-            boxplot.width(availableWidth).height(availableHeight);
+            distroplot.width(availableWidth).height(availableHeight);
 
-            var barsWrap = g.select('.nv-barsWrap')
+            var distroWrap = g.select('.nv-distroWrap')
                 .datum(data.filter(function(d) { return !d.disabled }))
 
-            barsWrap.transition().call(boxplot);
+            distroWrap.transition().call(distroplot);
 
             defsEnter.append('clipPath')
-                .attr('id', 'nv-x-label-clip-' + boxplot.id())
+                .attr('id', 'nv-x-label-clip-' + distroplot.id())
                 .append('rect');
 
-            g.select('#nv-x-label-clip-' + boxplot.id() + ' rect')
+            g.select('#nv-x-label-clip-' + distroplot.id() + ' rect')
                 .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
                 .attr('height', 16)
                 .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
@@ -159,7 +159,7 @@ nv.models.boxPlotChart = function() {
             //------------------------------------------------------------
         });
 
-        renderWatch.renderEnd('nv-boxplot chart immediate');
+        renderWatch.renderEnd('nv-distroplot chart immediate');
         return chart;
     }
 
@@ -167,15 +167,15 @@ nv.models.boxPlotChart = function() {
     // Event Handling/Dispatching (out of chart's scope)
     //------------------------------------------------------------
 
-    boxplot.dispatch.on('elementMouseover.tooltip', function(evt) {
+    distroplot.dispatch.on('elementMouseover.tooltip', function(evt) {
         tooltip.data(evt).hidden(false);
     });
 
-    boxplot.dispatch.on('elementMouseout.tooltip', function(evt) {
+    distroplot.dispatch.on('elementMouseout.tooltip', function(evt) {
         tooltip.data(evt).hidden(true);
     });
 
-    boxplot.dispatch.on('elementMousemove.tooltip', function(evt) {
+    distroplot.dispatch.on('elementMousemove.tooltip', function(evt) {
         tooltip();
     });
 
@@ -184,7 +184,7 @@ nv.models.boxPlotChart = function() {
     //------------------------------------------------------------
 
     chart.dispatch = dispatch;
-    chart.boxplot = boxplot;
+    chart.distroplot = distroplot;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
@@ -211,13 +211,13 @@ nv.models.boxPlotChart = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
-            boxplot.duration(duration);
+            distroplot.duration(duration);
             xAxis.duration(duration);
             yAxis.duration(duration);
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
-            boxplot.color(color);
+            distroplot.color(color);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
@@ -225,7 +225,7 @@ nv.models.boxPlotChart = function() {
         }}
     });
 
-    nv.utils.inheritOptions(chart, boxplot);
+    nv.utils.inheritOptions(chart, distroplot);
     nv.utils.initOptions(chart);
 
     return chart;

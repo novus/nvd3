@@ -1,4 +1,4 @@
-nv.models.boxPlot = function() {
+nv.models.distroPlot = function() {
     "use strict";
 
     //============================================================
@@ -12,12 +12,13 @@ nv.models.boxPlot = function() {
         xScale = d3.scale.ordinal(),
         yScale = d3.scale.linear(),
         getX  = function(d) { return d.label }, // Default data model selectors.
-        getQ1 = function(d) { return d.values.Q1 },
-        getQ2 = function(d) { return d.values.Q2 },
-        getQ3 = function(d) { return d.values.Q3 },
-        getWl = function(d) { return d.values.whisker_low },
-        getWh = function(d) { return d.values.whisker_high },
+        getValue  = function(d) { return d.value },
         getColor = function(d) { return d.color },
+        getQ1 = function(d) { return d.values.q1 },
+        getQ2 = function(d) { return d.values.q2 },
+        getQ3 = function(d) { return d.values.q3 },
+        getWl = function(d) { return d.values.wl },
+        getWh = function(d) { return d.values.wu },
         getOlItems  = function(d) { return d.values.outliers },
         getOlValue = function(d, i, j) { return d },
         getOlLabel = function(d, i, j) { return d },
@@ -31,6 +32,75 @@ nv.models.boxPlot = function() {
         dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd'),
         duration = 250,
         maxBoxWidth = null;
+
+    //============================================================
+    // Helper Functions
+    //------------------------------------------------------------
+
+    /*
+     * Prep data for use with distroPlot by grouping data
+     * by .x() option set by user and then calculating
+     * count, sum, mean, q1, q2 (median), q3, lower whisker (wl)
+     * upper whisker (wu), iqr, min, max, and standard dev.
+     *
+     * @param (list) dat - input data formatted as list of objects,
+     *   with an object key that must exist when accessed by getX()
+     *
+     * @return prepared data in the form:
+     * [{
+     *    key : YY,
+     *    values: {
+     *      count: XX, 
+     *      sum: XX,
+     *      mean: XX,
+     *      q1: XX,
+     *      q2: XX,
+     *      q3: XX,
+     *      wl: XX,
+     *      wu: XX,
+     *      iqr: XX,
+     *      min: XX,
+     *      max: XX,
+     *      dev: XX,
+     *    }
+     *  },
+     *  ...
+     *  ]
+     * where YY are those keys in dat that define the
+     * x-axis and which are defined by .x()
+     */
+    function prepData(dat) {
+
+        var tmp = d3.nest()
+            .key(function(d) { return getX(d); })
+            .rollup(function(v) { 
+                var sortDat = v.map(function(d) { return getValue(d); }).sort(d3.ascending); // this prevents us from needlessly going through the data multiple times
+                var q1 = d3.quantile(sortDat, 0.25);
+                var q3 = d3.quantile(sortDat, 0.75);
+                var iqr = q3 - q1;
+                var wl = q1 - 1.5 * iqr; // TODO: different ways of defining whisker position e.g. standard dev
+                var wu = q3 + 1.5 * iqr;
+                var outliers = sortDat.filter(function(d) { return (d < wl || d > wu); })
+                return {
+                    count: sortDat.length,
+                    sum: d3.sum(sortDat),
+                    mean: d3.mean(sortDat),
+                    q1: q1,
+                    q2: d3.median(sortDat),
+                    q3: q3,
+                    wl: q1 - 1.5 * iqr,
+                    wu: q3 + 1.5 * iqr,
+                    iqr: iqr,
+                    min: d3.min(sortDat),
+                    max: d3.max(sortDat),
+                    dev: d3.deviation(sortDat),
+                    outliers: outliers,
+                }; 
+            })
+            .entries(dat);
+
+        return tmp;
+    }
 
     //============================================================
     // Private Variables
@@ -48,34 +118,14 @@ nv.models.boxPlot = function() {
             container = d3.select(this);
             nv.utils.initSVG(container);
 
+            data = prepData(data);
+            var mins = data.map(function(d) { return d.values.min }); // list of all box min values
+            var maxs = data.map(function(d) { return d.values.max }); // list of all box max values
+
             // Setup Scales
-            xScale.domain(xDomain || data.map(function(d,i) { return getX(d,i); }))
+            xScale.domain(xDomain || data.map(function(d) { return d.key }).sort(d3.ascending))
                 .rangeBands(xRange || [0, availableWidth], 0.1);
-
-            // if we know yDomain, no need to calculate
-            var yData = []
-            if (!yDomain) {
-                // (y-range is based on quartiles, whiskers and outliers)
-                var values = [], yMin, yMax;
-                data.forEach(function (d, i) {
-                    var q1 = getQ1(d), q3 = getQ3(d), wl = getWl(d), wh = getWh(d);
-                    var olItems = getOlItems(d);
-                    if (olItems) {
-                        olItems.forEach(function (e, i) {
-                            values.push(getOlValue(e, i, undefined));
-                        });
-                    }
-                    if (wl) { values.push(wl) }
-                    if (q1) { values.push(q1) }
-                    if (q3) { values.push(q3) }
-                    if (wh) { values.push(wh) }
-                });
-                yMin = d3.min(values);
-                yMax = d3.max(values);
-                yData = [ yMin, yMax ] ;
-            }
-
-            yScale.domain(yDomain || yData);
+            yScale.domain(yDomain || d3.extent(mins.concat(maxs)));
             yScale.range(yRange || [availableHeight, 0]);
 
             //store old scales if they exist
@@ -87,35 +137,44 @@ nv.models.boxPlot = function() {
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap');
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var boxplots = wrap.selectAll('.nv-boxplot').data(function(d) { return d });
-            var boxEnter = boxplots.enter().append('g').style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6);
-            boxplots
-                .attr('class', 'nv-boxplot')
-                .attr('transform', function(d,i,j) { return 'translate(' + (xScale(getX(d,i)) + xScale.rangeBand() * 0.05) + ', 0)'; })
-                .classed('hover', function(d) { return d.hover });
-            boxplots
-                .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+            var distroplots = wrap.selectAll('.nv-distroplot').data(function(d) { return d; });
+            var boxEnter = distroplots.enter().append('g').style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6);
+            distroplots
+                .attr('class', 'nv-distroplot')
+                .attr('transform', function(d) { return 'translate(' + (xScale(d.key) + xScale.rangeBand() * 0.05) + ', 0)'; })
+                .classed('hover', function(d) { return d.hover }); // XXX?
+            distroplots
+                .watchTransition(renderWatch, 'nv-distroplot: distroplots')
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', 0.75)
                 .delay(function(d,i) { return i * duration / data.length })
-                .attr('transform', function(d,i) {
-                    return 'translate(' + (xScale(getX(d,i)) + xScale.rangeBand() * 0.05) + ', 0)';
+                .attr('transform', function(d) {
+                    return 'translate(' + (xScale(d.key) + xScale.rangeBand() * 0.05) + ', 0)';
                 });
-            boxplots.exit().remove();
+            distroplots.exit().remove();
 
-            var g_box = wrapEnter.append('g').attr('class', 'nv-box');
 
             // add a title if specified
             if (title) {
-                var plotTitle = g_box
-                    .append("text")
-                    .attr('class', 'nv-box-title')
+                var g_title = wrapEnter.append('g').attr('class', 'nv-title');
+
+                var g_title = g.select(".nv-title").selectAll('g')
+                    .data([title]);
+
+                var titleEnter = g_title.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',0'; }) // center title
+
+                titleEnter.append("text")
                     .style("text-anchor", "middle")
                     .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
+                    .text(function (d) { return d; })
                     .attr('dx',titleOffset.left)
                     .attr('dy',titleOffset.top)
+
+                g_title
+                    .watchTransition(renderWatch, 'heatMap: g_title')
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',0'; }) // center title
             }
 
             // ----- add the SVG elements for each boxPlot -----
@@ -128,10 +187,10 @@ nv.models.boxPlot = function() {
                         var key = (f === getWl) ? 'low' : 'high';
                         box.append('line')
                           .style('stroke', getColor(d) || color(d,i))
-                          .attr('class', 'nv-boxplot-whisker nv-boxplot-' + key);
+                          .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
                         box.append('line')
                           .style('stroke', getColor(d) || color(d,i))
-                          .attr('class', 'nv-boxplot-tick nv-boxplot-' + key);
+                          .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
                     }
                 });
             });
@@ -144,14 +203,14 @@ nv.models.boxPlot = function() {
             [getWl, getWh].forEach(function (f) {
                 var key = (f === getWl) ? 'low' : 'high';
                 var endpoint = (f === getWl) ? getQ1 : getQ3;
-                boxplots.select('line.nv-boxplot-whisker.nv-boxplot-' + key)
-                  .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+                distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
+                  .watchTransition(renderWatch, 'nv-distroplot: distroplots')
                     .attr('x1', xScale.rangeBand() * 0.45 )
                     .attr('y1', function(d,i) { return yScale(f(d)); })
                     .attr('x2', xScale.rangeBand() * 0.45 )
                     .attr('y2', function(d,i) { return yScale(endpoint(d)); });
-                boxplots.select('line.nv-boxplot-tick.nv-boxplot-' + key)
-                  .watchTransition(renderWatch, 'nv-boxplot: boxplots')
+                distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
+                  .watchTransition(renderWatch, 'nv-distroplot: distroplots')
                     .attr('x1', box_left )
                     .attr('y1', function(d,i) { return yScale(f(d)); })
                     .attr('x2', box_right )
@@ -160,7 +219,7 @@ nv.models.boxPlot = function() {
 
             [getWl, getWh].forEach(function (f) {
                 var key = (f === getWl) ? 'low' : 'high';
-                boxEnter.selectAll('.nv-boxplot-' + key)
+                boxEnter.selectAll('.nv-distroplot-' + key)
                   .on('mouseover', function(d,i,j) {
                       d3.select(this).classed('hover', true);
                       dispatch.elementMouseover({
@@ -182,17 +241,17 @@ nv.models.boxPlot = function() {
 
             // boxes
             boxEnter.append('rect')
-                .attr('class', 'nv-boxplot-box')
+                .attr('class', 'nv-distroplot-box')
                 // tooltip events
                 .on('mouseover', function(d,i) {
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
-                        key: getX(d),
-                        value: getX(d),
+                        key: d.key,
+                        value: d.key,
                         series: [
-                            { key: 'Q3', value: getQ3(d), color: getColor(d) || color(d,i) },
-                            { key: 'Q2', value: getQ2(d), color: getColor(d) || color(d,i) },
-                            { key: 'Q1', value: getQ1(d), color: getColor(d) || color(d,i) }
+                            { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,i) },
+                            { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,i) },
+                            { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,i) }
                         ],
                         data: d,
                         index: i,
@@ -202,12 +261,12 @@ nv.models.boxPlot = function() {
                 .on('mouseout', function(d,i) {
                     d3.select(this).classed('hover', false);
                     dispatch.elementMouseout({
-                        key: getX(d),
-                        value: getX(d),
+                        key: d.key,
+                        value: d.key,
                         series: [
-                            { key: 'Q3', value: getQ3(d), color: getColor(d) || color(d,i) },
-                            { key: 'Q2', value: getQ2(d), color: getColor(d) || color(d,i) },
-                            { key: 'Q1', value: getQ1(d), color: getColor(d) || color(d,i) }
+                            { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,i) },
+                            { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,i) },
+                            { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,i) }
                         ],
                         data: d,
                         index: i,
@@ -219,8 +278,8 @@ nv.models.boxPlot = function() {
                 });
 
             // box transitions
-            boxplots.select('rect.nv-boxplot-box')
-              .watchTransition(renderWatch, 'nv-boxplot: boxes')
+            distroplots.select('rect.nv-distroplot-box')
+              .watchTransition(renderWatch, 'nv-distroplot: boxes')
                 .attr('y', function(d,i) { return yScale(getQ3(d)); })
                 .attr('width', box_width)
                 .attr('x', box_left )
@@ -229,17 +288,17 @@ nv.models.boxPlot = function() {
                 .style('stroke', function(d,i) { return getColor(d) || color(d,i) });
 
             // median line
-            boxEnter.append('line').attr('class', 'nv-boxplot-median');
+            boxEnter.append('line').attr('class', 'nv-distroplot-median');
 
-            boxplots.select('line.nv-boxplot-median')
-              .watchTransition(renderWatch, 'nv-boxplot: boxplots line')
+            distroplots.select('line.nv-distroplot-median')
+              .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
                 .attr('x1', box_left)
                 .attr('y1', function(d,i) { return yScale(getQ2(d)); })
                 .attr('x2', box_right)
                 .attr('y2', function(d,i) { return yScale(getQ2(d)); });
 
             // outliers
-            var outliers = boxplots.selectAll('.nv-boxplot-outlier').data(function(d) {
+            var outliers = distroplots.selectAll('.nv-distroplot-outlier').data(function(d) {
                 return getOlItems(d) || [];
             });
             outliers.enter().append('circle')
@@ -263,9 +322,9 @@ nv.models.boxPlot = function() {
                 .on('mousemove', function(d,i) {
                     dispatch.elementMousemove({e: d3.event});
                 });
-            outliers.attr('class', 'nv-boxplot-outlier');
+            outliers.attr('class', 'nv-distroplot-outlier');
             outliers
-              .watchTransition(renderWatch, 'nv-boxplot: nv-boxplot-outlier')
+              .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-outlier')
                 .attr('cx', xScale.rangeBand() * 0.45)
                 .attr('cy', function(d,i,j) { return yScale(getOlValue(d,i,j)); })
                 .attr('r', '3');
@@ -276,7 +335,7 @@ nv.models.boxPlot = function() {
             yScale0 = yScale.copy();
         });
 
-        renderWatch.renderEnd('nv-boxplot immediate');
+        renderWatch.renderEnd('nv-distroplot immediate');
         return chart;
     }
 
@@ -293,11 +352,7 @@ nv.models.boxPlot = function() {
         height:      {get: function(){return height;}, set: function(_){height=_;}},
         maxBoxWidth: {get: function(){return maxBoxWidth;}, set: function(_){maxBoxWidth=_;}},
         x:           {get: function(){return getX;}, set: function(_){getX=_;}},
-        q1: {get: function(){return getQ1;}, set: function(_){getQ1=_;}},
-        q2: {get: function(){return getQ2;}, set: function(_){getQ2=_;}},
-        q3: {get: function(){return getQ3;}, set: function(_){getQ3=_;}},
-        wl: {get: function(){return getWl;}, set: function(_){getWl=_;}},
-        wh: {get: function(){return getWh;}, set: function(_){getWh=_;}},
+        value:       {get: function(){return getValue;}, set: function(_){getValue=_;}},
         itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
         outliers:     {get: function(){return getOlItems;}, set: function(_){getOlItems=_;}},
         outlierValue: {get: function(){return getOlValue;}, set: function(_){getOlValue=_;}},
@@ -312,16 +367,7 @@ nv.models.boxPlot = function() {
         title:       {get: function(){return title;}, set: function(_){title=_;}},
         titleOffset: {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
-        // rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
-        y: {
-            get: function() {
-                console.warn('BoxPlot \'y\' chart option is deprecated. Please use model overrides instead.');
-                return {};
-            },
-            set: function(_) {
-                console.warn('BoxPlot \'y\' chart option is deprecated. Please use model overrides instead.');
-            }
-        },
+
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;
