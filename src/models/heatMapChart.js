@@ -1,4 +1,51 @@
+/* Heatmap Chart Type
 
+A heatmap is a graphical representation of data where the individual values
+contained in a matrix are represented as colors within cells. Furthermore,
+metadata can be associated with each of the matrix rows or columns. By grouping
+these rows/columns together by a given metadata value, data trends can be spotted.
+
+Format for input data should be:
+var data = [
+    {day: 'mo', hour: '1a', value: 16, timeperiod: 'early morning', weekperiod: 'week', category: 1},
+    {day: 'mo', hour: '2a', value: 20, timeperiod: 'early morning', weekperiod: 'week', category: 2},
+    {day: 'mo', hour: '3a', value: 0, timeperiod: 'early morning', weekperiod: 'week', category: 1},
+    ...
+]
+where the keys 'day' and 'hour' specify the row/column of the heatmap, 'value' specifies the  cell
+value and the keys 'timeperiod', 'weekperiod' and 'week' are extra metadata that can be associated
+with rows/columns.
+
+
+Options for chart:
+- row (function) [required]: accessor in data that defines rows for heatmap
+- column (function) [required]: accessor in data that defines columns for heatmap
+- color (function) [required]: accessor in data that defines colors for heatmap
+- rowMeta (function): accessor in data that associates heatmap rows with supplied metadata
+-columnMeta (function): accessor in data that associates heatmap columns with supplied metadata
+- width (int): width of plot
+- height (int): height of plot, note that specifying cellAspectRatio will override height
+- cellAspectRatio (float): ratio of cell width divided by cell height; if specfied, this value is used to calculate the cell height and will override the option height. by default this value is not used and the cell size is calculated to fit the height/width of the DOM
+- colorScale (d3.scale): scale used to define cell colors. if not defined color brewer quantized scale (RdYlBu 11) is used
+- showValues (bool): whether to show cell values within the cell as text - default: true
+- valueFormat (d3.format): formatter for shown cell value - default: d3.format(',.1f')
+- normalize (str): type of normalization to apply to data, must be one of: 'centerRow','robustCenterRow','centerScaleRow','robustCenterScaleRow','centerColumn','robustCenterColumn','centerScaleColumn','robustCenterScaleColumn','centerAll','robustCenterAll','centerScaleAll','robustCenterScaleAll' - default: don't normalize
+- highContrastText (bool): if specified, cell value font color will automatically be picked based on the background cell value in order to increase visible contrast - default: true
+- groupRowMeta (bool): whether to group rows by specified metadata, see rowMeta option - default: false
+- groupColumnMeta (bool): whether to group columns by specified metadata, see columnMeta option - default: false
+- showLegend (bool): whether to show the cell color legend - default: true
+- showRowMetaLegend (bool): whether to show the row metadata legend, only applicable if option rowMeta is used - default: true
+- showColumnMetaLegend (bool): whether to show the column metadata legend, only applicable if option columnMeta is used - default: true
+- staggerLabels (bool): whether to stagger the row labels - default: false
+- showXAxis (bool): whether to show the column axis labels - default: true
+- showYAxis (bool): whether to show the row axis labels- default: true
+- rightAlignYAxis (bool): whether to align the row axis on the right - default: false
+- bottomAlignXAxis (bool): whether to align the column axis on the bottom - default: false
+- rotateLabels (int): degrees to rotate column labels by - default: 0
+- title (str): title for chart
+- titleOffset (obj): top & left pixel offset for chart - default: {top: -5, left: 0}
+- margin (obj): specified chart margins, important for adjusting enough space for legends, axis labels and title - default: {top: 20, right: 10, bottom: 50, left: 60}
+*/
 nv.models.heatMapChart = function() {
     "use strict";
 
@@ -25,7 +72,6 @@ nv.models.heatMapChart = function() {
         , showColumnMetaLegend = true
         , showRowMetaLegend = true
         , staggerLabels = false
-        , wrapLabels = false
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -209,11 +255,6 @@ nv.models.heatMapChart = function() {
                     })
                     .style('text-anchor', rotateLabels > 0 ? 'start' : rotateLabels < 0 ? 'end' : 'middle');
 
-                if (wrapLabels) {
-                    g.selectAll('.tick text')
-                        .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
-                }
-
                 // setup metadata colors horizontal axis
                 if (hasColumnMeta()) {
 
@@ -237,6 +278,11 @@ nv.models.heatMapChart = function() {
                         .attr('x', -heatmap.cellWidth()/2)
                         .attr('y', bottomAlignXAxis ? -heatmap.cellWidth()/3 : 0)
 
+                    // axis text doesn't rotate properly if align to the top
+                    if (!bottomAlignXAxis && rotateLabels != 0) {
+                        g.selectAll('g.tick.zero text')
+                            .style('text-anchor', rotateLabels > 0 ? 'end' : 'start')
+                    }
                 }
 
                 if (bottomAlignXAxis) {
@@ -387,6 +433,11 @@ nv.models.heatMapChart = function() {
 
         });
 
+        // axis don't have a flag for disabling the zero line, so we do it manually
+        d3.selectAll('.zero line')
+            .style('stroke-opacity', 0)
+
+
         renderWatch.renderEnd('heatMap chart immediate');
 
         return chart;
@@ -437,7 +488,6 @@ nv.models.heatMapChart = function() {
         showColumnMetaLegend: {get: function(){return showColumnMetaLegend;}, set: function(_){showColumnMetaLegend=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
-        wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         title:    {get: function(){return title;}, set: function(_){title=_;}},
 

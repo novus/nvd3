@@ -438,7 +438,7 @@ nv.models.heatMap = function() {
                     .attr("x", function(d) { return d.ix * cellWidth + cellWidth / 2; })
                     .attr("y", function(d) { return d.iy * cellHeight + cellHeight / 2; })
                     .attr("dy", 4)
-                    .attr("class","mono")
+                    .attr("class","cell-text")
                     .style("fill", function() { return highContrastText ? cellTextColor(d3.select(this.previousSibling).style('fill')) : null; })
                 ;
             } else {
