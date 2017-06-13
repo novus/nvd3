@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<link href="teststyle.css" rel="stylesheet" type='text/css'>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="../build/nv.d3.js"></script>
+<script src="../src/tooltip.js"></script>
+<script src="../src/utils.js"></script>
+<script src="../src/models/legend.js"></script>
+<script src="../src/models/axis.js"></script>
+<script src="../src/models/distroPlot.js"></script>
+<script src="../src/models/distroPlotChart.js"></script>
+
+<head>
+    <style>
+
+          #chart1 {
+            height: 400px;
+          }
+
+          html, body, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+          }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="chart1">
+        <svg></svg>
+    </div>
+
+</body>
+
+<script>
+
+
+    var data = []
+
+
+  nv.addGraph(function() {
+      var chart1 = nv.models.heatMapChart()
+        .row(function(d) { return d.hour })
+        .column(function(d) { return d.day })
+        .color(function(d) { return d.value })
+        .margin({bottom: 0})
+
+      d3.select('#heatMap1 svg')
+        .datum(data)
+        .call(chart1);
+
+      nv.utils.windowResize(chart1.update);
+
+      return chart1;
+  });
+
+</script>
