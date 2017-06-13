@@ -22,8 +22,6 @@ nv.models.stackedArea = function() {
         , clipEdge = false // if true, masks lines within x and y scale
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , scatter = nv.models.scatter()
         , duration = 250
         , dispatch =  d3.dispatch('areaClick', 'areaMouseover', 'areaMouseout','renderEnd', 'elementClick', 'elementMouseover', 'elementMouseout')
@@ -100,22 +98,6 @@ nv.models.stackedArea = function() {
 
             gEnter.append('g').attr('class', 'nv-areaWrap');
             gEnter.append('g').attr('class', 'nv-scatterWrap');
-
-            var g_stack = wrapEnter.append('g').attr('class', 'nv-stack');
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_stack
-                    .append("text")
-                    .attr('class', 'nv-stack-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
-
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
             
@@ -295,8 +277,6 @@ nv.models.stackedArea = function() {
         offset:      {get: function(){return offset;}, set: function(_){offset=_;}},
         order:    {get: function(){return order;}, set: function(_){order=_;}},
         interpolate:    {get: function(){return interpolate;}, set: function(_){interpolate=_;}},
-        title:        {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
 
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},

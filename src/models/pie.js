@@ -22,7 +22,7 @@ nv.models.pie = function() {
         , donut = false
         , title = false
         , growOnHover = true
-        , titleOffset = {top: 0, left: 0}
+        , titleOffset = 0
         , labelSunbeamLayout = false
         , startAngle = false
         , padAngle = false
@@ -136,7 +136,7 @@ nv.models.pie = function() {
             }
 
             // if title is specified and donut, put it in the middle
-            if (donut & title) {
+            if (donut && title) {
                 g_pie.append("text").attr('class', 'nv-pie-title');
 
                 wrap.select('.nv-pie-title')
@@ -146,9 +146,9 @@ nv.models.pie = function() {
                     })
                     .style("font-size", (Math.min(availableWidth, availableHeight)) * donutRatio * 2 / (title.length + 2) + "px")
                     .attr("dy", "0.35em") // trick to vertically center text
-                    .attr('transform', function(d, i) { return 'translate(0,0)'; })
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
+                    .attr('transform', function(d, i) {
+                        return 'translate(0, '+ titleOffset + ')';
+                    });
             }
 
             var slices = wrap.select('.nv-pie').selectAll('.nv-slice').data(pie);

@@ -25,8 +25,6 @@ nv.models.parallelCoordinates = function() {
         , dragging = []
         , axisWithUndefinedValues = []
         , lineTension = 1
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , foreground
         , background
         , dimensions
@@ -135,21 +133,6 @@ nv.models.parallelCoordinates = function() {
             gEnter.append('g').attr('class', 'nv-parallelCoordinates missingValuesline');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            var g_parallel = wrapEnter.append('g').attr('class', 'nv-parallel');
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_parallel
-                    .append("text")
-                    .attr('class', 'nv-parallel-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-30)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
 
             line.interpolate('cardinal').tension(lineTension);
             axis.orient('left');
@@ -460,8 +443,6 @@ nv.models.parallelCoordinates = function() {
         active: { get: function () { return active; }, set: function (_) { active = _; } },
         lineTension:   {get: function(){return lineTension;},     set: function(_){lineTension = _;}},
         undefinedValuesLabel : {get: function(){return undefinedValuesLabel;}, set: function(_){undefinedValuesLabel=_;}},
-        title:        {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         
         // deprecated options
         dimensions: {get: function () { return dimensionData.map(function (d){return d.key}); }, set: function (_) {
