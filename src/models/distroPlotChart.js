@@ -7,9 +7,10 @@ nv.models.distroPlotChart = function() {
 
     var distroplot = nv.models.distroPlot(),
         xAxis = nv.models.axis(),
-        yAxis = nv.models.axis();
+        yAxis = nv.models.axis(),
+        legend = nv.models.legend();
 
-    var margin = {top: 15, right: 10, bottom: 50, left: 60},
+    var margin = {top: 25, right: 10, bottom: 20, left: 60},
         width = null,
         height = null,
         color = nv.utils.getColor(),
@@ -17,7 +18,11 @@ nv.models.distroPlotChart = function() {
         showYAxis = true,
         rightAlignYAxis = false,
         staggerLabels = false,
+        showLegend = true,
+        bottomAlignLegend = false,
         tooltip = nv.models.tooltip(),
+        title = false,
+        titleOffset = {top: 0, left: 0},
         x, y,
         noData = 'No Data Available.',
         dispatch = d3.dispatch('beforeUpdate', 'renderEnd'),
@@ -50,6 +55,7 @@ nv.models.distroPlotChart = function() {
         selection.each(function(data) {
             var container = d3.select(this), that = this;
             nv.utils.initSVG(container);
+            if (title && margin.top < showLegend ? 40 : 25) margin.top += showLegend ? 40 : 25;
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
@@ -102,6 +108,7 @@ nv.models.distroPlotChart = function() {
                     .attr('transform', 'translate(' + availableWidth + ',0)');
             }
 
+
             // Main Chart Component(s)
             distroplot.width(availableWidth).height(availableHeight);
 
@@ -146,7 +153,49 @@ nv.models.distroPlotChart = function() {
                 g.select('.nv-y.nv-axis').call(yAxis);
             }
 
-            // Zero line
+            // add a title if specified
+            if (title) {
+
+                gEnter.append('g').attr('class','nv-title')
+
+                var g_title = g.select(".nv-title").selectAll('g')
+                    .data([title]);
+
+                var titleEnter = g_title.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (showLegend ? -25 : -10) + ')'; }) // center title
+
+                titleEnter.append("text")
+                    .style("text-anchor", "middle")
+                    .style("font-size", "150%")
+                    .text(function (d) { return d; })
+                    .attr('dx',titleOffset.left)
+                    .attr('dy',titleOffset.top)
+
+                g_title
+                    .watchTransition(renderWatch, 'heatMap: g_title')
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (showLegend ? -25 : -10) + ')'; }) // center title
+            }
+
+            // setup legend
+            if (distroplot.colorGroup() && showLegend) { 
+
+                legend.width(availableWidth)
+                    .color(distroplot.itemColor())
+
+                var colorGroups = distroplot.colorGroupSizeScale().domain().map(function(d) { return {key: d}; })
+
+                gEnter.append('g').attr('class', 'nv-legendWrap');
+
+                g.select('.nv-legendWrap')
+                    .datum(colorGroups)
+                    .call(legend);
+
+                g.select('.nv-legendWrap .nv-legend')
+                    .attr('transform', 'translate(0,' + (bottomAlignLegend ? (availableHeight + legend.height() - 5) : (-legend.height() + 5)) +')')
+            }
+
+            // Zero line on chart bottom
             g.select('.nv-zeroLine line')
                 .attr('x1',0)
                 .attr('x2',availableWidth)
@@ -188,6 +237,7 @@ nv.models.distroPlotChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
+    chart.legend = legend;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -200,6 +250,10 @@ nv.models.distroPlotChart = function() {
         showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
+        showLegend:    {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        bottomAlignLegend:    {get: function(){return bottomAlignLegend;}, set: function(_){bottomAlignLegend=_;}},
+        title:       {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset: {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

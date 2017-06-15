@@ -18,6 +18,10 @@
             height: 400px;
           }
 
+          g.nv-distroplot {
+            stroke-width: 2;
+          }
+
           html, body, svg {
             margin: 0px;
             padding: 0px;
@@ -233,8 +237,11 @@
       var chart1 = nv.models.distroPlotChart()
         .x(function(d) { return d.study })
         .value(function(d) { return d.weight })
-        //.column(function(d) { return d.day })
-        //.color(function(d) { return d.value })
+        .colorGroup(function(d) { return d.donor })
+        .title('moo cow')
+        //.showLegend(false)
+        //.titleOffset({top: 20})
+        //.bottomAlignLegend(true)
         //.margin({bottom: 0})
 
       d3.select('#chart1 svg')
