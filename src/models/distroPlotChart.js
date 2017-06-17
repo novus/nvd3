@@ -55,7 +55,7 @@ nv.models.distroPlotChart = function() {
         selection.each(function(data) {
             var container = d3.select(this), that = this;
             nv.utils.initSVG(container);
-            if (title && margin.top < showLegend ? 40 : 25) margin.top += showLegend ? 40 : 25;
+            if (title && margin.top < (showLegend ? 40 : 25)) margin.top += showLegend ? 40 : 25;
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 

@@ -10,6 +10,7 @@
 <script src="../src/models/axis.js"></script>
 <script src="../src/models/distroPlot.js"></script>
 <script src="../src/models/distroPlotChart.js"></script>
+<script src="https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js"></script>
 
 <head>
     <style>
@@ -237,8 +238,11 @@
       var chart1 = nv.models.distroPlotChart()
         .x(function(d) { return d.study })
         .value(function(d) { return d.weight })
-        .colorGroup(function(d) { return d.donor })
+        //.colorGroup(function(d) { return d.donor })
         .title('moo cow')
+        .showMiddle('median')
+        .plotType('none')
+        .observationType('swarm')
         //.showLegend(false)
         //.titleOffset({top: 20})
         //.bottomAlignLegend(true)
