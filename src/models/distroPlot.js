@@ -127,22 +127,8 @@ nv.models.distroPlot = function() {
                     dev: d3.deviation(v),
                     outliers: outliers,
                 }; 
-            } else if (plotType == 'none') {
+            } else {
                 return v;
-
-                // get counts on each value
-                var counts = d3.nest()
-                    .key(function(d) { return d; })
-                    .rollup(function(e) { return {count: e.length} })
-                    .map(v);
-       
-                // reformat into array of objects, one object for each original value
-                // object is in the form {key: value, num: num pts with value, count: counter} 
-                var seen = {}
-                return v.map(function(d) { 
-                    seen[d] = seen.hasOwnProperty(d) ? seen[d] + 1 : 0;
-                    return {key: d, num: counts[d].count, count: seen[d]} 
-                })
             }
         }
 
@@ -300,9 +286,8 @@ nv.models.distroPlot = function() {
                 var tickRight = function() { return colorGroupSizeScale.rangeBand() * 0.45 + areaWidth()/5; };
             }
 
-            function drawMiddle() {
-            }
 
+            
             
             // ----- add the SVG elements for each plot type -----
 
@@ -311,32 +296,49 @@ nv.models.distroPlot = function() {
             } if (plotType == 'bean') { 
             } if (plotType == 'violin') {
 
+                var bandwidth = .5;
+                var resolution = 50;
+
                 areaEnter.each(function(d,i) {
                     var violin = d3.select(this);
-                    var sides = ['left','right'];
-                    sides.forEach(function (f) {
+
+                    // normally KDE is calculated in a horizontal layout, we want a verital layout however
+                    // so we flip the use of yScale & xScale
+                    var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
+                    var kdeData = kde(d.values);
+
+                    // make a new yScale
+                    var yVScale = d3.scale.linear()
+                        .range([areaWidth()/2, 0])
+                        .domain([0, d3.max(kdeData, function (e) {return e.y;})])
+                        .clamp(true);
+
+                    ['left','right'].forEach(function(side) {
                         violin.append('path')
-                          .style('fill', getColor(d) || color(d,i))
-                          .attr('class', 'nv-distroplot-area nv-distroplot-' + f);
-                        violin.append('line')
-                          .style('stroke', getColor(d) || color(d,i))
-                          .attr('class', 'nv-distroplot-line nv-distroplot-' + f);
-                    });
+                            .datum(kdeData)
+                            .attr('class', 'nv-violin')
+                            .attr("fill", "none")
+                            .attr("d", d3.svg.line()
+                                    .x(function(d) { return yScale(d.x); })
+                                    .y(function(d) { return yVScale(d.y); })
+                                    .interpolate('cardinal')
+                            )
+                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
 
-                    // Build the violins sideways, so use the yScale for the xScale and make a new yScale
-                    var xVScale = yScale.copy();
+                        violin.append('path')
+                            .datum(kdeData)
+                            .attr('class', 'nv-violin')
+                            .attr('stroke','none')
+                            .attr("d", d3.svg.area()
+                                    .y1(function(d) { return yVScale(d.y); })
+                                    .x(function(d) { return yScale(d.x); })
+                                    .y0(areaWidth()/2)
+                                    .interpolate('cardinal')
+                            )
+                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+                    })
 
-                    // Create the Kernel Density Estimator Function
-                    var bandwidth = 2;
-                    var resolution = 100;
-                    var kde = kernelDensityEstimator(eKernel(bandwidth), xVScale.ticks(resolution));
-                    var kdedata = kde(d.values);
-
-                    var interpolateMax = d3.max(d.values),
-                        interpolateMin = d3.min(d.values);
                 });
-
-
 
             } else if (plotType == 'box') {
                 // conditionally append whisker lines
@@ -496,7 +498,7 @@ nv.models.distroPlot = function() {
 
 
             // setup scatter points
-            if (plotType === 'none' || plotType == false) {
+            if (observationType) {
 
                 var ptRadius = 3; // TODO change size based on window size
 
