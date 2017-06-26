@@ -28,8 +28,8 @@ nv.models.distroPlot = function() {
         getOlValue = function(d, i, j) { return d },
         getOlLabel = function(d, i, j) { return d },
         getOlColor = function(d, i, j) { return undefined },
-        plotType = 'box', // type of background: 'box', 'violin', 'bean', 'none' - default: 'box' - 'none' will activate scatter
-        observationType = false, // type of observations to show: 'random', 'swarm', 'lines' - default: false (don't show observations), if type = 'none' the default is 'random'
+        plotType = 'box', // type of background: 'box', 'violin', 'none' - default: 'box' - 'none' will activate scatter
+        observationType = false, // type of observations to show: 'random', 'swarm', 'line' - default: false (don't show observations), if type = 'none' the default is 'random'
         whiskerDef = 'iqr', // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
         notchBox = false, // bool whether to notch box
         colorGroup = false, // if specified, each x-category will be split into groups, each colored
@@ -70,13 +70,13 @@ nv.models.distroPlot = function() {
      *
      * @param (list) dat - input data formatted as list of objects,
      *   with an object key that must exist when accessed by getX()
-     * @param (str) plotType - 'box', 'violin'  or 'bean'
+     * @param (str) plotType - 'box', 'violin'
      *
      * @return prepared data in the form:
      * [{
      *    key : YY,
      *    values: {
-     *      count: XX, 
+     *      count: XX,
      *      sum: XX,
      *      mean: XX,
      *      q1: XX,
@@ -126,7 +126,7 @@ nv.models.distroPlot = function() {
                     max: d3.max(v),
                     dev: d3.deviation(v),
                     outliers: outliers,
-                }; 
+                };
             } else {
                 return v;
             }
@@ -137,9 +137,9 @@ nv.models.distroPlot = function() {
         if (!colorGroup) {
             var tmp = d3.nest()
                 .key(function(d) { return getX(d); })
-                .rollup(function(v) { 
-                    var sortDat = v.map(function(d) { 
-                        return getValue(d); 
+                .rollup(function(v) {
+                    var sortDat = v.map(function(d) {
+                        return getValue(d);
                     }).sort(d3.ascending);
                     allValues.push.apply(allValues, sortDat);
                     return calcStats(sortDat);
@@ -149,10 +149,10 @@ nv.models.distroPlot = function() {
             var tmp = d3.nest()
                 .key(function(d) { return getX(d); })
                 .key(function(d) { return colorGroup(d); })
-                .rollup(function(v) { 
-                    var sortDat = v.map(function(d) { 
+                .rollup(function(v) {
+                    var sortDat = v.map(function(d) {
                         allColorGroups.add(colorGroup(d));
-                        return getValue(d); 
+                        return getValue(d);
                     }).sort(d3.ascending);
                     allValues.push.apply(allValues, sortDat);
                     return calcStats(sortDat);
@@ -184,13 +184,14 @@ nv.models.distroPlot = function() {
             return d3.mean(array, function (v) {return kernel(testX - v);})
         }
     }
-        
+
 
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
     var xScale0, yScale0, allColorGroups = d3.set(), allValues = [];
+    var yVScale = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
     function chart(selection) {
@@ -207,8 +208,9 @@ nv.models.distroPlot = function() {
             // Setup Scales
             xScale.domain(xDomain || data.map(function(d) { return d.key }).sort(d3.ascending))
                 .rangeBands(xRange || [0, availableWidth], 0.1);
-            yScale.domain(yDomain || d3.extent(allValues));
-            yScale.range(yRange || [availableHeight, 0]);
+            yScale.domain(yDomain || d3.extent(allValues))
+            	.range(yRange || [availableHeight, 0]);
+
 
             //store old scales if they exist
             xScale0 = xScale0 || xScale;
@@ -271,7 +273,7 @@ nv.models.distroPlot = function() {
 
             distroplots.exit().remove();
 
-            // TODO not DRY, can I juse use xScale for both
+            // TODO not DRY, can I juse use xScale for both?
             if (!colorGroup) {
                 var areaWidth = function() { return (maxBoxWidth === null ? xScale.rangeBand() * 0.9 : Math.min(75, xScale.rangeBand() * 0.9)); };
                 var areaLeft  = function() { return xScale.rangeBand() * 0.45 - areaWidth()/2; };
@@ -287,17 +289,15 @@ nv.models.distroPlot = function() {
             }
 
 
-            
-            
             // ----- add the SVG elements for each plot type -----
 
             if (plotType == 'none' || !plotType) {
                 if (!observationType) observationType = 'random'; // activate scatter plots if not already on
-            } if (plotType == 'bean') { 
             } if (plotType == 'violin') {
 
-                var bandwidth = .5;
-                var resolution = 50;
+				// TODO use rule of thumb to calculate automatically (scott, silverman)
+				var bandwidth = .5,
+					resolution = 50;
 
                 areaEnter.each(function(d,i) {
                     var violin = d3.select(this);
@@ -307,38 +307,59 @@ nv.models.distroPlot = function() {
                     var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
                     var kdeData = kde(d.values);
 
-                    // make a new yScale
-                    var yVScale = d3.scale.linear()
-                        .range([areaWidth()/2, 0])
+                    // make a new yScale for each group
+                    var tmpScale = d3.scale.linear()
                         .domain([0, d3.max(kdeData, function (e) {return e.y;})])
                         .clamp(true);
+					yVScale.push(tmpScale);
 
                     ['left','right'].forEach(function(side) {
-                        violin.append('path')
-                            .datum(kdeData)
-                            .attr('class', 'nv-violin')
-                            .attr("fill", "none")
-                            .attr("d", d3.svg.line()
-                                    .x(function(d) { return yScale(d.x); })
-                                    .y(function(d) { return yVScale(d.y); })
-                                    .interpolate('cardinal')
-                            )
-                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+						['line','area'].forEach(function(d) {
+	                        violin.append('path')
+	                            .datum(kdeData)
+	                            .attr('class', 'nv-violin-' + d + ' nv-violin-' + side)
+		                        .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+						})
 
-                        violin.append('path')
-                            .datum(kdeData)
-                            .attr('class', 'nv-violin')
-                            .attr('stroke','none')
-                            .attr("d", d3.svg.area()
-                                    .y1(function(d) { return yVScale(d.y); })
-                                    .x(function(d) { return yScale(d.x); })
-                                    .y0(areaWidth()/2)
-                                    .interpolate('cardinal')
-                            )
-                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
                     })
 
+					areaEnter.selectAll('.nv-violin-line')
+						.style('fill','none')
+					areaEnter.selectAll('.nv-violin-area')
+						.style('stroke','none')
+						.style('opacity',0.7)
+
                 });
+
+				distroplots.each(function(d,i) {
+
+					var tmpScale = yVScale[i];
+					tmpScale.range([areaWidth()/2, 0]);
+
+	                ['left','right'].forEach(function(side) {
+						distroplots.selectAll('.nv-violin-line.nv-violin-' + side)
+						  .watchTransition(renderWatch, 'nv-violin-line: distroplots')
+	                        .attr("d", d3.svg.line()
+	                                .x(function(d) { return yScale(d.x); })
+	                                .y(function(d) { return tmpScale(d.y); })
+	                                .interpolate('cardinal')
+	                        )
+	                        .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+
+						distroplots.selectAll('.nv-violin-area.nv-violin-' + side)
+						  .watchTransition(renderWatch, 'nv-violin-area: distroplots')
+	                        .attr("d", d3.svg.area()
+	                                .y1(function(d) { return tmpScale(d.y); })
+	                                .x(function(d) { return yScale(d.x); })
+	                                .y0(areaWidth()/2)
+	                                .interpolate('cardinal')
+	                        )
+	                        .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+	                })
+
+				})
+
+
 
             } else if (plotType == 'box') {
                 // conditionally append whisker lines
@@ -450,9 +471,9 @@ nv.models.distroPlot = function() {
                     .attr('rx',1)
                     .attr('ry',1)
                     .attr('height', function(d,i) { return Math.abs(yScale(getQ3(d)) - yScale(getQ1(d))) || 1 })
-                
+
                 // median/mean line
-                if (showMiddle) { 
+                if (showMiddle) {
                     areaEnter.append('line').attr('class', 'nv-distroplot-median');
 
                     distroplots.selectAll('line.nv-distroplot-median')
@@ -500,9 +521,7 @@ nv.models.distroPlot = function() {
             // setup scatter points
             if (observationType) {
 
-                var ptRadius = 3; // TODO change size based on window size
-
-                var wrap = areaEnter.selectAll('.nv-scatter')
+                var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-scatter')
                     .data(function(d) {
                         if (observationType == 'swarm') {
                             return d3.beeswarm()
@@ -517,36 +536,60 @@ nv.models.distroPlot = function() {
                         }
                     })
 
-                var scatter = wrap.enter()
-                    .append('circle')
-                    .attr('class', 'nv-scatter')
-                    .attr('opacity', .7)
+				if (observationType == 'line') {
 
-                distroplots.selectAll('.nv-scatter')
-                  .watchTransition(renderWatch, 'nv-distroplot: nv-scatter')
-                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : jitterX(areaWidth()); }) // TODO only call on resize finish otherwise jitter call slows things down
-                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d); })
-                    .attr('r', ptRadius);
+	                var lines = wrap.enter()
+	                    .append('line')
+	                    .attr('class', 'nv-lines')
+	                    .style('stroke-width', 1)
+						.style('stroke', d3.rgb(85, 85, 85))
 
-                // median/mean line
-                if (showMiddle) { 
-                    var middleLine = areaEnter.selectAll('.nv-distroplot-middle')
-                        .data(function(d) { return showMiddle == 'mean' ? [d3.mean(d.values)] : [d3.median(d.values)]; })
+					distroplots.selectAll('.nv-lines')
+					  .watchTransition(renderWatch, 'nv-distrolot: nv-lines')
+						.attr("x1", tickLeft() + areaWidth()/4)
+						.attr("x2", tickRight() - areaWidth()/4)
+						.attr('y1', function(d) { return yScale(d)})
+						.attr('y2', function(d) { return yScale(d)});
 
-                    middleLine.enter()
-                        .append('line')
-                        .attr('class', 'nv-distroplot-middle');
+				} else { // if 'swarm' or 'random' observationType
+					// TODO check if swarm library loaded
 
-                    distroplots.selectAll('line.nv-distroplot-middle')
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
-                        .attr('x1', areaWidth() * 0.25)
-                        .attr('y1', function(d) { return yScale(d); })
-                        .attr('x2', areaWidth() * 0.75)
-                        .attr('y2', function(d) { return yScale(d); })
-                }
+	                var ptRadius = 3; // TODO change size based on window size
 
-                wrap.exit().remove();
+	                var scatter = wrap.enter()
+	                    .append('circle')
+	                    .attr('class', 'nv-scatter')
+	                    .attr('opacity', .7)
+
+	                distroplots.selectAll('.nv-scatter')
+	                  .watchTransition(renderWatch, 'nv-distroplot: nv-scatter')
+	                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : jitterX(areaWidth()); }) // TODO only call on resize finish otherwise jitter call slows things down
+	                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d); })
+	                    .attr('r', ptRadius);
+
+
+	            }
+			}
+
+            // median/mean line
+            if (showMiddle) {
+                var middleLine = areaEnter.selectAll('.nv-distroplot-middle')
+                    .data(function(d) { return showMiddle == 'mean' ? [d3.mean(d.values)] : [d3.median(d.values)]; })
+
+                middleLine.enter()
+                    .append('line')
+                    .attr('class', 'nv-distroplot-middle')
+                    .style('stroke-width', 2);
+
+                distroplots.selectAll('line.nv-distroplot-middle')
+                  .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
+                    .attr('x1', areaWidth() * 0.25)
+                    .attr('y1', function(d) { return yScale(d); })
+                    .attr('x2', areaWidth() * 0.75)
+                    .attr('y2', function(d) { return yScale(d); })
             }
+
+            wrap.exit().remove();
 
             //store old scales for use in transitions on update
             xScale0 = xScale.copy();
@@ -576,8 +619,8 @@ nv.models.distroPlot = function() {
         outlierValue: {get: function(){return getOlValue;}, set: function(_){getOlValue=_;}},
         outlierLabel: {get: function(){return getOlLabel;}, set: function(_){getOlLabel=_;}},
         outlierColor: {get: function(){return getOlColor;}, set: function(_){getOlColor=_;}},
-        plotType: {get: function(){return plotType;}, set: function(_){plotType=_;}}, // plotType of background: 'box', 'violin', 'bean' - default: 'box'
-        observationType:  {get: function(){return observationType;}, set: function(_){observationType=_;}}, // type of observations to show: 'random', 'swarm', 'lines' - default: false (don't show observations)
+        plotType: {get: function(){return plotType;}, set: function(_){plotType=_;}}, // plotType of background: 'box', 'violin' - default: 'box'
+        observationType:  {get: function(){return observationType;}, set: function(_){observationType=_;}}, // type of observations to show: 'random', 'swarm', 'line' - default: false (don't show observations)
         whiskerDef:  {get: function(){return whiskerDef;}, set: function(_){whiskerDef=_;}}, // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
         notchBox:  {get: function(){return notchBox;}, set: function(_){notchBox=_;}}, // bool whether to notch box
         colorGroup:  {get: function(){return colorGroup;}, set: function(_){colorGroup=_;}}, // data key to use to set color group of each x-category - default: don't group TODO -> better word for this?
