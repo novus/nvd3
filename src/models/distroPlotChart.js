@@ -65,21 +65,14 @@ nv.models.distroPlotChart = function() {
             };
             chart.container = this;
 
-            // TODO still need to find a way to validate quartile data presence using boxPlot callbacks.
-            // Display No Data message if there's nothing to show. (quartiles required at minimum).
-            if (!data || !data.length) {
-                var noDataText = container.selectAll('.nv-noData').data([noData]);
-
-                noDataText.enter().append('text')
-                    .attr('class', 'nvd3 nv-noData')
-                    .attr('dy', '-.7em')
-                    .style('text-anchor', 'middle');
-
-                noDataText
-                    .attr('x', margin.left + availableWidth / 2)
-                    .attr('y', margin.top + availableHeight / 2)
-                    .text(function(d) { return d });
-
+            if (typeof d3.beeswarm !== 'function' && chart.options().observationType() == 'swarm') {
+                noData = 'You must first load beeswarm.js is using a swarm observation type (see https://github.com/Kcnarf/d3-beeswarm).'
+                nv.utils.noData(chart, container);
+                return chart;
+            } else if (!data || !data.length) {
+                // TODO still need to find a way to validate quartile data presence using boxPlot callbacks.
+                // Display No Data message if there's nothing to show. (quartiles required at minimum).
+                nv.utils.noData(chart, container);
                 return chart;
             } else {
                 container.selectAll('.nv-noData').remove();

@@ -34,6 +34,8 @@ nv.models.distroPlot = function() {
         notchBox = false, // bool whether to notch box
         colorGroup = false, // if specified, each x-category will be split into groups, each colored
         showMiddle = false,
+        bandwidth = 'scott',
+        resolution = 50,
         color = nv.utils.defaultColor(),
         colorGroupColorScale = nv.utils.getColor(d3.scale.category10().range()), // used to color boxes if .colorGroup() specified
         container = null,
@@ -58,6 +60,56 @@ nv.models.distroPlot = function() {
     function jitterX(width, frac) {
         if (typeof frac === 'undefined') frac = .7
         return width / 2 + Math.floor(Math.random() * width * frac) - (width * frac) / 2;
+    }
+
+
+    /* Returns the smaller of std(X, ddof=1) or normalized IQR(X) over axis 0.
+     *
+     * @param (list) x - input xa formatted as a single list of values
+     *
+     * @return float
+     *
+     * Source: https://github.com/statsmodels/statsmodels/blob/master/statsmodels/nonparametric/bandwidths.py#L9
+     */
+    function select_sigma(x) {
+        var sorted = x.sort(d3.ascending); // sort our dat
+        var normalize = 1.349;
+        var IQR = (d3.quantile(sorted, 0.75) - d3.quantile(sorted, 0.25))/normalize; // normalized IQR
+        return d3.min([d3.deviation(sorted), IQR]);
+    }
+
+    /*
+    Scott's Rule of Thumb
+
+    Parameters
+    ----------
+    x : array-like
+        Array for which to get the bandwidth
+    type : string
+           The type of estimate to use, must be one of scott or silverman
+
+    Returns
+    -------
+    bw : float
+        The estimate of the bandwidth
+
+    Notes
+    -----
+    Returns 1.059 * A * n ** (-1/5.) where ::
+       A = min(std(x, ddof=1), IQR/1.349)
+       IQR = np.subtract.reduce(np.percentile(x, [75,25]))
+
+    References
+    ----------
+    Scott, D.W. (1992) Multivariate Density Estimation: Theory, Practice, and
+        Visualization.
+     */
+    function calcBandwidth(x, type='scott') {
+
+        // TODO: consider using https://github.com/jasondavies/science.js
+        var A = select_sigma(x);
+        var n = x.length;
+        return type==='scott' ? Math.pow(1.059 * A * n, -0.2) : Math.pow(.9 * A * n, -0.2);
     }
 
 
@@ -177,13 +229,6 @@ nv.models.distroPlot = function() {
         };
     }
 
-    // Used to find the roots for adjusting violin axis
-    // Given an array, find the value for a single point, even if it is not in the domain
-    function eKernelTest(kernel, array) {
-        return function (testX) {
-            return d3.mean(array, function (v) {return kernel(testX - v);})
-        }
-    }
 
 
     //============================================================
@@ -295,17 +340,15 @@ nv.models.distroPlot = function() {
                 if (!observationType) observationType = 'random'; // activate scatter plots if not already on
             } if (plotType == 'violin') {
 
-				// TODO use rule of thumb to calculate automatically (scott, silverman)
-				var bandwidth = .5,
-					resolution = 50;
-
                 areaEnter.each(function(d,i) {
                     var violin = d3.select(this);
+                    var pointVals = d.values;
+                    if (isNaN(bandwidth)) bandwidth = calcBandwidth(pointVals, bandwidth);
 
                     // normally KDE is calculated in a horizontal layout, we want a verital layout however
                     // so we flip the use of yScale & xScale
                     var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
-                    var kdeData = kde(d.values);
+                    var kdeData = kde(pointVals);
 
                     // make a new yScale for each group
                     var tmpScale = d3.scale.linear()
@@ -552,7 +595,6 @@ nv.models.distroPlot = function() {
 						.attr('y2', function(d) { return yScale(d)});
 
 				} else { // if 'swarm' or 'random' observationType
-					// TODO check if swarm library loaded
 
 	                var ptRadius = 3; // TODO change size based on window size
 
@@ -625,6 +667,8 @@ nv.models.distroPlot = function() {
         notchBox:  {get: function(){return notchBox;}, set: function(_){notchBox=_;}}, // bool whether to notch box
         colorGroup:  {get: function(){return colorGroup;}, set: function(_){colorGroup=_;}}, // data key to use to set color group of each x-category - default: don't group TODO -> better word for this?
         showMiddle:  {get: function(){return showMiddle;}, set: function(_){showMiddle=_;}}, // add a mean or median line to the data - default: don't show, must be one of 'mean' or 'median'
+        bandwidth:  {get: function(){return bandwidth;}, set: function(_){bandwidth=_;}}, // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
+        resolution:  {get: function(){return resolution;}, set: function(_){resolution=_;}}, // resolution for kde calculation, default 50
         xScale:  {get: function(){return xScale;}, set: function(_){xScale=_;}},
         yScale:  {get: function(){return yScale;}, set: function(_){yScale=_;}},
         colorGroupSizeScale:  {get: function(){return colorGroupSizeScale;}, set: function(_){colorGroupSizeScale=_;}},
