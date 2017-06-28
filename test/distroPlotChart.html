@@ -12,6 +12,7 @@
 <script src="../src/models/distroPlotChart.js"></script>
 <script src="https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js"></script>
 
+
 <head>
     <style>
 
@@ -241,8 +242,9 @@
         //.colorGroup(function(d) { return d.donor })
         .title('moo cow')
         .showMiddle('median')
-        .plotType('violin')
-        // .observationType('swarm')
+        .plotType('box')
+        //.bandwidth('silverman')
+        //.observationType('swarm')
         //.showLegend(false)
         //.titleOffset({top: 20})
         //.bottomAlignLegend(true)

@@ -515,18 +515,6 @@ nv.models.distroPlot = function() {
                     .attr('ry',1)
                     .attr('height', function(d,i) { return Math.abs(yScale(getQ3(d)) - yScale(getQ1(d))) || 1 })
 
-                // median/mean line
-                if (showMiddle) {
-                    areaEnter.append('line').attr('class', 'nv-distroplot-median');
-
-                    distroplots.selectAll('line.nv-distroplot-median')
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
-                        .attr('x1', areaLeft)
-                        .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                        .attr('x2', areaRight)
-                        .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                }
-
                 // outliers
                 var outliers = distroplots.selectAll('.nv-distroplot-outlier').data(function(d) {
                     return getOlItems(d) || [];
@@ -615,20 +603,33 @@ nv.models.distroPlot = function() {
 
             // median/mean line
             if (showMiddle) {
-                var middleLine = areaEnter.selectAll('.nv-distroplot-middle')
-                    .data(function(d) { return showMiddle == 'mean' ? [d3.mean(d.values)] : [d3.median(d.values)]; })
 
-                middleLine.enter()
-                    .append('line')
-                    .attr('class', 'nv-distroplot-middle')
-                    .style('stroke-width', 2);
+                if (plotType == 'box') {
+                    areaEnter.append('line').attr('class', 'nv-distroplot-middle');
 
-                distroplots.selectAll('line.nv-distroplot-middle')
-                  .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
-                    .attr('x1', areaWidth() * 0.25)
-                    .attr('y1', function(d) { return yScale(d); })
-                    .attr('x2', areaWidth() * 0.75)
-                    .attr('y2', function(d) { return yScale(d); })
+                    distroplots.selectAll('line.nv-distroplot-middle')
+                      .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
+                        .attr('x1', areaLeft)
+                        .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+                        .attr('x2', areaRight)
+                        .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+                } else {
+
+                    var middleLine = areaEnter.selectAll('.nv-distroplot-middle')
+                        .data(function(d) { return showMiddle == 'mean' ? [d3.mean(d.values)] : [d3.median(d.values)]; })
+
+                    middleLine.enter()
+                        .append('line')
+                        .attr('class', 'nv-distroplot-middle')
+                        .style('stroke-width', 2);
+
+                    distroplots.selectAll('line.nv-distroplot-middle')
+                      .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
+                        .attr('x1', areaWidth() * 0.25)
+                        .attr('y1', function(d) { return yScale(d); })
+                        .attr('x2', areaWidth() * 0.75)
+                        .attr('y2', function(d) { return yScale(d); })
+                }
             }
 
             wrap.exit().remove();
