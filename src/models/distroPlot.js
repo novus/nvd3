@@ -24,11 +24,12 @@ nv.models.distroPlot = function() {
         getMin = function(d) { return d.values.min },
         getMax = function(d) { return d.values.max },
         getDev = function(d) { return d.values.dev },
+        getVals = function(d) { return d.values.original },
         getOlItems  = function(d) { return d.values.outliers },
         getOlValue = function(d, i, j) { return d },
         getOlLabel = function(d, i, j) { return d },
         getOlColor = function(d, i, j) { return undefined },
-        plotType = 'box', // type of background: 'box', 'violin', 'none' - default: 'box' - 'none' will activate scatter
+        plotType = 'box', // type of background: 'box', 'violin', 'none'/false - default: 'box' - 'none' will activate random scatter automatically
         observationType = false, // type of observations to show: 'random', 'swarm', 'line' - default: false (don't show observations), if type = 'none' the default is 'random'
         whiskerDef = 'iqr', // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
         notchBox = false, // bool whether to notch box
@@ -124,7 +125,7 @@ nv.models.distroPlot = function() {
      *   with an object key that must exist when accessed by getX()
      * @param (str) plotType - 'box', 'violin'
      *
-     * @return prepared data in the form:
+     * @return prepared data in the form for box plotType:
      * [{
      *    key : YY,
      *    values: {
@@ -140,6 +141,16 @@ nv.models.distroPlot = function() {
      *      min: XX,
      *      max: XX,
      *      dev: XX,
+     *      original: [XX],
+     *    }
+     *  },
+     *  ...
+     *  ]
+     * for violin plotType:
+     * [{
+     *    key : YY,
+     *    values: {
+     *      original: [XX]
      *    }
      *  },
      *  ...
@@ -178,9 +189,10 @@ nv.models.distroPlot = function() {
                     max: d3.max(v),
                     dev: d3.deviation(v),
                     outliers: outliers,
+                    original: v,
                 };
             } else {
-                return v;
+                return {original: v};
             }
         }
 
@@ -342,7 +354,7 @@ nv.models.distroPlot = function() {
 
                 areaEnter.each(function(d,i) {
                     var violin = d3.select(this);
-                    var pointVals = d.values;
+                    var pointVals = getVals(d);
                     if (isNaN(bandwidth)) bandwidth = calcBandwidth(pointVals, bandwidth);
 
                     // normally KDE is calculated in a horizontal layout, we want a verital layout however
@@ -552,18 +564,21 @@ nv.models.distroPlot = function() {
             // setup scatter points
             if (observationType) {
 
+                var ptRadius = 3; // TODO change size based on window size
+                console.log(data)
+
                 var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-scatter')
                     .data(function(d) {
                         if (observationType == 'swarm') {
                             return d3.beeswarm()
-                                .data(d.values)
+                                .data(getVals(d))
                                 .radius(ptRadius)
                                 .orientation('vertical')
                                 .side('symmetric')
                                 .distributeOn(function(e) { return yScale(e); })
                                 .arrange()
                         } else {
-                            return d.values;
+                            return getVals(d);
                         }
                     })
 
@@ -583,8 +598,6 @@ nv.models.distroPlot = function() {
 						.attr('y2', function(d) { return yScale(d)});
 
 				} else { // if 'swarm' or 'random' observationType
-
-	                var ptRadius = 3; // TODO change size based on window size
 
 	                var scatter = wrap.enter()
 	                    .append('circle')
@@ -616,7 +629,7 @@ nv.models.distroPlot = function() {
                 } else {
 
                     var middleLine = areaEnter.selectAll('.nv-distroplot-middle')
-                        .data(function(d) { return showMiddle == 'mean' ? [d3.mean(d.values)] : [d3.median(d.values)]; })
+                        .data(function(d) { return showMiddle == 'mean' ? [d3.mean(getVals(d))] : [d3.median(getVals(d))]; })
 
                     middleLine.enter()
                         .append('line')
