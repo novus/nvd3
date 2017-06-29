@@ -39,7 +39,12 @@
           circle.nv-distroplot-outlier {
             fill-opacity: 1;
             opacity: 0.9;
-            stroke-width: 3;
+            stroke: #5C5C5C !important;
+            fill: #5C5C5C !important;
+          }
+
+          rect.nv-distroplot-box, line.nv-distroplot-tick, line.nv-distroplot-whisker, line.nv-distroplot-middle {
+            stroke: #5C5C5C !important;
           }
 
     </style>
@@ -250,7 +255,7 @@
       var chart1 = nv.models.distroPlotChart()
         .x(function(d) { return d.study })
         .value(function(d) { return d.weight })
-        //.colorGroup(function(d) { return d.donor })
+        .colorGroup(function(d) { return d.donor })
         .title('moo cow')
         .showMiddle('median')
         .plotType('box')

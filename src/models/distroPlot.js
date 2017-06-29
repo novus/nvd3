@@ -24,7 +24,7 @@ nv.models.distroPlot = function() {
         getMin = function(d) { return d.values.min },
         getMax = function(d) { return d.values.max },
         getDev = function(d) { return d.values.dev },
-        getVals = function(d) { return d.values.original },
+        getVals = function(d) { return d.values.original; },
         getOlItems  = function(d,i,j) { 
             if (!colorGroup) {
                 return reformatDat[j].values.outliers.map(function(i) { return i.y; });
@@ -34,7 +34,7 @@ nv.models.distroPlot = function() {
         },
         getOlLabel = function(d,i,j) { return d },
         getOlValue = function(d,i,j) { return observationType == 'swarm' ? d.datum : !colorGroup ? d.y : d.y },
-        getOlColor = function(d,i,j) { return undefined },
+        getOlColor = function(d,i,j) { console.log('here'); return undefined },
         plotType = 'box', // type of background: 'box', 'violin', 'none'/false - default: 'box' - 'none' will activate random scatter automatically
         observationType = false, // type of observations to show: 'random', 'swarm', 'line' - default: false (don't show observations), if type = 'none' the default is 'random'
         whiskerDef = 'iqr', // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
@@ -168,7 +168,7 @@ nv.models.distroPlot = function() {
     function prepData(dat, plotType) {
 
         // helper function to calcuate the various boxplot stats
-        function calcStats(v) {
+        function calcStats(v, xGroup) {
             if (plotType == 'box') {
                 var q1 = d3.quantile(v, 0.25);
                 var q3 = d3.quantile(v, 0.75);
@@ -188,7 +188,7 @@ nv.models.distroPlot = function() {
                         isOutlier: outliers.indexOf(d) != -1,
                     };
                 });
-                outliers = outliers.map(function(d) { return {y:d}; }) // convert to listo f objs
+                outliers = outliers.map(function(d) { return {y:d}; }) // convert to list of objs
                 return {
                     count: v.length,
                     sum: d3.sum(v),
@@ -204,6 +204,7 @@ nv.models.distroPlot = function() {
                     dev: d3.deviation(v),
                     outliers: outliers,
                     original: original,
+                    xGroup: xGroup,
                 };
             } else {
                 return {original: v};
@@ -228,12 +229,13 @@ nv.models.distroPlot = function() {
                 .key(function(d) { return getX(d); })
                 .key(function(d) { return colorGroup(d); })
                 .rollup(function(v) {
+                    var xGroup = getX(v[0])
                     var sortDat = v.map(function(d) {
                         allColorGroups.add(colorGroup(d));
                         return getValue(d);
                     }).sort(d3.ascending);
                     allValues.push.apply(allValues, sortDat);
-                    return calcStats(sortDat);
+                    return calcStats(sortDat, xGroup);
                 })
                 .entries(dat);
         }
@@ -241,6 +243,7 @@ nv.models.distroPlot = function() {
         return tmp;
     }
 
+    // https://bl.ocks.org/mbostock/4341954
     function kernelDensityEstimator(kernel, x) {
         return function (sample) {
             return x.map(function (x) {
@@ -249,12 +252,26 @@ nv.models.distroPlot = function() {
         };
     }
 
+    // https://bl.ocks.org/mbostock/4341954
     function eKernel(scale) {
         return function (u) {
             return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
         };
     }
 
+    /**
+     * Given an x-axis group, return the available color groups within it
+     * provided that colorGroups is set, if not, x-axis group is returned
+     */
+    function getAvailableColorGroups(x) {
+        if (!colorGroup) return x;
+        var tmp = reformatDat.find(function(d) { return d.key == x });
+        return tmp.values.map(function(d) { return d.key });
+    }
+
+    function squash(a,b) {
+        console.log(a,getAvailableColorGroups(b), colorGroupSizeScale.domain())
+    }
 
 
     //============================================================
@@ -321,7 +338,7 @@ nv.models.distroPlot = function() {
                 xGroup.enter()
                     .append('g')
                     .attr('class','nv-colorGroup')
-                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(d.key) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; })
+                    .attr('transform', function(d) { squash(d.key, d.values.xGroup); return 'translate(' + (colorGroupSizeScale(d.key) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) // XXX adjust the x pos for the color groups
                     .style('fill', function(d,i) { return getColor(d) || color(d,i) })
                     .style('stroke', function(d,i) { return getColor(d) || color(d,i) })
 
@@ -515,18 +532,18 @@ nv.models.distroPlot = function() {
                             e: d3.event
                         });
                     })
-                    .on('mouseout', function(d,i) {
+                    .on('mouseout', function(d,i,j) {
                         d3.select(this).classed('hover', false);
                         dispatch.elementMouseout({
                             key: d.key,
                             value: 'Group ' + d.key + ' stats',
                             series: [
-                                { key: 'max', value: getMax(d).toFixed(2), color: getColor(d) || color(d,i) },
-                                { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,i) },
-                                { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,i) },
-                                { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,i) },
-                                { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,i) },
-                                { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,i) },
+                                { key: 'max', value: getMax(d).toFixed(2), color: getColor(d) || color(d,j) },
+                                { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,j) },
+                                { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,j) },
+                                { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,j) },
+                                { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
+                                { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
                             ],
                             data: d,
                             index: i,
@@ -555,99 +572,24 @@ nv.models.distroPlot = function() {
 
                     outliers.enter().append('circle')
                         .style('z-index', 9000)
-                        .attr('r', ptRadius)
 
                     outliers.attr('class', 'nv-distroplot-outlier nv-distroplot-scatter');
                     outliers
                       .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-outlier')
                         .attr('cx', xScale.rangeBand() * 0.45)
                         .attr('cy', function(d,i,j) { return yScale(getOlValue(d,i,j)); })
+                        .attr('r', ptRadius)
                     outliers.exit().remove();
                 }
 
             }
 
-
-            // setup scatter points
-            if (observationType) {
-
-
-                var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-scatter')
-                    .data(function(d) {
-                        var tmp = [];
-                        if (observationType == 'swarm') {
-                            tmp = d3.beeswarm()
-                                .data(getVals(d))
-                                .radius(ptRadius)
-                                .orientation('vertical')
-                                .side('symmetric')
-                                .distributeOn(function(e) { return yScale(e); })
-                                .arrange()
-                        } else {
-                            tmp = getVals(d)
-                        }
-                        tmp.map(function(e) { e.key = d.key; }) // add group info for tooltip
-                        return tmp;
-                    })
-
-				if (observationType == 'line') {
-
-	                var lines = wrap.enter()
-	                    .append('line')
-	                    .attr('class', 'nv-lines')
-	                    .style('stroke-width', 1)
-						.style('stroke', d3.rgb(85, 85, 85))
-
-					distroplots.selectAll('.nv-lines')
-					  .watchTransition(renderWatch, 'nv-distrolot: nv-lines')
-						.attr("x1", tickLeft() + areaWidth()/4)
-						.attr("x2", tickRight() - areaWidth()/4)
-						.attr('y1', function(d) { return yScale(d)})
-						.attr('y2', function(d) { return yScale(d)});
-
-				} else { // if 'swarm' or 'random' observationType
-	                var scatter = wrap.enter()
-	                    .append('circle')
-                        .style('z-index', 9000)
-	                    .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-scatter nv-distroplot-outlier' : 'nv-distroplot-scatter'})
-
-	                distroplots.selectAll('.nv-distroplot-scatter')
-	                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-scatter')
-	                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : jitterX(areaWidth()); }) // TODO only call on resize finish otherwise jitter call slows things down
-	                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.y); })
-	                    .attr('r', ptRadius);
-
-
-	            }
-			}
-
-            // tooltip events for observations
-            distroplots.selectAll('.nv-distroplot-scatter')
-                    .on('mouseover', function(d,i,j) {
-                        d3.select(this).classed('hover', true);
-                        dispatch.elementMouseover({
-                            value: getOlItems(d,i,j).indexOf(getOlValue(d,i,j)) == -1 ? 'Observation' : 'Outlier',
-                            series: { key: getOlValue(d,i,j), color: getOlColor(d,i,j) || color(d,j) },
-                            e: d3.event
-                        });
-                    })
-                    .on('mouseout', function(d,i,j) {
-                        d3.select(this).classed('hover', false);
-                        dispatch.elementMouseout({
-                            value: getOlItems(d,i,j).indexOf(getOlValue(d,i,j)) == -1 ? 'Observation' : 'Outlier',
-                            series: { key: getOlValue(d,i,j), color: getOlColor(d,i,j) || color(d,j) },
-                            e: d3.event
-                        });
-                    })
-                    .on('mousemove', function(d,i) {
-                        dispatch.elementMousemove({e: d3.event});
-                    });
-
             // median/mean line
             if (showMiddle) {
 
                 if (plotType == 'box') {
-                    areaEnter.append('line').attr('class', 'nv-distroplot-middle');
+                    areaEnter.append('line')
+                        .attr('class', 'nv-distroplot-middle') 
 
                     distroplots.selectAll('line.nv-distroplot-middle')
                       .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
@@ -673,6 +615,86 @@ nv.models.distroPlot = function() {
                         .attr('y2', function(d) { return yScale(d); })
                 }
             }
+
+            // setup scatter points
+            if (observationType) {
+
+                console.log(reformatDat)
+
+                var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-scatter')
+                    .data(function(d) {
+                        var tmp = [];
+                        if (observationType == 'swarm') {
+                            tmp = d3.beeswarm()
+                                .data(getVals(d).map(function(e) { return e.y }))
+                                .radius(ptRadius)
+                                .orientation('vertical')
+                                .side('symmetric')
+                                .distributeOn(function(e) { return yScale(e); })
+                                .arrange()
+                        } else {
+                            tmp = getVals(d)
+                        }
+                        tmp.map(function(e,i) { 
+                            e.key = d.key; 
+                            if (observationType == 'swarm') e.isOutlier = d.values.original[i].isOutlier // add isOulier meta for proper class assignment
+                        }) // add group info for tooltip
+                        return tmp;
+                    })
+
+				if (observationType == 'line') {
+
+	                var lines = wrap.enter()
+	                    .append('line')
+	                    .attr('class', 'nv-lines')
+	                    .style('stroke-width', 1)
+						.style('stroke', d3.rgb(85, 85, 85))
+
+					distroplots.selectAll('.nv-lines')
+					  .watchTransition(renderWatch, 'nv-distrolot: nv-lines')
+						.attr("x1", tickLeft() + areaWidth()/4)
+						.attr("x2", tickRight() - areaWidth()/4)
+						.attr('y1', function(d) { return yScale(d.y)})
+						.attr('y2', function(d) { return yScale(d.y)});
+
+				} else { // if 'swarm' or 'random' observationType
+	                var scatter = wrap.enter()
+	                    .append('circle')
+                        .style('z-index', 9000)
+	                    .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-scatter nv-distroplot-outlier' : 'nv-distroplot-scatter'})
+
+	                distroplots.selectAll('.nv-distroplot-scatter')
+	                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-scatter')
+	                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : jitterX(areaWidth()); }) // TODO only call on resize finish otherwise jitter call slows things down
+	                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.y); })
+	                    .attr('r', ptRadius);
+
+
+	            }
+			}
+
+            // tooltip events for observations
+            distroplots.selectAll('.nv-distroplot-scatter')
+                    .on('mouseover', function(d,i,j) {
+                        d3.select(this).classed('hover', true);
+                        dispatch.elementMouseover({
+                            value: getOlItems(d,i,j).indexOf(getOlValue(d,i,j)) == -1 ? 'Observation' : 'Outlier',
+                            series: { key: getOlValue(d,i,j), color: getColor(d) || color(d,j) },
+                            e: d3.event
+                        });
+                    })
+                    .on('mouseout', function(d,i,j) {
+                        d3.select(this).classed('hover', false);
+                        dispatch.elementMouseout({
+                            value: getOlItems(d,i,j).indexOf(getOlValue(d,i,j)) == -1 ? 'Observation' : 'Outlier',
+                            series: { key: getOlValue(d,i,j), color: getColor(d) || color(d,j) },
+                            e: d3.event
+                        });
+                    })
+                    .on('mousemove', function(d,i) {
+                        dispatch.elementMousemove({e: d3.event});
+                    });
+
 
             wrap.exit().remove();
 
