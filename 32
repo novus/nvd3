@@ -70,7 +70,7 @@ nv.models.distroPlot = function() {
      */
     function jitterX(width, frac) {
         if (typeof frac === 'undefined') frac = .7
-        frac = d3.min([1, frac]); // max should be 1
+        frac = d3.min(1, frac); // max should be 1
         return width / 2 + Math.floor(Math.random() * width * frac) - (width * frac) / 2;
     }
 
@@ -719,10 +719,9 @@ nv.models.distroPlot = function() {
                         .style('z-index', 9000)
 	                    .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-scatter nv-distroplot-outlier' : 'nv-distroplot-scatter'})
 
-                    // TODO only call on resize finish otherwise jitterX call slows things down
 	                distroplots.selectAll('.nv-distroplot-scatter')
 	                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-scatter')
-	                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
+	                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth()) : areaWidth()/2; }) // TODO only call on resize finish otherwise jitter call slows things down
 	                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.y); })
 	                    .attr('r', observationRadius);
 
