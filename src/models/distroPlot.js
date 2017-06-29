@@ -269,8 +269,29 @@ nv.models.distroPlot = function() {
         return tmp.values.map(function(d) { return d.key });
     }
 
+    /**
+     * Used to squash color groups together in cases where some are missing
+     *  
+     * Not all color groups are guaranteed to exist in the dataset; in sparse
+     * cases this will spread the color groups widely along the x-group position.
+     * This function will bring these color groups back together, towards the
+     * center line of the x-group position.
+     *
+     * @param a (str) - the color group assignment
+     * @param b (str) - the x-group the color group is nested in
+     *
+     * @return (str) - the converted color group assignment needed to
+     *                 all color groups close together.
+     */
     function squash(a,b) {
-        console.log(a,getAvailableColorGroups(b), colorGroupSizeScale.domain())
+        var availableColorGroups = getAvailableColorGroups(b);
+        var allColorGroups = colorGroupSizeScale.domain();
+        var shift = Math.floor(allColorGroups.length / availableColorGroups.length);
+        var sliceColorGroups = allColorGroups.slice(shift, availableColorGroups.length + shift);
+        var convert = d3.scale.ordinal()
+                        .domain(availableColorGroups)
+                        .range(sliceColorGroups);
+        return convert(a);
     }
 
 
@@ -293,6 +314,7 @@ nv.models.distroPlot = function() {
             nv.utils.initSVG(container);
 
             reformatDat = prepData(data, plotType);
+            console.log(getX);
 
             // Setup Scales
             xScale.domain(xDomain || reformatDat.map(function(d) { return d.key }).sort(d3.ascending))
@@ -338,13 +360,13 @@ nv.models.distroPlot = function() {
                 xGroup.enter()
                     .append('g')
                     .attr('class','nv-colorGroup')
-                    .attr('transform', function(d) { squash(d.key, d.values.xGroup); return 'translate(' + (colorGroupSizeScale(d.key) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) // XXX adjust the x pos for the color groups
+                    .attr('transform', function(d) { squash(d.key, d.values.xGroup); return 'translate(' + (colorGroupSizeScale(squash(d.key, d.values.xGroup)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
                     .style('fill', function(d,i) { return getColor(d) || color(d,i) })
                     .style('stroke', function(d,i) { return getColor(d) || color(d,i) })
 
                 distroplots.selectAll('.nv-colorGroup')
                     .watchTransition(renderWatch, 'nv-colorGroup xGroup')
-                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(d.key) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; });
+                    .attr('transform', function(d) { squash(d.key, d.values.xGroup); return 'translate(' + (colorGroupSizeScale(squash(d.key, d.values.xGroup)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
 
                 //areaEnter = wrapEnter.selectAll('g.nv-colorGroup');
                 areaEnter = xGroup;
@@ -618,8 +640,6 @@ nv.models.distroPlot = function() {
 
             // setup scatter points
             if (observationType) {
-
-                console.log(reformatDat)
 
                 var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-scatter')
                     .data(function(d) {
