@@ -16,7 +16,7 @@
 <head>
     <style>
 
-          #chart1 {
+          #chart {
             height: 400px;
           }
 
@@ -43,16 +43,28 @@
             fill: #5C5C5C !important;
           }
 
-          rect.nv-distroplot-box, line.nv-distroplot-tick, line.nv-distroplot-whisker, line.nv-distroplot-middle {
-            stroke: #5C5C5C !important;
+          #buttons {
+            margin-top: 5px;
+            margin-left: 10px;
           }
 
     </style>
 </head>
 
-<body>
+<body onload="updatePlot('chart1')">
 
-    <div id="chart1">
+    <div id="buttons">
+        <button onclick="updatePlot('chart1');">Box plot</button>
+        <button onclick="updatePlot('chart2');">Box plot with scatter</button>
+        <button onclick="updatePlot('chart3');">Box plot with color groups</button>
+        <button onclick="updatePlot('chart4');">Violin plot</button>
+        <button onclick="updatePlot('chart5');">Violin plot with lines</button>
+        <button onclick="updatePlot('chart6');">Random scatter plot</button>
+        <button onclick="updatePlot('chart7');">Swarm plot</button>
+        <button onclick="updatePlot('chart8');">Centered points, no squash</button>
+        <button onclick="updatePlot('chart9');">Centered points, squash</button>
+    </div>
+    <div id="chart">
         <svg></svg>
     </div>
 
@@ -60,6 +72,76 @@
 
 <script>
 
+    // various chart type definitions
+    var chart1 = nv.models.distroPlotChart()
+        .x(function(d) { return d.study })
+        .value(function(d) { return d.weight })
+        .showMiddle('median')
+        .plotType('box')
+
+    var chart2 = nv.models.distroPlotChart()
+        .x(function(d) { return d.study })
+        .value(function(d) { return d.weight })
+        //.colorGroup(function(d) { return d.donor })
+        .title('moo cow')
+        .showMiddle('median')
+        .squash(false)
+        .plotType('violin')
+        //.observationRadius(5)
+        .xLabel('moo')
+        .yLabel('moo')
+        //.bandwidth('silverman')
+        .observationType('random')
+        .jitter(0.2)
+        //.whiskerDef('stddev')
+        //.showLegend(false)
+        //.titleOffset({top: 20})
+        //.bottomAlignLegend(true)
+        //.margin({bottom: 50})
+/*
+    var chart1 = nv.models.distroPlotChart()
+        .x(function(d) { return d.study })
+        .value(function(d) { return d.weight })
+        //.colorGroup(function(d) { return d.donor })
+        .title('moo cow')
+        .showMiddle('median')
+        .squash(false)
+        .plotType('violin')
+        //.observationRadius(5)
+        .xLabel('moo')
+        .yLabel('moo')
+        //.bandwidth('silverman')
+        .observationType('random')
+        .jitter(0.2)
+        //.whiskerDef('stddev')
+        //.showLegend(false)
+        //.titleOffset({top: 20})
+        //.bottomAlignLegend(true)
+        //.margin({bottom: 50})
+*/
+
+    function updatePlot(num) {
+    
+      var chart;
+      if (num == 'chart1') {
+        chart = chart1;
+      } else if (num == 'chart2') {
+        chart = chart2;
+      }
+
+      if (num != 'chart1') d3.select('svg g').remove();
+
+      nv.addGraph(function() {
+
+          d3.select('#chart svg')
+            .datum(data)
+            .call(chart);
+
+          nv.utils.windowResize(chart.update);
+
+          return chart;
+      });
+    }
 
   var data = [
     {subject: 3, weight: 19, isolator: 'C', study: 'V', treatment: 'delta', donor: 'two'},
@@ -250,32 +332,4 @@
     {subject: 18, weight: 19.5, isolator: 'B', study: 'II', treatment: 'control', donor: 'nine'},
     {subject: 5, weight: 18.3, isolator: 'B', study: 'II', treatment: 'control', donor: 'nine'},
   ];
-
-  nv.addGraph(function() {
-      var chart1 = nv.models.distroPlotChart()
-        .x(function(d) { return d.study })
-        .value(function(d) { return d.weight })
-        //.colorGroup(function(d) { return d.donor })
-        .title('moo cow')
-        .showMiddle('median')
-        .squash(false)
-        .plotType('violin')
-        //.observationRadius(5)
-        //.bandwidth('silverman')
-        .observationType('random')
-        .jitter(0.2)
-        //.whiskerDef('stddev')
-        //.showLegend(false)
-        //.titleOffset({top: 20})
-        //.bottomAlignLegend(true)
-        //.margin({bottom: 0})
-
-      d3.select('#chart1 svg')
-        .datum(data)
-        .call(chart1);
-
-      nv.utils.windowResize(chart1.update);
-
-      return chart1;
-  });
 </script>

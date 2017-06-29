@@ -10,7 +10,7 @@ nv.models.distroPlotChart = function() {
         yAxis = nv.models.axis(),
         legend = nv.models.legend();
 
-    var margin = {top: 25, right: 10, bottom: 20, left: 60},
+    var margin = {top: 25, right: 10, bottom: 40, left: 60},
         width = null,
         height = null,
         color = nv.utils.getColor(),
@@ -20,6 +20,8 @@ nv.models.distroPlotChart = function() {
         staggerLabels = false,
         showLegend = true,
         bottomAlignLegend = false,
+        xLabel = false,
+        yLabel = false,
         tooltip = nv.models.tooltip(),
         title = false,
         titleOffset = {top: 0, left: 0},
@@ -39,6 +41,7 @@ nv.models.distroPlotChart = function() {
     ;
 
     tooltip.duration(0);
+
 
     //============================================================
     // Private Variables
@@ -65,6 +68,7 @@ nv.models.distroPlotChart = function() {
             };
             chart.container = this;
 
+
             if (typeof d3.beeswarm !== 'function' && chart.options().observationType() == 'swarm') {
                 noData = 'You must first load beeswarm.js is using a swarm observation type (see https://github.com/Kcnarf/d3-beeswarm).'
                 nv.utils.noData(chart, container);
@@ -77,6 +81,7 @@ nv.models.distroPlotChart = function() {
             } else {
                 container.selectAll('.nv-noData').remove();
             }
+
 
             // Setup Scales
             x = distroplot.xScale();
@@ -269,7 +274,15 @@ nv.models.distroPlotChart = function() {
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( (_) ? 'right' : 'left');
-        }}
+        }},
+        xLabel:  {get: function(){return xLabel;}, set: function(_){
+            xLabel=_;
+            xAxis.axisLabel(xLabel);
+        }},
+        yLabel:  {get: function(){return yLabel;}, set: function(_){
+            yLabel=_;
+            yAxis.axisLabel(yLabel);
+        }},
     });
 
     nv.utils.inheritOptions(chart, distroplot);

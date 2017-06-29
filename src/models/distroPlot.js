@@ -35,7 +35,7 @@ nv.models.distroPlot = function() {
         },
         getOlLabel = function(d,i,j) { return d },
         getOlValue = function(d,i,j) { return observationType == 'swarm' ? d.datum : !colorGroup ? d.y : d.y },
-        getOlColor = function(d,i,j) { console.log('here'); return undefined },
+        getOlColor = function(d,i,j) { return undefined },
         plotType = 'box', // type of background: 'box', 'violin', 'none'/false - default: 'box' - 'none' will activate random scatter automatically
         observationType = false, // type of observations to show: 'random', 'swarm', 'line', 'point' - default: false (don't show observations), if type = 'none' the default is 'random'
         whiskerDef = 'iqr', // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
@@ -325,7 +325,8 @@ nv.models.distroPlot = function() {
             container = d3.select(this);
             nv.utils.initSVG(container);
 
-            reformatDat = prepData(data, plotType);
+            if (typeof reformatDat === 'undefined') reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
+
 
             // Setup Scales
             xScale.domain(xDomain || reformatDat.map(function(d) { return d.key }).sort(d3.ascending))
@@ -368,7 +369,6 @@ nv.models.distroPlot = function() {
                     .selectAll('g.nv-colorGroup')
                     .data(function(d) { return d.values; })
 
-                console.log(reformatDat)
 
                 xGroup.enter()
                     .append('g')
