@@ -1,6 +1,12 @@
 nv.models.distroPlot = function() {
     "use strict";
 
+    // TODO:
+    // update() doesn't work when changing plotType
+    // cleanup tooltip to look like candlestick example (don't need color square for everything)
+    // extend y scale range to fit violin
+    // notchbox
+
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -39,12 +45,13 @@ nv.models.distroPlot = function() {
         plotType = 'box', // type of background: 'box', 'violin', 'none'/false - default: 'box' - 'none' will activate random scatter automatically
         observationType = false, // type of observations to show: 'random', 'swarm', 'line', 'point' - default: false (don't show observations), if type = 'none' the default is 'random'
         whiskerDef = 'iqr', // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
+        hideWhiskers = false,
         notchBox = false, // bool whether to notch box
         colorGroup = false, // if specified, each x-category will be split into groups, each colored
         showMiddle = false,
         jitter = 0.7, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
         squash = true, // whether to squash sparse distribution of color groups towards middle of x-axis position, default is true
-        bandwidth = 'scott',
+        bandwidth = 'scott', // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
         resolution = 50,
         observationRadius = 3,
         color = nv.utils.defaultColor(),
@@ -485,63 +492,66 @@ nv.models.distroPlot = function() {
 
 
             } else if (plotType == 'box') {
-                // conditionally append whisker lines
-                areaEnter.each(function(d,i) {
-                    var box = d3.select(this);
-                    [getWl, getWh].forEach(function (f) {
-                        if (f(d) !== undefined && f(d) !== null) {
-                            var key = (f === getWl) ? 'low' : 'high';
-                            box.append('line')
-                              .style('stroke', getColor(d) || color(d,i))
-                              .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
-                            box.append('line')
-                              .style('stroke', getColor(d) || color(d,i))
-                              .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
-                        }
+
+                if (!hideWhiskers) {
+                    // conditionally append whisker lines
+                    areaEnter.each(function(d,i) {
+                        var box = d3.select(this);
+                        [getWl, getWh].forEach(function (f) {
+                            if (f(d) !== undefined && f(d) !== null) {
+                                var key = (f === getWl) ? 'low' : 'high';
+                                box.append('line')
+                                  .style('stroke', getColor(d) || color(d,i))
+                                  .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
+                                box.append('line')
+                                  .style('stroke', getColor(d) || color(d,i))
+                                  .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
+                            }
+                        });
                     });
-                });
 
-                // update whisker lines and ticks
-                [getWl, getWh].forEach(function (f) {
-                    var key = (f === getWl) ? 'low' : 'high';
-                    var endpoint = (f === getWl) ? getQ1 : getQ3;
-                    distroplots.selectAll('line.nv-distroplot-whisker.nv-distroplot-' + key)
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots')
-                        .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
-                        .attr('y1', function(d,i) { return yScale(f(d)); })
-                        .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
-                        .attr('y2', function(d,i) { return yScale(endpoint(d)); });
-                    distroplots.selectAll('line.nv-distroplot-tick.nv-distroplot-' + key)
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots')
-                        .attr('x1', tickLeft )
-                        .attr('y1', function(d,i) { return yScale(f(d)); })
-                        .attr('x2', tickRight )
-                        .attr('y2', function(d,i) { return yScale(f(d)); });
-                });
+                    // update whisker lines and ticks
+                    [getWl, getWh].forEach(function (f) {
+                        var key = (f === getWl) ? 'low' : 'high';
+                        var endpoint = (f === getWl) ? getQ1 : getQ3;
+                        distroplots.selectAll('line.nv-distroplot-whisker.nv-distroplot-' + key)
+                          .watchTransition(renderWatch, 'nv-distroplot: distroplots')
+                            .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
+                            .attr('y1', function(d,i) { return yScale(f(d)); })
+                            .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
+                            .attr('y2', function(d,i) { return yScale(endpoint(d)); });
+                        distroplots.selectAll('line.nv-distroplot-tick.nv-distroplot-' + key)
+                          .watchTransition(renderWatch, 'nv-distroplot: distroplots')
+                            .attr('x1', tickLeft )
+                            .attr('y1', function(d,i) { return yScale(f(d)); })
+                            .attr('x2', tickRight )
+                            .attr('y2', function(d,i) { return yScale(f(d)); });
+                    });
 
-                [getWl, getWh].forEach(function (f) {
-                    var key = (f === getWl) ? 'low' : 'high';
-                    areaEnter.selectAll('.nv-distroplot-' + key)
-                      .on('mouseover', function(d,i,j) {
-                          d3.select(this).classed('hover', true);
-                          dispatch.elementMouseover({
-                              value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
-                              series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
-                              e: d3.event
+                    [getWl, getWh].forEach(function (f) {
+                        var key = (f === getWl) ? 'low' : 'high';
+                        areaEnter.selectAll('.nv-distroplot-' + key)
+                          .on('mouseover', function(d,i,j) {
+                              d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',true);
+                              dispatch.elementMouseover({
+                                  value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
+                                  series: { key: f(d).toFixed(2) },
+                                  e: d3.event
+                              });
+                          })
+                          .on('mouseout', function(d,i,j) {
+                              d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',false);
+                              dispatch.elementMouseout({
+                                  value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
+                                  series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
+                                  e: d3.event
+                              });
+                          })
+                          .on('mousemove', function(d,i) {
+                              dispatch.elementMousemove({e: d3.event});
                           });
-                      })
-                      .on('mouseout', function(d,i,j) {
-                          d3.select(this).classed('hover', false);
-                          dispatch.elementMouseout({
-                              value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
-                              series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
-                              e: d3.event
-                          });
-                      })
-                      .on('mousemove', function(d,i) {
-                          dispatch.elementMousemove({e: d3.event});
-                      });
-                });
+                    });
+                }
 
                 // boxes
                 areaEnter.append('rect')
@@ -640,7 +650,6 @@ nv.models.distroPlot = function() {
                     middleLine.enter()
                         .append('line')
                         .attr('class', 'nv-distroplot-middle')
-                        .style('stroke-width', 2);
 
                     distroplots.selectAll('line.nv-distroplot-middle')
                       .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
@@ -656,7 +665,7 @@ nv.models.distroPlot = function() {
                             d3.select(this).classed('hover', true);
                             dispatch.elementMouseover({
                                 value: showMiddle == 'mean' ? 'Mean' : 'Median',
-                                series: { key: d, color: getColor(d) || color(d,j) },
+                                series: { key: plotType != 'box' ? d.toFixed(2) : showMiddle == 'mean' ? getMean(d) : getQ2(d), color: getColor(d) || color(d,j) },
                                 e: d3.event
                             });
                         })
@@ -664,7 +673,7 @@ nv.models.distroPlot = function() {
                             d3.select(this).classed('hover', false);
                             dispatch.elementMouseout({
                                 value: showMiddle == 'mean' ? 'Mean' : 'Median',
-                                series: { key: d, color: getColor(d) || color(d,j) },
+                                series: { key: plotType != 'box' ? d.toFixed(2) : showMiddle == 'mean' ? getMean(d) : getQ2(d), color: getColor(d) || color(d,j) },
                                 e: d3.event
                             });
                         })
@@ -682,7 +691,7 @@ nv.models.distroPlot = function() {
                         if (observationType == 'swarm') {
                             tmp = d3.beeswarm()
                                 .data(getValsArr(d))
-                                .radius(observationRadius)
+                                .radius(observationRadius+1)
                                 .orientation('vertical')
                                 .side('symmetric')
                                 .distributeOn(function(e) { return yScale(e); })
@@ -787,6 +796,7 @@ nv.models.distroPlot = function() {
         observationType:  {get: function(){return observationType;}, set: function(_){observationType=_;}}, // type of observations to show: 'random', 'swarm', 'line', 'point' - default: false (don't show observations)
         whiskerDef:  {get: function(){return whiskerDef;}, set: function(_){whiskerDef=_;}}, // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
         notchBox:  {get: function(){return notchBox;}, set: function(_){notchBox=_;}}, // bool whether to notch box
+        hideWhiskers: {get: function(){return hideWhiskers;}, set: function(_){hideWhiskers=_;}},
         colorGroup:  {get: function(){return colorGroup;}, set: function(_){colorGroup=_;}}, // data key to use to set color group of each x-category - default: don't group
         showMiddle:  {get: function(){return showMiddle;}, set: function(_){showMiddle=_;}}, // add a mean or median line to the data - default: don't show, must be one of 'mean' or 'median'
         bandwidth:  {get: function(){return bandwidth;}, set: function(_){bandwidth=_;}}, // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman

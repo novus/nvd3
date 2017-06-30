@@ -62,6 +62,7 @@ nv.models.distroPlotChart = function() {
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
+            // TODO - won't work when changing plotType since e.g. yVscale won't get calculated
             chart.update = function() {
                 dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
@@ -74,8 +75,6 @@ nv.models.distroPlotChart = function() {
                 nv.utils.noData(chart, container);
                 return chart;
             } else if (!data || !data.length) {
-                // TODO still need to find a way to validate quartile data presence using boxPlot callbacks.
-                // Display No Data message if there's nothing to show. (quartiles required at minimum).
                 nv.utils.noData(chart, container);
                 return chart;
             } else {

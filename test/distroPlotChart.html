@@ -43,27 +43,52 @@
             fill: #5C5C5C !important;
           }
 
-          #buttons {
+          .buttons {
             margin-top: 5px;
             margin-left: 10px;
+          }
+
+          line.hover {
+            stroke-width:4;
+          }
+
+          circle.hover {
+            stroke-width: 8;
+            opacity: 1;
           }
 
     </style>
 </head>
 
-<body onload="updatePlot('chart1')">
+<body onload="updatePlot(1)">
 
-    <div id="buttons">
-        <button onclick="updatePlot('chart1');">Box plot</button>
-        <button onclick="updatePlot('chart2');">Box plot with scatter</button>
-        <button onclick="updatePlot('chart3');">Box plot with color groups</button>
-        <button onclick="updatePlot('chart4');">Violin plot</button>
-        <button onclick="updatePlot('chart5');">Violin plot with lines</button>
-        <button onclick="updatePlot('chart6');">Random scatter plot</button>
-        <button onclick="updatePlot('chart7');">Swarm plot</button>
-        <button onclick="updatePlot('chart8');">Centered points, no squash</button>
-        <button onclick="updatePlot('chart9');">Centered points, squash</button>
+    <div class="buttons">
+        <h3>Box plots</h3>
+        <button onclick="updatePlot(0);">Default</button>
+        <button onclick="updatePlot(1);">Decorated</button>
+        <button onclick="updatePlot(2);">Random observations</button>
+        <button onclick="updatePlot(3);">Whisker std. dev.</button>
     </div>
+    <div class="buttons">
+        <h3>Violin plots</h3>
+        <button onclick="updatePlot(4);">Default</button>
+        <button onclick="updatePlot(5);">Swarm observations</button>
+        <button onclick="updatePlot(6);">With lines</button>
+        <button onclick="updatePlot(7);">Manual bandwidth</button>
+    </div>
+    <div class="buttons">
+        <h3>Scatter observation plots</h3>
+        <button onclick="updatePlot(8);">Default, median line</button>
+        <button onclick="updatePlot(9);">Default, mean line</button>
+        <button onclick="updatePlot(10);">Swarm</button>
+        <button onclick="updatePlot(11);">Centered</button>
+    </div>
+    <div class="buttons">
+        <h3>Sub-category grouping</h3>
+        <button onclick="updatePlot(12);">No squash</button>
+        <button onclick="updatePlot(13);">Squashed</button>
+    </div>
+
     <div id="chart">
         <svg></svg>
     </div>
@@ -72,75 +97,250 @@
 
 <script>
 
-    // various chart type definitions
-    var chart1 = nv.models.distroPlotChart()
-        .x(function(d) { return d.study })
-        .value(function(d) { return d.weight })
-        .showMiddle('median')
-        .plotType('box')
-
-    var chart2 = nv.models.distroPlotChart()
-        .x(function(d) { return d.study })
-        .value(function(d) { return d.weight })
-        //.colorGroup(function(d) { return d.donor })
-        .title('moo cow')
-        .showMiddle('median')
-        .squash(false)
-        .plotType('violin')
-        //.observationRadius(5)
-        .xLabel('moo')
-        .yLabel('moo')
-        //.bandwidth('silverman')
-        .observationType('random')
-        .jitter(0.2)
-        //.whiskerDef('stddev')
-        //.showLegend(false)
-        //.titleOffset({top: 20})
-        //.bottomAlignLegend(true)
-        //.margin({bottom: 50})
-/*
-    var chart1 = nv.models.distroPlotChart()
-        .x(function(d) { return d.study })
-        .value(function(d) { return d.weight })
-        //.colorGroup(function(d) { return d.donor })
-        .title('moo cow')
-        .showMiddle('median')
-        .squash(false)
-        .plotType('violin')
-        //.observationRadius(5)
-        .xLabel('moo')
-        .yLabel('moo')
-        //.bandwidth('silverman')
-        .observationType('random')
-        .jitter(0.2)
-        //.whiskerDef('stddev')
-        //.showLegend(false)
-        //.titleOffset({top: 20})
-        //.bottomAlignLegend(true)
-        //.margin({bottom: 50})
-*/
 
     function updatePlot(num) {
     
-      var chart;
-      if (num == 'chart1') {
-        chart = chart1;
-      } else if (num == 'chart2') {
-        chart = chart2;
-      }
+        var chart;
+        switch(num) {
+            case 0:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('box')
+                    .bandwidth('scott')
+                    .observationType(false)
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 1:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title('Distroplot!')
+                    .xLabel('Study')
+                    .yLabel('Weight')
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('box')
+                    .bandwidth('scott')
+                    .observationType(false)
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 2:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('box')
+                    .bandwidth('scott')
+                    .observationType('random')
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 3:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('box')
+                    .bandwidth('scott')
+                    .observationType(false)
+                    .jitter(0.7)
+                    .whiskerDef('stddev')
+                break;
+            case 4:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('violin')
+                    .bandwidth('scott')
+                    .observationType(false)
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 5:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('violin')
+                    .bandwidth('scott')
+                    .observationType('swarm')
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 6:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('violin')
+                    .bandwidth('scott')
+                    .observationType('line')
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 7:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('violin')
+                    .bandwidth(1)
+                    .observationType(false)
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 8:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('none')
+                    .bandwidth('scott')
+                    .observationType('random')
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 9:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('mean')
+                    .squash(false)
+                    .plotType('none')
+                    .bandwidth('scott')
+                    .observationType('random')
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 10:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle(false)
+                    .squash(false)
+                    .plotType('none')
+                    .bandwidth('scott')
+                    .observationType('swarm')
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 11:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(false)
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle(false)
+                    .squash(false)
+                    .plotType('none')
+                    .bandwidth('scott')
+                    .observationType('point')
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 12:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(function (d) { return d.donor })
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(false)
+                    .plotType('box')
+                    .bandwidth('scott')
+                    .observationType(false)
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+            case 13:
+                chart = nv.models.distroPlotChart()
+                    .x(function(d) { return d.study })
+                    .value(function(d) { return d.weight })
+                    .colorGroup(function (d) { return d.donor })
+                    .title(false)
+                    .xLabel(false)
+                    .yLabel(false)
+                    .showMiddle('median')
+                    .squash(true)
+                    .plotType('box')
+                    .bandwidth('scott')
+                    .observationType(false)
+                    .jitter(0.7)
+                    .whiskerDef('iqr')
+                break;
+        }
 
-      if (num != 'chart1') d3.select('svg g').remove();
 
-      nv.addGraph(function() {
+        d3.select('svg g').remove(); // clear any existing
 
-          d3.select('#chart svg')
-            .datum(data)
-            .call(chart);
+        nv.addGraph(function() {
 
-          nv.utils.windowResize(chart.update);
+            d3.select('#chart svg')
+                .datum(data)
+                .call(chart);
 
-          return chart;
-      });
+            nv.utils.windowResize(chart.update);
+
+            return chart;
+        });
     }
 
   var data = [
