@@ -209,6 +209,12 @@ nv.models.stackedAreaChart = function() {
                         style: 'stream'
                     },
                     {
+                        key: controlLabels.stream_center || 'Stream Center',
+                        metaKey: 'Stream_Center',
+                        disabled: stacked.style() != 'stream_center',
+                        style: 'stream-center'
+                    },
+                    {
                         key: controlLabels.expanded || 'Expanded',
                         metaKey: 'Expanded',
                         disabled: stacked.style() != 'expand',
@@ -416,7 +422,7 @@ nv.models.stackedAreaChart = function() {
                             stacked.highlightPoint(i, pointIndex, true);
                             atleastOnePoint = true;
                         }
-                    
+
                         // Draw at least one point if all values are zero.
                         if (i === (data.length - 1) && !atleastOnePoint) {
                             stacked.highlightPoint(i, pointIndex, true);
