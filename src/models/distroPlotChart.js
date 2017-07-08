@@ -48,6 +48,7 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
+    var plotType0, observationType0;
 
     function chart(selection) {
         renderWatch.reset();
@@ -64,6 +65,13 @@ nv.models.distroPlotChart = function() {
 
             // TODO - won't work when changing plotType since e.g. yVscale won't get calculated
             chart.update = function() {
+                //console.log(observationType0, distroplot.options().observationType(), plotType0, distroplot.options().plotType())
+                dispatch.beforeUpdate();
+                distroplot.recalcKDE()
+                container.transition().duration(duration).call(chart);
+            };
+            chart.resizeWindow = function() {
+                console.log('window resize')
                 dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
             };
@@ -110,7 +118,7 @@ nv.models.distroPlotChart = function() {
             distroplot.width(availableWidth).height(availableHeight);
 
             var distroWrap = g.select('.nv-distroWrap')
-                .datum(data.filter(function(d) { return !d.disabled }))
+                .datum(data)
 
             distroWrap.transition().call(distroplot);
 
@@ -200,6 +208,10 @@ nv.models.distroPlotChart = function() {
                 .attr('y2', y(0))
             ;
 
+            // store original values so that we can update things properly
+            observationType0 = distroplot.options().observationType();
+            plotType0 = distroplot.options().plotType();
+
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
@@ -283,6 +295,7 @@ nv.models.distroPlotChart = function() {
             yAxis.axisLabel(yLabel);
         }},
     });
+
 
     nv.utils.inheritOptions(chart, distroplot);
     nv.utils.initOptions(chart);

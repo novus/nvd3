@@ -5,7 +5,6 @@ nv.models.distroPlot = function() {
     // update() doesn't work when changing plotType
     // cleanup tooltip to look like candlestick example (don't need color square for everything)
     // extend y scale range to fit violin
-    // notchbox
 
     //============================================================
     // Public Variables with Default Settings
@@ -42,7 +41,7 @@ nv.models.distroPlot = function() {
         getOlLabel = function(d,i,j) { return d },
         getOlValue = function(d,i,j) { return observationType == 'swarm' ? d.datum : !colorGroup ? d.y : d.y },
         getOlColor = function(d,i,j) { return undefined },
-        plotType = 'box', // type of background: 'box', 'violin', 'none'/false - default: 'box' - 'none' will activate random scatter automatically
+        plotType, // type of background: 'box', 'violin', 'none'/false - default: 'box' - 'none' will activate random scatter automatically
         observationType = false, // type of observations to show: 'random', 'swarm', 'line', 'point' - default: false (don't show observations), if type = 'none' the default is 'random'
         whiskerDef = 'iqr', // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
         hideWhiskers = false,
@@ -315,11 +314,22 @@ nv.models.distroPlot = function() {
     }
 
 
+    function doKDE(pointVals, bandwidth,resolution) {
+
+        console.log('here');
+
+        // normally KDE is calculated in a horizontal layout, we want a verital layout however
+        // so we flip the use of yScale & xScale
+        var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
+        return kde(pointVals);
+    }
+
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
 
-    var xScale0, yScale0, allColorGroups = d3.set(), allValues = [];
+    var allColorGroups = d3.set(), allValues = [];
     var yVScale = [], reformatDat;
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -329,11 +339,12 @@ nv.models.distroPlot = function() {
             var availableWidth = width - margin.left - margin.right,
                 availableHeight = height - margin.top - margin.bottom;
 
+
             container = d3.select(this);
             nv.utils.initSVG(container);
 
-            if (typeof reformatDat === 'undefined') reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
-
+            //if (typeof reformatDat === 'undefined') reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
+            reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
 
             // Setup Scales
             xScale.domain(xDomain || reformatDat.map(function(d) { return d.key }).sort(d3.ascending))
@@ -342,9 +353,6 @@ nv.models.distroPlot = function() {
             	.range(yRange || [availableHeight, 0]);
 
 
-            //store old scales if they exist
-            xScale0 = xScale0 || xScale;
-            yScale0 = yScale0 || yScale.copy().range([yScale(0),yScale(0)]);
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap').data([reformatDat]);
@@ -432,10 +440,7 @@ nv.models.distroPlot = function() {
                     var pointVals = getValsArr(d);
                     if (isNaN(bandwidth)) bandwidth = calcBandwidth(pointVals, bandwidth);
 
-                    // normally KDE is calculated in a horizontal layout, we want a verital layout however
-                    // so we flip the use of yScale & xScale
-                    var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
-                    var kdeData = kde(pointVals);
+                    var kdeData = doKDE(pointVals, bandwidth, resolution);
 
                     // make a new yScale for each group
                     var tmpScale = d3.scale.linear()
@@ -461,8 +466,8 @@ nv.models.distroPlot = function() {
 
                 });
 
-				distroplots.each(function(d,i) {
-
+				areaEnter.each(function(d,i) {
+            
 					var tmpScale = yVScale[i];
 					tmpScale.range([areaWidth()/2, 0]);
 
@@ -514,13 +519,13 @@ nv.models.distroPlot = function() {
                     [getWl, getWh].forEach(function (f) {
                         var key = (f === getWl) ? 'low' : 'high';
                         var endpoint = (f === getWl) ? getQ1 : getQ3;
-                        distroplots.selectAll('line.nv-distroplot-whisker.nv-distroplot-' + key)
+                        distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
                           .watchTransition(renderWatch, 'nv-distroplot: distroplots')
                             .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
                             .attr('y1', function(d,i) { return yScale(f(d)); })
                             .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
                             .attr('y2', function(d,i) { return yScale(endpoint(d)); });
-                        distroplots.selectAll('line.nv-distroplot-tick.nv-distroplot-' + key)
+                        distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
                           .watchTransition(renderWatch, 'nv-distroplot: distroplots')
                             .attr('x1', tickLeft )
                             .attr('y1', function(d,i) { return yScale(f(d)); })
@@ -535,7 +540,7 @@ nv.models.distroPlot = function() {
                               d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',true);
                               dispatch.elementMouseover({
                                   value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
-                                  series: { key: f(d).toFixed(2) },
+                                  series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
                                   e: d3.event
                               });
                           })
@@ -618,7 +623,7 @@ nv.models.distroPlot = function() {
                     outliers.enter().append('circle')
                         .style('z-index', 9000)
 
-                    outliers.attr('class', 'nv-distroplot-outlier nv-distroplot-scatter');
+                    outliers.attr('class', 'nv-distroplot-outlier nv-distroplot-observation');
                     outliers
                       .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-outlier')
                         .attr('cx', xScale.rangeBand() * 0.45)
@@ -682,65 +687,81 @@ nv.models.distroPlot = function() {
                         });
             }
 
-            // setup scatter points
-            if (observationType) {
+            // setup observations
+            // create DOMs even if not requested (and hide them), so that
+            // we can do updates
+            var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-observation')
+                .data(function(d) {
 
-                var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-scatter')
-                    .data(function(d) {
-                        var tmp = [];
-                        if (observationType == 'swarm') {
-                            tmp = d3.beeswarm()
-                                .data(getValsArr(d))
-                                .radius(observationRadius+1)
-                                .orientation('vertical')
-                                .side('symmetric')
-                                .distributeOn(function(e) { return yScale(e); })
-                                .arrange()
-                        } else {
-                            tmp = getValsObj(d)
-                        }
-                        tmp.map(function(e,i) { 
-                            e.key = d.key; 
-                            if (observationType == 'swarm') e.isOutlier = d.values.original[i].isOutlier // add isOulier meta for proper class assignment
-                        }) // add group info for tooltip
+                    // calculate observation positions for both swarm and random so that we can
+                    // do an update without calling this again
 
-                        return tmp;
+                    // calculate swarm positions
+                    var tmp = d3.beeswarm()
+                        .data(getValsArr(d))
+                        .radius(observationRadius+1)
+                        .orientation('vertical')
+                        .side('symmetric')
+                        .distributeOn(function(e) { return yScale(e); })
+                        .arrange()
+
+                    // add group info for tooltip
+                    tmp.map(function(e,i) { 
+                        e.key = d.key; 
+                        if (observationType == 'swarm') e.isOutlier = d.values.original[i].isOutlier // add isOulier meta for proper class assignment
                     })
 
-				if (observationType == 'line') {
+                    return tmp;
+                });
 
-	                var lines = wrap.enter()
-	                    .append('line')
-	                    .attr('class', 'nv-lines nv-distroplot-scatter')
-	                    .style('stroke-width', 1)
-						.style('stroke', d3.rgb(85, 85, 85))
+            var scatter = wrap.enter()
+                //.append(function() { return observationType == 'line' ? 'line' : 'circle' })
+                .append('circle')
+                .style('z-index', 9000)
+                .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-observation nv-distroplot-outlier' : 'nv-distroplot-observation'})
 
-					distroplots.selectAll('.nv-lines')
-					  .watchTransition(renderWatch, 'nv-distrolot: nv-lines')
-						.attr("x1", tickLeft() + areaWidth()/4)
-						.attr("x2", tickRight() - areaWidth()/4)
-						.attr('y1', function(d) { return yScale(d.y)})
-						.attr('y2', function(d) { return yScale(d.y)});
+            var lines = wrap.enter()
+                .append('line')
+                .attr('class', 'nv-distroplot-observation')
+                .style('stroke-width', 1)
+                .style('stroke', d3.rgb(85, 85, 85))
 
-				} else { // if 'swarm', 'random' or 'point' observationType
-	                var scatter = wrap.enter()
-	                    .append('circle')
-                        .style('z-index', 9000)
-	                    .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-scatter nv-distroplot-outlier' : 'nv-distroplot-scatter'})
+            // TODO only call on resize finish otherwise jitterX call slows things down
+            // transition observations
+            if (observationType == 'line') {
+                distroplots.selectAll('line.nv-distroplot-observation')
+                  .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
+                    .attr("x1", tickLeft() + areaWidth()/4)
+                    .attr("x2", tickRight() - areaWidth()/4)
+                    .style('opacity',1)
+                    .attr('y1', function(d) { return yScale(d.datum)})
+                    .attr('y2', function(d) { return yScale(d.datum)});
 
-                    // TODO only call on resize finish otherwise jitterX call slows things down
-	                distroplots.selectAll('.nv-distroplot-scatter')
-	                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-scatter')
-	                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
-	                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.y); })
-	                    .attr('r', observationRadius);
+                // hide circles
+                distroplots.selectAll('circle.nv-distroplot-observation')
+                  .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
+                    .style('opacity',0)
+            } else if (observationType === false) { // hide observations
+                distroplots.selectAll('.nv-distroplot-observation')
+                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                    .style('opacity',0);
+            } else {
+                distroplots.selectAll('circle.nv-distroplot-observation')
+                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
+                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
+                    .style('opacity',1)
+                    .attr('r', observationRadius);
 
+                // hide lines
+                distroplots.selectAll('line.nv-distroplot-observation')
+                  .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
+                    .style('opacity',0)
+            }
 
-	            }
-			}
 
             // tooltip events for observations
-            distroplots.selectAll('.nv-distroplot-scatter')
+            distroplots.selectAll('.nv-distroplot-observation')
                     .on('mouseover', function(d,i,j) {
                         d3.select(this).classed('hover', true);
                         dispatch.elementMouseover({
@@ -760,13 +781,9 @@ nv.models.distroPlot = function() {
                     .on('mousemove', function(d,i) {
                         dispatch.elementMousemove({e: d3.event});
                     });
-
-
+    
             wrap.exit().remove();
 
-            //store old scales for use in transitions on update
-            xScale0 = xScale.copy();
-            yScale0 = yScale.copy();
         });
 
         renderWatch.renderEnd('nv-distroplot immediate');
@@ -812,6 +829,7 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        recalcKDE: {get: function() { console.log(reformatDat, bandwidth, resolution) } },
         id:          {get: function(){return id;}, set: function(_){id=_;}},
 
         // options that require extra logic in the setter
