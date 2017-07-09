@@ -23,6 +23,8 @@ nv.models.distroPlot = function() {
         getQ1 = function(d) { return d.values.q1 },
         getQ2 = function(d) { return d.values.q2 },
         getQ3 = function(d) { return d.values.q3 },
+        getNl = function(d) { return d.values.nl },
+        getNu = function(d) { return d.values.nu },
         getMean = function(d) { return d.values.mean },
         getWl = function(d) { return d.values.wl[whiskerDef] },
         getWh = function(d) { return d.values.wu[whiskerDef] },
@@ -33,9 +35,9 @@ nv.models.distroPlot = function() {
         getValsArr = function(d) { return d.values.original.map(function(e) { return e.y }); },
         getOlItems  = function(d,i,j) { 
             if (!colorGroup) {
-                return reformatDat[j].values.observations.filter(function(i) { return i.isOutlier; });
+                return reformatDat[j].values.observations.filter(function(i) { return isOutlier(i); }); 
             } else {    
-                return reformatDat[j].values.find(function(e) { return e.key == d.key; }).values.outliers.map(function(i) { return i.y }); 
+                return reformatDat[j].values.find(function(e) { return e.key == d.key; }).values.outliers.map(function(i) { return i.y });  // XXX to fix outliers attribute doesnt exist anymore
             }
         },
         getOlLabel = function(d,i,j) { return d },
@@ -190,6 +192,8 @@ nv.models.distroPlot = function() {
              */
             var wl = {iqr: q1 - 1.5 * iqr, minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
             var wu = {iqr: q3 + 1.5 * iqr, minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
+            var median = d3.median(v);
+            var mean = d3.mean(v);
 
             var observations = d3.beeswarm()
                 .data(v)
@@ -202,15 +206,16 @@ nv.models.distroPlot = function() {
             // add group info for tooltip
             observations.map(function(e,i) { 
                 e.key = xGroup; 
-                e.isOutlier = (e.datum < wl[whiskerDef] || e.datum > wu[whiskerDef]) // add isOulier meta for proper class assignment
+                e.isOutlier = (e.datum < wl.iqr || e.datum > wu.iqr) // add isOulier meta for proper class assignment
+                e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
             })
 
             return {
                 count: v.length,
                 sum: d3.sum(v),
-                mean: d3.mean(v),
+                mean: mean,
                 q1: q1,
-                q2: d3.median(v),
+                q2: median,
                 q3: q3,
                 wl: wl,
                 wu: wu,
@@ -221,6 +226,8 @@ nv.models.distroPlot = function() {
                 observations: observations,
                 xGroup: xGroup,
                 kde: doKDE(v, bandwidth, resolution),
+                nu: median + iqr / Math.sqrt(v.length), // upper notch
+                nl: median - iqr / Math.sqrt(v.length), // lower notch
             };
         }
 
@@ -268,6 +275,53 @@ nv.models.distroPlot = function() {
         return function (u) {
             return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
         };
+    }
+
+    /**
+     * Makes the svg polygon string for a boxplot in either a notched
+     * or square version
+     *
+     * @param boxLeft {float} - left position of box
+     * @param boxRight {float} - right position of box
+     * @param notchLeft {float} - left position of notch
+     * @param notchRight {float} - right position of notch
+     * @param dat {obj} - box plot data that was run through prepDat, must contain
+     *      data for Q1, median, Q2, notch upper and notch lower
+     * @returns {string} A string in the proper format for a svg polygon
+     */
+    function makeNotchBox(boxLeft, boxRight, notchLeft, notchRight, dat) {
+        var scaledValues = [];
+        if (notchBox) {
+            scaledValues = [
+                [boxLeft, yScale(getQ1(dat))],
+                [boxLeft, yScale(getNl(dat))],
+                [notchLeft, yScale(getQ2(dat))],
+                [boxLeft, yScale(getNu(dat))],
+                [boxLeft, yScale(getQ3(dat))],
+                [boxRight, yScale(getQ3(dat))],
+                [boxRight, yScale(getNu(dat))],
+                [notchRight, yScale(getQ2(dat))],
+                [boxRight, yScale(getNl(dat))],
+                [boxRight, yScale(getQ1(dat))]
+            ];
+        } else {
+            scaledValues = [
+                [boxLeft, yScale(getQ1(dat))],
+                [boxLeft, yScale(getNl(dat))],
+                [boxLeft, yScale(getQ2(dat))],
+                [boxLeft, yScale(getNu(dat))],
+                [boxLeft, yScale(getQ3(dat))],
+                [boxRight, yScale(getQ3(dat))],
+                [boxRight, yScale(getNu(dat))],
+                [boxRight, yScale(getQ2(dat))],
+                [boxRight, yScale(getNl(dat))],
+                [boxRight, yScale(getQ1(dat))]
+            ];
+        }
+
+        return scaledValues.map(function (d) {
+            return [d[0], d[1]].join(",");
+        }).join(" ");
     }
 
     /**
@@ -319,6 +373,11 @@ nv.models.distroPlot = function() {
         return kde(pointVals);
     }
 
+
+    // return true if point is an outlier
+    function isOutlier(d) {
+        return (whiskerDef == 'iqr' && d.isOutlier) || (whiskerDef == 'stddev' && d.isOutlierStdDev)
+    }
 
     //============================================================
     // Private Variables
@@ -501,7 +560,7 @@ nv.models.distroPlot = function() {
                     [getWl, getWh].forEach(function (f) {
                         var key = (f === getWl) ? 'low' : 'high';
                         box.append('line')
-                          .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                          .style('opacity', function() { return !hideWhiskers ? '0' : '1' })
                           .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
                         box.append('line')
                           .style('opacity', function() { return hideWhiskers ? '0' : '1' })
@@ -554,7 +613,7 @@ nv.models.distroPlot = function() {
                 });
 
                 // boxes
-                areaEnter.append('rect')
+                areaEnter.append('polygon')
                     .attr('class', 'nv-distroplot-box')
 
                 // tooltip events
@@ -600,14 +659,9 @@ nv.models.distroPlot = function() {
                     });
 
                 // box transitions
-                distroplots.selectAll('rect.nv-distroplot-box')
-                  .watchTransition(renderWatch, 'nv-distroplot: boxes')
-                    .attr('y', function(d,i) { return yScale(getQ3(d)); })
-                    .attr('width', areaWidth)
-                    .attr('x', areaLeft )
-                    .attr('rx',1)
-                    .attr('ry',1)
-                    .attr('height', function(d,i) { return Math.abs(yScale(getQ3(d)) - yScale(getQ1(d))) || 1 })
+                distroplots.selectAll('polygon.nv-distroplot-box')
+                  .watchTransition(renderWatch, 'nv-distroplot-box: boxes')
+                    .attr('points', function(d) { return makeNotchBox(areaLeft(), areaRight(), tickLeft(), tickRight(), d); });
 
             }
 
@@ -617,12 +671,19 @@ nv.models.distroPlot = function() {
                 if (plotType == 'box') {
                     areaEnter.append('line')
                         .attr('class', 'nv-distroplot-middle') 
-
+/*
                     distroplots.selectAll('line.nv-distroplot-middle')
                       .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
                         .attr('x1', areaLeft)
                         .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
                         .attr('x2', areaRight)
+                        .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+*/
+                    distroplots.selectAll('line.nv-distroplot-middle')
+                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
+                        .attr('x1', notchBox ? tickLeft : areaLeft)
+                        .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+                        .attr('x2', notchBox ? tickRight : areaRight)
                         .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
                 } else {
 
@@ -672,7 +733,7 @@ nv.models.distroPlot = function() {
 
             var scatter = wrap.enter()
                 .append('circle')
-                .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-observation nv-distroplot-outlier' : 'nv-distroplot-observation nv-distroplot-non-outlier'})
+                .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                 .style('z-index', 9000)
 
             var lines = wrap.enter()
@@ -699,16 +760,11 @@ nv.models.distroPlot = function() {
             } else {
                 distroplots.selectAll('circle.nv-distroplot-observation')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-observation nv-distroplot-outlier' : 'nv-distroplot-observation nv-distroplot-non-outlier'}) // XXX class not updating when switching whiskerDef
+                    .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                     .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
                     .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
                     .style('opacity',1)
                     .attr('r', observationRadius);
-
-                // hide lines
-                distroplots.selectAll('line.nv-distroplot-observation')
-                  .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
-                    .style('opacity',0)
 
                 if (plotType == 'box' && !observationType) { // hide only non-outliers
                     distroplots.selectAll('.nv-distroplot-non-outlier')
@@ -719,6 +775,11 @@ nv.models.distroPlot = function() {
                       .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',1);
                 }
+
+                // hide lines
+                distroplots.selectAll('line.nv-distroplot-observation')
+                  .watchTransition(renderWatch, 'nv-distroplot: nv-distoplot-observation')
+                    .style('opacity',0)
             }
 
 

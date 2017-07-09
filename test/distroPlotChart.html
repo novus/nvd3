@@ -21,7 +21,7 @@
           }
 
           g.nv-distroplot {
-            stroke-width: 2;
+            stroke-width: 1.5;
           }
 
           html, body, svg {
@@ -46,6 +46,7 @@
           .buttons {
             margin-top: 5px;
             margin-left: 10px;
+            font-size: 80%;
           }
     
           button {
@@ -72,6 +73,7 @@
         <button onclick="updatePlot(defaultViolin);">Violin</button>
         <br>
         Decorations
+        <button onclick="updatePlot({notchBox: true});">Notched box</button>
         <button onclick="updatePlot({showMiddle: 'mean'});">Mean line</button>
         <button onclick="updatePlot({showMiddle: 'median'});">Median line</button>
         <button onclick="updatePlot({title: 'Distro chart!', xLabel: 'Study', yLabel: 'Weight'});">Titles</button>
@@ -83,9 +85,9 @@
         <button onclick="updatePlot({observationType: 'line'});">Line</button>
         <br>
         Whisker definitions
-        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'iqr'});">IQR</button>
-        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'stddev'});">1 * std. dev.</button>
-        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'minmax'});">min/max</button>
+        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'iqr', hideWhiskers: false});">IQR</button>
+        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'stddev', hideWhiskers: false});">1 * std. dev.</button>
+        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'minmax', hideWhiskers: false});">min/max</button>
         <button onclick="updatePlot({plotType: 'box', hideWhiskers: true});">Hidden</button>
         <br>
         Grouping
@@ -115,6 +117,7 @@
         observationType: false,
         jitter: 0.7,
         hideWhiskers: false,
+        notchBox: false,
     }
     var defaultViolin = {
         x: function(d) { return d.study },
