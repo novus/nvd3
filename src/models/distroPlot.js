@@ -24,16 +24,16 @@ nv.models.distroPlot = function() {
         getQ2 = function(d) { return d.values.q2 },
         getQ3 = function(d) { return d.values.q3 },
         getMean = function(d) { return d.values.mean },
-        getWl = function(d) { return d.values.wl },
-        getWh = function(d) { return d.values.wu },
+        getWl = function(d) { return d.values.wl[whiskerDef] },
+        getWh = function(d) { return d.values.wu[whiskerDef] },
         getMin = function(d) { return d.values.min },
         getMax = function(d) { return d.values.max },
         getDev = function(d) { return d.values.dev },
-        getValsObj = function(d) { return d.values.original; },
+        getValsObj = function(d) { return d.values.observations; },
         getValsArr = function(d) { return d.values.original.map(function(e) { return e.y }); },
         getOlItems  = function(d,i,j) { 
             if (!colorGroup) {
-                return reformatDat[j].values.outliers.map(function(i) { return i.y; });
+                return reformatDat[j].values.observations.filter(function(i) { return i.isOutlier; });
             } else {    
                 return reformatDat[j].values.find(function(e) { return e.key == d.key; }).values.outliers.map(function(i) { return i.y }); 
             }
@@ -158,8 +158,7 @@ nv.models.distroPlot = function() {
      *      min: XX,
      *      max: XX,
      *      dev: XX,
-     *      original: [{y:XX,..},..]
-     *      outliers: [{y:XX,..},..]
+     *      observations: [{y:XX,..},..] // XXX to update
      *    }
      *  },
      *  ...
@@ -176,53 +175,53 @@ nv.models.distroPlot = function() {
      * where YY are those keys in dat that define the
      * x-axis and which are defined by .x()
      */
-    function prepData(dat, plotType) {
+    function prepData(dat) {
 
         // helper function to calcuate the various boxplot stats
         function calcStats(v, xGroup) {
-            if (plotType == 'box') {
-                var q1 = d3.quantile(v, 0.25);
-                var q3 = d3.quantile(v, 0.75);
-                var iqr = q3 - q1;
+            var q1 = d3.quantile(v, 0.25);
+            var q3 = d3.quantile(v, 0.75);
+            var iqr = q3 - q1;
 
-                /* whisker definitions:
-                 *  - iqr: also known as Tukey boxplot, the lowest datum still within 1.5 IQR of the lower quartile, and the highest datum still within 1.5 IQR of the upper quartile
-                 *  - minmax: the minimum and maximum of all of the data
-                 *  - sttdev: one standard deviation above and below the mean of the data
-                 */
-                var wl = (whiskerDef == 'iqr' || !whiskerDef) ? q1 - 1.5 * iqr : whiskerDef == 'minmax' ? d3.min(v) : whiskerDef == 'stddev' ? d3.mean(v) - d3.deviation(v) : null;
-                var wu = (whiskerDef == 'iqr' || !whiskerDef) ? q3 + 1.5 * iqr : whiskerDef == 'minmax' ? d3.max(v) : whiskerDef == 'stddev' ? d3.mean(v) + d3.deviation(v) : null;
-                var outliers = v.filter(function(d) { return (d < wl || d > wu); })
-                var original = v.map(function(d) { 
-                    return {
-                        y: d,
-                        isOutlier: outliers.indexOf(d) != -1,
-                    };
-                });
-                outliers = outliers.map(function(d) { return {y:d}; }) // convert to list of objs
-                return {
-                    count: v.length,
-                    sum: d3.sum(v),
-                    mean: d3.mean(v),
-                    q1: q1,
-                    q2: d3.median(v),
-                    q3: q3,
-                    wl: wl,
-                    wu: wu,
-                    iqr: iqr,
-                    min: d3.min(v),
-                    max: d3.max(v),
-                    dev: d3.deviation(v),
-                    outliers: outliers,
-                    original: original,
-                    xGroup: xGroup,
-                };
-            } else {
-                return {
-                    original: v.map(function(d) { return { y: d} }),
-                    xGroup: xGroup,
-                };
-            }
+            /* whisker definitions:
+             *  - iqr: also known as Tukey boxplot, the lowest datum still within 1.5 IQR of the lower quartile, and the highest datum still within 1.5 IQR of the upper quartile
+             *  - minmax: the minimum and maximum of all of the data
+             *  - sttdev: one standard deviation above and below the mean of the data
+             */
+            var wl = {iqr: q1 - 1.5 * iqr, minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
+            var wu = {iqr: q3 + 1.5 * iqr, minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
+
+            var observations = d3.beeswarm()
+                .data(v)
+                .radius(observationRadius+1)
+                .orientation('vertical')
+                .side('symmetric')
+                .distributeOn(function(e) { return yScale(e); })
+                .arrange()
+
+            // add group info for tooltip
+            observations.map(function(e,i) { 
+                e.key = xGroup; 
+                e.isOutlier = (e.datum < wl[whiskerDef] || e.datum > wu[whiskerDef]) // add isOulier meta for proper class assignment
+            })
+
+            return {
+                count: v.length,
+                sum: d3.sum(v),
+                mean: d3.mean(v),
+                q1: q1,
+                q2: d3.median(v),
+                q3: q3,
+                wl: wl,
+                wu: wu,
+                iqr: iqr,
+                min: d3.min(v),
+                max: d3.max(v),
+                dev: d3.deviation(v),
+                observations: observations,
+                xGroup: xGroup,
+                kde: doKDE(v, bandwidth, resolution),
+            };
         }
 
         // TODO not DRY
@@ -234,7 +233,6 @@ nv.models.distroPlot = function() {
                     var sortDat = v.map(function(d) {
                         return getValue(d);
                     }).sort(d3.ascending);
-                    allValues.push.apply(allValues, sortDat);
                     return calcStats(sortDat);
                 })
                 .entries(dat);
@@ -248,7 +246,6 @@ nv.models.distroPlot = function() {
                         allColorGroups.add(colorGroup(d));
                         return getValue(d);
                     }).sort(d3.ascending);
-                    allValues.push.apply(allValues, sortDat);
                     return calcStats(sortDat, xGroup);
                 })
                 .entries(dat);
@@ -316,8 +313,6 @@ nv.models.distroPlot = function() {
 
     function doKDE(pointVals, bandwidth,resolution) {
 
-        console.log('here');
-
         // normally KDE is calculated in a horizontal layout, we want a verital layout however
         // so we flip the use of yScale & xScale
         var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
@@ -329,7 +324,7 @@ nv.models.distroPlot = function() {
     // Private Variables
     //------------------------------------------------------------
 
-    var allColorGroups = d3.set(), allValues = [];
+    var allColorGroups = d3.set()
     var yVScale = [], reformatDat;
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -343,21 +338,23 @@ nv.models.distroPlot = function() {
             container = d3.select(this);
             nv.utils.initSVG(container);
 
-            //if (typeof reformatDat === 'undefined') reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
-            reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
-
-            // Setup Scales
-            xScale.domain(xDomain || reformatDat.map(function(d) { return d.key }).sort(d3.ascending))
-                .rangeBands(xRange || [0, availableWidth], 0.1);
-            yScale.domain(yDomain || d3.extent(allValues))
+            // Setup y-scale for use in beeswarm layout
+            yScale.domain(yDomain || d3.extent(data.map(function(d) { return getValue(d)})))
             	.range(yRange || [availableHeight, 0]);
 
+            if (typeof reformatDat === 'undefined') reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
+            //reformatDat = prepData(data); // this prevents us from reformatted data all the time
+
+            // setup xscale
+            xScale.domain(xDomain || reformatDat.map(function(d) { return d.key }).sort(d3.ascending))
+                .rangeBands(xRange || [0, availableWidth], 0.1);
 
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap').data([reformatDat]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap');
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            wrap.watchTransition(renderWatch, 'nv-wrap: wrap')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); // TODO not transitioning when add/remove title
 
             var distroplots = wrap.selectAll('.nv-distroplot').data(function(d) { return d });
             var areaEnter;
@@ -498,65 +495,63 @@ nv.models.distroPlot = function() {
 
             } else if (plotType == 'box') {
 
-                if (!hideWhiskers) {
-                    // conditionally append whisker lines
-                    areaEnter.each(function(d,i) {
-                        var box = d3.select(this);
-                        [getWl, getWh].forEach(function (f) {
-                            if (f(d) !== undefined && f(d) !== null) {
-                                var key = (f === getWl) ? 'low' : 'high';
-                                box.append('line')
-                                  .style('stroke', getColor(d) || color(d,i))
-                                  .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
-                                box.append('line')
-                                  .style('stroke', getColor(d) || color(d,i))
-                                  .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
-                            }
-                        });
-                    });
-
-                    // update whisker lines and ticks
+                // conditionally append whisker lines
+                areaEnter.each(function(d,i) {
+                    var box = d3.select(this);
                     [getWl, getWh].forEach(function (f) {
                         var key = (f === getWl) ? 'low' : 'high';
-                        var endpoint = (f === getWl) ? getQ1 : getQ3;
-                        distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
-                          .watchTransition(renderWatch, 'nv-distroplot: distroplots')
-                            .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
-                            .attr('y1', function(d,i) { return yScale(f(d)); })
-                            .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
-                            .attr('y2', function(d,i) { return yScale(endpoint(d)); });
-                        distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
-                          .watchTransition(renderWatch, 'nv-distroplot: distroplots')
-                            .attr('x1', tickLeft )
-                            .attr('y1', function(d,i) { return yScale(f(d)); })
-                            .attr('x2', tickRight )
-                            .attr('y2', function(d,i) { return yScale(f(d)); });
+                        box.append('line')
+                          .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                          .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
+                        box.append('line')
+                          .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                          .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
                     });
+                });
 
-                    [getWl, getWh].forEach(function (f) {
-                        var key = (f === getWl) ? 'low' : 'high';
-                        areaEnter.selectAll('.nv-distroplot-' + key)
-                          .on('mouseover', function(d,i,j) {
-                              d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',true);
-                              dispatch.elementMouseover({
-                                  value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
-                                  series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                  e: d3.event
-                              });
-                          })
-                          .on('mouseout', function(d,i,j) {
-                              d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',false);
-                              dispatch.elementMouseout({
-                                  value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
-                                  series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                  e: d3.event
-                              });
-                          })
-                          .on('mousemove', function(d,i) {
-                              dispatch.elementMousemove({e: d3.event});
+                // update whisker lines and ticks
+                [getWl, getWh].forEach(function (f) {
+                    var key = (f === getWl) ? 'low' : 'high';
+                    var endpoint = (f === getWl) ? getQ1 : getQ3;
+                    distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
+                      .watchTransition(renderWatch, 'nv-distroplot: distroplots')
+                        .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
+                        .attr('y1', function(d,i) { return yScale(f(d)); })
+                        .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
+                        .attr('y2', function(d,i) { return yScale(endpoint(d)); })
+                        .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                    distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
+                      .watchTransition(renderWatch, 'nv-distroplot: distroplots')
+                        .attr('x1', tickLeft )
+                        .attr('y1', function(d,i) { return yScale(f(d)); })
+                        .attr('x2', tickRight )
+                        .attr('y2', function(d,i) { return yScale(f(d)); })
+                        .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                });
+
+                [getWl, getWh].forEach(function (f) {
+                    var key = (f === getWl) ? 'low' : 'high';
+                    areaEnter.selectAll('.nv-distroplot-' + key)
+                      .on('mouseover', function(d,i,j) {
+                          d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',true);
+                          dispatch.elementMouseover({
+                              value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
+                              series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
+                              e: d3.event
                           });
-                    });
-                }
+                      })
+                      .on('mouseout', function(d,i,j) {
+                          d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',false);
+                          dispatch.elementMouseout({
+                              value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
+                              series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
+                              e: d3.event
+                          });
+                      })
+                      .on('mousemove', function(d,i) {
+                          dispatch.elementMousemove({e: d3.event});
+                      });
+                });
 
                 // boxes
                 areaEnter.append('rect')
@@ -613,24 +608,6 @@ nv.models.distroPlot = function() {
                     .attr('rx',1)
                     .attr('ry',1)
                     .attr('height', function(d,i) { return Math.abs(yScale(getQ3(d)) - yScale(getQ1(d))) || 1 })
-
-                // outliers
-                if (!observationType) { // if observationType is specified, don't draw outliers here, otherwise we will duplicate points
-                    var outliers = distroplots.selectAll('.nv-distroplot-outlier').data(function(d,i,j) {
-                        return d.values.outliers || [];
-                    });
-
-                    outliers.enter().append('circle')
-                        .style('z-index', 9000)
-
-                    outliers.attr('class', 'nv-distroplot-outlier nv-distroplot-observation');
-                    outliers
-                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-outlier')
-                        .attr('cx', xScale.rangeBand() * 0.45)
-                        .attr('cy', function(d,i,j) { return yScale(getOlValue(d,i,j)); })
-                        .attr('r', observationRadius)
-                    outliers.exit().remove();
-                }
 
             }
 
@@ -691,34 +668,12 @@ nv.models.distroPlot = function() {
             // create DOMs even if not requested (and hide them), so that
             // we can do updates
             var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-observation')
-                .data(function(d) {
-
-                    // calculate observation positions for both swarm and random so that we can
-                    // do an update without calling this again
-
-                    // calculate swarm positions
-                    var tmp = d3.beeswarm()
-                        .data(getValsArr(d))
-                        .radius(observationRadius+1)
-                        .orientation('vertical')
-                        .side('symmetric')
-                        .distributeOn(function(e) { return yScale(e); })
-                        .arrange()
-
-                    // add group info for tooltip
-                    tmp.map(function(e,i) { 
-                        e.key = d.key; 
-                        if (observationType == 'swarm') e.isOutlier = d.values.original[i].isOutlier // add isOulier meta for proper class assignment
-                    })
-
-                    return tmp;
-                });
+                .data(function(d) { return getValsObj(d); });
 
             var scatter = wrap.enter()
-                //.append(function() { return observationType == 'line' ? 'line' : 'circle' })
                 .append('circle')
+                .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-observation nv-distroplot-outlier' : 'nv-distroplot-observation nv-distroplot-non-outlier'})
                 .style('z-index', 9000)
-                .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-observation nv-distroplot-outlier' : 'nv-distroplot-observation'})
 
             var lines = wrap.enter()
                 .append('line')
@@ -741,13 +696,10 @@ nv.models.distroPlot = function() {
                 distroplots.selectAll('circle.nv-distroplot-observation')
                   .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
                     .style('opacity',0)
-            } else if (observationType === false) { // hide observations
-                distroplots.selectAll('.nv-distroplot-observation')
-                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .style('opacity',0);
             } else {
                 distroplots.selectAll('circle.nv-distroplot-observation')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                    .attr('class', function(d,i,j) { return d.isOutlier ? 'nv-distroplot-observation nv-distroplot-outlier' : 'nv-distroplot-observation nv-distroplot-non-outlier'}) // XXX class not updating when switching whiskerDef
                     .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
                     .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
                     .style('opacity',1)
@@ -757,6 +709,16 @@ nv.models.distroPlot = function() {
                 distroplots.selectAll('line.nv-distroplot-observation')
                   .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
                     .style('opacity',0)
+
+                if (plotType == 'box' && !observationType) { // hide only non-outliers
+                    distroplots.selectAll('.nv-distroplot-non-outlier')
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                        .style('opacity',0);
+                } else {
+                    distroplots.selectAll('.nv-distroplot-observation')
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                        .style('opacity',1);
+                }
             }
 
 
@@ -829,7 +791,7 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        recalcKDE: {get: function() { console.log(reformatDat, bandwidth, resolution) } },
+        recalcData: {get: function() { console.log('recalc data!'); prepData(data); } },
         id:          {get: function(){return id;}, set: function(_){id=_;}},
 
         // options that require extra logic in the setter

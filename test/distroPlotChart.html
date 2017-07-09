@@ -31,7 +31,7 @@
             width: 100%;
           }
 
-          circle.nv-distroplot-scatter {
+          circle.nv-distroplot-observation {
             opacity: 0.7;
             stroke-width: 1;
           }
@@ -46,6 +46,10 @@
           .buttons {
             margin-top: 5px;
             margin-left: 10px;
+          }
+    
+          button {
+            margin-bottom: 5px;
           }
 
           line.hover {
@@ -63,30 +67,30 @@
 <body>
 
     <div class="buttons">
-        <h3>Box plots</h3>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'box', 'scott', false, 0.7, 'iqr');">Default</button>
-        <button onclick="updatePlot(false, 'Distro chart!', 'Study', 'Weight', 'median', false, 'box', 'scott', false, 0.7, 'iqr');">Decorated</button>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'box', 'scott', 'random', 0.7, 'iqr');">Random observations</button>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'box', 'scott', false, 0.7, 'stddev');">Whisker std. dev.</button>
-    <div class="buttons">
-        <h3>Violin plots</h3>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'violin', 'scott', false, 0.7, 'iqr');">Default</button>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'violin', 'scott', 'swarm', 0.7, 'iqr');">Swarm observations</button>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'violin', 'scott', 'random', 0.7, 'iqr');">Random observations</button>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'violin', 'scott', 'line', 0.7, 'iqr');">Line observations</button>
-        <button onclick="updatePlot(false, false, false, false, 'median', false, 'violin', 1, false, 0.7, 'iqr');">Manual bandwidth</button>
-    </div>
-    <div class="buttons">
-        <h3>Scatter observation plots</h3>
-        <button onclick="updatePlot(8);">Default, median line</button>
-        <button onclick="updatePlot(9);">Default, mean line</button>
-        <button onclick="updatePlot(10);">Swarm</button>
-        <button onclick="updatePlot(11);">Centered</button>
-    </div>
-    <div class="buttons">
-        <h3>Sub-category grouping</h3>
-        <button onclick="updatePlot(12);">No squash</button>
-        <button onclick="updatePlot(13);">Squashed</button>
+        Plot types
+        <button onclick="updatePlot(defaultBox);">Box</button>
+        <button onclick="updatePlot(defaultViolin);">Violin</button>
+        <br>
+        Decorations
+        <button onclick="updatePlot({showMiddle: 'mean'});">Mean line</button>
+        <button onclick="updatePlot({showMiddle: 'median'});">Median line</button>
+        <button onclick="updatePlot({title: 'Distro chart!', xLabel: 'Study', yLabel: 'Weight'});">Titles</button>
+        <br>
+        Observation positions
+        <button onclick="updatePlot({observationType: 'random'});">Random</button>
+        <button onclick="updatePlot({observationType: 'swarm'});">Swarm</button>
+        <button onclick="updatePlot({observationType: 'point'});">Center</button>
+        <button onclick="updatePlot({observationType: 'line'});">Line</button>
+        <br>
+        Whisker definitions
+        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'iqr'});">IQR</button>
+        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'stddev'});">1 * std. dev.</button>
+        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'minmax'});">min/max</button>
+        <button onclick="updatePlot({plotType: 'box', hideWhiskers: true});">Hidden</button>
+        <br>
+        Grouping
+        <button onclick="updatePlot({colorGroup: function(d) { return d.donor; }, squash: false});">No squash</button>
+        <button onclick="updatePlot({colorGroup: function(d) { return d.donor; }, squash: true});">Squashed</button>
     </div>
 
     <div id="chart">
@@ -97,24 +101,41 @@
 
 <script>
 
-    var chart;
+    var chart = nv.models.distroPlotChart()
+    var defaultBox = {
+        x: function(d) { return d.study },
+        value: function(d) { return d.weight}, 
+        colorGroup: false,
+        title: false,
+        xLabel: false,
+        yLabel: false,
+        showMiddle: 'median',
+        squash: false,
+        plotType: 'box',
+        observationType: false,
+        jitter: 0.7,
+        hideWhiskers: false,
+    }
+    var defaultViolin = {
+        x: function(d) { return d.study },
+        value: function(d) { return d.weight}, 
+        colorGroup: false,
+        title: false,
+        xLabel: false,
+        yLabel: false,
+        showMiddle: 'median',
+        squash: false,
+        plotType: 'violin',
+        bandwidth: 'scott',
+        observationType: false,
+        jitter: 0.7,
+        whiskerDef: 'iqr',
+    }
 
     // setup default chart
     nv.addGraph(function() {
-        chart = nv.models.distroPlotChart()
-            .x(function(d) { return d.study })
-            .value(function(d) { return d.weight })
-            .colorGroup(false)
-            .title(false)
-            .xLabel(false)
-            .yLabel(false)
-            .showMiddle('median')
-            .squash(false)
-            .plotType('violin')
-            .bandwidth('scott')
-            .observationType('random')
-            .jitter(0.7)
-            .whiskerDef('iqr')
+
+        setChart(defaultBox);
 
         d3.select('#chart svg')
             .datum(data)
@@ -125,241 +146,24 @@
         return chart;
     })
 
-    function updatePlot(colorGroup, title, xLabel, yLabel, showMiddle, squash, plotType, bandwidth, observationType, jitter, whiskerDef) {
+    // update chart with new settings
+    function updatePlot(update) {
 
-        chart.colorGroup(colorGroup)
-            .title(title)
-            .xLabel(xLabel)
-            .yLabel(yLabel)
-            .showMiddle(showMiddle)
-            .squash(squash)
-            .plotType(plotType)
-            .bandwidth(bandwidth)
-            .observationType(observationType)
-            .jitter(jitter)
-            .whiskerDef(whiskerDef)
-
+        setChart(update);        
         chart.update();
     }
 
+    // set chart settings
+    function setChart(update) {
 
-    function updatePlot2(num) {
-        switch(num) {
-            case 0:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('box')
-                    .bandwidth('scott')
-                    .observationType(false)
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 1:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title('Distroplot!')
-                    .xLabel('Study')
-                    .yLabel('Weight')
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('box')
-                    .bandwidth('scott')
-                    .observationType(false)
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 2:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('box')
-                    .bandwidth('scott')
-                    .observationType('random')
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 3:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('box')
-                    .bandwidth('scott')
-                    .observationType(false)
-                    .jitter(0.7)
-                    .whiskerDef('stddev')
-                break;
-            case 4:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('violin')
-                    .bandwidth('scott')
-                    .observationType(false)
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 5:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('violin')
-                    .bandwidth('scott')
-                    .observationType('swarm')
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 6:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('violin')
-                    .bandwidth('scott')
-                    .observationType('line')
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 7:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('violin')
-                    .bandwidth(1)
-                    .observationType(false)
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 8:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('none')
-                    .bandwidth('scott')
-                    .observationType('random')
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 9:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('mean')
-                    .squash(false)
-                    .plotType('none')
-                    .bandwidth('scott')
-                    .observationType('random')
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 10:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle(false)
-                    .squash(false)
-                    .plotType('none')
-                    .bandwidth('scott')
-                    .observationType('swarm')
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 11:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(false)
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle(false)
-                    .squash(false)
-                    .plotType('none')
-                    .bandwidth('scott')
-                    .observationType('point')
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 12:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(function (d) { return d.donor })
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(false)
-                    .plotType('box')
-                    .bandwidth('scott')
-                    .observationType(false)
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-            case 13:
-                chart.x(function(d) { return d.study })
-                    .value(function(d) { return d.weight })
-                    .colorGroup(function (d) { return d.donor })
-                    .title(false)
-                    .xLabel(false)
-                    .yLabel(false)
-                    .showMiddle('median')
-                    .squash(true)
-                    .plotType('box')
-                    .bandwidth('scott')
-                    .observationType(false)
-                    .jitter(0.7)
-                    .whiskerDef('iqr')
-                break;
-        }
-   
-        chart.update();
+        Object.keys(update).forEach(function(optName, i) {
+            var optVal = Object.values(update)[i];
+            chart[optName](optVal)
+        });
 
     }
+
+
 
   var data = [
     {subject: 3, weight: 19, isolator: 'C', study: 'V', treatment: 'delta', donor: 'two'},

@@ -48,7 +48,8 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var plotType0, observationType0;
+    var plotType0, observationType0, whiskerDef0, marginTop0;
+
 
     function chart(selection) {
         renderWatch.reset();
@@ -59,19 +60,24 @@ nv.models.distroPlotChart = function() {
         selection.each(function(data) {
             var container = d3.select(this), that = this;
             nv.utils.initSVG(container);
-            if (title && margin.top < (showLegend ? 40 : 25)) margin.top += showLegend ? 40 : 25;
+            if (title && margin.top < (showLegend ? 40 : 25)) {
+                margin.top += showLegend ? 40 : 25;
+            }
+            if (!title && marginTop0 > 0) margin.top = marginTop0; // reset top margin after removing title from update
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
             // TODO - won't work when changing plotType since e.g. yVscale won't get calculated
             chart.update = function() {
-                //console.log(observationType0, distroplot.options().observationType(), plotType0, distroplot.options().plotType())
+                var opts = distroplot.options()
+                if (whiskerDef0 !== opts.whiskerDef()) {
+                    distroplot.recalcData();
+                    console.log('to update!')
+                }
                 dispatch.beforeUpdate();
-                distroplot.recalcKDE()
                 container.transition().duration(duration).call(chart);
             };
             chart.resizeWindow = function() {
-                console.log('window resize')
                 dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
             };
@@ -158,29 +164,27 @@ nv.models.distroPlotChart = function() {
                 g.select('.nv-y.nv-axis').call(yAxis);
             }
 
-            // add a title if specified
-            if (title) {
+            // add title DOM
+            var g_title = gEnter.append('g').attr('class','nv-title')
+                .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (showLegend ? -25 : -10) + ')'; }) // center title
 
-                gEnter.append('g').attr('class','nv-title')
+            g_title.selectAll('text')
+                .data([title])
+                .enter()
+                .append("text")
+                .style("text-anchor", "middle")
+                .style("font-size", "150%")
+                .text(function () { return !title ? null : title; })
+                .attr('dx',titleOffset.left)
+                .attr('dy',titleOffset.top)
 
-                var g_title = g.select(".nv-title").selectAll('g')
-                    .data([title]);
-
-                var titleEnter = g_title.enter()
-                    .append('g')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (showLegend ? -25 : -10) + ')'; }) // center title
-
-                titleEnter.append("text")
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return d; })
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-
-                g_title
-                    .watchTransition(renderWatch, 'heatMap: g_title')
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (showLegend ? -25 : -10) + ')'; }) // center title
-            }
+            d3.select('.nv-title')
+                .watchTransition(renderWatch, 'distroPlot: g_title')
+                .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',' + (showLegend ? -25 : -10) + ')'; }) // center title
+                
+            d3.select('.nv-title text')
+                .watchTransition(renderWatch, 'distroPlot: g_title')
+                .text(function () { return !title ? null : title; })
 
             // setup legend
             if (distroplot.colorGroup() && showLegend) { 
@@ -211,6 +215,8 @@ nv.models.distroPlotChart = function() {
             // store original values so that we can update things properly
             observationType0 = distroplot.options().observationType();
             plotType0 = distroplot.options().plotType();
+            whiskerDef0 = distroplot.options().whiskerDef();
+            if (!title) marginTop0 = margin.top;
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
