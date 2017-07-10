@@ -3,6 +3,7 @@ nv.models.distroPlot = function() {
 
     // TODO:
     // update() doesn't work when changing plotType
+    // max box width
     // cleanup tooltip to look like candlestick example (don't need color square for everything)
     // extend y scale range to fit violin
 
@@ -367,9 +368,6 @@ nv.models.distroPlot = function() {
         }
     }
 
-
-
-
     // return true if point is an outlier
     function isOutlier(d) {
         return (whiskerDef == 'iqr' && d.isOutlier) || (whiskerDef == 'stddev' && d.isOutlierStdDev)
@@ -543,9 +541,6 @@ nv.models.distroPlot = function() {
 	                })
 
 				})
-
-
-
             } else if (plotType == 'box') {
 
                 // conditionally append whisker lines
@@ -660,34 +655,18 @@ nv.models.distroPlot = function() {
             }
 
             // median/mean line
-            if (showMiddle) {
+            areaEnter.append('line')
+                .attr('class', 'nv-distroplot-middle') 
 
-                if (plotType == 'box') {
-                    areaEnter.append('line')
-                        .attr('class', 'nv-distroplot-middle') 
+            distroplots.selectAll('line.nv-distroplot-middle')
+              .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
+                .attr('x1', notchBox ? tickLeft : plotType == 'box' ? areaLeft : tickLeft())
+                .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+                .attr('x2', notchBox ? tickRight : plotType == 'box' ? areaRight : tickRight())
+                .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+                .style('opacity', showMiddle ? '1' : '0');
 
-                    distroplots.selectAll('line.nv-distroplot-middle')
-                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
-                        .attr('x1', notchBox ? tickLeft : areaLeft)
-                        .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                        .attr('x2', notchBox ? tickRight : areaRight)
-                        .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                } else {
 
-                    var middleLine = areaEnter.selectAll('.nv-distroplot-middle')
-                        .data(function(d) { return showMiddle == 'mean' ? [d3.mean(getValsArr(d))] : [d3.median(getValsArr(d))]; })
-
-                    middleLine.enter()
-                        .append('line')
-                        .attr('class', 'nv-distroplot-middle')
-
-                    distroplots.selectAll('line.nv-distroplot-middle')
-                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
-                        .attr('x1', areaWidth() * 0.25)
-                        .attr('y1', function(d) { return yScale(d); })
-                        .attr('x2', areaWidth() * 0.75)
-                        .attr('y2', function(d) { return yScale(d); })
-                }
 
                 // tooltip
                 distroplots.selectAll('.nv-distroplot-middle')
@@ -710,7 +689,7 @@ nv.models.distroPlot = function() {
                         .on('mousemove', function(d,i) {
                             dispatch.elementMousemove({e: d3.event});
                         });
-            }
+            //}
 
             // setup observations
             // create DOMs even if not requested (and hide them), so that
@@ -720,7 +699,7 @@ nv.models.distroPlot = function() {
 
             var scatter = wrap.enter()
                 .append('circle')
-                .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
+                .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                 .style('z-index', 9000)
 
             var lines = wrap.enter()
@@ -747,7 +726,7 @@ nv.models.distroPlot = function() {
             } else {
                 distroplots.selectAll('circle.nv-distroplot-observation')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
+                    .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                     .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
                     .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
                     .style('opacity',1)

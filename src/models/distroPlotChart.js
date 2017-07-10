@@ -173,7 +173,7 @@ nv.models.distroPlotChart = function() {
                 .enter()
                 .append("text")
                 .style("text-anchor", "middle")
-                .style("font-size", "150%")
+                .style("font-size", "calc(16px + 1.5vmin)")
                 .text(function () { return !title ? null : title; })
                 .attr('dx',titleOffset.left)
                 .attr('dy',titleOffset.top)
