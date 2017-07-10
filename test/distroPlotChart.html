@@ -87,6 +87,7 @@
         <br>
         Observation positions
         <button onclick="updatePlot({observationType: 'random'});">Random</button>
+        <button onclick="updatePlot({showOnlyOutliers: false});">show only outliers = false</button>
         <button onclick="updatePlot({observationType: 'swarm'});">Swarm</button>
         <button onclick="updatePlot({observationType: 'centered'});">Center</button>
         <button onclick="updatePlot({observationType: 'line'});">Line</button>
@@ -115,7 +116,8 @@
     var defaultBox = {
         x: function(d) { return d.study },
         value: function(d) { return d.weight }, 
-        colorGroup: false,
+        colorGroup: function(d) { return d.donor },
+        //colorGroup: false,
         title: false,
         xLabel: false,
         yLabel: false,
@@ -137,7 +139,7 @@
             .datum(data)
             .call(chart);
 
-        nv.utils.windowResize(chart.resizeWindow);
+        nv.utils.windowResize(chart.update);
 
         return chart;
     })

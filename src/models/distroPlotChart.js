@@ -48,7 +48,7 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var plotType0, observationType0, whiskerDef0, marginTop0;
+    var colorGroup0, marginTop0;
 
 
     function chart(selection) {
@@ -67,17 +67,13 @@ nv.models.distroPlotChart = function() {
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
-            // TODO - won't work when changing plotType since e.g. yVscale won't get calculated
             chart.update = function() {
                 var opts = distroplot.options()
-                if (whiskerDef0 !== opts.whiskerDef()) {
+                if (colorGroup0.toString() != opts.colorGroup().toString()) {
+                    // todo - legend not showing, tooltips are bad
                     distroplot.recalcData();
-                    console.log('to update!')
+                    d3.selectAll('.nv-distroplot-x-group').remove();
                 }
-                dispatch.beforeUpdate();
-                container.transition().duration(duration).call(chart);
-            };
-            chart.resizeWindow = function() {
                 dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
             };
@@ -213,9 +209,7 @@ nv.models.distroPlotChart = function() {
             ;
 
             // store original values so that we can update things properly
-            observationType0 = distroplot.options().observationType();
-            plotType0 = distroplot.options().plotType();
-            whiskerDef0 = distroplot.options().whiskerDef();
+            colorGroup0 = distroplot.options().colorGroup();
             if (!title) marginTop0 = margin.top;
 
             //============================================================

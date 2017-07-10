@@ -36,16 +36,6 @@ nv.models.distroPlot = function() {
         getDev = function(d) { return d.values.dev },
         getValsObj = function(d) { return d.values.observations; },
         getValsArr = function(d) { return d.values.observations.map(function(e) { return e.y }); },
-        getOlItems  = function(d,i,j) { 
-            if (!colorGroup) {
-                return reformatDat[j].values.observations.filter(function(i) { return isOutlier(i); }); 
-            } else {    
-                return reformatDat[j].values.find(function(e) { return e.key == d.key; }).values.outliers.map(function(i) { return i.y });  // XXX to fix outliers attribute doesnt exist anymore
-            }
-        },
-        getOlLabel = function(d,i,j) { return d },
-        getOlValue = function(d,i,j) { return observationType == 'swarm' ? d.datum : !colorGroup ? d.y : d.y },
-        getOlColor = function(d,i,j) { return undefined },
         plotType, // type of background: 'box', 'violin', 'none'/false - default: 'box' - 'none' will activate random scatter automatically
         observationType = false, // type of observations to show: 'random', 'swarm', 'line', 'centered' - default: false (don't show any observations, even if an outlier)
         whiskerDef = 'iqr', // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
@@ -53,6 +43,7 @@ nv.models.distroPlot = function() {
         notchBox = false, // bool whether to notch box
         colorGroup = false, // if specified, each x-category will be split into groups, each colored
         showMiddle = false,
+        showOnlyOutliers = true, // show only outliers in box plot
         jitter = 0.7, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
         squash = true, // whether to squash sparse distribution of color groups towards middle of x-axis position, default is true
         bandwidth = 'scott', // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
@@ -427,9 +418,6 @@ nv.models.distroPlot = function() {
                     .style('fill', function(d,i) { return getColor(d) || color(d,i) })
                     .style('stroke', function(d,i) { return getColor(d) || color(d,i) })
 
-                distroplots
-                    .attr('class', 'nv-distroplot-x-group')
-                    .attr('transform', function(d) { return 'translate(' + (xScale(d.key) + xScale.rangeBand() * 0.05) + ', 0)'; })
             } else {
 
                 // setup a scale for each color group
@@ -456,8 +444,6 @@ nv.models.distroPlot = function() {
                 distroplots.selectAll('.nv-colorGroup')
                     .watchTransition(renderWatch, 'nv-colorGroup xGroup')
                     .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.xGroup)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
-
-                //distroplots = d3.selectAll('.nv-colorGroup'); // XXX
 
             }
 
@@ -491,7 +477,7 @@ nv.models.distroPlot = function() {
 
             // ----- add the SVG elements for each plot type -----
 
-            //if (!observationType && !plotType) observationType = 'random'; // activate scatter plots if not already on
+            if (!observationType && !plotType) observationType = 'random'; // activate scatter plots if not already on
 
             // conditionally append whisker lines
             areaEnter.each(function(d,i) {
@@ -580,11 +566,7 @@ nv.models.distroPlot = function() {
                 violin.selectAll('path')
                     .datum(objData)
         
-
-                // XXX ugly        
                 var tmpScale = yVScale[i];
-                //tmpScale.range([areaWidth()/2, 0]);
-                //console.log(tmpScale.range(), tmpScale.domain())
 
                 var interp = plotType=='box' ? 'linear' : 'cardinal';
 
@@ -616,8 +598,9 @@ nv.models.distroPlot = function() {
             })
 
             // tooltip events
-            areaEnter.selectAll('rect.nv-distroplot-box')
+            distroplots.selectAll('path')
                 .on('mouseover', function(d,i,j) {
+                    d = reformatDat[i];
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
                         key: d.key,
@@ -637,6 +620,7 @@ nv.models.distroPlot = function() {
                 })
                 .on('mouseout', function(d,i,j) {
                     d3.select(this).classed('hover', false);
+                    d = reformatDat[i];
                     dispatch.elementMouseout({
                         key: d.key,
                         value: 'Group ' + d.key + ' stats',
@@ -675,10 +659,11 @@ nv.models.distroPlot = function() {
                 // tooltip
                 distroplots.selectAll('.nv-distroplot-middle')
                         .on('mouseover', function(d,i,j) {
+                            console.log(d)
                             d3.select(this).classed('hover', true);
                             dispatch.elementMouseover({
                                 value: showMiddle == 'mean' ? 'Mean' : 'Median',
-                                series: { key: plotType != 'box' ? d.toFixed(2) : showMiddle == 'mean' ? getMean(d) : getQ2(d), color: getColor(d) || color(d,j) },
+                                series: { key: showMiddle == 'mean' ? getMean(d) : getQ2(d), color: getColor(d) || color(d,j) },
                                 e: d3.event
                             });
                         })
@@ -686,7 +671,7 @@ nv.models.distroPlot = function() {
                             d3.select(this).classed('hover', false);
                             dispatch.elementMouseout({
                                 value: showMiddle == 'mean' ? 'Mean' : 'Median',
-                                series: { key: plotType != 'box' ? d.toFixed(2) : showMiddle == 'mean' ? getMean(d) : getQ2(d), color: getColor(d) || color(d,j) },
+                                series: { key: showMiddle == 'mean' ? getMean(d) : getQ2(d), color: getColor(d) || color(d,j) },
                                 e: d3.event
                             });
                         })
@@ -719,33 +704,40 @@ nv.models.distroPlot = function() {
                   .watchTransition(renderWatch, 'nv-distrolot-x-group: nv-distoplot-observation')
                     .attr("x1", tickLeft() + areaWidth()/4)
                     .attr("x2", tickRight() - areaWidth()/4)
-                    .style('opacity',1)
+                    .style('opacity',0)
                     .attr('y1', function(d) { return yScale(d.datum)})
                     .attr('y2', function(d) { return yScale(d.datum)});
-
-                // hide circles
-                distroplots.selectAll('circle.nv-distroplot-observation')
-                  .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
-                    .style('opacity',0)
             } else {
                 distroplots.selectAll('circle.nv-distroplot-observation')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                     .attr('class', function(d) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                     .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
                     .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
-                    .style('opacity', function(d) { return observationType === false ? 0 : (isOutlier(d) && plotType == 'box') || plotType !== 'box' ? 1 : 0})
+                    .style('opacity', 0) 
                     .attr('r', observationRadius);
 
-                // set opacity on outliers/non-outliers
-                distroplots.selectAll('.nv-distroplot-observation') // don't select with class (.nv-distroplot-outlier) since it's not guaranteed to be set yet
-                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .style('opacity', function(d) { return observationType === false ? 0 : (isOutlier(d) && plotType == 'box') || plotType !== 'box' ? 1 : 0});
-
-                // hide lines
-                distroplots.selectAll('line.nv-distroplot-observation')
-                  .watchTransition(renderWatch, 'nv-distroplot: nv-distoplot-observation')
-                    .style('opacity',0)
             }
+
+            // set opacity on outliers/non-outliers
+            distroplots.selectAll('.nv-distroplot-observation') // don't select with class (.nv-distroplot-outlier) since it's not guaranteed to be set yet
+              .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                .style('opacity', function(d) { 
+                    if (observationType === false) {
+                        return 0;
+                    } else if (plotType == 'box') {
+                        if (!showOnlyOutliers || isOutlier(d)) {
+                            return 1;
+                        } 
+                    } else if (observationType !== false) {
+                        return 1;
+                    }
+                    return 0;
+                })
+
+        
+            distroplots.selectAll((observationType=='line'?'circle':'line')+'.nv-distroplot-observation')
+              .watchTransition(renderWatch, 'nv-distroplot: nv-distoplot-observation')
+                .style('opacity',0)
 
 
             // tooltip events for observations
@@ -753,16 +745,16 @@ nv.models.distroPlot = function() {
                     .on('mouseover', function(d,i,j) {
                         d3.select(this).classed('hover', true);
                         dispatch.elementMouseover({
-                            value: (plotType != 'box' || getOlItems(d,i,j).indexOf(getOlValue(d,i,j)) == -1) ? 'Observation' : 'Outlier',
-                            series: { key: getOlValue(d,i,j), color: getColor(d) || color(d,j) },
+                            value: (plotType == 'box' && isOutlier(d)) ? 'Outlier' : 'Observation',
+                            series: { key: d.datum.toFixed(2), color: getColor(d) || color(d,j) },
                             e: d3.event
                         });
                     })
                     .on('mouseout', function(d,i,j) {
                         d3.select(this).classed('hover', false);
                         dispatch.elementMouseout({
-                            value: (plotType != 'box' || getOlItems(d,i,j).indexOf(getOlValue(d,i,j)) == -1) ? 'Observation' : 'Outlier',
-                            series: { key: getOlValue(d,i,j), color: getColor(d) || color(d,j) },
+                            value: (plotType == 'box' && isOutlier(d)) ? 'Outlier' : 'Observation',
+                            series: { key: d.datum.toFixed(2), color: getColor(d) || color(d,j) },
                             e: d3.event
                         });
                     })
@@ -792,11 +784,6 @@ nv.models.distroPlot = function() {
         maxBoxWidth: {get: function(){return maxBoxWidth;}, set: function(_){maxBoxWidth=_;}},
         x:           {get: function(){return getX;}, set: function(_){getX=_;}},
         value:       {get: function(){return getValue;}, set: function(_){getValue=_;}},
-        itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
-        outliers:     {get: function(){return getOlItems;}, set: function(_){getOlItems=_;}},
-        outlierValue: {get: function(){return getOlValue;}, set: function(_){getOlValue=_;}},
-        outlierLabel: {get: function(){return getOlLabel;}, set: function(_){getOlLabel=_;}},
-        outlierColor: {get: function(){return getOlColor;}, set: function(_){getOlColor=_;}},
         plotType: {get: function(){return plotType;}, set: function(_){plotType=_;}}, // plotType of background: 'box', 'violin' - default: 'box'
         observationType:  {get: function(){return observationType;}, set: function(_){observationType=_;}}, // type of observations to show: 'random', 'swarm', 'line', 'point' - default: false (don't show observations)
         whiskerDef:  {get: function(){return whiskerDef;}, set: function(_){whiskerDef=_;}}, // type of whisker to render: 'iqr', 'minmax', 'stddev' - default: iqr
@@ -808,6 +795,7 @@ nv.models.distroPlot = function() {
         resolution:  {get: function(){return resolution;}, set: function(_){resolution=_;}}, // resolution for kde calculation, default 50
         xScale:  {get: function(){return xScale;}, set: function(_){xScale=_;}},
         yScale:  {get: function(){return yScale;}, set: function(_){yScale=_;}},
+        showOnlyOutliers:  {get: function(){return showOnlyOutliers;}, set: function(_){showOnlyOutliers=_;}}, // show only outliers in box plot, default true
         jitter:  {get: function(){return jitter;}, set: function(_){jitter=_;}}, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
         squash:  {get: function(){return squash;}, set: function(_){squash=_;}}, // whether to squash sparse distribution of color groups towards middle of x-axis position
         observationRadius:  {get: function(){return observationRadius;}, set: function(_){observationRadius=_;}},
@@ -817,7 +805,8 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        recalcData: {get: function() { console.log('recalc data!'); prepData(data); } },
+        recalcData: {get: function() { reformatDat = prepData(data); } },
+        itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
 
         // options that require extra logic in the setter
