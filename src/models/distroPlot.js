@@ -32,7 +32,7 @@ nv.models.distroPlot = function() {
         getMax = function(d) { return d.values.max },
         getDev = function(d) { return d.values.dev },
         getValsObj = function(d) { return d.values.observations; },
-        getValsArr = function(d) { return d.values.original.map(function(e) { return e.y }); },
+        getValsArr = function(d) { return d.values.observations.map(function(e) { return e.y }); },
         getOlItems  = function(d,i,j) { 
             if (!colorGroup) {
                 return reformatDat[j].values.observations.filter(function(i) { return isOutlier(i); }); 
@@ -210,6 +210,9 @@ nv.models.distroPlot = function() {
                 e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
             })
 
+            if (isNaN(bandwidth)) bandwidth = calcBandwidth(v, bandwidth);
+            var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
+
             return {
                 count: v.length,
                 sum: d3.sum(v),
@@ -225,7 +228,7 @@ nv.models.distroPlot = function() {
                 dev: d3.deviation(v),
                 observations: observations,
                 xGroup: xGroup,
-                kde: doKDE(v, bandwidth, resolution),
+                kde: kde(v),
                 nu: median + iqr / Math.sqrt(v.length), // upper notch
                 nl: median - iqr / Math.sqrt(v.length), // lower notch
             };
@@ -319,9 +322,9 @@ nv.models.distroPlot = function() {
             ];
         }
 
-        return scaledValues.map(function (d) {
+        return 'M' + scaledValues.map(function (d) {
             return [d[0], d[1]].join(",");
-        }).join(" ");
+        }).join(" ") + 'z';
     }
 
     /**
@@ -365,13 +368,6 @@ nv.models.distroPlot = function() {
     }
 
 
-    function doKDE(pointVals, bandwidth,resolution) {
-
-        // normally KDE is calculated in a horizontal layout, we want a verital layout however
-        // so we flip the use of yScale & xScale
-        var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
-        return kde(pointVals);
-    }
 
 
     // return true if point is an outlier
@@ -415,7 +411,7 @@ nv.models.distroPlot = function() {
             wrap.watchTransition(renderWatch, 'nv-wrap: wrap')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); // TODO not transitioning when add/remove title
 
-            var distroplots = wrap.selectAll('.nv-distroplot').data(function(d) { return d });
+            var distroplots = wrap.selectAll('.nv-distroplot-x-group').data(function(d) { return d });
             var areaEnter;
 
             if (!colorGroup) {
@@ -457,10 +453,10 @@ nv.models.distroPlot = function() {
             }
 
             distroplots
-                .attr('class', 'nv-distroplot')
+                .attr('class', 'nv-distroplot-x-group')
                 .attr('transform', function(d) { return 'translate(' + (xScale(d.key) + xScale.rangeBand() * 0.05) + ', 0)'; })
             distroplots
-                .watchTransition(renderWatch, 'nv-distroplot: distroplots')
+                .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', 0.5)
                 .attr('transform', function(d) {
@@ -493,16 +489,14 @@ nv.models.distroPlot = function() {
 
                 areaEnter.each(function(d,i) {
                     var violin = d3.select(this);
-                    var pointVals = getValsArr(d);
-                    if (isNaN(bandwidth)) bandwidth = calcBandwidth(pointVals, bandwidth);
-
-                    var kdeData = doKDE(pointVals, bandwidth, resolution);
+                    var kdeData = d.values.kde;
 
                     // make a new yScale for each group
                     var tmpScale = d3.scale.linear()
-                        .domain([0, d3.max(kdeData, function (e) {return e.y;})])
+                        .domain([0, d3.max(kdeData, function (e) { return e.y;})])
                         .clamp(true);
 					yVScale.push(tmpScale);
+
 
                     ['left','right'].forEach(function(side) {
 						['line','area'].forEach(function(d) {
@@ -573,14 +567,14 @@ nv.models.distroPlot = function() {
                     var key = (f === getWl) ? 'low' : 'high';
                     var endpoint = (f === getWl) ? getQ1 : getQ3;
                     distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots')
+                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
                         .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
                         .attr('y1', function(d,i) { return yScale(f(d)); })
                         .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
                         .attr('y2', function(d,i) { return yScale(endpoint(d)); })
                         .style('opacity', function() { return hideWhiskers ? '0' : '1' })
                     distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots')
+                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
                         .attr('x1', tickLeft )
                         .attr('y1', function(d,i) { return yScale(f(d)); })
                         .attr('x2', tickRight )
@@ -613,7 +607,7 @@ nv.models.distroPlot = function() {
                 });
 
                 // boxes
-                areaEnter.append('polygon')
+                areaEnter.append('path')
                     .attr('class', 'nv-distroplot-box')
 
                 // tooltip events
@@ -659,9 +653,9 @@ nv.models.distroPlot = function() {
                     });
 
                 // box transitions
-                distroplots.selectAll('polygon.nv-distroplot-box')
+                distroplots.selectAll('path.nv-distroplot-box')
                   .watchTransition(renderWatch, 'nv-distroplot-box: boxes')
-                    .attr('points', function(d) { return makeNotchBox(areaLeft(), areaRight(), tickLeft(), tickRight(), d); });
+                    .attr('d', function(d) { return makeNotchBox(areaLeft(), areaRight(), tickLeft(), tickRight(), d); });
 
             }
 
@@ -671,14 +665,7 @@ nv.models.distroPlot = function() {
                 if (plotType == 'box') {
                     areaEnter.append('line')
                         .attr('class', 'nv-distroplot-middle') 
-/*
-                    distroplots.selectAll('line.nv-distroplot-middle')
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
-                        .attr('x1', areaLeft)
-                        .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                        .attr('x2', areaRight)
-                        .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-*/
+
                     distroplots.selectAll('line.nv-distroplot-middle')
                       .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
                         .attr('x1', notchBox ? tickLeft : areaLeft)
@@ -695,7 +682,7 @@ nv.models.distroPlot = function() {
                         .attr('class', 'nv-distroplot-middle')
 
                     distroplots.selectAll('line.nv-distroplot-middle')
-                      .watchTransition(renderWatch, 'nv-distroplot: distroplots line')
+                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
                         .attr('x1', areaWidth() * 0.25)
                         .attr('y1', function(d) { return yScale(d); })
                         .attr('x2', areaWidth() * 0.75)
@@ -746,7 +733,7 @@ nv.models.distroPlot = function() {
             // transition observations
             if (observationType == 'line') {
                 distroplots.selectAll('line.nv-distroplot-observation')
-                  .watchTransition(renderWatch, 'nv-distrolot: nv-distoplot-observation')
+                  .watchTransition(renderWatch, 'nv-distrolot-x-group: nv-distoplot-observation')
                     .attr("x1", tickLeft() + areaWidth()/4)
                     .attr("x2", tickRight() - areaWidth()/4)
                     .style('opacity',1)
@@ -809,7 +796,7 @@ nv.models.distroPlot = function() {
 
         });
 
-        renderWatch.renderEnd('nv-distroplot immediate');
+        renderWatch.renderEnd('nv-distroplot-x-group immediate');
         return chart;
     }
 
