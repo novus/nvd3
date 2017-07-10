@@ -141,9 +141,10 @@ nv.models.distroPlot = function() {
      * count, sum, mean, q1, q2 (median), q3, lower whisker (wl)
      * upper whisker (wu), iqr, min, max, and standard dev.
      *
+     * NOTE: this will also setup the yScale and xScale.
+     *
      * @param (list) dat - input data formatted as list of objects,
      *   with an object key that must exist when accessed by getX()
-     * @param (str) plotType - 'box', 'violin'
      *
      * @return prepared data in the form for box plotType:
      * [{
@@ -180,6 +181,13 @@ nv.models.distroPlot = function() {
      */
     function prepData(dat) {
 
+        // Setup y-scale for use in beeswarm layout
+        yScale.domain(yDomain || d3.extent(data.map(function(d) { return getValue(d)})))
+              .range(yRange || [availableHeight, 0]);
+
+        // setup xscale
+        xScale.rangeBands(xRange || [0, availableWidth], 0.1);
+
         // helper function to calcuate the various boxplot stats
         function calcStats(v, xGroup) {
             var q1 = d3.quantile(v, 0.25);
@@ -213,7 +221,15 @@ nv.models.distroPlot = function() {
 
             if (isNaN(bandwidth)) bandwidth = calcBandwidth(v, bandwidth);
             var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
+/*            
+var kdeDat = kde(v);
 
+            // make a new vertical for each group
+            var tmpScale = d3.scale.linear()
+                .domain([0, d3.max(kdeDat, function (e) { return e.y;})])
+                .clamp(true);
+            yVScale.push(tmpScale);
+*/
             return {
                 count: v.length,
                 sum: d3.sum(v),
@@ -237,8 +253,9 @@ nv.models.distroPlot = function() {
 
         // TODO not DRY
         // couldn't find a conditional way of doing the key() grouping
+        var formatted;
         if (!colorGroup) {
-            var tmp = d3.nest()
+            formatted = d3.nest()
                 .key(function(d) { return getX(d); })
                 .rollup(function(v) {
                     var sortDat = v.map(function(d) {
@@ -248,7 +265,7 @@ nv.models.distroPlot = function() {
                 })
                 .entries(dat);
         } else {
-            var tmp = d3.nest()
+            formatted = d3.nest()
                 .key(function(d) { return getX(d); })
                 .key(function(d) { return colorGroup(d); })
                 .rollup(function(v) {
@@ -262,7 +279,9 @@ nv.models.distroPlot = function() {
                 .entries(dat);
         }
 
-        return tmp;
+        xScale.domain(xDomain || formatted.map(function(d) { return d.key }).sort(d3.ascending))
+
+        return formatted;
     }
 
     // https://bl.ocks.org/mbostock/4341954
@@ -294,38 +313,21 @@ nv.models.distroPlot = function() {
      * @returns {string} A string in the proper format for a svg polygon
      */
     function makeNotchBox(boxLeft, boxRight, notchLeft, notchRight, dat) {
-        var scaledValues = [];
-        if (notchBox) {
-            scaledValues = [
-                [boxLeft, yScale(getQ1(dat))],
-                [boxLeft, yScale(getNl(dat))],
-                [notchLeft, yScale(getQ2(dat))],
-                [boxLeft, yScale(getNu(dat))],
-                [boxLeft, yScale(getQ3(dat))],
-                [boxRight, yScale(getQ3(dat))],
-                [boxRight, yScale(getNu(dat))],
-                [notchRight, yScale(getQ2(dat))],
-                [boxRight, yScale(getNl(dat))],
-                [boxRight, yScale(getQ1(dat))]
+        var boxPoints = [
+                {x:boxLeft, y:yScale(getQ1(dat))},
+                {x:boxLeft, y:yScale(getNl(dat))},
+                {x:notchBox ? notchLeft : boxLeft, y:yScale(getQ2(dat))},
+                {x:boxLeft, y:yScale(getNu(dat))},
+                {x:boxLeft, y:yScale(getQ3(dat))},
+                {x:boxRight, y:yScale(getQ3(dat))},
+                {x:boxRight, y:yScale(getNu(dat))},
+                {x:notchBox ? notchRight : boxRight, y:yScale(getQ2(dat))},
+                {x:boxRight, y:yScale(getNl(dat))},
+                {x:boxRight, y:yScale(getQ1(dat))},
+                {x:boxLeft, y:yScale(getQ1(dat))},
             ];
-        } else {
-            scaledValues = [
-                [boxLeft, yScale(getQ1(dat))],
-                [boxLeft, yScale(getNl(dat))],
-                [boxLeft, yScale(getQ2(dat))],
-                [boxLeft, yScale(getNu(dat))],
-                [boxLeft, yScale(getQ3(dat))],
-                [boxRight, yScale(getQ3(dat))],
-                [boxRight, yScale(getNu(dat))],
-                [boxRight, yScale(getQ2(dat))],
-                [boxRight, yScale(getNl(dat))],
-                [boxRight, yScale(getQ1(dat))]
-            ];
-        }
 
-        return 'M' + scaledValues.map(function (d) {
-            return [d[0], d[1]].join(",");
-        }).join(" ") + 'z';
+        return boxPoints;
     }
 
     /**
@@ -380,28 +382,18 @@ nv.models.distroPlot = function() {
     var allColorGroups = d3.set()
     var yVScale = [], reformatDat;
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
+    var availableWidth, availableHeight;
 
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
-            var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom;
-
+            availableWidth = width - margin.left - margin.right,
+            availableHeight = height - margin.top - margin.bottom;
 
             container = d3.select(this);
             nv.utils.initSVG(container);
 
-            // Setup y-scale for use in beeswarm layout
-            yScale.domain(yDomain || d3.extent(data.map(function(d) { return getValue(d)})))
-            	.range(yRange || [availableHeight, 0]);
-
-            if (typeof reformatDat === 'undefined') reformatDat = prepData(data, plotType); // this prevents us from reformatted data all the time
-            //reformatDat = prepData(data); // this prevents us from reformatted data all the time
-
-            // setup xscale
-            xScale.domain(xDomain || reformatDat.map(function(d) { return d.key }).sort(d3.ascending))
-                .rangeBands(xRange || [0, availableWidth], 0.1);
-
+            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap').data([reformatDat]);
@@ -481,178 +473,163 @@ nv.models.distroPlot = function() {
 
             // ----- add the SVG elements for each plot type -----
 
-            if (plotType == 'none' || !plotType) {
-                if (!observationType) observationType = 'random'; // activate scatter plots if not already on
-            } if (plotType == 'violin') {
+            if (!observationType) observationType = 'random'; // activate scatter plots if not already on
 
-                areaEnter.each(function(d,i) {
-                    var violin = d3.select(this);
-                    var kdeData = d.values.kde;
-
-                    // make a new yScale for each group
-                    var tmpScale = d3.scale.linear()
-                        .domain([0, d3.max(kdeData, function (e) { return e.y;})])
-                        .clamp(true);
-					yVScale.push(tmpScale);
-
-
-                    ['left','right'].forEach(function(side) {
-						['line','area'].forEach(function(d) {
-	                        violin.append('path')
-	                            .datum(kdeData)
-	                            .attr('class', 'nv-violin-' + d + ' nv-violin-' + side)
-		                        .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
-						})
-
-                    })
-
-					areaEnter.selectAll('.nv-violin-line')
-						.style('fill','none')
-					areaEnter.selectAll('.nv-violin-area')
-						.style('stroke','none')
-						.style('opacity',0.7)
-
-                });
-
-				areaEnter.each(function(d,i) {
-            
-					var tmpScale = yVScale[i];
-					tmpScale.range([areaWidth()/2, 0]);
-
-	                ['left','right'].forEach(function(side) {
-						distroplots.selectAll('.nv-violin-line.nv-violin-' + side)
-						  .watchTransition(renderWatch, 'nv-violin-line: distroplots')
-	                        .attr("d", d3.svg.line()
-	                                .x(function(d) { return yScale(d.x); })
-	                                .y(function(d) { return tmpScale(d.y); })
-	                                .interpolate('cardinal')
-	                        )
-	                        .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
-
-						distroplots.selectAll('.nv-violin-area.nv-violin-' + side)
-						  .watchTransition(renderWatch, 'nv-violin-area: distroplots')
-	                        .attr("d", d3.svg.area()
-	                                .y1(function(d) { return tmpScale(d.y); })
-	                                .x(function(d) { return yScale(d.x); })
-	                                .y0(areaWidth()/2)
-	                                .interpolate('cardinal')
-	                        )
-	                        .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
-	                })
-
-				})
-            } else if (plotType == 'box') {
-
-                // conditionally append whisker lines
-                areaEnter.each(function(d,i) {
-                    var box = d3.select(this);
-                    [getWl, getWh].forEach(function (f) {
-                        var key = (f === getWl) ? 'low' : 'high';
-                        box.append('line')
-                          .style('opacity', function() { return !hideWhiskers ? '0' : '1' })
-                          .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
-                        box.append('line')
-                          .style('opacity', function() { return hideWhiskers ? '0' : '1' })
-                          .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
-                    });
-                });
-
-                // update whisker lines and ticks
+            // conditionally append whisker lines
+            areaEnter.each(function(d,i) {
+                var box = d3.select(this);
                 [getWl, getWh].forEach(function (f) {
                     var key = (f === getWl) ? 'low' : 'high';
-                    var endpoint = (f === getWl) ? getQ1 : getQ3;
-                    distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
-                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
-                        .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
-                        .attr('y1', function(d,i) { return yScale(f(d)); })
-                        .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
-                        .attr('y2', function(d,i) { return yScale(endpoint(d)); })
-                        .style('opacity', function() { return hideWhiskers ? '0' : '1' })
-                    distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
-                      .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
-                        .attr('x1', tickLeft )
-                        .attr('y1', function(d,i) { return yScale(f(d)); })
-                        .attr('x2', tickRight )
-                        .attr('y2', function(d,i) { return yScale(f(d)); })
-                        .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                    box.append('line')
+                      .style('opacity', function() { return !hideWhiskers ? '0' : '1' })
+                      .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
+                    box.append('line')
+                      .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                      .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
                 });
+            });
 
-                [getWl, getWh].forEach(function (f) {
-                    var key = (f === getWl) ? 'low' : 'high';
-                    areaEnter.selectAll('.nv-distroplot-' + key)
-                      .on('mouseover', function(d,i,j) {
-                          d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',true);
-                          dispatch.elementMouseover({
-                              value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
-                              series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
-                              e: d3.event
-                          });
-                      })
-                      .on('mouseout', function(d,i,j) {
-                          d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',false);
-                          dispatch.elementMouseout({
-                              value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
-                              series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
-                              e: d3.event
-                          });
-                      })
-                      .on('mousemove', function(d,i) {
-                          dispatch.elementMousemove({e: d3.event});
+            // update whisker lines and ticks
+            [getWl, getWh].forEach(function (f) {
+                var key = (f === getWl) ? 'low' : 'high';
+                var endpoint = (f === getWl) ? getQ1 : getQ3;
+                distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
+                  .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
+                    .attr('x1', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
+                    .attr('y1', function(d) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('x2', 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()) )
+                    .attr('y2', function(d) { return plotType=='box' ? yScale(endpoint(d)) : yScale(getQ2(d)); })
+                    .style('opacity', function() { return hideWhiskers ? '0' : '1' })
+                distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
+                  .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
+                    .attr('x1', function(d) { return plotType=='box' ? tickLeft() : 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand())} )
+                    .attr('y1', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('x2', function(d) { return plotType=='box' ? tickRight() : 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand())} )
+                    .attr('y2', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .style('opacity', function() { return (hideWhiskers || plotType!=='box') ? '0' : '1' })
+            });
+
+            [getWl, getWh].forEach(function (f) {
+                var key = (f === getWl) ? 'low' : 'high';
+                areaEnter.selectAll('.nv-distroplot-' + key)
+                  .on('mouseover', function(d,i,j) {
+                      d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',true);
+                      dispatch.elementMouseover({
+                          value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
+                          series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
+                          e: d3.event
                       });
+                  })
+                  .on('mouseout', function(d,i,j) {
+                      d3.select(this.parentNode).selectAll('line.nv-distroplot-'+key).classed('hover',false);
+                      dispatch.elementMouseout({
+                          value: key == 'low' ? 'Lower whisker' : 'Upper whisker',
+                          series: { key: f(d).toFixed(2), color: getColor(d) || color(d,j) },
+                          e: d3.event
+                      });
+                  })
+                  .on('mousemove', function(d,i) {
+                      dispatch.elementMousemove({e: d3.event});
+                  });
+            });
+
+            // setup boxes as 4 parts: left-area, left-line, right-area, right-line,
+            // this way we can transition to a violin
+            areaEnter.each(function(d,i) {
+                var violin = d3.select(this);
+                var objData = plotType == 'box' ? makeNotchBox(areaLeft(), areaRight(), tickLeft(), tickRight(), d) : d.values.kde;
+
+                // make a new vertical for each group
+                var tmpScale = d3.scale.linear()
+                    .domain([0, d3.max(objData, function (e) { return e.y;})])
+                    .clamp(true);
+                yVScale.push(tmpScale);
+
+
+                ['left','right'].forEach(function(side) {
+                    ['line','area'].forEach(function(d) {
+                        violin.append('path')
+                            .datum(objData)
+                            .attr('class', 'nv-' + plotType + '-' + d + ' nv-' + plotType + '-' + side)
+                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+                    })
+
+                })
+
+                areaEnter.selectAll('.nv-' + plotType + '-line')
+                    .style('fill','none')
+                areaEnter.selectAll('.nv-' + plotType + '-area')
+                    .style('stroke','none')
+                    .style('opacity',0.7)
+
+            });
+
+            // transitions
+            distroplots.each(function(d,i) {
+        
+                var tmpScale = yVScale[i];
+                tmpScale.range([areaWidth()/2, 0]);
+                console.log(tmpScale.range(), tmpScale.domain())
+
+                var interp = plotType=='box' ? 'linear' : 'cardinal';
+
+                ['left','right'].forEach(function(side) {
+                    ['line','area'].forEach(function(d) {
+                    distroplots.selectAll('.nv-' + plotType +'-' + d + '.nv-' + plotType +'-' + side)
+                      .watchTransition(renderWatch, 'nv-' + plotType +'-line: distroplots')
+                        .attr("d", d3.svg.line()
+                                .x(function(e) { return plotType=='box' ? e.y : yScale(e.x); })
+                                .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
+                                .interpolate(interp)
+                        )
+                        .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+                    })
+                })
+
+            })
+
+            // tooltip events
+            areaEnter.selectAll('rect.nv-distroplot-box')
+                .on('mouseover', function(d,i,j) {
+                    d3.select(this).classed('hover', true);
+                    dispatch.elementMouseover({
+                        key: d.key,
+                        value: 'Group ' + d.key + ' stats',
+                        series: [
+                            { key: 'max', value: getMax(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
+                        ],
+                        data: d,
+                        index: i,
+                        e: d3.event
+                    });
+                })
+                .on('mouseout', function(d,i,j) {
+                    d3.select(this).classed('hover', false);
+                    dispatch.elementMouseout({
+                        key: d.key,
+                        value: 'Group ' + d.key + ' stats',
+                        series: [
+                            { key: 'max', value: getMax(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
+                        ],
+                        data: d,
+                        index: i,
+                        e: d3.event
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
                 });
 
-                // boxes
-                areaEnter.append('path')
-                    .attr('class', 'nv-distroplot-box')
-
-                // tooltip events
-                areaEnter.selectAll('rect.nv-distroplot-box')
-                    .on('mouseover', function(d,i,j) {
-                        d3.select(this).classed('hover', true);
-                        dispatch.elementMouseover({
-                            key: d.key,
-                            value: 'Group ' + d.key + ' stats',
-                            series: [
-                                { key: 'max', value: getMax(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
-                            ],
-                            data: d,
-                            index: i,
-                            e: d3.event
-                        });
-                    })
-                    .on('mouseout', function(d,i,j) {
-                        d3.select(this).classed('hover', false);
-                        dispatch.elementMouseout({
-                            key: d.key,
-                            value: 'Group ' + d.key + ' stats',
-                            series: [
-                                { key: 'max', value: getMax(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'Q3', value: getQ3(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
-                                { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
-                            ],
-                            data: d,
-                            index: i,
-                            e: d3.event
-                        });
-                    })
-                    .on('mousemove', function(d,i) {
-                        dispatch.elementMousemove({e: d3.event});
-                    });
-
-                // box transitions
-                distroplots.selectAll('path.nv-distroplot-box')
-                  .watchTransition(renderWatch, 'nv-distroplot-box: boxes')
-                    .attr('d', function(d) { return makeNotchBox(areaLeft(), areaRight(), tickLeft(), tickRight(), d); });
-
-            }
 
             // median/mean line
             areaEnter.append('line')
