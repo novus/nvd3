@@ -1,10 +1,10 @@
 nv.models.distroPlot = function() {
     "use strict";
 
-    // TODO:
-    // max box width
+    // IMPROVEMENTS:
+    // legend click hide data not working
     // cleanup tooltip to look like candlestick example (don't need color square for everything)
-    // extend y scale range to fit violin
+    // extend y scale range to min/max data better visually
     // tips of violins need to be cut off if very long
     // transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
 
@@ -446,31 +446,32 @@ nv.models.distroPlot = function() {
 
             }
 
+            var rangeBand = colorGroup ? colorGroupSizeScale.rangeBand() : xScale.rangeBand();
+            var areaWidth = function() { return d3.min([maxBoxWidth,rangeBand * 0.9]); };
+            var areaCenter = function() { return areaWidth()/2; };
+            var areaLeft  = function() { return areaCenter() - areaWidth()/2; };
+            var areaRight = function() { return areaCenter() + areaWidth()/2; };
+            var tickLeft  = function() { return areaCenter() - areaWidth()/5; };
+            var tickRight = function() { return areaCenter() + areaWidth()/5; };
+
             distroplots
                 .attr('class', 'nv-distroplot-x-group')
-                .attr('transform', function(d) { return 'translate(' + (xScale(d.key) + xScale.rangeBand() * 0.05) + ', 0)'; })
-
+                .attr('transform', function(d) {
+                    return 'translate(' + (xScale(d.key) + (rangeBand - areaWidth()) * 0.5) + ', 0)';
+                });
 
             distroplots
                 .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', 0.5)
                 .attr('transform', function(d) {
-                    return 'translate(' + (xScale(d.key) + xScale.rangeBand() * 0.05) + ', 0)';
+                    return 'translate(' + (xScale(d.key) + (rangeBand - areaWidth()) * 0.5) + ', 0)';
                 });
 
             distroplots.exit().remove();
 
             if (colorGroup) distroplots = d3.selectAll('.nv-colorGroup'); // redefine distroplots as all existing distributions
-            console.log(reformatDat)
 
-            var rangeBand = colorGroup ? colorGroupSizeScale.rangeBand() : xScale.rangeBand();
-            var areaWidth = function() { return rangeBand * 0.9; };
-            var areaLeft  = function() { return rangeBand * 0.45 - areaWidth()/2; };
-            var areaRight = function() { return rangeBand * 0.45 + areaWidth()/2; };
-            var tickLeft  = function() { return rangeBand * 0.45 - areaWidth()/5; };
-            var tickRight = function() { return rangeBand * 0.45 + areaWidth()/5; };
-            var areaCenter = function() { return 0.45 * (!colorGroup ? xScale.rangeBand() : colorGroupSizeScale.rangeBand()); };
 
             // set range for violin scale
             yVScale.map(function(d) { d.range([areaWidth()/2, 0]) });
