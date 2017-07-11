@@ -173,7 +173,6 @@ nv.models.distroPlot = function() {
      */
     function prepData(dat) {
 
-
         // helper function to calcuate the various boxplot stats
         function calcStats(v, xGroup) {
             var q1 = d3.quantile(v, 0.25);
@@ -215,7 +214,7 @@ nv.models.distroPlot = function() {
                 .clamp(true);
             yVScale.push(tmpScale);
 
-            return {
+            var reformat = {
                 count: v.length,
                 sum: d3.sum(v),
                 mean: mean,
@@ -229,11 +228,15 @@ nv.models.distroPlot = function() {
                 max: d3.max(v),
                 dev: d3.deviation(v),
                 observations: observations,
-                xGroup: xGroup,
+                key: xGroup,
                 kde: kdeDat,
                 nu: median + 1.57 * iqr / Math.sqrt(v.length), // upper notch
                 nl: median - 1.57 * iqr / Math.sqrt(v.length), // lower notch
             };
+
+            if (colorGroup) {reformatDatFlat.push({key: xGroup, values: reformat});}
+
+            return reformat;
         }
 
         // TODO not DRY
@@ -376,7 +379,7 @@ nv.models.distroPlot = function() {
     //------------------------------------------------------------
 
     var allColorGroups = d3.set()
-    var yVScale = [], reformatDat;
+    var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var availableWidth, availableHeight;
 
@@ -404,7 +407,7 @@ nv.models.distroPlot = function() {
             var wrap = container.selectAll('g.nv-wrap').data([reformatDat]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap');
             wrap.watchTransition(renderWatch, 'nv-wrap: wrap')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); // TODO not transitioning when add/remove title
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
 
             var areaEnter,
                 distroplots = wrap.selectAll('.nv-distroplot-x-group').data(function(d) { return d });
@@ -436,13 +439,13 @@ nv.models.distroPlot = function() {
                 areaEnter = xGroup.enter()
                     .append('g')
                     .attr('class','nv-colorGroup')
-                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.xGroup)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
+                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.key)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
                     .style('fill', function(d,i) { return getColor(d) || color(d,i) })
                     .style('stroke', function(d,i) { return getColor(d) || color(d,i) })
 
                 distroplots.selectAll('.nv-colorGroup')
                     .watchTransition(renderWatch, 'nv-colorGroup xGroup')
-                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.xGroup)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
+                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.key)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
 
             }
 
@@ -471,7 +474,6 @@ nv.models.distroPlot = function() {
             distroplots.exit().remove();
 
             if (colorGroup) distroplots = d3.selectAll('.nv-colorGroup'); // redefine distroplots as all existing distributions
-
 
             // set range for violin scale
             yVScale.map(function(d) { d.range([areaWidth()/2, 0]) });
@@ -701,7 +703,7 @@ nv.models.distroPlot = function() {
                 .style('stroke-width', 1)
                 .style({'stroke': d3.rgb(85, 85, 85), 'opacity': 0})
 
-            // TODO only call on resize finish otherwise jitterX call slows things down
+            // TODO only call when window finishes resizing, otherwise jitterX call slows things down
             // transition observations
             if (observationType == 'line') {
                 distroplots.selectAll('line.nv-distroplot-observation')

@@ -26,9 +26,11 @@ nv.models.distroPlotChart = function() {
         title = false,
         titleOffset = {top: 0, left: 0},
         x, y,
+        state = nv.utils.state(),
+        defaultState = null,
         noData = 'No Data Available.',
-        dispatch = d3.dispatch('beforeUpdate', 'renderEnd'),
-        duration = 250;
+        dispatch = d3.dispatch('stateChange', 'beforeUpdate', 'renderEnd'),
+        duration = 500;
 
     xAxis
         .orient('bottom')
@@ -49,6 +51,23 @@ nv.models.distroPlotChart = function() {
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var colorGroup0, marginTop0;
+
+    var stateGetter = function(data) {
+        return function(){
+            return {
+                active: data.map(function(d) { return !d.disabled }),
+            };
+        }
+    };
+
+    var stateSetter = function(data) {
+        return function(state) {
+            if (state.active !== undefined)
+                data.forEach(function(series,i) {
+                    series.disabled = !state.active[i];
+                });
+        }
+    };
 
 
     function chart(selection) {
@@ -79,6 +98,22 @@ nv.models.distroPlotChart = function() {
             };
             chart.container = this;
 
+            state
+                .setter(stateSetter(data), chart.update)
+                .getter(stateGetter(data))
+                .update();
+
+
+            if (!defaultState) {
+                var key;
+                defaultState = {};
+                for (key in state) {
+                    if (state[key] instanceof Array)
+                        defaultState[key] = state[key].slice(0);
+                    else
+                        defaultState[key] = state[key];
+                }
+            }
 
             if (typeof d3.beeswarm !== 'function' && chart.options().observationType() == 'swarm') {
                 noData = 'You must first load beeswarm.js is using a swarm observation type (see https://github.com/Kcnarf/d3-beeswarm).'
@@ -108,7 +143,9 @@ nv.models.distroPlotChart = function() {
                 .append('line');
 
             gEnter.append('g').attr('class', 'nv-distroWrap');
-            g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            gEnter.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            g.watchTransition(renderWatch, 'nv-wrap: wrap')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
 
             if (rightAlignYAxis) {
                 g.select('.nv-y.nv-axis')
@@ -200,6 +237,7 @@ nv.models.distroPlotChart = function() {
                     .attr('transform', 'translate(0,' + (bottomAlignLegend ? (availableHeight + legend.height() - 5) : (-legend.height() + 5)) +')')
             }
 
+
             // Zero line on chart bottom
             g.select('.nv-zeroLine line')
                 .attr('x1',0)
@@ -215,6 +253,14 @@ nv.models.distroPlotChart = function() {
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
+
+            legend.dispatch.on('stateChange', function(newState) {
+                for (var key in newState)
+                    state[key] = newState[key];
+                dispatch.stateChange(state);
+                chart.update();
+            });
+
         });
 
         renderWatch.renderEnd('nv-distroplot chart immediate');
@@ -247,6 +293,7 @@ nv.models.distroPlotChart = function() {
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
     chart.legend = legend;
+    chart.state = state;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -260,6 +307,7 @@ nv.models.distroPlotChart = function() {
         tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
         showLegend:    {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
         bottomAlignLegend:    {get: function(){return bottomAlignLegend;}, set: function(_){bottomAlignLegend=_;}},
         title:       {get: function(){return title;}, set: function(_){title=_;}},
         titleOffset: {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
