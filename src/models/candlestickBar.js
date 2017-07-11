@@ -25,8 +25,6 @@ nv.models.candlestickBar = function() {
         , clipEdge = true
         , color = nv.utils.defaultColor()
         , interactive = false
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , xDomain
         , yDomain
         , xRange
@@ -94,21 +92,6 @@ nv.models.candlestickBar = function() {
                         id: id
                     });
                 });
-
-            var g_bar = wrapEnter.append('g').attr('class', 'nv-bar');
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_bar
-                    .append("text")
-                    .attr('class', 'nv-bar-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-chart-clip-path-' + id)
@@ -218,8 +201,7 @@ nv.models.candlestickBar = function() {
         clipEdge: {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
         id:       {get: function(){return id;}, set: function(_){id=_;}},
         interactive: {get: function(){return interactive;}, set: function(_){interactive=_;}},
-        title:        {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
+
         x:     {get: function(){return getX;}, set: function(_){getX=_;}},
         y:     {get: function(){return getY;}, set: function(_){getY=_;}},
         open:  {get: function(){return getOpen();}, set: function(_){getOpen=_;}},

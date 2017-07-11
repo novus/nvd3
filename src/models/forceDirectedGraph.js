@@ -12,8 +12,6 @@ nv.models.forceDirectedGraph = function() {
         , color = nv.utils.getColor(['#000'])
         , tooltip      = nv.models.tooltip()
         , noData = null
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         // Force directed graph specific parameters [default values]
         , linkStrength = 0.1
         , friction = 0.9
@@ -59,21 +57,6 @@ nv.models.forceDirectedGraph = function() {
               container.selectAll('.nv-noData').remove();
           }
           container.selectAll('*').remove();
-
-          var g_force = container.append('g').attr('class', 'nv-force');
-
-          // add a title if specified
-          if (title) {
-              var plotTitle = g_force
-                  .append("text")
-                  .attr('class', 'nv-force-title')
-                  .style("text-anchor", "middle")
-                  .style("font-size", "150%")
-                  .text(function (d) { return title; })
-                  .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',40)'; }) // center title
-                  .attr('dx',titleOffset.left)
-                  .attr('dy',titleOffset.top)
-          }
 
           // Collect names of all fields in the nodes
           var nodeFieldSet = new Set();
@@ -167,8 +150,6 @@ nv.models.forceDirectedGraph = function() {
         // simple options, just get/set the necessary values
         width:     {get: function(){return width;}, set: function(_){width=_;}},
         height:    {get: function(){return height;}, set: function(_){height=_;}},
-        title:        {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
 
         // Force directed graph specific parameters
         linkStrength:{get: function(){return linkStrength;}, set: function(_){linkStrength=_;}},

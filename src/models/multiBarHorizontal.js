@@ -20,8 +20,6 @@ nv.models.multiBarHorizontal = function() {
         , color = nv.utils.defaultColor()
         , barColor = null // adding the ability to set the color for each rather than the whole group
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , stacked = false
         , showValues = false
         , showBarLabels = false
@@ -119,22 +117,6 @@ nv.models.multiBarHorizontal = function() {
             gEnter.append('g').attr('class', 'nv-groups');
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var g_bar = wrapEnter.append('g').attr('class', 'nv-title');
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_bar
-                    .append("text")
-                    .attr('class', 'nv-bar-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
-
-
             var groups = wrap.select('.nv-groups').selectAll('.nv-group')
                 .data(function(d) { return d }, function(d,i) { return i });
             groups.enter().append('g')
@@ -226,13 +208,13 @@ nv.models.multiBarHorizontal = function() {
                         var xerr = getYerr(d,i)
                             , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
                         xerr = xerr.length ? xerr : [-Math.abs(xerr), Math.abs(xerr)];
-                        xerr = xerr.map(function(e) { return y(e) - y(0); });
+                        xerr = xerr.map(function(e) { return y(e + ((getY(d,i) < 0) ? 0 : getY(d,i))) - y(0); });
                         var a = [[xerr[0],-mid], [xerr[0],mid], [xerr[0],0], [xerr[1],0], [xerr[1],-mid], [xerr[1],mid]];
                         return a.map(function (path) { return path.join(',') }).join(' ');
                     })
                     .attr('transform', function(d,i) {
                         var mid = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        return 'translate(' + (getY(d,i) < 0 ? 0 : y(getY(d,i)) - y(0)) + ', ' + mid + ')'
+                        return 'translate(0, ' + mid + ')';
                     });
             }
 
@@ -346,8 +328,6 @@ nv.models.multiBarHorizontal = function() {
         forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
         stacked: {get: function(){return stacked;}, set: function(_){stacked=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
-        title:        {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         // this shows the group name, seems pointless?
         //showBarLabels:    {get: function(){return showBarLabels;}, set: function(_){showBarLabels=_;}},
         disabled:     {get: function(){return disabled;}, set: function(_){disabled=_;}},

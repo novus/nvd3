@@ -24,8 +24,6 @@ nv.models.bullet = function() {
         , forceX = [0] // List of numbers to Force into the X scale (ie. 0, or a max / min, etc.)
         , width = 380
         , height = 30
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , container = null
         , tickFormat = null
         , color = nv.utils.getColor(['#1f77b4'])
@@ -96,7 +94,6 @@ nv.models.bullet = function() {
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
-            var g_bullet = container.append('g').attr('class', 'nv-bullet');
 
             for(var i=0,il=rangez.length; i<il; i++){
                 var rangeClassNames = 'nv-range nv-range'+i;
@@ -109,20 +106,6 @@ nv.models.bullet = function() {
             gEnter.append('rect').attr('class', 'nv-measure');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_bullet
-                    .append("text")
-                    .attr('class', 'nv-bullet-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
 
             var w0 = function(d) { return Math.abs(x0(d) - x0(0)) }, // TODO: could optimize by precalculating x0(0) and x1(0)
                 w1 = function(d) { return Math.abs(x1(d) - x1(0)) };
@@ -305,8 +288,6 @@ nv.models.bullet = function() {
         height:    {get: function(){return height;}, set: function(_){height=_;}},
         tickFormat:    {get: function(){return tickFormat;}, set: function(_){tickFormat=_;}},
         duration:    {get: function(){return duration;}, set: function(_){duration=_;}},
-        title:       {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset: {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

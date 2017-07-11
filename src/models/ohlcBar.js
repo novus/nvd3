@@ -25,8 +25,6 @@ nv.models.ohlcBar = function() {
         , clipEdge = true
         , color = nv.utils.defaultColor()
         , interactive = false
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , xDomain
         , yDomain
         , xRange
@@ -84,21 +82,6 @@ nv.models.ohlcBar = function() {
             gEnter.append('g').attr('class', 'nv-ticks');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            var g_ohlc = wrapEnter.append('g').attr('class', 'nv-ohlc');
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_ohlc
-                    .append("text")
-                    .attr('class', 'nv-ohlc-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
 
             container
                 .on('click', function(d,i) {
@@ -223,8 +206,6 @@ nv.models.ohlcBar = function() {
         clipEdge: {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
         id:       {get: function(){return id;}, set: function(_){id=_;}},
         interactive: {get: function(){return interactive;}, set: function(_){interactive=_;}},
-        title:        {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
 
         x:     {get: function(){return getX;}, set: function(_){getX=_;}},
         y:     {get: function(){return getY;}, set: function(_){getY=_;}},

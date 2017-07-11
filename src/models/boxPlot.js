@@ -22,8 +22,6 @@ nv.models.boxPlot = function() {
         getOlValue = function(d, i, j) { return d },
         getOlLabel = function(d, i, j) { return d },
         getOlColor = function(d, i, j) { return undefined },
-        title = false,
-        titleOffset = {top: 0, left: 0},
         color = nv.utils.defaultColor(),
         container = null,
         xDomain, xRange,
@@ -102,21 +100,6 @@ nv.models.boxPlot = function() {
                     return 'translate(' + (xScale(getX(d,i)) + xScale.rangeBand() * 0.05) + ', 0)';
                 });
             boxplots.exit().remove();
-
-            var g_box = wrapEnter.append('g').attr('class', 'nv-box');
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_box
-                    .append("text")
-                    .attr('class', 'nv-box-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
 
             // ----- add the SVG elements for each boxPlot -----
 
@@ -309,8 +292,6 @@ nv.models.boxPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        title:       {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset: {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         // rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
         y: {

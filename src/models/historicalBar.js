@@ -22,8 +22,6 @@ nv.models.historicalBar = function() {
         , color = nv.utils.defaultColor()
         , xDomain
         , yDomain
-        , title = false
-        , titleOffset = {top: 0, left: 0}
         , xRange
         , yRange
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
@@ -70,23 +68,9 @@ nv.models.historicalBar = function() {
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
-            var g_bar = wrapEnter.append('g').attr('class', 'nv-bar');
 
             gEnter.append('g').attr('class', 'nv-bars');
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            // add a title if specified
-            if (title) {
-                var plotTitle = g_bar
-                    .append("text")
-                    .attr('class', 'nv-bar-title')
-                    .style("text-anchor", "middle")
-                    .style("font-size", "150%")
-                    .text(function (d) { return title; })
-                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
-                    .attr('dx',titleOffset.left)
-                    .attr('dy',titleOffset.top)
-            }
 
             container
                 .on('click', function(d,i) {
@@ -228,8 +212,6 @@ nv.models.historicalBar = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        title:       {get: function(){return title;}, set: function(_){title=_;}},
-        titleOffset: {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         clipEdge:    {get: function(){return clipEdge;}, set: function(_){clipEdge=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         interactive: {get: function(){return interactive;}, set: function(_){interactive=_;}},
