@@ -70,9 +70,9 @@ nv.models.distroPlotChart = function() {
             chart.update = function() {
                 var opts = distroplot.options()
                 if (colorGroup0.toString() != opts.colorGroup().toString()) {
-                    // todo - legend not showing, tooltips are bad
                     distroplot.recalcData();
                     d3.selectAll('.nv-distroplot-x-group').remove();
+                    wrap.remove();
                 }
                 dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
