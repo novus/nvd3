@@ -593,6 +593,8 @@ nv.models.scatter = function() {
                     .classed('hover',false);
                 });
                 titles.watchTransition(renderWatch, 'scatter labels')
+                    .text(function(d,i){ 
+                        return d[0].label;})
                     .attr('transform', function(d) {
                         var dx = nv.utils.NaNtoZero(x(getX(d[0],d[1])))+ Math.sqrt(z(getSize(d[0],d[1]))/Math.PI)+2;
                         return 'translate(' + dx + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
