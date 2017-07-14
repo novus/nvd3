@@ -313,12 +313,13 @@ nv.models.distroPlot = function() {
     function makeNotchBox(boxLeft, notchLeft, boxCenter, dat) {
 
         var boxPoints;
+        var y = showMiddle == 'mean' ? getMean(dat) : getQ2(dat); // if showMiddle is not specified, we still want to notch boxes on 'median'
         if (notchBox) {
             boxPoints = [
                     {x:boxCenter, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getNl(dat))},
-                    {x:notchLeft, y:yScale(getQ2(dat))},
+                    {x:notchLeft, y:yScale(y)},
                     {x:boxLeft, y:yScale(getNu(dat))},
                     {x:boxLeft, y:yScale(getQ3(dat))},
                     {x:boxCenter, y:yScale(getQ3(dat))},
@@ -328,7 +329,7 @@ nv.models.distroPlot = function() {
                     {x:boxCenter, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getQ2(dat))}, // repeated point so that transition between notched/regular more smooth
-                    {x:boxLeft, y:yScale(getQ2(dat))},
+                    {x:boxLeft, y:yScale(y)},
                     {x:boxLeft, y:yScale(getQ3(dat))}, // repeated point so that transition between notched/regular more smooth
                     {x:boxLeft, y:yScale(getQ3(dat))},
                     {x:boxCenter, y:yScale(getQ3(dat))},
