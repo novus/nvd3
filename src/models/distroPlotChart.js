@@ -177,15 +177,13 @@ nv.models.distroPlotChart = function() {
                     .ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize(-availableHeight, 0);
 
-                g.select('.nv-x.nv-axis').attr('transform', 'translate(0,' + y.range()[0] + ')');
+                g.select('.nv-x.nv-axis').attr('transform', 'translate(0,' + y.range()[0] + ')')
                 g.select('.nv-x.nv-axis').call(xAxis);
 
-                var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
-                if (staggerLabels) {
-                    xTicks
-                        .selectAll('text')
-                        .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 === 0 ? '5' : '17') + ')' })
-                }
+                g.select('.nv-x.nv-axis').select('.nv-axislabel')
+                    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
+                    .watchTransition(renderWatch, 'distroPlot: g_title')
+                    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
             }
 
             if (showYAxis) {
@@ -195,7 +193,13 @@ nv.models.distroPlotChart = function() {
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis').call(yAxis);
+
+                g.select('.nv-y.nv-axis').select('.nv-axislabel')
+                    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
+                    .watchTransition(renderWatch, 'distroPlot: g_title')
+                    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
             }
+
 
             // add title DOM
             var g_title = gEnter.append('g').attr('class','nv-title')
@@ -206,7 +210,7 @@ nv.models.distroPlotChart = function() {
                 .enter()
                 .append("text")
                 .style("text-anchor", "middle")
-                .style("font-size", "calc(16px + 1.5vmin)")
+                .style('font-size', d3.min([availableWidth * 0.07,30]) + 'px')
                 .text(function () { return !title ? null : title; })
                 .attr('dx',titleOffset.left)
                 .attr('dy',titleOffset.top)
@@ -218,6 +222,7 @@ nv.models.distroPlotChart = function() {
             d3.select('.nv-title text')
                 .watchTransition(renderWatch, 'distroPlot: g_title')
                 .text(function () { return !title ? null : title; })
+                .style('font-size', d3.min([availableWidth * 0.07,30]) + 'px')
 
             // setup legend
             if (distroplot.colorGroup() && showLegend) { 
