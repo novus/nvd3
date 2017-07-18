@@ -425,9 +425,17 @@ nv.models.distroPlot = function() {
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap');
             wrap.watchTransition(renderWatch, 'nv-wrap: wrap')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
-
+            
             var areaEnter,
                 distroplots = wrap.selectAll('.nv-distroplot-x-group').data(function(d) { return d }, function(e) { return e.series}); // use series for object constancy
+
+            // rebind new data
+            // we don't rebuild individual x-axis groups so that we can update transition them
+            // however the data associated with each x-axis grou needs to be updated
+            // so we manually update it here
+            distroplots.each(function(d,i) {
+                d3.select(this).selectAll('line.nv-distroplot-middle').datum(d);
+            })
 
             if (!colorGroup) {
 
@@ -474,9 +482,12 @@ nv.models.distroPlot = function() {
             var tickLeft  = function() { return areaCenter() - areaWidth()/5; };
             var tickRight = function() { return areaCenter() + areaWidth()/5; };
 
+            distroplots.exit().remove();
+
+            console.log(xScale.range(), xScale.domain())
             distroplots
                 .attr('class', 'nv-distroplot-x-group')
-                .attr('transform', function(d) {
+                .attr('transform', function(d) { console.log(d, d.key, xScale(d.key), rangeBand, areaWidth())
                     return 'translate(' + (xScale(d.key) + (rangeBand - areaWidth()) * 0.5) + ', 0)';
                 });
 
@@ -488,7 +499,6 @@ nv.models.distroPlot = function() {
                     return 'translate(' + (xScale(d.key) + (rangeBand - areaWidth()) * 0.5) + ', 0)';
                 });
 
-            distroplots.exit().remove();
 
             if (colorGroup) distroplots = d3.selectAll('.nv-colorGroup'); // redefine distroplots as all existing distributions
 
@@ -666,14 +676,15 @@ nv.models.distroPlot = function() {
 
             // median/mean line
             areaEnter.append('line')
-                .attr('class', 'nv-distroplot-middle') 
+                .attr('class', function(d) { return 'nv-distroplot-middle'}) 
+
 
             distroplots.selectAll('line.nv-distroplot-middle')
-              .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
+                .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
                 .attr('x1', notchBox ? tickLeft : plotType == 'box' ? areaLeft : tickLeft())
-                .attr('y1', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+                .attr('y1', function(d,i,j) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
                 .attr('x2', notchBox ? tickRight : plotType == 'box' ? areaRight : tickRight())
-                .attr('y2', function(d) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
+                .attr('y2', function(d,i) { return showMiddle == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
                 .style('opacity', showMiddle ? '1' : '0');
 
 
@@ -707,19 +718,21 @@ nv.models.distroPlot = function() {
             // setup observations
             // create DOMs even if not requested (and hide them), so that
             // we can do updates
-            var wrap = areaEnter.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-observation')
+            var obsWrap = distroplots.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-observation')
                 .data(function(d) { return getValsObj(d); });
 
-            var scatter = wrap.enter()
+            var scatter = obsWrap.enter()
                 .append('circle')
                 .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                 .style({'z-index': 9000, 'opacity': 0})
 
-            var lines = wrap.enter()
+            var lines = obsWrap.enter()
                 .append('line')
                 .attr('class', 'nv-distroplot-observation')
                 .style('stroke-width', 1)
                 .style({'stroke': d3.rgb(85, 85, 85), 'opacity': 0})
+
+            obsWrap.exit().remove();
 
             // TODO only call when window finishes resizing, otherwise jitterX call slows things down
             // transition observations
@@ -789,8 +802,6 @@ nv.models.distroPlot = function() {
                     .on('mousemove', function(d,i) {
                         dispatch.elementMousemove({e: d3.event});
                     });
-    
-            wrap.exit().remove();
 
         });
 
@@ -833,7 +844,7 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        recalcData: {get: function() { console.log('recalc'); reformatDat = prepData(data); } },
+        recalcData: {get: function() { reformatDat = prepData(data); } },
         itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
 
