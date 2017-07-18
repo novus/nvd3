@@ -156,7 +156,11 @@ nv.models.distroPlot = function() {
      *      min: XX,
      *      max: XX,
      *      dev: XX,
-     *      observations: [{y:XX,..},..] // XXX to update
+     *      observations: [{y:XX,..},..],
+     *      key: XX,
+     *      kdeDat: XX,
+     *      nu: XX,
+     *      nl: XX,
      *    }
      *  },
      *  ...
@@ -276,7 +280,10 @@ nv.models.distroPlot = function() {
                 .entries(dat);
         }
 
-
+        // add series index for object constancy
+        formatted.forEach(function(d,i) {
+            d.series = i;
+        });
         return formatted;
     }
 
@@ -328,9 +335,9 @@ nv.models.distroPlot = function() {
             boxPoints = [
                     {x:boxCenter, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getQ1(dat))},
-                    {x:boxLeft, y:yScale(getQ2(dat))}, // repeated point so that transition between notched/regular more smooth
+                    {x:boxLeft, y:yScale(y)}, // repeated point so that transition between notched/regular more smooth
                     {x:boxLeft, y:yScale(y)},
-                    {x:boxLeft, y:yScale(getQ3(dat))}, // repeated point so that transition between notched/regular more smooth
+                    {x:boxLeft, y:yScale(y)}, // repeated point so that transition between notched/regular more smooth
                     {x:boxLeft, y:yScale(getQ3(dat))},
                     {x:boxCenter, y:yScale(getQ3(dat))},
                 ];
@@ -420,7 +427,7 @@ nv.models.distroPlot = function() {
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
 
             var areaEnter,
-                distroplots = wrap.selectAll('.nv-distroplot-x-group').data(function(d) { return d });
+                distroplots = wrap.selectAll('.nv-distroplot-x-group').data(function(d) { return d }, function(e) { return e.series}); // use series for object constancy
 
             if (!colorGroup) {
 
@@ -624,6 +631,7 @@ nv.models.distroPlot = function() {
                             { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'mean', value: getMean(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
                         ],
                         data: d,
@@ -643,6 +651,7 @@ nv.models.distroPlot = function() {
                             { key: 'Q2', value: getQ2(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'Q1', value: getQ1(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'mean', value: getMean(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
                         ],
                         data: d,
@@ -668,33 +677,32 @@ nv.models.distroPlot = function() {
                 .style('opacity', showMiddle ? '1' : '0');
 
 
+            // tooltip
+            distroplots.selectAll('.nv-distroplot-middle')
+                .on('mouseover', function(d,i,j) {
+                    if (d3.select(this).style('opacity') == 0) return; // don't show tooltip for hidden lines
+                    var fillColor = d3.select(this.parentNode).style('fill'); // color set by parent g fill
+                    d3.select(this).classed('hover', true);
+                    dispatch.elementMouseover({
+                        value: showMiddle == 'mean' ? 'Mean' : 'Median',
+                        series: { key: showMiddle == 'mean' ? getMean(d).toFixed(2) : getQ2(d).toFixed(2), color: fillColor },
+                        e: d3.event
+                    });
+                })
+                .on('mouseout', function(d,i,j) {
+                    if (d3.select(this).style('opacity') == 0) return; // don't show tooltip for hidden lines
+                    d3.select(this).classed('hover', false);
+                    var fillColor = d3.select(this.parentNode).style('fill'); // color set by parent g fill
+                    dispatch.elementMouseout({
+                        value: showMiddle == 'mean' ? 'Mean' : 'Median',
+                        series: { key: showMiddle == 'mean' ? getMean(d).toFixed(2) : getQ2(d).toFixed(2), color: fillColor },
+                        e: d3.event
+                    });
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
+                });
 
-                // tooltip
-                distroplots.selectAll('.nv-distroplot-middle')
-                        .on('mouseover', function(d,i,j) {
-                            if (d3.select(this).style('opacity') == 0) return; // don't show tooltip for hidden lines
-                            var fillColor = d3.select(this.parentNode).style('fill'); // color set by parent g fill
-                            d3.select(this).classed('hover', true);
-                            dispatch.elementMouseover({
-                                value: showMiddle == 'mean' ? 'Mean' : 'Median',
-                                series: { key: showMiddle == 'mean' ? getMean(d).toFixed(2) : getQ2(d).toFixed(2), color: fillColor },
-                                e: d3.event
-                            });
-                        })
-                        .on('mouseout', function(d,i,j) {
-                            if (d3.select(this).style('opacity') == 0) return; // don't show tooltip for hidden lines
-                            d3.select(this).classed('hover', false);
-                            var fillColor = d3.select(this.parentNode).style('fill'); // color set by parent g fill
-                            dispatch.elementMouseout({
-                                value: showMiddle == 'mean' ? 'Mean' : 'Median',
-                                series: { key: showMiddle == 'mean' ? getMean(d).toFixed(2) : getQ2(d).toFixed(2), color: fillColor },
-                                e: d3.event
-                            });
-                        })
-                        .on('mousemove', function(d,i) {
-                            dispatch.elementMousemove({e: d3.event});
-                        });
-            //}
 
             // setup observations
             // create DOMs even if not requested (and hide them), so that
@@ -825,7 +833,7 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        recalcData: {get: function() { reformatDat = prepData(data); } },
+        recalcData: {get: function() { console.log('recalc'); reformatDat = prepData(data); } },
         itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
 

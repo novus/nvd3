@@ -50,7 +50,7 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var colorGroup0, marginTop0;
+    var colorGroup0, marginTop0, x0, value0;
 
     var stateGetter = function(data) {
         return function(){
@@ -88,10 +88,12 @@ nv.models.distroPlotChart = function() {
 
             chart.update = function() {
                 var opts = distroplot.options()
-                if (colorGroup0.toString() != opts.colorGroup().toString()) {
-                    distroplot.recalcData();
-                    d3.selectAll('.nv-distroplot-x-group').remove();
-                    wrap.remove();
+                if (colorGroup0.toString() !== opts.colorGroup().toString() ||
+                    x0.toString() !== opts.x().toString() ||
+                    value0.toString() !== opts.value().toString()
+                ) {
+                    distroplot.recalcData(); // recalculate data so all proper variables are set
+                    if (colorGroup0.toString() !== opts.colorGroup().toString()) wrap.remove(); // only reset entire plot if adding/removing colorGroup
                 }
                 dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
@@ -253,6 +255,8 @@ nv.models.distroPlotChart = function() {
 
             // store original values so that we can update things properly
             colorGroup0 = distroplot.options().colorGroup();
+            x0 = distroplot.options().x();
+            value0 = distroplot.options().value();
             if (!title) marginTop0 = margin.top;
 
             //============================================================

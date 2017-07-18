@@ -72,6 +72,11 @@
         <button onclick="updatePlot(defaultBox);">Box</button>
         <button onclick="updatePlot({plotType: 'violin'});">Violin</button>
         <br>
+        X-axis
+        <button onclick="updatePlot({x: function(d) { return d.isolator; }});">Isolator</button>
+        <button onclick="updatePlot({x: function(d) { return d.donor; }});">Donor</button>
+        <button onclick="updatePlot({x: function(d) { return d.subject; }});">Subject</button>
+        <br>
         Decorations
         <button onclick="updatePlot({notchBox: true, plotType: 'box'});">Notched box</button>
         <button onclick="updatePlot({showMiddle: 'mean'});">Mean line</button>
@@ -81,7 +86,7 @@
         <br>
         Observation positions
         <button onclick="updatePlot({observationType: 'random'});">Random</button>
-        <button onclick="updatePlot({showOnlyOutliers: false});">show only outliers = false</button>
+        <button onclick="showOnlyOutliers=!showOnlyOutliers; updatePlot({showOnlyOutliers: showOnlyOutliers});">toggle showOnlyOutliers</button>
         <button onclick="updatePlot({observationType: 'swarm'});">Swarm</button>
         <button onclick="updatePlot({observationType: 'centered'});">Center</button>
         <button onclick="updatePlot({observationType: 'line'});">Line</button>
@@ -106,7 +111,8 @@
 
 <script>
 
-    var chart = nv.models.distroPlotChart()
+    var chart = nv.models.distroPlotChart();
+    var showOnlyOutliers = true;
     var defaultBox = {
         x: function(d) { return d.study },
         value: function(d) { return d.weight }, 
