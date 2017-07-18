@@ -117,7 +117,9 @@ nv.models.distroPlot = function() {
     Scott, D.W. (1992) Multivariate Density Estimation: Theory, Practice, and
         Visualization.
      */
-    function calcBandwidth(x, type='scott') {
+    function calcBandwidth(x, type) {
+
+        if (typeof type === 'undefined') type = 'scott';
 
         // TODO: consider using https://github.com/jasondavies/science.js
         var A = select_sigma(x);
@@ -204,7 +206,14 @@ nv.models.distroPlot = function() {
                 e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
             })
 
-            if (isNaN(bandwidth)) bandwidth = calcBandwidth(v, bandwidth);
+            // calculate bandwidth if no number is provided
+            if(isNaN(parseFloat(bandwidth))) { // if not is float
+                if (['scott','silverman'].indexOf(bandwidth) != -1) {
+                    bandwidth = calcBandwidth(v, bandwidth);
+                } else {
+                    bandwidth = calcBandwidth(v); // calculate with default 'scott'
+                }
+            }
             var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
             var kdeDat = kde(v);
 
@@ -304,12 +313,13 @@ nv.models.distroPlot = function() {
     function makeNotchBox(boxLeft, notchLeft, boxCenter, dat) {
 
         var boxPoints;
+        var y = showMiddle == 'mean' ? getMean(dat) : getQ2(dat); // if showMiddle is not specified, we still want to notch boxes on 'median'
         if (notchBox) {
             boxPoints = [
                     {x:boxCenter, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getNl(dat))},
-                    {x:notchLeft, y:yScale(getQ2(dat))},
+                    {x:notchLeft, y:yScale(y)},
                     {x:boxLeft, y:yScale(getNu(dat))},
                     {x:boxLeft, y:yScale(getQ3(dat))},
                     {x:boxCenter, y:yScale(getQ3(dat))},
@@ -319,7 +329,7 @@ nv.models.distroPlot = function() {
                     {x:boxCenter, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getQ1(dat))},
                     {x:boxLeft, y:yScale(getQ2(dat))}, // repeated point so that transition between notched/regular more smooth
-                    {x:boxLeft, y:yScale(getQ2(dat))},
+                    {x:boxLeft, y:yScale(y)},
                     {x:boxLeft, y:yScale(getQ3(dat))}, // repeated point so that transition between notched/regular more smooth
                     {x:boxLeft, y:yScale(getQ3(dat))},
                     {x:boxCenter, y:yScale(getQ3(dat))},
