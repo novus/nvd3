@@ -437,15 +437,38 @@ nv.models.distroPlot = function() {
                 d3.select(this).selectAll('line.nv-distroplot-middle').datum(d);
             })
 
-            if (!colorGroup) {
+            areaEnter = distroplots.enter()
+                .append('g')
+                .attr('class', 'nv-distroplot-x-group')
+                .style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6)
+                .style('fill', function(d,i) { return getColor(d) || color(d,i) })
+                .style('stroke', function(d,i) { return getColor(d) || color(d,i) })
 
-                areaEnter = distroplots.enter()
-                    .append('g')
-                    .style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6)
-                    .style('fill', function(d,i) { return getColor(d) || color(d,i) })
-                    .style('stroke', function(d,i) { return getColor(d) || color(d,i) })
+            distroplots.exit().remove();
 
-            } else {
+            var rangeBand = function() { return colorGroup ? colorGroupSizeScale.rangeBand() : xScale.rangeBand() };
+            var areaWidth = function() { return d3.min([maxBoxWidth,rangeBand() * 0.9]); };
+            var areaCenter = function() { return areaWidth()/2; };
+            var areaLeft  = function() { return areaCenter() - areaWidth()/2; };
+            var areaRight = function() { return areaCenter() + areaWidth()/2; };
+            var tickLeft  = function() { return areaCenter() - areaWidth()/5; };
+            var tickRight = function() { return areaCenter() + areaWidth()/5; };
+
+            areaEnter.attr('transform', function(d) {
+                    return 'translate(' + (xScale(d.key) + (rangeBand() - areaWidth()) * 0.5) + ', 0)';
+                });
+
+            distroplots
+                .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
+                .style('stroke-opacity', 1)
+                .style('fill-opacity', 0.5)
+                .attr('transform', function(d) {
+                    return 'translate(' + (xScale(d.key) + (rangeBand() - areaWidth()) * 0.5) + ', 0)';
+                });
+
+
+
+            if (colorGroup) {
 
                 // setup a scale for each color group
                 // so that we can position g's properly
@@ -455,9 +478,7 @@ nv.models.distroPlot = function() {
                 // setup color scale for coloring groups
                 getColor = function(d) { return colorGroupColorScale(d.key) }
 
-                var xGroup = distroplots.enter()
-                    .append('g')
-                    .style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6)
+                var xGroup = areaEnter.style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6)
                     .selectAll('g.nv-colorGroup')
                     .data(function(d) { return d.values; })
 
@@ -472,35 +493,11 @@ nv.models.distroPlot = function() {
                     .watchTransition(renderWatch, 'nv-colorGroup xGroup')
                     .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.key)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
 
+                distroplots = d3.selectAll('.nv-colorGroup'); // redefine distroplots as all existing distributions
             }
 
-            var rangeBand = colorGroup ? colorGroupSizeScale.rangeBand() : xScale.rangeBand();
-            var areaWidth = function() { return d3.min([maxBoxWidth,rangeBand * 0.9]); };
-            var areaCenter = function() { return areaWidth()/2; };
-            var areaLeft  = function() { return areaCenter() - areaWidth()/2; };
-            var areaRight = function() { return areaCenter() + areaWidth()/2; };
-            var tickLeft  = function() { return areaCenter() - areaWidth()/5; };
-            var tickRight = function() { return areaCenter() + areaWidth()/5; };
-
-            distroplots.exit().remove();
-
-            console.log(xScale.range(), xScale.domain())
-            distroplots
-                .attr('class', 'nv-distroplot-x-group')
-                .attr('transform', function(d) { console.log(d, d.key, xScale(d.key), rangeBand, areaWidth())
-                    return 'translate(' + (xScale(d.key) + (rangeBand - areaWidth()) * 0.5) + ', 0)';
-                });
-
-            distroplots
-                .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
-                .style('stroke-opacity', 1)
-                .style('fill-opacity', 0.5)
-                .attr('transform', function(d) {
-                    return 'translate(' + (xScale(d.key) + (rangeBand - areaWidth()) * 0.5) + ', 0)';
-                });
 
 
-            if (colorGroup) distroplots = d3.selectAll('.nv-colorGroup'); // redefine distroplots as all existing distributions
 
             // set range for violin scale
             yVScale.map(function(d) { d.range([areaWidth()/2, 0]) });
