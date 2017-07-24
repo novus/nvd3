@@ -25,8 +25,8 @@ nv.models.distroPlot = function() {
         getQ1 = function(d) { return d.values.q1 },
         getQ2 = function(d) { return d.values.q2 },
         getQ3 = function(d) { return d.values.q3 },
-        getNl = function(d) { return d.values.nl },
-        getNu = function(d) { return d.values.nu },
+        getNl = function(d) { return (showMiddle == 'mean' ? getMean(d) : getQ2(d)) - d.values.notch },
+        getNu = function(d) { return (showMiddle == 'mean' ? getMean(d) : getQ2(d)) + d.values.notch },
         getMean = function(d) { return d.values.mean },
         getWl = function(d) { return d.values.wl[whiskerDef] },
         getWh = function(d) { return d.values.wu[whiskerDef] },
@@ -159,8 +159,7 @@ nv.models.distroPlot = function() {
      *      observations: [{y:XX,..},..],
      *      key: XX,
      *      kdeDat: XX,
-     *      nu: XX,
-     *      nl: XX,
+     *      notch: XX,
      *    }
      *  },
      *  ...
@@ -243,8 +242,7 @@ nv.models.distroPlot = function() {
                 observations: observations,
                 key: xGroup,
                 kde: kdeDat,
-                nu: median + 1.57 * iqr / Math.sqrt(v.length), // upper notch
-                nl: median - 1.57 * iqr / Math.sqrt(v.length), // lower notch
+                notch: 1.57 * iqr / Math.sqrt(v.length), // notch distance from mean/median
             };
 
             if (colorGroup) {reformatDatFlat.push({key: xGroup, values: reformat});}
@@ -414,7 +412,6 @@ nv.models.distroPlot = function() {
                   .range(yRange || [availableHeight, 0]);
 
             if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
-
 
             // setup xscale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
