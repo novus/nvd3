@@ -88,12 +88,11 @@ nv.models.distroPlotChart = function() {
 
             chart.update = function() {
                 var opts = distroplot.options()
-                if (colorGroup0.toString() !== opts.colorGroup().toString() ||
+                if (colorGroup0.toString() !== opts.colorGroup().toString() || // recalc data when any of the axis accessors are changed
                     x0.toString() !== opts.x().toString() ||
                     value0.toString() !== opts.value().toString()
                 ) {
-                    distroplot.recalcData(); // recalculate data so all proper variables are set
-                    if (colorGroup0.toString() !== opts.colorGroup().toString()) wrap.remove(); // only reset entire plot if adding/removing colorGroup
+                    distroplot.recalcData();
                 }
                 dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
@@ -127,7 +126,6 @@ nv.models.distroPlotChart = function() {
             } else {
                 container.selectAll('.nv-noData').remove();
             }
-
 
             // Setup Scales
             x = distroplot.xScale();
@@ -186,6 +184,13 @@ nv.models.distroPlotChart = function() {
                     .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
                     .watchTransition(renderWatch, 'distroPlot: g_title')
                     .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
+
+                var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+                if (staggerLabels) {
+                    xTicks
+                        .selectAll('text')
+                        .attr('transform', function(d,i,j) { return 'translate(0,' + (j % 2 === 0 ? '5' : '17') + ')' })
+                }
             }
 
             if (showYAxis) {

@@ -44,7 +44,7 @@ nv.models.distroPlot = function() {
         showMiddle = false,
         showOnlyOutliers = true, // show only outliers in box plot
         jitter = 0.7, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
-        squash = true, // whether to squash sparse distribution of color groups towards middle of x-axis position, default is true
+        squash = true, // whether to remove the x-axis positions for empty data groups, default is true
         bandwidth = 'scott', // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
         resolution = 50,
         observationRadius = 3,
@@ -135,7 +135,8 @@ nv.models.distroPlot = function() {
      * count, sum, mean, q1, q2 (median), q3, lower whisker (wl)
      * upper whisker (wu), iqr, min, max, and standard dev.
      *
-     * NOTE: this will also setup the yScale and xScale.
+     * NOTE: this will also setup the individual vertical scales
+     *       for the violins.
      *
      * @param (list) dat - input data formatted as list of objects,
      *   with an object key that must exist when accessed by getX()
@@ -264,18 +265,41 @@ nv.models.distroPlot = function() {
                 })
                 .entries(dat);
         } else {
-            formatted = d3.nest()
+            var tmp = d3.nest()
                 .key(function(d) { return getX(d); })
                 .key(function(d) { return colorGroup(d); })
                 .rollup(function(v) {
                     var xGroup = getX(v[0])
                     var sortDat = v.map(function(d) {
-                        allColorGroups.add(colorGroup(d));
+                        allColorGroups.add(colorGroup(d)); // list of all colorGroups; used to set x-axis
                         return getValue(d);
                     }).sort(d3.ascending);
                     return calcStats(sortDat, xGroup);
                 })
                 .entries(dat);
+
+            // generate a final list of all x & colorGroup combinations
+            // this is used to properly set the x-axis domain
+            allColorGroups = allColorGroups.values(); // convert from d3.set to list
+            var xGroups = tmp.map(function(d) { return d.key; });
+            var allGroups = [];
+            for (var i = 0; i < xGroups.length; i++) {
+                for (var j = 0; j < allColorGroups.length; j++) {    
+                    allGroups.push(xGroups[i] + '_' + allColorGroups[j]);
+                }
+            }
+            allColorGroups = allGroups;
+
+            // flatten the inner most level so that
+            // the plot retains the same DOM structure
+            // to allow for smooth updating between
+            // all groups.
+            formatted = [];
+            tmp.forEach(function(d) { 
+                d.values.forEach(function(e) { e.key = d.key +'_'+e.key }) // generate a combo key so that each boxplot has a distinct x-position
+                formatted.push.apply(formatted, d.values)
+            });
+
         }
 
         // add series index for object constancy
@@ -354,36 +378,6 @@ nv.models.distroPlot = function() {
         return tmp.values.map(function(d) { return d.key }).sort(d3.ascending);
     }
 
-    /**
-     * Used to squash color groups together in cases where some are missing
-     *  
-     * Not all color groups are guaranteed to exist in the dataset; in sparse
-     * cases this will spread the color groups widely along the x-group position.
-     * This function will bring these color groups back together, towards the
-     * center line of the x-group position.
-     *
-     * @param a (str) - the color group assignment
-     * @param b (str) - the x-group the color group is nested in
-     *
-     * @return (str) - the converted color group assignment needed to
-     *                 all color groups close together.
-     */
-    function squashGroups(a,b) {
-
-        if (squash) {
-            var availableColorGroups = getAvailableColorGroups(b);
-            var allColorGroups = colorGroupSizeScale.domain();
-            var shift = Math.floor(allColorGroups.length / availableColorGroups.length);
-            var sliceColorGroups = allColorGroups.slice(shift, availableColorGroups.length + shift);
-            var convert = d3.scale.ordinal()
-                            .domain(availableColorGroups)
-                            .range(sliceColorGroups);
-            return convert(a);
-        } else {
-            return a;
-        }
-    }
-
     // return true if point is an outlier
     function isOutlier(d) {
         return (whiskerDef == 'iqr' && d.isOutlier) || (whiskerDef == 'stddev' && d.isOutlierStdDev)
@@ -415,7 +409,7 @@ nv.models.distroPlot = function() {
 
             // setup xscale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
-                  .domain(xDomain || reformatDat.map(function(d) { return d.key }).sort(d3.ascending))
+                  .domain(xDomain || (colorGroup && !squash) ? allColorGroups : reformatDat.map(function(d) { return d.key }))
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap').data([reformatDat]);
@@ -424,11 +418,12 @@ nv.models.distroPlot = function() {
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
             
             var areaEnter,
-                distroplots = wrap.selectAll('.nv-distroplot-x-group').data(function(d) { return d }, function(e) { return e.series}); // use series for object constancy
+                distroplots = wrap.selectAll('.nv-distroplot-x-group')
+                    .data(function(d) { return d; });
 
             // rebind new data
             // we don't rebuild individual x-axis groups so that we can update transition them
-            // however the data associated with each x-axis grou needs to be updated
+            // however the data associated with each x-axis group needs to be updated
             // so we manually update it here
             distroplots.each(function(d,i) {
                 d3.select(this).selectAll('line.nv-distroplot-middle').datum(d);
@@ -443,7 +438,7 @@ nv.models.distroPlot = function() {
 
             distroplots.exit().remove();
 
-            var rangeBand = function() { return colorGroup ? colorGroupSizeScale.rangeBand() : xScale.rangeBand() };
+            var rangeBand = function() { return xScale.rangeBand() };
             var areaWidth = function() { return d3.min([maxBoxWidth,rangeBand() * 0.9]); };
             var areaCenter = function() { return areaWidth()/2; };
             var areaLeft  = function() { return areaCenter() - areaWidth()/2; };
@@ -462,39 +457,6 @@ nv.models.distroPlot = function() {
                 .attr('transform', function(d) {
                     return 'translate(' + (xScale(d.key) + (rangeBand() - areaWidth()) * 0.5) + ', 0)';
                 });
-
-
-
-            if (colorGroup) {
-
-                // setup a scale for each color group
-                // so that we can position g's properly
-                colorGroupSizeScale.domain(allColorGroups.values().sort(d3.ascending))
-                    .rangeBands([0, xScale.rangeBand() * 0.9], 0.1)
-
-                // setup color scale for coloring groups
-                getColor = function(d) { return colorGroupColorScale(d.key) }
-
-                var xGroup = areaEnter.style('stroke-opacity', 1e-6).style('fill-opacity', 1e-6)
-                    .selectAll('g.nv-colorGroup')
-                    .data(function(d) { return d.values; })
-
-                areaEnter = xGroup.enter()
-                    .append('g')
-                    .attr('class','nv-colorGroup')
-                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.key)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
-                    .style('fill', function(d,i) { return getColor(d) || color(d,i) })
-                    .style('stroke', function(d,i) { return getColor(d) || color(d,i) })
-
-                distroplots.selectAll('.nv-colorGroup')
-                    .watchTransition(renderWatch, 'nv-colorGroup xGroup')
-                    .attr('transform', function(d) { return 'translate(' + (colorGroupSizeScale(squashGroups(d.key, d.values.key)) + colorGroupSizeScale.rangeBand() * 0.05) + ',0)'; }) 
-
-                distroplots = d3.selectAll('.nv-colorGroup'); // redefine distroplots as all existing distributions
-            }
-
-
-
 
             // set range for violin scale
             yVScale.map(function(d) { d.range([areaWidth()/2, 0]) });
