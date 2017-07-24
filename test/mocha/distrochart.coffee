@@ -247,7 +247,6 @@ describe 'NVD3', ->
             '.nv-distroWrap'
             '.nv-title'
             '.nv-distroplot-x-group'
-            '.nv-colorGroup'
             '.nv-distroplot-whisker'
             '.nv-distroplot-low'
             '.nv-distroplot-tick'
@@ -267,10 +266,6 @@ describe 'NVD3', ->
 
         it 'has all x groups', ->
             groups = builder.$ '.nv-distroplot-x-group'
-            groups.should.have.length 5, 'groups exist'
-
-        it 'has all color groups', ->
-            groups = builder.$ '.nv-colorGroup'
             groups.should.have.length 17, 'groups exist'
 
         it 'has all outliers', ->
