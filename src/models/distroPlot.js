@@ -301,7 +301,6 @@ nv.models.distroPlot = function() {
             });
 
         }
-        console.log(dat, formatted);
         return formatted;
     }
 
