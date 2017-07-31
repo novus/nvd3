@@ -88,9 +88,9 @@ nv.models.distroPlotChart = function() {
 
             chart.update = function() {
                 var opts = distroplot.options()
-                if (colorGroup0.toString() !== opts.colorGroup().toString() || // recalc data when any of the axis accessors are changed
-                    x0.toString() !== opts.x().toString() ||
-                    value0.toString() !== opts.value().toString()
+                if (colorGroup0 !== opts.colorGroup() || // recalc data when any of the axis accessors are changed
+                    x0 !== opts.x() ||
+                    value0 !== opts.value()
                 ) {
                     distroplot.recalcData();
                 }
