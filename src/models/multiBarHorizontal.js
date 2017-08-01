@@ -12,7 +12,7 @@ nv.models.multiBarHorizontal = function() {
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
         , container = null
         , x = d3.scale.ordinal()
-        , y = d3.scale.linear()
+        , y = d3.scaleLinear()
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , getYerr = function(d) { return d.yErr }
@@ -105,7 +105,7 @@ nv.models.multiBarHorizontal = function() {
                 y.range(yRange || [0, availableWidth]);
 
             x0 = x0 || x;
-            y0 = y0 || d3.scale.linear().domain(y.domain()).range([y(0),y(0)]);
+            y0 = y0 || d3.scaleLinear().domain(y.domain()).range([y(0),y(0)]);
 
             // Setup containers and skeleton of chart
             var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibarHorizontal').data([data]);

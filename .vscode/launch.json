@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome",
+            "url": "/Users/jimerino/Documents/workspace/nvd3/examples/coreline.html",
+            "webRoot": "${workspaceRoot}"
+        },
+        {
+            // This one in case you manually start 2 debug sessions.
+            // Like first .net core 
+            // then attach to the browser that was started.
+            "type": "chrome",
+            "request": "attach",
+            "name": "AttachChrome",
+            "port": 9222,
+            "webRoot": "${workspaceRoot}"
+        }
+    ]
+}

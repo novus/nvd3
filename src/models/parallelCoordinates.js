@@ -28,7 +28,7 @@ nv.models.parallelCoordinates = function() {
         , foreground
         , background
         , dimensions
-        , line = d3.svg.line()
+        , line = d3.line()
         , axis = d3.svg.axis()
         , dispatch = d3.dispatch('brushstart', 'brush', 'brushEnd', 'dimensionsOrder', "stateChange", 'elementClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd', 'activeChanged')
         ;
@@ -114,7 +114,7 @@ nv.models.parallelCoordinates = function() {
                 }
                 //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
                 //The remaining 10% are used to display the missingValue line.
-                y[d] = d3.scale.linear()
+                y[d] = d3.scaleLinear()
                     .domain([min, max])
                     .range([(availableHeight - 12) * 0.9, 0]);
 
@@ -275,7 +275,7 @@ nv.models.parallelCoordinates = function() {
                         //If it's not already the case, allow brush to select undefined values
                         if (axisWithUndefinedValues.indexOf(p.key) < 0) {
 
-                            var newscale = d3.scale.linear().domain([min, domain[1]]).range([availableHeight - 12, range[1]]);
+                            var newscale = d3.scaleLinear().domain([min, domain[1]]).range([availableHeight - 12, range[1]]);
                             y[p.key].brush.y(newscale);
                             axisWithUndefinedValues.push(p.key);
                         }

@@ -5,8 +5,7 @@ nv.models.line = function() {
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var  scatter = nv.models.scatter()
-        ;
+    var  scatter = nv.models.scatter();
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 960
@@ -22,6 +21,7 @@ nv.models.line = function() {
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
         , interpolate = "linear" // controls the line interpolation
+        , curve = d3.curveBasis
         , duration = 250
         , dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
         ;
@@ -68,47 +68,44 @@ nv.models.line = function() {
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
 
-            gEnter.append('g').attr('class', 'nv-groups');
-            gEnter.append('g').attr('class', 'nv-scatterWrap');
+            var nvGroups = gEnter.append('g').attr('class', 'nv-groups');
+            var scatterWrap = gEnter.append('g').attr('class', 'nv-scatterWrap');
 
-            wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            defsEnter.append('clipPath')
+                .attr('id', 'nv-edge-clip-' + scatter.id())
+                .append('rect')
+                    .attr('width', availableWidth)
+                    .attr('height', (availableHeight > 0) ? availableHeight : 0);
+
+            wrapEnter.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             scatter
                 .width(availableWidth)
                 .height(availableHeight);
 
-            var scatterWrap = wrap.select('.nv-scatterWrap');
             scatterWrap.call(scatter);
 
-            defsEnter.append('clipPath')
-                .attr('id', 'nv-edge-clip-' + scatter.id())
-                .append('rect');
-
-            wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
-                .attr('width', availableWidth)
-                .attr('height', (availableHeight > 0) ? availableHeight : 0);
-
-            g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
+            gEnter.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
             scatterWrap
                 .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
 
-            var groups = wrap.select('.nv-groups').selectAll('.nv-group')
+            var groups = nvGroups.selectAll('.nv-group')
                 .data(function(d) { return d }, function(d) { return d.key });
-            groups.enter().append('g')
+            var groupsEntries = groups.enter().append('g')
                 .style('stroke-opacity', 1e-6)
                 .style('stroke-width', function(d) { return d.strokeWidth || strokeWidth })
                 .style('fill-opacity', 1e-6);
 
             groups.exit().remove();
 
-            groups
+            groupsEntries
                 .attr('class', function(d,i) {
                     return (d.classed || '') + ' nv-group nv-series-' + i;
                 })
                 .classed('hover', function(d) { return d.hover })
                 .style('fill', function(d,i){ return color(d, i) })
                 .style('stroke', function(d,i){ return color(d, i)});
-            groups.watchTransition(renderWatch, 'line: groups')
+            groupsEntries.watchTransition(renderWatch, 'line: groups')
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', function(d) { return d.fillOpacity || .5});
 
@@ -117,7 +114,7 @@ nv.models.line = function() {
             areaPaths.enter().append('path')
                 .attr('class', 'nv-area')
                 .attr('d', function(d) {
-                    return d3.svg.area()
+                    return d3.area()
                         .interpolate(interpolate)
                         .defined(defined)
                         .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
@@ -131,7 +128,7 @@ nv.models.line = function() {
 
             areaPaths.watchTransition(renderWatch, 'line: areaPaths')
                 .attr('d', function(d) {
-                    return d3.svg.area()
+                    return d3.area()
                         .interpolate(interpolate)
                         .defined(defined)
                         .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
@@ -141,14 +138,14 @@ nv.models.line = function() {
                         .apply(this, [d.values])
                 });
 
-            var linePaths = groups.selectAll('path.nv-line')
+            var linePaths = groupsEntries.selectAll('path.nv-line')
                 .data(function(d) { return [d.values] });
 
             linePaths.enter().append('path')
                 .attr('class', 'nv-line')
                 .attr('d',
-                    d3.svg.line()
-                    .interpolate(interpolate)
+                    d3.line()
+                    .curve(curve)
                     .defined(defined)
                     .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
                     .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
@@ -156,8 +153,8 @@ nv.models.line = function() {
 
             linePaths.watchTransition(renderWatch, 'line: linePaths')
                 .attr('d',
-                    d3.svg.line()
-                    .interpolate(interpolate)
+                    d3.line()
+                    .curve(curve)
                     .defined(defined)
                     .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
                     .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
@@ -179,9 +176,9 @@ nv.models.line = function() {
     chart.dispatch = dispatch;
     chart.scatter = scatter;
     // Pass through events
-    scatter.dispatch.on('elementClick', function(){ dispatch.elementClick.apply(this, arguments); });
-    scatter.dispatch.on('elementMouseover', function(){ dispatch.elementMouseover.apply(this, arguments); });
-    scatter.dispatch.on('elementMouseout', function(){ dispatch.elementMouseout.apply(this, arguments); });
+    scatter.dispatch.on('elementClick', function(){ dispatch.apply('elementClick', this, arguments); });
+    scatter.dispatch.on('elementMouseover', function(){ dispatch.apply('elementMouseover', this, arguments); });
+    scatter.dispatch.on('elementMouseout', function(){ dispatch.apply('elementMouseout', this, arguments); });
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -216,7 +213,8 @@ nv.models.line = function() {
             getY = _;
             scatter.y(_);
         }},
-        color:  {get: function(){return color;}, set: function(_){
+        color:  {get: function(){console.log("getColor");console.log(color);return color;}, set: function(_){
+            console.log("setColor");
             color = nv.utils.getColor(_);
             scatter.color(color);
         }}

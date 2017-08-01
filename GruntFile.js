@@ -7,6 +7,16 @@ module.exports = function(grunt) {
     //Project configuration.
     grunt.initConfig({
         pkg: _pkg,
+        browserify: {
+            dist: {
+                options: {
+                    transform: [["babelify", { presets: ["es2015"], compact: false }]]
+                },
+                files: {
+                    "build/bundle.js": "build/nv.d3.js"
+                }
+            }
+        },
         concat: {
             css: {
                 options: {
@@ -22,9 +32,6 @@ module.exports = function(grunt) {
             js: {
                 options: {
                     separator: '',
-                    banner: '/* nvd3 version ' + _pkg.version + ' (' + _pkg.url + ') ' +
-                        '<%= grunt.template.today("yyyy-mm-dd") %> */\n' + '(function(){\n',
-                    footer: '\nnv.version = "' + _pkg.version + '";\n})();',
                     sourceMap: true,
                     sourceMapName: 'build/nv.d3.js.map',
                     sourceMapStyle: 'embed'
@@ -79,7 +86,7 @@ module.exports = function(grunt) {
         watch: {
             js: {
                 files: ["src/**/*.js"],
-                tasks: ['concat']
+                tasks: ['concat', 'browserify']
             }
         },
         copy: {
@@ -161,8 +168,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-text-replace');
+    grunt.loadNpmTasks('grunt-browserify');
 
     grunt.registerTask('default', ['concat', 'copy', 'postcss', 'karma:unit']);
+    grunt.registerTask('debug', ['concat', 'browserify', 'copy', 'postcss']);
     grunt.registerTask('production', ['concat', 'uglify', 'copy', 'postcss', 'cssmin', 'replace']);
     grunt.registerTask('release', ['production']);
     grunt.registerTask('lint', ['jshint']);
