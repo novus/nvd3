@@ -24,7 +24,7 @@ describe 'NVD3', ->
             height: 60
             axisLabel: 'Date'
             showMaxMin: true
-            scale: d3.scale.linear()
+            scale: d3.scaleLinear()
             rotateYLabel: true
             rotateLabels: 0
             staggerLabels: false

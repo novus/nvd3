@@ -28,9 +28,9 @@ nv.models.multiChart = function() {
     // Private Variables
     //------------------------------------------------------------
 
-    var x = d3.scale.linear(),
-        yScale1 = d3.scale.linear(),
-        yScale2 = d3.scale.linear(),
+    var x = d3.scaleLinear(),
+        yScale1 = d3.scaleLinear(),
+        yScale2 = d3.scaleLinear(),
 
         lines1 = nv.models.line().yScale(yScale1).duration(duration),
         lines2 = nv.models.line().yScale(yScale2).duration(duration),

@@ -6,8 +6,8 @@ nv.models.lineChart = function() {
     //------------------------------------------------------------
 
     var lines = nv.models.line()
-        , xAxis = nv.models.axis()
-        , yAxis = nv.models.axis()
+        , xAxis = nv.models.axis('bottom')
+        , yAxis = nv.models.axis('left')
         , legend = nv.models.legend()
         , interactiveLayer = nv.interactiveGuideline()
         , tooltip = nv.models.tooltip()
@@ -36,8 +36,10 @@ nv.models.lineChart = function() {
         ;
 
     // set options on sub-objects for this chart
-    xAxis.orient('bottom').tickPadding(7);
-    yAxis.orient(rightAlignYAxis ? 'right' : 'left');
+    console.log(xAxis);
+    xAxis.tickPadding(7);
+    // TODO: volver a poner esto
+    //yAxis.orient(rightAlignYAxis ? 'right' : 'left');
 
     lines.clipEdge(true).duration(0);
 

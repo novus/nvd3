@@ -87,7 +87,7 @@ nv.utils.getColor = function(color) {
 
     //if passed an array, turn it into a color scale
     } else if(nv.utils.isArray(color)) {
-        var color_scale = d3.scale.ordinal().range(color);
+        var color_scale = d3.scalePoint().range(color);
         return function(d, i) {
             var key = i === undefined ? d : i;
             return d.color || color_scale(key);
@@ -108,7 +108,8 @@ Default color chooser uses a color scale of 20 colors from D3
  */
 nv.utils.defaultColor = function() {
     // get range of the scale so we'll turn it into our own function.
-    return nv.utils.getColor(d3.scale.category20().range());
+    //return nv.utils.getColor(d3.scale.category20().range());
+    return nv.utils.getColor(d3.scaleOrdinal(d3.schemeCategory20).range());
 };
 
 
@@ -272,7 +273,8 @@ nv.utils.renderWatch = function(dispatch, duration) {
         } else {
             if (selection.length === 0) {
                 selection.__rendered = true;
-            } else if (selection.every( function(d){ return !d.length; } )) {
+            //} else if (selection.every( function(d){ return !d.length; } )) {
+            } else if (selection.filter((d, i) => { return !d.length; } ).size() == selection.size()) {
                 selection.__rendered = true;
             } else {
                 selection.__rendered = false;
@@ -283,7 +285,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
                 .transition()
                 .duration(duration)
                 .each(function(){ ++n; })
-                .each('end', function(d, i) {
+                .on('end', function(d, i) {
                     if (--n === 0) {
                         selection.__rendered = true;
                         self.renderEnd.apply(this, args);
@@ -295,7 +297,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
     this.renderEnd = function() {
         if (renderStack.every( function(d){ return d.__rendered; } )) {
             renderStack.forEach( function(d){ d.__rendered = false; });
-            dispatch.renderEnd.apply(this, arguments);
+            dispatch.apply("renderEnd", this, arguments);
         }
     }
 
@@ -546,8 +548,8 @@ nv.utils.symbol = function() {
     function symbol(d,i) {
         var t = type.call(this,d,i);
         var s = size.call(this,d,i);
-        if (d3.svg.symbolTypes.indexOf(t) !== -1) {
-            return d3.svg.symbol().type(t).size(s)();
+        if (d3.symbols.indexOf(t) !== -1) {
+            return d3.symbol().type(t).size(s)();
         } else {
             return nv.utils.symbolMap.get(t)(s);
         }
@@ -592,7 +594,7 @@ nv.utils.inheritOptions = function(target, source) {
 Runs common initialize code on the svg before the chart builds
 */
 nv.utils.initSVG = function(svg) {
-    svg.classed({'nvd3-svg':true});
+    svg.classed('nvd3-svg', true);
 };
 
 

@@ -8,7 +8,7 @@ nv.models.focus = function(content) {
     var content = content || nv.models.line()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
-        , brush = d3.svg.brush()
+        , brush = d3.brushX()
         ;
 
     var margin = {top: 10, right: 0, bottom: 30, left: 0}
@@ -27,8 +27,9 @@ nv.models.focus = function(content) {
         , syncBrushing = true
         ;
 
-    content.interactive(false);
-    content.pointActive(function(d) { return false; });
+        //TODO: ver qué leches significa esto
+    //content.interactive(false);
+    //content.pointActive(function(d) { return false; });
 
     //============================================================
     // Private Variables

@@ -1,22 +1,39 @@
+import * as d3 from "d3";
+
+console.log(d3);
+
+d3.functor = function functor(v) {
+  return typeof v === "function" ? v : function() {
+    return v;
+  };
+};
+
+d3.rebind = function rebind(target, source, method) {
+  return function() {
+    var value = method.apply(source, arguments);
+    return value === source ? target : value;
+  };
+}
 
 // set up main nv object
 var nv = {};
 
 // the major global objects under the nv namespace
-nv.dev = false; //set false when in production
+nv.dev = true; //set false when in production
 nv.tooltip = nv.tooltip || {}; // For the tooltip system
 nv.utils = nv.utils || {}; // Utility subsystem
 nv.models = nv.models || {}; //stores all the possible models/components
 nv.charts = {}; //stores all the ready to use charts
 nv.logs = {}; //stores some statistics and potential error messages
 nv.dom = {}; //DOM manipulation functions
+nv.d3 = d3;
 
 // Node/CommonJS - require D3
-if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined' && typeof(d3) == 'undefined') {
+/*if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined' && typeof(d3) == 'undefined') {
     d3 = require('d3');
-}
+}*/
 
-nv.dispatch = d3.dispatch('render_start', 'render_end');
+nv.dispatch = d3.dispatch("start", "end");
 
 // Function bind polyfill
 // Needed ONLY for phantomJS as it's missing until version 2.0 which is unreleased as of this comment
@@ -48,11 +65,11 @@ if (!Function.prototype.bind) {
 
 //  Development render timers - disabled if dev = false
 if (nv.dev) {
-    nv.dispatch.on('render_start', function(e) {
+    nv.dispatch.on('start', function(e) {
         nv.logs.startTime = +new Date();
     });
 
-    nv.dispatch.on('render_end', function(e) {
+    nv.dispatch.on('end', function(e) {
         nv.logs.endTime = +new Date();
         nv.logs.totalTime = nv.logs.endTime - nv.logs.startTime;
         nv.log('total', nv.logs.totalTime); // used for development, to keep track of graph generation times
@@ -88,7 +105,7 @@ nv.render = function render(step) {
     step = step || 1;
 
     nv.render.active = true;
-    nv.dispatch.render_start();
+    nv.dispatch.call("start");
 
     var renderLoop = function() {
         var chart, graph;
@@ -104,7 +121,7 @@ nv.render = function render(step) {
             setTimeout(renderLoop);
         }
         else {
-            nv.dispatch.render_end();
+            nv.dispatch.call("end");
             nv.render.active = false;
         }
     };

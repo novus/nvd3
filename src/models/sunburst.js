@@ -33,7 +33,7 @@ nv.models.sunburst = function() {
     // aux functions and setup
     //------------------------------------------------------------
 
-    var x = d3.scale.linear().range([0, 2 * Math.PI]);
+    var x = d3.scaleLinear().range([0, 2 * Math.PI]);
     var y = d3.scale.sqrt();
 
     var partition = d3.layout.partition().sort(sort);

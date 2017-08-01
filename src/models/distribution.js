@@ -11,7 +11,7 @@ nv.models.distribution = function() {
         , axis = 'x' // 'x' or 'y'... horizontal or vertical
         , getData = function(d) { return d[axis] }  // defaults d.x or d.y
         , color = nv.utils.defaultColor()
-        , scale = d3.scale.linear()
+        , scale = d3.scaleLinear()
         , domain
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')

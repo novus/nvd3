@@ -1,12 +1,12 @@
-nv.models.axis = function() {
+nv.models.axis = function(orient) {
     "use strict";
 
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var axis = d3.svg.axis();
-    var scale = d3.scale.linear();
+    //var axis = d3.svg.axis();
+    var scale = d3.scaleLinear();
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = 75 //only used for tickLabel currently
@@ -23,11 +23,13 @@ nv.models.axis = function() {
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')
         , tickFormatMaxMin
+        , orient = (orient !== undefined ? orient : 'bottom');
         ;
-    axis
-        .scale(scale)
-        .orient('bottom')
-        .tickFormat(function(d) { return d })
+    var axis = (orient == 'bottom' ?
+        d3.axisBottom(scale)
+        .tickFormat(function(d) { return d }) :
+        d3.axisLeft(scale)
+        .tickFormat(function(d) { return d }))
     ;
 
     //============================================================
@@ -51,12 +53,12 @@ nv.models.axis = function() {
 
             if (ticks !== null)
                 axis.ticks(ticks);
-            else if (axis.orient() == 'top' || axis.orient() == 'bottom')
+            else if (orient == 'top' || orient == 'bottom')
                 axis.ticks(Math.abs(scale.range()[1] - scale.range()[0]) / 100);
 
             //TODO: consider calculating width/height based on whether or not label is added, for reference in charts using this component
             g.watchTransition(renderWatch, 'axis').call(axis);
-
+            
             scale0 = scale0 || axis.scale();
 
             var fmt = axis.tickFormat();
@@ -76,7 +78,7 @@ nv.models.axis = function() {
             var xLabelMargin;
             var axisMaxMin;
             var w;
-            switch (axis.orient()) {
+            switch (orient) {
                 case 'top':
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
                   w = 0;
@@ -279,7 +281,7 @@ nv.models.axis = function() {
             }
             axisLabel.text(function(d) { return d });
 
-            if (showMaxMin && (axis.orient() === 'left' || axis.orient() === 'right')) {
+            if (showMaxMin && (orient === 'left' || orient === 'right')) {
                 //check if max and min overlap other values, if so, hide the values that overlap
                 g.selectAll('g') // the g's wrapping each tick
                     .each(function(d,i) {
@@ -300,7 +302,7 @@ nv.models.axis = function() {
                 }
             }
 
-            if (showMaxMin && (axis.orient() === 'top' || axis.orient() === 'bottom')) {
+            if (showMaxMin && (orient === 'top' || orient === 'bottom')) {
                 var maxMinRange = [];
                 wrap.selectAll('g.nv-axisMaxMin')
                     .each(function(d,i) {
@@ -346,6 +348,10 @@ nv.models.axis = function() {
 
         renderWatch.renderEnd('axis immediate');
         return chart;
+    }
+
+    function tickPadding(selection) {
+        console.log("slee");console.log(seleccion);
     }
 
     //============================================================

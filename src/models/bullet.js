@@ -73,12 +73,12 @@ nv.models.bullet = function() {
 
             // Setup Scales
             // Compute the new x-scale.
-            var x1 = d3.scale.linear()
+            var x1 = d3.scaleLinear()
                 .domain( d3.extent(d3.merge([forceX, rangez])) )
                 .range(reverse ? [availableWidth, 0] : [0, availableWidth]);
 
             // Retrieve the old x-scale, if this is an update.
-            var x0 = this.__chart__ || d3.scale.linear()
+            var x0 = this.__chart__ || d3.scaleLinear()
                 .domain([0, Infinity])
                 .range(x1.range());
 

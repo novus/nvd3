@@ -106,7 +106,7 @@ nv.models.tooltip = function() {
 
         trowEnter.selectAll("td").each(function(p) {
             if (p.highlight) {
-                var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
+                var opacityScale = d3.scaleLinear().domain([0,1]).range(["#fff",p.color]);
                 var opacity = 0.6;
                 d3.select(this)
                     .style("border-bottom-color", opacityScale(opacity))

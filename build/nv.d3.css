@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-15 */
+/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-08-01 */
 .nvd3 .nv-axis {
     pointer-events:none;
     opacity: 1;
@@ -253,10 +253,7 @@
   Default CSS for an svg element nvd3 used
 */
 svg.nvd3-svg {
-    -webkit-user-select: none;
-       -moz-user-select: none;
-        -ms-user-select: none;
-            user-select: none;
+    user-select: none;
     display: block;
     width:100%;
     height:100%;
@@ -528,13 +525,7 @@ svg.nvd3-svg {
 
     white-space: nowrap;
 
-    -webkit-user-select: none;
-
-       -moz-user-select: none;
-
-        -ms-user-select: none;
-
-            user-select: none;
+    user-select: none;
 }
 
 .nvtooltip {
