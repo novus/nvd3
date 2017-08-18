@@ -251,8 +251,6 @@ nv.models.distroPlot = function() {
             return reformat;
         }
 
-        console.log(colorGroup)
-
         // TODO not DRY
         // couldn't find a conditional way of doing the key() grouping
         var formatted;
