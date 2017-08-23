@@ -4,6 +4,8 @@
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
 <script src="../bower_components/d3/d3.js"></script>
 <script src="../build/nv.d3.js"></script>
+<script src="../src/models/distroPlot.js"></script>
+<script src="../src/models/distroPlotChart.js"></script>
 
 <link href="teststyle.css" rel="stylesheet" type='text/css'>
 <script src="https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js"></script>
@@ -66,7 +68,7 @@
     <div class="buttons">
         Plot types
         <button onclick="updatePlot(defaultBox);">Box</button>
-        <button onclick="updatePlot({plotType: 'violin'});">Violin</button>
+        <button onclick="updatePlot({plotType: 'violin', margin: {top: 10}});">Violin</button>
         <br>
         X-axis
         <button onclick="updatePlot({x: function(d) { return d.Isolator; }});">Isolator</button>
@@ -79,7 +81,7 @@
         <button onclick="updatePlot({showMiddle: 'mean'});">Mean line</button>
         <button onclick="updatePlot({showMiddle: 'median'});">Median line</button>
         <button onclick="updatePlot({showMiddle: false});">Remove mean/median line</button>
-        <button onclick="updatePlot({title: 'Distro chart!', xLabel: 'Study', yLabel: 'Weight'});">Titles</button>
+        <button onclick="updatePlot(toggleTitle ? {title: 'Distro chart!', xLabel: 'Study', yLabel: 'Weight'} : {title: null, xLabel: null, yLabel: null}); toggleTitle = !toggleTitle;">Toggle titles</button>
         <br>
         Observation positions
         <button onclick="updatePlot({observationType: 'random'});">Random</button>
@@ -110,6 +112,7 @@
 
     var chart = nv.models.distroPlotChart();
     var showOnlyOutliers = true;
+    var toggleTitle = true;
     var defaultBox = {
         x: function(d) { return d.Study },
         value: function(d) { return d.Weight }, 
@@ -126,7 +129,7 @@
         jitter: 0.7,
         hideWhiskers: false,
         notchBox: false,
-        showOnlyOutliers: true,
+        showOnlyOutliers: showOnlyOutliers,
     }
 
     // setup default chart

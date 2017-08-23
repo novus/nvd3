@@ -50,7 +50,7 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var colorGroup0, marginTop0, x0, value0;
+    var colorGroup0, marginTop0 = margin.top, x0, value0;
 
     var stateGetter = function(data) {
         return function(){
@@ -82,7 +82,7 @@ nv.models.distroPlotChart = function() {
             if (title && margin.top < (showLegend ? 40 : 25)) {
                 margin.top += showLegend ? 40 : 25;
             }
-            if (!title && marginTop0 > 0) margin.top = marginTop0; // reset top margin after removing title from update
+            if (!title && margin.top > marginTop0) margin.top = marginTop0; // reset top margin after removing title from update
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
@@ -262,7 +262,6 @@ nv.models.distroPlotChart = function() {
             colorGroup0 = distroplot.options().colorGroup();
             x0 = distroplot.options().x();
             value0 = distroplot.options().value();
-            if (!title) marginTop0 = margin.top;
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
