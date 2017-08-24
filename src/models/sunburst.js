@@ -17,6 +17,8 @@ nv.models.sunburst = function() {
         , showLabels = false
         , labelFormat = function(d){if(mode === 'count'){return d.name + ' #' + d.value}else{return d.name + ' ' + (d.value || d.size)}}
         , labelThreshold = 0.02
+        , title = false
+        , titleOffset = {top: 0, left: 0}
         , sort = function(d1, d2){return d1.name > d2.name;}
         , key = function(d,i){
             if (d.parent !== undefined) {
@@ -224,6 +226,23 @@ nv.models.sunburst = function() {
                 wrap.attr('transform', 'translate(' + ((availableWidth / 2) + margin.left + margin.right) + ',' + ((availableHeight / 2) + margin.top + margin.bottom) + ')');
             }
 
+            var g_sunburst = container.append('g').attr('class', 'nv-sunburst');
+
+            // add a title if specified
+            if (title) {
+                var plotTitle = g_sunburst
+                    .append("text")
+                    .attr('class', 'nv-sunburst-title')
+                    .style("text-anchor", "middle")
+                    .style("font-size", "150%")
+                    .style('opacity',1)
+                    .text(function (d) { return title; })
+                    .attr('transform', function(d, i) { return 'translate(' + ((availableWidth / 2) + margin.left + margin.right) + ',30)'; }) // center title
+                    .attr('dx',titleOffset.left)
+                    .attr('dy',titleOffset.top)
+            }
+
+
             container.on('click', function (d, i) {
                 dispatch.chartClick({
                     data: d,
@@ -374,6 +393,8 @@ nv.models.sunburst = function() {
         labelThreshold: {get: function(){return labelThreshold;}, set: function(_){labelThreshold=_}},
         sort: {get: function(){return sort;}, set: function(_){sort=_}},
         key: {get: function(){return key;}, set: function(_){key=_}},
+        title:        {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    != undefined ? _.top    : margin.top;

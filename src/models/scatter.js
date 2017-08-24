@@ -36,6 +36,8 @@ nv.models.scatter = function() {
         , xRange       = null // Override x range
         , yRange       = null // Override y range
         , sizeDomain   = null // Override point size domain
+        , title = false
+        , titleOffset = {top: 0, left: 0}
         , sizeRange    = null
         , singlePoint  = false
         , dispatch     = d3.dispatch('elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -210,10 +212,11 @@ nv.models.scatter = function() {
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-scatter').data([data]);
-            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter nv-chart-' + id);
+            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-scatter moo nv-chart-' + id);
             var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
             var g = wrap.select('g');
+            var g_scatter = gEnter.append('g').attr('class', 'nv-title');
 
             wrap.classed('nv-single-point', singlePoint);
             gEnter.append('g').attr('class', 'nv-groups');
@@ -552,6 +555,20 @@ nv.models.scatter = function() {
                 .size(function (d) { return z(getSize(d[0], d[1])) })
             );
 
+            // add a title if specified
+            if (title) {
+                var plotTitle = g_scatter
+                    .append("text")
+                    .attr('class', 'nv-scatter-title')
+                    .style("text-anchor", "middle")
+                    .style("font-size", "150%")
+                    .text(function (d) { return title; })
+                    .attr('transform', function(d, i) { return 'translate(' + (availableWidth / 2) + ',-10)'; }) // center title
+                    .attr('dx',titleOffset.left)
+                    .attr('dy',titleOffset.top)
+            }
+
+
             // add label a label to scatter chart
             if(showLabels)
             {
@@ -672,6 +689,8 @@ nv.models.scatter = function() {
         pointRange:   {get: function(){return sizeRange;}, set: function(_){sizeRange=_;}},
         forceX:       {get: function(){return forceX;}, set: function(_){forceX=_;}},
         forceY:       {get: function(){return forceY;}, set: function(_){forceY=_;}},
+        title:        {get: function(){return title;}, set: function(_){title=_;}},
+        titleOffset:  {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         forcePoint:   {get: function(){return forceSize;}, set: function(_){forceSize=_;}},
         interactive:  {get: function(){return interactive;}, set: function(_){interactive=_;}},
         pointActive:  {get: function(){return pointActive;}, set: function(_){pointActive=_;}},
