@@ -538,6 +538,7 @@ nv.models.multiChart = function() {
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        xScale: {get: function(){return x;}, set: function(_){ x = _; xAxis.scale(x); }},
         yDomain1:      {get: function(){return yDomain1;}, set: function(_){yDomain1=_;}},
         yDomain2:    {get: function(){return yDomain2;}, set: function(_){yDomain2=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
