@@ -192,7 +192,7 @@ describe 'NVD3', ->
 
         options =
             x: (d)-> d.study
-            value: (d)-> d.weight
+            y: (d)-> d.weight
             colorGroup: (d)-> d.donor
             maxBoxWidth: false
             plotType: 'box'
@@ -200,13 +200,13 @@ describe 'NVD3', ->
             whiskerDef: 'iqr'
             notchBox: false
             hideWhiskers: false
-            showMiddle: 'mean'
+            centralTendency: 'mean'
             bandwidth: 'scott'
             resolution: 50
             showOnlyOutliers: true
             jitter: 0.7
             squash: false
-            observationRadius: 4
+            pointSize: 4
             margin:
                 top: 30
                 right: 60
