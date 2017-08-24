@@ -194,21 +194,37 @@ nv.models.distroPlot = function() {
             var wu = {iqr: q3 + 1.5 * iqr, minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
             var median = d3.median(v);
             var mean = d3.mean(v);
+            var observations = [];
 
-            var observations = d3.beeswarm()
-                .data(v)
-                .radius(pointSize+1)
-                .orientation('vertical')
-                .side('symmetric')
-                .distributeOn(function(e) { return yScale(e); })
-                .arrange()
+            // d3-beeswarm library must be externally loaded if being used
+            // https://github.com/Kcnarf/d3-beeswarm
+            if (typeof d3.beeswarm !== 'undefined') {
+                observations = d3.beeswarm()
+                    .data(v)
+                    .radius(pointSize+1)
+                    .orientation('vertical')
+                    .side('symmetric')
+                    .distributeOn(function(e) { return yScale(e); })
+                    .arrange()
 
-            // add group info for tooltip
-            observations.map(function(e,i) { 
-                e.key = xGroup; 
-                e.isOutlier = (e.datum < wl.iqr || e.datum > wu.iqr) // add isOulier meta for proper class assignment
-                e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
-            })
+                // add group info for tooltip
+                observations.map(function(e,i) { 
+                    e.key = xGroup; 
+                    e.isOutlier = (e.datum < wl.iqr || e.datum > wu.iqr) // add isOulier meta for proper class assignment
+                    e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
+                })
+            } else {
+                v.forEach(function(e,i) {
+                    observations.push({
+                        id: i,
+                        datum: e,
+                        key: xGroup,
+                        isOutlier: (e < wl.iqr || e > wu.iqr), // add isOulier meta for proper class assignment
+                        isOutlierStdDev: (e < wl.stddev || e > wu.stddev), // add isOulier meta for proper class assignment
+                    })
+                })
+            }
+
 
             // calculate bandwidth if no number is provided
             if(isNaN(parseFloat(bandwidth))) { // if not is float
@@ -672,33 +688,33 @@ nv.models.distroPlot = function() {
             // setup observations
             // create DOMs even if not requested (and hide them), so that
             // we can do updates
-            var obsWrap = distroplots.selectAll(observationType == 'lines' ? '.nv-lines' : '.nv-distroplot-observation')
-                .data(function(d) { return getValsObj(d); });
+            var obsWrap = distroplots.selectAll('.nv-distroplot-observation')
+                .data(function(d) { return getValsObj(d) }, function(d,i) { return d.id; });
 
-            var scatter = obsWrap.enter()
-                .append('circle')
+            var obsGroup = obsWrap.enter()
+                .append('g')
                 .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
-                .style({'z-index': 9000, 'opacity': 0})
 
-            var lines = obsWrap.enter()
-                .append('line')
-                .attr('class', 'nv-distroplot-observation')
+            obsGroup.append('circle')
+                .style({'opacity': 0})
+
+            obsGroup.append('line')
                 .style('stroke-width', 1)
                 .style({'stroke': d3.rgb(85, 85, 85), 'opacity': 0})
 
-            obsWrap.exit().remove();
+            //obsWrap.exit().remove(); // TODO
 
             // TODO only call when window finishes resizing, otherwise jitterX call slows things down
             // transition observations
             if (observationType == 'line') {
-                distroplots.selectAll('line.nv-distroplot-observation')
+                distroplots.selectAll('g.nv-distroplot-observation line')
                   .watchTransition(renderWatch, 'nv-distrolot-x-group: nv-distoplot-observation')
                     .attr("x1", tickLeft() + areaWidth()/4)
                     .attr("x2", tickRight() - areaWidth()/4)
                     .attr('y1', function(d) { return yScale(d.datum)})
                     .attr('y2', function(d) { return yScale(d.datum)});
             } else {
-                distroplots.selectAll('circle.nv-distroplot-observation')
+                distroplots.selectAll('g.nv-distroplot-observation circle')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                     .attr('class', function(d) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                     .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
@@ -708,7 +724,7 @@ nv.models.distroPlot = function() {
             }
 
             // set opacity on outliers/non-outliers
-            distroplots.selectAll('.nv-distroplot-observation') // don't select with class (.nv-distroplot-outlier) since it's not guaranteed to be set yet
+            distroplots.selectAll('.nv-distroplot-observation *') // don't select with class (.nv-distroplot-outlier) since it's not guaranteed to be set yet
               .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                 .style('opacity', function(d) { 
                     if (observationType === false) {
@@ -724,7 +740,8 @@ nv.models.distroPlot = function() {
                 })
 
         
-            distroplots.selectAll((observationType=='line'?'circle':'line')+'.nv-distroplot-observation')
+            // hide all other observations
+            distroplots.selectAll('.nv-distroplot-observation' + (observationType=='line'?' circle':' line'))
               .watchTransition(renderWatch, 'nv-distroplot: nv-distoplot-observation')
                 .style('opacity',0)
 

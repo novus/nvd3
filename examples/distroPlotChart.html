@@ -23,6 +23,7 @@
             padding: 0px;
             height: 100%;
             width: 100%;
+            font-family: 'system-ui';
           }
 
           circle.nv-distroplot-observation {
@@ -41,7 +42,6 @@
             margin-top: 5px;
             margin-left: 10px;
             font-size: 80%;
-			font-family: 'system-ui';
           }
 
           button {
@@ -74,10 +74,9 @@
         <br>
         Decorations
         <button onclick="updatePlot({notchBox: true, plotType: 'box'});">Notched box</button>
-        <button onclick="updatePlot({showMiddle: 'mean'});">Mean line</button>
-        <button onclick="updatePlot({showMiddle: 'median'});">Median line</button>
-        <button onclick="updatePlot({showMiddle: false});">Remove mean/median line</button>
-        <button onclick="updatePlot(toggleTitle ? {title: 'Distro chart!', xLabel: 'Study', yLabel: 'Weight'} : {title: null, xLabel: null, yLabel: null}); toggleTitle = !toggleTitle;">Toggle titles</button>
+        <button onclick="updatePlot({centralTendency: 'mean'});">Mean line</button>
+        <button onclick="updatePlot({centralTendency: 'median'});">Median line</button>
+        <button onclick="updatePlot({centralTendency: false});">Remove mean/median line</button>
         <br>
         Observation positions
         <button onclick="updatePlot({observationType: 'random'});">Random</button>
@@ -107,20 +106,18 @@
 
     var chart = nv.models.distroPlotChart();
     var showOnlyOutliers = true;
-    var toggleTitle = true;
     var defaultBox = {
         x: function(d) { return d.Study },
-        value: function(d) { return d.Weight },
+        y: function(d) { return d.Weight },
         colorGroup: false,
-        title: false,
         bandwidth: 'scott',
         maxBoxWidth: null,
         xLabel: false,
         yLabel: false,
-        showMiddle: 'median',
+        centralTendency: 'median',
         squash: false,
-        // plotType: 'box',
-        // observationType: 'centered',
+        plotType: 'box',
+        observationType: 'random',
         jitter: 0.7,
         hideWhiskers: false,
         notchBox: false,

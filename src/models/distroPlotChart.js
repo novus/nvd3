@@ -111,7 +111,8 @@ nv.models.distroPlotChart = function() {
             }
 
             if (typeof d3.beeswarm !== 'function' && chart.options().observationType() == 'swarm') {
-                noData = 'You must first load beeswarm.js is using a swarm observation type (see https://github.com/Kcnarf/d3-beeswarm).'
+                var xPos = margin.left + availableWidth/2;
+                noData = '<tspan x="'+xPos+'" dy="0">You are trying to use the beeswarm observationType without having</tspan><tspan x="'+xPos+'" dy="1.2em">loaded the library first; see <a href="https://github.com/Kcnarf/d3-beeswarm">https://github.com/Kcnarf/d3-beeswarm</a>.'
                 nv.utils.noData(chart, container);
                 return chart;
             } else if (!data || !data.length) {
