@@ -69,6 +69,7 @@
                 'ohlcBarChart',
                 'boxPlotChart',
                 'sunburstChart',
+                'distroPlotChart',
                 'candlestickBarChart'
             ].sort();
             var parts = [
@@ -1000,6 +1001,75 @@ as well as used to print out examples using those example inputs.
         },
         syncBrushing: {
             desc: "For focus: Toggle whether to constantly dispatch onBrush event when zooming or just when zoom end",
+            default: true,
+            examples: [true, false]
+        },
+		maxBoxWidth: {
+            desc: "limits the maximum box width (in pixels)",
+            default: "Don't limit width",
+            examples: [50]
+        },
+		plotType: {
+            desc: "Specify the rendered plot type, choices are 'box', 'violin' or false/null in which case only scatter points will be drawn",
+            default: false,
+            examples: ['box','violin']
+        },
+		observationType: {
+            desc: "Specify how to position scatter points along the x-axis; choices are 'random', 'swarm', 'line', 'centered' or false. A value of false hides all observations. Note that d3-beeswarm (https://github.com/Kcnarf/d3-beeswarm) library must be loaded for 'swarm' to work.",
+            default: 'random',
+            examples: ['random','swarm','line','centered']
+        },
+		whiskerDef: {
+            desc: "Method for calculating whisker length; choices are 'iqr' (inner quartile range), 'minmax', or 'stddev' ",
+            default: 'iqr',
+            examples: ['iqr','minmax','stddev']
+        },
+		notchBox: {
+            desc: "Whether to notch the box plot, which designates a 95% confidence interval around the median or mean.",
+            default: false,
+            examples: [true, false]
+        },
+		hideWhiskers: {
+            desc: "Whether to show or hide whisers when rendering with the box plotType",
+            default: false,
+            examples: [true, false]
+        },
+		colorGroup: {
+            desc: "If specified, this accessor function specifies the attribute to use within the data to group distrubtions along the x-axis.",
+            default: "false",
+            examples: [
+                function(d){
+                    return d.group;
+                }
+            ]
+        },
+		centralTendency: {
+            desc: "The type of central tendency to show for the distribution, this tendency will be drawn as a horizontal line; choices are 'mean', 'median' or false",
+            default: false,
+            examples: ['mean','median',false]
+        },
+		bandwidth: {
+            desc: "Heuristic for the KDE bandwidth calculation, can be float or str, if str, must be one of 'scott' or 'silverman'",
+            default: "scott",
+            examples: ["scott", "silverman"]
+        },
+		resolution: {
+            desc: "Resolution to use in kde calculation",
+            default: 50,
+            examples: [0.1, 20]
+        },
+		showOnlyOutliers: {
+            desc: "Whether to show only outliers in box plot - if false, all observations will be shown instead of just the outliers",
+            default: true,
+            examples: [true, false]
+        },
+		jitter: {
+            desc: "Float value representing the percentage of box width that should be used for the random orientation of observations",
+            default: 0.7,
+            examples: [0.2, 1]
+        },
+		squash: {
+            desc: "Whether to squash boxes/violins together along the x-axi in the case where option colorGroup is specified. This removes the empty space beteween distributions in cases where the particular grouping data does not exist.",
             default: true,
             examples: [true, false]
         }

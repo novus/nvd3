@@ -1,13 +1,9 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
-<link href="teststyle.css" rel="stylesheet" type='text/css'>
 <script src="../bower_components/d3/d3.js"></script>
 <script src="../build/nv.d3.js"></script>
-<script src="../src/models/distroPlot.js"></script>
-<script src="../src/models/distroPlotChart.js"></script>
 
-<link href="teststyle.css" rel="stylesheet" type='text/css'>
 <script src="https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js"></script>
 
 
@@ -45,8 +41,9 @@
             margin-top: 5px;
             margin-left: 10px;
             font-size: 80%;
+			font-family: 'system-ui';
           }
-    
+
           button {
             margin-bottom: 5px;
           }
@@ -68,9 +65,8 @@
     <div class="buttons">
         Plot types
         <button onclick="updatePlot(defaultBox);">Box</button>
-        <button onclick="updatePlot({plotType: 'violin', margin: {top: 10}});">Violin</button>
-        <br>
-        X-axis
+        <button onclick="updatePlot({plotType: 'violin'});">Violin</button>
+         | X-axis
         <button onclick="updatePlot({x: function(d) { return d.Isolator; }});">Isolator</button>
         <button onclick="updatePlot({x: function(d) { return d.Protocol; }});">Protocol</button>
         <button onclick="updatePlot({x: function(d) { return d.Subject; }});">Subject</button>
@@ -96,8 +92,7 @@
         <button onclick="updatePlot({plotType: 'box', whiskerDef: 'stddev', hideWhiskers: false});">1 * std. dev.</button>
         <button onclick="updatePlot({plotType: 'box', whiskerDef: 'minmax', hideWhiskers: false});">min/max</button>
         <button onclick="updatePlot({plotType: 'box', hideWhiskers: true});">Hidden</button>
-        <br>
-        Grouping
+         | Grouping
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: false});">No squash</button>
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: true});">Squashed</button>
     </div>
@@ -115,7 +110,7 @@
     var toggleTitle = true;
     var defaultBox = {
         x: function(d) { return d.Study },
-        value: function(d) { return d.Weight }, 
+        value: function(d) { return d.Weight },
         colorGroup: false,
         title: false,
         bandwidth: 'scott',
@@ -124,8 +119,8 @@
         yLabel: false,
         showMiddle: 'median',
         squash: false,
-        plotType: 'box',
-        observationType: 'centered',
+        // plotType: 'box',
+        // observationType: 'centered',
         jitter: 0.7,
         hideWhiskers: false,
         notchBox: false,
@@ -149,7 +144,7 @@
     // update chart with new settings
     function updatePlot(update) {
 
-        setChart(update);        
+        setChart(update);
         chart.update();
     }
 
