@@ -245,7 +245,6 @@ describe 'NVD3', ->
             '.nv-y.nv-axis'
             '.nv-wrap'
             '.nv-distroWrap'
-            '.nv-title'
             '.nv-distroplot-x-group'
             '.nv-distroplot-whisker'
             '.nv-distroplot-low'
