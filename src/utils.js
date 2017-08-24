@@ -652,7 +652,7 @@ nv.utils.noData = function(chart, container) {
     noDataText
         .attr('x', x)
         .attr('y', y)
-        .html(function(t){ return t; });
+        .text(function(t){ return t; });
 };
 
 /*
