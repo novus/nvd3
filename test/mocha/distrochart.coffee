@@ -257,7 +257,6 @@ describe 'NVD3', ->
             '.nv-distroplot-observation'
             '.nv-distroplot-outlier'
             '.nv-distroplot-non-outlier'
-            '.nv-legendWrap'
           ]
           for cssClass in cssClasses
             do (cssClass) ->
