@@ -6,7 +6,6 @@ nv.models.distroPlot = function() {
     // extend y scale range to min/max data better visually
     // tips of violins need to be cut off if very long
     // transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
-    // disable tooltip for hidden observations
 
     //============================================================
     // Public Variables with Default Settings
@@ -733,9 +732,8 @@ nv.models.distroPlot = function() {
 
             }
 
-
             // set opacity on outliers/non-outliers
-            obsGroup.selectAll(observationType=='line' ? 'line' : 'circle')
+            obsWrap.selectAll(observationType=='line' ? 'line' : 'circle')
               .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                 .style('opacity', function(d,i) { 
                     if (d.datum == 11.2) {
@@ -764,7 +762,7 @@ nv.models.distroPlot = function() {
             distroplots.selectAll('.nv-distroplot-observation')
                     .on('mouseover', function(d,i,j) {
                         var pt = d3.select(this);
-                        if (pt.style('opacity') == 0) return; // don't show tooltip for hidden observation
+                        if (showOnlyOutliers && plotType == 'box' && !isOutlier(d)) return; // don't show tooltip for hidden observation
                         var fillColor = d3.select(this.parentNode).style('fill'); // color set by parent g fill
                         pt.classed('hover', true);
                         dispatch.elementMouseover({
@@ -775,7 +773,6 @@ nv.models.distroPlot = function() {
                     })
                     .on('mouseout', function(d,i,j) {
                         var pt = d3.select(this);
-                        if (pt.style('opacity') == 0) return; // don't show tooltip for hidden observation
                         var fillColor = d3.select(this.parentNode).style('fill'); // color set by parent g fill
                         pt.classed('hover', false);
                         dispatch.elementMouseout({
