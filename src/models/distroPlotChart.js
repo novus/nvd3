@@ -7,8 +7,7 @@ nv.models.distroPlotChart = function() {
 
     var distroplot = nv.models.distroPlot(),
         xAxis = nv.models.axis(),
-        yAxis = nv.models.axis(),
-        legend = nv.models.legend();
+        yAxis = nv.models.axis()
 
     var margin = {top: 25, right: 10, bottom: 40, left: 60},
         width = null,
@@ -18,8 +17,6 @@ nv.models.distroPlotChart = function() {
         showYAxis = true,
         rightAlignYAxis = false,
         staggerLabels = false,
-        showLegend = true,
-        bottomAlignLegend = false,
         xLabel = false,
         yLabel = false,
         tooltip = nv.models.tooltip(),
@@ -81,6 +78,7 @@ nv.models.distroPlotChart = function() {
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
             chart.update = function() {
+                dispatch.beforeUpdate();
                 var opts = distroplot.options()
                 if (colorGroup0 !== opts.colorGroup() || // recalc data when any of the axis accessors are changed
                     x0 !== opts.x() ||
@@ -88,7 +86,6 @@ nv.models.distroPlotChart = function() {
                 ) {
                     distroplot.recalcData();
                 }
-                dispatch.beforeUpdate();
                 container.transition().duration(duration).call(chart);
             };
             chart.container = this;
@@ -200,24 +197,6 @@ nv.models.distroPlotChart = function() {
 
 
 
-            // setup legend
-            if (distroplot.colorGroup() && showLegend) { 
-
-                legend.width(availableWidth)
-                    .color(distroplot.itemColor())
-
-                var colorGroups = distroplot.colorGroupSizeScale().domain().map(function(d) { return {key: d}; })
-
-                gEnter.append('g').attr('class', 'nv-legendWrap');
-
-                g.select('.nv-legendWrap')
-                    .datum(colorGroups)
-                    .call(legend);
-
-                g.select('.nv-legendWrap .nv-legend')
-                    .attr('transform', 'translate(0,' + (bottomAlignLegend ? (availableHeight + legend.height() - 5) : (-legend.height() + 5)) +')')
-            }
-
 
             // Zero line on chart bottom
             g.select('.nv-zeroLine line')
@@ -235,13 +214,6 @@ nv.models.distroPlotChart = function() {
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
             //------------------------------------------------------------
-
-            legend.dispatch.on('stateChange', function(newState) {
-                for (var key in newState)
-                    state[key] = newState[key];
-                dispatch.stateChange(state);
-                chart.update();
-            });
 
         });
 
@@ -274,7 +246,6 @@ nv.models.distroPlotChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
-    chart.legend = legend;
     chart.state = state;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
@@ -288,9 +259,7 @@ nv.models.distroPlotChart = function() {
         showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         tooltipContent:    {get: function(){return tooltip;}, set: function(_){tooltip=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-        showLegend:    {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         defaultState:    {get: function(){return defaultState;}, set: function(_){defaultState=_;}},
-        bottomAlignLegend:    {get: function(){return bottomAlignLegend;}, set: function(_){bottomAlignLegend=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

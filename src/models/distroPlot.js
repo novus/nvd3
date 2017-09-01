@@ -2,11 +2,11 @@ nv.models.distroPlot = function() {
     "use strict";
 
     // IMPROVEMENTS:
-    // legend click hide data not working
     // cleanup tooltip to look like candlestick example (don't need color square for everything)
     // extend y scale range to min/max data better visually
     // tips of violins need to be cut off if very long
     // transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
+    // disable tooltip for hidden observations
 
     //============================================================
     // Public Variables with Default Settings
@@ -180,7 +180,14 @@ nv.models.distroPlot = function() {
     function prepData(dat) {
 
         // helper function to calcuate the various boxplot stats
-        function calcStats(v, xGroup) {
+        function calcStats(g, xGroup) {
+
+            // sort data by Y so we can calc quartiles
+            var v = g.map(function(d) {
+                if (colorGroup) allColorGroups.add(colorGroup(d)); // list of all colorGroups; used to set x-axis
+                return getY(d);
+            }).sort(d3.ascending);
+
             var q1 = d3.quantile(v, 0.25);
             var q3 = d3.quantile(v, 0.75);
             var iqr = q3 - q1;
@@ -200,7 +207,7 @@ nv.models.distroPlot = function() {
             // https://github.com/Kcnarf/d3-beeswarm
             if (typeof d3.beeswarm !== 'undefined') {
                 observations = d3.beeswarm()
-                    .data(v)
+                    .data(g.map(function(d) { return getY(d) })) // use unsorted data so we can assigned idx
                     .radius(pointSize+1)
                     .orientation('vertical')
                     .side('symmetric')
@@ -210,13 +217,14 @@ nv.models.distroPlot = function() {
                 // add group info for tooltip
                 observations.map(function(e,i) { 
                     e.key = xGroup; 
+                    e.idx = g[i].idx;
                     e.isOutlier = (e.datum < wl.iqr || e.datum > wu.iqr) // add isOulier meta for proper class assignment
                     e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
                 })
             } else {
                 v.forEach(function(e,i) {
                     observations.push({
-                        id: i,
+                        idx: i,
                         datum: e,
                         key: xGroup,
                         isOutlier: (e < wl.iqr || e > wu.iqr), // add isOulier meta for proper class assignment
@@ -245,6 +253,7 @@ nv.models.distroPlot = function() {
 
             var reformat = {
                 count: v.length,
+                num_outlier: observations.filter(function (e) { return e.isOutlier; }).length,
                 sum: d3.sum(v),
                 mean: mean,
                 q1: q1,
@@ -267,17 +276,19 @@ nv.models.distroPlot = function() {
             return reformat;
         }
 
+        // assigned idx for object constancy
+        // TODO - how do we ensure the key (idx) doesn't already exist?
+        dat.forEach(function(d,i) { d.idx = i; })
+
+
         // TODO not DRY
         // couldn't find a conditional way of doing the key() grouping
         var formatted;
         if (!colorGroup) {
             formatted = d3.nest()
                 .key(function(d) { return getX(d); })
-                .rollup(function(v) {
-                    var sortDat = v.map(function(d) {
-                        return getY(d);
-                    }).sort(d3.ascending);
-                    return calcStats(sortDat);
+                .rollup(function(v,i) {
+                    return calcStats(v);
                 })
                 .entries(dat);
         } else {
@@ -286,12 +297,7 @@ nv.models.distroPlot = function() {
                 .key(function(d) { return getX(d); })
                 .key(function(d) { return colorGroup(d); })
                 .rollup(function(v) {
-                    var xGroup = getX(v[0])
-                    var sortDat = v.map(function(d) {
-                        allColorGroups.add(colorGroup(d)); // list of all colorGroups; used to set x-axis
-                        return getY(d);
-                    }).sort(d3.ascending);
-                    return calcStats(sortDat, xGroup);
+                    return calcStats(v, getX(v[0]));
                 })
                 .entries(dat);
 
@@ -613,6 +619,8 @@ nv.models.distroPlot = function() {
                             { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'mean', value: getMean(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'count', value: d.values.count, color: getColor(d) || color(d,j) },
+                            { key: 'num. outliers', value: d.values.num_outlier, color: getColor(d) || color(d,j) },
                         ],
                         data: d,
                         index: i,
@@ -633,6 +641,8 @@ nv.models.distroPlot = function() {
                             { key: 'min', value: getMin(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'mean', value: getMean(d).toFixed(2), color: getColor(d) || color(d,j) },
                             { key: 'std. dev.', value: getDev(d).toFixed(2), color: getColor(d) || color(d,j) },
+                            { key: 'count', value: d.values.count, color: getColor(d) || color(d,j) },
+                            { key: 'num. outliers', value: d.values.num_outlier, color: getColor(d) || color(d,j) },
                         ],
                         data: d,
                         index: i,
@@ -688,12 +698,12 @@ nv.models.distroPlot = function() {
             // setup observations
             // create DOMs even if not requested (and hide them), so that
             // we can do updates
-            var obsWrap = distroplots.selectAll('.nv-distroplot-observation')
-                .data(function(d) { return getValsObj(d) }, function(d,i) { return d.id; });
+            var obsWrap = distroplots.selectAll('g.nv-distroplot-observation')
+                .data(function(d) { return getValsObj(d) }, function(d,i) { return d.idx; });
 
             var obsGroup = obsWrap.enter()
                 .append('g')
-                .attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
+                .attr('class', 'nv-distroplot-observation')
 
             obsGroup.append('circle')
                 .style({'opacity': 0})
@@ -702,7 +712,8 @@ nv.models.distroPlot = function() {
                 .style('stroke-width', 1)
                 .style({'stroke': d3.rgb(85, 85, 85), 'opacity': 0})
 
-            //obsWrap.exit().remove(); // TODO
+            obsWrap.exit().remove();
+            obsWrap.attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
 
             // TODO only call when window finishes resizing, otherwise jitterX call slows things down
             // transition observations
@@ -716,17 +727,20 @@ nv.models.distroPlot = function() {
             } else {
                 distroplots.selectAll('g.nv-distroplot-observation circle')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .attr('class', function(d) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
                     .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
                     .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
                     .attr('r', pointSize);
 
             }
 
+
             // set opacity on outliers/non-outliers
-            distroplots.selectAll('.nv-distroplot-observation *') // don't select with class (.nv-distroplot-outlier) since it's not guaranteed to be set yet
+            obsGroup.selectAll(observationType=='line' ? 'line' : 'circle')
               .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                .style('opacity', function(d) { 
+                .style('opacity', function(d,i) { 
+                    if (d.datum == 11.2) {
+                        console.log(d)
+                    }
                     if (observationType === false) {
                         return 0;
                     } else if (plotType == 'box') {
