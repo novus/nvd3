@@ -6,6 +6,7 @@ nv.models.distroPlot = function() {
     // extend y scale range to min/max data better visually
     // tips of violins need to be cut off if very long
     // transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
+    // when providing colorGroup, should color boxes by either parent or child group category (e.g. isolator)
 
     //============================================================
     // Public Variables with Default Settings
@@ -17,7 +18,6 @@ nv.models.distroPlot = function() {
         id = Math.floor(Math.random() * 10000), // Create semi-unique ID in case user doesn't select one
         xScale = d3.scale.ordinal(),
         yScale = d3.scale.linear(),
-        colorGroupSizeScale = d3.scale.ordinal(), // help position boxes if grouping
         getX  = function(d) { return d.label }, // Default data model selectors.
         getY  = function(d) { return d.value },
         getColor = function(d) { return d.color },
@@ -48,7 +48,6 @@ nv.models.distroPlot = function() {
         resolution = 50,
         pointSize = 3,
         color = nv.utils.defaultColor(),
-        colorGroupColorScale = nv.utils.getColor(d3.scale.category10().range()), // used to color boxes if .colorGroup() specified
         container = null,
         xDomain, xRange,
         yDomain, yRange,
@@ -201,6 +200,11 @@ nv.models.distroPlot = function() {
             var median = d3.median(v);
             var mean = d3.mean(v);
             var observations = [];
+
+            // check for absolute y min/max
+            var yVals = [wl.iqr, wl.minmax, wl.stddev, wu.iqr, wu.minmax, wu.stddev];
+            if (d3.min(yVals) < yMin || typeof yMin === 'undefined') yMin = d3.min(yVals)
+            if (d3.max(yVals) > yMax || typeof yMax === 'undefined') yMax = d3.max(yVals)
 
             // d3-beeswarm library must be externally loaded if being used
             // https://github.com/Kcnarf/d3-beeswarm
@@ -407,7 +411,7 @@ nv.models.distroPlot = function() {
     var allColorGroups = d3.set()
     var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var availableWidth, availableHeight;
+    var availableWidth, availableHeight, yMin, yMax;
 
     function chart(selection) {
         renderWatch.reset();
@@ -418,11 +422,14 @@ nv.models.distroPlot = function() {
             container = d3.select(this);
             nv.utils.initSVG(container);
 
-            // Setup y-scale for use in beeswarm layout
-            yScale.domain(yDomain || d3.extent(data.map(function(d) { return getY(d)})))
-                  .range(yRange || [availableHeight, 0]);
 
             if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
+
+            console.log(reformatDat, yMin, yMax)
+
+            // Setup y-scale for use in beeswarm layout
+            yScale.domain(yDomain || [Math.floor(yMin), Math.ceil(yMax)])
+                  .range(yRange || [availableHeight, 0]);
 
             // setup xscale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
@@ -736,9 +743,6 @@ nv.models.distroPlot = function() {
             obsWrap.selectAll(observationType=='line' ? 'line' : 'circle')
               .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                 .style('opacity', function(d,i) { 
-                    if (d.datum == 11.2) {
-                        console.log(d)
-                    }
                     if (observationType === false) {
                         return 0;
                     } else if (plotType == 'box') {
@@ -820,8 +824,6 @@ nv.models.distroPlot = function() {
         jitter:           {get: function(){return jitter;}, set: function(_){jitter=_;}}, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
         squash:           {get: function(){return squash;}, set: function(_){squash=_;}}, // whether to squash sparse distribution of color groups towards middle of x-axis position
         pointSize:     {get: function(){return pointSize;}, set: function(_){pointSize=_;}},
-        colorGroupSizeScale:   {get: function(){return colorGroupSizeScale;}, set: function(_){colorGroupSizeScale=_;}},
-        colorGroupColorScale:  {get: function(){return colorGroupColorScale;}, set: function(_){colorGroupColorScale=_;}},
         xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
