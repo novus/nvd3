@@ -1020,12 +1020,12 @@ as well as used to print out examples using those example inputs.
             examples: ['random','swarm','line','centered']
         },
 		whiskerDef: {
-            desc: "Method for calculating whisker length; choices are 'iqr' (inner quartile range), 'minmax', or 'stddev' ",
+            desc: "Method for calculating whisker length; choices are 'iqr', 'minmax', or 'stddev'. The type 'iqr' is the traditional way of drawing whiskers for boxplots and is defined as the lowest datum still within 1.5 IQR of the lower quartile, and the highest datum still within 1.5 IQR of the upper quartile. The type 'minmax' is simply the min or max observation within the group, and 'stddev' is 1 standard deviation from the mean. Note that changing the central tendency value (mean or median) does not change the location of any whisker type.",
             default: 'iqr',
             examples: ['iqr','minmax','stddev']
         },
 		notchBox: {
-            desc: "Whether to notch the box plot, which designates a 95% confidence interval around the median or mean.",
+            desc: "Specifying this option as True will generate the boxplots with notches; notches are drawn as 95% confidence intervals around either the mean or median (central tendency +- 1.57 * IQR / n^0.5). If the notches of two plots do not overlap this is ‘strong evidence’ that the two medians differ (Chambers et al., 1983, p. 62). Note that adjusting the central tendency option will adjust the position of the notch.",
             default: false,
             examples: [true, false]
         },
