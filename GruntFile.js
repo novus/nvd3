@@ -132,7 +132,8 @@ module.exports = function(grunt) {
                         'bower_components/d3/d3.js',
                         'src/*.js',
                         'src/models/*.js',
-                        'test/mocha/*.coffee'
+                        'test/mocha/*.coffee',
+	                    'https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js',
                     ],
                     exclude: [
                         'src/intro.js',
