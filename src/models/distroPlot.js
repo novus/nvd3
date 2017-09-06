@@ -194,9 +194,10 @@ nv.models.distroPlot = function() {
              *  - iqr: also known as Tukey boxplot, the lowest datum still within 1.5 IQR of the lower quartile, and the highest datum still within 1.5 IQR of the upper quartile
              *  - minmax: the minimum and maximum of all of the data
              *  - sttdev: one standard deviation above and below the mean of the data
+             * Note that the central tendency type (median or mean) does not impact the whisker location
              */
-            var wl = {iqr: q1 - 1.5 * iqr, minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
-            var wu = {iqr: q3 + 1.5 * iqr, minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
+            var wl = {iqr: d3.max([d3.min(v), q1 - 1.5 * iqr]), minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
+            var wu = {iqr: d3.min([d3.max(v), q3 + 1.5 * iqr]), minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
             var median = d3.median(v);
             var mean = d3.mean(v);
             var observations = [];
@@ -422,16 +423,13 @@ nv.models.distroPlot = function() {
             container = d3.select(this);
             nv.utils.initSVG(container);
 
-
             if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
 
-            console.log(reformatDat, yMin, yMax)
-
-            // Setup y-scale for use in beeswarm layout
-            yScale.domain(yDomain || [Math.floor(yMin), Math.ceil(yMax)])
+            // Setup y-scale
+            yScale.domain(yDomain || [yMin, yMax]).nice()
                   .range(yRange || [availableHeight, 0]);
 
-            // setup xscale
+            // Setup x-scale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
                   .domain(xDomain || (colorGroup && !squash) ? allColorGroups : reformatDat.map(function(d) { return d.key }))
 
