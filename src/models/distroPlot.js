@@ -734,27 +734,23 @@ nv.models.distroPlot = function() {
             }
 
             // set opacity on outliers/non-outliers
-            obsWrap.selectAll(observationType=='line' ? 'line' : 'circle')
-              .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                .style('opacity', function(d,i) { 
-                    if (observationType === false) {
-                        return 0;
-                    } else if (plotType == 'box') {
-                        if (!showOnlyOutliers || isOutlier(d)) {
-                            return 1;
-                        } 
-                    } else if (observationType !== false) {
-                        return 1;
-                    }
-                    return 0;
-                })
+            // any circle/line entering has opacity 0
+            if (observationType !== false) { // observationType is False when hidding all circle/lines
+                if (!showOnlyOutliers) { // show all line/circle
+                    distroplots.selectAll(observationType== 'line' ? 'line':'circle')
+                        .style('opacity',1)
+                } else { // show only outliers
+                    distroplots.selectAll('.nv-distroplot-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                        .style('opacity',1)
+                    distroplots.selectAll('.nv-distroplot-non-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                        .style('opacity',0)
+                }
+            }
 
-        
             // hide all other observations
             distroplots.selectAll('.nv-distroplot-observation' + (observationType=='line'?' circle':' line'))
               .watchTransition(renderWatch, 'nv-distroplot: nv-distoplot-observation')
                 .style('opacity',0)
-
 
             // tooltip events for observations
             distroplots.selectAll('.nv-distroplot-observation')
