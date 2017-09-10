@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../build/nv.d3.js"></script>
+<script src="../src/models/heatMap.js"></script>
+<script src="../src/models/heatMapChart.js"></script>
+
+<head>
+    <style>
+
+        #chart {
+            height: 400px;
+        }
+
+        html, body, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+            font-family: 'system-ui';
+        }
+
+        .buttons {
+            margin-top: 5px;
+            margin-left: 10px;
+            font-size: 80%;
+        }
+
+        button {
+            margin-bottom: 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="buttons">
+        <button onclick="updatePlot(defaultBox);">Default</button>
+        <button onclick="updatePlot({cellAspectRatio: 1});">Square</button>
+    </div>
+
+    <svg id='heatMap'></svg>
+
+</body>
+
+<script>
+
+	var chart = nv.models.heatMapChart();
+	var defaultChart = {
+		x: function(d) { return d.hour },
+		y: function(d) { return d.day },
+        cellAspectRatio: false,
+        normalize: false,
+        highContrastText: true,
+        showXAxis: true,
+        showYAxis: true,
+	}
+
+	// setup default chart
+	nv.addGraph(function() {
+
+		setChartOptions(defaultChart);
+
+		d3.select('svg#heatMap')
+			.datum(data)
+			.call(chart);
+
+		nv.utils.windowResize(chart.update);
+
+		return chart;
+	})
+
+	// update chart with new settings
+	function updatePlot(update) {
+		setChartOptions(update);
+		chart.update();
+	}
+
+	// set chart settings
+	function setChartOptions(update) {
+
+		Object.keys(update).forEach(function(optName, i) {
+			var optVal = Object.values(update)[i];
+            console.log('Setting the option ' + optName + ' to ' + optVal);
+			chart[optName](optVal)
+		});
+
+	}
+
+
+	var data = [
+		{day: 'Mo', hour: 1, value: 16, group: 0, category: 1},
+		{day: 'Mo', hour: 2, value: 20, group: 5, category: 1},
+		{day: 'Mo', hour: 3, value: 0, group: 0, category: 0},
+		{day: 'Mo', hour: 4, value: 0, group: 2, category: 2},
+		{day: 'Mo', hour: 5, value: 0, group: 5, category: 0},
+		{day: 'Mo', hour: 6, value: 2, group: 1, category: 1},
+		{day: 'Mo', hour: 7, value: 0, group: 0, category: 0},
+		{day: 'Mo', hour: 8, value: 9, group: 5, category: 2},
+		{day: 'Mo', hour: 9, value: 25, group: 1, category: 1},
+		{day: 'Mo', hour: 10, value: 49, group: 4, category: 2},
+		{day: 'Mo', hour: 11, value: 57, group: 0, category: 1},
+		{day: 'Mo', hour: 12, value: 61, group: 5, category: 1},
+		{day: 'Mo', hour: 13, value: 37, group: 4, category: 2},
+		{day: 'Mo', hour: 14, value: 66, group: 0, category: 1},
+		{day: 'Mo', hour: 15, value: 70, group: 3, category: 0},
+		{day: 'Mo', hour: 16, value: 55, group: 5, category: 1},
+		{day: 'Mo', hour: 17, value: 51, group: 2, category: 2},
+		{day: 'Mo', hour: 18, value: 55, group: 2, category: 1},
+		{day: 'Mo', hour: 19, value: 17, group: 5, category: 0},
+		{day: 'Mo', hour: 20, value: 20, group: 4, category: 0},
+		{day: 'Mo', hour: 21, value: 9, group: 1, category: 3},
+		{day: 'Mo', hour: 22, value: 4, group: 5, category: 2},
+		{day: 'Mo', hour: 23, value: 0, group: 1, category: 3},
+		{day: 'Mo', hour: 24, value: 12, group: 5, category: 3},
+		{day: 'Tu', hour: 1, value: 6, group: 1, category: 3},
+		{day: 'Tu', hour: 2, value: 2, group: 2, category: 1},
+		{day: 'Tu', hour: 3, value: 0, group: 5, category: 3},
+		{day: 'Tu', hour: 4, value: 0, group: 3, category: 2},
+		{day: 'Tu', hour: 5, value: 0, group: 0, category: 3},
+		{day: 'Tu', hour: 6, value: 2, group: 3, category: 0},
+		{day: 'Tu', hour: 7, value: 4, group: 1, category: 3},
+		{day: 'Tu', hour: 8, value: 11, group: 2, category: 0},
+		{day: 'Tu', hour: 9, value: 28, group: 4, category: 2},
+		{day: 'Tu', hour: 10, value: 49, group: 5, category: 1},
+		{day: 'Tu', hour: 11, value: 51, group: 3, category: 2},
+		{day: 'Tu', hour: 12, value: 47, group: 3, category: 2},
+		{day: 'Tu', hour: 13, value: 38, group: 2, category: 2},
+		{day: 'Tu', hour: 14, value: 65, group: 3, category: 2},
+		{day: 'Tu', hour: 15, value: 60, group: 2, category: 1},
+		{day: 'Tu', hour: 16, value: 50, group: 0, category: 1},
+		{day: 'Tu', hour: 17, value: 65, group: 0, category: 0},
+		{day: 'Tu', hour: 18, value: 50, group: 5, category: 3},
+		{day: 'Tu', hour: 19, value: 22, group: 2, category: 2},
+		{day: 'Tu', hour: 20, value: 11, group: 3, category: 3},
+		{day: 'Tu', hour: 21, value: 12, group: 5, category: 0},
+		{day: 'Tu', hour: 22, value: 9, group: 5, category: 2},
+		{day: 'Tu', hour: 23, value: 0, group: 1, category: 1},
+		{day: 'Tu', hour: 24, value: 13, group: 2, category: 2},
+		{day: 'We', hour: 1, value: 5, group: 4, category: 0},
+		{day: 'We', hour: 2, value: 8, group: 2, category: 2},
+		{day: 'We', hour: 3, value: 8, group: 3, category: 0},
+		{day: 'We', hour: 4, value: 0, group: 3, category: 1},
+		{day: 'We', hour: 5, value: 0, group: 3, category: 1},
+		{day: 'We', hour: 6, value: 2, group: 2, category: 0},
+		{day: 'We', hour: 7, value: 5, group: 0, category: 3},
+		{day: 'We', hour: 8, value: 12, group: 1, category: 1},
+		{day: 'We', hour: 9, value: 34, group: 2, category: 3},
+		{day: 'We', hour: 10, value: 43, group: 4, category: 0},
+		{day: 'We', hour: 11, value: 54, group: 1, category: 0},
+		{day: 'We', hour: 12, value: 44, group: 2, category: 1},
+		{day: 'We', hour: 13, value: 40, group: 1, category: 2},
+		{day: 'We', hour: 14, value: 48, group: 0, category: 2},
+		{day: 'We', hour: 15, value: 54, group: 2, category: 1},
+		{day: 'We', hour: 16, value: 59, group: 0, category: 3},
+		{day: 'We', hour: 17, value: 60, group: 1, category: 3},
+		{day: 'We', hour: 18, value: 51, group: 3, category: 0},
+		{day: 'We', hour: 19, value: 21, group: 0, category: 0},
+		{day: 'We', hour: 20, value: 16, group: 5, category: 0},
+		{day: 'We', hour: 21, value: 9, group: 2, category: 2},
+		{day: 'We', hour: 22, value: 5, group: 5, category: 2},
+		{day: 'We', hour: 23, value: 4, group: 5, category: 0},
+		{day: 'We', hour: 24, value: 7, group: 4, category: 2},
+		{day: 'Th', hour: 1, value: 0, group: 3, category: 1},
+		{day: 'Th', hour: 2, value: 0, group: 4, category: 2},
+		{day: 'Th', hour: 3, value: 0, group: 2, category: 3},
+		{day: 'Th', hour: 4, value: 0, group: 5, category: 2},
+		{day: 'Th', hour: 5, value: 0, group: 1, category: 3},
+		{day: 'Th', hour: 6, value: 2, group: 0, category: 0},
+		{day: 'Th', hour: 7, value: 4, group: 4, category: 2},
+		{day: 'Th', hour: 8, value: 13, group: 5, category: 1},
+		{day: 'Th', hour: 9, value: 26, group: 5, category: 0},
+		{day: 'Th', hour: 10, value: 58, group: 0, category: 3},
+		{day: 'Th', hour: 11, value: 61, group: 5, category: 0},
+		{day: 'Th', hour: 12, value: 59, group: 3, category: 0},
+		{day: 'Th', hour: 13, value: 53, group: 4, category: 2},
+		{day: 'Th', hour: 14, value: 54, group: 4, category: 3},
+		{day: 'Th', hour: 15, value: 64, group: 2, category: 1},
+		{day: 'Th', hour: 16, value: 55, group: 3, category: 3},
+		{day: 'Th', hour: 17, value: 52, group: 5, category: 2},
+		{day: 'Th', hour: 18, value: 53, group: 3, category: 1},
+		{day: 'Th', hour: 19, value: 18, group: 4, category: 0},
+		{day: 'Th', hour: 20, value: 3, group: 1, category: 2},
+		{day: 'Th', hour: 21, value: 9, group: 3, category: 3},
+		{day: 'Th', hour: 22, value: 12, group: 3, category: 3},
+		{day: 'Th', hour: 23, value: 2, group: 3, category: 2},
+		{day: 'Th', hour: 24, value: 8, group: 4, category: 1},
+		{day: 'Fr', hour: 1, value: 2, group: 4, category: 3},
+		{day: 'Fr', hour: 2, value: 0, group: 0, category: 2},
+		{day: 'Fr', hour: 3, value: 8, group: 4, category: 1},
+		{day: 'Fr', hour: 4, value: 2, group: 3, category: 1},
+		{day: 'Fr', hour: 5, value: 0, group: 3, category: 1},
+		{day: 'Fr', hour: 6, value: 2, group: 1, category: 1},
+		{day: 'Fr', hour: 7, value: 4, group: 5, category: 1},
+		{day: 'Fr', hour: 8, value: 14, group: 1, category: 2},
+		{day: 'Fr', hour: 9, value: 31, group: 0, category: 2},
+		{day: 'Fr', hour: 10, value: 48, group: 0, category: 3},
+		{day: 'Fr', hour: 11, value: 46, group: 4, category: 1},
+		{day: 'Fr', hour: 12, value: 50, group: 3, category: 2},
+		{day: 'Fr', hour: 13, value: 66, group: 5, category: 2},
+		{day: 'Fr', hour: 14, value: 54, group: 2, category: 1},
+		{day: 'Fr', hour: 15, value: 56, group: 1, category: 0},
+		{day: 'Fr', hour: 16, value: 67, group: 1, category: 1},
+		{day: 'Fr', hour: 17, value: 54, group: 1, category: 1},
+		{day: 'Fr', hour: 18, value: 23, group: 1, category: 2},
+		{day: 'Fr', hour: 19, value: 14, group: 4, category: 2},
+		{day: 'Fr', hour: 20, value: 6, group: 3, category: 3},
+		{day: 'Fr', hour: 21, value: 8, group: 2, category: 1},
+		{day: 'Fr', hour: 22, value: 7, group: 2, category: 1},
+		{day: 'Fr', hour: 23, value: 0, group: 5, category: 0},
+		{day: 'Fr', hour: 24, value: 8, group: 2, category: 1},
+		{day: 'Sa', hour: 1, value: 2, group: 2, category: 1},
+		{day: 'Sa', hour: 2, value: 0, group: 4, category: 2},
+		{day: 'Sa', hour: 3, value: 2, group: 4, category: 1},
+		{day: 'Sa', hour: 4, value: 0, group: 0, category: 0},
+		{day: 'Sa', hour: 5, value: 0, group: 2, category: 2},
+		{day: 'Sa', hour: 6, value: 0, group: 0, category: 0},
+		{day: 'Sa', hour: 7, value: 4, group: 1, category: 1},
+		{day: 'Sa', hour: 8, value: 8, group: 4, category: 0},
+		{day: 'Sa', hour: 9, value: 8, group: 4, category: 3},
+		{day: 'Sa', hour: 10, value: 6, group: 5, category: 1},
+		{day: 'Sa', hour: 11, value: 14, group: 4, category: 3},
+		{day: 'Sa', hour: 12, value: 12, group: 2, category: 2},
+		{day: 'Sa', hour: 13, value: 9, group: 2, category: 0},
+		{day: 'Sa', hour: 14, value: 14, group: 1, category: 0},
+		{day: 'Sa', hour: 15, value: 0, group: 0, category: 2},
+		{day: 'Sa', hour: 16, value: 4, group: 2, category: 0},
+		{day: 'Sa', hour: 17, value: 7, group: 0, category: 0},
+		{day: 'Sa', hour: 18, value: 6, group: 4, category: 3},
+		{day: 'Sa', hour: 19, value: 0, group: 5, category: 2},
+		{day: 'Sa', hour: 20, value: 0, group: 5, category: 2},
+		{day: 'Sa', hour: 21, value: 0, group: 2, category: 3},
+		{day: 'Sa', hour: 22, value: 0, group: 2, category: 2},
+		{day: 'Sa', hour: 23, value: 0, group: 5, category: 2},
+		{day: 'Sa', hour: 24, value: 0, group: 2, category: 3},
+		{day: 'Su', hour: 1, value: 7, group: 4, category: 3},
+		{day: 'Su', hour: 2, value: 6, group: 4, category: 2},
+		{day: 'Su', hour: 3, value: 0, group: 2, category: 0},
+		{day: 'Su', hour: 4, value: 0, group: 5, category: 3},
+		{day: 'Su', hour: 5, value: 0, group: 0, category: 3},
+		{day: 'Su', hour: 6, value: 0, group: 2, category: 1},
+		{day: 'Su', hour: 7, value: 0, group: 3, category: 2},
+		{day: 'Su', hour: 8, value: 0, group: 0, category: 2},
+		{day: 'Su', hour: 9, value: 0, group: 5, category: 2},
+		{day: 'Su', hour: 10, value: 0, group: 2, category: 3},
+		{day: 'Su', hour: 11, value: 2, group: 4, category: 3},
+		{day: 'Su', hour: 12, value: 2, group: 2, category: 3},
+		{day: 'Su', hour: 13, value: 5, group: 5, category: 0},
+		{day: 'Su', hour: 14, value: 6, group: 1, category: 0},
+		{day: 'Su', hour: 15, value: 0, group: 4, category: 1},
+		{day: 'Su', hour: 16, value: 4, group: 4, category: 1},
+		{day: 'Su', hour: 17, value: 0, group: 5, category: 0},
+		{day: 'Su', hour: 18, value: 2, group: 4, category: 0},
+		{day: 'Su', hour: 19, value: 10, group: 1, category: 1},
+		{day: 'Su', hour: 20, value: 7, group: 5, category: 1},
+		{day: 'Su', hour: 21, value: 0, group: 1, category: 2},
+		{day: 'Su', hour: 22, value: 19, group: 5, category: 1},
+		{day: 'Su', hour: 23, value: 9, group: 2, category: 0},
+		{day: 'Su', hour: 24, value: 4, group: 0, category: 0}
+	];
+
+</script>
