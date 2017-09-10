@@ -202,10 +202,6 @@ nv.models.distroPlot = function() {
             var mean = d3.mean(v);
             var observations = [];
 
-            // check for absolute y min/max
-            var yVals = [wl.iqr, wl.minmax, wl.stddev, wu.iqr, wu.minmax, wu.stddev];
-            if (d3.min(yVals) < yMin || typeof yMin === 'undefined') yMin = d3.min(yVals)
-            if (d3.max(yVals) > yMax || typeof yMax === 'undefined') yMax = d3.max(yVals)
 
             // d3-beeswarm library must be externally loaded if being used
             // https://github.com/Kcnarf/d3-beeswarm
@@ -412,7 +408,7 @@ nv.models.distroPlot = function() {
     var allColorGroups = d3.set()
     var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var availableWidth, availableHeight, yMin, yMax;
+    var availableWidth, availableHeight;
 
     function chart(selection) {
         renderWatch.reset();
@@ -423,11 +419,11 @@ nv.models.distroPlot = function() {
             container = d3.select(this);
             nv.utils.initSVG(container);
 
-            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
+            // Setup y-scale so that beeswarm layout can use it in prepData()
+            yScale.domain(yDomain || d3.extent(data.map(function(d) { return getY(d)}))).nice()
+                .range(yRange || [availableHeight, 0]);
 
-            // Setup y-scale
-            yScale.domain(yDomain || [yMin, yMax]).nice()
-                  .range(yRange || [availableHeight, 0]);
+            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
 
             // Setup x-scale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
