@@ -26,12 +26,12 @@
             font-family: 'system-ui';
           }
 
-          circle.nv-distroplot-observation {
+          .nv-distroplot-observation circle {
             opacity: 0.7;
             stroke-width: 1;
           }
 
-          circle.nv-distroplot-outlier {
+          .nv-distroplot-outlier circle {
             fill-opacity: 1;
             opacity: 0.9;
             stroke: #5C5C5C !important;
@@ -88,7 +88,7 @@
         <button onclick="updatePlot({observationType: false});">Hidden</button>
         <br>
         Whisker definitions
-        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'iqr', hideWhiskers: false});">IQR</button>
+        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'iqr', hideWhiskers: false});">Tukey</button>
         <button onclick="updatePlot({plotType: 'box', whiskerDef: 'stddev', hideWhiskers: false});">1 * std. dev.</button>
         <button onclick="updatePlot({plotType: 'box', whiskerDef: 'minmax', hideWhiskers: false});">min/max</button>
         <button onclick="updatePlot({plotType: 'box', hideWhiskers: true});">Hidden</button>
