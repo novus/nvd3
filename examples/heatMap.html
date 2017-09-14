@@ -37,7 +37,7 @@
 <body>
 
     <div class="buttons">
-        <button onclick="updatePlot(defaultBox);">Default</button>
+        <button onclick="updatePlot(defaultChart);">Default</button>
         <button onclick="updatePlot({cellAspectRatio: 1});">Square</button>
     </div>
 
@@ -52,10 +52,11 @@
 		x: function(d) { return d.hour },
 		y: function(d) { return d.day },
         cellAspectRatio: false,
-        normalize: false,
+        normalize: 'centerAll',
         highContrastText: true,
         showXAxis: true,
         showYAxis: true,
+        showLegend: false,
 	}
 
 	// setup default chart

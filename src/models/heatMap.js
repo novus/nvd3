@@ -15,7 +15,7 @@ nv.models.heatMap = function() {
         , colorScale = d3.scale.quantize() // if not set by user a color brewer quantized scale (RdYlBu 11) is setup
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
-        , getColor = function(d) { return d.value }
+        , getCellValue = function(d) { return d.value }
         , showValues = true
         , valueFormat = d3.format(',.1f')
         , cellAspectRatio = false // width / height of cell
@@ -65,10 +65,10 @@ nv.models.heatMap = function() {
         data.some(function(cell, i) {
             if (axis == 'row') {
                 if (!(getIY(cell) in vals)) vals[getIY(cell)] = [];
-                vals[getIY(cell)].push(getColor(cell));
+                vals[getIY(cell)].push(getCellValue(cell));
             } else if (axis == 'col') {
                 if (!(getIX(cell) in vals)) vals[getIX(cell)] = [];
-                vals[getIX(cell)].push(getColor(cell));
+                vals[getIX(cell)].push(getCellValue(cell));
             } else if (axis == null) { // if calculating stat over entire dataset
                 vals = {0: Object.keys(uniqueX).concat(Object.keys(uniqueY))}; 
                 return true; // break
@@ -91,7 +91,7 @@ nv.models.heatMap = function() {
     // set cell color based on cell value
     // depending on whether it should be normalized or not
     function setCellColor(d) {
-        var colorVal = normalize ? getNorm(d) : getColor(d);
+        var colorVal = normalize ? getNorm(d) : getCellValue(d);
         return colorScale(colorVal);
     }
 
@@ -163,7 +163,7 @@ nv.models.heatMap = function() {
                     var key = 0;
                 }
 
-                var normVal = getColor(cell) - stat[key];
+                var normVal = getCellValue(cell) - stat[key];
                 if (scale) {
                     cell.cellPos.norm = normVal / dev[key];
                 } else {
@@ -202,20 +202,20 @@ nv.models.heatMap = function() {
         data.forEach(function(cell, i) {
             var valX = getX(cell),
                 valY = getY(cell),
-                valColor = getColor(cell);
+                valColor = getCellValue(cell);
 
             // assemble list of unique values for each dimension
             if (!(valX in uniqueX)) { uniqueX[valX] = ix; ix++;}
             if (!(valY in uniqueY)) {uniqueY[valY] = iy; iy++;}
             if (!(valColor in uniqueColor)) uniqueColor.push(valColor)
 
+            // TODO - best way to handle the case when input data already has the key 'cellPos'?
             if ('celPos' in cell) {
                 return false;
             }
 
             // for each data point, we generate an object of data
             // needed to properly position each cell
-            // TODO - best way to handle the case when input data already has the key 'cellPos'?
             cell.cellPos = {
                 idx: i,
                 ix: uniqueX[valX],
@@ -272,13 +272,12 @@ nv.models.heatMap = function() {
 
 
             // Setup Scales
-            xScale.domain(xDomain || d3.extent(Object.keys(uniqueX)))
+            xScale.domain(xDomain || Object.keys(uniqueX))
                   .rangeBands(xRange || [0, availableWidth]);
-            yScale.domain(yDomain || d3.extent(Object.keys(uniqueY)))
+            yScale.domain(yDomain || Object.keys(uniqueY))
                   .rangeBands(yRange || [0, availableHeight]);
             colorScale.domain(colorDomain || colorExtent())
                   .range(colorRange || RdYlBu);
-
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-heatMapWrap').data([prepedData]);
@@ -287,16 +286,26 @@ nv.models.heatMap = function() {
             wrap.watchTransition(renderWatch, 'nv-wrap: heatMapWrap')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var cells = wrapEnter
+            var cellWrap = wrapEnter
                 .selectAll(".nv-cell")
                 .data(function(d) { return d; })
 
-            var cellsEnter = cells
+            var cellsEnter = cellWrap
                 .enter()
                 .append('g')
                 .attr("class","nv-cell")
+                .style('opacity', 1e-6)
+
+            var cells = wrap.selectAll('.nv-cell')
             
-            cellsEnter.style('opacity', 1e-6) // will transition to full opacity w/ renderWatch
+            cellsEnter
+                .append("rect") 
+
+            cellsEnter
+                .append('text')
+                .attr('text-anchor', 'middle')
+
+            cellsEnter
                 .on('mouseover', function(d,i) {
                     d3.select(this).classed('hover', true);
                     dispatch.elementMouseover({
@@ -320,38 +329,39 @@ nv.models.heatMap = function() {
                         color: d3.select(this).select('rect').style("fill")
                     });
                 })
-                .append("rect") // will set x,y,width,height with renderWatch...
 
-            cells.style('fill', function(d,i) { return setCellColor(d); })
-                .select("rect")
-                .watchTransition(renderWatch, 'heatMap: cells rect')
-                .attr("x", function(d) { return getIX(d) * cellWidth; })
-                .attr("y", function(d) { return getIY(d) * cellHeight; })
+
+            // transition cell (rect) size
+            cells.selectAll('rect')
+                .watchTransition(renderWatch, 'heatMap: rect')
                 .attr("width", cellWidth)
                 .attr("height", cellHeight)
 
-            cells.watchTransition(renderWatch, 'heatMap: cells')
+            // transition cell (g) position, opacity and fill
+            cells
+                .watchTransition(renderWatch, 'heatMap: cells')
                 .style('opacity', 1)
+                .style('fill', function(d,i) { return setCellColor(d); })
+                .attr("transform", function(d) { return "translate(" + getIX(d) * cellWidth + "," + getIY(d) * cellHeight + ")" })
 
-            cells.exit().remove();
-
+            cellWrap.exit().remove();
 
             if (showValues) {
-                cellsEnter.append('text')
-                    .attr('text-anchor', 'middle')
-                ;
 
-                cells.select('text')
-                    .text(function(d,i) { return !normalize ? valueFormat(getColor(d)) : valueFormat(getNorm(d)) })
-                    .watchTransition(renderWatch, 'heatMap: cells text')
-                    .attr("x", function(d) { return getIX(d) * cellWidth + cellWidth / 2; })
-                    .attr("y", function(d) { return getIY(d) * cellHeight + cellHeight / 2; })
+                cellWrap.select('text')
+                    .text(function(d,i) { return !normalize ? valueFormat(getCellValue(d)) : valueFormat(getNorm(d)) })
                     .attr("dy", 4)
                     .attr("class","cell-text")
+
+                // transition text position and fill
+                cells.selectAll('text')
+                    .watchTransition(renderWatch, 'heatMap: cells text')
+                    .attr("x", function(d) { return cellWidth / 2; })
+                    .attr("y", function(d) { return cellHeight / 2; })
                     .style("fill", function() { return cellTextColor(d3.select(this.previousSibling).style('fill')) })
                 ;
             } else {
-                cells.selectAll('text').remove();
+                cellWrap.selectAll('text').remove();
             }
 
 
@@ -376,7 +386,8 @@ nv.models.heatMap = function() {
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
         y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
-        color:       {get: function(){return getColor;}, set: function(_){getColor=_;}}, // data attribute that sets cell value and color
+        cellValue:       {get: function(){return getCellValue;}, set: function(_){getCellValue=_;}}, // data attribute that sets cell value and color
+        cellValueNorm:   {get: function(){return getNorm;}}, // get normalized cell value
         xScale:  {get: function(){return xScale;}, set: function(_){x=Scale_;}},
         xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},

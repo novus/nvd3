@@ -72,6 +72,7 @@ nv.models.heatMapChart = function() {
         .duration(0)
         .headerEnabled(false)
         .valueFormatter(function(d, i) {
+            return d;
             return d.toFixed(2);
         })
         .keyFormatter(function(d, i) {
@@ -358,10 +359,9 @@ nv.models.heatMapChart = function() {
         });
 
         // axis don't have a flag for disabling the zero line, so we do it manually
-/*
         d3.selectAll('.nv-axis').selectAll('line')
             .style('stroke-opacity', 0)
-*/
+        d3.select('.nv-y').select('path.domain').remove()
 
         renderWatch.renderEnd('heatMap chart immediate');
 
@@ -374,8 +374,8 @@ nv.models.heatMapChart = function() {
 
     heatMap.dispatch.on('elementMouseover.tooltip', function(evt) {
         evt['series'] = {
-            key: chart.column()(evt.data) + ' ' + chart.row()(evt.data),
-            value: !chart.normalize() ? chart.color()(evt.data) : evt.data.norm,
+            key: chart.x()(evt.data) + ' ' + chart.y()(evt.data),
+            value: !chart.normalize() ? chart.cellValue()(evt.data) : chart.cellValueNorm()(evt.data),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
