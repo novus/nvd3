@@ -1,3 +1,12 @@
+/* 
+Improvements:
+- how to we want to handle missing data? how is missing data identified? how is it formatted?
+
+TODO:
+- row/column metadata
+- row/column order (user specified) or 'ascending' / 'descending'
+*/
+
 nv.models.heatMap = function() {
     "use strict";
 
@@ -16,8 +25,8 @@ nv.models.heatMap = function() {
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , getCellValue = function(d) { return d.value }
-        , showValues = true
-        , valueFormat = d3.format(',.1f')
+        , showCellValues = true
+        , cellFormat = d3.format(',.1f')
         , cellAspectRatio = false // width / height of cell
         , normalize = false
         , highContrastText = true
@@ -210,9 +219,7 @@ nv.models.heatMap = function() {
             if (!(valColor in uniqueColor)) uniqueColor.push(valColor)
 
             // TODO - best way to handle the case when input data already has the key 'cellPos'?
-            if ('celPos' in cell) {
-                return false;
-            }
+            if ('celPos' in cell) return false;
 
             // for each data point, we generate an object of data
             // needed to properly position each cell
@@ -226,7 +233,7 @@ nv.models.heatMap = function() {
 
         //uniqueX = uniqueX.sort()
         //uniqueY = uniqueY.sort()
-        uniqueColor = uniqueColor.sort()
+        //uniqueColor = uniqueColor.sort()
 
         // normalize data is needed
         return normalize ? normalizeData(data) : data;
@@ -295,6 +302,7 @@ nv.models.heatMap = function() {
                 .append('g')
                 .attr("class","nv-cell")
                 .style('opacity', 1e-6)
+                .attr("transform", function(d) { return "translate(0," + getIY(d) * cellHeight + ")" }) // enter all g's here for a sweep-right transition
 
             var cells = wrap.selectAll('.nv-cell')
             
@@ -346,10 +354,10 @@ nv.models.heatMap = function() {
 
             cellWrap.exit().remove();
 
-            if (showValues) {
+            if (showCellValues) {
 
                 cellWrap.select('text')
-                    .text(function(d,i) { return !normalize ? valueFormat(getCellValue(d)) : valueFormat(getNorm(d)) })
+                    .text(function(d,i) { return !normalize ? cellFormat(getCellValue(d)) : cellFormat(getNorm(d)) })
                     .attr("dy", 4)
                     .attr("class","cell-text")
 
@@ -383,7 +391,7 @@ nv.models.heatMap = function() {
         // simple options, just get/set the necessary values
         width:   {get: function(){return width;}, set: function(_){width=_;}},
         height:  {get: function(){return height;}, set: function(_){height=_;}},
-        showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
+        showCellValues: {get: function(){return showCellValues;}, set: function(_){showCellValues=_;}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
         y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
         cellValue:       {get: function(){return getCellValue;}, set: function(_){getCellValue=_;}}, // data attribute that sets cell value and color
@@ -400,11 +408,9 @@ nv.models.heatMap = function() {
         cellAspectRatio: {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
         cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
         cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
-        uniqueX:  {get: function(){return uniqueX;}, set: function(_){uniqueX=_;}},
-        uniqueY:  {get: function(){return uniqueY;}, set: function(_){uniqueY=_;}},
         normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
         highContrastText:  {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
-        valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
+        cellFormat:    {get: function(){return cellFormat;}, set: function(_){cellFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
 
 

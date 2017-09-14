@@ -45,8 +45,8 @@ nv.models.heatMapChart = function() {
         , staggerLabels = false
         , showXAxis = true
         , showYAxis = true
-        , rightAlignYAxis = false
-        , bottomAlignXAxis = false
+        , alignYAxis = 'left'
+        , alignXAxis = 'top'
         , rotateLabels = 0
         , title = false
         , x
@@ -58,12 +58,12 @@ nv.models.heatMapChart = function() {
         ;
 
     xAxis
-        .orient((bottomAlignXAxis) ? 'bottom' : 'top')
+        .orient(alignXAxis)
         .showMaxMin(false)
         .tickFormat(function(d) { return d })
     ;
     yAxis
-        .orient((rightAlignYAxis) ? 'right' : 'left')
+        .orient(alignYAxis)
         .showMaxMin(false)
         .tickFormat(function(d) { return d })
     ;
@@ -173,7 +173,7 @@ nv.models.heatMapChart = function() {
 
 
             if (heatMap.cellAspectRatio()) {
-                availableHeight = heatMap.cellHeight() * Object.keys(heatMap.uniqueY()).length;
+                availableHeight = heatMap.cellHeight() * y.domain().length;
                 heatMap.height(availableHeight);
             }
 
@@ -230,15 +230,16 @@ nv.models.heatMapChart = function() {
                     }
                 }
 
-
-                if (bottomAlignXAxis) {
-                    g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? heatMap.cellWidth()/2 : 0)) + ")");
-                } else {
-                    g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (hasColumnMeta() ? -heatMap.cellWidth()/2 : 0) + ")");
-                }
 */
+
+                if (alignXAxis == 'bottom') {
+                    g.select(".nv-x.nv-axis")
+                        .attr("transform", "translate(0," + (availableHeight) + ")");
+                        //.attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? heatMap.cellWidth()/2 : 0)) + ")");
+                //} else {
+                //    g.select(".nv-x.nv-axis")
+                //        .attr("transform", "translate(0," + (hasColumnMeta() ? -heatMap.cellWidth()/2 : 0) + ")");
+                }
             }
 
             if (showYAxis) {
@@ -275,14 +276,15 @@ nv.models.heatMapChart = function() {
                         .attr('y', -heatMap.cellHeight()/2)
                 }
 
-                if (rightAlignYAxis) {
-                    g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatMap.cellHeight()/2: 0)) + ",0)");
-                } else {
-                    g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (hasRowMeta() ? -18 : 0) + ",0)");
-                }
 */
+                if (alignYAxis == 'right') {
+                    g.select(".nv-y.nv-axis")
+                        .attr("transform", "translate(" + (availableWidth) + ",0)");
+                        //.attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatMap.cellHeight()/2: 0)) + ",0)");
+                //} else {
+                //    g.select(".nv-y.nv-axis")
+                 //       .attr("transform", "translate(" + (hasRowMeta() ? -18 : 0) + ",0)");
+                }
             }
 
 /*
@@ -341,18 +343,21 @@ nv.models.heatMapChart = function() {
             if (!showLegend) {
                 g.select('.nv-legendWrap').selectAll('*').remove();
             } else {
-                legend.width(availableWidth);
+                legend
+                    .width(availableWidth)
+                    .color(heatMap.colorScale().range())
 
                  var legendVal = quantizeLegendValues().map(function(d) {
                     return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
-                })
+                 })
 
                 g.select('.nv-legendWrap')
                     .datum(legendVal)
                     .call(legend);
 
-                //g.select('.nv-legendWrap .nv-legend')
-                    //.attr('transform', 'translate(0,' + (-legend.height() + ((!bottomAlignXAxis && hasColumnMeta()) ? -15-heatMap.cellWidth()/3 : -5)) +')')
+                // position legend opposite of X-axis
+                g.select('.nv-legendWrap')
+                    .attr('transform', 'translate(0,' + (alignXAxis == 'top' ? availableHeight : -30) + ')'); // TODO: more intelligent offset (-30) when top aligning legend
             }
 
 
@@ -396,8 +401,6 @@ nv.models.heatMapChart = function() {
     chart.dispatch = dispatch;
     chart.heatMap = heatMap;
     chart.legend = legend;
-    chart.legendRowMeta = legendRowMeta;
-    chart.legendColumnMeta = legendColumnMeta;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
@@ -432,18 +435,20 @@ nv.models.heatMapChart = function() {
             xAxis.duration(duration);
             yAxis.duration(duration);
         }},
+/*
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             heatMap.color(color);
             //legend.color(nv.utils.getColor(["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]));
         }},
-        rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
-            rightAlignYAxis = _;
-            yAxis.orient( (_) ? 'right' : 'left');
+*/
+        alignYAxis: {get: function(){return alignYAxis;}, set: function(_){
+            alignYAxis = _;
+            yAxis.orient(_);
         }},
-        bottomAlignXAxis: {get: function(){return bottomAlignXAxis;}, set: function(_){
-            bottomAlignXAxis = _;
-            xAxis.orient( (_) ? 'bottom' : 'top');
+        alignXAxis: {get: function(){return alignXAxis;}, set: function(_){
+            alignXAxis = _;
+            xAxis.orient(_);
         }},
     });
 
