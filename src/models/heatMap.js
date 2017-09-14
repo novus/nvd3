@@ -26,8 +26,9 @@ nv.models.heatMap = function() {
         , getY = function(d) { return d.y }
         , getCellValue = function(d) { return d.value }
         , showCellValues = true
-        , cellFormat = d3.format(',.1f')
+        , cellFormat = d3.format(',.0f')
         , cellAspectRatio = false // width / height of cell
+        , cellBorderWidth = 4 // pixels between cells
         , normalize = false
         , highContrastText = true
         , xDomain
@@ -47,6 +48,7 @@ nv.models.heatMap = function() {
     // choose high contrast text color based on background
     // shameful steal: https://github.com/alexandersimoes/d3plus/blob/master/src/color/text.coffee
     function cellTextColor(bgColor) {
+
         if (highContrastText) {
             var rgbColor = d3.rgb(bgColor);
             var r = rgbColor.r;
@@ -99,7 +101,7 @@ nv.models.heatMap = function() {
 
     // set cell color based on cell value
     // depending on whether it should be normalized or not
-    function setCellColor(d) {
+    function cellColor(d) {
         var colorVal = normalize ? getNorm(d) : getCellValue(d);
         return colorScale(colorVal);
     }
@@ -342,14 +344,17 @@ nv.models.heatMap = function() {
             // transition cell (rect) size
             cells.selectAll('rect')
                 .watchTransition(renderWatch, 'heatMap: rect')
-                .attr("width", cellWidth)
-                .attr("height", cellHeight)
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", cellHeight-cellBorderWidth)
+                .style('stroke', function(d,i) { return cellColor(d) })
 
             // transition cell (g) position, opacity and fill
             cells
                 .watchTransition(renderWatch, 'heatMap: cells')
-                .style('opacity', 1)
-                .style('fill', function(d,i) { return setCellColor(d); })
+                .style({
+                    'opacity': 1,
+                    'fill': function(d,i) { return cellColor(d) },
+                })
                 .attr("transform", function(d) { return "translate(" + getIX(d) * cellWidth + "," + getIY(d) * cellHeight + ")" })
 
             cellWrap.exit().remove();
@@ -364,9 +369,9 @@ nv.models.heatMap = function() {
                 // transition text position and fill
                 cells.selectAll('text')
                     .watchTransition(renderWatch, 'heatMap: cells text')
-                    .attr("x", function(d) { return cellWidth / 2; })
-                    .attr("y", function(d) { return cellHeight / 2; })
-                    .style("fill", function() { return cellTextColor(d3.select(this.previousSibling).style('fill')) })
+                    .attr("x", function(d) { return (cellWidth-cellBorderWidth) / 2; })
+                    .attr("y", function(d) { return (cellHeight-cellBorderWidth) / 2; })
+                    .style("fill", function(d, i) { return cellTextColor(cellColor(d)) })
                 ;
             } else {
                 cellWrap.selectAll('text').remove();
@@ -409,6 +414,7 @@ nv.models.heatMap = function() {
         cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
         cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
         normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
+        cellBorderWidth:  {get: function(){return cellBorderWidth;}, set: function(_){cellBorderWidth=_;}},
         highContrastText:  {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
         cellFormat:    {get: function(){return cellFormat;}, set: function(_){cellFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
