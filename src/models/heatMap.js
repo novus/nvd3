@@ -305,6 +305,8 @@ nv.models.heatMap = function() {
                 .attr("class","nv-cell")
                 .style('opacity', 1e-6)
                 .attr("transform", function(d) { return "translate(0," + getIY(d) * cellHeight + ")" }) // enter all g's here for a sweep-right transition
+                .attr('data-row', function(d) { return getIY(d) })
+                .attr('data-column', function(d) { return getIX(d) });
 
             var cells = wrap.selectAll('.nv-cell')
             
@@ -315,9 +317,30 @@ nv.models.heatMap = function() {
                 .append('text')
                 .attr('text-anchor', 'middle')
 
-            cellsEnter
+            // TOOLTIPS
+            cells
                 .on('mouseover', function(d,i) {
-                    d3.select(this).classed('hover', true);
+
+                    var idx = getIdx(d);
+                    var ix = getIX(d);
+                    var iy = getIY(d);
+
+                    d3.selectAll('.nv-cell').each(function(e) {
+                        if (idx == getIdx(e)) {
+                            d3.select(this).classed('cell-hover', true);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                        }
+                        if (ix == getIX(e)) {
+                            d3.select(this).classed('no-hover', false);
+                            d3.select(this).classed('column-hover', true);
+                        }
+                        if (iy == getIY(e)) {
+                            d3.select(this).classed('no-hover', false);
+                            d3.select(this).classed('row-hover', true);
+                        }
+                    })
+                    
                     dispatch.elementMouseover({
                         data: d,
                         index: i,
@@ -325,7 +348,10 @@ nv.models.heatMap = function() {
                     });
                 })
                 .on('mouseout', function(d,i) {
-                    d3.select(this).classed('hover', false);
+                    d3.select(this).classed('cell-hover', false);
+                    d3.select(this.parentNode).selectAll('.nv-cell').classed('no-hover', false);
+                    d3.select(this.parentNode).selectAll('.nv-cell').classed('row-hover', false);
+                    d3.select(this.parentNode).selectAll('.nv-cell').classed('column-hover', false);
                     dispatch.elementMouseout({
                         data: d,
                         index: i,
