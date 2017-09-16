@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-09-14 */
+/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-15 */
 (function(){
 
 // set up main nv object
@@ -1590,27 +1590,6 @@ nv.utils.arrayEquals = function (array1, array2) {
     }
     return true;
 };
-
-/*
- Check if a point within an arc
- */
-nv.utils.pointIsInArc = function(pt, ptData, d3Arc) {
-    // Center of the arc is assumed to be 0,0
-    // (pt.x, pt.y) are assumed to be relative to the center
-    var r1 = d3Arc.innerRadius()(ptData), // Note: Using the innerRadius
-      r2 = d3Arc.outerRadius()(ptData),
-      theta1 = d3Arc.startAngle()(ptData),
-      theta2 = d3Arc.endAngle()(ptData);
-
-    var dist = pt.x * pt.x + pt.y * pt.y,
-      angle = Math.atan2(pt.x, -pt.y); // Note: different coordinate system.
-
-    angle = (angle < 0) ? (angle + Math.PI * 2) : angle;
-
-    return (r1 * r1 <= dist) && (dist <= r2 * r2) &&
-      (theta1 <= angle) && (angle <= theta2);
-};
-
 nv.models.axis = function() {
     "use strict";
 
@@ -1635,7 +1614,6 @@ nv.models.axis = function() {
         , fontSize = undefined
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')
-        , tickFormatMaxMin
         ;
     axis
         .scale(scale)
@@ -1720,8 +1698,7 @@ nv.models.axis = function() {
                             .attr('y', -axis.tickPadding())
                             .attr('text-anchor', 'middle')
                             .text(function(d,i) {
-                                var formatter = tickFormatMaxMin || fmt;
-                                var v = formatter(d);
+                                var v = fmt(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max top')
@@ -1738,7 +1715,7 @@ nv.models.axis = function() {
                     var rotateLabelsRule = '';
                     if (rotateLabels%360) {
                         //Reset transform on ticks so textHeight can be calculated correctly
-                        xTicks.attr('transform', '');
+                        xTicks.attr('transform', ''); 
                         //Calculate the longest xTick width
                         xTicks.each(function(d,i){
                             var box = this.getBoundingClientRect();
@@ -1796,8 +1773,7 @@ nv.models.axis = function() {
                             .attr('transform', rotateLabelsRule)
                             .style('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
                             .text(function(d,i) {
-                                var formatter = tickFormatMaxMin || fmt;
-                                var v = formatter(d);
+                                var v = fmt(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max bottom')
@@ -1832,8 +1808,7 @@ nv.models.axis = function() {
                             .attr('x', axis.tickPadding())
                             .style('text-anchor', 'start')
                             .text(function(d, i) {
-                                var formatter = tickFormatMaxMin || fmt;
-                                var v = formatter(d);
+                                var v = fmt(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
@@ -1877,8 +1852,7 @@ nv.models.axis = function() {
                             .attr('x', -axis.tickPadding())
                             .attr('text-anchor', 'end')
                             .text(function(d,i) {
-                                var formatter = tickFormatMaxMin || fmt;
-                                var v = formatter(d);
+                                var v = fmt(d);
                                 return ('' + v).match('NaN') ? '' : v;
                             });
                         axisMaxMin.watchTransition(renderWatch, 'min-max right')
@@ -1949,9 +1923,9 @@ nv.models.axis = function() {
                     and the arithmetic trick below solves that.
                     */
                     return !parseFloat(Math.round(d * 100000) / 1000000) && (d !== undefined)
-                })
+                }) 
                 .classed('zero', true);
-
+            
             //store old scales for use in transitions on update
             scale0 = scale.copy();
 
@@ -1982,7 +1956,6 @@ nv.models.axis = function() {
         ticks:             {get: function(){return ticks;}, set: function(_){ticks=_;}},
         width:             {get: function(){return width;}, set: function(_){width=_;}},
         fontSize:          {get: function(){return fontSize;}, set: function(_){fontSize=_;}},
-        tickFormatMaxMin:  {get: function(){return tickFormatMaxMin;}, set: function(_){tickFormatMaxMin=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -3383,7 +3356,6 @@ nv.models.cumulativeLineChart = function() {
     var dx = d3.scale.linear()
         , index = {i: 0, x: 0}
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
-        , currentYDomain
         ;
 
     var stateGetter = function(data) {
@@ -3488,24 +3460,36 @@ nv.models.cumulativeLineChart = function() {
             x = lines.xScale();
             y = lines.yScale();
 
+            if (!rescaleY) {
+                var seriesDomains = data
+                    .filter(function(series) { return !series.disabled })
+                    .map(function(series,i) {
+                        var initialDomain = d3.extent(series.values, lines.y());
+
+                        //account for series being disabled when losing 95% or more
+                        if (initialDomain[0] < -.95) initialDomain[0] = -.95;
+
+                        return [
+                                (initialDomain[0] - initialDomain[1]) / (1 + initialDomain[1]),
+                                (initialDomain[1] - initialDomain[0]) / (1 + initialDomain[0])
+                        ];
+                    });
+
+                var completeDomain = [
+                    d3.min(seriesDomains, function(d) { return d[0] }),
+                    d3.max(seriesDomains, function(d) { return d[1] })
+                ];
+
+                lines.yDomain(completeDomain);
+            } else {
+                lines.yDomain(null);
+            }
 
             dx.domain([0, data[0].values.length - 1]) //Assumes all series have same length
                 .range([0, availableWidth])
                 .clamp(true);
 
             var data = indexify(index.i, data);
-
-            // initialize the starting yDomain for the not-rescale case after indexify (to have calculated point.display)
-            if (typeof(currentYDomain) === "undefined") {
-                currentYDomain = getCurrentYDomain(data);
-            }
-
-            if (!rescaleY) {
-                lines.yDomain(currentYDomain);
-                lines.clipEdge(true);
-            } else {
-                lines.yDomain(null);
-            }
 
             // Setup containers and skeleton of chart
             var interactivePointerEvents = (useInteractiveGuideline) ? "none" : "all";
@@ -3569,7 +3553,7 @@ nv.models.cumulativeLineChart = function() {
                     .attr("transform", "translate(" + availableWidth + ",0)");
             }
 
-            // Show error if index point value is 0 (division by zero avoided)
+            // Show error if series goes below 100%
             var tempDisabled = data.filter(function(d) { return d.tempDisabled });
 
             wrap.select('.tempDisabled').remove(); //clean-up and prevent duplicates
@@ -3739,10 +3723,8 @@ nv.models.cumulativeLineChart = function() {
             controls.dispatch.on('legendClick', function(d,i) {
                 d.disabled = !d.disabled;
                 rescaleY = !d.disabled;
+
                 state.rescaleY = rescaleY;
-                if (!rescaleY) {
-                    currentYDomain = getCurrentYDomain(data); // rescale is turned off, so set the currentYDomain
-                }
                 dispatch.stateChange(state);
                 chart.update();
             });
@@ -3761,7 +3743,7 @@ nv.models.cumulativeLineChart = function() {
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
-                        return !(series.disabled || series.tempDisabled);
+                        return !series.disabled;
                     })
                     .forEach(function(series,i) {
                         pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
@@ -3876,8 +3858,10 @@ nv.models.cumulativeLineChart = function() {
             }
             var v = indexifyYGetter(indexValue, idx);
 
-            // avoid divide by zero
-            if (Math.abs(v) < 0.00001 && !noErrorCheck) {
+            //TODO: implement check below, and disable series if series loses 100% or more cause divide by 0 issue
+            if (v < -.95 && !noErrorCheck) {
+                //if a series loses more than 100%, calculations fail.. anything close can cause major distortion (but is mathematically correct till it hits 100)
+
                 line.tempDisabled = true;
                 return line;
             }
@@ -3885,25 +3869,12 @@ nv.models.cumulativeLineChart = function() {
             line.tempDisabled = false;
 
             line.values = line.values.map(function(point, pointIndex) {
-                point.display = {'y': (indexifyYGetter(point, pointIndex) - v) / v };
+                point.display = {'y': (indexifyYGetter(point, pointIndex) - v) / (1 + v) };
                 return point;
             });
 
             return line;
         })
-    }
-
-    function getCurrentYDomain(data) {
-        var seriesDomains = data
-            .filter(function(series) { return !(series.disabled || series.tempDisabled)})
-            .map(function(series,i) {
-                return d3.extent(series.values, function (d) { return d.display.y });
-            });
-
-        return [
-            d3.min(seriesDomains, function(d) { return d[0] }),
-            d3.max(seriesDomains, function(d) { return d[1] })
-        ];
     }
 
     //============================================================
@@ -3927,6 +3898,7 @@ nv.models.cumulativeLineChart = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+        rescaleY:     {get: function(){return rescaleY;}, set: function(_){rescaleY=_;}},
         showControls:     {get: function(){return showControls;}, set: function(_){showControls=_;}},
         showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         average: {get: function(){return average;}, set: function(_){average=_;}},
@@ -3937,10 +3909,6 @@ nv.models.cumulativeLineChart = function() {
         noErrorCheck:    {get: function(){return noErrorCheck;}, set: function(_){noErrorCheck=_;}},
 
         // options that require extra logic in the setter
-        rescaleY:     {get: function(){return rescaleY;}, set: function(_){
-            rescaleY = _;
-            chart.state.rescaleY = _; // also update state
-        }},
         margin: {get: function(){return margin;}, set: function(_){
             if (_.top !== undefined) {
                 margin.top = _.top;
@@ -5510,899 +5478,6 @@ nv.models.furiousLegend = function() {
 
     return chart;
 };
-/* 
-Improvements:
-- how to we want to handle missing data? how is missing data identified? how is it formatted?
-
-TODO:
-- row/column metadata
-- row/column order (user specified) or 'ascending' / 'descending'
-*/
-
-nv.models.heatMap = function() {
-    "use strict";
-
-    //============================================================
-    // Public Variables with Default Settings
-    //------------------------------------------------------------
-
-    var margin = {top: 0, right: 0, bottom: 0, left: 0}
-        , width = 960
-        , height = 500
-        , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
-        , container
-        , xScale = d3.scale.ordinal()
-        , yScale = d3.scale.ordinal()
-        , colorScale = d3.scale.quantize() // if not set by user a color brewer quantized scale (RdYlBu 11) is setup
-        , getX = function(d) { return d.x }
-        , getY = function(d) { return d.y }
-        , getCellValue = function(d) { return d.value }
-        , showCellValues = true
-        , cellFormat = d3.format(',.1f')
-        , cellAspectRatio = false // width / height of cell
-        , normalize = false
-        , highContrastText = true
-        , xDomain
-        , yDomain
-        , colorDomain
-        , xRange
-        , yRange
-        , colorRange
-        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
-        , duration = 250
-        ;
-
-
-    //============================================================
-    // Aux helper function for heatmap
-    //------------------------------------------------------------
-    // choose high contrast text color based on background
-    // shameful steal: https://github.com/alexandersimoes/d3plus/blob/master/src/color/text.coffee
-    function cellTextColor(bgColor) {
-        if (highContrastText) {
-            var rgbColor = d3.rgb(bgColor);
-            var r = rgbColor.r;
-            var g = rgbColor.g;
-            var b = rgbColor.b;
-            var yiq = (r * 299 + g * 587 + b * 114) / 1000;
-            return yiq >= 128 ? "#404040" : "#EDEDED"; // dark text else light text
-        } else {
-            return 'black';
-        }
-    }
-
-    /* go through heatmap data and generate array of values
-     * for each row/column or for entire dataset; for use in
-     * calculating means/medians of data for normalizing
-     * @param {str} axis - 'row', 'col' or null
-     *
-     * @returns {row/column index: [array of values for row/col]}
-     * note that if axis is not specified, the return will be
-     * {0: [all values in heatmap]}
-     */
-    function getHeatmapValues(data, axis) {
-        var vals = {};
-
-        data.some(function(cell, i) {
-            if (axis == 'row') {
-                if (!(getIY(cell) in vals)) vals[getIY(cell)] = [];
-                vals[getIY(cell)].push(getCellValue(cell));
-            } else if (axis == 'col') {
-                if (!(getIX(cell) in vals)) vals[getIX(cell)] = [];
-                vals[getIX(cell)].push(getCellValue(cell));
-            } else if (axis == null) { // if calculating stat over entire dataset
-                vals = {0: Object.keys(uniqueX).concat(Object.keys(uniqueY))}; 
-                return true; // break
-            }
-        })
-
-        return vals;
-    }
-
-    // calculate the median absolute deviation of the given array of data
-    // https://en.wikipedia.org/wiki/Median_absolute_deviation
-    // MAD = median(abs(Xi - median(X)))
-    function mad(dat) {
-        var med = d3.median(dat);
-        var vals = dat.map(function(d) { return Math.abs(d - med); })
-        return d3.median(vals);
-    }
-
-
-    // set cell color based on cell value
-    // depending on whether it should be normalized or not
-    function setCellColor(d) {
-        var colorVal = normalize ? getNorm(d) : getCellValue(d);
-        return colorScale(colorVal);
-    }
-
-    // return the extent of the color data
-    // will take into account normalization if specified
-    function colorExtent() {
-        return normalize ? d3.extent(prepedData, function(d) { return getNorm(d); }) : d3.extent(uniqueColor);
-    }
-
-    /*
-     * Normalize input data
-     *
-     * normalize must be one of centerX, robustCenterX, centerScaleX, robustCenterScaleX, centerAll, 
-     * robustCenterAll, centerScaleAll, robustCenterScaleAll where X is either 'Row' or 'Column'
-     *
-     * - centerX: subtract row/column mean from cell
-     * - centerAll: subtract mean of whole data set from cell
-     * - centerScaleX: scale so that row/column has mean 0 and variance 1 (Z-score)
-     * - centerScaleAll: scale by overall normalization factor so that the whole data set has mean 0 and variance 1 (Z-score)
-     * - robustCenterX: subtract row/column median from cell
-     * - robustCenterScaleX: subtract row/column median from cell and then scale row/column by median absolute deviation
-     * - robustCenterAll: subtract median of whole data set from cell
-     * - robustCenterScaleAll: subtract overall median from cell and scale by overall median absolute deviation
-     */
-    function normalizeData(dat) {
-        
-        var normTypes = ['centerRow',
-            'robustCenterRow',
-            'centerScaleRow',
-            'robustCenterScaleRow',
-            'centerColumn',
-            'robustCenterColumn',
-            'centerScaleColumn',
-            'robustCenterScaleColumn',
-            'centerAll',
-            'robustCenterAll',
-            'centerScaleAll',
-            'robustCenterScaleAll'];
-
-
-        if(normTypes.indexOf(normalize) != -1) {
-
-            var xVals = Object.keys(uniqueX), yVals = Object.keys(uniqueY);
-
-            // setup normalization options
-            var scale = normalize.includes('Scale') ? true: false,
-                agg = normalize.includes('robust') ? 'median': 'mean',
-                axis = normalize.includes('Row') ? 'row' : normalize.includes('Column') ? 'col' : null,
-                vals = getHeatmapValues(dat, axis);
-
-
-            // calculate mean or median
-            // calculate standard dev or median absolute deviation
-            var stat = {};
-            var dev = {};
-            for (var key in vals) {
-                stat[key] = agg == 'mean' ? d3.mean(vals[key]) : d3.median(vals[key]);
-                if (scale) dev[key] = agg == 'mean' ? d3.deviation(vals[key]) : mad(vals[key]);
-            }
-
-
-            // do the normalizing
-            dat.forEach(function(cell, i) {
-                if (axis == 'row') {
-                    var key = getIY(cell);
-                } else if (axis == 'col') {
-                    var key = getIX(cell);
-                } else if (axis == null) {  // if calculating stat over entire dataset
-                    var key = 0;
-                }
-
-                var normVal = getCellValue(cell) - stat[key];
-                if (scale) {
-                    cell.cellPos.norm = normVal / dev[key];
-                } else {
-                    cell.cellPos.norm = normVal;
-                }
-            })
-
-        } else {
-            normalize = false; // proper normalize option was not provided, disable it so heatmap still shows colors
-        }
-
-        return dat;
-    }
-
-    /*
-     * Process incoming data for use with heatmap including:
-     * - adding a unique key indexer to each data point (idx)
-     * - getting a unique list of all x & y values
-     * - generating a position index (x & y) for each data point
-     *
-     * @param data {list} - input data organize as a list of objects
-     *
-     * @return - copy of input data with additional 'cellPos' key
-     *           formatted as {idx: XXX, ix, XXX, iy: XXX}
-     *           where idx is a global identifier; ix is an identifier
-     *           within each column, and iy is an identifier within
-     *           each row. 
-     */
-    function prepData(data) {
-
-        // in order to allow for the flexibility of the user providing either
-        // categorical or quantitative data, we're going to position the cells
-        // through indices that we increment based on previously seen data
-        // this way we can use ordinal() axes even if the data is quantitative
-        var ix = 0, iy = 0; // use these indices to position cell in x & y direction
-        data.forEach(function(cell, i) {
-            var valX = getX(cell),
-                valY = getY(cell),
-                valColor = getCellValue(cell);
-
-            // assemble list of unique values for each dimension
-            if (!(valX in uniqueX)) { uniqueX[valX] = ix; ix++;}
-            if (!(valY in uniqueY)) {uniqueY[valY] = iy; iy++;}
-            if (!(valColor in uniqueColor)) uniqueColor.push(valColor)
-
-            // TODO - best way to handle the case when input data already has the key 'cellPos'?
-            if ('celPos' in cell) return false;
-
-            // for each data point, we generate an object of data
-            // needed to properly position each cell
-            cell.cellPos = {
-                idx: i,
-                ix: uniqueX[valX],
-                iy: uniqueY[valY],
-            }
-            
-        });
-
-        //uniqueX = uniqueX.sort()
-        //uniqueY = uniqueY.sort()
-        //uniqueColor = uniqueColor.sort()
-
-        // normalize data is needed
-        return normalize ? normalizeData(data) : data;
-
-    }
-
-
-    //============================================================
-    // Private Variables
-    //------------------------------------------------------------
-
-    var prepedData, cellHeight, cellWidth;
-    var uniqueX = {}, uniqueY = {}, uniqueColor = []; // we'll store all unique values for each dimension here in format {X-val: iX}
-    var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var RdYlBu = ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"];
-
-    var getCellPos = function(d) { return d.cellPos; };
-    var getIX = function(d) { return getCellPos(d).ix; }
-    var getIY = function(d) { return getCellPos(d).iy; }
-    var getNorm = function(d) { return getCellPos(d).norm; }
-    var getIdx = function(d) { return getCellPos(d).idx; }
-
-    function chart(selection) {
-        renderWatch.reset();
-        selection.each(function(data) {
-
-            if (typeof prepedData === 'undefined') prepedData = prepData(data);
-
-
-            var availableWidth = width - margin.left - margin.right,
-                availableHeight = height - margin.top - margin.bottom;
-
-            // available width/height set the cell dimenions unless
-            // the aspect ratio is defined - in that case the cell
-            // height is adjusted and availableHeight updated
-            cellWidth = availableWidth / Object.keys(uniqueX).length;
-            cellHeight = cellAspectRatio ? cellWidth / cellAspectRatio : availableHeight / Object.keys(uniqueY).length;
-            if (cellAspectRatio) availableHeight = cellHeight * Object.keys(uniqueY).length - margin.top - margin.bottom;
-
-
-            container = d3.select(this);
-            nv.utils.initSVG(container);
-
-
-            // Setup Scales
-            xScale.domain(xDomain || Object.keys(uniqueX))
-                  .rangeBands(xRange || [0, availableWidth]);
-            yScale.domain(yDomain || Object.keys(uniqueY))
-                  .rangeBands(yRange || [0, availableHeight]);
-            colorScale.domain(colorDomain || colorExtent())
-                  .range(colorRange || RdYlBu);
-
-            // Setup containers and skeleton of chart
-            var wrap = container.selectAll('g.nv-heatMapWrap').data([prepedData]);
-            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-heatMapWrap');
-
-            wrap.watchTransition(renderWatch, 'nv-wrap: heatMapWrap')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-            var cellWrap = wrapEnter
-                .selectAll(".nv-cell")
-                .data(function(d) { return d; })
-
-            var cellsEnter = cellWrap
-                .enter()
-                .append('g')
-                .attr("class","nv-cell")
-                .style('opacity', 1e-6)
-                .attr("transform", function(d) { return "translate(0," + getIY(d) * cellHeight + ")" }) // enter all g's here for a sweep-right transition
-
-            var cells = wrap.selectAll('.nv-cell')
-            
-            cellsEnter
-                .append("rect") 
-
-            cellsEnter
-                .append('text')
-                .attr('text-anchor', 'middle')
-
-            cellsEnter
-                .on('mouseover', function(d,i) {
-                    d3.select(this).classed('hover', true);
-                    dispatch.elementMouseover({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).select('rect').style("fill")
-                    });
-                })
-                .on('mouseout', function(d,i) {
-                    d3.select(this).classed('hover', false);
-                    dispatch.elementMouseout({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).select('rect').style("fill")
-                    });
-                })
-                .on('mousemove', function(d,i) {
-                    dispatch.elementMousemove({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).select('rect').style("fill")
-                    });
-                })
-
-
-            // transition cell (rect) size
-            cells.selectAll('rect')
-                .watchTransition(renderWatch, 'heatMap: rect')
-                .attr("width", cellWidth)
-                .attr("height", cellHeight)
-
-            // transition cell (g) position, opacity and fill
-            cells
-                .watchTransition(renderWatch, 'heatMap: cells')
-                .style('opacity', 1)
-                .style('fill', function(d,i) { return setCellColor(d); })
-                .attr("transform", function(d) { return "translate(" + getIX(d) * cellWidth + "," + getIY(d) * cellHeight + ")" })
-
-            cellWrap.exit().remove();
-
-            if (showCellValues) {
-
-                cellWrap.select('text')
-                    .text(function(d,i) { return !normalize ? cellFormat(getCellValue(d)) : cellFormat(getNorm(d)) })
-                    .attr("dy", 4)
-                    .attr("class","cell-text")
-
-                // transition text position and fill
-                cells.selectAll('text')
-                    .watchTransition(renderWatch, 'heatMap: cells text')
-                    .attr("x", function(d) { return cellWidth / 2; })
-                    .attr("y", function(d) { return cellHeight / 2; })
-                    .style("fill", function() { return cellTextColor(d3.select(this.previousSibling).style('fill')) })
-                ;
-            } else {
-                cellWrap.selectAll('text').remove();
-            }
-
-
-        });
-
-
-        renderWatch.renderEnd('heatMap immediate');
-        return chart;
-    }
-
-    //============================================================
-    // Expose Public Variables
-    //------------------------------------------------------------
-
-    chart.dispatch = dispatch;
-    chart.options = nv.utils.optionsFunc.bind(chart);
-
-    chart._options = Object.create({}, {
-        // simple options, just get/set the necessary values
-        width:   {get: function(){return width;}, set: function(_){width=_;}},
-        height:  {get: function(){return height;}, set: function(_){height=_;}},
-        showCellValues: {get: function(){return showCellValues;}, set: function(_){showCellValues=_;}},
-        x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
-        y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
-        cellValue:       {get: function(){return getCellValue;}, set: function(_){getCellValue=_;}}, // data attribute that sets cell value and color
-        cellValueNorm:   {get: function(){return getNorm;}}, // get normalized cell value
-        xScale:  {get: function(){return xScale;}, set: function(_){x=Scale_;}},
-        xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
-        xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
-        yScale:  {get: function(){return yScale;}, set: function(_){yScale=_;}},
-        yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
-        yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        colorScale:  {get: function(){return colorScale;}, set: function(_){colorScale=_;}}, // scale to map cell values to colors
-        colorDomain: {get: function(){return colorDomain;}, set: function(_){colorDomain=_;}},
-        colorRange:  {get: function(){return colorRange;}, set: function(_){colorRange=_;}},
-        cellAspectRatio: {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
-        cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
-        cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
-        normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
-        highContrastText:  {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
-        cellFormat:    {get: function(){return cellFormat;}, set: function(_){cellFormat=_;}},
-        id:          {get: function(){return id;}, set: function(_){id=_;}},
-
-
-        // options that require extra logic in the setter
-        margin: {get: function(){return margin;}, set: function(_){
-            margin.top    = _.top    !== undefined ? _.top    : margin.top;
-            margin.right  = _.right  !== undefined ? _.right  : margin.right;
-            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
-            margin.left   = _.left   !== undefined ? _.left   : margin.left;
-        }},
-        duration: {get: function(){return duration;}, set: function(_){
-            duration = _;
-            renderWatch.reset(duration);
-        }}
-    });
-
-    nv.utils.initOptions(chart);
-
-
-    return chart;
-};
-/* Heatmap Chart Type
-
-A heatmap is a graphical representation of data where the individual values
-contained in a matrix are represented as colors within cells. Furthermore,
-metadata can be associated with each of the matrix rows or columns. By grouping
-these rows/columns together by a given metadata value, data trends can be spotted.
-
-Format for input data should be:
-var data = [
-    {day: 'mo', hour: '1a', value: 16, timeperiod: 'early morning', weekperiod: 'week', category: 1},
-    {day: 'mo', hour: '2a', value: 20, timeperiod: 'early morning', weekperiod: 'week', category: 2},
-    {day: 'mo', hour: '3a', value: 0, timeperiod: 'early morning', weekperiod: 'week', category: 1},
-    ...
-]
-where the keys 'day' and 'hour' specify the row/column of the heatmap, 'value' specifies the  cell
-value and the keys 'timeperiod', 'weekperiod' and 'week' are extra metadata that can be associated
-with rows/columns.
-
-
-Options for chart:
-*/
-nv.models.heatMapChart = function() {
-    "use strict";
-
-    //============================================================
-    // Public Variables with Default Settings
-    //------------------------------------------------------------
-
-    var heatMap = nv.models.heatMap()
-        , legend = nv.models.legend()
-        , legendRowMeta = nv.models.legend()
-        , legendColumnMeta = nv.models.legend()
-        , tooltip = nv.models.tooltip()
-        , xAxis = nv.models.axis()
-        , yAxis = nv.models.axis()
-        ;
-
-
-    var margin = {top: 20, right: 10, bottom: 50, left: 60}
-        , marginTop = null
-        , width = null
-        , height = null
-        , color = nv.utils.getColor()
-        , showLegend = true
-        , staggerLabels = false
-        , showXAxis = true
-        , showYAxis = true
-        , alignYAxis = 'left'
-        , alignXAxis = 'top'
-        , rotateLabels = 0
-        , title = false
-        , x
-        , y
-        , noData = null
-        , dispatch = d3.dispatch('beforeUpdate','renderEnd')
-        //, dispatch = d3.dispatch('beforeUpdate', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
-        , duration = 250
-        ;
-
-    xAxis
-        .orient(alignXAxis)
-        .showMaxMin(false)
-        .tickFormat(function(d) { return d })
-    ;
-    yAxis
-        .orient(alignYAxis)
-        .showMaxMin(false)
-        .tickFormat(function(d) { return d })
-    ;
-
-    tooltip
-        .duration(0)
-        .headerEnabled(false)
-        .valueFormatter(function(d, i) {
-            return d;
-            return d.toFixed(2);
-        })
-        .keyFormatter(function(d, i) {
-            return xAxis.tickFormat()(d, i);
-        });
-
-
-    //============================================================
-    // Private Variables
-    //------------------------------------------------------------
-
-    // https://bl.ocks.org/mbostock/4573883
-    // get max/min range for all the quantized cell values
-    // returns an array where each element is [start,stop]
-    // of color bin
-    function quantizeLegendValues() {
-
-        var e = heatMap.colorScale();
-
-        return e.range().map(function(color) {
-          var d = e.invertExtent(color);
-          if (d[0] == null) d[0] = e.domain()[0];
-          if (d[1] == null) d[1] = e.domain()[1];
-          return d;
-        })
-
-    }
-
-    // return true if row metadata specified by user
-/*
-    function hasRowMeta() {
-        return heatmap.datRowMeta().size > 0;
-    }
-    // return true if col metadata specified by user
-    function hasColumnMeta() {
-        return heatmap.datColumnMeta().size > 0;
-    }
-*/
-
-    var renderWatch = nv.utils.renderWatch(dispatch, duration);
-
-    function chart(selection) {
-        renderWatch.reset();
-        renderWatch.models(heatMap);
-        if (showXAxis) renderWatch.models(xAxis);
-        if (showYAxis) renderWatch.models(yAxis);
-
-        selection.each(function(data) {
-            var container = d3.select(this),
-                that = this;
-            nv.utils.initSVG(container);
-
-            var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight = nv.utils.availableHeight(height, container, margin);
-
-            chart.update = function() {
-                dispatch.beforeUpdate();
-                container.transition().duration(duration).call(chart);
-            };
-            chart.container = this;
-
-            // Display No Data message if there's nothing to show.
-            if (!data || !data.length) {
-                nv.utils.noData(chart, container);
-                return chart;
-            } else {
-                container.selectAll('.nv-noData').remove();
-            }
-
-            // Setup Scales
-            x = heatMap.xScale();
-            y = heatMap.yScale();
-
-            // Setup containers and skeleton of chart
-            var wrap = container.selectAll('g.nv-wrap').data([data]);
-            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap').append('g');
-            var g = wrap.select('g');
-
-
-            gEnter.append('g').attr('class', 'nv-heatMap');
-            gEnter.append('g').attr('class', 'nv-legendWrap');
-            gEnter.append('g').attr('class', 'nv-x nv-axis');
-            gEnter.append('g').attr('class', 'nv-y nv-axis')
-
-            g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-
-            heatMap
-                .width(availableWidth)
-                .height(availableHeight);
-
-
-            var heatMapWrap = g.select('.nv-heatMap')
-                .datum(data.filter(function(d) { return !d.disabled }));
-
-
-            heatMapWrap.transition().call(heatMap);
-
-
-            if (heatMap.cellAspectRatio()) {
-                availableHeight = heatMap.cellHeight() * y.domain().length;
-                heatMap.height(availableHeight);
-            }
-
-
-            // Setup Axes
-            if (showXAxis) {
-
-                xAxis
-                    .scale(x)
-                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
-                    .tickSize(-availableHeight, 0);
-
-                g.select('.nv-x.nv-axis').call(xAxis);
-
-                var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
-
-                xTicks
-                    .selectAll('.tick text')
-                    .attr('transform', function(d,i,j) {
-                        var rot = rotateLabels != 0 ? rotateLabels : '0';
-                        var stagger = staggerLabels ? j % 2 == 0 ? '5' : '17' : '0';
-                        return 'translate(0, ' + stagger + ') rotate(' + rot + ' 0,0)';
-                    })
-                    .style('text-anchor', rotateLabels > 0 ? 'start' : rotateLabels < 0 ? 'end' : 'middle');
-
-                // setup metadata colors horizontal axis
-/*
-                if (hasColumnMeta()) {
-
-                    var metaXGroup = g.select('.nv-x.nv-axis .nv-wrap g').selectAll('g');
-
-                    var metaX = metaXGroup.selectAll('rect')
-                      .data(Object.values([null])); // add dummy data so we can add a single rect to each tick group
-
-
-                    metaX.enter()
-                        .append('rect')
-                        .style('fill', function(d) {
-                            var prev = d3.select(this.previousSibling).text();
-                            var metaVal = heatmap.datColumnMeta().get(prev);
-                            return metaXcolor(metaVal);
-                        })
-
-                    metaX.watchTransition(renderWatch, 'heatMap: metaX rect')
-                        .attr('width', heatmap.cellWidth())
-                        .attr('height', heatmap.cellWidth() / 3)
-                        .attr('x', -heatmap.cellWidth()/2)
-                        .attr('y', bottomAlignXAxis ? -heatmap.cellWidth()/3 : 0)
-
-                    // axis text doesn't rotate properly if align to the top
-                    if (!bottomAlignXAxis && rotateLabels != 0) {
-                        g.selectAll('g.tick.zero text')
-                            .style('text-anchor', rotateLabels > 0 ? 'end' : 'start')
-                    }
-                }
-
-*/
-
-                if (alignXAxis == 'bottom') {
-                    g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (availableHeight) + ")");
-                        //.attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? heatMap.cellWidth()/2 : 0)) + ")");
-                //} else {
-                //    g.select(".nv-x.nv-axis")
-                //        .attr("transform", "translate(0," + (hasColumnMeta() ? -heatMap.cellWidth()/2 : 0) + ")");
-                }
-            }
-
-            if (showYAxis) {
-
-
-                yAxis
-                    .scale(y)
-                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
-                    .tickSize( -availableWidth, 0);
-
-                g.select('.nv-y.nv-axis').call(yAxis);
-/*
-                // setup metadata colors vertical axis
-                if (hasRowMeta()) {
-
-                    var metaYGroup = g.select('.nv-y.nv-axis .nv-wrap g').selectAll('g');
-
-                    var metaY = metaYGroup.selectAll('rect')
-                      .data(Object.values([null])); // add dummy data so we can add a single rect to each tick group
-
-
-                    metaY.enter()
-                        .append('rect')
-                        .style('fill', function(d, i) {
-                            var prev = d3.select(this.previousSibling).text();
-                            var metaVal = heatMap.datRowMeta().get(prev);
-                            return metaYcolor(metaVal);
-                        })
-
-                    metaY.watchTransition(renderWatch, 'heatMap: metaY rect')
-                        .attr('width', heatMap.cellHeight() / 3)
-                        .attr('height', heatMap.cellHeight())
-                        .attr('x', rightAlignYAxis ? -heatMap.cellHeight()/3 : 0)
-                        .attr('y', -heatMap.cellHeight()/2)
-                }
-
-*/
-                if (alignYAxis == 'right') {
-                    g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (availableWidth) + ",0)");
-                        //.attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatMap.cellHeight()/2: 0)) + ",0)");
-                //} else {
-                //    g.select(".nv-y.nv-axis")
-                 //       .attr("transform", "translate(" + (hasRowMeta() ? -18 : 0) + ",0)");
-                }
-            }
-
-/*
-            // Legend for column metadata
-            if (!showColumnMetaLegend || !hasColumnMeta()) {
-                g.select('.columnMeta').selectAll('*').remove();
-            } else {
-                legendColumnMeta.width(availableWidth);
-
-                var metaVals = heatMap.datColumnMetaUnique().map(function (d) {
-                    return {key: d};
-                })
-
-                g.select('.nv-legendWrapColumn')
-                    .datum(metaVals)
-                    .call(legendColumnMeta);
-
-                // legend title
-                gEnter.select('.nv-legendWrapColumn .nv-legend g')
-                    .append('text')
-                    .text('Column metadata')
-                    .attr('transform','translate(-5,-8)')
-
-                g.select('.nv-legendWrapColumn')
-                    .attr('transform', 'translate(0,' + (availableHeight + (!bottomAlignXAxis ? 20 : 50)) +')')
-            }
-
-            // Legend for row metadata
-            if (!showRowMetaLegend || !hasRowMeta()) {
-                g.select('.rowMeta').selectAll('*').remove();
-            } else {
-                legendRowMeta.width(availableWidth)
-                    .rightAlign(false)
-
-                var metaVals = heatMap.datRowMetaUnique().map(function (d) {
-                    return {key: d};
-                })
-
-                g.select('.nv-legendWrapRow')
-                    .datum(metaVals)
-                    .call(legendRowMeta);
-
-
-                // legend title
-                gEnter.select('.nv-legendWrapRow .nv-legend g')
-                    .append('text')
-                    .text('Row metadata')
-                    .attr('transform','translate(-5,-8)')
-
-                g.select('.nv-legendWrapRow')
-                    .attr('transform', 'translate(5,' + (availableHeight + (!bottomAlignXAxis ? 20 : 50)) +')')
-            }
-*/
-
-            // Legend
-            if (!showLegend) {
-                g.select('.nv-legendWrap').selectAll('*').remove();
-            } else {
-                legend
-                    .width(availableWidth)
-                    .color(heatMap.colorScale().range())
-
-                 var legendVal = quantizeLegendValues().map(function(d) {
-                    return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
-                 })
-
-                g.select('.nv-legendWrap')
-                    .datum(legendVal)
-                    .call(legend);
-
-                // position legend opposite of X-axis
-                g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (alignXAxis == 'top' ? availableHeight : -30) + ')'); // TODO: more intelligent offset (-30) when top aligning legend
-            }
-
-
-        });
-
-        // axis don't have a flag for disabling the zero line, so we do it manually
-        d3.selectAll('.nv-axis').selectAll('line')
-            .style('stroke-opacity', 0)
-        d3.select('.nv-y').select('path.domain').remove()
-
-        renderWatch.renderEnd('heatMap chart immediate');
-
-        return chart;
-    }
-
-    //============================================================
-    // Event Handling/Dispatching (out of chart's scope)
-    //------------------------------------------------------------
-
-    heatMap.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt['series'] = {
-            key: chart.x()(evt.data) + ' ' + chart.y()(evt.data),
-            value: !chart.normalize() ? chart.cellValue()(evt.data) : chart.cellValueNorm()(evt.data),
-            color: evt.color
-        };
-        tooltip.data(evt).hidden(false);
-    });
-
-    heatMap.dispatch.on('elementMouseout.tooltip', function(evt) {
-        tooltip.hidden(true);
-    });
-
-    heatMap.dispatch.on('elementMousemove.tooltip', function(evt) {
-        tooltip();
-    });
-
-    //============================================================
-    // Expose Public Variables
-    //------------------------------------------------------------
-
-    chart.dispatch = dispatch;
-    chart.heatMap = heatMap;
-    chart.legend = legend;
-    chart.xAxis = xAxis;
-    chart.yAxis = yAxis;
-    chart.tooltip = tooltip;
-
-    chart.options = nv.utils.optionsFunc.bind(chart);
-
-    chart._options = Object.create({}, {
-        // simple options, just get/set the necessary values
-        width:      {get: function(){return width;}, set: function(_){width=_;}},
-        height:     {get: function(){return height;}, set: function(_){height=_;}},
-        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
-        noData:     {get: function(){return noData;}, set: function(_){noData=_;}},
-        showXAxis:     {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
-        showYAxis:     {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
-        staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
-        rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
-
-        // options that require extra logic in the setter
-        margin: {get: function(){return margin;}, set: function(_){
-            if (_.top !== undefined) {
-                margin.top = _.top;
-                marginTop = _.top;
-            }
-            margin.right  = _.right  !== undefined ? _.right  : margin.right;
-            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
-            margin.left   = _.left   !== undefined ? _.left   : margin.left;
-        }},
-        duration: {get: function(){return duration;}, set: function(_){
-            duration = _;
-            renderWatch.reset(duration);
-            heatMap.duration(duration);
-            xAxis.duration(duration);
-            yAxis.duration(duration);
-        }},
-/*
-        color:  {get: function(){return color;}, set: function(_){
-            color = nv.utils.getColor(_);
-            heatMap.color(color);
-            //legend.color(nv.utils.getColor(["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]));
-        }},
-*/
-        alignYAxis: {get: function(){return alignYAxis;}, set: function(_){
-            alignYAxis = _;
-            yAxis.orient(_);
-        }},
-        alignXAxis: {get: function(){return alignXAxis;}, set: function(_){
-            alignXAxis = _;
-            xAxis.orient(_);
-        }},
-    });
-
-    nv.utils.inheritOptions(chart, heatMap);
-    nv.utils.initOptions(chart);
-
-    return chart;
-}
 //TODO: consider deprecating and using multibar with single series for this
 nv.models.historicalBar = function() {
     "use strict";
@@ -7693,7 +6768,7 @@ nv.models.lineChart = function() {
         , state = nv.utils.state()
         , defaultState = null
         , noData = null
-        , dispatch = d3.dispatch('stateChange', 'changeState', 'renderEnd')
+        , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'stateChange', 'changeState', 'renderEnd')
         , duration = 250
         ;
 
@@ -10056,13 +9131,13 @@ nv.models.multiBarHorizontal = function() {
                         var xerr = getYerr(d,i)
                             , mid = 0.8 * x.rangeBand() / ((stacked ? 1 : data.length) * 2);
                         xerr = xerr.length ? xerr : [-Math.abs(xerr), Math.abs(xerr)];
-                        xerr = xerr.map(function(e) { return y(e + ((getY(d,i) < 0) ? 0 : getY(d,i))) - y(0); });
+                        xerr = xerr.map(function(e) { return y(e) - y(0); });
                         var a = [[xerr[0],-mid], [xerr[0],mid], [xerr[0],0], [xerr[1],0], [xerr[1],-mid], [xerr[1],mid]];
                         return a.map(function (path) { return path.join(',') }).join(' ');
                     })
                     .attr('transform', function(d,i) {
                         var mid = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
-                        return 'translate(0, ' + mid + ')';
+                        return 'translate(' + (getY(d,i) < 0 ? 0 : y(getY(d,i)) - y(0)) + ', ' + mid + ')'
                     });
             }
 
@@ -10824,12 +9899,8 @@ nv.models.multiChart = function() {
                 if (extraValue1BarStacked.length > 0)
                     extraValue1BarStacked = extraValue1BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-                    });
+                    }).concat([{x:0, y:0}]);
             }
-            if (dataBars1.length) {
-                extraValue1BarStacked.push({x:0, y:0});
-            }
-            
             var extraValue2BarStacked = [];
             if (bars2.stacked() && dataBars2.length) {
                 var extraValue2BarStacked = dataBars2.filter(function(d){return !d.disabled}).map(function(a){return a.values});
@@ -10837,10 +9908,7 @@ nv.models.multiChart = function() {
                 if (extraValue2BarStacked.length > 0)
                     extraValue2BarStacked = extraValue2BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
-                    });
-            }
-            if (dataBars2.length) {
-                extraValue2BarStacked.push({x:0, y:0});
+                    }).concat([{x:0, y:0}]);
             }
             
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
@@ -12268,7 +11336,6 @@ nv.models.pie = function() {
         , labelsOutside = false
         , labelType = "key"
         , labelThreshold = .02 //if slice percentage is under this, don't show label
-        , hideOverlapLabels = false //Hide labels that don't fit in slice
         , donut = false
         , title = false
         , growOnHover = true
@@ -12590,44 +11657,6 @@ nv.models.pie = function() {
                         return label;
                     })
                 ;
-
-                if (hideOverlapLabels) {
-                    pieLabels
-                        .each(function (d, i) {
-                            if (!this.getBBox) return;
-                            var bb = this.getBBox(),
-                            center = labelsArc[i].centroid(d);
-                            var topLeft = {
-                              x : center[0] + bb.x,
-                              y : center[1] + bb.y
-                            };
-
-                            var topRight = {
-                              x : topLeft.x + bb.width,
-                              y : topLeft.y
-                            };
-
-                            var bottomLeft = {
-                              x : topLeft.x,
-                              y : topLeft.y + bb.height
-                            };
-
-                            var bottomRight = {
-                              x : topLeft.x + bb.width,
-                              y : topLeft.y + bb.height
-                            };
-
-                            d.visible = nv.utils.pointIsInArc(topLeft, d, arc) &&
-                            nv.utils.pointIsInArc(topRight, d, arc) &&
-                            nv.utils.pointIsInArc(bottomLeft, d, arc) &&
-                            nv.utils.pointIsInArc(bottomRight, d, arc);
-                        })
-                        .style('display', function (d) {
-                            return d.visible ? null : 'none';
-                        })
-                    ;
-                }
-
             }
 
 
@@ -12669,7 +11698,6 @@ nv.models.pie = function() {
         title:      {get: function(){return title;}, set: function(_){title=_;}},
         titleOffset:    {get: function(){return titleOffset;}, set: function(_){titleOffset=_;}},
         labelThreshold: {get: function(){return labelThreshold;}, set: function(_){labelThreshold=_;}},
-        hideOverlapLabels: {get: function(){return hideOverlapLabels;}, set: function(_){hideOverlapLabels=_;}},
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         x:          {get: function(){return getX;}, set: function(_){getX=_;}},
         id:         {get: function(){return id;}, set: function(_){id=_;}},
@@ -13680,7 +12708,7 @@ nv.models.scatter = function() {
             });
 
             // Setup Scales
-            var logScale = (typeof(chart.yScale().base) === "function"); // Only log scale has a method "base()"
+            var logScale = chart.yScale().name === d3.scale.log().name ? true : false;
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain && sizeDomain) ? [] : // if we know xDomain and yDomain and sizeDomain, no need to calculate.... if Size is constant remember to set sizeDomain to speed up performance
                 d3.merge(
@@ -15753,7 +14781,7 @@ nv.models.stackedAreaChart = function() {
 
             interactiveLayer.dispatch.on('elementMousemove', function(e) {
                 stacked.clearHighlights();
-                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0, allNullValues = true, atleastOnePoint = false;
+                var singlePoint, pointIndex, pointXLocation, allData = [], valueSum = 0, allNullValues = true;
                 data
                     .filter(function(series, i) {
                         series.seriesIndex = i;
@@ -15765,7 +14793,6 @@ nv.models.stackedAreaChart = function() {
                         var pointYValue = chart.y()(point, pointIndex);
                         if (pointYValue != null && pointYValue > 0) {
                             stacked.highlightPoint(i, pointIndex, true);
-                            atleastOnePoint = true;
                         }
                     
                         // Draw at least one point if all values are zero.
