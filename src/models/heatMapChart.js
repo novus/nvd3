@@ -102,15 +102,13 @@ nv.models.heatMapChart = function() {
     }
 
     // return true if row metadata specified by user
-/*
     function hasRowMeta() {
-        return heatmap.datRowMeta().size > 0;
+        return typeof heatMap.yMeta === 'function'
     }
     // return true if col metadata specified by user
     function hasColumnMeta() {
-        return heatmap.datColumnMeta().size > 0;
+        return typeof heatMap.xMeta === 'function'
     }
-*/
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
@@ -199,46 +197,13 @@ nv.models.heatMapChart = function() {
                     })
                     .style('text-anchor', rotateLabels > 0 ? 'start' : rotateLabels < 0 ? 'end' : 'middle');
 
-                // setup metadata colors horizontal axis
-/*
-                if (hasColumnMeta()) {
-
-                    var metaXGroup = g.select('.nv-x.nv-axis .nv-wrap g').selectAll('g');
-
-                    var metaX = metaXGroup.selectAll('rect')
-                      .data(Object.values([null])); // add dummy data so we can add a single rect to each tick group
-
-
-                    metaX.enter()
-                        .append('rect')
-                        .style('fill', function(d) {
-                            var prev = d3.select(this.previousSibling).text();
-                            var metaVal = heatmap.datColumnMeta().get(prev);
-                            return metaXcolor(metaVal);
-                        })
-
-                    metaX.watchTransition(renderWatch, 'heatMap: metaX rect')
-                        .attr('width', heatmap.cellWidth())
-                        .attr('height', heatmap.cellWidth() / 3)
-                        .attr('x', -heatmap.cellWidth()/2)
-                        .attr('y', bottomAlignXAxis ? -heatmap.cellWidth()/3 : 0)
-
-                    // axis text doesn't rotate properly if align to the top
-                    if (!bottomAlignXAxis && rotateLabels != 0) {
-                        g.selectAll('g.tick.zero text')
-                            .style('text-anchor', rotateLabels > 0 ? 'end' : 'start')
-                    }
-                }
-
-*/
-
+                // adjust position of axis based on presence of metadata group
                 if (alignXAxis == 'bottom') {
                     g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (availableHeight) + ")");
-                        //.attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? heatMap.cellWidth()/2 : 0)) + ")");
-                //} else {
-                //    g.select(".nv-x.nv-axis")
-                //        .attr("transform", "translate(0," + (hasColumnMeta() ? -heatMap.cellWidth()/2 : 0) + ")");
+                        .attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? heatMap.cellWidth()/2 : 0)) + ")");
+                } else {
+                    g.select(".nv-x.nv-axis")
+                        .attr("transform", "translate(0," + (hasColumnMeta() ? -heatMap.cellWidth()/2 : 0) + ")");
                 }
             }
 
@@ -251,93 +216,17 @@ nv.models.heatMapChart = function() {
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis').call(yAxis);
-/*
-                // setup metadata colors vertical axis
-                if (hasRowMeta()) {
 
-                    var metaYGroup = g.select('.nv-y.nv-axis .nv-wrap g').selectAll('g');
-
-                    var metaY = metaYGroup.selectAll('rect')
-                      .data(Object.values([null])); // add dummy data so we can add a single rect to each tick group
-
-
-                    metaY.enter()
-                        .append('rect')
-                        .style('fill', function(d, i) {
-                            var prev = d3.select(this.previousSibling).text();
-                            var metaVal = heatMap.datRowMeta().get(prev);
-                            return metaYcolor(metaVal);
-                        })
-
-                    metaY.watchTransition(renderWatch, 'heatMap: metaY rect')
-                        .attr('width', heatMap.cellHeight() / 3)
-                        .attr('height', heatMap.cellHeight())
-                        .attr('x', rightAlignYAxis ? -heatMap.cellHeight()/3 : 0)
-                        .attr('y', -heatMap.cellHeight()/2)
-                }
-
-*/
+                // adjust position of axis based on presence of metadata group
                 if (alignYAxis == 'right') {
                     g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (availableWidth) + ",0)");
-                        //.attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatMap.cellHeight()/2: 0)) + ",0)");
-                //} else {
-                //    g.select(".nv-y.nv-axis")
-                 //       .attr("transform", "translate(" + (hasRowMeta() ? -18 : 0) + ",0)");
+                        .attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatMap.cellHeight()/2: 0)) + ",0)");
+                } else {
+                    g.select(".nv-y.nv-axis")
+                        .attr("transform", "translate(" + (hasRowMeta() ? -heatMap.cellHeight()/2 : 0) + ",0)");
                 }
             }
 
-/*
-            // Legend for column metadata
-            if (!showColumnMetaLegend || !hasColumnMeta()) {
-                g.select('.columnMeta').selectAll('*').remove();
-            } else {
-                legendColumnMeta.width(availableWidth);
-
-                var metaVals = heatMap.datColumnMetaUnique().map(function (d) {
-                    return {key: d};
-                })
-
-                g.select('.nv-legendWrapColumn')
-                    .datum(metaVals)
-                    .call(legendColumnMeta);
-
-                // legend title
-                gEnter.select('.nv-legendWrapColumn .nv-legend g')
-                    .append('text')
-                    .text('Column metadata')
-                    .attr('transform','translate(-5,-8)')
-
-                g.select('.nv-legendWrapColumn')
-                    .attr('transform', 'translate(0,' + (availableHeight + (!bottomAlignXAxis ? 20 : 50)) +')')
-            }
-
-            // Legend for row metadata
-            if (!showRowMetaLegend || !hasRowMeta()) {
-                g.select('.rowMeta').selectAll('*').remove();
-            } else {
-                legendRowMeta.width(availableWidth)
-                    .rightAlign(false)
-
-                var metaVals = heatMap.datRowMetaUnique().map(function (d) {
-                    return {key: d};
-                })
-
-                g.select('.nv-legendWrapRow')
-                    .datum(metaVals)
-                    .call(legendRowMeta);
-
-
-                // legend title
-                gEnter.select('.nv-legendWrapRow .nv-legend g')
-                    .append('text')
-                    .text('Row metadata')
-                    .attr('transform','translate(-5,-8)')
-
-                g.select('.nv-legendWrapRow')
-                    .attr('transform', 'translate(5,' + (availableHeight + (!bottomAlignXAxis ? 20 : 50)) +')')
-            }
-*/
 
             // Legend
             if (!showLegend) {
@@ -435,13 +324,6 @@ nv.models.heatMapChart = function() {
             xAxis.duration(duration);
             yAxis.duration(duration);
         }},
-/*
-        color:  {get: function(){return color;}, set: function(_){
-            color = nv.utils.getColor(_);
-            heatMap.color(color);
-            //legend.color(nv.utils.getColor(["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]));
-        }},
-*/
         alignYAxis: {get: function(){return alignYAxis;}, set: function(_){
             alignYAxis = _;
             yAxis.orient(_);

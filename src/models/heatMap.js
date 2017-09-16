@@ -3,8 +3,9 @@ Improvements:
 - how to we want to handle missing data? how is missing data identified? how is it formatted?
 
 TODO:
-- row/column metadata
 - row/column order (user specified) or 'ascending' / 'descending'
+- chart 'flashes' when mouse over transition between cells
+- tooltip for metadata groups
 */
 
 nv.models.heatMap = function() {
@@ -33,9 +34,13 @@ nv.models.heatMap = function() {
         , highContrastText = true
         , xDomain
         , yDomain
+        , xMetaColorScale = nv.utils.getColor()
+        , yMetaColorScale = nv.utils.defaultColor()
         , colorDomain
         , xRange
         , yRange
+        , xMeta
+        , yMeta
         , colorRange
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , duration = 250
@@ -216,9 +221,22 @@ nv.models.heatMap = function() {
                 valColor = getCellValue(cell);
 
             // assemble list of unique values for each dimension
-            if (!(valX in uniqueX)) { uniqueX[valX] = ix; ix++;}
-            if (!(valY in uniqueY)) {uniqueY[valY] = iy; iy++;}
+            if (!(valX in uniqueX)) { 
+                uniqueX[valX] = ix; 
+                ix++;
+
+                 // store and ordered list of col/row metadata values
+                if (typeof xMeta === 'function') uniqueXMeta.push(xMeta(cell));
+            }
+            if (!(valY in uniqueY)) {
+                uniqueY[valY] = iy; 
+                iy++;
+
+                 // store and ordered list of col/row metadata values
+                if (typeof yMeta === 'function') uniqueYMeta.push(yMeta(cell));
+            }
             if (!(valColor in uniqueColor)) uniqueColor.push(valColor)
+            
 
             // TODO - best way to handle the case when input data already has the key 'cellPos'?
             if ('celPos' in cell) return false;
@@ -230,7 +248,7 @@ nv.models.heatMap = function() {
                 ix: uniqueX[valX],
                 iy: uniqueY[valY],
             }
-            
+
         });
 
         //uniqueX = uniqueX.sort()
@@ -249,6 +267,7 @@ nv.models.heatMap = function() {
 
     var prepedData, cellHeight, cellWidth;
     var uniqueX = {}, uniqueY = {}, uniqueColor = []; // we'll store all unique values for each dimension here in format {X-val: iX}
+    var uniqueXMeta = [], uniqueYMeta = []
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var RdYlBu = ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"];
 
@@ -296,9 +315,26 @@ nv.models.heatMap = function() {
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var cellWrap = wrapEnter
+                .append('g')
+                .attr('class','cellWrap')
                 .selectAll(".nv-cell")
                 .data(function(d) { return d; })
 
+            var xMetaWrap = wrapEnter
+                .append('g')
+                .attr('class','xMetaWrap')
+                .attr("transform", function(d,i) { return "translate(0," + -cellWidth / 2 + ")" })
+                .selectAll('.x-meta')
+                .data(uniqueXMeta)
+
+            var yMetaWrap = wrapEnter
+                .append('g')
+                .attr('class','yMetaWrap')
+                .attr("transform", function(d,i) { return "translate(" + -cellWidth / 2 + ",0)" })
+                .selectAll('.y-meta')
+                .data(uniqueYMeta)
+            
+            // CELLS    
             var cellsEnter = cellWrap
                 .enter()
                 .append('g')
@@ -316,6 +352,29 @@ nv.models.heatMap = function() {
             cellsEnter
                 .append('text')
                 .attr('text-anchor', 'middle')
+
+            // META-DATA 
+            var metaRectSize = 10 // sets height of col meta rect & width of row meta rect
+            var xMetaEnter = xMetaWrap
+                .enter()
+                .append('rect')
+                .attr('class','x-meta')
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", cellWidth / 3)
+                .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
+                .attr("fill", function(d,i) { return xMetaColorScale(d); })
+
+            var yMetaEnter = yMetaWrap
+                .enter()
+                .append('rect')
+                .attr('class','y-meta')
+                .attr("width", cellHeight / 3)
+                .attr("height", cellHeight-cellBorderWidth)
+                .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
+                .attr("fill", function(d,i) { return yMetaColorScale(d); })
+
+            var xMetaRect = wrap.selectAll('.x-meta')
+            var yMetaRect = wrap.selectAll('.y-meta')
 
             // TOOLTIPS
             cells
@@ -383,6 +442,27 @@ nv.models.heatMap = function() {
                 })
                 .attr("transform", function(d) { return "translate(" + getIX(d) * cellWidth + "," + getIY(d) * cellHeight + ")" })
 
+            // transition meta rect size
+            xMetaRect
+                .watchTransition(renderWatch, 'heatMap: xMetaRect') 
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", cellHeight / 3)
+                .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
+            yMetaRect
+                .watchTransition(renderWatch, 'heatMap: yMetaRect') 
+                .attr("width", cellHeight / 3)
+                .attr("height", cellWidth-cellBorderWidth)
+                .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
+
+            // trnansition position of meta wrap g
+            wrap.select('.xMetaWrap')
+                .watchTransition(renderWatch, 'heatMap: xMetaWrap') 
+                .attr("transform", function(d,i) { return "translate(0," + -cellWidth / 2 + ")" })
+            wrap.select('.yMetaWrap')
+                .watchTransition(renderWatch, 'heatMap: yMetaWrap') 
+                .attr("transform", function(d,i) { return "translate(" + -cellWidth / 2 + ",0)" })
+
+
             cellWrap.exit().remove();
 
             if (showCellValues) {
@@ -426,16 +506,20 @@ nv.models.heatMap = function() {
         x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
         y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
         cellValue:       {get: function(){return getCellValue;}, set: function(_){getCellValue=_;}}, // data attribute that sets cell value and color
-        cellValueNorm:   {get: function(){return getNorm;}}, // get normalized cell value
+        cellValueNorm:   {get: function(){return getNorm;}}, // get normalized cell value TODO - should not be exposed since we don't want user setting this
         xScale:  {get: function(){return xScale;}, set: function(_){x=Scale_;}},
         xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yScale:  {get: function(){return yScale;}, set: function(_){yScale=_;}},
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        xMeta:  {get: function(){return xMeta;}, set: function(_){xMeta=_;}},
+        yMeta:  {get: function(){return yMeta;}, set: function(_){yMeta=_;}},
         colorScale:  {get: function(){return colorScale;}, set: function(_){colorScale=_;}}, // scale to map cell values to colors
         colorDomain: {get: function(){return colorDomain;}, set: function(_){colorDomain=_;}},
         colorRange:  {get: function(){return colorRange;}, set: function(_){colorRange=_;}},
+        xMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
+        yMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
         cellAspectRatio: {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
         cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
         cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
