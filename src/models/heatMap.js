@@ -2,11 +2,10 @@
 Improvements:
 - how to we want to handle missing data? how is missing data identified? how is it formatted?
 - consistenly apply no-hover classes to rect isntead of to containing g, see example CSS style for .no-hover rect, rect.no-hover
+- row/column order (user specified) or 'ascending' / 'descending'
 
 TODO:
-- row/column order (user specified) or 'ascending' / 'descending'
 - chart 'flashes' when mouse over transition between cells
-- tooltip for metadata groups
 */
 
 nv.models.heatMap = function() {
