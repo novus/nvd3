@@ -1,6 +1,7 @@
 /* 
 Improvements:
 - how to we want to handle missing data? how is missing data identified? how is it formatted?
+- consistenly apply no-hover classes to rect isntead of to containing g, see example CSS style for .no-hover rect, rect.no-hover
 
 TODO:
 - row/column order (user specified) or 'ascending' / 'descending'
@@ -260,6 +261,15 @@ nv.models.heatMap = function() {
 
     }
 
+    function removeAllHoverClasses() {
+        // remove all hover classes
+        d3.selectAll('.cell-hover').classed('cell-hover', false);
+        d3.selectAll('.no-hover').classed('no-hover', false);
+        d3.selectAll('.row-hover').classed('row-hover', false);
+        d3.selectAll('.column-hover').classed('column-hover', false);
+    }
+
+
 
     //============================================================
     // Private Variables
@@ -272,8 +282,8 @@ nv.models.heatMap = function() {
     var RdYlBu = ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"];
 
     var getCellPos = function(d) { return d.cellPos; };
-    var getIX = function(d) { return getCellPos(d).ix; }
-    var getIY = function(d) { return getCellPos(d).iy; }
+    var getIX = function(d) { return getCellPos(d).ix; } // get the given cell's x index position
+    var getIY = function(d) { return getCellPos(d).iy; } // get the given cell's y index position
     var getNorm = function(d) { return getCellPos(d).norm; }
     var getIdx = function(d) { return getCellPos(d).idx; }
 
@@ -358,7 +368,7 @@ nv.models.heatMap = function() {
             var xMetaEnter = xMetaWrap
                 .enter()
                 .append('rect')
-                .attr('class','x-meta')
+                .attr('class','x-meta meta')
                 .attr("width", cellWidth-cellBorderWidth)
                 .attr("height", cellWidth / 3)
                 .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
@@ -367,7 +377,7 @@ nv.models.heatMap = function() {
             var yMetaEnter = yMetaWrap
                 .enter()
                 .append('rect')
-                .attr('class','y-meta')
+                .attr('class','y-meta meta')
                 .attr("width", cellHeight / 3)
                 .attr("height", cellHeight-cellBorderWidth)
                 .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
@@ -375,6 +385,7 @@ nv.models.heatMap = function() {
 
             var xMetaRect = wrap.selectAll('.x-meta')
             var yMetaRect = wrap.selectAll('.y-meta')
+            var allMetaRect = wrap.selectAll('.meta')
 
             // TOOLTIPS
             cells
@@ -384,6 +395,11 @@ nv.models.heatMap = function() {
                     var ix = getIX(d);
                     var iy = getIY(d);
 
+                    // set the proper classes for all cells
+                    // hover row gets class .row-hover
+                    // hover column gets class .column-hover
+                    // hover cell gets class .cell-hover
+                    // all remaining cells get class .no-hover
                     d3.selectAll('.nv-cell').each(function(e) {
                         if (idx == getIdx(e)) {
                             d3.select(this).classed('cell-hover', true);
@@ -399,30 +415,90 @@ nv.models.heatMap = function() {
                             d3.select(this).classed('row-hover', true);
                         }
                     })
+    
+                    // set hover classes for column metadata
+                    d3.selectAll('.x-meta').each(function(e, j) {
+                        if (j == ix) {
+                            d3.select(this).classed('cell-hover', true);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                        }
+                    });
+
+                    // set hover class for row metadata
+                    d3.selectAll('.y-meta').each(function(e, j) {
+                        if (j == iy) {
+                            d3.select(this).classed('cell-hover', true);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                        }
+                    });
                     
                     dispatch.elementMouseover({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).select('rect').style("fill")
+                        value: getX(d) + ' & ' + getY(d), 
+                        series: {
+                                value: !normalize ? getCellValue(d) : getCellValueNorm(d),
+                                color: d3.select(this).select('rect').style("fill")
+                                },
+                        e: d3.event,
                     });
                 })
                 .on('mouseout', function(d,i) {
-                    d3.select(this).classed('cell-hover', false);
-                    d3.select(this.parentNode).selectAll('.nv-cell').classed('no-hover', false);
-                    d3.select(this.parentNode).selectAll('.nv-cell').classed('row-hover', false);
-                    d3.select(this.parentNode).selectAll('.nv-cell').classed('column-hover', false);
-                    dispatch.elementMouseout({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).select('rect').style("fill")
-                    });
+
+                    // remove all hover classes
+                    removeAllHoverClasses();
+
+                    dispatch.elementMouseout({e: d3.event});
                 })
                 .on('mousemove', function(d,i) {
-                    dispatch.elementMousemove({
-                        data: d,
-                        index: i,
-                        color: d3.select(this).select('rect').style("fill")
+                    dispatch.elementMousemove({e: d3.event});
+                })
+
+
+            allMetaRect
+                .on('mouseover', function(d,i) {
+
+                    // true if hovering over a row metadata rect
+                    var isColMeta = d3.select(this).attr('class').indexOf('x-meta') != -1 ? true : false;
+
+                    // apply proper .row-hover & .column-hover
+                    // classes to cells
+                    d3.selectAll('.nv-cell').each(function(e) {
+
+                        if (isColMeta && i == getIX(e)) {
+                            d3.select(this).classed('column-hover', true);
+                        } else if (!isColMeta && i-uniqueXMeta.length == getIY(e)) {
+                            // since allMetaRect selects all the meta rects, the index for the y's will
+                            // be offset by the number of x rects. TODO - write seperate tooltip sections
+                            // for x meta rect & y meta rect
+                            d3.select(this).classed('row-hover', true);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('column-hover', false);
+                            d3.select(this).classed('row-hover', false);
+                        }
+                    })
+
+                    // apply proper .row-hover & .column-hover
+                    // classes to meta rects
+                    d3.selectAll('.meta').classed('no-hover', true);
+                    d3.select(this).classed('cell-hover', true);
+                    d3.select(this).classed('no-hover', false);
+
+                    dispatch.elementMouseover({
+                        value: isColMeta ? 'Column meta' : 'Row meta',
+                        series: { value: d, color: d3.select(this).style('fill'), }
                     });
+                })
+                .on('mouseout', function(d,i) {
+
+                    // remove all hover classes
+                    removeAllHoverClasses();
+
+                    dispatch.elementMouseout({e: d3.event});
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
                 })
 
 

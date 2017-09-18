@@ -53,7 +53,6 @@ nv.models.heatMapChart = function() {
         , y
         , noData = null
         , dispatch = d3.dispatch('beforeUpdate','renderEnd')
-        //, dispatch = d3.dispatch('beforeUpdate', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , duration = 250
         ;
 
@@ -70,14 +69,13 @@ nv.models.heatMapChart = function() {
 
     tooltip
         .duration(0)
-        .headerEnabled(false)
+        .headerEnabled(true)
         .valueFormatter(function(d, i) {
-            return d;
             return d.toFixed(2);
         })
         .keyFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
-        });
+        })
 
 
     //============================================================
@@ -94,8 +92,8 @@ nv.models.heatMapChart = function() {
 
         return e.range().map(function(color) {
           var d = e.invertExtent(color);
-          if (d[0] == null) d[0] = e.domain()[0];
-          if (d[1] == null) d[1] = e.domain()[1];
+          if (d[0] === null) d[0] = e.domain()[0];
+          if (d[1] === null) d[1] = e.domain()[1];
           return d;
         })
 
@@ -267,11 +265,6 @@ nv.models.heatMapChart = function() {
     //------------------------------------------------------------
 
     heatMap.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt['series'] = {
-            key: chart.x()(evt.data) + ' ' + chart.y()(evt.data),
-            value: !chart.normalize() ? chart.cellValue()(evt.data) : chart.cellValueNorm()(evt.data),
-            color: evt.color
-        };
         tooltip.data(evt).hidden(false);
     });
 
