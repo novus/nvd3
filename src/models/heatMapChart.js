@@ -70,9 +70,6 @@ nv.models.heatMapChart = function() {
     tooltip
         .duration(0)
         .headerEnabled(true)
-        .valueFormatter(function(d, i) {
-            return d.toFixed(2);
-        })
         .keyFormatter(function(d, i) {
             return xAxis.tickFormat()(d, i);
         })
@@ -101,11 +98,11 @@ nv.models.heatMapChart = function() {
 
     // return true if row metadata specified by user
     function hasRowMeta() {
-        return typeof heatMap.yMeta === 'function'
+        return typeof heatMap.yMeta() === 'function'
     }
     // return true if col metadata specified by user
     function hasColumnMeta() {
-        return typeof heatMap.xMeta === 'function'
+        return typeof heatMap.xMeta() === 'function'
     }
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
@@ -195,15 +192,20 @@ nv.models.heatMapChart = function() {
                     })
                     .style('text-anchor', rotateLabels > 0 ? 'start' : rotateLabels < 0 ? 'end' : 'middle');
 
+                var xMetaSize = heatMap.cellHeight() / 3
+                var yPos = (-xMetaSize-heatMap.cellBorderWidth()-heatMap.metaOffset())/2;
+
                 // adjust position of axis based on presence of metadata group
                 if (alignXAxis == 'bottom') {
                     g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? heatMap.cellWidth()/2 : 0)) + ")");
+                        .attr("transform", "translate(0," + (availableHeight + (hasColumnMeta() ? -yPos : 0)) + ")");
                 } else {
+
                     g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (hasColumnMeta() ? -heatMap.cellWidth()/2 : 0) + ")");
+                        .attr("transform", "translate(0," + (hasColumnMeta() ? yPos : 0) + ")");
                 }
             }
+
 
             if (showYAxis) {
 
@@ -215,13 +217,16 @@ nv.models.heatMapChart = function() {
 
                 g.select('.nv-y.nv-axis').call(yAxis);
 
+                var yMetaSize = heatMap.cellWidth() / 3
+                var xPos = (-yMetaSize-heatMap.cellBorderWidth()-heatMap.metaOffset())/2;
+
                 // adjust position of axis based on presence of metadata group
                 if (alignYAxis == 'right') {
                     g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? heatMap.cellHeight()/2: 0)) + ",0)");
+                        .attr("transform", "translate(" + (availableWidth + (hasRowMeta() ? -xPos: 0)) + ",0)");
                 } else {
                     g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (hasRowMeta() ? -heatMap.cellHeight()/2 : 0) + ",0)");
+                        .attr("transform", "translate(" + (hasRowMeta() ? xPos : 0) + ",0)");
                 }
             }
 

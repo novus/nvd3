@@ -36,6 +36,9 @@ nv.models.heatMap = function() {
         , yDomain
         , xMetaColorScale = nv.utils.getColor()
         , yMetaColorScale = nv.utils.defaultColor()
+        , missingDataColor = '#bcbcbc'
+        , missingDataLabel = ''
+        , metaOffset = 5 // spacing between meta rects and cells
         , colorDomain
         , xRange
         , yRange
@@ -108,7 +111,7 @@ nv.models.heatMap = function() {
     // depending on whether it should be normalized or not
     function cellColor(d) {
         var colorVal = normalize ? getNorm(d) : getCellValue(d);
-        return colorScale(colorVal);
+        return !isNaN(colorVal) ? colorScale(colorVal) : missingDataColor;
     }
 
     // return the extent of the color data
@@ -286,12 +289,18 @@ nv.models.heatMap = function() {
     var getNorm = function(d) { return getCellPos(d).norm; }
     var getIdx = function(d) { return getCellPos(d).idx; }
 
+    // return the formatted cell value if it is
+    // a number, otherwise return missingDataLabel
+    var cellValueLabel = function(d) {
+        var val = !normalize ? cellFormat(getCellValue(d)) : cellFormat(getNorm(d));
+        return !isNaN(val) ? val : missingDataLabel;
+    }
+
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
 
-            if (typeof prepedData === 'undefined') prepedData = prepData(data);
-
+            prepedData = prepData(data);
 
             var availableWidth = width - margin.left - margin.right,
                 availableHeight = height - margin.top - margin.bottom;
@@ -329,17 +338,20 @@ nv.models.heatMap = function() {
                 .selectAll(".nv-cell")
                 .data(function(d) { return d; })
 
+            var xMetaSize = cellHeight / 3; // height of rects
+            var yMetaSize = cellWidth / 3; // width of rects
+
             var xMetaWrap = wrapEnter
                 .append('g')
                 .attr('class','xMetaWrap')
-                .attr("transform", function(d,i) { return "translate(0," + -cellWidth / 2 + ")" })
+                .attr("transform", function(d,i) { return "translate(0," + (-xMetaSize-cellBorderWidth-metaOffset) + ")" })
                 .selectAll('.x-meta')
                 .data(uniqueXMeta)
 
             var yMetaWrap = wrapEnter
                 .append('g')
                 .attr('class','yMetaWrap')
-                .attr("transform", function(d,i) { return "translate(" + -cellWidth / 2 + ",0)" })
+                .attr("transform", function(d,i) { return "translate(" + (-yMetaSize-cellBorderWidth-metaOffset) + ",0)" })
                 .selectAll('.y-meta')
                 .data(uniqueYMeta)
             
@@ -363,28 +375,67 @@ nv.models.heatMap = function() {
                 .attr('text-anchor', 'middle')
 
             // META-DATA 
-            var metaRectSize = 10 // sets height of col meta rect & width of row meta rect
             var xMetaEnter = xMetaWrap
                 .enter()
                 .append('rect')
                 .attr('class','x-meta meta')
                 .attr("width", cellWidth-cellBorderWidth)
-                .attr("height", cellWidth / 3)
-                .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
+                .attr("height", xMetaSize)
+                .attr("transform", function(d,i) { return "translate(0,0)" })
                 .attr("fill", function(d,i) { return xMetaColorScale(d); })
 
             var yMetaEnter = yMetaWrap
                 .enter()
                 .append('rect')
                 .attr('class','y-meta meta')
-                .attr("width", cellHeight / 3)
+                .attr("width", yMetaSize)
                 .attr("height", cellHeight-cellBorderWidth)
-                .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
+                .attr("transform", function(d,i) { return "translate(0,0)" })
                 .attr("fill", function(d,i) { return yMetaColorScale(d); })
 
             var xMetaRect = wrap.selectAll('.x-meta')
             var yMetaRect = wrap.selectAll('.y-meta')
             var allMetaRect = wrap.selectAll('.meta')
+
+
+            // transition meta rect size
+            xMetaRect
+                .watchTransition(renderWatch, 'heatMap: xMetaRect') 
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", xMetaSize)
+                .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
+            yMetaRect
+                .watchTransition(renderWatch, 'heatMap: yMetaRect') 
+                .attr("width", yMetaSize)
+                .attr("height", cellHeight-cellBorderWidth)
+                .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
+
+
+            // transition cell (rect) size
+            cells.selectAll('rect')
+                .watchTransition(renderWatch, 'heatMap: rect')
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", cellHeight-cellBorderWidth)
+                .style('stroke', function(d,i) { return cellColor(d) })
+
+            // transition cell (g) position, opacity and fill
+            cells
+                .watchTransition(renderWatch, 'heatMap: cells')
+                .style({
+                    'opacity': 1,
+                    'fill': function(d,i) { return cellColor(d) },
+                })
+                .attr("transform", function(d) { return "translate(" + getIX(d) * cellWidth + "," + getIY(d) * cellHeight + ")" })
+
+            cellWrap.exit().remove();
+
+            // transition position of meta wrap g
+            wrap.select('.xMetaWrap')
+                .watchTransition(renderWatch, 'heatMap: xMetaWrap') 
+                .attr("transform", function(d,i) { return "translate(0," + (-xMetaSize-cellBorderWidth-metaOffset) + ")" })
+            wrap.select('.yMetaWrap')
+                .watchTransition(renderWatch, 'heatMap: yMetaWrap') 
+                .attr("transform", function(d,i) { return "translate(" + (-yMetaSize-cellBorderWidth-metaOffset) + ",0)" })
 
             // TOOLTIPS
             cells
@@ -436,7 +487,7 @@ nv.models.heatMap = function() {
                     dispatch.elementMouseover({
                         value: getX(d) + ' & ' + getY(d), 
                         series: {
-                                value: !normalize ? getCellValue(d) : getCellValueNorm(d),
+                                value: cellValueLabel(d), 
                                 color: d3.select(this).select('rect').style("fill")
                                 },
                         e: d3.event,
@@ -501,55 +552,16 @@ nv.models.heatMap = function() {
                 })
 
 
-            // transition cell (rect) size
-            cells.selectAll('rect')
-                .watchTransition(renderWatch, 'heatMap: rect')
-                .attr("width", cellWidth-cellBorderWidth)
-                .attr("height", cellHeight-cellBorderWidth)
-                .style('stroke', function(d,i) { return cellColor(d) })
-
-            // transition cell (g) position, opacity and fill
-            cells
-                .watchTransition(renderWatch, 'heatMap: cells')
-                .style({
-                    'opacity': 1,
-                    'fill': function(d,i) { return cellColor(d) },
-                })
-                .attr("transform", function(d) { return "translate(" + getIX(d) * cellWidth + "," + getIY(d) * cellHeight + ")" })
-
-            // transition meta rect size
-            xMetaRect
-                .watchTransition(renderWatch, 'heatMap: xMetaRect') 
-                .attr("width", cellWidth-cellBorderWidth)
-                .attr("height", cellHeight / 3)
-                .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
-            yMetaRect
-                .watchTransition(renderWatch, 'heatMap: yMetaRect') 
-                .attr("width", cellHeight / 3)
-                .attr("height", cellWidth-cellBorderWidth)
-                .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
-
-            // trnansition position of meta wrap g
-            wrap.select('.xMetaWrap')
-                .watchTransition(renderWatch, 'heatMap: xMetaWrap') 
-                .attr("transform", function(d,i) { return "translate(0," + -cellWidth / 2 + ")" })
-            wrap.select('.yMetaWrap')
-                .watchTransition(renderWatch, 'heatMap: yMetaWrap') 
-                .attr("transform", function(d,i) { return "translate(" + -cellWidth / 2 + ",0)" })
-
-
-            cellWrap.exit().remove();
-
             if (showCellValues) {
 
                 cellWrap.select('text')
-                    .text(function(d,i) { return !normalize ? cellFormat(getCellValue(d)) : cellFormat(getNorm(d)) })
                     .attr("dy", 4)
                     .attr("class","cell-text")
 
                 // transition text position and fill
                 cells.selectAll('text')
                     .watchTransition(renderWatch, 'heatMap: cells text')
+                    .text(function(d,i) { return cellValueLabel(d) })
                     .attr("x", function(d) { return (cellWidth-cellBorderWidth) / 2; })
                     .attr("y", function(d) { return (cellHeight-cellBorderWidth) / 2; })
                     .style("fill", function(d, i) { return cellTextColor(cellColor(d)) })
@@ -582,27 +594,24 @@ nv.models.heatMap = function() {
         y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
         cellValue:       {get: function(){return getCellValue;}, set: function(_){getCellValue=_;}}, // data attribute that sets cell value and color
         cellValueNorm:   {get: function(){return getNorm;}}, // get normalized cell value TODO - should not be exposed since we don't want user setting this
-        xScale:  {get: function(){return xScale;}, set: function(_){x=Scale_;}},
-        xDomain: {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
-        xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        missingDataColor:  {get: function(){return missingDataColor;}, set: function(_){missingDataColor=_;}},
+        missingDataLabel:  {get: function(){return missingDataLabel;}, set: function(_){missingDataLabel=_;}},
+        xScale:  {get: function(){return xScale;}, set: function(_){xScale=_;}},
         yScale:  {get: function(){return yScale;}, set: function(_){yScale=_;}},
-        yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
-        yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
         xMeta:  {get: function(){return xMeta;}, set: function(_){xMeta=_;}},
         yMeta:  {get: function(){return yMeta;}, set: function(_){yMeta=_;}},
         colorScale:  {get: function(){return colorScale;}, set: function(_){colorScale=_;}}, // scale to map cell values to colors
-        colorDomain: {get: function(){return colorDomain;}, set: function(_){colorDomain=_;}},
-        colorRange:  {get: function(){return colorRange;}, set: function(_){colorRange=_;}},
         xMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
         yMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
         cellAspectRatio: {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
-        cellHeight:  {get: function(){return cellHeight;}, set: function(_){cellHeight=_;}},
-        cellWidth:  {get: function(){return cellWidth;}, set: function(_){cellWidth=_;}},
+        cellHeight:  {get: function(){return cellHeight;}},
+        cellWidth:  {get: function(){return cellWidth;}},
         normalize:  {get: function(){return normalize;}, set: function(_){normalize=_;}},
         cellBorderWidth:  {get: function(){return cellBorderWidth;}, set: function(_){cellBorderWidth=_;}},
         highContrastText:  {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
         cellFormat:    {get: function(){return cellFormat;}, set: function(_){cellFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
+        metaOffset:          {get: function(){return metaOffset;}, set: function(_){metaOffset=_;}},
 
 
         // options that require extra logic in the setter

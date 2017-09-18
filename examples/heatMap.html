@@ -41,7 +41,7 @@
         }
 
 
-        .no-hover rect, rect.no-hover {
+        .no-hover {
             fill-opacity: 0.2;
         }
 
@@ -57,9 +57,19 @@
         <button onclick="updatePlot({cellAspectRatio: 1});">Square</button>
         <br>
         Normalize
+        <button onclick="updatePlot({normalize: false});">None</button>
         <button onclick="updatePlot({normalize: 'centerRow'});">centerRow</button>
         <button onclick="updatePlot({normalize: 'centerScaleColumn'});">centerScaleColumn</button>
         <button onclick="updatePlot({normalize: 'robustCenterAll'});">robustCenterAll</button>
+        <br>
+        Axes
+        <button onclick="updatePlot({alignXAxis: 'bottom'});">X bottom</button>
+        <button onclick="updatePlot({alignXAxis: 'top'});">X top</button>
+        <button onclick="updatePlot({alignYAxis: 'left'});">Y left</button>
+        <button onclick="updatePlot({alignYAxis: 'right'});">Y right</button>
+        Metadata
+        <button onclick="updatePlot({xMeta: function(d) { return d.category }});">X</button>
+        <button onclick="updatePlot({yMeta: function(d) { return d.group }});">Y</button>
     </div>
 
     <svg id='heatMap'></svg>
@@ -72,7 +82,8 @@
 	var defaultChart = {
         x: function(d) { return d.hour },
         y: function(d) { return d.day },
-        cellAspectRatio: 1,
+        cellValue: function(d) { return d.value },
+        cellAspectRatio: false,
         normalize: false,
         highContrastText: true,
         showXAxis: true,
@@ -83,9 +94,14 @@
         alignYAxis: 'left',
         cellFormat: d3.format(',.0f'),
         cellBorderWidth: 4,
-        xMeta: function (d) { return d.category; },
-        yMeta: function (d) { return d.group; },
-        margin: {top: 50},
+        //xMeta: function (d) { return d.category; },
+        //yMeta: function (d) { return d.group; },
+        xMeta: false,
+        yMeta: false,
+        //xMetaColorScale:
+        //yMetaColorScale
+        //colorScale
+        margin: {top: 50, right: 40}
 	}
 
 	// setup default chart
