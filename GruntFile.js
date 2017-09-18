@@ -120,7 +120,7 @@ module.exports = function(grunt) {
                 options: {
                     logLevel: 'DEBUG',
                     browsers: ['Firefox'],
-                    browserNoActivityTimeout: 60000,
+                    browserNoActivityTimeout: 600000,
                     frameworks: [ 'mocha', 'sinon-chai' ],
                     reporters: [ 'spec', 'junit', 'coverage'],
                     singleRun: true,
