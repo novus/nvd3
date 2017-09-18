@@ -1,6 +1,6 @@
-'use strict';
-
 (function () {
+  'use strict';
+
   var clean = void 0,
       benv = void 0,
       _sinon = void 0,
