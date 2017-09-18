@@ -118,7 +118,7 @@ module.exports = function(grunt) {
         karma: {
             unit: {
                 options: {
-                    logLevel: 'ERROR',
+                    logLevel: 'DEBUG',
                     browsers: ['Firefox'],
                     frameworks: [ 'mocha', 'sinon-chai' ],
                     reporters: [ 'spec', 'junit', 'coverage'],
