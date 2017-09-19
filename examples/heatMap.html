@@ -55,8 +55,7 @@
     <div class="buttons">
         <button onclick="updatePlot(defaultChart);">Default</button>
         <button onclick="updatePlot({cellAspectRatio: 1});">Square</button>
-        <br>
-        Normalize
+        | Normalize
         <button onclick="updatePlot({normalize: false});">None</button>
         <button onclick="updatePlot({normalize: 'centerRow'});">centerRow</button>
         <button onclick="updatePlot({normalize: 'centerScaleColumn'});">centerScaleColumn</button>
@@ -67,9 +66,12 @@
         <button onclick="updatePlot({alignXAxis: 'top'});">X top</button>
         <button onclick="updatePlot({alignYAxis: 'left'});">Y left</button>
         <button onclick="updatePlot({alignYAxis: 'right'});">Y right</button>
-        Metadata
+        | Metadata
         <button onclick="updatePlot({xMeta: function(d) { return d.category }});">X</button>
-        <button onclick="updatePlot({yMeta: function(d) { return d.group }});">Y</button>
+        <button onclick="updatePlot({yMetaWidth: function() { return 30; }, yMeta: function(d) { return d.group }});">Y</button>
+        | Cell Color
+        <button onclick="updatePlot({colorRange: ['#fff7f3','#fde0dd','#fcc5c0','#fa9fb5','#f768a1','#dd3497','#ae017e','#7a0177','#49006a']});">Sequential color</button>
+        <button onclick="updatePlot({colorRange: ['#d01c8b','#f1b6da','#f7f7f7','#b8e186','#4dac26']});">5-class diverging</button>
     </div>
 
     <svg id='heatMap'></svg>
@@ -90,18 +92,18 @@
         showYAxis: true,
         showLegend: true,
         showCellValues: true,
-        alignXAxis: 'top',
-        alignYAxis: 'left',
-        cellFormat: d3.format(',.0f'),
+        alignXAxis: 'top', // TODO
+        alignYAxis: 'left', // TODO
+        cellValueFormat: d3.format(',.0f'),
         cellBorderWidth: 4,
-        //xMeta: function (d) { return d.category; },
-        //yMeta: function (d) { return d.group; },
+        cellRadius: 2,
+        missingDataColor: '#bcbcbc',
+        missingDataLabel: 'NaN',
         xMeta: false,
         yMeta: false,
-        //xMetaColorScale:
-        //yMetaColorScale
-        //colorScale
-        margin: {top: 50, right: 40}
+        colorRange: ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"],
+        metaOffset: 5,
+        margin: {top: 50, right: 20}
 	}
 
 	// setup default chart
