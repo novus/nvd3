@@ -33,7 +33,7 @@ nv.models.heatMap = function() {
         , highContrastText = true
         , xDomain
         , yDomain
-        , xMetaColorScale = nv.utils.getColor()
+        , xMetaColorScale = nv.utils.defaultColor()
         , yMetaColorScale = nv.utils.defaultColor()
         , missingDataColor = '#bcbcbc'
         , missingDataLabel = 'NaN'
@@ -591,7 +591,6 @@ nv.models.heatMap = function() {
         x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
         y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
         cellValue:       {get: function(){return getCellValue;}, set: function(_){getCellValue=_;}}, // data attribute that sets cell value and color
-        cellValueNorm:   {get: function(){return getNorm;}}, // get normalized cell value TODO - should not be exposed since we don't want user setting this
         missingDataColor:  {get: function(){return missingDataColor;}, set: function(_){missingDataColor=_;}},
         missingDataLabel:  {get: function(){return missingDataLabel;}, set: function(_){missingDataLabel=_;}},
         xScale:  {get: function(){return xScale;}, set: function(_){xScale=_;}},
@@ -608,8 +607,8 @@ nv.models.heatMap = function() {
         yMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
         cellAspectRatio:  {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
         cellRadius:  {get: function(){return cellRadius;}, set: function(_){cellRadius=_;}}, // cell width / height
-        cellHeight:  {get: function(){return cellHeight;}},
-        cellWidth:   {get: function(){return cellWidth;}},
+        cellHeight:  {get: function(){return cellHeight;}}, // TODO - should not be exposed since we don't want user setting this
+        cellWidth:   {get: function(){return cellWidth;}}, // TODO - should not be exposed since we don't want user setting this
         normalize:   {get: function(){return normalize;}, set: function(_){normalize=_;}},
         cellBorderWidth:     {get: function(){return cellBorderWidth;}, set: function(_){cellBorderWidth=_;}},
         highContrastText:    {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
