@@ -55,7 +55,11 @@
     <div class="buttons">
         <button onclick="updatePlot(defaultChart);">Default</button>
         <button onclick="updatePlot({cellAspectRatio: 1});">Square</button>
-        | Normalize
+        <button onclick="updatePlot({cellBorderWidth: 0, cellRadius: 0});">No border</button>
+        <button onclick="highContrast = !highContrast; updatePlot({highContrastText: highContrast});">Toggle high contrast labels</button>
+        <button onclick="updatePlot({showYAxis: false, showXAxis: false, showLegend: false, showCellValues: false});">Hide axes/legend/values</button>
+        <br>
+        Normalize
         <button onclick="updatePlot({normalize: false});">None</button>
         <button onclick="updatePlot({normalize: 'centerRow'});">centerRow</button>
         <button onclick="updatePlot({normalize: 'centerScaleColumn'});">centerScaleColumn</button>
@@ -81,13 +85,14 @@
 <script>
 
 	var chart = nv.models.heatMapChart();
+    var highContrast = true;
 	var defaultChart = {
         x: function(d) { return d.hour },
         y: function(d) { return d.day },
         cellValue: function(d) { return d.value },
         cellAspectRatio: false,
         normalize: false,
-        highContrastText: true,
+        highContrastText: highContrast,
         showXAxis: true,
         showYAxis: true,
         showLegend: true,
@@ -103,7 +108,7 @@
         yMeta: false,
         colorRange: ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"],
         metaOffset: 5,
-        margin: {top: 50, right: 20}
+        margin: {top: 50, right: 50}
 	}
 
 	// setup default chart

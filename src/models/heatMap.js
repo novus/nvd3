@@ -1,11 +1,9 @@
 /* 
 Improvements:
-- how to we want to handle missing data? how is missing data identified? how is it formatted?
 - consistenly apply no-hover classes to rect isntead of to containing g, see example CSS style for .no-hover rect, rect.no-hover
 - row/column order (user specified) or 'ascending' / 'descending'
-
-TODO:
-- chart 'flashes' when mouse over transition between cells
+- I haven't tested for transitions between changing datasets
+- chart/tooltip 'flashes' when mouse over transition between cells: should explicitly add a border to cells which fires tooltips
 */
 
 nv.models.heatMap = function() {
@@ -348,10 +346,10 @@ nv.models.heatMap = function() {
                 .attr('class','xMetaWrap')
                 .attr("transform", function() { return "translate(0," + (-xMetaHeight()-cellBorderWidth-metaOffset) + ")" })
 
-            var xMeta = wrap.select('.xMetaWrap').selectAll('.x-meta')
+            var xMetas = wrap.select('.xMetaWrap').selectAll('.x-meta')
                 .data(uniqueXMeta, function(d,i) { return i; })
 
-            var xMetaEnter = xMeta
+            var xMetaEnter = xMetas
                 .enter()
                 .append('rect')
                 .attr('class','x-meta meta')
@@ -365,10 +363,10 @@ nv.models.heatMap = function() {
                 .attr('class','yMetaWrap')
                 .attr("transform", function(d,i) { return "translate(" + (-yMetaWidth()-cellBorderWidth-metaOffset) + ",0)" })
 
-            var yMeta = wrap.select('.yMetaWrap').selectAll('.y-meta')
+            var yMetas = wrap.select('.yMetaWrap').selectAll('.y-meta')
                 .data(uniqueYMeta, function(d,i) { return i; })
 
-            var yMetaEnter = yMeta
+            var yMetaEnter = yMetas
                 .enter()
                 .append('rect')
                 .attr('class','y-meta meta')
@@ -421,25 +419,28 @@ nv.models.heatMap = function() {
             var allMetaRect = wrap.selectAll('.meta')
 
             // transition meta rect size
-            xMeta
+            xMetas
                 .watchTransition(renderWatch, 'heatMap: xMetaRect') 
                 .attr("width", cellWidth-cellBorderWidth)
                 .attr("height", xMetaHeight())
                 .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
 
-            yMeta
+            yMetas
                 .watchTransition(renderWatch, 'heatMap: yMetaRect') 
                 .attr("width", yMetaWidth())
                 .attr("height", cellHeight-cellBorderWidth)
                 .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
 
-            // transition position of meta wrap g
+
+            // transition position of meta wrap g & opacity
             wrap.select('.xMetaWrap')
                 .watchTransition(renderWatch, 'heatMap: xMetaWrap') 
                 .attr("transform", function(d,i) { return "translate(0," + (-xMetaHeight()-cellBorderWidth-metaOffset) + ")" })
+                .style("opacity", function() { return xMeta !== false ? 1 : 0 })
             wrap.select('.yMetaWrap')
                 .watchTransition(renderWatch, 'heatMap: yMetaWrap') 
                 .attr("transform", function(d,i) { return "translate(" + (-yMetaWidth()-cellBorderWidth-metaOffset) + ",0)" })
+                .style("opacity", function() { return yMeta !== false ? 1 : 0 })
 
             // TOOLTIPS
             cells
@@ -554,23 +555,18 @@ nv.models.heatMap = function() {
                     dispatch.elementMousemove({e: d3.event});
                 })
 
-            if (showCellValues) {
+            cellWrap.select('text')
+                .attr("dy", 4)
+                .attr("class","cell-text")
 
-                cellWrap.select('text')
-                    .attr("dy", 4)
-                    .attr("class","cell-text")
-
-                // transition text position and fill
-                cells.selectAll('text')
-                    .watchTransition(renderWatch, 'heatMap: cells text')
-                    .text(function(d,i) { return cellValueLabel(d) })
-                    .attr("x", function(d) { return (cellWidth-cellBorderWidth) / 2; })
-                    .attr("y", function(d) { return (cellHeight-cellBorderWidth) / 2; })
-                    .style("fill", function(d, i) { return cellTextColor(cellColor(d)) })
-                ;
-            } else {
-                cellWrap.selectAll('text').remove();
-            }
+            // transition text position and fill
+            cells.selectAll('text')
+                .watchTransition(renderWatch, 'heatMap: cells text')
+                .text(function(d,i) { return cellValueLabel(d) })
+                .attr("x", function(d) { return (cellWidth-cellBorderWidth) / 2; })
+                .attr("y", function(d) { return (cellHeight-cellBorderWidth) / 2; })
+                .style("fill", function(d) { return cellTextColor(cellColor(d)) })
+                .style('opacity', function() { return showCellValues ? 1 : 0 })
 
 
         });

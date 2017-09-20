@@ -110,8 +110,8 @@ nv.models.heatMapChart = function() {
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(heatMap);
-        if (showXAxis) renderWatch.models(xAxis);
-        if (showYAxis) renderWatch.models(yAxis);
+        renderWatch.models(xAxis);
+        renderWatch.models(yAxis);
 
         selection.each(function(data) {
             var container = d3.select(this),
@@ -172,94 +172,107 @@ nv.models.heatMapChart = function() {
 
 
             // Setup Axes
-            if (showXAxis) {
+            xAxis
+                .scale(x)
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                .tickSize(-availableHeight, 0);
 
-                xAxis
-                    .scale(x)
-                    ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
-                    .tickSize(-availableHeight, 0);
+            var axisX = g.select('.nv-x.nv-axis')
 
-                g.select('.nv-x.nv-axis').call(xAxis);
+            axisX.call(xAxis)
+                .watchTransition(renderWatch, 'heatMap: axisX')
+                .selectAll('.tick')
+                .style('opacity', function() { return showXAxis ? 1 : 0 } )
 
-                var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
+            var xTicks = axisX.selectAll('g');
 
-                xTicks
-                    .selectAll('.tick text')
-                    .attr('transform', function(d,i,j) {
-                        var rot = rotateLabels != 0 ? rotateLabels : '0';
-                        var stagger = staggerLabels ? j % 2 == 0 ? '5' : '17' : '0';
-                        return 'translate(0, ' + stagger + ') rotate(' + rot + ' 0,0)';
-                    })
-                    .style('text-anchor', rotateLabels > 0 ? 'start' : rotateLabels < 0 ? 'end' : 'middle');
+            xTicks
+                .selectAll('.tick text')
+                .attr('transform', function(d,i,j) {
+                    var rot = rotateLabels != 0 ? rotateLabels : '0';
+                    var stagger = staggerLabels ? j % 2 == 0 ? '5' : '17' : '0';
+                    return 'translate(0, ' + stagger + ') rotate(' + rot + ' 0,0)';
+                })
+                .style('text-anchor', rotateLabels > 0 ? 'start' : rotateLabels < 0 ? 'end' : 'middle');
 
-                // position text in center of meta rects
-                var yPos = -5;
-                if (hasColumnMeta()) {
-                    g.select('.nv-x.nv-axis').selectAll('text').style('text-anchor', 'middle')
-                    yPos = -d3.select('.xMetaWrap').node().getBBox().height/2 - heatMap.metaOffset() + 3;
+            // position text in center of meta rects
+            var yPos = -5;
+            if (hasColumnMeta()) {
+                axisX.selectAll('text').style('text-anchor', 'middle')
+                yPos = -heatMap.xMetaHeight()()/2 - heatMap.metaOffset() + 3;
+            }
+
+            // adjust position of axis based on presence of metadata group
+            if (alignXAxis == 'bottom') {
+                axisX
+                    .watchTransition(renderWatch, 'heatMap: axisX')
+                    .attr("transform", "translate(0," + (availableHeight - yPos) + ")");
+                if (heatMap.xMeta() !== false) { // if showing x metadata
+                    var pos = availableHeight+heatMap.metaOffset()+heatMap.cellBorderWidth()
+                    g.select('.xMetaWrap')
+                        .watchTransition(renderWatch, 'heatMap: xMetaWrap')
+                        .attr("transform", function(d,i) { return "translate(0," + pos + ")" })
                 }
-
-                // adjust position of axis based on presence of metadata group
-                if (alignXAxis == 'bottom') {
-                    g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + (availableHeight - yPos) + ")");
-                } else {
-
-                    g.select(".nv-x.nv-axis")
-                        .attr("transform", "translate(0," + yPos + ")");
-                }
+            } else {
+                axisX
+                    .watchTransition(renderWatch, 'heatMap: axisX')
+                    .attr("transform", "translate(0," + yPos + ")");
             }
 
 
-            if (showYAxis) {
+            yAxis
+                .scale(y)
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                .tickSize( -availableWidth, 0);
 
+            var axisY = g.select('.nv-y.nv-axis')
 
-                yAxis
-                    .scale(y)
-                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
-                    .tickSize( -availableWidth, 0);
+            axisY.call(yAxis)
+                .watchTransition(renderWatch, 'heatMap: axisY')
+                .selectAll('.tick')
+                .style('opacity', function() { return showYAxis ? 1 : 0 } )
 
-                g.select('.nv-y.nv-axis').call(yAxis);
-
-                // position text in center of meta rects
-                var xPos = -5;
-                if (hasRowMeta()) {
-                    g.select('.nv-y.nv-axis').selectAll('text').style('text-anchor', 'middle')
-                    xPos = -d3.select('.yMetaWrap').node().getBBox().width/2 - heatMap.metaOffset();
-                }
-
-                // adjust position of axis based on presence of metadata group
-                if (alignYAxis == 'right') {
-                    g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + (availableWidth - xPos) + ",0)");
-                } else {
-                    g.select(".nv-y.nv-axis")
-                        .attr("transform", "translate(" + xPos + ",0)");
-                }
-
+            // position text in center of meta rects
+            var xPos = -5;
+            if (hasRowMeta()) {
+                axisY.selectAll('text').style('text-anchor', 'middle')
+                xPos = -heatMap.yMetaWidth()()/2 - heatMap.metaOffset();
             }
+
+            // adjust position of axis based on presence of metadata group
+            if (alignYAxis == 'right') {
+                axisY.attr("transform", "translate(" + (availableWidth - xPos) + ",0)");
+                if (heatMap.yMeta() !== false) { // if showing y meatdata
+                    var pos = availableWidth+heatMap.metaOffset()+heatMap.cellBorderWidth()
+                    g.select('.yMetaWrap')
+                        .watchTransition(renderWatch, 'heatMap: yMetaWrap')
+                        .attr("transform", function(d,i) { return "translate(" + pos + ",0)" })
+                }
+            } else {
+                axisY.attr("transform", "translate(" + xPos + ",0)");
+            }
+
 
 
             // Legend
-            if (!showLegend) {
-                g.select('.nv-legendWrap').selectAll('*').remove();
-            } else {
-                legend
-                    .width(availableWidth)
-                    .color(heatMap.colorScale().range())
+            var legendWrap = g.select('.nv-legendWrap')
 
-                 var legendVal = quantizeLegendValues().map(function(d) {
-                    return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
-                 })
+            legend
+                .width(availableWidth)
+                .color(heatMap.colorScale().range())
 
-                g.select('.nv-legendWrap')
-                    .datum(legendVal)
-                    .call(legend);
+             var legendVal = quantizeLegendValues().map(function(d) {
+                return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
+             })
 
-                // position legend opposite of X-axis
-                g.select('.nv-legendWrap')
-                    .attr('transform', 'translate(0,' + (alignXAxis == 'top' ? availableHeight : -30) + ')'); // TODO: more intelligent offset (-30) when top aligning legend
-            }
+            legendWrap
+                .datum(legendVal)
+                .call(legend)
+                .attr('transform', 'translate(0,' + (alignXAxis == 'top' ? availableHeight : -30) + ')'); // TODO: more intelligent offset (-30) when top aligning legend
+
+            legendWrap
+                .watchTransition(renderWatch, 'heatMap: nv-legendWrap')
+                .style('opacity', function() { return showLegend ? 1 : 0 } )
 
 
         });
