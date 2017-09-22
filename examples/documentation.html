@@ -1072,7 +1072,99 @@ as well as used to print out examples using those example inputs.
             desc: "Whether to squash boxes/violins together along the x-axi in the case where option colorGroup is specified. This removes the empty space beteween distributions in cases where the particular grouping data does not exist.",
             default: true,
             examples: [true, false]
-        }
+        },
+        cellAspectRatio: {
+            desc: "By default, cell sizes are automatically calculated to fit the screen width & height; by specifying this option, the height of cells will be calculated as cellWidth / cellAspectRatio, where cellWidth is maximized to fit the width of the screen.",
+            default: false,
+            examples: [1.0],
+        },
+        cellRadius: {
+            desc: "Sets the 'rx' and 'ry' attritubes of the cell to give it rounded corners",
+            default: 2,
+            examples: [0],
+        },
+        cellBorderWidth: {
+            desc: "Sets the border width around cells, in pixels",
+            default: 4,
+            examples: [0],
+        },
+        cellValue: {
+            desc: "Accessor function for setting identifying the key in the data used to set the cell value.",
+            default: function(d) { d.value; },
+            examples: function(d) { d.cellVal; },
+        },
+        cellValueFormat: {
+            desc: "Formatter for displayed cell value.",
+            default: "d3.format(',.0f')",
+        },
+        colorRange: {
+            desc: "Set the color range for cells",
+            default: '["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]',
+            examples: [['#d01c8b','#f1b6da','#f7f7f7','#b8e186','#4dac26']]
+        },
+        colorScale: {
+            desc: "Override the default scale type for cell colors.",
+            default: "d3.scale.quantize()"
+        },
+        highContrastText: {
+            desc: "Automatically set the cell label color in such a way to maximize contrast against the background color.",
+            default: true,
+            examples: [false],
+        },
+        metaOffset: {
+            desc: "Space between the metadata rectangles and the heatmap",
+            default: 5,
+            examples: [0],
+        },
+        missingDataColor: {
+            desc: "Cell color to give to those cells that have missing data; missing data occurrs either if it is not specified, or cannot be calculated due to normalization.",
+            default: '#bcbcbc',
+            examples: ['#fff'] 
+        },
+        missingDataLabel: {
+            desc: "Cell label to give to those cells with missing data.",
+            default: 'NaN',
+            examples: [""],
+        },
+        normalize: {
+            desc: "Normalization to apply to cells, must be one of either: 'centerRow', 'robustCenterRow', 'centerScaleRow', 'robustCenterScaleRow', 'centerColumn', 'robustCenterColumn', 'centerScaleColumn', 'robustCenterScaleColumn', 'centerAll', 'robustCenterAll', 'centerScaleAll', 'robustCenterScaleAll'.",
+            refs: ["http://www.arrayserver.com/wiki/index.php?title=Heatmap_normalization"],
+            default: false,
+            examples: ['centerScaleColumn']
+        },
+        showCellValues: {
+            desc: "Whether to show the cell values/labels",
+            default: true,
+            examples: [false]
+        },
+        xMeta: {
+            desc: "Accessor function to specify which key in the data should be used to display column metadata. This data will be represented as color squares positioned along with the x-axis.",
+            default: false,
+            examples: [function(d) { return d.group; }]
+        },
+        xMetaColorScale: {
+            desc: "Color scale to use for column metadata.",
+            default: "nv.utils.defaultColor()",
+        },
+        xMetaHeight: {
+            desc: "Function used to set the height of the column metadata rectangles",
+            default: "function(d) { return cellHeight / 3}",
+            examples: [5]
+        },
+        yMeta: {
+            desc: "Accessor function to specify which key in the data should be used to display row metadata. This data will be represented as color squares positioned along with the y-axis.",
+            default: false,
+            examples: [function(d) { return d.group; }]
+        },
+        yMetaColorScale: {
+            desc: "Color scale to use for row metadata.",
+            default: "nv.utils.defaultColor()",
+        },
+        yMetaWidth: {
+            desc: "Function used to set the width of the column metadata rectangles",
+            default: "function(d) { return cellWidth / 3}",
+            examples: [5]
+        },
     };
 </script>
 
