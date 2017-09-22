@@ -69,8 +69,8 @@
                 'ohlcBarChart',
                 'boxPlotChart',
                 'sunburstChart',
-                'candlestickBarChart',
-                'heatMap'
+                'distroPlotChart',
+                'candlestickBarChart'
             ].sort();
             var parts = [
                 'line',
@@ -1004,6 +1004,75 @@ as well as used to print out examples using those example inputs.
             default: true,
             examples: [true, false]
         },
+		maxBoxWidth: {
+            desc: "limits the maximum box width (in pixels)",
+            default: "Don't limit width",
+            examples: [50]
+        },
+		plotType: {
+            desc: "Specify the rendered plot type, choices are 'box', 'violin' or false/null in which case only scatter points will be drawn",
+            default: false,
+            examples: ['box','violin']
+        },
+		observationType: {
+            desc: "Specify how to position scatter points along the x-axis; choices are 'random', 'swarm', 'line', 'centered' or false. A value of false hides all observations. Note that d3-beeswarm (https://github.com/Kcnarf/d3-beeswarm) library must be loaded for 'swarm' to work.",
+            default: 'random',
+            examples: ['random','swarm','line','centered']
+        },
+		whiskerDef: {
+            desc: "Method for calculating whisker length; choices are 'iqr', 'minmax', or 'stddev'. The type 'iqr' is the traditional way of drawing whiskers for boxplots and is defined as the lowest datum still within 1.5 IQR of the lower quartile, and the highest datum still within 1.5 IQR of the upper quartile. The type 'minmax' is simply the min or max observation within the group, and 'stddev' is 1 standard deviation from the mean. Note that changing the central tendency value (mean or median) does not change the location of any whisker type.",
+            default: 'iqr',
+            examples: ['iqr','minmax','stddev']
+        },
+		notchBox: {
+            desc: "Specifying this option as True will generate the boxplots with notches; notches are drawn as 95% confidence intervals around either the mean or median (central tendency +- 1.57 * IQR / n^0.5). If the notches of two plots do not overlap this is ‘strong evidence’ that the two medians differ (Chambers et al., 1983, p. 62). Note that adjusting the central tendency option will adjust the position of the notch.",
+            default: false,
+            examples: [true, false]
+        },
+		hideWhiskers: {
+            desc: "Whether to show or hide whisers when rendering with the box plotType",
+            default: false,
+            examples: [true, false]
+        },
+		colorGroup: {
+            desc: "If specified, this accessor function specifies the attribute to use within the data to group distrubtions along the x-axis.",
+            default: "false",
+            examples: [
+                function(d){
+                    return d.group;
+                }
+            ]
+        },
+		centralTendency: {
+            desc: "The type of central tendency to show for the distribution, this tendency will be drawn as a horizontal line; choices are 'mean', 'median' or false",
+            default: false,
+            examples: ['mean','median',false]
+        },
+		bandwidth: {
+            desc: "Heuristic for the KDE bandwidth calculation, can be float or str, if str, must be one of 'scott' or 'silverman'",
+            default: "scott",
+            examples: ["scott", "silverman"]
+        },
+		resolution: {
+            desc: "Resolution to use in kde calculation",
+            default: 50,
+            examples: [0.1, 20]
+        },
+		showOnlyOutliers: {
+            desc: "Whether to show only outliers in box plot - if false, all observations will be shown instead of just the outliers",
+            default: true,
+            examples: [true, false]
+        },
+		jitter: {
+            desc: "Float value representing the percentage of box width that should be used for the random orientation of observations",
+            default: 0.7,
+            examples: [0.2, 1]
+        },
+		squash: {
+            desc: "Whether to squash boxes/violins together along the x-axi in the case where option colorGroup is specified. This removes the empty space beteween distributions in cases where the particular grouping data does not exist.",
+            default: true,
+            examples: [true, false]
+        },
         cellAspectRatio: {
             desc: "By default, cell sizes are automatically calculated to fit the screen width & height; by specifying this option, the height of cells will be calculated as cellWidth / cellAspectRatio, where cellWidth is maximized to fit the width of the screen.",
             default: false,
@@ -1095,7 +1164,7 @@ as well as used to print out examples using those example inputs.
             desc: "Function used to set the width of the column metadata rectangles",
             default: "function(d) { return cellWidth / 3}",
             examples: [5]
-        }
+        },
     };
 </script>
 
