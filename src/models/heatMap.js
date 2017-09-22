@@ -3,7 +3,6 @@ Improvements:
 - consistenly apply no-hover classes to rect isntead of to containing g, see example CSS style for .no-hover rect, rect.no-hover
 - row/column order (user specified) or 'ascending' / 'descending'
 - I haven't tested for transitions between changing datasets
-- chart/tooltip 'flashes' when mouse over transition between cells: should explicitly add a border to cells which fires tooltips
 */
 
 nv.models.heatMap = function() {
@@ -450,6 +449,7 @@ nv.models.heatMap = function() {
                     var ix = getIX(d);
                     var iy = getIY(d);
 
+
                     // set the proper classes for all cells
                     // hover row gets class .row-hover
                     // hover column gets class .column-hover
@@ -458,8 +458,10 @@ nv.models.heatMap = function() {
                     d3.selectAll('.nv-cell').each(function(e) {
                         if (idx == getIdx(e)) {
                             d3.select(this).classed('cell-hover', true);
+                            d3.select(this).classed('no-hover', false);
                         } else {
                             d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('cell-hover', false);
                         }
                         if (ix == getIX(e)) {
                             d3.select(this).classed('no-hover', false);
@@ -475,8 +477,10 @@ nv.models.heatMap = function() {
                     d3.selectAll('.x-meta').each(function(e, j) {
                         if (j == ix) {
                             d3.select(this).classed('cell-hover', true);
+                            d3.select(this).classed('no-hover', false);
                         } else {
                             d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('cell-hover', false);
                         }
                     });
 
@@ -484,8 +488,10 @@ nv.models.heatMap = function() {
                     d3.selectAll('.y-meta').each(function(e, j) {
                         if (j == iy) {
                             d3.select(this).classed('cell-hover', true);
+                            d3.select(this).classed('no-hover', false);
                         } else {
                             d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('cell-hover', false);
                         }
                     });
                     
@@ -497,13 +503,34 @@ nv.models.heatMap = function() {
                                 },
                         e: d3.event,
                     });
+
                 })
                 .on('mouseout', function(d,i) {
 
-                    // remove all hover classes
-                    removeAllHoverClasses();
+                    // allow tooltip to remain even when mouse is over the
+                    // space between the cell;
+                    // this prevents cells from "flashing" when transitioning
+                    // between cells
+                    var bBox = d3.select(this).select('rect').node().getBBox();
+                    var coordinates = d3.mouse(this);
+                    var x = coordinates[0];
+                    var y = coordinates[1];
 
-                    dispatch.elementMouseout({e: d3.event});
+                    if (
+                        x > bBox.width + cellBorderWidth || 
+                        x < -cellBorderWidth ||
+                        (getIX(d) + 1 == Object.keys(uniqueX).length &&  x > bBox.width) ||
+                        (getIX(d) == 0 && x < 0) ||
+                        y > bBox.height + cellBorderWidth ||
+                        y < -cellBorderWidth ||
+                        (getIY(d) + 1 == Object.keys(uniqueY).length &&  y > bBox.height) ||
+                        (getIY(d) == 0 && y < 0)
+                    ) {
+                        // remove all hover classes
+                        removeAllHoverClasses();
+
+                        dispatch.elementMouseout({e: d3.event});
+                    }
                 })
                 .on('mousemove', function(d,i) {
                     dispatch.elementMousemove({e: d3.event});
@@ -521,16 +548,19 @@ nv.models.heatMap = function() {
 
                         if (isColMeta && i == getIX(e)) {
                             d3.select(this).classed('column-hover', true);
+                            d3.select(this).classed('no-hover', false);
                         } else if (!isColMeta && i-uniqueXMeta.length == getIY(e)) {
                             // since allMetaRect selects all the meta rects, the index for the y's will
                             // be offset by the number of x rects. TODO - write seperate tooltip sections
                             // for x meta rect & y meta rect
                             d3.select(this).classed('row-hover', true);
+                            d3.select(this).classed('no-hover', false);
                         } else {
                             d3.select(this).classed('no-hover', true);
                             d3.select(this).classed('column-hover', false);
                             d3.select(this).classed('row-hover', false);
                         }
+                        d3.select(this).classed('cell-hover', false);
                     })
 
                     // apply proper .row-hover & .column-hover
@@ -546,10 +576,30 @@ nv.models.heatMap = function() {
                 })
                 .on('mouseout', function(d,i) {
 
-                    // remove all hover classes
-                    removeAllHoverClasses();
+                    // allow tooltip to remain even when mouse is over the
+                    // space between the cell;
+                    // this prevents cells from "flashing" when transitioning
+                    // between cells
+                    var bBox = d3.select(this).node().getBBox();
+                    var coordinates = d3.mouse(this);
+                    var x = coordinates[0];
+                    var y = coordinates[1];
 
-                    dispatch.elementMouseout({e: d3.event});
+                    if (
+                        x > bBox.width + cellBorderWidth || 
+                        x < -cellBorderWidth ||
+                        (i + 1 == Object.keys(uniqueX).length &&  x > bBox.width) ||
+                        (i == 0 && x < 0) ||
+                        y > bBox.height + cellBorderWidth ||
+                        y < -cellBorderWidth ||
+                        (i + 1 == Object.keys(uniqueY).length &&  y > bBox.height) ||
+                        (i == 0 && y < 0)
+                    ) {
+                        // remove all hover classes
+                        removeAllHoverClasses();
+
+                        dispatch.elementMouseout({e: d3.event});
+                    }
                 })
                 .on('mousemove', function(d,i) {
                     dispatch.elementMousemove({e: d3.event});

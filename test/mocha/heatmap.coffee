@@ -171,6 +171,7 @@ describe 'NVD3', ->
             {day: 'Su', hour: 24, value: 4, group: 53, category: 2, level: 2},
         ]
 
+
         options =
             x: (d)-> d.hour
             y: (d)-> d.day
@@ -183,7 +184,7 @@ describe 'NVD3', ->
             showCellValues: true
             alignXAxis: 'top'
             alignYAxis: 'left'
-            cellFormat: d3.format(',.0f')
+            cellValueFormat: d3.format(',.0f')
             cellBorderWidth: 4
             xMeta: (d)-> d.category
             yMeta: (d)-> d.group
