@@ -239,10 +239,11 @@ nv.models.scatter = function() {
                 needsUpdate = false;
 
                 if (!interactive) return false;
-
+                container.selectAll(".nv-point.hover").classed("hover", false);
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
 
+                	
                     // nuke all voronoi paths on reload and recreate them
                     wrap.select('.nv-point-paths').selectAll('path').remove();
 
