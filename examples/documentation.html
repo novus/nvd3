@@ -1102,9 +1102,11 @@ as well as used to print out examples using those example inputs.
             default: '["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]',
             examples: [['#d01c8b','#f1b6da','#f7f7f7','#b8e186','#4dac26']]
         },
+        colorDomain: {
+            desc: "Set the color domain for cells; will otherwise be set automatically as either the cell value extend [if the cell values are numeric] or all cell values [if the cell values are categorical]",
+        },
         colorScale: {
-            desc: "Override the default scale type for cell colors.",
-            default: "d3.scale.quantize()"
+            desc: "Override the default scale type for cell colors; will otherwise be set automatically as either d3.scale.quantize() [if cell values are numeric] or d3.scale.ordinal() [if cell values are categorical]",
         },
         highContrastText: {
             desc: "Automatically set the cell label color in such a way to maximize contrast against the background color.",

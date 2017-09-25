@@ -19,12 +19,12 @@ nv.models.heatMap = function() {
         , container
         , xScale = d3.scale.ordinal()
         , yScale = d3.scale.ordinal()
-        , colorScale = d3.scale.quantize() // if not set by user a color brewer quantized scale (RdYlBu 11) is setup
+        , colorScale = false
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , getCellValue = function(d) { return d.value }
         , showCellValues = true
-        , cellValueFormat = d3.format(',.0f')
+        , cellValueFormat = function(d) { return typeof d === 'number' ? d.toFixed(0) : d }
         , cellAspectRatio = false // width / height of cell
         , cellRadius = 2
         , cellBorderWidth = 4 // pixels between cells
@@ -116,10 +116,18 @@ nv.models.heatMap = function() {
         return typeof color !== 'undefined' ? color : missingDataColor;
     }
 
-    // return the extent of the color data
+    // return the domain of the color data
+    // if ordinal data is given for the cells, this will
+    // return all possible cells values; otherwise it
+    // returns the extent of the cell values
     // will take into account normalization if specified
-    function colorExtent() {
-        return normalize ? d3.extent(prepedData, function(d) { return getNorm(d); }) : d3.extent(uniqueColor);
+    function getColorDomain() {
+    
+        if (typeof uniqueColor[0] === 'number') { // if cell values are numeric
+            return normalize ? d3.extent(prepedData, function(d) { return getNorm(d); }) : d3.extent(uniqueColor);
+        } else if (typeof uniqueColor[0] === 'string') { // if cell values are ordinal
+            return uniqueColor;
+        }
     }
 
     /*
@@ -342,7 +350,8 @@ nv.models.heatMap = function() {
                   .rangeBands(xRange || [0, availableWidth-cellBorderWidth/2]);
             yScale.domain(yDomain || Object.keys(uniqueY))
                   .rangeBands(yRange || [0, availableHeight-cellBorderWidth/2]);
-            colorScale.domain(colorDomain || colorExtent())
+            colorScale = typeof uniqueColor[0] === 'number' ? d3.scale.quantize() : d3.scale.ordinal();
+            colorScale.domain(colorDomain || getColorDomain())
                   .range(colorRange || RdYlBu);
 
             // Setup containers and skeleton of chart

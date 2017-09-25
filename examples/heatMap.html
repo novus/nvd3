@@ -56,7 +56,7 @@
         <button onclick="updatePlot({cellBorderWidth: 0, cellRadius: 0});">No border</button>
         <button onclick="highContrast = !highContrast; updatePlot({highContrastText: highContrast});">Toggle high contrast labels</button>
         <button onclick="updatePlot({showYAxis: false, showXAxis: false, showLegend: false, showCellValues: false});">Hide axes/legend/values</button>
-        <button onclick="updatePlot(discreteCell);">Discrete cell values</button>
+        <button onclick="updatePlot({cellValue: function(d) { return d.level }, colorRange: ['#a50026','#d73027','#f46d43','#fdae61','#fee08b','#ffffbf','#d9ef8b','#a6d96a','#66bd63','#1a9850','#006837']});">Discrete cell values</button>
         <br>
         Normalize
         <button onclick="updatePlot({normalize: false});">None</button>
@@ -99,7 +99,7 @@
         showCellValues: true,
         alignXAxis: 'top', // TODO
         alignYAxis: 'left', // TODO
-        cellValueFormat: d3.format(',.0f'),
+        cellValueFormat: function(d) { return typeof d === 'number' ? d.toFixed(0) : d },
         cellBorderWidth: 4,
         cellRadius: 2,
         missingDataColor: '#bcbcbc',
@@ -110,13 +110,6 @@
         margin: {top: 50, right: 50}
 	}
 
-    var discreteCell = {
-        colorScale: d3.scale.ordinal(),
-        colorDomain: ['A','B','C','D','E','F','G','H','I','J','K'],
-        colorRange: ["#8e0152","#c51b7d","#de77ae","#f1b6da","#fde0ef","#f7f7f7","#e6f5d0","#b8e186","#7fbc41","#4d9221","#276419"],
-        cellValueFormat: function(d) { return d},
-        cellValue: function(d) { return d.level },
-    }
 
 	// setup default chart
 	nv.addGraph(function() {
