@@ -85,14 +85,24 @@ nv.models.heatMapChart = function() {
     // of color bin
     function quantizeLegendValues() {
 
-        var e = heatMap.colorScale();
+        var e = heatMap.colorScale(), legendVals;
 
-        return e.range().map(function(color) {
-          var d = e.invertExtent(color);
-          if (d[0] === null) d[0] = e.domain()[0];
-          if (d[1] === null) d[1] = e.domain()[1];
-          return d;
-        })
+        if (typeof e.domain()[0] === 'string') { // if color scale is ordinal
+
+            legendVals = e.domain();
+
+        } else { // if color scale is numeric
+
+            legendVals = e.range().map(function(color) {
+              var d = e.invertExtent(color);
+              if (d[0] === null) d[0] = e.domain()[0];
+              if (d[1] === null) d[1] = e.domain()[1];
+              return d;
+            })
+
+        }
+
+        return legendVals
 
     }
 
@@ -262,7 +272,11 @@ nv.models.heatMapChart = function() {
                 .color(heatMap.colorScale().range())
 
              var legendVal = quantizeLegendValues().map(function(d) {
-                return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
+                if (Array.isArray(d)) { // if cell values are numeric
+                    return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
+                } else { // if cell values are ordinal
+                    return {key: d};
+                }
              })
 
             legendWrap
@@ -273,7 +287,6 @@ nv.models.heatMapChart = function() {
             legendWrap
                 .watchTransition(renderWatch, 'heatMap: nv-legendWrap')
                 .style('opacity', function() { return showLegend ? 1 : 0 } )
-
 
         });
 

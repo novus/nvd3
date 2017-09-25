@@ -42,6 +42,7 @@ nv.models.heatMap = function() {
         , xMeta
         , yMeta
         , colorRange
+        , colorDomain
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , duration = 250
         , xMetaHeight = function(d) { return cellHeight / 3 }
@@ -111,7 +112,8 @@ nv.models.heatMap = function() {
     // depending on whether it should be normalized or not
     function cellColor(d) {
         var colorVal = normalize ? getNorm(d) : getCellValue(d);
-        return !isNaN(colorVal) ? colorScale(colorVal) : missingDataColor;
+        var color = colorScale(colorVal);
+        return typeof color !== 'undefined' ? color : missingDataColor;
     }
 
     // return the extent of the color data
@@ -312,7 +314,7 @@ nv.models.heatMap = function() {
     // a number, otherwise return missingDataLabel
     var cellValueLabel = function(d) {
         var val = !normalize ? cellValueFormat(getCellValue(d)) : cellValueFormat(getNorm(d));
-        return !isNaN(val) ? val : missingDataLabel;
+        return typeof val !== 'undefined' ? val : missingDataLabel;
     }
 
     function chart(selection) {
@@ -340,7 +342,7 @@ nv.models.heatMap = function() {
                   .rangeBands(xRange || [0, availableWidth-cellBorderWidth/2]);
             yScale.domain(yDomain || Object.keys(uniqueY))
                   .rangeBands(yRange || [0, availableHeight-cellBorderWidth/2]);
-            colorScale.domain(colorExtent())
+            colorScale.domain(colorDomain || colorExtent())
                   .range(colorRange || RdYlBu);
 
             // Setup containers and skeleton of chart
@@ -667,6 +669,7 @@ nv.models.heatMap = function() {
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
         colorRange:  {get: function(){return colorRange;}, set: function(_){colorRange=_;}},
+        colorDomain:  {get: function(){return colorDomain;}, set: function(_){colorDomain=_;}},
         xMeta:  {get: function(){return xMeta;}, set: function(_){xMeta=_;}},
         yMeta:  {get: function(){return yMeta;}, set: function(_){yMeta=_;}},
         xMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
