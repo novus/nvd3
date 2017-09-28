@@ -38,11 +38,13 @@
             fill: #000 !important;
         }
 
-
         .no-hover {
             fill-opacity: 0.2;
         }
 
+        .gridLines {
+            stroke: rgb(155,155,155);
+        }
 
 
     </style>
@@ -56,6 +58,7 @@
         <button onclick="updatePlot({cellBorderWidth: 0, cellRadius: 0});">No border</button>
         <button onclick="highContrast = !highContrast; updatePlot({highContrastText: highContrast});">Toggle high contrast labels</button>
         <button onclick="updatePlot({showYAxis: false, showXAxis: false, showLegend: false, showCellValues: false});">Hide axes/legend/values</button>
+        <button onclick="showGrid = !showGrid; updatePlot({showGrid: showGrid});">Toggle grid</button>
         <button onclick="updatePlot({cellValue: function(d) { return d.level }, colorRange: ['#a50026','#d73027','#f46d43','#fdae61','#fee08b','#ffffbf','#d9ef8b','#a6d96a','#66bd63','#1a9850','#006837']});">Discrete cell values</button>
         <br>
         Normalize
@@ -85,6 +88,7 @@
 
 	var chart = nv.models.heatMapChart();
     var highContrast = true;
+    var showGrid = false;
 	var defaultChart = {
         x: function(d) { return d.hour },
         y: function(d) { return d.day },
@@ -96,12 +100,13 @@
         showXAxis: true,
         showYAxis: true,
         showLegend: true,
+        showGrid: showGrid,
         showCellValues: true,
-        alignXAxis: 'top', // TODO
-        alignYAxis: 'left', // TODO
+        alignXAxis: 'top',
+        alignYAxis: 'left',
         cellValueFormat: function(d) { return typeof d === 'number' ? d.toFixed(0) : d },
         cellBorderWidth: 4,
-        cellRadius: 2,
+        cellRadius: 0,
         missingDataColor: '#bcbcbc',
         missingDataLabel: 'NaN',
         xMeta: false,

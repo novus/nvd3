@@ -47,6 +47,7 @@ nv.models.heatMap = function() {
         , duration = 250
         , xMetaHeight = function(d) { return cellHeight / 3 }
         , yMetaWidth = function(d) { return cellWidth / 3 }
+        , showGrid = false
         ;
 
 
@@ -361,6 +362,23 @@ nv.models.heatMap = function() {
             wrap.watchTransition(renderWatch, 'nv-wrap: heatMapWrap')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+            var gridWrap = wrapEnter
+                .append('g')
+                .attr('class','cellGrid')
+                .style('opacity',1e-6)
+
+            var gridLinesV = wrap.select('.cellGrid').selectAll('.gridLines.verticalGrid')
+                .data(Object.values(uniqueX).concat([Object.values(uniqueX).length]))
+                .enter()
+                .append('line')
+                .attr('class','gridLines verticalGrid')
+
+            var gridLinesH = wrap.select('.cellGrid').selectAll('.gridLines.horizontalGrid')
+                .data(Object.values(uniqueY).concat([Object.values(uniqueY).length]))
+                .enter()
+                .append('line')
+                .attr('class','gridLines horizontalGrid')
+
             var cellWrap = wrapEnter
                 .append('g')
                 .attr('class','cellWrap')
@@ -440,6 +458,29 @@ nv.models.heatMap = function() {
 
             cellWrap.exit().remove();
 
+            // transition grid
+            wrap.selectAll('.verticalGrid')
+                .watchTransition(renderWatch, 'heatMap: gridLines') 
+                .attr('y1',0)
+                .attr('y2',availableHeight-cellBorderWidth)
+                .attr('x1',function(d) { return d*cellWidth-cellBorderWidth/2; })
+                .attr('x2',function(d) { return d*cellWidth-cellBorderWidth/2; })
+
+            var numHLines = Object.keys(uniqueY).length;
+            wrap.selectAll('.horizontalGrid')
+                .watchTransition(renderWatch, 'heatMap: gridLines') 
+                .attr('x1',function(d) { return (d == 0 || d == numHLines) ? -cellBorderWidth : 0 })
+                .attr('x2',function(d) { return (d == 0 || d == numHLines) ? availableWidth : availableWidth-cellBorderWidth})
+                .attr('y1',function(d) { return d*cellHeight-cellBorderWidth/2; })
+                .attr('y2',function(d) { return d*cellHeight-cellBorderWidth/2; })
+
+            wrap.select('.cellGrid')
+                .watchTransition(renderWatch, 'heatMap: gridLines')
+                .style({
+                    'stroke-width': cellBorderWidth,
+                    'opacity': function() { return showGrid ? 1 : 1e-6 },
+                })
+
             var xMetaRect = wrap.selectAll('.x-meta')
             var yMetaRect = wrap.selectAll('.y-meta')
             var allMetaRect = wrap.selectAll('.meta')
@@ -475,7 +516,6 @@ nv.models.heatMap = function() {
                     var idx = getIdx(d);
                     var ix = getIX(d);
                     var iy = getIY(d);
-
 
                     // set the proper classes for all cells
                     // hover row gets class .row-hover
@@ -539,20 +579,13 @@ nv.models.heatMap = function() {
                     // this prevents cells from "flashing" when transitioning
                     // between cells
                     var bBox = d3.select(this).select('rect').node().getBBox();
-                    var coordinates = d3.mouse(this);
+                    var coordinates = d3.mouse(d3.select('.nv-heatMap').node());
                     var x = coordinates[0];
                     var y = coordinates[1];
 
-                    if (
-                        x > bBox.width + cellBorderWidth || 
-                        x < -cellBorderWidth ||
-                        (getIX(d) + 1 == Object.keys(uniqueX).length &&  x > bBox.width) ||
-                        (getIX(d) == 0 && x < 0) ||
-                        y > bBox.height + cellBorderWidth ||
-                        y < -cellBorderWidth ||
-                        (getIY(d) + 1 == Object.keys(uniqueY).length &&  y > bBox.height) ||
-                        (getIY(d) == 0 && y < 0)
-                    ) {
+                    // we only trigger mouseout when mouse moves outside of
+                    // .nv-heatMap
+                    if (x + cellBorderWidth >= availableWidth || y + cellBorderWidth >= availableHeight || x < 0 || y < 0) {
                         // remove all hover classes
                         removeAllHoverClasses();
 
@@ -695,6 +728,7 @@ nv.models.heatMap = function() {
         metaOffset:          {get: function(){return metaOffset;}, set: function(_){metaOffset=_;}},
         xMetaHeight:         {get: function(){return xMetaHeight;}, set: function(_){xMetaHeight=_;}},
         yMetaWidth:          {get: function(){return yMetaWidth;}, set: function(_){yMetaWidth=_;}},
+        showGrid:          {get: function(){return showGrid;}, set: function(_){showGrid=_;}},
 
 
         // options that require extra logic in the setter
