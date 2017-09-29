@@ -4,6 +4,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
 <script src="../build/nv.d3.js"></script>
 <script src="../src/models/heatMap.js"></script>
+<script src="../src/models/heatMapChart.js"></script>
 
 <head>
     <style>
@@ -44,7 +45,7 @@
         }
 
         .gridLines {
-            stroke: rgb(155,155,155);
+            stroke: #bcbcbc;
         }
 
 
@@ -109,7 +110,7 @@
         cellBorderWidth: 4,
         cellRadius: 0,
         missingDataColor: '#bcbcbc',
-        missingDataLabel: 'NaN',
+        missingDataLabel: '',
         xMeta: false,
         yMeta: false,
         metaOffset: 5,

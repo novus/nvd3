@@ -271,13 +271,14 @@ nv.models.heatMapChart = function() {
                 .width(availableWidth)
                 .color(heatMap.colorScale().range())
 
-             var legendVal = quantizeLegendValues().map(function(d) {
+            var legendVal = quantizeLegendValues().map(function(d) {
                 if (Array.isArray(d)) { // if cell values are numeric
                     return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
                 } else { // if cell values are ordinal
                     return {key: d};
                 }
-             })
+            })
+            
 
             legendWrap
                 .datum(legendVal)

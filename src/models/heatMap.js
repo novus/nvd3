@@ -35,7 +35,7 @@ nv.models.heatMap = function() {
         , xMetaColorScale = nv.utils.defaultColor()
         , yMetaColorScale = nv.utils.defaultColor()
         , missingDataColor = '#bcbcbc'
-        , missingDataLabel = 'NaN'
+        , missingDataLabel = ''
         , metaOffset = 5 // spacing between meta rects and cells
         , xRange
         , yRange
@@ -113,8 +113,7 @@ nv.models.heatMap = function() {
     // depending on whether it should be normalized or not
     function cellColor(d) {
         var colorVal = normalize ? getNorm(d) : getCellValue(d);
-        var color = colorScale(colorVal);
-        return typeof color !== 'undefined' ? color : missingDataColor;
+        return typeof colorVal !== 'undefined' ? colorScale(colorVal) : missingDataColor;
     }
 
     // return the domain of the color data
@@ -269,7 +268,7 @@ nv.models.heatMap = function() {
 
                 if (typeof yMeta === 'function') uniqueYMeta.push(yMeta(cell));
             }
-            if (!(valColor in uniqueColor)) uniqueColor.push(valColor)
+            if (uniqueColor.indexOf(valColor) == -1) uniqueColor.push(valColor)
 
 
             // TODO - best way to handle the case when input data already has the key 'cellPos'?
@@ -299,9 +298,7 @@ nv.models.heatMap = function() {
 
         });
 
-        //uniqueX = uniqueX.sort()
-        //uniqueY = uniqueY.sort()
-        //uniqueColor = uniqueColor.sort()
+        uniqueColor = uniqueColor.sort()
 
         // check in sortedCells that each x has all the y's
         // if not, generate an empty placeholder
@@ -362,6 +359,10 @@ nv.models.heatMap = function() {
         return Object.keys(obj).sort(function(a,b){return obj[a]-obj[b]})
     }
 
+    // https://stackoverflow.com/a/28191966/1153897
+    function getKeyByValue(object, value) {
+        return Object.keys(object).find(key => object[key] === value);
+    }
 
 
     //============================================================
@@ -409,6 +410,7 @@ nv.models.heatMap = function() {
             colorScale = typeof uniqueColor[0] === 'number' ? d3.scale.quantize() : d3.scale.ordinal();
             colorScale.domain(colorDomain || getColorDomain())
                   .range(colorRange || RdYlBu);
+
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-heatMapWrap').data([prepedData]);
@@ -583,7 +585,6 @@ nv.models.heatMap = function() {
                     var ix = getIX(d);
                     var iy = getIY(d);
 
-                    console.log(d)
 
                     // set the proper classes for all cells
                     // hover row gets class .row-hover
@@ -631,7 +632,7 @@ nv.models.heatMap = function() {
                     });
                     
                     dispatch.elementMouseover({
-                        value: getX(d) + ' & ' + getY(d), 
+                        value: getKeyByValue(uniqueX, ix) + ' & ' + getKeyByValue(uniqueY, iy), 
                         series: {
                                 value: cellValueLabel(d), 
                                 color: d3.select(this).select('rect').style("fill")
