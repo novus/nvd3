@@ -3,8 +3,6 @@
 <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
 <script src="../build/nv.d3.js"></script>
-<script src="../src/models/heatMap.js"></script>
-<script src="../src/models/heatMapChart.js"></script>
 
 <head>
     <style>
@@ -59,7 +57,7 @@
         <button onclick="updatePlot({cellAspectRatio: 1});">Square</button>
         <button onclick="updatePlot({cellBorderWidth: 0, cellRadius: 0});">No border</button>
         <button onclick="highContrast = !highContrast; updatePlot({highContrastText: highContrast});">Toggle high contrast labels</button>
-        <button onclick="updatePlot({showYAxis: false, showXAxis: false, showLegend: false, showCellValues: false});">Hide axes/legend/values</button>
+        <button onclick="showAxes = !showAxes; updatePlot({showYAxis: showAxes, showXAxis: showAxes, showLegend: showAxes, showCellValues: showAxes});">Toggle axes/legend/values</button>
         <button onclick="showGrid = !showGrid; updatePlot({showGrid: showGrid});">Toggle grid</button>
         <button onclick="updatePlot({cellValue: function(d) { return d.level }, colorRange: ['#a50026','#d73027','#f46d43','#fdae61','#fee08b','#ffffbf','#d9ef8b','#a6d96a','#66bd63','#1a9850','#006837']});">Discrete cell values</button>
         <br>
@@ -91,6 +89,7 @@
 	var chart = nv.models.heatMapChart();
     var highContrast = true;
     var showGrid = false;
+    var showAxes = true;
 	var defaultChart = {
         x: function(d) { return d.hour },
         y: function(d) { return d.day },
@@ -214,7 +213,7 @@
         {day: 'We', hour: 5, value: 0, group: 84, category: 1, level: 'E'},
         {day: 'We', hour: 6, value: 2, group: 84, category: 1, level: 'E'},
         {day: 'We', hour: 7, value: 5, group: 84, category: 1, level: 'B'},
-        //{day: 'We', hour: 8, value: 12, group: 84, category: 1, level: 'B'},
+        //{day: 'We', hour: 8, value: 12, group: 84, category: 1, level: 'B'}, // simulate missing data
         {day: 'We', hour: 17, value: 60, group: 84, category: 2, level: 'D'},
         {day: 'We', hour: 18, value: 51, group: 84, category: 2, level: 'A'},
         {day: 'We', hour: 19, value: 21, group: 84, category: 2, level: 'F'},
@@ -258,7 +257,7 @@
         {day: 'Fr', hour: 14, value: 54, group: 53, category: 2, level: 'E'},
         {day: 'Fr', hour: 1, value: 2, group: 53, category: 1, level: 'C'},
         {day: 'Fr', hour: 2, value: 0, group: 53, category: 1, level: 'K'},
-        //{day: 'Fr', hour: 3, value: 8, group: 53, category: 1, level: 'G'},
+        //{day: 'Fr', hour: 3, value: 8, group: 53, category: 1, level: 'G'},  // simulate missing data
         {day: 'Fr', hour: 4, value: 2, group: 53, category: 1, level: 'K'},
         {day: 'Fr', hour: 5, value: 0, group: 53, category: 1, level: 'F'},
         {day: 'Fr', hour: 15, value: 56, group: 53, category: 2, level: 'D'},
