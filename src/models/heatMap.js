@@ -213,6 +213,16 @@ nv.models.heatMap = function() {
      * - adding a unique key indexer to each data point (idx)
      * - getting a unique list of all x & y values
      * - generating a position index (x & y) for each data point
+     * - sorting that data for correct traversal when generating rect
+     * - generating placeholders for missing data
+     *
+     * In order to allow for the flexibility of the user providing either
+     * categorical or quantitative data, we're going to position the cells
+     * through indices that we increment based on previously seen data
+     * this way we can use ordinal() axes even if the data is quantitative.
+     *
+     * When we generate the SVG elements, we assumes traversal occures from
+     * top to bottom and from left to right.
      *
      * @param data {list} - input data organize as a list of objects
      *
@@ -225,15 +235,18 @@ nv.models.heatMap = function() {
     function prepData(data) {
 
         // reinitialize
-        uniqueX = {}, uniqueY = {}, uniqueColor = [], uniqueXMeta = [], uniqueYMeta = [], uniqueCells = [];
+        uniqueX = {}, // {cell x value: ix index}
+        uniqueY = {}, // {cell y value: iy index}
+        uniqueColor = [], // [cell color value]
+        uniqueXMeta = [], // [cell x metadata value]
+        uniqueYMeta = [], // [cell y metadata value]
+        uniqueCells = []; // [cell x,y values stored as array]
+        var sortedCells = {}; // {cell x values: {cell y value: cell data, ... }, ... }
 
-        // in order to allow for the flexibility of the user providing either
-        // categorical or quantitative data, we're going to position the cells
-        // through indices that we increment based on previously seen data
-        // this way we can use ordinal() axes even if the data is quantitative
+
         var ix = 0, iy = 0; // use these indices to position cell in x & y direction
-        var combo
-        var reformatData = data.filter(function(cell, i) {
+        var combo, idx=0;
+        data.forEach(function(cell) {
             var valX = getX(cell),
                 valY = getY(cell),
                 valColor = getCellValue(cell);            
@@ -243,7 +256,8 @@ nv.models.heatMap = function() {
                 uniqueX[valX] = ix; 
                 ix++;
 
-                 // store and ordered list of col/row metadata values
+                sortedCells[valX] = {}
+
                 if (typeof xMeta === 'function') uniqueXMeta.push(xMeta(cell));
             }
 
@@ -251,22 +265,25 @@ nv.models.heatMap = function() {
                 uniqueY[valY] = iy; 
                 iy++;
 
-                 // store and ordered list of col/row metadata values
+                sortedCells[valX][valY] = {}
+
                 if (typeof yMeta === 'function') uniqueYMeta.push(yMeta(cell));
             }
             if (!(valColor in uniqueColor)) uniqueColor.push(valColor)
 
 
             // TODO - best way to handle the case when input data already has the key 'cellPos'?
-            if ('celPos' in cell) return false;
+            if ('cellPos' in cell) return false;
 
             // for each data point, we generate an object of data
             // needed to properly position each cell
             cell.cellPos = {
-                idx: i,
+                idx: idx,
                 ix: uniqueX[valX],
                 iy: uniqueY[valY],
             }
+            idx++;
+
 
             // keep track of row & column combinations we've already seen
             // this prevents the same cells from being generated when
@@ -274,12 +291,10 @@ nv.models.heatMap = function() {
             // row & column).
             // if properly formatted data is not provided, only the first
             // row & column value is used (the rest are ignored)
-            combo = String(valX) + '__' + String(valY);
-            if (uniqueCells.indexOf(combo) == -1) {
+            combo = [valX, valY];
+            if (!isArrayInArray(uniqueCells, combo)) {
                 uniqueCells.push(combo)
-                return true
-            } else {
-                return false; // since we're using .filter() return false so we exclude this row & col combination
+                sortedCells[valX][valY] = cell;
             }
 
         });
@@ -288,9 +303,42 @@ nv.models.heatMap = function() {
         //uniqueY = uniqueY.sort()
         //uniqueColor = uniqueColor.sort()
 
+        // check in sortedCells that each x has all the y's
+        // if not, generate an empty placeholder
+        // this will also sort all cells from left to right
+        // and top to bottom
+        var reformatData = [];
+        Object.keys(uniqueY).forEach(function(j) {
+            Object.keys(uniqueX).forEach(function(i) {
+                var cellVal = sortedCells[i][j];
+    
+                if (cellVal) {
+                    reformatData.push(cellVal);
+                } else {
+                    var cellPos = {
+                        idx: idx,
+                        ix: uniqueX[i],
+                        iy: uniqueY[j],
+                    }
+                    idx++;
+                    reformatData.push({cellPos: cellPos}); // empty cell placeholder
+                }
+            })
+        })
+
         // normalize data is needed
         return normalize ? normalizeData(reformatData) : reformatData;
 
+    }
+
+    // https://stackoverflow.com/a/41661388/1153897
+    function isArrayInArray(arr, item){
+      var item_as_string = JSON.stringify(item);
+
+      var contains = arr.some(function(ele){
+        return JSON.stringify(ele) === item_as_string;
+      });
+      return contains;
     }
 
     function removeAllHoverClasses() {
@@ -301,6 +349,19 @@ nv.models.heatMap = function() {
         d3.selectAll('.column-hover').classed('column-hover', false);
     }
 
+    // return the formatted cell value if it is
+    // a number, otherwise return missingDataLabel
+    var cellValueLabel = function(d) {
+        var val = !normalize ? cellValueFormat(getCellValue(d)) : cellValueFormat(getNorm(d));
+        return typeof val !== 'undefined' ? val : missingDataLabel;
+    }
+
+    // https://stackoverflow.com/a/16794116/1153897
+    // note this returns the obj keys
+    function sortObjByVals(obj) {
+        return Object.keys(obj).sort(function(a,b){return obj[a]-obj[b]})
+    }
+
 
 
     //============================================================
@@ -308,7 +369,7 @@ nv.models.heatMap = function() {
     //------------------------------------------------------------
 
     var prepedData, cellHeight, cellWidth;
-    var uniqueX = {}, uniqueY = {}, uniqueColor = []; // we'll store all unique values for each dimension here in format {X-val: iX}
+    var uniqueX = {}, uniqueY = {}, uniqueColor = [];
     var uniqueXMeta = [], uniqueYMeta = [], uniqueCells = []
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var RdYlBu = ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"];
@@ -319,12 +380,6 @@ nv.models.heatMap = function() {
     var getNorm = function(d) { return getCellPos(d).norm; }
     var getIdx = function(d) { return getCellPos(d).idx; }
 
-    // return the formatted cell value if it is
-    // a number, otherwise return missingDataLabel
-    var cellValueLabel = function(d) {
-        var val = !normalize ? cellValueFormat(getCellValue(d)) : cellValueFormat(getNorm(d));
-        return typeof val !== 'undefined' ? val : missingDataLabel;
-    }
 
     function chart(selection) {
         renderWatch.reset();
@@ -345,11 +400,11 @@ nv.models.heatMap = function() {
 
             container = d3.select(this);
             nv.utils.initSVG(container);
-
+  
             // Setup Scales
-            xScale.domain(xDomain || Object.keys(uniqueX))
+            xScale.domain(xDomain || sortObjByVals(uniqueX))
                   .rangeBands(xRange || [0, availableWidth-cellBorderWidth/2]);
-            yScale.domain(yDomain || Object.keys(uniqueY))
+            yScale.domain(yDomain || sortObjByVals(uniqueY))
                   .rangeBands(yRange || [0, availableHeight-cellBorderWidth/2]);
             colorScale = typeof uniqueColor[0] === 'number' ? d3.scale.quantize() : d3.scale.ordinal();
             colorScale.domain(colorDomain || getColorDomain())
@@ -369,15 +424,23 @@ nv.models.heatMap = function() {
 
             var gridLinesV = wrap.select('.cellGrid').selectAll('.gridLines.verticalGrid')
                 .data(Object.values(uniqueX).concat([Object.values(uniqueX).length]))
-                .enter()
+                
+            gridLinesV.enter()
                 .append('line')
                 .attr('class','gridLines verticalGrid')
 
+            gridLinesV.exit()
+                .remove()
+
             var gridLinesH = wrap.select('.cellGrid').selectAll('.gridLines.horizontalGrid')
                 .data(Object.values(uniqueY).concat([Object.values(uniqueY).length]))
-                .enter()
+                
+            gridLinesH.enter()
                 .append('line')
                 .attr('class','gridLines horizontalGrid')
+
+            gridLinesH.exit()
+                .remove()
 
             var cellWrap = wrapEnter
                 .append('g')
@@ -418,6 +481,9 @@ nv.models.heatMap = function() {
                 .attr("height", cellHeight-cellBorderWidth)
                 .attr("transform", function(d,i) { return "translate(0,0)" })
                 .attr("fill", function(d,i) { return yMetaColorScale(d); })
+
+            xMetas.exit().remove()
+            yMetas.exit().remove()
           
             // CELLS    
             var cellsEnter = cellWrap
@@ -445,7 +511,7 @@ nv.models.heatMap = function() {
                 .attr("height", cellHeight-cellBorderWidth)
                 .attr('rx', cellRadius)
                 .attr('ry', cellRadius)
-                .style('stroke', function(d,i) { return cellColor(d) })
+                .style('stroke', function(d) { return cellColor(d) })
 
             // transition cell (g) position, opacity and fill
             cells
@@ -516,6 +582,8 @@ nv.models.heatMap = function() {
                     var idx = getIdx(d);
                     var ix = getIX(d);
                     var iy = getIY(d);
+
+                    console.log(d)
 
                     // set the proper classes for all cells
                     // hover row gets class .row-hover
@@ -593,6 +661,7 @@ nv.models.heatMap = function() {
                     }
                 })
                 .on('mousemove', function(d,i) {
+
                     dispatch.elementMousemove({e: d3.event});
                 })
 
@@ -672,7 +741,7 @@ nv.models.heatMap = function() {
             // transition text position and fill
             cells.selectAll('text')
                 .watchTransition(renderWatch, 'heatMap: cells text')
-                .text(function(d,i) { return cellValueLabel(d) })
+                .text(function(d) { return cellValueLabel(d); })
                 .attr("x", function(d) { return (cellWidth-cellBorderWidth) / 2; })
                 .attr("y", function(d) { return (cellHeight-cellBorderWidth) / 2; })
                 .style("fill", function(d) { return cellTextColor(cellColor(d)) })
