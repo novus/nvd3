@@ -5,6 +5,7 @@
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
     <script src="../build/nv.d3.js"></script>
+    <script src="../src/models/scatterChart.js"></script>
 
     <style>
         text {
@@ -40,14 +41,15 @@
     });
 
     // create the chart
-    var chart;
+    chart = null;
     nv.addGraph(function() {
         chart = nv.models.scatterChart()
-            .showDistX(true)
+            .showDistX(false)
             .showDistY(true)
             .useVoronoi(true)
             .color(d3.scale.category10().range())
             .duration(300)
+			//.showLabels(true)
         ;
         chart.dispatch.on('renderEnd', function(){
             console.log('render complete');
