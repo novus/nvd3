@@ -2,11 +2,11 @@ nv.models.distroPlot = function() {
     "use strict";
 
     // IMPROVEMENTS:
-    // cleanup tooltip to look like candlestick example (don't need color square for everything)
-    // extend y scale range to min/max data better visually
-    // tips of violins need to be cut off if very long
-    // transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
-    // when providing colorGroup, should color boxes by either parent or child group category (e.g. isolator)
+    // - cleanup tooltip to look like candlestick example (don't need color square for everything)
+    // - extend y scale range to min/max data better visually
+    // - tips of violins need to be cut off if very long
+    // - transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
+    // - when providing colorGroup, should color boxes by either parent or child group category (e.g. isolator)
 
     //============================================================
     // Public Variables with Default Settings
@@ -481,7 +481,7 @@ nv.models.distroPlot = function() {
 
             // ----- add the SVG elements for each plot type -----
 
-            // showOnlyOutliers
+            // scatter plot type
             if (!plotType) {
                 showOnlyOutliers = false; // force all observations to be seen
                 if (!observationType) observationType = 'random'
@@ -494,12 +494,13 @@ nv.models.distroPlot = function() {
                     var key = (f === getWl) ? 'low' : 'high';
                     box.append('line')
                       .style('opacity', function() { return !hideWhiskers ? '0' : '1' })
-                      .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
+                      .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key)
                     box.append('line')
                       .style('opacity', function() { return hideWhiskers ? '0' : '1' })
-                      .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
+                      .attr('class', 'nv-distroplot-tick nv-distroplot-' + key)
                 });
             });
+
 
             // update whisker lines and ticks
             [getWl, getWh].forEach(function (f) {
@@ -508,17 +509,17 @@ nv.models.distroPlot = function() {
                 distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
                   .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
                     .attr('x1', areaCenter())
-                    .attr('y1', function(d) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('y1', function(d) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
                     .attr('x2', areaCenter())
                     .attr('y2', function(d) { return plotType=='box' ? yScale(endpoint(d)) : yScale(getQ2(d)); })
                     .style('opacity', function() { return hideWhiskers ? '0' : '1' })
                 distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
                   .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
-                    .attr('x1', function(d) { return plotType=='box' ? tickLeft() : areaCenter()} )
-                    .attr('y1', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
-                    .attr('x2', function(d) { return plotType=='box' ? tickRight() : areaCenter()} )
-                    .attr('y2', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
-                    .style('opacity', function() { return (hideWhiskers || plotType!=='box') ? '0' : '1' })
+                    .attr('x1', function(d) { return plotType!='violin' ? tickLeft() : areaCenter()} )
+                    .attr('y1', function(d,i) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('x2', function(d) { return plotType!='violin' ? tickRight() : areaCenter()} )
+                    .attr('y2', function(d,i) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .style('opacity', function() { return hideWhiskers ? '0' : '1' })
             });
 
             [getWl, getWh].forEach(function (f) {
@@ -675,9 +676,9 @@ nv.models.distroPlot = function() {
 
             distroplots.selectAll('line.nv-distroplot-middle')
                 .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
-                .attr('x1', notchBox ? tickLeft : plotType == 'box' ? areaLeft : tickLeft())
+                .attr('x1', notchBox ? tickLeft : plotType != 'violin' ? areaLeft : tickLeft())
                 .attr('y1', function(d,i,j) { return centralTendency == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                .attr('x2', notchBox ? tickRight : plotType == 'box' ? areaRight : tickRight())
+                .attr('x2', notchBox ? tickRight : plotType != 'violin' ? areaRight : tickRight())
                 .attr('y2', function(d,i) { return centralTendency == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
                 .style('opacity', centralTendency ? '1' : '0');
 

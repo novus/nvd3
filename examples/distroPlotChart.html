@@ -89,10 +89,10 @@
         <button onclick="updatePlot({observationType: false});">Hidden</button>
         <br>
         Whisker definitions
-        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'iqr', hideWhiskers: false});">Tukey</button>
-        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'stddev', hideWhiskers: false});">1 * std. dev.</button>
-        <button onclick="updatePlot({plotType: 'box', whiskerDef: 'minmax', hideWhiskers: false});">min/max</button>
-        <button onclick="updatePlot({plotType: 'box', hideWhiskers: true});">Hidden</button>
+        <button onclick="updatePlot({whiskerDef: 'iqr', hideWhiskers: false});">Tukey</button>
+        <button onclick="updatePlot({whiskerDef: 'stddev', hideWhiskers: false});">1 * std. dev.</button>
+        <button onclick="updatePlot({whiskerDef: 'minmax', hideWhiskers: false});">min/max</button>
+        <button onclick="updatePlot({hideWhiskers: true});">Hidden</button>
          | Grouping
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: false});">No squash</button>
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: true});">Squashed</button>
