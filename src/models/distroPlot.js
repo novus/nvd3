@@ -481,7 +481,11 @@ nv.models.distroPlot = function() {
 
             // ----- add the SVG elements for each plot type -----
 
-            if (!observationType && !plotType) observationType = 'random'; // activate scatter plots if not already on
+            // showOnlyOutliers
+            if (!plotType) {
+                showOnlyOutliers = false; // force all observations to be seen
+                if (!observationType) observationType = 'random'
+            }
 
             // conditionally append whisker lines
             areaEnter.each(function(d,i) {
@@ -585,7 +589,8 @@ nv.models.distroPlot = function() {
                                     .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
                                     .interpolate(interp)
                             )
-                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')) // rotate violin
+                            .style('opacity', !plotType ? '0' : '1');
 
                         // area
                         distroplots.selectAll('.nv-distribution-area.nv-distribution-' + side)
@@ -596,9 +601,18 @@ nv.models.distroPlot = function() {
                                     .y0(areaWidth()/2)
                                     .interpolate(interp)
                             )
-                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')); // rotate violin
+                            .attr("transform", "rotate(90,0,0)   translate(0," + (side == 'left' ? -areaWidth() : 0) + ")" + (side == 'left' ? '' : ' scale(1,-1)')) // rotate violin
+                            .style('opacity', !plotType ? '0' : '1');
 
                     })
+                } else { // scatter type, hide areas
+                    distroplots.selectAll('.nv-distribution-area')
+                        .watchTransition(renderWatch, 'nv-distribution-area: distroplots')
+                        .style('opacity', !plotType ? '0' : '1');
+
+                    distroplots.selectAll('.nv-distribution-line')
+                        .watchTransition(renderWatch, 'nv-distribution-line: distroplots')
+                        .style('opacity', !plotType ? '0' : '1');
                 }
 
             })
