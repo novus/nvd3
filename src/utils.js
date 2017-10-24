@@ -758,3 +758,23 @@ nv.utils.pointIsInArc = function(pt, ptData, d3Arc) {
       (theta1 <= angle) && (angle <= theta2);
 };
 
+/*
+  Override rangeBand with graph width option
+*/
+nv.utils.rangeWidth = function(scale) {
+    
+    if(this.overrideBarWidth()) {
+        return this.overrideBarWidth();
+    }
+    
+    return scale.rangeBand();
+}
+
+nv.utils.rangeLeft = function(scale, xArg, i) {
+
+    if(this.overrideBarWidth()) {
+        return this.overrideBarWidth() * i;
+    }
+    
+    return xArg;
+}

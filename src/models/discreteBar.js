@@ -26,6 +26,7 @@ nv.models.discreteBar = function() {
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , rectClass = 'discreteBar'
         , duration = 250
+        , overrideBarWidth = null    
         ;
 
     //============================================================
@@ -35,6 +36,14 @@ nv.models.discreteBar = function() {
     var x0, y0;
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
+
+    //============================================================
+    // Private methods
+    //------------------------------------------------------------
+
+    var rangeWidth = nv.utils.rangeWidth.bind(chart);
+    var rangeLeft = nv.utils.rangeLeft.bind(chart);
+    
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
@@ -50,7 +59,7 @@ nv.models.discreteBar = function() {
                     point.series = i;
                 });
             });
-
+            
             // Setup Scales
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
@@ -106,7 +115,7 @@ nv.models.discreteBar = function() {
 
             var barsEnter = bars.enter().append('g')
                 .attr('transform', function(d,i,j) {
-                    return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05 ) + ', ' + y(0) + ')'
+                    return 'translate(' + (x(getX(d,i)) + rangeWidth(x) * .05 ) + ', ' + y(0) + ')'
                 })
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
@@ -150,10 +159,10 @@ nv.models.discreteBar = function() {
                     });
                     d3.event.stopPropagation();
                 });
-
+            
             barsEnter.append('rect')
                 .attr('height', 0)
-                .attr('width', x.rangeBand() * .9 / data.length )
+                .attr('width', rangeWidth(x) * .9 / data.length )
 
             if (showValues) {
                 barsEnter.append('text')
@@ -163,14 +172,14 @@ nv.models.discreteBar = function() {
                 bars.select('text')
                     .text(function(d,i) { return valueFormat(getY(d,i)) })
                     .watchTransition(renderWatch, 'discreteBar: bars text')
-                    .attr('x', x.rangeBand() * .9 / 2)
+                    .attr('x', rangeWidth(x) * .9 / 2)
                     .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
 
                 ;
             } else {
                 bars.selectAll('text').remove();
             }
-
+            
             bars
                 .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
                 .style('fill', function(d,i) { return d.color || color(d,i) })
@@ -178,11 +187,12 @@ nv.models.discreteBar = function() {
                 .select('rect')
                 .attr('class', rectClass)
                 .watchTransition(renderWatch, 'discreteBar: bars rect')
-                .attr('width', x.rangeBand() * .9 / data.length);
+                .attr('width', rangeWidth(x) * .9 / data.length);
             bars.watchTransition(renderWatch, 'discreteBar: bars')
                 //.delay(function(d,i) { return i * 1200 / data[0].values.length })
                 .attr('transform', function(d,i) {
-                    var left = x(getX(d,i)) + x.rangeBand() * .05,
+                    
+                    var left = rangeLeft(x, x(getX(d,i)), i) + rangeWidth(x) * .05,
                         top = getY(d,i) < 0 ?
                             y(0) :
                                 y(0) - y(getY(d,i)) < 1 ?
@@ -231,7 +241,8 @@ nv.models.discreteBar = function() {
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
-
+        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){overrideBarWidth=_;}},
+        
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;
@@ -249,6 +260,6 @@ nv.models.discreteBar = function() {
     });
 
     nv.utils.initOptions(chart);
-
+    
     return chart;
 };
