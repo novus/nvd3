@@ -198,7 +198,6 @@ nv.models.distroPlot = function() {
              *  - sttdev: one standard deviation above and below the mean of the data
              * Note that the central tendency type (median or mean) does not impact the whisker location
              */
-            console.log(d3.max(v), v.filter(function(d) {return d < upper}))
             var wl = {iqr: d3.max([d3.min(v),  d3.min(v.filter(function(d) {return d > lower}))]), minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
             var wu = {iqr: d3.min([d3.max(v), d3.max(v.filter(function(d) {return d < upper}))]), minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
             var median = d3.median(v);
