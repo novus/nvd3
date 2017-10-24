@@ -243,7 +243,7 @@ nv.models.scatter = function() {
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
 
-                	
+
                     // nuke all voronoi paths on reload and recreate them
                     wrap.select('.nv-point-paths').selectAll('path').remove();
 
@@ -298,6 +298,10 @@ nv.models.scatter = function() {
                     }
 
                     var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
+                        if (d.length === 0) {
+                            return null;
+                        }
+
                         return {
                             'data': bounds.clip(d),
                             'series': vertices[i][2],
