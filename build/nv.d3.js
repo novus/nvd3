@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2017-10-14 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2017-10-24 */
 (function(){
 
 // set up main nv object
@@ -1539,27 +1539,54 @@ nv.utils.noData = function(chart, container) {
  Wrap long labels.
  */
 nv.utils.wrapTicks = function (text, width) {
+    
     text.each(function() {
         var text = d3.select(this),
             words = text.text().split(/\s+/).reverse(),
             word,
-            line = [],
-            lineNumber = 0,
-            lineHeight = 1.1,
-            y = text.attr("y"),
-            dy = parseFloat(text.attr("dy")),
-            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+            lines = [],
+            line = [];
+                    
         while (word = words.pop()) {
             line.push(word);
-            tspan.text(line.join(" "));
-            if (tspan.node().getComputedTextLength() > width) {
+            text.text(line.join(" "));
+            
+            if (text.node().getComputedTextLength() > width) {
                 line.pop();
-                tspan.text(line.join(" "));
+                lines.push(line.join(" "));
                 line = [word];
-                tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
             }
         }
+
+        lines.push(line.join(" "));
+        
+        nv.utils.wrapTicksLines.call(this, lines)
     });
+};
+
+nv.utils.wrapTicksNewLines = function (text) {
+    text.each(function() {
+        var text = d3.select(this),
+            lines = text.text().split("\n");
+
+        nv.utils.wrapTicksLines.call(this, lines)
+    });
+}
+
+nv.utils.wrapTicksLines = function (lines) {
+    
+    var text = d3.select(this),
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        lineHeight = 1.1,        
+        line;
+
+    text.text(null);
+    
+    for(var i=0; i < lines.length; ++i) {
+        line = lines[i];
+        text.append("tspan").attr("x", 0).attr("y", y).attr("dy", i * lineHeight + dy + "em").text(line);
+    }
 };
 
 /*
@@ -4412,6 +4439,9 @@ nv.models.discreteBarChart = function() {
                 if (wrapLabels) {
                     g.selectAll('.tick text')
                         .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
+                } else {
+                    g.selectAll('.tick text')
+                        .call(nv.utils.wrapTicksNewLines)                    
                 }
             }
 
@@ -9881,6 +9911,9 @@ nv.models.multiBarChart = function() {
                 if (wrapLabels) {
                     g.selectAll('.tick text')
                         .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
+                } else {
+                    g.selectAll('.tick text')
+                        .call(nv.utils.wrapTicksNewLines)                                        
                 }
 
                 if (reduceXTicks)
