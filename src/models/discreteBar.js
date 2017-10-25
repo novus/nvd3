@@ -241,7 +241,6 @@ nv.models.discreteBar = function() {
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
-        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){overrideBarWidth=_;}},
         
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -256,6 +255,14 @@ nv.models.discreteBar = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+        }},
+        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){
+            if(!_) overrideBarWidth = null;
+            else             
+                overrideBarWidth = {
+                    width: _ && _.width       !== undefined ? _.width : _,
+                    padding: _ && _.padding   !== undefined ? _.padding : 0
+                }            
         }}
     });
 

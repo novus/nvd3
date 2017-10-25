@@ -166,6 +166,7 @@ nv.models.discreteBarChart = function() {
 
                 g.select('.nv-x.nv-axis')
                     .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
+                 
                 g.select('.nv-x.nv-axis').call(xAxis);
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
@@ -188,6 +189,18 @@ nv.models.discreteBarChart = function() {
                 } else {
                     g.selectAll('.tick text')
                         .call(nv.utils.wrapTicksNewLines)                    
+                }
+
+                if(overrideBarWidth) {
+
+                    // adjust ticks position
+
+                    g.selectAll('.nv-x .nv-wrap g.tick').attr('transform', function(d,i,j) {
+
+                        var translateX = overrideBarWidth.width*i + overrideBarWidth.padding*(i+1) + (overrideBarWidth.width/2);
+                        
+                        return 'translate('+translateX+',0)';
+                    });
                 }
             }
 
@@ -258,7 +271,7 @@ nv.models.discreteBarChart = function() {
         showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
         showYAxis: {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
         noData:    {get: function(){return noData;}, set: function(_){noData=_;}},
-        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){overrideBarWidth=_;}},
+
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
             if (_.top !== undefined) {
@@ -279,12 +292,18 @@ nv.models.discreteBarChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             discretebar.color(color);
-	    legend.color(color);
+	        legend.color(color);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( (_) ? 'right' : 'left');
-        }}
+        }},
+        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){
+            overrideBarWidth = {
+                width: _.width      !== undefined ? _.width : _,
+                padding: _.padding  !== undefined ? _.padding : 0
+            }            
+        }}        
     });
 
     nv.utils.inheritOptions(chart, discretebar);

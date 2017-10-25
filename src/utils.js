@@ -764,7 +764,7 @@ nv.utils.pointIsInArc = function(pt, ptData, d3Arc) {
 nv.utils.rangeWidth = function(scale) {
     
     if(this.overrideBarWidth()) {
-        return this.overrideBarWidth();
+        return this.overrideBarWidth().width;
     }
     
     return scale.rangeBand();
@@ -773,7 +773,7 @@ nv.utils.rangeWidth = function(scale) {
 nv.utils.rangeLeft = function(scale, xArg, i) {
 
     if(this.overrideBarWidth()) {
-        return this.overrideBarWidth() * i;
+        return (this.overrideBarWidth().width * i) + this.overrideBarWidth().padding*(i+1);
     }
     
     return xArg;
