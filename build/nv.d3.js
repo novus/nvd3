@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2017-10-24 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2017-10-25 */
 (function(){
 
 // set up main nv object
@@ -1638,6 +1638,26 @@ nv.utils.pointIsInArc = function(pt, ptData, d3Arc) {
       (theta1 <= angle) && (angle <= theta2);
 };
 
+/*
+  Override rangeBand with graph width option
+*/
+nv.utils.rangeWidth = function(scale) {
+    
+    if(this.overrideBarWidth()) {
+        return this.overrideBarWidth().width;
+    }
+    
+    return scale.rangeBand();
+}
+
+nv.utils.rangeLeft = function(scale, xArg, i) {
+
+    if(this.overrideBarWidth()) {
+        return (this.overrideBarWidth().width * i) + this.overrideBarWidth().padding*(i+1);
+    }
+    
+    return xArg;
+}
 nv.models.axis = function() {
     "use strict";
 
@@ -4034,6 +4054,7 @@ nv.models.discreteBar = function() {
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         , rectClass = 'discreteBar'
         , duration = 250
+        , overrideBarWidth = null    
         ;
 
     //============================================================
@@ -4043,6 +4064,14 @@ nv.models.discreteBar = function() {
     var x0, y0;
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
+
+    //============================================================
+    // Private methods
+    //------------------------------------------------------------
+
+    var rangeWidth = nv.utils.rangeWidth.bind(chart);
+    var rangeLeft = nv.utils.rangeLeft.bind(chart);
+    
     function chart(selection) {
         renderWatch.reset();
         selection.each(function(data) {
@@ -4058,7 +4087,7 @@ nv.models.discreteBar = function() {
                     point.series = i;
                 });
             });
-
+            
             // Setup Scales
             // remap and flatten the data for use in calculating the scales' domains
             var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
@@ -4114,7 +4143,7 @@ nv.models.discreteBar = function() {
 
             var barsEnter = bars.enter().append('g')
                 .attr('transform', function(d,i,j) {
-                    return 'translate(' + (x(getX(d,i)) + x.rangeBand() * .05 ) + ', ' + y(0) + ')'
+                    return 'translate(' + (x(getX(d,i)) + rangeWidth(x) * .05 ) + ', ' + y(0) + ')'
                 })
                 .on('mouseover', function(d,i) { //TODO: figure out why j works above, but not here
                     d3.select(this).classed('hover', true);
@@ -4158,10 +4187,10 @@ nv.models.discreteBar = function() {
                     });
                     d3.event.stopPropagation();
                 });
-
+            
             barsEnter.append('rect')
                 .attr('height', 0)
-                .attr('width', x.rangeBand() * .9 / data.length )
+                .attr('width', rangeWidth(x) * .9 / data.length )
 
             if (showValues) {
                 barsEnter.append('text')
@@ -4171,14 +4200,14 @@ nv.models.discreteBar = function() {
                 bars.select('text')
                     .text(function(d,i) { return valueFormat(getY(d,i)) })
                     .watchTransition(renderWatch, 'discreteBar: bars text')
-                    .attr('x', x.rangeBand() * .9 / 2)
+                    .attr('x', rangeWidth(x) * .9 / 2)
                     .attr('y', function(d,i) { return getY(d,i) < 0 ? y(getY(d,i)) - y(0) + 12 : -4 })
 
                 ;
             } else {
                 bars.selectAll('text').remove();
             }
-
+            
             bars
                 .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
                 .style('fill', function(d,i) { return d.color || color(d,i) })
@@ -4186,11 +4215,12 @@ nv.models.discreteBar = function() {
                 .select('rect')
                 .attr('class', rectClass)
                 .watchTransition(renderWatch, 'discreteBar: bars rect')
-                .attr('width', x.rangeBand() * .9 / data.length);
+                .attr('width', rangeWidth(x) * .9 / data.length);
             bars.watchTransition(renderWatch, 'discreteBar: bars')
                 //.delay(function(d,i) { return i * 1200 / data[0].values.length })
                 .attr('transform', function(d,i) {
-                    var left = x(getX(d,i)) + x.rangeBand() * .05,
+                    
+                    var left = rangeLeft(x, x(getX(d,i)), i) + rangeWidth(x) * .05,
                         top = getY(d,i) < 0 ?
                             y(0) :
                                 y(0) - y(getY(d,i)) < 1 ?
@@ -4239,7 +4269,7 @@ nv.models.discreteBar = function() {
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         id:          {get: function(){return id;}, set: function(_){id=_;}},
         rectClass: {get: function(){return rectClass;}, set: function(_){rectClass=_;}},
-
+        
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;
@@ -4253,11 +4283,19 @@ nv.models.discreteBar = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+        }},
+        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){
+            if(!_) overrideBarWidth = null;
+            else             
+                overrideBarWidth = {
+                    width: _ && _.width       !== undefined ? _.width : _,
+                    padding: _ && _.padding   !== undefined ? _.padding : 0
+                }            
         }}
     });
 
     nv.utils.initOptions(chart);
-
+    
     return chart;
 };
 
@@ -4280,7 +4318,7 @@ nv.models.discreteBarChart = function() {
         , width = null
         , height = null
         , color = nv.utils.getColor()
-	, showLegend = false
+	    , showLegend = false
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -4292,6 +4330,7 @@ nv.models.discreteBarChart = function() {
         , noData = null
         , dispatch = d3.dispatch('beforeUpdate','renderEnd')
         , duration = 250
+        , overrideBarWidth = null
         ;
 
     xAxis
@@ -4320,6 +4359,12 @@ nv.models.discreteBarChart = function() {
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
+    //============================================================
+    // Private methods
+    //------------------------------------------------------------
+
+    var rangeWidth = nv.utils.rangeWidth.bind(chart);
+    
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(discretebar);
@@ -4394,7 +4439,8 @@ nv.models.discreteBarChart = function() {
             // Main Chart Component(s)
             discretebar
                 .width(availableWidth)
-                .height(availableHeight);
+                .height(availableHeight)
+                .overrideBarWidth(overrideBarWidth);
 
             var barsWrap = g.select('.nv-barsWrap')
                 .datum(data.filter(function(d) { return !d.disabled }));
@@ -4407,9 +4453,9 @@ nv.models.discreteBarChart = function() {
                 .append('rect');
 
             g.select('#nv-x-label-clip-' + discretebar.id() + ' rect')
-                .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
+                .attr('width', rangeWidth(x) * (staggerLabels ? 2 : 1))
                 .attr('height', 16)
-                .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
+                .attr('x', -rangeWidth(x) / (staggerLabels ? 1 : 2 ));
 
             // Setup Axes
             if (showXAxis) {
@@ -4420,6 +4466,7 @@ nv.models.discreteBarChart = function() {
 
                 g.select('.nv-x.nv-axis')
                     .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
+                 
                 g.select('.nv-x.nv-axis').call(xAxis);
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
@@ -4438,10 +4485,22 @@ nv.models.discreteBarChart = function() {
 
                 if (wrapLabels) {
                     g.selectAll('.tick text')
-                        .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
+                        .call(nv.utils.wrapTicks, rangeWidth(chart.xAxis))
                 } else {
                     g.selectAll('.tick text')
                         .call(nv.utils.wrapTicksNewLines)                    
+                }
+
+                if(overrideBarWidth) {
+
+                    // adjust ticks position
+
+                    g.selectAll('.nv-x .nv-wrap g.tick').attr('transform', function(d,i,j) {
+
+                        var translateX = overrideBarWidth.width*i + overrideBarWidth.padding*(i+1) + (overrideBarWidth.width/2);
+                        
+                        return 'translate('+translateX+',0)';
+                    });
                 }
             }
 
@@ -4533,12 +4592,18 @@ nv.models.discreteBarChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             discretebar.color(color);
-	    legend.color(color);
+	        legend.color(color);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( (_) ? 'right' : 'left');
-        }}
+        }},
+        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){
+            overrideBarWidth = {
+                width: _.width      !== undefined ? _.width : _,
+                padding: _.padding  !== undefined ? _.padding : 0
+            }            
+        }}        
     });
 
     nv.utils.inheritOptions(chart, discretebar);
