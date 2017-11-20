@@ -18,7 +18,7 @@ Simply add the `nv.d3` assets to your project and include them in your HTML.
 
 ### Dependencies
 
-NVD3 is recommended to go with [d3.js](http://d3js.org/) version 3.5.3 and later, but NOT d3 4.x yet.
+NVD3 is recommended to go with [d3.js](http://d3js.org/) version 3.5.3 and later, but NOT d3 4.x yet. [version 3.5.17](https://github.com/d3/d3/releases/tag/v3.5.17) is the most recent d3 v3 release. 
 
 **Minimum D3 version required: 3.4.4**
 
