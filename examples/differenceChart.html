@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width" />
     <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
-    <script src="../build/nv.d3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.2/moment.js"></script>
+    <script src="../build/nv.d3.js?dsf"></script>
 
     <style>
         text {
@@ -32,7 +33,9 @@
   }
 </script>
 <svg id="chart2"></svg>
+<div style="height: 1000px; background-color: red;">
 
+</div>
 <script>
   let actual, predicted, data, chart;
 
@@ -69,8 +72,8 @@
       type: 'expected',
       values: predictedData.map(d => {
         return {
-          recorded_at: d.recorded_at,
-          value: d.attributes.value
+          recorded_at: d.falling_edge,
+          value: d.predicted
         };
       }),
       color: 'blue'
@@ -85,7 +88,10 @@
     nv.addGraph(function() {
       chart = nv.models.differenceChart();
       chart
-        .x(d => new Date(d.recorded_at))
+        .keyForXValue('recorded_at')
+        .x(d => {
+          return new Date(d.recorded_at)
+        })
         .y(d => d.value)
         .keyForActualLessThanPredicted(keyForActualLessThanPredicted)
         .keyForActualGreaterThanPredicted(keyForActualGreaterThanPredicted)
@@ -100,7 +106,7 @@
         var bodyhtml = "<tbody>";
         var series = d.series;
         series.forEach(function(c) {
-          var value = c.value.toFixed(2);
+          var value = (c.value || 0).toFixed(2);
           if (c.key === keyForActualGreaterThanPredicted || c.key === keyForActualLessThanPredicted) {
             var diff = Math.abs(c.data.y0 - c.data.y1);
             if (diff === 0) {
@@ -118,6 +124,10 @@
       chart.focus.xAxis.tickFormatMaxMin(d3.time.format('%b %d'));
       chart.focus.height(40);
       chart.focusMargin({top:10})
+
+      chart.margin({ top: 60 });
+
+      // chart.multiChart.legend.margin({ bottom: 60 });
 
       d3.select('svg#chart2')
         .datum(data)

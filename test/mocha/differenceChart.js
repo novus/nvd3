@@ -217,6 +217,7 @@
       describe('Processing Data', function () {
         it('should does not process data if series toggled off', function () {
           builder.model.showPredictedLine(false);
+<<<<<<< HEAD
           var expectedData = [{
             key: 'Predicted Data minus Actual Data (Predicted > Actual)',
             type: 'area',
@@ -244,208 +245,305 @@
             processed: true,
             strokeWidth: 1
           }];
+=======
+          var expectedData = [
+            {
+              key: 'Predicted Data minus Actual Data (Predicted > Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 10, y1: 15 }, { x: '124', y0: 20, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(44,160,44,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Predicted Data minus Actual Data (Predicted < Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 10, y1: 10 }, { x: '124', y0: 20, y1: 20 }],
+              yAxis: 1,
+              color: 'rgba(234,39,40,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Actual Data',
+              type: 'line',
+              values: [{ x: '123', y: 10 }, { x: '124', y: 20 }],
+              yAxis: 1,
+              color: '#666666',
+              processed: true,
+              strokeWidth: 1
+            }
+          ];
           var actualData = builder.model.processData(testData);
           JSON.stringify(actualData).should.equal(JSON.stringify(expectedData));
         });
 
-        it('correctly processes data when Predicted > Actual', function () {
-          var expectedData = [{
-            key: 'Predicted Data minus Actual Data (Predicted > Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 10, y1: 15 }, { x: 124, y0: 20, y1: 25 }],
-            yAxis: 1,
-            color: 'rgba(44,160,44,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Predicted Data minus Actual Data (Predicted < Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 10, y1: 10 }, { x: 124, y0: 20, y1: 20 }],
-            yAxis: 1,
-            color: 'rgba(234,39,40,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Actual Data',
-            type: 'line',
-            values: [{ x: 123, y: 10 }, { x: 124, y: 20 }],
-            yAxis: 1,
-            color: '#666666',
-            processed: true,
-            strokeWidth: 1
-          }, {
-            key: 'Predicted Data',
-            type: 'line',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }],
-            yAxis: 1,
-            color: '#aec7e8',
-            processed: true,
-            strokeWidth: 1
-          }];
+        it('correctly processes data when Predicted > Actual', () => {
+          var expectedData = [
+            {
+              key: 'Predicted Data minus Actual Data (Predicted > Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 10, y1: 15 }, { x: '124', y0: 20, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(44,160,44,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Predicted Data minus Actual Data (Predicted < Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 10, y1: 10 }, { x: '124', y0: 20, y1: 20 }],
+              yAxis: 1,
+              color: 'rgba(234,39,40,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Actual Data',
+              type: 'line',
+              values: [{ x: '123', y: 10 }, { x: '124', y: 20 }],
+              yAxis: 1,
+              color: '#666666',
+              processed: true,
+              strokeWidth: 1
+            },
+            {
+              key: 'Predicted Data',
+              type: 'line',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }],
+              yAxis: 1,
+              color: '#aec7e8',
+              processed: true,
+              strokeWidth: 1
+            }
+          ];
           var actualData = builder.model.processData(testData);
           JSON.stringify(actualData).should.equal(JSON.stringify(expectedData));
         });
 
         it('correctly processes data when Predicted < Actual', function () {
           //Predicted < Actual
-          var testData2 = [{
-            key: 'Actual Data',
-            type: 'actual',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }]
-          }, {
-            key: 'Predicted Data',
-            type: 'expected',
-            values: [{ x: 123, y: 10 }, { x: 124, y: 20 }]
-          }];
-          var expectedData = [{
-            key: 'Predicted Data minus Actual Data (Predicted > Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 15, y1: 15 }, { x: 124, y0: 25, y1: 25 }],
-            yAxis: 1,
-            color: 'rgba(44,160,44,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Predicted Data minus Actual Data (Predicted < Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 15, y1: 10 }, { x: 124, y0: 25, y1: 20 }],
-            yAxis: 1,
-            color: 'rgba(234,39,40,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Actual Data',
-            type: 'line',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }],
-            yAxis: 1,
-            color: '#666666',
-            processed: true,
-            strokeWidth: 1
-          }, {
-            key: 'Predicted Data',
-            type: 'line',
-            values: [{ x: 123, y: 10 }, { x: 124, y: 20 }],
-            yAxis: 1,
-            color: '#aec7e8',
-            processed: true,
-            strokeWidth: 1
-          }];
+          var testData2 = [
+            {
+              key: 'Actual Data',
+              type: 'actual',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }]
+            },
+            {
+              key: 'Predicted Data',
+              type: 'expected',
+              values: [{ x: '123', y: 10 }, { x: '124', y: 20 }]
+            }
+          ];
+          var expectedData = [
+            {
+              key: 'Predicted Data minus Actual Data (Predicted > Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 15, y1: 15 }, { x: '124', y0: 25, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(44,160,44,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Predicted Data minus Actual Data (Predicted < Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 15, y1: 10 }, { x: '124', y0: 25, y1: 20 }],
+              yAxis: 1,
+              color: 'rgba(234,39,40,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Actual Data',
+              type: 'line',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }],
+              yAxis: 1,
+              color: '#666666',
+              processed: true,
+              strokeWidth: 1
+            },
+            {
+              key: 'Predicted Data',
+              type: 'line',
+              values: [{ x: '123', y: 10 }, { x: '124', y: 20 }],
+              yAxis: 1,
+              color: '#aec7e8',
+              processed: true,
+              strokeWidth: 1
+            }
+          ];
           var actualData = builder.model.processData(testData2);
           JSON.stringify(actualData).should.equal(JSON.stringify(expectedData));
         });
 
-        it('correctly processes data when Predicted = Actual', function () {
-          var equalTestData = [{
-            key: 'Actual Data',
-            type: 'actual',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }]
-          }, {
-            key: 'Predicted Data',
-            type: 'expected',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }]
-          }];
+        it('correctly processes data when Predicted = Actual', () => {
+          var equalTestData = [
+            {
+              key: 'Actual Data',
+              type: 'actual',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }]
+            },
+            {
+              key: 'Predicted Data',
+              type: 'expected',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }]
+            }
+          ];
 
-          var expectedData = [{
-            key: 'Predicted Data minus Actual Data (Predicted > Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 15, y1: 15 }, { x: 124, y0: 25, y1: 25 }],
-            yAxis: 1,
-            color: 'rgba(44,160,44,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Predicted Data minus Actual Data (Predicted < Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 15, y1: 15 }, { x: 124, y0: 25, y1: 25 }],
-            yAxis: 1,
-            color: 'rgba(234,39,40,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Actual Data',
-            type: 'line',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }],
-            yAxis: 1,
-            color: '#666666',
-            processed: true,
-            strokeWidth: 1
-          }, {
-            key: 'Predicted Data',
-            type: 'line',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }],
-            yAxis: 1,
-            color: '#aec7e8',
-            processed: true,
-            strokeWidth: 1
-          }];
+          var expectedData = [
+            {
+              key: 'Predicted Data minus Actual Data (Predicted > Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 15, y1: 15 }, { x: '124', y0: 25, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(44,160,44,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Predicted Data minus Actual Data (Predicted < Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 15, y1: 15 }, { x: '124', y0: 25, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(234,39,40,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Actual Data',
+              type: 'line',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }],
+              yAxis: 1,
+              color: '#666666',
+              processed: true,
+              strokeWidth: 1
+            },
+            {
+              key: 'Predicted Data',
+              type: 'line',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }],
+              yAxis: 1,
+              color: '#aec7e8',
+              processed: true,
+              strokeWidth: 1
+            }
+          ];
           var actualData = builder.model.processData(equalTestData);
           JSON.stringify(actualData).should.equal(JSON.stringify(expectedData));
         });
 
-        it('correctly gives error for uneven data sets', function () {
-          var unevenTestData = [{
-            key: 'Actual Data',
-            type: 'actual',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }]
-          }];
+        it('removes any predicted data points that are not found in predicted data', () => {
+          const unevenTestData = [
+            {
+              key: 'Actual Data',
+              type: 'actual',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }]
+            },
+            {
+              key: 'Predicted Data',
+              type: 'expected',
+              values: [{ x: '123', y: 15 }, { x: 125, y: 25 }]
+            }
+          ];
+          const expectedData = [
+            {
+              key: 'Predicted Data minus Actual Data (Predicted > Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 15, y1: 15 }, { x: '124', y0: 25, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(44,160,44,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Predicted Data minus Actual Data (Predicted < Actual)',
+              type: 'area',
+              values: [{ x: '123', y0: 15, y1: 15 }, { x: '124', y0: 25, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(234,39,40,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Actual Data',
+              type: 'line',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }],
+              yAxis: 1,
+              color: '#666666',
+              processed: true,
+              strokeWidth: 1
+            },
+            {
+              key: 'Predicted Data',
+              type: 'line',
+              values: [{ x: '123', y: 15 }, { x: '124' }],
+              yAxis: 1,
+              color: '#aec7e8',
+              processed: true,
+              strokeWidth: 1
+            }
+          ];
 
-          var actualData = builder.model.processData(unevenTestData);
-          JSON.stringify(actualData).should.equal('[]');
+          const actualData = builder.model.processData(unevenTestData);
+          JSON.stringify(actualData).should.equal(JSON.stringify(expectedData));
         });
 
-        it('returns if predictedData is missing', function () {
-          var missingPredictedData = [{
-            key: 'Actual Data',
-            type: 'actual',
-            values: [{ x: 123, y: 15 }, { x: 124, y: 25 }]
-          }, {
-            key: 'Predicted Data',
-            type: 'expected',
-            values: []
-          }];
+        it('respects any processing done in x accessor', () => {
+          const unevenTestData = [
+            {
+              key: 'Actual Data',
+              type: 'actual',
+              values: [{ x: '123', y: 15 }, { x: '124', y: 25 }]
+            },
+            {
+              key: 'Predicted Data',
+              type: 'expected',
+              values: [{ x: '123', y: 15 }, { x: 125, y: 25 }]
+            }
+          ];
+          builder.model.x((d) => parseInt(d.x));
+          const expectedData = [
+            {
+              key: 'Predicted Data minus Actual Data (Predicted > Actual)',
+              type: 'area',
+              values: [{ x: 123, y0: 15, y1: 15 }, { x: 124, y0: 25, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(44,160,44,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Predicted Data minus Actual Data (Predicted < Actual)',
+              type: 'area',
+              values: [{ x: 123, y0: 15, y1: 15 }, { x: 124, y0: 25, y1: 25 }],
+              yAxis: 1,
+              color: 'rgba(234,39,40,.9)',
+              processed: true,
+              noHighlightSeries: true
+            },
+            {
+              key: 'Actual Data',
+              type: 'line',
+              values: [{ x: 123, y: 15 }, { x: 124, y: 25 }],
+              yAxis: 1,
+              color: '#666666',
+              processed: true,
+              strokeWidth: 1
+            },
+            {
+              key: 'Predicted Data',
+              type: 'line',
+              values: [{ x: 123, y: 15 }, { x: 124 }],
+              yAxis: 1,
+              color: '#aec7e8',
+              processed: true,
+              strokeWidth: 1
+            }
+          ];
 
-          var expectedData = [{
-            key: 'Predicted Data minus Actual Data (Predicted > Actual)',
-            type: 'area',
-            values: [],
-            yAxis: 1,
-            color: 'rgba(44,160,44,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Predicted Data minus Actual Data (Predicted < Actual)',
-            type: 'area',
-            values: [],
-            yAxis: 1,
-            color: 'rgba(234,39,40,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Actual Data',
-            type: 'line',
-            values: [],
-            yAxis: 1,
-            color: '#666666',
-            processed: true,
-            strokeWidth: 1
-          }, {
-            key: 'Predicted Data',
-            type: 'line',
-            values: [],
-            yAxis: 1,
-            color: '#aec7e8',
-            processed: true,
-            strokeWidth: 1
-          }];
-          var actualData = builder.model.processData(missingPredictedData);
+          const actualData = builder.model.processData(unevenTestData);
           JSON.stringify(actualData).should.equal(JSON.stringify(expectedData));
         });
       });
@@ -776,7 +874,8 @@
         newDomain.should.be.deep.equal(expectedDomain);
       });
 
-      it('after the user brushes, the chart should only contain values within the brush extent', function () {
+      it('after the user brushes, the chart should only contain values within the brush extent', () => {
+        builder.model.x((d) => new Date(d.x));
         builder.updateData(sampleDataWithDates);
         var newBrushExtent = [new Date('2016-01-01T02:15:00+1100'), new Date('2016-01-01T02:45:00+1100')];
 

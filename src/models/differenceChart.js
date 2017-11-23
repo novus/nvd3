@@ -25,6 +25,7 @@ nv.models.differenceChart = function () {
   var xAccessor = function xAccessor(d) {
     return d.x;
   };
+  var keyForXValue = 'x';
   var yAccessor = function yAccessor(d) {
     return d.y;
   };
@@ -211,6 +212,14 @@ nv.models.differenceChart = function () {
         xAccessor = _;
       }
     },
+    keyForXValue: {
+      get: function get() {
+        return keyForXValue;
+      },
+      set: function set(_) {
+        keyForXValue = _;
+      }
+    },
     y: {
       get: function get() {
         return yAccessor;
@@ -354,13 +363,26 @@ nv.models.differenceChart = function () {
       };
     }
 
-    actualData[0].values.forEach(function (d, i) {
-      if (!predictedData[0].values[i]) {
-        return;
-      }
+    var actualDataAsMap = actualData[0].values.reduce(function (result, datum, idx) {
+      result[xAccessor(datum)] = yAccessor(datum);
+      return result;
+    }, {});
 
-      var actualUsage = yAccessor(actualData[0].values[i]);
-      var predictedUsage = yAccessor(predictedData[0].values[i]);
+    var predictedDataAsMap = predictedData[0].values.reduce(function (result, datum, idx) {
+      result[xAccessor(datum)] = yAccessor(datum);
+      return result;
+    }, {});
+
+    Object.keys(actualDataAsMap).forEach(function (stringifiedXValue, idx) {
+      var actualUsage = actualDataAsMap[stringifiedXValue];
+      var predictedUsage = predictedDataAsMap[stringifiedXValue];
+      var fakeDatumToGetProperXValue = {};
+      // NB - stringifiedXValue will not be the correct data type
+      // e.g. you might want to use a number/date. Pass the stringified
+      // version back through xAccessor.
+      fakeDatumToGetProperXValue[keyForXValue] = stringifiedXValue;
+      var correctlyFormattedXValue = xAccessor(fakeDatumToGetProperXValue);
+
       var predictedActualDelta = predictedUsage - actualUsage;
       // The below code generates data for the difference chart.
       // We have four series: two for the area (processedData[0] and processedData[1]) charts
@@ -376,39 +398,52 @@ nv.models.differenceChart = function () {
       // when there is a loss.
       //
       // The opposite occurs when predicted is greater than savings (a saving).
-      if (predictedActualDelta < 0) {
+      if (isNaN(predictedActualDelta)) {
+        // if there is no predicted value for this point, just use actual usage
+        processedData[1].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: actualUsage
+        };
+        processedData[0].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      }
+      else if (predictedActualDelta < 0) {
         // actual greater than predicted - this is a loss
         // add area for loss between actualUsage (y0) and predictedUsage(y1)
-        processedData[1].values[i] = {
-          x: xAccessor(d),
+        processedData[1].values[idx] = {
+          x: correctlyFormattedXValue,
           y0: actualUsage,
           y1: predictedUsage
         };
         // for the saving data series, render a dot (y0 and y1) at actualUsage - need
         // this rather than NaN because otherwise if the next datapoint is a saving,
         // D3 won't be able to link the two areas together
-        processedData[0].values[i] = {
-          x: xAccessor(d),
+        processedData[0].values[idx] = {
+          x: correctlyFormattedXValue,
           y0: actualUsage,
           y1: actualUsage
         };
       } else {
-        processedData[0].values[i] = {
-          x: xAccessor(d),
+        processedData[0].values[idx] = {
+          x: correctlyFormattedXValue,
           y0: actualUsage,
           y1: predictedUsage
         };
-        processedData[1].values[i] = {
-          x: xAccessor(d),
+        processedData[1].values[idx] = {
+          x: correctlyFormattedXValue,
           y0: actualUsage,
           y1: actualUsage
         };
       }
       // Set actual
-      processedData[2].values[i] = { x: xAccessor(d), y: actualUsage };
+      processedData[2].values[idx] = { x: correctlyFormattedXValue, y: actualUsage };
       // Set predicted
       if (showPredictedLine) {
-        processedData[3].values[i] = { x: xAccessor(d), y: predictedUsage };
+        processedData[3].values[idx] = { x: correctlyFormattedXValue, y: predictedUsage };
       }
     });
 
