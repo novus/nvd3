@@ -238,6 +238,7 @@ nv.models.distroPlot = function() {
                         key: xGroup,
                         isOutlier: (e < wl.iqr || e > wu.iqr), // add isOulier meta for proper class assignment
                         isOutlierStdDev: (e < wl.stddev || e > wu.stddev), // add isOulier meta for proper class assignment
+                        jitter: jitterX(),
                     })
                 })
             }
@@ -459,6 +460,7 @@ nv.models.distroPlot = function() {
     var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var availableWidth, availableHeight;
+    var observationType0;
 
     function chart(selection) {
         renderWatch.reset();
@@ -791,24 +793,30 @@ nv.models.distroPlot = function() {
                     .attr('y1', function(d) { return yScale(d.datum)})
                     .attr('y2', function(d) { return yScale(d.datum)});
             } else {
-                distroplots.selectAll('g.nv-distroplot-observation circle')
-                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
-                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
-                    .attr('r', pointSize);
+                if (observationType0 !== observationType) {
+                    distroplots.selectAll('g.nv-distroplot-observation circle')
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                        .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
+                        .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
+                        .attr('r', pointSize);
+                }
 
             }
+            observationType0 = observationType; // this is used to limit transition updates of random observation type
 
             // set opacity on outliers/non-outliers
             // any circle/line entering has opacity 0
             if (observationType !== false) { // observationType is False when hidding all circle/lines
                 if (!showOnlyOutliers) { // show all line/circle
                     distroplots.selectAll(observationType== 'line' ? 'line':'circle')
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',1)
                 } else { // show only outliers
                     distroplots.selectAll('.nv-distroplot-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',1)
                     distroplots.selectAll('.nv-distroplot-non-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',0)
                 }
             }
