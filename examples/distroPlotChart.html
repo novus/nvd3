@@ -97,8 +97,6 @@
          | Grouping
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: false});">No squash</button>
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: true});">Squashed</button>
-        <br>
-        <input type="range" min="1" max="100" value="50" class="slider" id="resolutionSlider" onchange="updatePlot({resolution: parseInt(this.value)})">
     </div>
 
     <div id="chart">
