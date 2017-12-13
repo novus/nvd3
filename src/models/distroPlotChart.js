@@ -45,7 +45,7 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var colorGroup0, marginTop0 = margin.top, x0, y0;
+    var colorGroup0, marginTop0 = margin.top, x0, y0, resolution0, bandwidth0, clampViolin0;
 
     var stateGetter = function(data) {
         return function(){
@@ -82,7 +82,10 @@ nv.models.distroPlotChart = function() {
                 var opts = distroplot.options()
                 if (colorGroup0 !== opts.colorGroup() || // recalc data when any of the axis accessors are changed
                     x0 !== opts.x() ||
-                    y0 !== opts.y()
+                    y0 !== opts.y() ||
+                    bandwidth0 !== opts.bandwidth() ||
+                    resolution0 !== opts.resolution() ||
+                    clampViolin0 !== opts.clampViolin()
                 ) {
                     distroplot.recalcData();
                 }
@@ -206,10 +209,14 @@ nv.models.distroPlotChart = function() {
                 .attr('y2', y(0))
             ;
 
-            // store original values so that we can update things properly
+            // store original values so that we can
+            // call 'recalcData()' if needed
             colorGroup0 = distroplot.options().colorGroup();
             x0 = distroplot.options().x();
             y0 = distroplot.options().y();
+            bandwidth0 = distroplot.options().bandwidth();
+            resolution0 = distroplot.options().resolution();
+            clampViolin0 = distroplot.options().clampViolin();
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)

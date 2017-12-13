@@ -1068,6 +1068,10 @@ as well as used to print out examples using those example inputs.
             default: 0.7,
             examples: [0.2, 1]
         },
+		clampViolin: {
+            desc: "Will limit the violin range within the range of observed data.",
+            default: true,
+        },
 		squash: {
             desc: "Whether to squash boxes/violins together along the x-axi in the case where option colorGroup is specified. This removes the empty space beteween distributions in cases where the particular grouping data does not exist.",
             default: true,

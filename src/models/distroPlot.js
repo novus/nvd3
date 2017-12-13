@@ -45,6 +45,7 @@ nv.models.distroPlot = function() {
         jitter = 0.7, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
         squash = true, // whether to remove the x-axis positions for empty data groups, default is true
         bandwidth = 'scott', // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
+        clampViolin = true, // whether to clamp the "tails" of the violin; prevents long 0-density area
         resolution = 50,
         pointSize = 3,
         color = nv.utils.defaultColor(),
@@ -132,6 +133,12 @@ nv.models.distroPlot = function() {
      * by .x() option set by user and then calculating
      * count, sum, mean, q1, q2 (median), q3, lower whisker (wl)
      * upper whisker (wu), iqr, min, max, and standard dev.
+     *
+     * NOTE: preparing this data can be resource intensive, and
+     *       is therefore only run once on plot load. It can
+     *       manually be run by calling recalcData(). This should
+     *       be re-run any time the axis accessors are changed or
+     *       when bandwidth/resolution are updated.
      *
      * NOTE: this will also setup the individual vertical scales
      *       for the violins.
@@ -245,9 +252,10 @@ nv.models.distroPlot = function() {
                 }
             }
             var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
-            var kdeDat = kde(v);
+            var kdeDat = clampViolin ? clampViolinKDE(kde(v)) : kde(v);
 
-            // make a new vertical for each group
+
+            // make a new vertical scale for each group
             var tmpScale = d3.scale.linear()
                 .domain([0, d3.max(kdeDat, function (e) { return e.y;})])
                 .clamp(true);
@@ -330,12 +338,52 @@ nv.models.distroPlot = function() {
     }
 
     // https://bl.ocks.org/mbostock/4341954
-    function kernelDensityEstimator(kernel, x) {
+    function kernelDensityEstimator(kernel, X) {
         return function (sample) {
-            return x.map(function (x) {
-                return {x:x, y:d3.mean(sample, function (v) {return kernel(x - v);})};
+            return X.map(function(x) {
+                var y = d3.mean(sample, function (v) {return kernel(x - v);});
+                return {x:x, y:y};
             });
         };
+    }
+
+    /*
+     * Method for 'clamping' or removing
+     * the zero density tails of the kde
+     */
+    function clampViolinKDE(kde) {
+
+        // trim the front tail, leaving only
+        // a single 0-density to close the area
+        for (var i = 0; i < kde.length; i++) {
+            var d = kde[i];
+            if (d.y > 0) break;
+        };
+
+        var frontSlice = [];
+        if (i > 0) {
+            frontSlice = kde.slice(i-1);
+            frontSlice.reverse();
+        } else {
+            frontSlice = kde.reverse();
+        }
+
+        // trim the back tail, leaving only
+        // a single 0-density to close the area
+        for (var i = 0; i < frontSlice.length; i++) {
+            var d = frontSlice[i];
+            if (d.y > 0) break;
+        };
+
+        var kdeTrim = [];
+        if (i > 0) {
+            kdeTrim = frontSlice.slice(i-1)
+        } else {
+            kdeTrim = frontSlice;
+        }
+
+        kdeTrim.reverse();
+        return kdeTrim
     }
 
     // https://bl.ocks.org/mbostock/4341954
@@ -425,7 +473,7 @@ nv.models.distroPlot = function() {
             yScale.domain(yDomain || d3.extent(data.map(function(d) { return getY(d)}))).nice()
                 .range(yRange || [availableHeight, 0]);
 
-            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
+            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from recalculating data all the time
 
             // Setup x-scale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
@@ -574,6 +622,7 @@ nv.models.distroPlot = function() {
             distroplots.each(function(d,i) {
                 var violin = d3.select(this);
                 var objData = plotType == 'box' ? makeNotchBox(areaLeft(), tickLeft(), areaCenter(), d) : d.values.kde;
+
                 violin.selectAll('path')
                     .datum(objData)
         
@@ -586,7 +635,7 @@ nv.models.distroPlot = function() {
 
                         // line
                         distroplots.selectAll('.nv-distribution-line.nv-distribution-' + side)
-                          .watchTransition(renderWatch, 'nv-distribution-line: distroplots')
+                          //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.line()
                                     .x(function(e) { return plotType=='box' ? e.y : yScale(e.x); })
                                     .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
@@ -597,7 +646,7 @@ nv.models.distroPlot = function() {
 
                         // area
                         distroplots.selectAll('.nv-distribution-area.nv-distribution-' + side)
-                          .watchTransition(renderWatch, 'nv-distribution-line: distroplots')
+                          //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.area()
                                     .x(function(e) { return plotType=='box' ? e.y : yScale(e.x); })
                                     .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
@@ -824,6 +873,7 @@ nv.models.distroPlot = function() {
         colorGroup:       {get: function(){return colorGroup;}, set: function(_){colorGroup=_;}}, // data key to use to set color group of each x-category - default: don't group
         centralTendency:       {get: function(){return centralTendency;}, set: function(_){centralTendency=_;}}, // add a mean or median line to the data - default: don't show, must be one of 'mean' or 'median'
         bandwidth:        {get: function(){return bandwidth;}, set: function(_){bandwidth=_;}}, // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
+        clampViolin:           {get: function(){return clampViolin;}, set: function(_){clampViolin=_;}},
         resolution:       {get: function(){return resolution;}, set: function(_){resolution=_;}}, // resolution for kde calculation, default 50
         xScale:           {get: function(){return xScale;}, set: function(_){xScale=_;}},
         yScale:           {get: function(){return yScale;}, set: function(_){yScale=_;}},

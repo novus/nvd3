@@ -79,6 +79,7 @@
         <button onclick="updatePlot({centralTendency: 'mean'});">Mean line</button>
         <button onclick="updatePlot({centralTendency: 'median'});">Median line</button>
         <button onclick="updatePlot({centralTendency: false});">Remove mean/median line</button>
+        <button onclick="updatePlot({clampViolin: true});">Clamp violins</button>
         <br>
         Observation positions
         <button onclick="updatePlot({observationType: 'random'});">Random</button>
@@ -96,6 +97,8 @@
          | Grouping
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: false});">No squash</button>
         <button onclick="updatePlot({colorGroup: function(d) { return d.Isolator; }, squash: true});">Squashed</button>
+        <br>
+        <input type="range" min="1" max="100" value="50" class="slider" id="resolutionSlider" onchange="updatePlot({resolution: parseInt(this.value)})">
     </div>
 
     <div id="chart">
@@ -112,6 +115,7 @@
         x: function(d) { return d.Study },
         y: function(d) { return d.Weight },
         colorGroup: false,
+        resolution: 50,
         bandwidth: 'scott',
         maxBoxWidth: null,
         xLabel: false,
@@ -123,6 +127,7 @@
         jitter: 0.7,
         hideWhiskers: false,
         notchBox: false,
+        clampViolin: false,
         showOnlyOutliers: showOnlyOutliers,
     }
 
