@@ -238,7 +238,6 @@ nv.models.distroPlot = function() {
                         key: xGroup,
                         isOutlier: (e < wl.iqr || e > wu.iqr), // add isOulier meta for proper class assignment
                         isOutlierStdDev: (e < wl.stddev || e > wu.stddev), // add isOulier meta for proper class assignment
-                        jitter: jitterX(),
                     })
                 })
             }
@@ -748,7 +747,7 @@ nv.models.distroPlot = function() {
 
             // setup observations
             // create DOMs even if not requested (and hide them), so that
-            // we can do updates
+            // we can do transitions on them
             var obsWrap = distroplots.selectAll('g.nv-distroplot-observation')
                 .data(function(d) { return getValsObj(d) }, function(d,i) { return d.idx; });
 
@@ -775,12 +774,20 @@ nv.models.distroPlot = function() {
                     .attr('y1', function(d) { return yScale(d.datum)})
                     .attr('y2', function(d) { return yScale(d.datum)});
             } else {
+                distroplots.selectAll('g.nv-distroplot-observation circle')
+                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                    .attr('cy', function(d) { return yScale(d.datum); })
+                    .attr('r', pointSize);
+
+                // update x position only if changing observation type
+                // this prevents things like points being re-positioned
+                // (when random type) when re-sizing window
+                // NOTE: this causes a bug when adjusting the left-right margin
+                // as the cx won't be re-calculated when this happens. TODO
                 if (observationType0 !== observationType) {
                     distroplots.selectAll('g.nv-distroplot-observation circle')
                       .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
-                        .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
-                        .attr('r', pointSize);
                 }
 
             }
