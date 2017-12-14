@@ -253,7 +253,7 @@ nv.models.distroPlot = function() {
                 }
             }
             var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
-            var kdeDat = clampViolin ? clampViolinKDE(kde(v)) : kde(v);
+            var kdeDat = clampViolin ? clampViolinKDE(kde(v), d3.extent(v)) : kde(v);
 
 
             // make a new vertical scale for each group
@@ -349,42 +349,25 @@ nv.models.distroPlot = function() {
     }
 
     /*
-     * Method for 'clamping' or removing
-     * the zero density tails of the kde
+     * Limit whether the density extends past the extreme datapoints
+     * of the violin.
+     *
+     * @param (list) kde - x & y kde cooridinates
+     * @param (list) extent - min/max y-values used for clamping violing
      */
-    function clampViolinKDE(kde) {
+    function clampViolinKDE(kde, extent) {
 
-        // trim the front tail, leaving only
-        // a single 0-density to close the area
-        for (var i = 0; i < kde.length; i++) {
-            var d = kde[i];
-            if (d.y > 0) break;
-        };
+        var clamped = kde.reduce(function(res, d) {
+            if (d.x >= extent[0] && d.x <= extent[1]) res.push(d);
+            return res;
+        },[]);
 
-        var frontSlice = [];
-        if (i > 0) {
-            frontSlice = kde.slice(i-1);
-            frontSlice.reverse();
-        } else {
-            frontSlice = kde.reverse();
-        }
+        // add the extreme data points back in
+        if (extent[0] < clamped[0].x) clamped.unshift({x:extent[0], y:clamped[0].y})
+        if (extent[1] > clamped[clamped.length-1].x) clamped.push({x:extent[1], y:clamped[clamped.length-1].y})
 
-        // trim the back tail, leaving only
-        // a single 0-density to close the area
-        for (var i = 0; i < frontSlice.length; i++) {
-            var d = frontSlice[i];
-            if (d.y > 0) break;
-        };
+        return clamped;
 
-        var kdeTrim = [];
-        if (i > 0) {
-            kdeTrim = frontSlice.slice(i-1)
-        } else {
-            kdeTrim = frontSlice;
-        }
-
-        kdeTrim.reverse();
-        return kdeTrim
     }
 
     // https://bl.ocks.org/mbostock/4341954
@@ -630,7 +613,7 @@ nv.models.distroPlot = function() {
         
                 var tmpScale = yVScale[i];
 
-                var interp = plotType=='box' ? 'linear' : 'cardinal';
+                var interp = plotType=='box' ? 'linear' : 'basis';
 
                 if (plotType == 'box' || plotType == 'violin') {
                     ['left','right'].forEach(function(side) {
@@ -783,7 +766,6 @@ nv.models.distroPlot = function() {
             obsWrap.exit().remove();
             obsWrap.attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
 
-            // TODO only call when window finishes resizing, otherwise jitterX call slows things down
             // transition observations
             if (observationType == 'line') {
                 distroplots.selectAll('g.nv-distroplot-observation line')
