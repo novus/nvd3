@@ -442,7 +442,7 @@ nv.models.distroPlot = function() {
     var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var availableWidth, availableHeight;
-    var observationType0;
+    var observationType0, colorGroup0;
 
     function chart(selection) {
         renderWatch.reset();
@@ -784,7 +784,7 @@ nv.models.distroPlot = function() {
                 // (when random type) when re-sizing window
                 // NOTE: this causes a bug when adjusting the left-right margin
                 // as the cx won't be re-calculated when this happens. TODO
-                if (observationType0 !== observationType) {
+                if (observationType0 !== observationType || colorGroup0 !== colorGroup) {
                     distroplots.selectAll('g.nv-distroplot-observation circle')
                       .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
@@ -792,6 +792,7 @@ nv.models.distroPlot = function() {
 
             }
             observationType0 = observationType; // this is used to limit transition updates of random observation type
+            colorGroup0 = colorGroup;
 
             // set opacity on outliers/non-outliers
             // any circle/line entering has opacity 0
