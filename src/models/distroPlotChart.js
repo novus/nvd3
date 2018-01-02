@@ -21,8 +21,6 @@ nv.models.distroPlotChart = function() {
         yLabel = false,
         tooltip = nv.models.tooltip(),
         x, y,
-        state = nv.utils.state(),
-        defaultState = null,
         noData = 'No Data Available.',
         dispatch = d3.dispatch('stateChange', 'beforeUpdate', 'renderEnd'),
         duration = 500;
@@ -46,23 +44,64 @@ nv.models.distroPlotChart = function() {
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var colorGroup0, marginTop0 = margin.top, x0, y0, resolution0, bandwidth0, clampViolin0;
+    var dataCache;
 
-    var stateGetter = function(data) {
-        return function(){
-            return {
-                active: data.map(function(d) { return !d.disabled }),
-            };
-        }
-    };
 
-    var stateSetter = function(data) {
-        return function(state) {
-            if (state.active !== undefined)
-                data.forEach(function(series,i) {
-                    series.disabled = !state.active[i];
-                });
+    // return true if data has changed somehow after
+    // an .update() was called
+    // works by comparing current data set to the
+    // one previously cached
+    // TODO - since we keep another version of the dataset
+    // around for comparison, it doubles the memory usage :(
+    function dataHasChanged(d) {
+        if (arraysEqual(d, dataCache)) {
+            return false;
+        } else {
+            dataCache = JSON.parse(JSON.stringify(d)) // deep copy
+            return true;
         }
-    };
+    }
+
+    // return true if array of objects equivalent
+    function arraysEqual(arr1, arr2) {
+        if(arr1.length !== arr2.length) return false;
+
+        for(var i = arr1.length; i--;) {
+            if ('object_constancy' in arr1[i]) delete arr1[i].object_constancy
+            if ('object_constancy' in arr2[i]) delete arr2[i].object_constancy
+
+            if(!objectEquals(arr1[i], arr2[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // return true if objects are equivalent
+    function objectEquals(a, b) {
+        // Create arrays of property names
+        var aProps = Object.getOwnPropertyNames(a);
+        var bProps = Object.getOwnPropertyNames(b);
+
+        // If number of properties is different,
+        // objects are not equivalent
+        if (aProps.length != bProps.length) {
+            return false;
+        }
+
+        for (var i = 0; i < aProps.length; i++) {
+            var propName = aProps[i];
+
+            // If values of same property are not equal,
+            // objects are not equivalent
+            if (a[propName] !== b[propName]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 
     function chart(selection) {
@@ -77,6 +116,12 @@ nv.models.distroPlotChart = function() {
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
+            if (typeof dataCache === 'undefined') {
+                dataCache = JSON.parse(JSON.stringify(data)) // deep copy
+            }
+            // console.log(data[100].Weight)
+            // console.log(dataCache[100].Weight)
+
             chart.update = function() {
                 dispatch.beforeUpdate();
                 var opts = distroplot.options()
@@ -85,7 +130,8 @@ nv.models.distroPlotChart = function() {
                     y0 !== opts.y() ||
                     bandwidth0 !== opts.bandwidth() ||
                     resolution0 !== opts.resolution() ||
-                    clampViolin0 !== opts.clampViolin()
+                    clampViolin0 !== opts.clampViolin() ||
+                    dataHasChanged(data)
                 ) {
                     distroplot.recalcData();
                 }
@@ -93,22 +139,6 @@ nv.models.distroPlotChart = function() {
             };
             chart.container = this;
 
-            state
-                .setter(stateSetter(data), chart.update)
-                .getter(stateGetter(data))
-                .update();
-
-
-            if (!defaultState) {
-                var key;
-                defaultState = {};
-                for (key in state) {
-                    if (state[key] instanceof Array)
-                        defaultState[key] = state[key].slice(0);
-                    else
-                        defaultState[key] = state[key];
-                }
-            }
 
             if (typeof d3.beeswarm !== 'function' && chart.options().observationType() == 'swarm') {
                 var xPos = margin.left + availableWidth/2;
@@ -140,7 +170,7 @@ nv.models.distroPlotChart = function() {
             gEnter.append('g').attr('class', 'nv-distroWrap');
             gEnter.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
             g.watchTransition(renderWatch, 'nv-wrap: wrap')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
                 g.select('.nv-y.nv-axis')
@@ -253,7 +283,6 @@ nv.models.distroPlotChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
-    chart.state = state;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
