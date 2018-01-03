@@ -233,13 +233,14 @@ nv.models.distroPlot = function() {
 
             // calculate bandwidth if no number is provided
             if(isNaN(parseFloat(bandwidth))) { // if not is float
+                var bandwidthCalc;
                 if (['scott','silverman'].indexOf(bandwidth) != -1) {
-                    bandwidth = calcBandwidth(v, bandwidth);
+                    bandwidthCalc = calcBandwidth(v, bandwidth);
                 } else {
-                    bandwidth = calcBandwidth(v); // calculate with default 'scott'
+                    bandwidthCalc = calcBandwidth(v); // calculate with default 'scott'
                 }
             }
-            var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
+            var kde = kernelDensityEstimator(eKernel(bandwidthCalc), yScale.ticks(resolution));
             var kdeDat = clampViolin ? clampViolinKDE(kde(v), d3.extent(v)) : kde(v);
 
 
