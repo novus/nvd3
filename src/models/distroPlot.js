@@ -60,20 +60,6 @@ nv.models.distroPlot = function() {
     // Helper Functions
     //------------------------------------------------------------
 
-    /**
-     * Adds jitter to the scatter point plot
-     * @param (int) width - width of container for scatter points, jitter will not
-     *    extend beyond this width
-     * @param (float) fract - fraction of width that jitter should take up; e.g. 1
-     *    will use entire width, 0.25 will use 25% of width
-     * @returns {number}
-     */
-    function jitterX(width, frac) {
-        if (typeof frac === 'undefined') frac = .7
-        frac = d3.min([1, frac]); // max should be 1
-        return width / 2 + Math.floor(Math.random() * width * frac) - (width * frac) / 2;
-    }
-
 
     /* Returns the smaller of std(X, ddof=1) or normalized IQR(X) over axis 0.
      *
@@ -229,6 +215,7 @@ nv.models.distroPlot = function() {
                     e.object_constancy = g[i].object_constancy;
                     e.isOutlier = (e.datum < wl.iqr || e.datum > wu.iqr) // add isOulier meta for proper class assignment
                     e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
+                    e.randX = Math.random() * jitter * (Math.floor(Math.random()*2) == 1 ? 1 : -1) // calculate random x-position only once for each point
                 })
             } else {
                 v.forEach(function(e,i) {
@@ -238,6 +225,7 @@ nv.models.distroPlot = function() {
                         key: xGroup,
                         isOutlier: (e < wl.iqr || e > wu.iqr), // add isOulier meta for proper class assignment
                         isOutlierStdDev: (e < wl.stddev || e > wu.stddev), // add isOulier meta for proper class assignment
+                        randX: Math.random() * jitter * (Math.floor(Math.random()*2) == 1 ? 1 : -1)
                     })
                 })
             }
@@ -444,7 +432,6 @@ nv.models.distroPlot = function() {
     var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var availableWidth, availableHeight;
-    var observationType0, colorGroup0;
 
 
     function chart(selection) {
@@ -785,20 +772,14 @@ nv.models.distroPlot = function() {
                     .attr('cy', function(d) { return yScale(d.datum); })
                     .attr('r', pointSize);
 
-                // update x position only if changing observation type
-                // this prevents things like points being re-positioned
-                // (when random type) when re-sizing window
-                // NOTE: this causes a bug when adjusting the left-right margin
-                // as the cx won't be re-calculated when this happens. TODO
-                if (observationType0 !== observationType || colorGroup0 !== colorGroup) {
-                    distroplots.selectAll('g.nv-distroplot-observation circle')
-                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                        .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
-                }
+                // NOTE: this update can be slow when re-sizing window when many point visible 
+                // TODO: filter selection down to only visible points, no need to update x-position
+                //       of the hidden points
+                distroplots.selectAll('g.nv-distroplot-observation circle')
+                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? areaWidth()/2 + d.randX * areaWidth()/2 : areaWidth()/2; })
 
             }
-            observationType0 = observationType; // this is used to limit transition updates of random observation type
-            colorGroup0 = colorGroup;
 
             // set opacity on outliers/non-outliers
             // any circle/line entering has opacity 0
