@@ -871,7 +871,7 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        recalcData:   {get: function() { reformatDat = prepData(d3.select('svg').data()[0]); } }, // TODO is there a better way to grab attached data?
+        recalcData:   {get: function() { reformatDat = prepData(container.datum()); } },
         itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
 
