@@ -119,8 +119,6 @@ nv.models.distroPlotChart = function() {
             if (typeof dataCache === 'undefined') {
                 dataCache = JSON.parse(JSON.stringify(data)) // deep copy
             }
-            // console.log(data[100].Weight)
-            // console.log(dataCache[100].Weight)
 
             chart.update = function() {
                 dispatch.beforeUpdate();
@@ -205,8 +203,8 @@ nv.models.distroPlotChart = function() {
                 g.select('.nv-x.nv-axis').attr('transform', 'translate(0,' + y.range()[0] + ')')
                 g.select('.nv-x.nv-axis').call(xAxis);
 
-                g.select('.nv-x.nv-axis').select('.nv-axislabel')
-                    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
+                //g.select('.nv-x.nv-axis').select('.nv-axislabel')
+                //    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
                 if (staggerLabels) {
@@ -224,8 +222,8 @@ nv.models.distroPlotChart = function() {
 
                 g.select('.nv-y.nv-axis').call(yAxis);
 
-                g.select('.nv-y.nv-axis').select('.nv-axislabel')
-                    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
+                //g.select('.nv-y.nv-axis').select('.nv-axislabel')
+                //    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
             }
 
 

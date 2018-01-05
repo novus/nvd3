@@ -345,6 +345,11 @@ nv.models.distroPlot = function() {
      */
     function clampViolinKDE(kde, extent) {
 
+        // this handles the case when all the x-values are equal
+        // which means no kde could be properly calculated
+        // just return the kde data so we can continue plotting successfully
+        if (extent[0] === extent[1]) return kde;
+
         var clamped = kde.reduce(function(res, d) {
             if (d.x >= extent[0] && d.x <= extent[1]) res.push(d);
             return res;
@@ -450,8 +455,6 @@ nv.models.distroPlot = function() {
 
 
             if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from recalculating data all the time
-            // reformatDat = prepData(data)
-            //console.log(reformatDat)
 
             // Setup x-scale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
