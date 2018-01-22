@@ -249,6 +249,7 @@ nv.models.heatMap = function() {
         uniqueXMeta = [], // [cell x metadata value]
         uniqueYMeta = [], // [cell y metadata value]
         uniqueCells = []; // [cell x,y values stored as array]
+        var warnings = [];
         var sortedCells = {}; // {cell x values: {cell y value: cell data, ... }, ... }
 
         var ix = 0, iy = 0; // use these indices to position cell in x & y direction
@@ -299,9 +300,13 @@ nv.models.heatMap = function() {
             if (!isArrayInArray(uniqueCells, combo)) {
                 uniqueCells.push(combo)
                 sortedCells[valX][valY] = cell;
+            } else if (warnings.indexOf(valX + valY) == -1) {
+                warnings.push(valX + valY);
+                console.warn("The row/column position " + valX + "/" + valY + " has multiple values; ensure each cell has only a single value.");
             }
 
         });
+        console.log(warnings)
 
         uniqueColor = uniqueColor.sort()
 
