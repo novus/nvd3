@@ -38,7 +38,6 @@ module.exports = function(grunt) {
                     //Include all files in src/models
                     'src/models/*.js',
                     // example to exclude files: '!src/models/excludeMe*'
-                    '!src/models/heatMap*',
                 ],
                 dest: 'build/nv.d3.js'
             }
