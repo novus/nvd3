@@ -173,8 +173,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-legendWrap').datum(data).call(legend);
 
                 if (legendPosition === 'bottom') {
-                	// constant from axis.js, plus some margin for better layout
-                	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
+                	var xAxisHeight = xAxis.height();
                    	margin.bottom = Math.max(legend.height() + xAxisHeight, margin.bottom);
                    	availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 	var legendTop = availableHeight + xAxisHeight;
