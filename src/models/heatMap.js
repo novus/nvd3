@@ -306,7 +306,6 @@ nv.models.heatMap = function() {
             }
 
         });
-        console.log(warnings)
 
         uniqueColor = uniqueColor.sort()
 
@@ -373,7 +372,7 @@ nv.models.heatMap = function() {
     // https://stackoverflow.com/a/28191966/1153897
     function getKeyByValue(object, value) {
         //return Object.keys(object).find(key => object[key] === value);
-        return Object.keys(object).filter(function(key) {return obj[key] === value})[0];
+        return Object.keys(object).filter(function(key) {return object[key] === value})[0];
     }
 
 
