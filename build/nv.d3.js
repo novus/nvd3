@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2017-10-14 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-02-23 */
 (function(){
 
 // set up main nv object
@@ -790,7 +790,7 @@ nv.models.tooltip = function() {
                    .attr("id", id)
                    .style("top", 0).style("left", 0)
                    .style('opacity', 0)
-                   .style('position', 'fixed')
+                   .style('position', 'absolute')
                    .selectAll("div, table, td, tr").classed(nvPointerEventsClass, true)
                    .classed(nvPointerEventsClass, true);
 
@@ -4680,11 +4680,11 @@ nv.models.distroPlot = function() {
     "use strict";
 
     // IMPROVEMENTS:
-    // cleanup tooltip to look like candlestick example (don't need color square for everything)
-    // extend y scale range to min/max data better visually
-    // tips of violins need to be cut off if very long
-    // transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
-    // when providing colorGroup, should color boxes by either parent or child group category (e.g. isolator)
+    // - cleanup tooltip to look like candlestick example (don't need color square for everything)
+    // - extend y scale range to min/max data better visually
+    // - tips of violins need to be cut off if very long
+    // - transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
+    // - when providing colorGroup, should color boxes by either parent or child group category (e.g. isolator)
 
     //============================================================
     // Public Variables with Default Settings
@@ -4723,6 +4723,7 @@ nv.models.distroPlot = function() {
         jitter = 0.7, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
         squash = true, // whether to remove the x-axis positions for empty data groups, default is true
         bandwidth = 'scott', // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
+        clampViolin = true, // whether to clamp the "tails" of the violin; prevents long 0-density area
         resolution = 50,
         pointSize = 3,
         color = nv.utils.defaultColor(),
@@ -4736,20 +4737,6 @@ nv.models.distroPlot = function() {
     //============================================================
     // Helper Functions
     //------------------------------------------------------------
-
-    /**
-     * Adds jitter to the scatter point plot
-     * @param (int) width - width of container for scatter points, jitter will not
-     *    extend beyond this width
-     * @param (float) fract - fraction of width that jitter should take up; e.g. 1
-     *    will use entire width, 0.25 will use 25% of width
-     * @returns {number}
-     */
-    function jitterX(width, frac) {
-        if (typeof frac === 'undefined') frac = .7
-        frac = d3.min([1, frac]); // max should be 1
-        return width / 2 + Math.floor(Math.random() * width * frac) - (width * frac) / 2;
-    }
 
 
     /* Returns the smaller of std(X, ddof=1) or normalized IQR(X) over axis 0.
@@ -4811,6 +4798,12 @@ nv.models.distroPlot = function() {
      * count, sum, mean, q1, q2 (median), q3, lower whisker (wl)
      * upper whisker (wu), iqr, min, max, and standard dev.
      *
+     * NOTE: preparing this data can be resource intensive, and
+     *       is therefore only run once on plot load. It can
+     *       manually be run by calling recalcData(). This should
+     *       be re-run any time the axis accessors are changed or
+     *       when bandwidth/resolution are updated.
+     *
      * NOTE: this will also setup the individual vertical scales
      *       for the violins.
      *
@@ -4867,6 +4860,8 @@ nv.models.distroPlot = function() {
             var q1 = d3.quantile(v, 0.25);
             var q3 = d3.quantile(v, 0.75);
             var iqr = q3 - q1;
+            var upper = q3 + 1.5 * iqr;
+            var lower = q1 - 1.5 * iqr;
 
             /* whisker definitions:
              *  - iqr: also known as Tukey boxplot, the lowest datum still within 1.5 IQR of the lower quartile, and the highest datum still within 1.5 IQR of the upper quartile
@@ -4874,8 +4869,8 @@ nv.models.distroPlot = function() {
              *  - sttdev: one standard deviation above and below the mean of the data
              * Note that the central tendency type (median or mean) does not impact the whisker location
              */
-            var wl = {iqr: d3.max([d3.min(v), q1 - 1.5 * iqr]), minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
-            var wu = {iqr: d3.min([d3.max(v), q3 + 1.5 * iqr]), minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
+            var wl = {iqr: d3.max([d3.min(v),  d3.min(v.filter(function(d) {return d > lower}))]), minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
+            var wu = {iqr: d3.min([d3.max(v), d3.max(v.filter(function(d) {return d < upper}))]), minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
             var median = d3.median(v);
             var mean = d3.mean(v);
             var observations = [];
@@ -4885,7 +4880,7 @@ nv.models.distroPlot = function() {
             // https://github.com/Kcnarf/d3-beeswarm
             if (typeof d3.beeswarm !== 'undefined') {
                 observations = d3.beeswarm()
-                    .data(g.map(function(d) { return getY(d) })) // use unsorted data so we can assigned idx
+                    .data(g.map(function(e) { return getY(e); }))
                     .radius(pointSize+1)
                     .orientation('vertical')
                     .side('symmetric')
@@ -4893,20 +4888,22 @@ nv.models.distroPlot = function() {
                     .arrange()
 
                 // add group info for tooltip
-                observations.map(function(e,i) { 
-                    e.key = xGroup; 
-                    e.idx = g[i].idx;
+                observations.map(function(e,i) {
+                    e.key = xGroup;
+                    e.object_constancy = g[i].object_constancy;
                     e.isOutlier = (e.datum < wl.iqr || e.datum > wu.iqr) // add isOulier meta for proper class assignment
                     e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
+                    e.randX = Math.random() * jitter * (Math.floor(Math.random()*2) == 1 ? 1 : -1) // calculate random x-position only once for each point
                 })
             } else {
                 v.forEach(function(e,i) {
                     observations.push({
-                        idx: i,
+                        object_constancy: e.object_constancy,
                         datum: e,
                         key: xGroup,
                         isOutlier: (e < wl.iqr || e > wu.iqr), // add isOulier meta for proper class assignment
                         isOutlierStdDev: (e < wl.stddev || e > wu.stddev), // add isOulier meta for proper class assignment
+                        randX: Math.random() * jitter * (Math.floor(Math.random()*2) == 1 ? 1 : -1)
                     })
                 })
             }
@@ -4914,16 +4911,18 @@ nv.models.distroPlot = function() {
 
             // calculate bandwidth if no number is provided
             if(isNaN(parseFloat(bandwidth))) { // if not is float
+                var bandwidthCalc;
                 if (['scott','silverman'].indexOf(bandwidth) != -1) {
-                    bandwidth = calcBandwidth(v, bandwidth);
+                    bandwidthCalc = calcBandwidth(v, bandwidth);
                 } else {
-                    bandwidth = calcBandwidth(v); // calculate with default 'scott'
+                    bandwidthCalc = calcBandwidth(v); // calculate with default 'scott'
                 }
             }
-            var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
-            var kdeDat = kde(v);
+            var kde = kernelDensityEstimator(eKernel(bandwidthCalc), yScale.ticks(resolution));
+            var kdeDat = clampViolin ? clampViolinKDE(kde(v), d3.extent(v)) : kde(v);
 
-            // make a new vertical for each group
+
+            // make a new vertical scale for each group
             var tmpScale = d3.scale.linear()
                 .domain([0, d3.max(kdeDat, function (e) { return e.y;})])
                 .clamp(true);
@@ -4954,9 +4953,9 @@ nv.models.distroPlot = function() {
             return reformat;
         }
 
-        // assigned idx for object constancy
-        // TODO - how do we ensure the key (idx) doesn't already exist?
-        dat.forEach(function(d,i) { d.idx = i; })
+        // assign a unique identifier for each point for object constancy
+        // this makes updating data possible
+        dat.forEach(function(d,i) { d.object_constancy = i + '_' + getY(d) + '_' + getX(d); })
 
 
         // TODO not DRY
@@ -4985,7 +4984,7 @@ nv.models.distroPlot = function() {
             var xGroups = tmp.map(function(d) { return d.key; });
             var allGroups = [];
             for (var i = 0; i < xGroups.length; i++) {
-                for (var j = 0; j < allColorGroups.length; j++) {    
+                for (var j = 0; j < allColorGroups.length; j++) {
                     allGroups.push(xGroups[i] + '_' + allColorGroups[j]);
                 }
             }
@@ -4996,7 +4995,7 @@ nv.models.distroPlot = function() {
             // to allow for smooth updating between
             // all groups.
             formatted = [];
-            tmp.forEach(function(d) { 
+            tmp.forEach(function(d) {
                 d.values.forEach(function(e) { e.key = d.key +'_'+e.key }) // generate a combo key so that each boxplot has a distinct x-position
                 formatted.push.apply(formatted, d.values)
             });
@@ -5006,12 +5005,40 @@ nv.models.distroPlot = function() {
     }
 
     // https://bl.ocks.org/mbostock/4341954
-    function kernelDensityEstimator(kernel, x) {
+    function kernelDensityEstimator(kernel, X) {
         return function (sample) {
-            return x.map(function (x) {
-                return {x:x, y:d3.mean(sample, function (v) {return kernel(x - v);})};
+            return X.map(function(x) {
+                var y = d3.mean(sample, function (v) {return kernel(x - v);});
+                return {x:x, y:y};
             });
         };
+    }
+
+    /*
+     * Limit whether the density extends past the extreme datapoints
+     * of the violin.
+     *
+     * @param (list) kde - x & y kde cooridinates
+     * @param (list) extent - min/max y-values used for clamping violing
+     */
+    function clampViolinKDE(kde, extent) {
+
+        // this handles the case when all the x-values are equal
+        // which means no kde could be properly calculated
+        // just return the kde data so we can continue plotting successfully
+        if (extent[0] === extent[1]) return kde;
+
+        var clamped = kde.reduce(function(res, d) {
+            if (d.x >= extent[0] && d.x <= extent[1]) res.push(d);
+            return res;
+        },[]);
+
+        // add the extreme data points back in
+        if (extent[0] < clamped[0].x) clamped.unshift({x:extent[0], y:clamped[0].y})
+        if (extent[1] > clamped[clamped.length-1].x) clamped.push({x:extent[1], y:clamped[clamped.length-1].y})
+
+        return clamped;
+
     }
 
     // https://bl.ocks.org/mbostock/4341954
@@ -5079,6 +5106,8 @@ nv.models.distroPlot = function() {
         return (whiskerDef == 'iqr' && d.isOutlier) || (whiskerDef == 'stddev' && d.isOutlierStdDev)
     }
 
+
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
@@ -5087,6 +5116,7 @@ nv.models.distroPlot = function() {
     var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var availableWidth, availableHeight;
+
 
     function chart(selection) {
         renderWatch.reset();
@@ -5101,7 +5131,8 @@ nv.models.distroPlot = function() {
             yScale.domain(yDomain || d3.extent(data.map(function(d) { return getY(d)}))).nice()
                 .range(yRange || [availableHeight, 0]);
 
-            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
+
+            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from recalculating data all the time
 
             // Setup x-scale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
@@ -5111,8 +5142,8 @@ nv.models.distroPlot = function() {
             var wrap = container.selectAll('g.nv-wrap').data([reformatDat]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap');
             wrap.watchTransition(renderWatch, 'nv-wrap: wrap')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
-            
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
             var areaEnter,
                 distroplots = wrap.selectAll('.nv-distroplot-x-group')
                     .data(function(d) { return d; });
@@ -5159,7 +5190,7 @@ nv.models.distroPlot = function() {
 
             // ----- add the SVG elements for each plot type -----
 
-            // showOnlyOutliers
+            // scatter plot type
             if (!plotType) {
                 showOnlyOutliers = false; // force all observations to be seen
                 if (!observationType) observationType = 'random'
@@ -5172,12 +5203,13 @@ nv.models.distroPlot = function() {
                     var key = (f === getWl) ? 'low' : 'high';
                     box.append('line')
                       .style('opacity', function() { return !hideWhiskers ? '0' : '1' })
-                      .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
+                      .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key)
                     box.append('line')
                       .style('opacity', function() { return hideWhiskers ? '0' : '1' })
-                      .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
+                      .attr('class', 'nv-distroplot-tick nv-distroplot-' + key)
                 });
             });
+
 
             // update whisker lines and ticks
             [getWl, getWh].forEach(function (f) {
@@ -5186,17 +5218,17 @@ nv.models.distroPlot = function() {
                 distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
                   .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
                     .attr('x1', areaCenter())
-                    .attr('y1', function(d) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('y1', function(d) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
                     .attr('x2', areaCenter())
                     .attr('y2', function(d) { return plotType=='box' ? yScale(endpoint(d)) : yScale(getQ2(d)); })
                     .style('opacity', function() { return hideWhiskers ? '0' : '1' })
                 distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
                   .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
-                    .attr('x1', function(d) { return plotType=='box' ? tickLeft() : areaCenter()} )
-                    .attr('y1', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
-                    .attr('x2', function(d) { return plotType=='box' ? tickRight() : areaCenter()} )
-                    .attr('y2', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
-                    .style('opacity', function() { return (hideWhiskers || plotType!=='box') ? '0' : '1' })
+                    .attr('x1', function(d) { return plotType!='violin' ? tickLeft() : areaCenter()} )
+                    .attr('y1', function(d,i) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('x2', function(d) { return plotType!='violin' ? tickRight() : areaCenter()} )
+                    .attr('y2', function(d,i) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .style('opacity', function() { return hideWhiskers ? '0' : '1' })
             });
 
             [getWl, getWh].forEach(function (f) {
@@ -5249,19 +5281,20 @@ nv.models.distroPlot = function() {
             distroplots.each(function(d,i) {
                 var violin = d3.select(this);
                 var objData = plotType == 'box' ? makeNotchBox(areaLeft(), tickLeft(), areaCenter(), d) : d.values.kde;
+
                 violin.selectAll('path')
                     .datum(objData)
-        
+
                 var tmpScale = yVScale[i];
 
-                var interp = plotType=='box' ? 'linear' : 'cardinal';
+                var interp = plotType=='box' ? 'linear' : 'basis';
 
                 if (plotType == 'box' || plotType == 'violin') {
                     ['left','right'].forEach(function(side) {
 
                         // line
                         distroplots.selectAll('.nv-distribution-line.nv-distribution-' + side)
-                          .watchTransition(renderWatch, 'nv-distribution-line: distroplots')
+                          //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.line()
                                     .x(function(e) { return plotType=='box' ? e.y : yScale(e.x); })
                                     .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
@@ -5272,7 +5305,7 @@ nv.models.distroPlot = function() {
 
                         // area
                         distroplots.selectAll('.nv-distribution-area.nv-distribution-' + side)
-                          .watchTransition(renderWatch, 'nv-distribution-line: distroplots')
+                          //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.area()
                                     .x(function(e) { return plotType=='box' ? e.y : yScale(e.x); })
                                     .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
@@ -5348,14 +5381,14 @@ nv.models.distroPlot = function() {
 
             // median/mean line
             areaEnter.append('line')
-                .attr('class', function(d) { return 'nv-distroplot-middle'}) 
+                .attr('class', function(d) { return 'nv-distroplot-middle'})
 
 
             distroplots.selectAll('line.nv-distroplot-middle')
                 .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
-                .attr('x1', notchBox ? tickLeft : plotType == 'box' ? areaLeft : tickLeft())
+                .attr('x1', notchBox ? tickLeft : plotType != 'violin' ? areaLeft : tickLeft())
                 .attr('y1', function(d,i,j) { return centralTendency == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                .attr('x2', notchBox ? tickRight : plotType == 'box' ? areaRight : tickRight())
+                .attr('x2', notchBox ? tickRight : plotType != 'violin' ? areaRight : tickRight())
                 .attr('y2', function(d,i) { return centralTendency == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
                 .style('opacity', centralTendency ? '1' : '0');
 
@@ -5389,9 +5422,9 @@ nv.models.distroPlot = function() {
 
             // setup observations
             // create DOMs even if not requested (and hide them), so that
-            // we can do updates
+            // we can do transitions on them
             var obsWrap = distroplots.selectAll('g.nv-distroplot-observation')
-                .data(function(d) { return getValsObj(d) }, function(d,i) { return d.idx; });
+                .data(function(d) { return getValsObj(d) }, function(d) {  return d.object_constancy; });
 
             var obsGroup = obsWrap.enter()
                 .append('g')
@@ -5405,9 +5438,8 @@ nv.models.distroPlot = function() {
                 .style({'stroke': d3.rgb(85, 85, 85), 'opacity': 0})
 
             obsWrap.exit().remove();
-            obsWrap.attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
+            obsWrap.attr('class', function(d) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
 
-            // TODO only call when window finishes resizing, otherwise jitterX call slows things down
             // transition observations
             if (observationType == 'line') {
                 distroplots.selectAll('g.nv-distroplot-observation line')
@@ -5419,9 +5451,15 @@ nv.models.distroPlot = function() {
             } else {
                 distroplots.selectAll('g.nv-distroplot-observation circle')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
-                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
+                    .attr('cy', function(d) { return yScale(d.datum); })
                     .attr('r', pointSize);
+
+                // NOTE: this update can be slow when re-sizing window when many point visible 
+                // TODO: filter selection down to only visible points, no need to update x-position
+                //       of the hidden points
+                distroplots.selectAll('g.nv-distroplot-observation circle')
+                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? areaWidth()/2 + d.randX * areaWidth()/2 : areaWidth()/2; })
 
             }
 
@@ -5430,11 +5468,14 @@ nv.models.distroPlot = function() {
             if (observationType !== false) { // observationType is False when hidding all circle/lines
                 if (!showOnlyOutliers) { // show all line/circle
                     distroplots.selectAll(observationType== 'line' ? 'line':'circle')
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',1)
                 } else { // show only outliers
                     distroplots.selectAll('.nv-distroplot-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',1)
                     distroplots.selectAll('.nv-distroplot-non-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',0)
                 }
             }
@@ -5499,6 +5540,7 @@ nv.models.distroPlot = function() {
         colorGroup:       {get: function(){return colorGroup;}, set: function(_){colorGroup=_;}}, // data key to use to set color group of each x-category - default: don't group
         centralTendency:       {get: function(){return centralTendency;}, set: function(_){centralTendency=_;}}, // add a mean or median line to the data - default: don't show, must be one of 'mean' or 'median'
         bandwidth:        {get: function(){return bandwidth;}, set: function(_){bandwidth=_;}}, // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
+        clampViolin:           {get: function(){return clampViolin;}, set: function(_){clampViolin=_;}},
         resolution:       {get: function(){return resolution;}, set: function(_){resolution=_;}}, // resolution for kde calculation, default 50
         xScale:           {get: function(){return xScale;}, set: function(_){xScale=_;}},
         yScale:           {get: function(){return yScale;}, set: function(_){yScale=_;}},
@@ -5510,7 +5552,7 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        recalcData:   {get: function() { reformatDat = prepData(d3.select('svg').data()[0]); } }, // TODO is there a better way to grab attached data?
+        recalcData:   {get: function() { reformatDat = prepData(container.datum()); } },
         itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
 
@@ -5557,8 +5599,6 @@ nv.models.distroPlotChart = function() {
         yLabel = false,
         tooltip = nv.models.tooltip(),
         x, y,
-        state = nv.utils.state(),
-        defaultState = null,
         noData = 'No Data Available.',
         dispatch = d3.dispatch('stateChange', 'beforeUpdate', 'renderEnd'),
         duration = 500;
@@ -5581,24 +5621,65 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var colorGroup0, marginTop0 = margin.top, x0, y0;
+    var colorGroup0, marginTop0 = margin.top, x0, y0, resolution0, bandwidth0, clampViolin0;
+    var dataCache;
 
-    var stateGetter = function(data) {
-        return function(){
-            return {
-                active: data.map(function(d) { return !d.disabled }),
-            };
-        }
-    };
 
-    var stateSetter = function(data) {
-        return function(state) {
-            if (state.active !== undefined)
-                data.forEach(function(series,i) {
-                    series.disabled = !state.active[i];
-                });
+    // return true if data has changed somehow after
+    // an .update() was called
+    // works by comparing current data set to the
+    // one previously cached
+    // TODO - since we keep another version of the dataset
+    // around for comparison, it doubles the memory usage :(
+    function dataHasChanged(d) {
+        if (arraysEqual(d, dataCache)) {
+            return false;
+        } else {
+            dataCache = JSON.parse(JSON.stringify(d)) // deep copy
+            return true;
         }
-    };
+    }
+
+    // return true if array of objects equivalent
+    function arraysEqual(arr1, arr2) {
+        if(arr1.length !== arr2.length) return false;
+
+        for(var i = arr1.length; i--;) {
+            if ('object_constancy' in arr1[i]) delete arr1[i].object_constancy
+            if ('object_constancy' in arr2[i]) delete arr2[i].object_constancy
+
+            if(!objectEquals(arr1[i], arr2[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // return true if objects are equivalent
+    function objectEquals(a, b) {
+        // Create arrays of property names
+        var aProps = Object.getOwnPropertyNames(a);
+        var bProps = Object.getOwnPropertyNames(b);
+
+        // If number of properties is different,
+        // objects are not equivalent
+        if (aProps.length != bProps.length) {
+            return false;
+        }
+
+        for (var i = 0; i < aProps.length; i++) {
+            var propName = aProps[i];
+
+            // If values of same property are not equal,
+            // objects are not equivalent
+            if (a[propName] !== b[propName]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 
     function chart(selection) {
@@ -5613,12 +5694,20 @@ nv.models.distroPlotChart = function() {
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
+            if (typeof dataCache === 'undefined') {
+                dataCache = JSON.parse(JSON.stringify(data)) // deep copy
+            }
+
             chart.update = function() {
                 dispatch.beforeUpdate();
                 var opts = distroplot.options()
                 if (colorGroup0 !== opts.colorGroup() || // recalc data when any of the axis accessors are changed
                     x0 !== opts.x() ||
-                    y0 !== opts.y()
+                    y0 !== opts.y() ||
+                    bandwidth0 !== opts.bandwidth() ||
+                    resolution0 !== opts.resolution() ||
+                    clampViolin0 !== opts.clampViolin() ||
+                    dataHasChanged(data)
                 ) {
                     distroplot.recalcData();
                 }
@@ -5626,22 +5715,6 @@ nv.models.distroPlotChart = function() {
             };
             chart.container = this;
 
-            state
-                .setter(stateSetter(data), chart.update)
-                .getter(stateGetter(data))
-                .update();
-
-
-            if (!defaultState) {
-                var key;
-                defaultState = {};
-                for (key in state) {
-                    if (state[key] instanceof Array)
-                        defaultState[key] = state[key].slice(0);
-                    else
-                        defaultState[key] = state[key];
-                }
-            }
 
             if (typeof d3.beeswarm !== 'function' && chart.options().observationType() == 'swarm') {
                 var xPos = margin.left + availableWidth/2;
@@ -5673,7 +5746,7 @@ nv.models.distroPlotChart = function() {
             gEnter.append('g').attr('class', 'nv-distroWrap');
             gEnter.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
             g.watchTransition(renderWatch, 'nv-wrap: wrap')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
                 g.select('.nv-y.nv-axis')
@@ -5708,8 +5781,8 @@ nv.models.distroPlotChart = function() {
                 g.select('.nv-x.nv-axis').attr('transform', 'translate(0,' + y.range()[0] + ')')
                 g.select('.nv-x.nv-axis').call(xAxis);
 
-                g.select('.nv-x.nv-axis').select('.nv-axislabel')
-                    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
+                //g.select('.nv-x.nv-axis').select('.nv-axislabel')
+                //    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
                 if (staggerLabels) {
@@ -5727,8 +5800,8 @@ nv.models.distroPlotChart = function() {
 
                 g.select('.nv-y.nv-axis').call(yAxis);
 
-                g.select('.nv-y.nv-axis').select('.nv-axislabel')
-                    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
+                //g.select('.nv-y.nv-axis').select('.nv-axislabel')
+                //    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
             }
 
 
@@ -5742,10 +5815,14 @@ nv.models.distroPlotChart = function() {
                 .attr('y2', y(0))
             ;
 
-            // store original values so that we can update things properly
+            // store original values so that we can
+            // call 'recalcData()' if needed
             colorGroup0 = distroplot.options().colorGroup();
             x0 = distroplot.options().x();
             y0 = distroplot.options().y();
+            bandwidth0 = distroplot.options().bandwidth();
+            resolution0 = distroplot.options().resolution();
+            clampViolin0 = distroplot.options().clampViolin();
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -5782,7 +5859,6 @@ nv.models.distroPlotChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
-    chart.state = state;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -8181,7 +8257,7 @@ nv.models.lineChart = function() {
             // Update Focus
             //============================================================
             if (!focusEnable && focus.brush.extent() === null) {
-                linesWrap.call(lines);
+                linesWrap.transition().call(lines);
                 updateXAxis();
                 updateYAxis();
             } else {
@@ -14410,6 +14486,8 @@ nv.models.scatter = function() {
                     .classed('hover',false);
                 });
                 titles.watchTransition(renderWatch, 'scatter labels')
+                    .text(function(d,i){ 
+                        return d[0].label;})
                     .attr('transform', function(d) {
                         var dx = nv.utils.NaNtoZero(x(getX(d[0],d[1])))+ Math.sqrt(z(getSize(d[0],d[1]))/Math.PI)+2;
                         return 'translate(' + dx + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
@@ -14790,37 +14868,40 @@ nv.models.scatterChart = function() {
             }
 
             // Setup Distribution
-            if (showDistX) {
-                distX
-                    .getData(scatter.x())
-                    .scale(x)
-                    .width(availableWidth)
-                    .color(data.map(function(d,i) {
-                        return d.color || color(d, i);
-                    }).filter(function(d,i) { return !data[i].disabled }));
-                gEnter.select('.nv-distWrap').append('g')
-                    .attr('class', 'nv-distributionX');
-                g.select('.nv-distributionX')
-                    .attr('transform', 'translate(0,' + y.range()[0] + ')')
-                    .datum(data.filter(function(d) { return !d.disabled }))
-                    .call(distX);
-            }
+            distX
+                .getData(scatter.x())
+                .scale(x)
+                .width(availableWidth)
+                .color(data.map(function(d,i) {
+                    return d.color || color(d, i);
+                }).filter(function(d,i) { return !data[i].disabled }));
+            gEnter.select('.nv-distWrap').append('g')
+                .attr('class', 'nv-distributionX');
+            g.select('.nv-distributionX')
+                .attr('transform', 'translate(0,' + y.range()[0] + ')')
+                .datum(data.filter(function(d) { return !d.disabled }))
+                .call(distX)
+                .style('opacity', function() { return showDistX ? '1' : '1e-6'; })
+                .watchTransition(renderWatch, 'scatterPlusLineChart')
+                .style('opacity', function() { return showDistX ? '1' : '1e-6'; })
 
-            if (showDistY) {
-                distY
-                    .getData(scatter.y())
-                    .scale(y)
-                    .width(availableHeight)
-                    .color(data.map(function(d,i) {
-                        return d.color || color(d, i);
-                    }).filter(function(d,i) { return !data[i].disabled }));
-                gEnter.select('.nv-distWrap').append('g')
-                    .attr('class', 'nv-distributionY');
-                g.select('.nv-distributionY')
-                    .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
-                    .datum(data.filter(function(d) { return !d.disabled }))
-                    .call(distY);
-            }
+
+            distY
+                .getData(scatter.y())
+                .scale(y)
+                .width(availableHeight)
+                .color(data.map(function(d,i) {
+                    return d.color || color(d, i);
+                }).filter(function(d,i) { return !data[i].disabled }));
+            gEnter.select('.nv-distWrap').append('g')
+                .attr('class', 'nv-distributionY');
+            g.select('.nv-distributionY')
+                .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
+                .datum(data.filter(function(d) { return !d.disabled }))
+                .call(distY)
+                .style('opacity', function() { return showDistY ? '1' : '1e-6'; })
+                .watchTransition(renderWatch, 'scatterPlusLineChart')
+                .style('opacity', function() { return showDistY ? '1' : '1e-6'; })
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -15792,8 +15873,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-legendWrap').datum(data).call(legend);
 
                 if (legendPosition === 'bottom') {
-                	// constant from axis.js, plus some margin for better layout
-                	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
+                	var xAxisHeight = xAxis.height();
                    	margin.bottom = Math.max(legend.height() + xAxisHeight, margin.bottom);
                    	availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 	var legendTop = availableHeight + xAxisHeight;
@@ -15826,6 +15906,12 @@ nv.models.stackedAreaChart = function() {
                         metaKey: 'Stream',
                         disabled: stacked.style() != 'stream',
                         style: 'stream'
+                    },
+                    {
+                        key: controlLabels.stream_center || 'Stream Center',
+                        metaKey: 'Stream_Center',
+                        disabled: stacked.style() != 'stream_center',
+                        style: 'stream-center'
                     },
                     {
                         key: controlLabels.expanded || 'Expanded',
@@ -16035,7 +16121,7 @@ nv.models.stackedAreaChart = function() {
                             stacked.highlightPoint(i, pointIndex, true);
                             atleastOnePoint = true;
                         }
-                    
+
                         // Draw at least one point if all values are zero.
                         if (i === (data.length - 1) && !atleastOnePoint) {
                             stacked.highlightPoint(i, pointIndex, true);
