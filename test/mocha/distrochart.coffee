@@ -202,6 +202,7 @@ describe 'NVD3', ->
             hideWhiskers: false
             centralTendency: 'mean'
             bandwidth: 'scott'
+            clampViolin: true
             resolution: 50
             showOnlyOutliers: true
             jitter: 0.7
