@@ -18,7 +18,7 @@ nv.models.discreteBarChart = function() {
         , width = null
         , height = null
         , color = nv.utils.getColor()
-	, showLegend = false
+	    , showLegend = false
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -30,6 +30,7 @@ nv.models.discreteBarChart = function() {
         , noData = null
         , dispatch = d3.dispatch('beforeUpdate','renderEnd')
         , duration = 250
+        , overrideBarWidth = null
         ;
 
     xAxis
@@ -58,6 +59,12 @@ nv.models.discreteBarChart = function() {
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
 
+    //============================================================
+    // Private methods
+    //------------------------------------------------------------
+
+    var rangeWidth = nv.utils.rangeWidth.bind(chart);
+    
     function chart(selection) {
         renderWatch.reset();
         renderWatch.models(discretebar);
@@ -132,7 +139,8 @@ nv.models.discreteBarChart = function() {
             // Main Chart Component(s)
             discretebar
                 .width(availableWidth)
-                .height(availableHeight);
+                .height(availableHeight)
+                .overrideBarWidth(overrideBarWidth);
 
             var barsWrap = g.select('.nv-barsWrap')
                 .datum(data.filter(function(d) { return !d.disabled }));
@@ -145,9 +153,9 @@ nv.models.discreteBarChart = function() {
                 .append('rect');
 
             g.select('#nv-x-label-clip-' + discretebar.id() + ' rect')
-                .attr('width', x.rangeBand() * (staggerLabels ? 2 : 1))
+                .attr('width', rangeWidth(x) * (staggerLabels ? 2 : 1))
                 .attr('height', 16)
-                .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
+                .attr('x', -rangeWidth(x) / (staggerLabels ? 1 : 2 ));
 
             // Setup Axes
             if (showXAxis) {
@@ -158,6 +166,7 @@ nv.models.discreteBarChart = function() {
 
                 g.select('.nv-x.nv-axis')
                     .attr('transform', 'translate(0,' + (y.range()[0] + ((discretebar.showValues() && y.domain()[0] < 0) ? 16 : 0)) + ')');
+                 
                 g.select('.nv-x.nv-axis').call(xAxis);
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
@@ -176,7 +185,22 @@ nv.models.discreteBarChart = function() {
 
                 if (wrapLabels) {
                     g.selectAll('.tick text')
-                        .call(nv.utils.wrapTicks, chart.xAxis.rangeBand())
+                        .call(nv.utils.wrapTicks, rangeWidth(chart.xAxis))
+                } else {
+                    g.selectAll('.tick text')
+                        .call(nv.utils.wrapTicksNewLines)                    
+                }
+
+                if(overrideBarWidth) {
+
+                    // adjust ticks position
+
+                    g.selectAll('.nv-x .nv-wrap g.tick').attr('transform', function(d,i,j) {
+
+                        var translateX = overrideBarWidth.width*i + overrideBarWidth.padding*(i+1) + (overrideBarWidth.width/2);
+                        
+                        return 'translate('+translateX+',0)';
+                    });
                 }
             }
 
@@ -268,12 +292,18 @@ nv.models.discreteBarChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             discretebar.color(color);
-	    legend.color(color);
+	        legend.color(color);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
             yAxis.orient( (_) ? 'right' : 'left');
-        }}
+        }},
+        overrideBarWidth: {get: function(){return overrideBarWidth;}, set: function(_){
+            overrideBarWidth = {
+                width: _.width      !== undefined ? _.width : _,
+                padding: _.padding  !== undefined ? _.padding : 0
+            }            
+        }}        
     });
 
     nv.utils.inheritOptions(chart, discretebar);
