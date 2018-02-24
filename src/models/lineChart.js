@@ -253,7 +253,7 @@ nv.models.lineChart = function() {
             // Update Focus
             //============================================================
             if (!focusEnable && focus.brush.extent() === null) {
-                linesWrap.call(lines);
+                linesWrap.transition().call(lines);
                 updateXAxis();
                 updateYAxis();
             } else {
