@@ -173,8 +173,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-legendWrap').datum(data).call(legend);
 
                 if (legendPosition === 'bottom') {
-                	// constant from axis.js, plus some margin for better layout
-                	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
+                	var xAxisHeight = xAxis.height();
                    	margin.bottom = Math.max(legend.height() + xAxisHeight, margin.bottom);
                    	availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 	var legendTop = availableHeight + xAxisHeight;
@@ -207,6 +206,12 @@ nv.models.stackedAreaChart = function() {
                         metaKey: 'Stream',
                         disabled: stacked.style() != 'stream',
                         style: 'stream'
+                    },
+                    {
+                        key: controlLabels.stream_center || 'Stream Center',
+                        metaKey: 'Stream_Center',
+                        disabled: stacked.style() != 'stream_center',
+                        style: 'stream-center'
                     },
                     {
                         key: controlLabels.expanded || 'Expanded',
@@ -416,7 +421,7 @@ nv.models.stackedAreaChart = function() {
                             stacked.highlightPoint(i, pointIndex, true);
                             atleastOnePoint = true;
                         }
-                    
+
                         // Draw at least one point if all values are zero.
                         if (i === (data.length - 1) && !atleastOnePoint) {
                             stacked.highlightPoint(i, pointIndex, true);

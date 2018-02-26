@@ -128,6 +128,15 @@ describe 'NVD3', ->
             builder.model.update()
             builder.model.yAxis.ticks().should.equal 0
 
+        it 'should allow stream-center to be used', ->
+            builder.model.controlOptions(['Stream_Center'])
+            builder.model.update()
+            builder.model.controls.dispatch.legendClick({
+              style: 'stream-center',
+              disabled: true
+            })
+            builder.model.style().should.equal 'stream-center'
+
         it 'should set color property if not specified', ->
             sampleData3 = [
               key: 'Series 1'

@@ -36,7 +36,7 @@ module.exports = function(grunt) {
                     'src/tooltip.js',
                     'src/utils.js',
                     //Include all files in src/models
-                    'src/models/*.js'
+                    'src/models/*.js',
                     // example to exclude files: '!src/models/excludeMe*'
                 ],
                 dest: 'build/nv.d3.js'

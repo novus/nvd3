@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2017-10-14 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-02-24 */
 (function(){
 
 // set up main nv object
@@ -790,7 +790,7 @@ nv.models.tooltip = function() {
                    .attr("id", id)
                    .style("top", 0).style("left", 0)
                    .style('opacity', 0)
-                   .style('position', 'fixed')
+                   .style('position', 'absolute')
                    .selectAll("div, table, td, tr").classed(nvPointerEventsClass, true)
                    .classed(nvPointerEventsClass, true);
 
@@ -4680,11 +4680,11 @@ nv.models.distroPlot = function() {
     "use strict";
 
     // IMPROVEMENTS:
-    // cleanup tooltip to look like candlestick example (don't need color square for everything)
-    // extend y scale range to min/max data better visually
-    // tips of violins need to be cut off if very long
-    // transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
-    // when providing colorGroup, should color boxes by either parent or child group category (e.g. isolator)
+    // - cleanup tooltip to look like candlestick example (don't need color square for everything)
+    // - extend y scale range to min/max data better visually
+    // - tips of violins need to be cut off if very long
+    // - transition from box to violin not great since box only has a few points, and violin has many - need to generate box with as many points as violin
+    // - when providing colorGroup, should color boxes by either parent or child group category (e.g. isolator)
 
     //============================================================
     // Public Variables with Default Settings
@@ -4723,6 +4723,7 @@ nv.models.distroPlot = function() {
         jitter = 0.7, // faction of that jitter should take up in 'random' observationType, must be in range [0,1]; see jitterX(), default 0.7
         squash = true, // whether to remove the x-axis positions for empty data groups, default is true
         bandwidth = 'scott', // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
+        clampViolin = true, // whether to clamp the "tails" of the violin; prevents long 0-density area
         resolution = 50,
         pointSize = 3,
         color = nv.utils.defaultColor(),
@@ -4736,20 +4737,6 @@ nv.models.distroPlot = function() {
     //============================================================
     // Helper Functions
     //------------------------------------------------------------
-
-    /**
-     * Adds jitter to the scatter point plot
-     * @param (int) width - width of container for scatter points, jitter will not
-     *    extend beyond this width
-     * @param (float) fract - fraction of width that jitter should take up; e.g. 1
-     *    will use entire width, 0.25 will use 25% of width
-     * @returns {number}
-     */
-    function jitterX(width, frac) {
-        if (typeof frac === 'undefined') frac = .7
-        frac = d3.min([1, frac]); // max should be 1
-        return width / 2 + Math.floor(Math.random() * width * frac) - (width * frac) / 2;
-    }
 
 
     /* Returns the smaller of std(X, ddof=1) or normalized IQR(X) over axis 0.
@@ -4811,6 +4798,12 @@ nv.models.distroPlot = function() {
      * count, sum, mean, q1, q2 (median), q3, lower whisker (wl)
      * upper whisker (wu), iqr, min, max, and standard dev.
      *
+     * NOTE: preparing this data can be resource intensive, and
+     *       is therefore only run once on plot load. It can
+     *       manually be run by calling recalcData(). This should
+     *       be re-run any time the axis accessors are changed or
+     *       when bandwidth/resolution are updated.
+     *
      * NOTE: this will also setup the individual vertical scales
      *       for the violins.
      *
@@ -4867,6 +4860,8 @@ nv.models.distroPlot = function() {
             var q1 = d3.quantile(v, 0.25);
             var q3 = d3.quantile(v, 0.75);
             var iqr = q3 - q1;
+            var upper = q3 + 1.5 * iqr;
+            var lower = q1 - 1.5 * iqr;
 
             /* whisker definitions:
              *  - iqr: also known as Tukey boxplot, the lowest datum still within 1.5 IQR of the lower quartile, and the highest datum still within 1.5 IQR of the upper quartile
@@ -4874,8 +4869,8 @@ nv.models.distroPlot = function() {
              *  - sttdev: one standard deviation above and below the mean of the data
              * Note that the central tendency type (median or mean) does not impact the whisker location
              */
-            var wl = {iqr: d3.max([d3.min(v), q1 - 1.5 * iqr]), minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
-            var wu = {iqr: d3.min([d3.max(v), q3 + 1.5 * iqr]), minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
+            var wl = {iqr: d3.max([d3.min(v),  d3.min(v.filter(function(d) {return d > lower}))]), minmax: d3.min(v), stddev: d3.mean(v) - d3.deviation(v)};
+            var wu = {iqr: d3.min([d3.max(v), d3.max(v.filter(function(d) {return d < upper}))]), minmax: d3.max(v), stddev: d3.mean(v) + d3.deviation(v)};
             var median = d3.median(v);
             var mean = d3.mean(v);
             var observations = [];
@@ -4885,7 +4880,7 @@ nv.models.distroPlot = function() {
             // https://github.com/Kcnarf/d3-beeswarm
             if (typeof d3.beeswarm !== 'undefined') {
                 observations = d3.beeswarm()
-                    .data(g.map(function(d) { return getY(d) })) // use unsorted data so we can assigned idx
+                    .data(g.map(function(e) { return getY(e); }))
                     .radius(pointSize+1)
                     .orientation('vertical')
                     .side('symmetric')
@@ -4893,20 +4888,22 @@ nv.models.distroPlot = function() {
                     .arrange()
 
                 // add group info for tooltip
-                observations.map(function(e,i) { 
-                    e.key = xGroup; 
-                    e.idx = g[i].idx;
+                observations.map(function(e,i) {
+                    e.key = xGroup;
+                    e.object_constancy = g[i].object_constancy;
                     e.isOutlier = (e.datum < wl.iqr || e.datum > wu.iqr) // add isOulier meta for proper class assignment
                     e.isOutlierStdDev = (e.datum < wl.stddev || e.datum > wu.stddev) // add isOulier meta for proper class assignment
+                    e.randX = Math.random() * jitter * (Math.floor(Math.random()*2) == 1 ? 1 : -1) // calculate random x-position only once for each point
                 })
             } else {
                 v.forEach(function(e,i) {
                     observations.push({
-                        idx: i,
+                        object_constancy: e.object_constancy,
                         datum: e,
                         key: xGroup,
                         isOutlier: (e < wl.iqr || e > wu.iqr), // add isOulier meta for proper class assignment
                         isOutlierStdDev: (e < wl.stddev || e > wu.stddev), // add isOulier meta for proper class assignment
+                        randX: Math.random() * jitter * (Math.floor(Math.random()*2) == 1 ? 1 : -1)
                     })
                 })
             }
@@ -4914,16 +4911,18 @@ nv.models.distroPlot = function() {
 
             // calculate bandwidth if no number is provided
             if(isNaN(parseFloat(bandwidth))) { // if not is float
+                var bandwidthCalc;
                 if (['scott','silverman'].indexOf(bandwidth) != -1) {
-                    bandwidth = calcBandwidth(v, bandwidth);
+                    bandwidthCalc = calcBandwidth(v, bandwidth);
                 } else {
-                    bandwidth = calcBandwidth(v); // calculate with default 'scott'
+                    bandwidthCalc = calcBandwidth(v); // calculate with default 'scott'
                 }
             }
-            var kde = kernelDensityEstimator(eKernel(bandwidth), yScale.ticks(resolution));
-            var kdeDat = kde(v);
+            var kde = kernelDensityEstimator(eKernel(bandwidthCalc), yScale.ticks(resolution));
+            var kdeDat = clampViolin ? clampViolinKDE(kde(v), d3.extent(v)) : kde(v);
 
-            // make a new vertical for each group
+
+            // make a new vertical scale for each group
             var tmpScale = d3.scale.linear()
                 .domain([0, d3.max(kdeDat, function (e) { return e.y;})])
                 .clamp(true);
@@ -4954,9 +4953,9 @@ nv.models.distroPlot = function() {
             return reformat;
         }
 
-        // assigned idx for object constancy
-        // TODO - how do we ensure the key (idx) doesn't already exist?
-        dat.forEach(function(d,i) { d.idx = i; })
+        // assign a unique identifier for each point for object constancy
+        // this makes updating data possible
+        dat.forEach(function(d,i) { d.object_constancy = i + '_' + getY(d) + '_' + getX(d); })
 
 
         // TODO not DRY
@@ -4985,7 +4984,7 @@ nv.models.distroPlot = function() {
             var xGroups = tmp.map(function(d) { return d.key; });
             var allGroups = [];
             for (var i = 0; i < xGroups.length; i++) {
-                for (var j = 0; j < allColorGroups.length; j++) {    
+                for (var j = 0; j < allColorGroups.length; j++) {
                     allGroups.push(xGroups[i] + '_' + allColorGroups[j]);
                 }
             }
@@ -4996,7 +4995,7 @@ nv.models.distroPlot = function() {
             // to allow for smooth updating between
             // all groups.
             formatted = [];
-            tmp.forEach(function(d) { 
+            tmp.forEach(function(d) {
                 d.values.forEach(function(e) { e.key = d.key +'_'+e.key }) // generate a combo key so that each boxplot has a distinct x-position
                 formatted.push.apply(formatted, d.values)
             });
@@ -5006,12 +5005,40 @@ nv.models.distroPlot = function() {
     }
 
     // https://bl.ocks.org/mbostock/4341954
-    function kernelDensityEstimator(kernel, x) {
+    function kernelDensityEstimator(kernel, X) {
         return function (sample) {
-            return x.map(function (x) {
-                return {x:x, y:d3.mean(sample, function (v) {return kernel(x - v);})};
+            return X.map(function(x) {
+                var y = d3.mean(sample, function (v) {return kernel(x - v);});
+                return {x:x, y:y};
             });
         };
+    }
+
+    /*
+     * Limit whether the density extends past the extreme datapoints
+     * of the violin.
+     *
+     * @param (list) kde - x & y kde cooridinates
+     * @param (list) extent - min/max y-values used for clamping violing
+     */
+    function clampViolinKDE(kde, extent) {
+
+        // this handles the case when all the x-values are equal
+        // which means no kde could be properly calculated
+        // just return the kde data so we can continue plotting successfully
+        if (extent[0] === extent[1]) return kde;
+
+        var clamped = kde.reduce(function(res, d) {
+            if (d.x >= extent[0] && d.x <= extent[1]) res.push(d);
+            return res;
+        },[]);
+
+        // add the extreme data points back in
+        if (extent[0] < clamped[0].x) clamped.unshift({x:extent[0], y:clamped[0].y})
+        if (extent[1] > clamped[clamped.length-1].x) clamped.push({x:extent[1], y:clamped[clamped.length-1].y})
+
+        return clamped;
+
     }
 
     // https://bl.ocks.org/mbostock/4341954
@@ -5079,6 +5106,8 @@ nv.models.distroPlot = function() {
         return (whiskerDef == 'iqr' && d.isOutlier) || (whiskerDef == 'stddev' && d.isOutlierStdDev)
     }
 
+
+
     //============================================================
     // Private Variables
     //------------------------------------------------------------
@@ -5087,6 +5116,7 @@ nv.models.distroPlot = function() {
     var yVScale = [], reformatDat, reformatDatFlat = [];
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
     var availableWidth, availableHeight;
+
 
     function chart(selection) {
         renderWatch.reset();
@@ -5101,7 +5131,8 @@ nv.models.distroPlot = function() {
             yScale.domain(yDomain || d3.extent(data.map(function(d) { return getY(d)}))).nice()
                 .range(yRange || [availableHeight, 0]);
 
-            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from reformatted data all the time
+
+            if (typeof reformatDat === 'undefined') reformatDat = prepData(data); // this prevents us from recalculating data all the time
 
             // Setup x-scale
             xScale.rangeBands(xRange || [0, availableWidth], 0.1)
@@ -5111,8 +5142,8 @@ nv.models.distroPlot = function() {
             var wrap = container.selectAll('g.nv-wrap').data([reformatDat]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap');
             wrap.watchTransition(renderWatch, 'nv-wrap: wrap')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
-            
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
             var areaEnter,
                 distroplots = wrap.selectAll('.nv-distroplot-x-group')
                     .data(function(d) { return d; });
@@ -5159,7 +5190,7 @@ nv.models.distroPlot = function() {
 
             // ----- add the SVG elements for each plot type -----
 
-            // showOnlyOutliers
+            // scatter plot type
             if (!plotType) {
                 showOnlyOutliers = false; // force all observations to be seen
                 if (!observationType) observationType = 'random'
@@ -5172,12 +5203,13 @@ nv.models.distroPlot = function() {
                     var key = (f === getWl) ? 'low' : 'high';
                     box.append('line')
                       .style('opacity', function() { return !hideWhiskers ? '0' : '1' })
-                      .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key);
+                      .attr('class', 'nv-distroplot-whisker nv-distroplot-' + key)
                     box.append('line')
                       .style('opacity', function() { return hideWhiskers ? '0' : '1' })
-                      .attr('class', 'nv-distroplot-tick nv-distroplot-' + key);
+                      .attr('class', 'nv-distroplot-tick nv-distroplot-' + key)
                 });
             });
+
 
             // update whisker lines and ticks
             [getWl, getWh].forEach(function (f) {
@@ -5186,17 +5218,17 @@ nv.models.distroPlot = function() {
                 distroplots.select('line.nv-distroplot-whisker.nv-distroplot-' + key)
                   .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
                     .attr('x1', areaCenter())
-                    .attr('y1', function(d) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('y1', function(d) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
                     .attr('x2', areaCenter())
                     .attr('y2', function(d) { return plotType=='box' ? yScale(endpoint(d)) : yScale(getQ2(d)); })
                     .style('opacity', function() { return hideWhiskers ? '0' : '1' })
                 distroplots.select('line.nv-distroplot-tick.nv-distroplot-' + key)
                   .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots')
-                    .attr('x1', function(d) { return plotType=='box' ? tickLeft() : areaCenter()} )
-                    .attr('y1', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
-                    .attr('x2', function(d) { return plotType=='box' ? tickRight() : areaCenter()} )
-                    .attr('y2', function(d,i) { return plotType=='box' ? yScale(f(d)) : yScale(getQ2(d)); })
-                    .style('opacity', function() { return (hideWhiskers || plotType!=='box') ? '0' : '1' })
+                    .attr('x1', function(d) { return plotType!='violin' ? tickLeft() : areaCenter()} )
+                    .attr('y1', function(d,i) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .attr('x2', function(d) { return plotType!='violin' ? tickRight() : areaCenter()} )
+                    .attr('y2', function(d,i) { return plotType!='violin' ? yScale(f(d)) : yScale(getQ2(d)); })
+                    .style('opacity', function() { return hideWhiskers ? '0' : '1' })
             });
 
             [getWl, getWh].forEach(function (f) {
@@ -5249,19 +5281,20 @@ nv.models.distroPlot = function() {
             distroplots.each(function(d,i) {
                 var violin = d3.select(this);
                 var objData = plotType == 'box' ? makeNotchBox(areaLeft(), tickLeft(), areaCenter(), d) : d.values.kde;
+
                 violin.selectAll('path')
                     .datum(objData)
-        
+
                 var tmpScale = yVScale[i];
 
-                var interp = plotType=='box' ? 'linear' : 'cardinal';
+                var interp = plotType=='box' ? 'linear' : 'basis';
 
                 if (plotType == 'box' || plotType == 'violin') {
                     ['left','right'].forEach(function(side) {
 
                         // line
                         distroplots.selectAll('.nv-distribution-line.nv-distribution-' + side)
-                          .watchTransition(renderWatch, 'nv-distribution-line: distroplots')
+                          //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.line()
                                     .x(function(e) { return plotType=='box' ? e.y : yScale(e.x); })
                                     .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
@@ -5272,7 +5305,7 @@ nv.models.distroPlot = function() {
 
                         // area
                         distroplots.selectAll('.nv-distribution-area.nv-distribution-' + side)
-                          .watchTransition(renderWatch, 'nv-distribution-line: distroplots')
+                          //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.area()
                                     .x(function(e) { return plotType=='box' ? e.y : yScale(e.x); })
                                     .y(function(e) { return plotType=='box' ? e.x : tmpScale(e.y) })
@@ -5348,14 +5381,14 @@ nv.models.distroPlot = function() {
 
             // median/mean line
             areaEnter.append('line')
-                .attr('class', function(d) { return 'nv-distroplot-middle'}) 
+                .attr('class', function(d) { return 'nv-distroplot-middle'})
 
 
             distroplots.selectAll('line.nv-distroplot-middle')
                 .watchTransition(renderWatch, 'nv-distroplot-x-group: distroplots line')
-                .attr('x1', notchBox ? tickLeft : plotType == 'box' ? areaLeft : tickLeft())
+                .attr('x1', notchBox ? tickLeft : plotType != 'violin' ? areaLeft : tickLeft())
                 .attr('y1', function(d,i,j) { return centralTendency == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
-                .attr('x2', notchBox ? tickRight : plotType == 'box' ? areaRight : tickRight())
+                .attr('x2', notchBox ? tickRight : plotType != 'violin' ? areaRight : tickRight())
                 .attr('y2', function(d,i) { return centralTendency == 'mean' ? yScale(getMean(d)) : yScale(getQ2(d)); })
                 .style('opacity', centralTendency ? '1' : '0');
 
@@ -5389,9 +5422,9 @@ nv.models.distroPlot = function() {
 
             // setup observations
             // create DOMs even if not requested (and hide them), so that
-            // we can do updates
+            // we can do transitions on them
             var obsWrap = distroplots.selectAll('g.nv-distroplot-observation')
-                .data(function(d) { return getValsObj(d) }, function(d,i) { return d.idx; });
+                .data(function(d) { return getValsObj(d) }, function(d) {  return d.object_constancy; });
 
             var obsGroup = obsWrap.enter()
                 .append('g')
@@ -5405,9 +5438,8 @@ nv.models.distroPlot = function() {
                 .style({'stroke': d3.rgb(85, 85, 85), 'opacity': 0})
 
             obsWrap.exit().remove();
-            obsWrap.attr('class', function(d,i,j) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
+            obsWrap.attr('class', function(d) { return 'nv-distroplot-observation ' + (isOutlier(d) && plotType == 'box' ? 'nv-distroplot-outlier' : 'nv-distroplot-non-outlier')})
 
-            // TODO only call when window finishes resizing, otherwise jitterX call slows things down
             // transition observations
             if (observationType == 'line') {
                 distroplots.selectAll('g.nv-distroplot-observation line')
@@ -5419,9 +5451,15 @@ nv.models.distroPlot = function() {
             } else {
                 distroplots.selectAll('g.nv-distroplot-observation circle')
                   .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
-                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? jitterX(areaWidth(), jitter) : areaWidth()/2; })
-                    .attr('cy', function(d) { return observationType == 'swarm' ? d.y : yScale(d.datum); })
+                    .attr('cy', function(d) { return yScale(d.datum); })
                     .attr('r', pointSize);
+
+                // NOTE: this update can be slow when re-sizing window when many point visible 
+                // TODO: filter selection down to only visible points, no need to update x-position
+                //       of the hidden points
+                distroplots.selectAll('g.nv-distroplot-observation circle')
+                  .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
+                    .attr('cx', function(d) { return observationType == 'swarm' ? d.x + areaWidth()/2 : observationType == 'random' ? areaWidth()/2 + d.randX * areaWidth()/2 : areaWidth()/2; })
 
             }
 
@@ -5430,11 +5468,14 @@ nv.models.distroPlot = function() {
             if (observationType !== false) { // observationType is False when hidding all circle/lines
                 if (!showOnlyOutliers) { // show all line/circle
                     distroplots.selectAll(observationType== 'line' ? 'line':'circle')
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',1)
                 } else { // show only outliers
                     distroplots.selectAll('.nv-distroplot-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',1)
                     distroplots.selectAll('.nv-distroplot-non-outlier '+ (observationType== 'line' ? 'line':'circle'))
+                      .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity',0)
                 }
             }
@@ -5499,6 +5540,7 @@ nv.models.distroPlot = function() {
         colorGroup:       {get: function(){return colorGroup;}, set: function(_){colorGroup=_;}}, // data key to use to set color group of each x-category - default: don't group
         centralTendency:       {get: function(){return centralTendency;}, set: function(_){centralTendency=_;}}, // add a mean or median line to the data - default: don't show, must be one of 'mean' or 'median'
         bandwidth:        {get: function(){return bandwidth;}, set: function(_){bandwidth=_;}}, // bandwidth for kde calculation, can be float or str, if str, must be one of scott or silverman
+        clampViolin:           {get: function(){return clampViolin;}, set: function(_){clampViolin=_;}},
         resolution:       {get: function(){return resolution;}, set: function(_){resolution=_;}}, // resolution for kde calculation, default 50
         xScale:           {get: function(){return xScale;}, set: function(_){xScale=_;}},
         yScale:           {get: function(){return yScale;}, set: function(_){yScale=_;}},
@@ -5510,7 +5552,7 @@ nv.models.distroPlot = function() {
         yDomain: {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
         xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
         yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
-        recalcData:   {get: function() { reformatDat = prepData(d3.select('svg').data()[0]); } }, // TODO is there a better way to grab attached data?
+        recalcData:   {get: function() { reformatDat = prepData(container.datum()); } },
         itemColor:    {get: function(){return getColor;}, set: function(_){getColor=_;}},
         id:           {get: function(){return id;}, set: function(_){id=_;}},
 
@@ -5557,8 +5599,6 @@ nv.models.distroPlotChart = function() {
         yLabel = false,
         tooltip = nv.models.tooltip(),
         x, y,
-        state = nv.utils.state(),
-        defaultState = null,
         noData = 'No Data Available.',
         dispatch = d3.dispatch('stateChange', 'beforeUpdate', 'renderEnd'),
         duration = 500;
@@ -5581,24 +5621,65 @@ nv.models.distroPlotChart = function() {
     //------------------------------------------------------------
 
     var renderWatch = nv.utils.renderWatch(dispatch, duration);
-    var colorGroup0, marginTop0 = margin.top, x0, y0;
+    var colorGroup0, marginTop0 = margin.top, x0, y0, resolution0, bandwidth0, clampViolin0;
+    var dataCache;
 
-    var stateGetter = function(data) {
-        return function(){
-            return {
-                active: data.map(function(d) { return !d.disabled }),
-            };
-        }
-    };
 
-    var stateSetter = function(data) {
-        return function(state) {
-            if (state.active !== undefined)
-                data.forEach(function(series,i) {
-                    series.disabled = !state.active[i];
-                });
+    // return true if data has changed somehow after
+    // an .update() was called
+    // works by comparing current data set to the
+    // one previously cached
+    // TODO - since we keep another version of the dataset
+    // around for comparison, it doubles the memory usage :(
+    function dataHasChanged(d) {
+        if (arraysEqual(d, dataCache)) {
+            return false;
+        } else {
+            dataCache = JSON.parse(JSON.stringify(d)) // deep copy
+            return true;
         }
-    };
+    }
+
+    // return true if array of objects equivalent
+    function arraysEqual(arr1, arr2) {
+        if(arr1.length !== arr2.length) return false;
+
+        for(var i = arr1.length; i--;) {
+            if ('object_constancy' in arr1[i]) delete arr1[i].object_constancy
+            if ('object_constancy' in arr2[i]) delete arr2[i].object_constancy
+
+            if(!objectEquals(arr1[i], arr2[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // return true if objects are equivalent
+    function objectEquals(a, b) {
+        // Create arrays of property names
+        var aProps = Object.getOwnPropertyNames(a);
+        var bProps = Object.getOwnPropertyNames(b);
+
+        // If number of properties is different,
+        // objects are not equivalent
+        if (aProps.length != bProps.length) {
+            return false;
+        }
+
+        for (var i = 0; i < aProps.length; i++) {
+            var propName = aProps[i];
+
+            // If values of same property are not equal,
+            // objects are not equivalent
+            if (a[propName] !== b[propName]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 
     function chart(selection) {
@@ -5613,12 +5694,20 @@ nv.models.distroPlotChart = function() {
             var availableWidth = (width  || parseInt(container.style('width')) || 960) - margin.left - margin.right;
             var availableHeight = (height || parseInt(container.style('height')) || 400) - margin.top - margin.bottom;
 
+            if (typeof dataCache === 'undefined') {
+                dataCache = JSON.parse(JSON.stringify(data)) // deep copy
+            }
+
             chart.update = function() {
                 dispatch.beforeUpdate();
                 var opts = distroplot.options()
                 if (colorGroup0 !== opts.colorGroup() || // recalc data when any of the axis accessors are changed
                     x0 !== opts.x() ||
-                    y0 !== opts.y()
+                    y0 !== opts.y() ||
+                    bandwidth0 !== opts.bandwidth() ||
+                    resolution0 !== opts.resolution() ||
+                    clampViolin0 !== opts.clampViolin() ||
+                    dataHasChanged(data)
                 ) {
                     distroplot.recalcData();
                 }
@@ -5626,22 +5715,6 @@ nv.models.distroPlotChart = function() {
             };
             chart.container = this;
 
-            state
-                .setter(stateSetter(data), chart.update)
-                .getter(stateGetter(data))
-                .update();
-
-
-            if (!defaultState) {
-                var key;
-                defaultState = {};
-                for (key in state) {
-                    if (state[key] instanceof Array)
-                        defaultState[key] = state[key].slice(0);
-                    else
-                        defaultState[key] = state[key];
-                }
-            }
 
             if (typeof d3.beeswarm !== 'function' && chart.options().observationType() == 'swarm') {
                 var xPos = margin.left + availableWidth/2;
@@ -5673,7 +5746,7 @@ nv.models.distroPlotChart = function() {
             gEnter.append('g').attr('class', 'nv-distroWrap');
             gEnter.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
             g.watchTransition(renderWatch, 'nv-wrap: wrap')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             if (rightAlignYAxis) {
                 g.select('.nv-y.nv-axis')
@@ -5708,8 +5781,8 @@ nv.models.distroPlotChart = function() {
                 g.select('.nv-x.nv-axis').attr('transform', 'translate(0,' + y.range()[0] + ')')
                 g.select('.nv-x.nv-axis').call(xAxis);
 
-                g.select('.nv-x.nv-axis').select('.nv-axislabel')
-                    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
+                //g.select('.nv-x.nv-axis').select('.nv-axislabel')
+                //    .style('font-size', d3.min([availableWidth * 0.05,20]) + 'px')
 
                 var xTicks = g.select('.nv-x.nv-axis').selectAll('g');
                 if (staggerLabels) {
@@ -5727,8 +5800,8 @@ nv.models.distroPlotChart = function() {
 
                 g.select('.nv-y.nv-axis').call(yAxis);
 
-                g.select('.nv-y.nv-axis').select('.nv-axislabel')
-                    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
+                //g.select('.nv-y.nv-axis').select('.nv-axislabel')
+                //    .style('font-size', d3.min([availableHeight * 0.05,20]) + 'px')
             }
 
 
@@ -5742,10 +5815,14 @@ nv.models.distroPlotChart = function() {
                 .attr('y2', y(0))
             ;
 
-            // store original values so that we can update things properly
+            // store original values so that we can
+            // call 'recalcData()' if needed
             colorGroup0 = distroplot.options().colorGroup();
             x0 = distroplot.options().x();
             y0 = distroplot.options().y();
+            bandwidth0 = distroplot.options().bandwidth();
+            resolution0 = distroplot.options().resolution();
+            clampViolin0 = distroplot.options().clampViolin();
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -5782,7 +5859,6 @@ nv.models.distroPlotChart = function() {
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
-    chart.state = state;
 
     chart.options = nv.utils.optionsFunc.bind(chart);
 
@@ -6669,6 +6745,1207 @@ nv.models.furiousLegend = function() {
 
     return chart;
 };
+/* 
+Improvements:
+- consistenly apply no-hover classes to rect isntead of to containing g, see example CSS style for .no-hover rect, rect.no-hover
+- row/column order (user specified) or 'ascending' / 'descending'
+- I haven't tested for transitions between changing datasets
+*/
+
+nv.models.heatMap = function() {
+    "use strict";
+
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var margin = {top: 0, right: 0, bottom: 0, left: 0}
+        , width = 960
+        , height = 500
+        , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
+        , container
+        , xScale = d3.scale.ordinal()
+        , yScale = d3.scale.ordinal()
+        , colorScale = false
+        , getX = function(d) { return d.x }
+        , getY = function(d) { return d.y }
+        , getCellValue = function(d) { return d.value }
+        , showCellValues = true
+        , cellValueFormat = function(d) { return typeof d === 'number' ? d.toFixed(0) : d }
+        , cellAspectRatio = false // width / height of cell
+        , cellRadius = 2
+        , cellBorderWidth = 4 // pixels between cells
+        , normalize = false
+        , highContrastText = true
+        , xDomain
+        , yDomain
+        , xMetaColorScale = nv.utils.defaultColor()
+        , yMetaColorScale = nv.utils.defaultColor()
+        , missingDataColor = '#bcbcbc'
+        , missingDataLabel = ''
+        , metaOffset = 5 // spacing between meta rects and cells
+        , xRange
+        , yRange
+        , xMeta
+        , yMeta
+        , colorRange
+        , colorDomain
+        , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
+        , duration = 250
+        , xMetaHeight = function(d) { return cellHeight / 3 }
+        , yMetaWidth = function(d) { return cellWidth / 3 }
+        , showGrid = false
+        ;
+
+
+
+    //============================================================
+    // Aux helper function for heatmap
+    //------------------------------------------------------------
+    // choose high contrast text color based on background
+    // shameful steal: https://github.com/alexandersimoes/d3plus/blob/master/src/color/text.coffee
+    function cellTextColor(bgColor) {
+
+        if (highContrastText) {
+            var rgbColor = d3.rgb(bgColor);
+            var r = rgbColor.r;
+            var g = rgbColor.g;
+            var b = rgbColor.b;
+            var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+            return yiq >= 128 ? "#404040" : "#EDEDED"; // dark text else light text
+        } else {
+            return 'black';
+        }
+    }
+
+    /* go through heatmap data and generate array of values
+     * for each row/column or for entire dataset; for use in
+     * calculating means/medians of data for normalizing
+     * @param {str} axis - 'row', 'col' or null
+     *
+     * @returns {row/column index: [array of values for row/col]}
+     * note that if axis is not specified, the return will be
+     * {0: [all values in heatmap]}
+     */
+    function getHeatmapValues(data, axis) {
+        var vals = {};
+
+        data.forEach(function(cell, i) {
+            if (axis == 'row') {
+                if (!(getIY(cell) in vals)) vals[getIY(cell)] = [];
+                vals[getIY(cell)].push(getCellValue(cell));
+            } else if (axis == 'col') {
+                if (!(getIX(cell) in vals)) vals[getIX(cell)] = [];
+                vals[getIX(cell)].push(getCellValue(cell));
+            } else if (axis == null) { // if calculating stat over entire dataset
+                if (!(0 in vals)) vals[0] = [];
+                vals[0].push(getCellValue(cell)); 
+            }
+        })
+
+        return vals;
+    }
+
+    // calculate the median absolute deviation of the given array of data
+    // https://en.wikipedia.org/wiki/Median_absolute_deviation
+    // MAD = median(abs(Xi - median(X)))
+    function mad(dat) {
+        var med = d3.median(dat);
+        var vals = dat.map(function(d) { return Math.abs(d - med); })
+        return d3.median(vals);
+    }
+
+
+    // set cell color based on cell value
+    // depending on whether it should be normalized or not
+    function cellColor(d) {
+        var colorVal = normalize ? getNorm(d) : getCellValue(d);
+        return (cellsAreNumeric() && !isNaN(colorVal) || typeof colorVal !== 'undefined') ? colorScale(colorVal) : missingDataColor;
+    }
+
+    // return the domain of the color data
+    // if ordinal data is given for the cells, this will
+    // return all possible cells values; otherwise it
+    // returns the extent of the cell values
+    // will take into account normalization if specified
+    function getColorDomain() {
+    
+        if (cellsAreNumeric()) { // if cell values are numeric
+            return normalize ? d3.extent(prepedData, function(d) { return getNorm(d); }) : d3.extent(uniqueColor);
+        } else if (!cellsAreNumeric()) { // if cell values are ordinal
+            return uniqueColor;
+        }
+    }
+
+    // return true if cells are numeric
+    // as opposed to categorical
+    function cellsAreNumeric() {
+        return typeof uniqueColor[0] === 'number';
+    }
+
+    /*
+     * Normalize input data
+     *
+     * normalize must be one of centerX, robustCenterX, centerScaleX, robustCenterScaleX, centerAll, 
+     * robustCenterAll, centerScaleAll, robustCenterScaleAll where X is either 'Row' or 'Column'
+     *
+     * - centerX: subtract row/column mean from cell
+     * - centerAll: subtract mean of whole data set from cell
+     * - centerScaleX: scale so that row/column has mean 0 and variance 1 (Z-score)
+     * - centerScaleAll: scale by overall normalization factor so that the whole data set has mean 0 and variance 1 (Z-score)
+     * - robustCenterX: subtract row/column median from cell
+     * - robustCenterScaleX: subtract row/column median from cell and then scale row/column by median absolute deviation
+     * - robustCenterAll: subtract median of whole data set from cell
+     * - robustCenterScaleAll: subtract overall median from cell and scale by overall median absolute deviation
+     */
+    function normalizeData(dat) {
+        
+        var normTypes = ['centerRow',
+            'robustCenterRow',
+            'centerScaleRow',
+            'robustCenterScaleRow',
+            'centerColumn',
+            'robustCenterColumn',
+            'centerScaleColumn',
+            'robustCenterScaleColumn',
+            'centerAll',
+            'robustCenterAll',
+            'centerScaleAll',
+            'robustCenterScaleAll'];
+
+
+        if(normTypes.indexOf(normalize) != -1) {
+
+            var xVals = Object.keys(uniqueX), yVals = Object.keys(uniqueY);
+
+            // setup normalization options
+            var scale = normalize.includes('Scale') ? true: false,
+                agg = normalize.includes('robust') ? 'median': 'mean',
+                axis = normalize.includes('Row') ? 'row' : normalize.includes('Column') ? 'col' : null,
+                vals = getHeatmapValues(dat, axis);
+
+            // calculate mean or median
+            // calculate standard dev or median absolute deviation
+            var stat = {};
+            var dev = {};
+            for (var key in vals) {
+                stat[key] = agg == 'mean' ? d3.mean(vals[key]) : d3.median(vals[key]);
+                if (scale) dev[key] = agg == 'mean' ? d3.deviation(vals[key]) : mad(vals[key]);
+            }
+
+
+            // do the normalizing
+            dat.forEach(function(cell, i) {
+                if (cellsAreNumeric()) {
+                    if (axis == 'row') {
+                        var key = getIY(cell);
+                    } else if (axis == 'col') {
+                        var key = getIX(cell);
+                    } else if (axis == null) {  // if calculating stat over entire dataset
+                        var key = 0;
+                    }
+
+                    var normVal = getCellValue(cell) - stat[key];
+                    if (scale) {
+                        cell._cellPos.norm = normVal / dev[key];
+                    } else {
+                        cell._cellPos.norm = normVal;
+                    }
+                } else {
+                    cell._cellPos.norm = getCellValue(cell); // if trying to normalize ordinal cells, just set norm to cell value
+                }
+            })
+
+        } else {
+            normalize = false; // proper normalize option was not provided, disable it so heatmap still shows colors
+        }
+
+        return dat;
+    }
+
+    /*
+     * Process incoming data for use with heatmap including:
+     * - adding a unique key indexer to each data point (idx)
+     * - getting a unique list of all x & y values
+     * - generating a position index (x & y) for each data point
+     * - sorting that data for correct traversal when generating rect
+     * - generating placeholders for missing data
+     *
+     * In order to allow for the flexibility of the user providing either
+     * categorical or quantitative data, we're going to position the cells
+     * through indices that we increment based on previously seen data
+     * this way we can use ordinal() axes even if the data is quantitative.
+     *
+     * When we generate the SVG elements, we assumes traversal occures from
+     * top to bottom and from left to right.
+     *
+     * @param data {list} - input data organize as a list of objects
+     *
+     * @return - copy of input data with additional '_cellPos' key
+     *           formatted as {idx: XXX, ix, XXX, iy: XXX}
+     *           where idx is a global identifier; ix is an identifier
+     *           within each column, and iy is an identifier within
+     *           each row. 
+     */
+    function prepData(data) {
+
+        // reinitialize
+        uniqueX = {}, // {cell x value: ix index}
+        uniqueY = {}, // {cell y value: iy index}
+        uniqueColor = [], // [cell color value]
+        uniqueXMeta = [], // [cell x metadata value]
+        uniqueYMeta = [], // [cell y metadata value]
+        uniqueCells = []; // [cell x,y values stored as array]
+        var warnings = [];
+        var sortedCells = {}; // {cell x values: {cell y value: cell data, ... }, ... }
+
+        var ix = 0, iy = 0; // use these indices to position cell in x & y direction
+        var combo, idx=0;
+        data.forEach(function(cell) {
+            var valX = getX(cell),
+                valY = getY(cell),
+                valColor = getCellValue(cell);            
+
+            // assemble list of unique values for each dimension
+            if (!(valX in uniqueX)) { 
+                uniqueX[valX] = ix; 
+                ix++;
+
+                sortedCells[valX] = {}
+
+                if (typeof xMeta === 'function') uniqueXMeta.push(xMeta(cell));
+            }
+
+            if (!(valY in uniqueY)) {
+                uniqueY[valY] = iy; 
+                iy++;
+
+                sortedCells[valX][valY] = {}
+
+                if (typeof yMeta === 'function') uniqueYMeta.push(yMeta(cell));
+            }
+            if (uniqueColor.indexOf(valColor) == -1) uniqueColor.push(valColor)
+
+
+            // for each data point, we generate an object of data
+            // needed to properly position each cell
+            cell._cellPos = {
+                idx: idx,
+                ix: uniqueX[valX],
+                iy: uniqueY[valY],
+            }
+            idx++;
+
+
+            // keep track of row & column combinations we've already seen
+            // this prevents the same cells from being generated when
+            // the user hasn't provided proper data (one value for each
+            // row & column).
+            // if properly formatted data is not provided, only the first
+            // row & column value is used (the rest are ignored)
+            combo = [valX, valY];
+            if (!isArrayInArray(uniqueCells, combo)) {
+                uniqueCells.push(combo)
+                sortedCells[valX][valY] = cell;
+            } else if (warnings.indexOf(valX + valY) == -1) {
+                warnings.push(valX + valY);
+                console.warn("The row/column position " + valX + "/" + valY + " has multiple values; ensure each cell has only a single value.");
+            }
+
+        });
+
+        uniqueColor = uniqueColor.sort()
+
+        // check in sortedCells that each x has all the y's
+        // if not, generate an empty placeholder
+        // this will also sort all cells from left to right
+        // and top to bottom
+        var reformatData = [];
+        Object.keys(uniqueY).forEach(function(j) {
+            Object.keys(uniqueX).forEach(function(i) {
+                var cellVal = sortedCells[i][j];
+    
+                if (cellVal) {
+                    reformatData.push(cellVal);
+                } else {
+                    var cellPos = {
+                        idx: idx,
+                        ix: uniqueX[i],
+                        iy: uniqueY[j],
+                    }
+                    idx++;
+                    reformatData.push({_cellPos: cellPos}); // empty cell placeholder
+                }
+            })
+        })
+
+
+        // normalize data is needed
+        return normalize ? normalizeData(reformatData) : reformatData;
+
+    }
+
+    // https://stackoverflow.com/a/41661388/1153897
+    function isArrayInArray(arr, item){
+      var item_as_string = JSON.stringify(item);
+
+      var contains = arr.some(function(ele){
+        return JSON.stringify(ele) === item_as_string;
+      });
+      return contains;
+    }
+
+    function removeAllHoverClasses() {
+        // remove all hover classes
+        d3.selectAll('.cell-hover').classed('cell-hover', false);
+        d3.selectAll('.no-hover').classed('no-hover', false);
+        d3.selectAll('.row-hover').classed('row-hover', false);
+        d3.selectAll('.column-hover').classed('column-hover', false);
+    }
+
+    // return the formatted cell value if it is
+    // a number, otherwise return missingDataLabel
+    var cellValueLabel = function(d) {
+        var val = !normalize ? cellValueFormat(getCellValue(d)) : cellValueFormat(getNorm(d));
+        return (cellsAreNumeric() && !isNaN(val) || typeof val !== 'undefined') ? val : missingDataLabel;
+    }
+
+    // https://stackoverflow.com/a/16794116/1153897
+    // note this returns the obj keys
+    function sortObjByVals(obj) {
+        return Object.keys(obj).sort(function(a,b){return obj[a]-obj[b]})
+    }
+
+    // https://stackoverflow.com/a/28191966/1153897
+    function getKeyByValue(object, value) {
+        //return Object.keys(object).find(key => object[key] === value);
+        return Object.keys(object).filter(function(key) {return object[key] === value})[0];
+    }
+
+
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    var prepedData, cellHeight, cellWidth;
+    var uniqueX = {}, uniqueY = {}, uniqueColor = [];
+    var uniqueXMeta = [], uniqueYMeta = [], uniqueCells = []
+    var renderWatch = nv.utils.renderWatch(dispatch, duration);
+    var RdYlBu = ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"];
+
+    var getCellPos = function(d) { return d._cellPos; };
+    var getIX = function(d) { return getCellPos(d).ix; } // get the given cell's x index position
+    var getIY = function(d) { return getCellPos(d).iy; } // get the given cell's y index position
+    var getNorm = function(d) { return getCellPos(d).norm; }
+    var getIdx = function(d) { return getCellPos(d).idx; }
+
+
+    function chart(selection) {
+        renderWatch.reset();
+        selection.each(function(data) {
+
+            prepedData = prepData(data);
+
+            var availableWidth = width - margin.left - margin.right,
+                availableHeight = height - margin.top - margin.bottom;
+
+            // available width/height set the cell dimenions unless
+            // the aspect ratio is defined - in that case the cell
+            // height is adjusted and availableHeight updated
+            cellWidth = availableWidth / Object.keys(uniqueX).length;
+            cellHeight = cellAspectRatio ? cellWidth / cellAspectRatio : availableHeight / Object.keys(uniqueY).length;
+            if (cellAspectRatio) availableHeight = cellHeight * Object.keys(uniqueY).length - margin.top - margin.bottom;
+
+
+            container = d3.select(this);
+            nv.utils.initSVG(container);
+  
+            // Setup Scales
+            xScale.domain(xDomain || sortObjByVals(uniqueX))
+                  .rangeBands(xRange || [0, availableWidth-cellBorderWidth/2]);
+            yScale.domain(yDomain || sortObjByVals(uniqueY))
+                  .rangeBands(yRange || [0, availableHeight-cellBorderWidth/2]);
+            colorScale = cellsAreNumeric() ? d3.scale.quantize() : d3.scale.ordinal();
+            colorScale.domain(colorDomain || getColorDomain())
+                  .range(colorRange || RdYlBu);
+
+
+            // Setup containers and skeleton of chart
+            var wrap = container.selectAll('g.nv-heatMapWrap').data([prepedData]);
+            var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-heatMapWrap');
+            wrapEnter
+                .append('g')
+                .attr('class','cellWrap')
+
+            wrap.watchTransition(renderWatch, 'nv-wrap: heatMapWrap')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var gridWrap = wrapEnter
+                .append('g')
+                .attr('class','cellGrid')
+                .style('opacity',1e-6)
+
+            var gridLinesV = wrap.select('.cellGrid').selectAll('.gridLines.verticalGrid')
+                .data(Object.values(uniqueX).concat([Object.values(uniqueX).length]))
+                
+            gridLinesV.enter()
+                .append('line')
+                .attr('class','gridLines verticalGrid')
+
+            gridLinesV.exit()
+                .remove()
+
+            var gridLinesH = wrap.select('.cellGrid').selectAll('.gridLines.horizontalGrid')
+                .data(Object.values(uniqueY).concat([Object.values(uniqueY).length]))
+                
+            gridLinesH.enter()
+                .append('line')
+                .attr('class','gridLines horizontalGrid')
+
+            gridLinesH.exit()
+                .remove()
+
+            var cellWrap = wrap.select('.cellWrap')
+                .selectAll(".nv-cell")
+                .data(function(d) { return d; }, function(e) { return getIdx(e); })
+
+            var xMetaWrap = wrapEnter
+                .append('g')
+                .attr('class','xMetaWrap')
+                .attr("transform", function() { return "translate(0," + (-xMetaHeight()-cellBorderWidth-metaOffset) + ")" })
+
+            var xMetas = wrap.select('.xMetaWrap').selectAll('.x-meta')
+                .data(uniqueXMeta)
+
+            var xMetaEnter = xMetas
+                .enter()
+                .append('rect')
+                .attr('class','x-meta meta')
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", xMetaHeight())
+                .attr("transform", "translate(0,0)")
+                .attr("fill", function(d) { return xMetaColorScale(d); })
+
+            var yMetaWrap = wrapEnter
+                .append('g')
+                .attr('class','yMetaWrap')
+                .attr("transform", function(d,i) { return "translate(" + (-yMetaWidth()-cellBorderWidth-metaOffset) + ",0)" })
+
+            var yMetas = wrap.select('.yMetaWrap').selectAll('.y-meta')
+                .data(uniqueYMeta)
+
+            var yMetaEnter = yMetas
+                .enter()
+                .append('rect')
+                .attr('class','y-meta meta')
+                .attr("width", yMetaWidth())
+                .attr("height", cellHeight-cellBorderWidth)
+                .attr("transform", function(d,i) { return "translate(0,0)" })
+                .attr("fill", function(d,i) { return yMetaColorScale(d); })
+
+            xMetas.exit().remove()
+            yMetas.exit().remove()
+          
+            // CELLS    
+            var cellsEnter = cellWrap
+                .enter()
+                .append('g')
+                .style('opacity', 1e-6)
+                .attr("transform", function(d) { return "translate(0," + getIY(d) * cellHeight + ")" }) // enter all g's here for a sweep-right transition
+                .attr('data-row', function(d) { return getIY(d) })
+                .attr('data-column', function(d) { return getIX(d) });
+
+            cellsEnter
+                .append("rect") 
+
+            cellsEnter
+                .append('text')
+                .attr('text-anchor', 'middle')
+                .attr("dy", 4)
+                .attr("class","cell-text")
+
+            
+            // transition cell (rect) size
+            cellWrap.selectAll('rect')
+                .watchTransition(renderWatch, 'heatMap: rect')
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", cellHeight-cellBorderWidth)
+                .attr('rx', cellRadius)
+                .attr('ry', cellRadius)
+                .style('stroke', function(d) { return cellColor(d) })
+
+            // transition cell (g) position, opacity and fill
+            cellWrap
+                .attr("class",function(d) { return isNaN(getCellValue(d)) ? 'nv-cell cell-missing' : 'nv-cell'}) 
+                .watchTransition(renderWatch, 'heatMap: cells')
+                .style({
+                    'opacity': 1,
+                    'fill': function(d) { return cellColor(d) },
+                })
+                .attr("transform", function(d) { return "translate(" + getIX(d) * cellWidth + "," + getIY(d) * cellHeight + ")" })
+                .attr("class",function(d) { return isNaN(getCellValue(d)) ? 'nv-cell cell-missing' : 'nv-cell'}) 
+
+            cellWrap.exit().remove();
+
+            // transition text position and fill
+            cellWrap.selectAll('text')
+                .watchTransition(renderWatch, 'heatMap: cells text')
+                .text(function(d) { return cellValueLabel(d); })
+                .attr("x", function(d) { return (cellWidth-cellBorderWidth) / 2; })
+                .attr("y", function(d) { return (cellHeight-cellBorderWidth) / 2; })
+                .style("fill", function(d) { return cellTextColor(cellColor(d)) })
+                .style('opacity', function() { return showCellValues ? 1 : 0 })
+
+            // transition grid
+            wrap.selectAll('.verticalGrid')
+                .watchTransition(renderWatch, 'heatMap: gridLines') 
+                .attr('y1',0)
+                .attr('y2',availableHeight-cellBorderWidth)
+                .attr('x1',function(d) { return d*cellWidth-cellBorderWidth/2; })
+                .attr('x2',function(d) { return d*cellWidth-cellBorderWidth/2; })
+
+            var numHLines = Object.keys(uniqueY).length;
+            wrap.selectAll('.horizontalGrid')
+                .watchTransition(renderWatch, 'heatMap: gridLines') 
+                .attr('x1',function(d) { return (d == 0 || d == numHLines) ? -cellBorderWidth : 0 })
+                .attr('x2',function(d) { return (d == 0 || d == numHLines) ? availableWidth : availableWidth-cellBorderWidth})
+                .attr('y1',function(d) { return d*cellHeight-cellBorderWidth/2; })
+                .attr('y2',function(d) { return d*cellHeight-cellBorderWidth/2; })
+
+            wrap.select('.cellGrid')
+                .watchTransition(renderWatch, 'heatMap: gridLines')
+                .style({
+                    'stroke-width': cellBorderWidth,
+                    'opacity': function() { return showGrid ? 1 : 1e-6 },
+                })
+
+            var xMetaRect = wrap.selectAll('.x-meta')
+            var yMetaRect = wrap.selectAll('.y-meta')
+            var allMetaRect = wrap.selectAll('.meta')
+
+            // transition meta rect size
+            xMetas
+                .watchTransition(renderWatch, 'heatMap: xMetaRect') 
+                .attr("width", cellWidth-cellBorderWidth)
+                .attr("height", xMetaHeight())
+                .attr("transform", function(d,i) { return "translate(" + (i * cellWidth) + ",0)" })
+
+            yMetas
+                .watchTransition(renderWatch, 'heatMap: yMetaRect') 
+                .attr("width", yMetaWidth())
+                .attr("height", cellHeight-cellBorderWidth)
+                .attr("transform", function(d,i) { return "translate(0," + (i * cellHeight) + ")" })
+
+
+            // transition position of meta wrap g & opacity
+            wrap.select('.xMetaWrap')
+                .watchTransition(renderWatch, 'heatMap: xMetaWrap') 
+                .attr("transform", function(d,i) { return "translate(0," + (-xMetaHeight()-cellBorderWidth-metaOffset) + ")" })
+                .style("opacity", function() { return xMeta !== false ? 1 : 0 })
+            wrap.select('.yMetaWrap')
+                .watchTransition(renderWatch, 'heatMap: yMetaWrap') 
+                .attr("transform", function(d,i) { return "translate(" + (-yMetaWidth()-cellBorderWidth-metaOffset) + ",0)" })
+                .style("opacity", function() { return yMeta !== false ? 1 : 0 })
+
+            // TOOLTIPS
+            cellWrap
+                .on('mouseover', function(d,i) {
+
+                    var idx = getIdx(d);
+                    var ix = getIX(d);
+                    var iy = getIY(d);
+
+                    // set the proper classes for all cells
+                    // hover row gets class .row-hover
+                    // hover column gets class .column-hover
+                    // hover cell gets class .cell-hover
+                    // all remaining cells get class .no-hover
+                    d3.selectAll('.nv-cell').each(function(e) {
+                        if (idx == getIdx(e)) {
+                            d3.select(this).classed('cell-hover', true);
+                            d3.select(this).classed('no-hover', false);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('cell-hover', false);
+                        }
+                        if (ix == getIX(e)) {
+                            d3.select(this).classed('no-hover', false);
+                            d3.select(this).classed('column-hover', true);
+                        }
+                        if (iy == getIY(e)) {
+                            d3.select(this).classed('no-hover', false);
+                            d3.select(this).classed('row-hover', true);
+                        }
+                    })
+    
+                    // set hover classes for column metadata
+                    d3.selectAll('.x-meta').each(function(e, j) {
+                        if (j == ix) {
+                            d3.select(this).classed('cell-hover', true);
+                            d3.select(this).classed('no-hover', false);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('cell-hover', false);
+                        }
+                    });
+
+                    // set hover class for row metadata
+                    d3.selectAll('.y-meta').each(function(e, j) {
+                        if (j == iy) {
+                            d3.select(this).classed('cell-hover', true);
+                            d3.select(this).classed('no-hover', false);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('cell-hover', false);
+                        }
+                    });
+                    
+                    dispatch.elementMouseover({
+                        value: getKeyByValue(uniqueX, ix) + ' & ' + getKeyByValue(uniqueY, iy), 
+                        series: {
+                                value: cellValueLabel(d), 
+                                color: d3.select(this).select('rect').style("fill")
+                                },
+                        e: d3.event,
+                    });
+
+                })
+                .on('mouseout', function(d,i) {
+
+                    // allow tooltip to remain even when mouse is over the
+                    // space between the cell;
+                    // this prevents cells from "flashing" when transitioning
+                    // between cells
+                    var bBox = d3.select(this).select('rect').node().getBBox();
+                    var coordinates = d3.mouse(d3.select('.nv-heatMap').node());
+                    var x = coordinates[0];
+                    var y = coordinates[1];
+
+                    // we only trigger mouseout when mouse moves outside of
+                    // .nv-heatMap
+                    if (x + cellBorderWidth >= availableWidth || y + cellBorderWidth >= availableHeight || x < 0 || y < 0) {
+                        // remove all hover classes
+                        removeAllHoverClasses();
+
+                        dispatch.elementMouseout({e: d3.event});
+                    }
+                })
+                .on('mousemove', function(d,i) {
+
+                    dispatch.elementMousemove({e: d3.event});
+                })
+
+            allMetaRect
+                .on('mouseover', function(d,i) {
+
+                    // true if hovering over a row metadata rect
+                    var isColMeta = d3.select(this).attr('class').indexOf('x-meta') != -1 ? true : false;
+
+                    // apply proper .row-hover & .column-hover
+                    // classes to cells
+                    d3.selectAll('.nv-cell').each(function(e) {
+
+                        if (isColMeta && i == getIX(e)) {
+                            d3.select(this).classed('column-hover', true);
+                            d3.select(this).classed('no-hover', false);
+                        } else if (!isColMeta && i-uniqueXMeta.length == getIY(e)) {
+                            // since allMetaRect selects all the meta rects, the index for the y's will
+                            // be offset by the number of x rects. TODO - write seperate tooltip sections
+                            // for x meta rect & y meta rect
+                            d3.select(this).classed('row-hover', true);
+                            d3.select(this).classed('no-hover', false);
+                        } else {
+                            d3.select(this).classed('no-hover', true);
+                            d3.select(this).classed('column-hover', false);
+                            d3.select(this).classed('row-hover', false);
+                        }
+                        d3.select(this).classed('cell-hover', false);
+                    })
+
+                    // apply proper .row-hover & .column-hover
+                    // classes to meta rects
+                    d3.selectAll('.meta').classed('no-hover', true);
+                    d3.select(this).classed('cell-hover', true);
+                    d3.select(this).classed('no-hover', false);
+
+                    dispatch.elementMouseover({
+                        value: isColMeta ? 'Column meta' : 'Row meta',
+                        series: { value: d, color: d3.select(this).style('fill'), }
+                    });
+                })
+                .on('mouseout', function(d,i) {
+
+                    // true if hovering over a row metadata rect
+                    var isColMeta = d3.select(this).attr('class').indexOf('x-meta') != -1 ? true : false;
+
+                    // allow tooltip to remain even when mouse is over the
+                    // space between the cell;
+                    // this prevents cells from "flashing" when transitioning
+                    // between cells
+                    var bBox = d3.select(this).node().getBBox();
+                    var coordinates = d3.mouse(d3.select(isColMeta ? '.xMetaWrap' : '.yMetaWrap').node());
+                    var x = coordinates[0];
+                    var y = coordinates[1];
+
+                    if ( y < 0 || x < 0 || 
+                        (isColMeta && x + cellBorderWidth >= availableWidth) ||
+                        (!isColMeta && y + cellBorderWidth >= availableHeight)
+                    ) {
+                        // remove all hover classes
+                        removeAllHoverClasses();
+
+                        dispatch.elementMouseout({e: d3.event});
+                    }
+                })
+                .on('mousemove', function(d,i) {
+                    dispatch.elementMousemove({e: d3.event});
+                })
+
+        });
+
+
+        renderWatch.renderEnd('heatMap immediate');
+        return chart;
+    }
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:   {get: function(){return width;}, set: function(_){width=_;}},
+        height:  {get: function(){return height;}, set: function(_){height=_;}},
+        showCellValues: {get: function(){return showCellValues;}, set: function(_){showCellValues=_;}},
+        x:       {get: function(){return getX;}, set: function(_){getX=_;}}, // data attribute for horizontal axis
+        y:       {get: function(){return getY;}, set: function(_){getY=_;}}, // data attribute for vertical axis
+        cellValue:       {get: function(){return getCellValue;}, set: function(_){getCellValue=_;}}, // data attribute that sets cell value and color
+        missingDataColor:  {get: function(){return missingDataColor;}, set: function(_){missingDataColor=_;}},
+        missingDataLabel:  {get: function(){return missingDataLabel;}, set: function(_){missingDataLabel=_;}},
+        xScale:  {get: function(){return xScale;}, set: function(_){xScale=_;}},
+        yScale:  {get: function(){return yScale;}, set: function(_){yScale=_;}},
+        colorScale:  {get: function(){return colorScale;}, set: function(_){colorScale=_;}}, // scale to map cell values to colors
+        xDomain:  {get: function(){return xDomain;}, set: function(_){xDomain=_;}},
+        yDomain:  {get: function(){return yDomain;}, set: function(_){yDomain=_;}},
+        xRange:  {get: function(){return xRange;}, set: function(_){xRange=_;}},
+        yRange:  {get: function(){return yRange;}, set: function(_){yRange=_;}},
+        colorRange:  {get: function(){return colorRange;}, set: function(_){colorRange=_;}},
+        colorDomain:  {get: function(){return colorDomain;}, set: function(_){colorDomain=_;}},
+        xMeta:  {get: function(){return xMeta;}, set: function(_){xMeta=_;}},
+        yMeta:  {get: function(){return yMeta;}, set: function(_){yMeta=_;}},
+        xMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
+        yMetaColorScale:  {get: function(){return color;}, set: function(_){color = nv.utils.getColor(_);}},
+        cellAspectRatio:  {get: function(){return cellAspectRatio;}, set: function(_){cellAspectRatio=_;}}, // cell width / height
+        cellRadius:  {get: function(){return cellRadius;}, set: function(_){cellRadius=_;}}, // cell width / height
+        cellHeight:  {get: function(){return cellHeight;}}, // TODO - should not be exposed since we don't want user setting this
+        cellWidth:   {get: function(){return cellWidth;}}, // TODO - should not be exposed since we don't want user setting this
+        normalize:   {get: function(){return normalize;}, set: function(_){normalize=_;}},
+        cellBorderWidth:     {get: function(){return cellBorderWidth;}, set: function(_){cellBorderWidth=_;}},
+        highContrastText:    {get: function(){return highContrastText;}, set: function(_){highContrastText=_;}},
+        cellValueFormat:     {get: function(){return cellValueFormat;}, set: function(_){cellValueFormat=_;}},
+        id:                  {get: function(){return id;}, set: function(_){id=_;}},
+        metaOffset:          {get: function(){return metaOffset;}, set: function(_){metaOffset=_;}},
+        xMetaHeight:         {get: function(){return xMetaHeight;}, set: function(_){xMetaHeight=_;}},
+        yMetaWidth:          {get: function(){return yMetaWidth;}, set: function(_){yMetaWidth=_;}},
+        showGrid:          {get: function(){return showGrid;}, set: function(_){showGrid=_;}},
+
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            margin.top    = _.top    !== undefined ? _.top    : margin.top;
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+        }}
+    });
+
+    nv.utils.initOptions(chart);
+
+
+    return chart;
+};
+/* Heatmap Chart Type
+
+A heatmap is a graphical representation of data where the individual values
+contained in a matrix are represented as colors within cells. Furthermore,
+metadata can be associated with each of the matrix rows or columns. By grouping
+these rows/columns together by a given metadata value, data trends can be spotted.
+
+Format for input data should be:
+var data = [
+    {day: 'mo', hour: '1a', value: 16, timeperiod: 'early morning', weekperiod: 'week', category: 1},
+    {day: 'mo', hour: '2a', value: 20, timeperiod: 'early morning', weekperiod: 'week', category: 2},
+    {day: 'mo', hour: '3a', value: 0, timeperiod: 'early morning', weekperiod: 'week', category: 1},
+    ...
+]
+where the keys 'day' and 'hour' specify the row/column of the heatmap, 'value' specifies the  cell
+value and the keys 'timeperiod', 'weekperiod' and 'week' are extra metadata that can be associated
+with rows/columns.
+
+
+Options for chart:
+*/
+nv.models.heatMapChart = function() {
+    "use strict";
+
+    //============================================================
+    // Public Variables with Default Settings
+    //------------------------------------------------------------
+
+    var heatMap = nv.models.heatMap()
+        , legend = nv.models.legend()
+        , legendRowMeta = nv.models.legend()
+        , legendColumnMeta = nv.models.legend()
+        , tooltip = nv.models.tooltip()
+        , xAxis = nv.models.axis()
+        , yAxis = nv.models.axis()
+        ;
+
+
+    var margin = {top: 20, right: 10, bottom: 50, left: 60}
+        , marginTop = null
+        , width = null
+        , height = null
+        , color = nv.utils.getColor()
+        , showLegend = true
+        , staggerLabels = false
+        , showXAxis = true
+        , showYAxis = true
+        , alignYAxis = 'left'
+        , alignXAxis = 'top'
+        , rotateLabels = 0
+        , title = false
+        , x
+        , y
+        , noData = null
+        , dispatch = d3.dispatch('beforeUpdate','renderEnd')
+        , duration = 250
+        ;
+
+    xAxis
+        .orient(alignXAxis)
+        .showMaxMin(false)
+        .tickFormat(function(d) { return d })
+    ;
+    yAxis
+        .orient(alignYAxis)
+        .showMaxMin(false)
+        .tickFormat(function(d) { return d })
+    ;
+
+    tooltip
+        .duration(0)
+        .headerEnabled(true)
+        .keyFormatter(function(d, i) {
+            return xAxis.tickFormat()(d, i);
+        })
+
+
+    //============================================================
+    // Private Variables
+    //------------------------------------------------------------
+
+    // https://bl.ocks.org/mbostock/4573883
+    // get max/min range for all the quantized cell values
+    // returns an array where each element is [start,stop]
+    // of color bin
+    function quantizeLegendValues() {
+
+        var e = heatMap.colorScale(), legendVals;
+
+        if (typeof e.domain()[0] === 'string') { // if color scale is ordinal
+
+            legendVals = e.domain();
+
+        } else { // if color scale is numeric
+
+            legendVals = e.range().map(function(color) {
+              var d = e.invertExtent(color);
+              if (d[0] === null) d[0] = e.domain()[0];
+              if (d[1] === null) d[1] = e.domain()[1];
+              return d;
+            })
+
+        }
+
+        return legendVals
+
+    }
+
+    // return true if row metadata specified by user
+    function hasRowMeta() {
+        return typeof heatMap.yMeta() === 'function'
+    }
+    // return true if col metadata specified by user
+    function hasColumnMeta() {
+        return typeof heatMap.xMeta() === 'function'
+    }
+
+    var renderWatch = nv.utils.renderWatch(dispatch, duration);
+
+    function chart(selection) {
+        renderWatch.reset();
+        renderWatch.models(heatMap);
+        renderWatch.models(xAxis);
+        renderWatch.models(yAxis);
+
+        selection.each(function(data) {
+            var container = d3.select(this),
+                that = this;
+            nv.utils.initSVG(container);
+
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
+
+            chart.update = function() {
+                dispatch.beforeUpdate();
+                container.transition().duration(duration).call(chart);
+            };
+            chart.container = this;
+
+            // Display No Data message if there's nothing to show.
+            if (!data || !data.length) {
+                nv.utils.noData(chart, container);
+                return chart;
+            } else {
+                container.selectAll('.nv-noData').remove();
+            }
+
+            // Setup Scales
+            x = heatMap.xScale();
+            y = heatMap.yScale();
+
+            // Setup containers and skeleton of chart
+            var wrap = container.selectAll('g.nv-wrap').data([data]);
+            var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap').append('g');
+            var g = wrap.select('g');
+
+
+            gEnter.append('g').attr('class', 'nv-heatMap');
+            gEnter.append('g').attr('class', 'nv-legendWrap');
+            gEnter.append('g').attr('class', 'nv-x nv-axis');
+            gEnter.append('g').attr('class', 'nv-y nv-axis')
+
+            g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+            heatMap
+                .width(availableWidth)
+                .height(availableHeight);
+
+
+            var heatMapWrap = g.select('.nv-heatMap')
+                .datum(data.filter(function(d) { return !d.disabled }));
+
+
+            heatMapWrap.transition().call(heatMap);
+
+
+            if (heatMap.cellAspectRatio()) {
+                availableHeight = heatMap.cellHeight() * y.domain().length;
+                heatMap.height(availableHeight);
+            }
+
+
+            // Setup Axes
+            xAxis
+                .scale(x)
+                ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+                .tickSize(-availableHeight, 0);
+
+            var axisX = g.select('.nv-x.nv-axis')
+
+            axisX.call(xAxis)
+                .watchTransition(renderWatch, 'heatMap: axisX')
+                .selectAll('.tick')
+                .style('opacity', function() { return showXAxis ? 1 : 0 } )
+
+            var xTicks = axisX.selectAll('g');
+
+            xTicks
+                .selectAll('.tick text')
+                .attr('transform', function(d,i,j) {
+                    var rot = rotateLabels != 0 ? rotateLabels : '0';
+                    var stagger = staggerLabels ? j % 2 == 0 ? '5' : '17' : '0';
+                    return 'translate(0, ' + stagger + ') rotate(' + rot + ' 0,0)';
+                })
+                .style('text-anchor', rotateLabels > 0 ? 'start' : rotateLabels < 0 ? 'end' : 'middle');
+
+            // position text in center of meta rects
+            var yPos = -5;
+            if (hasColumnMeta()) {
+                axisX.selectAll('text').style('text-anchor', 'middle')
+                yPos = -heatMap.xMetaHeight()()/2 - heatMap.metaOffset() + 3;
+            }
+
+            // adjust position of axis based on presence of metadata group
+            if (alignXAxis == 'bottom') {
+                axisX
+                    .watchTransition(renderWatch, 'heatMap: axisX')
+                    .attr("transform", "translate(0," + (availableHeight - yPos) + ")");
+                if (heatMap.xMeta() !== false) { // if showing x metadata
+                    var pos = availableHeight+heatMap.metaOffset()+heatMap.cellBorderWidth()
+                    g.select('.xMetaWrap')
+                        .watchTransition(renderWatch, 'heatMap: xMetaWrap')
+                        .attr("transform", function(d,i) { return "translate(0," + pos + ")" })
+                }
+            } else {
+                axisX
+                    .watchTransition(renderWatch, 'heatMap: axisX')
+                    .attr("transform", "translate(0," + yPos + ")");
+            }
+
+
+            yAxis
+                .scale(y)
+                ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                .tickSize( -availableWidth, 0);
+
+            var axisY = g.select('.nv-y.nv-axis')
+
+            axisY.call(yAxis)
+                .watchTransition(renderWatch, 'heatMap: axisY')
+                .selectAll('.tick')
+                .style('opacity', function() { return showYAxis ? 1 : 0 } )
+
+            // position text in center of meta rects
+            var xPos = -5;
+            if (hasRowMeta()) {
+                axisY.selectAll('text').style('text-anchor', 'middle')
+                xPos = -heatMap.yMetaWidth()()/2 - heatMap.metaOffset();
+            }
+
+            // adjust position of axis based on presence of metadata group
+            if (alignYAxis == 'right') {
+                axisY.attr("transform", "translate(" + (availableWidth - xPos) + ",0)");
+                if (heatMap.yMeta() !== false) { // if showing y meatdata
+                    var pos = availableWidth+heatMap.metaOffset()+heatMap.cellBorderWidth()
+                    g.select('.yMetaWrap')
+                        .watchTransition(renderWatch, 'heatMap: yMetaWrap')
+                        .attr("transform", function(d,i) { return "translate(" + pos + ",0)" })
+                }
+            } else {
+                axisY.attr("transform", "translate(" + xPos + ",0)");
+            }
+
+
+
+            // Legend
+            var legendWrap = g.select('.nv-legendWrap')
+
+            legend
+                .width(availableWidth)
+                .color(heatMap.colorScale().range())
+
+            var legendVal = quantizeLegendValues().map(function(d) {
+                if (Array.isArray(d)) { // if cell values are numeric
+                    return {key: d[0].toFixed(1) + " - " + d[1].toFixed(1)};
+                } else { // if cell values are ordinal
+                    return {key: d};
+                }
+            })
+            
+
+            legendWrap
+                .datum(legendVal)
+                .call(legend)
+                .attr('transform', 'translate(0,' + (alignXAxis == 'top' ? availableHeight : -30) + ')'); // TODO: more intelligent offset (-30) when top aligning legend
+
+            legendWrap
+                .watchTransition(renderWatch, 'heatMap: nv-legendWrap')
+                .style('opacity', function() { return showLegend ? 1 : 0 } )
+
+        });
+
+        // axis don't have a flag for disabling the zero line, so we do it manually
+        d3.selectAll('.nv-axis').selectAll('line')
+            .style('stroke-opacity', 0)
+        d3.select('.nv-y').select('path.domain').remove()
+
+        renderWatch.renderEnd('heatMap chart immediate');
+
+        return chart;
+    }
+
+    //============================================================
+    // Event Handling/Dispatching (out of chart's scope)
+    //------------------------------------------------------------
+
+    heatMap.dispatch.on('elementMouseover.tooltip', function(evt) {
+        tooltip.data(evt).hidden(false);
+    });
+
+    heatMap.dispatch.on('elementMouseout.tooltip', function(evt) {
+        tooltip.hidden(true);
+    });
+
+    heatMap.dispatch.on('elementMousemove.tooltip', function(evt) {
+        tooltip();
+    });
+
+    //============================================================
+    // Expose Public Variables
+    //------------------------------------------------------------
+
+    chart.dispatch = dispatch;
+    chart.heatMap = heatMap;
+    chart.legend = legend;
+    chart.xAxis = xAxis;
+    chart.yAxis = yAxis;
+    chart.tooltip = tooltip;
+
+    chart.options = nv.utils.optionsFunc.bind(chart);
+
+    chart._options = Object.create({}, {
+        // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
+        showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
+        noData:     {get: function(){return noData;}, set: function(_){noData=_;}},
+        showXAxis:     {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
+        showYAxis:     {get: function(){return showYAxis;}, set: function(_){showYAxis=_;}},
+        staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
+        rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
+
+        // options that require extra logic in the setter
+        margin: {get: function(){return margin;}, set: function(_){
+            if (_.top !== undefined) {
+                margin.top = _.top;
+                marginTop = _.top;
+            }
+            margin.right  = _.right  !== undefined ? _.right  : margin.right;
+            margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+            margin.left   = _.left   !== undefined ? _.left   : margin.left;
+        }},
+        duration: {get: function(){return duration;}, set: function(_){
+            duration = _;
+            renderWatch.reset(duration);
+            heatMap.duration(duration);
+            xAxis.duration(duration);
+            yAxis.duration(duration);
+        }},
+        alignYAxis: {get: function(){return alignYAxis;}, set: function(_){
+            alignYAxis = _;
+            yAxis.orient(_);
+        }},
+        alignXAxis: {get: function(){return alignXAxis;}, set: function(_){
+            alignXAxis = _;
+            xAxis.orient(_);
+        }},
+    });
+
+    nv.utils.inheritOptions(chart, heatMap);
+    nv.utils.initOptions(chart);
+
+    return chart;
+}
 //TODO: consider deprecating and using multibar with single series for this
 nv.models.historicalBar = function() {
     "use strict";
@@ -8181,7 +9458,7 @@ nv.models.lineChart = function() {
             // Update Focus
             //============================================================
             if (!focusEnable && focus.brush.extent() === null) {
-                linesWrap.call(lines);
+                linesWrap.transition().call(lines);
                 updateXAxis();
                 updateYAxis();
             } else {
@@ -8226,21 +9503,23 @@ nv.models.lineChart = function() {
                             }
                         });
 
-                        pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
-                        var point = currentValues[pointIndex];
-                        var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue !== null) {
-                            lines.highlightPoint(i, series.values.indexOf(point), true);
+                        if (currentValues.length > 0) {
+                            pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
+                            var point = currentValues[pointIndex];
+                            var pointYValue = chart.y()(point, pointIndex);
+                            if (pointYValue !== null) {
+                                lines.highlightPoint(i, series.values.indexOf(point), true);
+                            }
+                            if (point === undefined) return;
+                            if (singlePoint === undefined) singlePoint = point;
+                            if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                            allData.push({
+                                key: series.key,
+                                value: pointYValue,
+                                color: color(series,series.seriesIndex),
+                                data: point
+                            });
                         }
-                        if (point === undefined) return;
-                        if (singlePoint === undefined) singlePoint = point;
-                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-                        allData.push({
-                            key: series.key,
-                            value: pointYValue,
-                            color: color(series,series.seriesIndex),
-                            data: point
-                        });
                     });
                 //Highlight the tooltip entry based on which point the mouse is closest to.
                 if (allData.length > 2) {
@@ -8256,16 +9535,17 @@ nv.models.lineChart = function() {
                     return d == null ? "N/A" : yAxis.tickFormat()(d);
                 };
 
-                interactiveLayer.tooltip
-                    .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
-                    .data({
-                        value: chart.x()( singlePoint,pointIndex ),
-                        index: pointIndex,
-                        series: allData
-                    })();
+                if (typeof pointIndex !== 'undefined') {
+                    interactiveLayer.tooltip
+                        .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
+                        .data({
+                            value: chart.x()( singlePoint,pointIndex ),
+                            index: pointIndex,
+                            series: allData
+                        })();
 
-                interactiveLayer.renderGuideLine(pointXLocation);
-
+                    interactiveLayer.renderGuideLine(pointXLocation);
+                }
             });
 
             interactiveLayer.dispatch.on('elementClick', function(e) {
@@ -14056,13 +15336,12 @@ nv.models.scatter = function() {
 
                 if (!interactive) return false;
                 container.selectAll(".nv-point.hover").classed("hover", false);
+
+                // nuke all voronoi paths
+                wrap.select('.nv-point-paths').selectAll('path').remove();
+
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
-
-                	
-                    // nuke all voronoi paths on reload and recreate them
-                    wrap.select('.nv-point-paths').selectAll('path').remove();
-
                     var vertices = d3.merge(data.map(function(group, groupIndex) {
                             return group.values
                                 .map(function(point, pointIndex) {
@@ -14114,6 +15393,10 @@ nv.models.scatter = function() {
                     }
 
                     var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
+                        if (d.length === 0) {
+                            return null;
+                        }
+
                         return {
                             'data': bounds.clip(d),
                             'series': vertices[i][2],
@@ -14212,8 +15495,8 @@ nv.models.scatter = function() {
                         //.style('pointer-events', 'auto') // recativate events, disabled by css
                         .on('click', function(d,i) {
                             //nv.log('test', d, i);
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
                             var element = this;
                             dispatch.elementClick({
@@ -14221,15 +15504,15 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top], //TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i,
                                 event: d3.event,
                                 element: element
                             });
                         })
                         .on('dblclick', function(d,i) {
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
 
                             dispatch.elementDblClick({
@@ -14237,13 +15520,13 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i
                             });
                         })
                         .on('mouseover', function(d,i) {
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
 
                             dispatch.elementMouseover({
@@ -14251,14 +15534,14 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i,
-                                color: color(d, i)
+                                color: color(d[0], i)
                             });
                         })
                         .on('mouseout', function(d,i) {
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
 
                             dispatch.elementMouseout({
@@ -14266,9 +15549,9 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i,
-                                color: color(d, i)
+                                color: color(d[0], i)
                             });
                         });
                 }
@@ -14410,6 +15693,8 @@ nv.models.scatter = function() {
                     .classed('hover',false);
                 });
                 titles.watchTransition(renderWatch, 'scatter labels')
+                    .text(function(d,i){ 
+                        return d[0].label;})
                     .attr('transform', function(d) {
                         var dx = nv.utils.NaNtoZero(x(getX(d[0],d[1])))+ Math.sqrt(z(getSize(d[0],d[1]))/Math.PI)+2;
                         return 'translate(' + dx + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
@@ -14790,37 +16075,40 @@ nv.models.scatterChart = function() {
             }
 
             // Setup Distribution
-            if (showDistX) {
-                distX
-                    .getData(scatter.x())
-                    .scale(x)
-                    .width(availableWidth)
-                    .color(data.map(function(d,i) {
-                        return d.color || color(d, i);
-                    }).filter(function(d,i) { return !data[i].disabled }));
-                gEnter.select('.nv-distWrap').append('g')
-                    .attr('class', 'nv-distributionX');
-                g.select('.nv-distributionX')
-                    .attr('transform', 'translate(0,' + y.range()[0] + ')')
-                    .datum(data.filter(function(d) { return !d.disabled }))
-                    .call(distX);
-            }
+            distX
+                .getData(scatter.x())
+                .scale(x)
+                .width(availableWidth)
+                .color(data.map(function(d,i) {
+                    return d.color || color(d, i);
+                }).filter(function(d,i) { return !data[i].disabled }));
+            gEnter.select('.nv-distWrap').append('g')
+                .attr('class', 'nv-distributionX');
+            g.select('.nv-distributionX')
+                .attr('transform', 'translate(0,' + y.range()[0] + ')')
+                .datum(data.filter(function(d) { return !d.disabled }))
+                .call(distX)
+                .style('opacity', function() { return showDistX ? '1' : '1e-6'; })
+                .watchTransition(renderWatch, 'scatterPlusLineChart')
+                .style('opacity', function() { return showDistX ? '1' : '1e-6'; })
 
-            if (showDistY) {
-                distY
-                    .getData(scatter.y())
-                    .scale(y)
-                    .width(availableHeight)
-                    .color(data.map(function(d,i) {
-                        return d.color || color(d, i);
-                    }).filter(function(d,i) { return !data[i].disabled }));
-                gEnter.select('.nv-distWrap').append('g')
-                    .attr('class', 'nv-distributionY');
-                g.select('.nv-distributionY')
-                    .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
-                    .datum(data.filter(function(d) { return !d.disabled }))
-                    .call(distY);
-            }
+
+            distY
+                .getData(scatter.y())
+                .scale(y)
+                .width(availableHeight)
+                .color(data.map(function(d,i) {
+                    return d.color || color(d, i);
+                }).filter(function(d,i) { return !data[i].disabled }));
+            gEnter.select('.nv-distWrap').append('g')
+                .attr('class', 'nv-distributionY');
+            g.select('.nv-distributionY')
+                .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
+                .datum(data.filter(function(d) { return !d.disabled }))
+                .call(distY)
+                .style('opacity', function() { return showDistY ? '1' : '1e-6'; })
+                .watchTransition(renderWatch, 'scatterPlusLineChart')
+                .style('opacity', function() { return showDistY ? '1' : '1e-6'; })
 
             //============================================================
             // Event Handling/Dispatching (in chart's scope)
@@ -15792,8 +17080,7 @@ nv.models.stackedAreaChart = function() {
                 g.select('.nv-legendWrap').datum(data).call(legend);
 
                 if (legendPosition === 'bottom') {
-                	// constant from axis.js, plus some margin for better layout
-                	var xAxisHeight = (showXAxis ? 12 : 0) + 10;
+                	var xAxisHeight = xAxis.height();
                    	margin.bottom = Math.max(legend.height() + xAxisHeight, margin.bottom);
                    	availableHeight = nv.utils.availableHeight(height, container, margin) - (focusEnable ? focus.height() : 0);
                 	var legendTop = availableHeight + xAxisHeight;
@@ -15826,6 +17113,12 @@ nv.models.stackedAreaChart = function() {
                         metaKey: 'Stream',
                         disabled: stacked.style() != 'stream',
                         style: 'stream'
+                    },
+                    {
+                        key: controlLabels.stream_center || 'Stream Center',
+                        metaKey: 'Stream_Center',
+                        disabled: stacked.style() != 'stream_center',
+                        style: 'stream-center'
                     },
                     {
                         key: controlLabels.expanded || 'Expanded',
@@ -16035,7 +17328,7 @@ nv.models.stackedAreaChart = function() {
                             stacked.highlightPoint(i, pointIndex, true);
                             atleastOnePoint = true;
                         }
-                    
+
                         // Draw at least one point if all values are zero.
                         if (i === (data.length - 1) && !atleastOnePoint) {
                             stacked.highlightPoint(i, pointIndex, true);

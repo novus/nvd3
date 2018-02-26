@@ -253,7 +253,7 @@ nv.models.lineChart = function() {
             // Update Focus
             //============================================================
             if (!focusEnable && focus.brush.extent() === null) {
-                linesWrap.call(lines);
+                linesWrap.transition().call(lines);
                 updateXAxis();
                 updateYAxis();
             } else {
@@ -298,21 +298,23 @@ nv.models.lineChart = function() {
                             }
                         });
 
-                        pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
-                        var point = currentValues[pointIndex];
-                        var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue !== null) {
-                            lines.highlightPoint(i, series.values.indexOf(point), true);
+                        if (currentValues.length > 0) {
+                            pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, lines.x());
+                            var point = currentValues[pointIndex];
+                            var pointYValue = chart.y()(point, pointIndex);
+                            if (pointYValue !== null) {
+                                lines.highlightPoint(i, series.values.indexOf(point), true);
+                            }
+                            if (point === undefined) return;
+                            if (singlePoint === undefined) singlePoint = point;
+                            if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+                            allData.push({
+                                key: series.key,
+                                value: pointYValue,
+                                color: color(series,series.seriesIndex),
+                                data: point
+                            });
                         }
-                        if (point === undefined) return;
-                        if (singlePoint === undefined) singlePoint = point;
-                        if (pointXLocation === undefined) pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-                        allData.push({
-                            key: series.key,
-                            value: pointYValue,
-                            color: color(series,series.seriesIndex),
-                            data: point
-                        });
                     });
                 //Highlight the tooltip entry based on which point the mouse is closest to.
                 if (allData.length > 2) {
@@ -328,16 +330,17 @@ nv.models.lineChart = function() {
                     return d == null ? "N/A" : yAxis.tickFormat()(d);
                 };
 
-                interactiveLayer.tooltip
-                    .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
-                    .data({
-                        value: chart.x()( singlePoint,pointIndex ),
-                        index: pointIndex,
-                        series: allData
-                    })();
+                if (typeof pointIndex !== 'undefined') {
+                    interactiveLayer.tooltip
+                        .valueFormatter(interactiveLayer.tooltip.valueFormatter() || defaultValueFormatter)
+                        .data({
+                            value: chart.x()( singlePoint,pointIndex ),
+                            index: pointIndex,
+                            series: allData
+                        })();
 
-                interactiveLayer.renderGuideLine(pointXLocation);
-
+                    interactiveLayer.renderGuideLine(pointXLocation);
+                }
             });
 
             interactiveLayer.dispatch.on('elementClick', function(e) {

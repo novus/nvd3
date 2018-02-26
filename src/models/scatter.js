@@ -240,13 +240,12 @@ nv.models.scatter = function() {
 
                 if (!interactive) return false;
                 container.selectAll(".nv-point.hover").classed("hover", false);
+
+                // nuke all voronoi paths
+                wrap.select('.nv-point-paths').selectAll('path').remove();
+
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
-
-                	
-                    // nuke all voronoi paths on reload and recreate them
-                    wrap.select('.nv-point-paths').selectAll('path').remove();
-
                     var vertices = d3.merge(data.map(function(group, groupIndex) {
                             return group.values
                                 .map(function(point, pointIndex) {
@@ -298,6 +297,10 @@ nv.models.scatter = function() {
                     }
 
                     var voronoi = d3.geom.voronoi(vertices).map(function(d, i) {
+                        if (d.length === 0) {
+                            return null;
+                        }
+
                         return {
                             'data': bounds.clip(d),
                             'series': vertices[i][2],
@@ -396,8 +399,8 @@ nv.models.scatter = function() {
                         //.style('pointer-events', 'auto') // recativate events, disabled by css
                         .on('click', function(d,i) {
                             //nv.log('test', d, i);
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
                             var element = this;
                             dispatch.elementClick({
@@ -405,15 +408,15 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top], //TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i,
                                 event: d3.event,
                                 element: element
                             });
                         })
                         .on('dblclick', function(d,i) {
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
 
                             dispatch.elementDblClick({
@@ -421,13 +424,13 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i
                             });
                         })
                         .on('mouseover', function(d,i) {
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
 
                             dispatch.elementMouseover({
@@ -435,14 +438,14 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i,
-                                color: color(d, i)
+                                color: color(d[0], i)
                             });
                         })
                         .on('mouseout', function(d,i) {
-                            if (needsUpdate || !data[d.series]) return 0; //check if this is a dummy point
-                            var series = data[d.series],
+                            if (needsUpdate || !data[d[0].series]) return 0; //check if this is a dummy point
+                            var series = data[d[0].series],
                                 point  = series.values[i];
 
                             dispatch.elementMouseout({
@@ -450,9 +453,9 @@ nv.models.scatter = function() {
                                 series: series,
                                 pos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],//TODO: make this pos base on the page
                                 relativePos: [x(getX(point, i)) + margin.left, y(getY(point, i)) + margin.top],
-                                seriesIndex: d.series,
+                                seriesIndex: d[0].series,
                                 pointIndex: i,
-                                color: color(d, i)
+                                color: color(d[0], i)
                             });
                         });
                 }
@@ -594,6 +597,8 @@ nv.models.scatter = function() {
                     .classed('hover',false);
                 });
                 titles.watchTransition(renderWatch, 'scatter labels')
+                    .text(function(d,i){ 
+                        return d[0].label;})
                     .attr('transform', function(d) {
                         var dx = nv.utils.NaNtoZero(x(getX(d[0],d[1])))+ Math.sqrt(z(getSize(d[0],d[1]))/Math.PI)+2;
                         return 'translate(' + dx + ',' + nv.utils.NaNtoZero(y(getY(d[0],d[1]))) + ')'
