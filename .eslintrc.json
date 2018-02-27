@@ -31,7 +31,7 @@
       "always"
     ],
     "prefer-arrow-callback": [
-      "error",
+      "never",
       {
         "allowNamedFunctions": true
       }

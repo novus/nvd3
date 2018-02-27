@@ -118,8 +118,11 @@ module.exports = function(grunt) {
         karma: {
             unit: {
                 options: {
-                    logLevel: 'ERROR',
+                    logLevel: 'DEBUG',
                     browsers: ['Firefox'],
+                    browserNoActivityTimeout: 60000,
+                    browserDisconnectTimeout: 60000,
+                    captureTimeout: 60000,
                     frameworks: [ 'mocha', 'sinon-chai' ],
                     reporters: [ 'spec', 'junit', 'coverage'],
                     singleRun: true,
@@ -130,10 +133,12 @@ module.exports = function(grunt) {
                     },
                     files: [
                         'bower_components/d3/d3.js',
+                        'node_modules/moment/moment.js',
                         'src/*.js',
                         'src/models/*.js',
                         'test/mocha/*.coffee',
-	                    'https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js',
+                        'https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js',
+                        'test/mocha/*.js'
                     ],
                     exclude: [
                         'src/intro.js',
@@ -145,8 +150,7 @@ module.exports = function(grunt) {
                         'src/models/indented*',
                         'src/models/linePlus*',
                         'src/models/ohlcBar.js',
-                        'src/models/candlestickBar.js',
-                        'src/models/multiChart.js'
+                        'src/models/candlestickBar.js'
                     ]
                 }
             }
