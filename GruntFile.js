@@ -137,7 +137,7 @@ module.exports = function(grunt) {
                         'src/*.js',
                         'src/models/*.js',
                         'test/mocha/*.coffee',
-	                      'https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js',
+                        'https://cdn.rawgit.com/Kcnarf/d3-beeswarm/fbda9b54/build/d3-beeswarm.min.js',
                         'test/mocha/*.js'
                     ],
                     exclude: [

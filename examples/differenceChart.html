@@ -37,6 +37,14 @@
 
 </div>
 <script>
+  // Use the browser's built-in functionality to quickly and safely escape
+  // the string
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
   let actual, predicted, data, chart;
 
   async function readTextFile(file) {
@@ -115,10 +123,10 @@
               value = diff.toFixed(2);
             }
           }
-          bodyhtml = bodyhtml + "<tr><td class='legend-color-guide'><div style='background-color: " + c.color + ";'></div></td><td class='key'>" + c.key + "</td><td class='value'>" + value + "</td></tr>";
+          bodyhtml = bodyhtml + "<tr><td class='legend-color-guide'><div style='background-color: " + escapeHtml(c.color) + ";'></div></td><td class='key'>" + escapeHtml(c.key) + "</td><td class='value'>" + escapeHtml(value) + "</td></tr>";
         });
         bodyhtml = bodyhtml+"</tbody>";
-        return "<table>"+headerhtml+''+bodyhtml+"</table>";
+        return "<table>" + headerhtml + '' + bodyhtml + "</table>";
       });
       chart.xAxis.tickFormatMaxMin(d3.time.format('%b %d'));
       chart.focus.xAxis.tickFormatMaxMin(d3.time.format('%b %d'));
@@ -126,8 +134,6 @@
       chart.focusMargin({top:10})
 
       chart.margin({ top: 60 });
-
-      // chart.multiChart.legend.margin({ bottom: 60 });
 
       d3.select('svg#chart2')
         .datum(data)
