@@ -24,7 +24,6 @@
     </style>
 </head>
 <body class='with-3d-shadow with-transitions'>
-<button onclick="expandLegend();">Expand/Contract Legend</button>
 <script>
   var expandLegend = function() {
       var exp = chart.multiChart.legend.expanded();
@@ -37,6 +36,8 @@
 
 </div>
 <script>
+  'use strict';
+
   // Use the browser's built-in functionality to quickly and safely escape
   // the string
   function escapeHtml(str) {
@@ -45,107 +46,132 @@
     return div.innerHTML;
   }
 
-  let actual, predicted, data, chart;
+  var chart;
 
-  async function readTextFile(file) {
-    return new Promise((resolve) => {
+  function readTextFile(file) {
+    return new Promise(function (resolve) {
       var rawFile = new XMLHttpRequest();
       rawFile.overrideMimeType('application/json');
       rawFile.open('GET', file, true);
-      rawFile.onreadystatechange = function() {
+      rawFile.onreadystatechange = function () {
         if (rawFile.readyState === 4 && rawFile.status == '200') {
           resolve(rawFile.responseText);
         }
-      }
+      };
       rawFile.send(null);
     });
   }
 
-  const keyForActualLessThanPredicted = 'Savings (kWh)';
-  const keyForActualGreaterThanPredicted = 'Excess Usage (kWh)';
+  var keyForActualLessThanPredicted = 'Savings (kWh)';
+  var keyForActualGreaterThanPredicted = 'Excess Usage (kWh)';
 
-  async function loadData() {
-    actual = await readTextFile('./actual.json');
-    predicted = await readTextFile('./predicted.json');
-    const actualData = JSON.parse(actual);
-    const predictedData = JSON.parse(predicted);
+  function loadData() {
+    return Promise.all([readTextFile('./actual.json'), readTextFile('./predicted.json')]).then(function (jsonResult) {
+      return new Promise(function (resolve, reject) {
+        var actualData = JSON.parse(jsonResult[0]);
+        var predictedData = JSON.parse(jsonResult[1]);
 
-    data = [{
-      key: 'Actual usage (kWh)',
-      type: 'actual',
-      values: actualData[0].values,
-      color: 'black'
-    }, {
-      key: 'Predicted usage (kWh)',
-      type: 'expected',
-      values: predictedData.map(d => {
-        return {
-          recorded_at: d.falling_edge,
-          value: d.predicted
-        };
-      }),
-      color: 'blue'
-    }];
+        resolve([{
+          key: 'Actual usage (kWh)',
+          type: 'actual',
+          values: actualData[0].values,
+          color: 'black'
+        }, {
+          key: 'Predicted usage (kWh)',
+          type: 'expected',
+          values: predictedData.map(function (d) {
+            return {
+              recorded_at: d.falling_edge,
+              value: d.predicted
+            };
+          }),
+          color: 'blue'
+        }]);
+      });
+    });
   }
 
-  async function main() {
-    const colors = d3.scale.category20();
+  function main() {
+    var colors = d3.scale.category20();
+    var lang = d3.locale({
+      "dateTime": '%H:%M %A %e %B, %Y',
+      "date": '%Y-%m-%d',
+      "time": "%H:%M:%S",
+      "periods": ['am', 'pm'],
+      "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    });
 
-    await loadData();
+    var tickFormatMaxMin = lang.timeFormat.multi([["%b %d", function (d) {
+      return true;
+    }]]);
+    var tickFormat = lang.timeFormat.multi([[":%L", function (d) {
+      return d.getMilliseconds();
+    }], ["%S", function (d) {
+      return d.getSeconds();
+    }], ["%H:%M", function (d) {
+      return d.getMinutes();
+    }], ["%H:%M", function (d) {
+      return d.getHours();
+    }], ["%d/%m", function (d) {
+      return d.getDay() && d.getDate() != 1;
+    }], ["%b %d", function (d) {
+      return d.getDate() != 1;
+    }], ["%b", function (d) {
+      return d.getMonth();
+    }], ["%Y", function () {
+      return true;
+    }]]);
 
-    nv.addGraph(function() {
-      chart = nv.models.differenceChart();
-      chart
-        .keyForXValue('recorded_at')
-        .x(d => {
-          return new Date(d.recorded_at)
-        })
-        .y(d => d.value)
-        .keyForActualLessThanPredicted(keyForActualLessThanPredicted)
-        .keyForActualGreaterThanPredicted(keyForActualGreaterThanPredicted)
-        .height(500)
-        .showPredictedLine(true)
-        .interpolate('step-before')
-        .strokeWidth(0.5);
+    loadData().then(function (data) {
+      nv.addGraph(function () {
+        chart = nv.models.differenceChart();
+        chart.keyForXValue('recorded_at').x(function (d) {
+          return new Date(d.recorded_at);
+        }).y(function (d) {
+          return d.value;
+        }).keyForActualLessThanPredicted(keyForActualLessThanPredicted).keyForActualGreaterThanPredicted(keyForActualGreaterThanPredicted).height(500).showPredictedLine(true).interpolate('step-before').tickFormat(tickFormat).strokeWidth(0.5);
 
-      chart.multiChart.interactiveLayer.tooltip.contentGenerator(function (d) {
-        var header = d.value;
-        var headerhtml = "<thead><tr><td colspan='3'><strong class='x-value'>" + header + "</strong></td></tr></thead>";
-        var bodyhtml = "<tbody>";
-        var series = d.series;
-        series.forEach(function(c) {
-          var value = (c.value || 0).toFixed(2);
-          if (c.key === keyForActualGreaterThanPredicted || c.key === keyForActualLessThanPredicted) {
-            var diff = Math.abs(c.data.y0 - c.data.y1);
-            if (diff === 0) {
-              value = '-';
-            } else {
-              value = diff.toFixed(2);
+        chart.multiChart.interactiveLayer.tooltip.contentGenerator(function (d) {
+          var header = d.value;
+          var headerhtml = "<thead><tr><td colspan='3'><strong class='x-value'>" + header + "</strong></td></tr></thead>";
+          var bodyhtml = "<tbody>";
+          var series = d.series;
+          series.forEach(function (c) {
+            var value = (c.value || 0).toFixed(2);
+            if (c.key === keyForActualGreaterThanPredicted || c.key === keyForActualLessThanPredicted) {
+              var diff = Math.abs(c.data.y0 - c.data.y1);
+              if (diff === 0) {
+                value = '-';
+              } else {
+                value = diff.toFixed(2);
+              }
             }
-          }
-          bodyhtml = bodyhtml + "<tr><td class='legend-color-guide'><div style='background-color: " + escapeHtml(c.color) + ";'></div></td><td class='key'>" + escapeHtml(c.key) + "</td><td class='value'>" + escapeHtml(value) + "</td></tr>";
+            bodyhtml = bodyhtml + "<tr><td class='legend-color-guide'><div style='background-color: " + escapeHtml(c.color) + ";'></div></td><td class='key'>" + escapeHtml(c.key) + "</td><td class='value'>" + escapeHtml(value) + "</td></tr>";
+          });
+          bodyhtml = bodyhtml + "</tbody>";
+          return "<table>" + headerhtml + '' + bodyhtml + "</table>";
         });
-        bodyhtml = bodyhtml+"</tbody>";
-        return "<table>" + headerhtml + '' + bodyhtml + "</table>";
+
+        chart.xAxis.tickFormatMaxMin(tickFormatMaxMin);
+        chart.focus.xAxis.tickFormatMaxMin(tickFormatMaxMin);
+
+        chart.focus.height(40);
+        chart.focusMargin({ top: 10 });
+
+        chart.margin({ top: 60 });
+
+        d3.select('svg#chart2').datum(data).call(chart);
+
+        nv.utils.windowResize(chart.update);
+        return chart;
       });
-      chart.xAxis.tickFormatMaxMin(d3.time.format('%b %d'));
-      chart.focus.xAxis.tickFormatMaxMin(d3.time.format('%b %d'));
-      chart.focus.height(40);
-      chart.focusMargin({top:10})
-
-      chart.margin({ top: 60 });
-
-      d3.select('svg#chart2')
-        .datum(data)
-        .call(chart);
-
-      nv.utils.windowResize(chart.update);
-      return chart;
     });
   }
 
   main();
-
 </script>
 </body>
 </html>
