@@ -452,15 +452,15 @@ nv.utils.calcTicksX = function(numTicks, data) {
 /*
  returns number of ticks to actually use on Y axis, based on chart data
  */
-nv.utils.calcTicksY = function(numTicks, data, yAccessor) {
-  if (yAccessor) {
+nv.utils.calcTicksY = function(numTicks, data, getY) {
+  if (getY) {
     // find max number of values from all data streams
     var numValues = 1;
     for (var i=0; i < data.length; i += 1) {
       var values = data[i] && data[i].values ? data[i].values : [];
       var maxValue;
       for (var j=0; j < values.length; j += 1) {
-        maxValue = values[j] && values[j][yAccessor] ? values[j][yAccessor]: 0;
+        maxValue = values[j] && getY(values[j]) ? getY(values[j]): 0;
         numValues = maxValue > numValues ? maxValue : numValues;
       }
     }
