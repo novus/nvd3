@@ -454,7 +454,6 @@ nv.utils.calcTicksX = function(numTicks, data) {
  */
 nv.utils.calcTicksY = function(numTicks, data, getY) {
     if (getY) {
-        // find max number of values from all data streams
         var numValues = 1;
         for (var i=0; i < data.length; i += 1) {
             var values = data[i] && data[i].values ? data[i].values : [];
