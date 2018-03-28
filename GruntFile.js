@@ -30,13 +30,13 @@ module.exports = function(grunt) {
                     sourceMapStyle: 'embed'
                 },
                 src: [
-                    'src/core.js',
-                    'src/dom.js',
-                    'src/interactiveLayer.js',
-                    'src/tooltip.js',
-                    'src/utils.js',
+                    'ts-out/core.js',
+                    'ts-out/dom.js',
+                    'ts-out/interactiveLayer.js',
+                    'ts-out/tooltip.js',
+                    'ts-out/utils.js',
                     //Include all files in src/models
-                    'src/models/*.js',
+                    'ts-out/models/*.js',
                     // example to exclude files: '!src/models/excludeMe*'
                 ],
                 dest: 'build/nv.d3.js'
@@ -78,7 +78,7 @@ module.exports = function(grunt) {
         },
         watch: {
             js: {
-                files: ["src/**/*.js"],
+                files: ["ts-out/**/*.js"],
                 tasks: ['concat']
             }
         },
