@@ -18,6 +18,7 @@ nv.models.multiBar = function () {
         , clipEdge = true
         , stacked = false
         , showValues = false
+        , valueFormat = d3.format(',.1f')
         , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
         , color = nv.utils.defaultColor()
         , hideable: any = false
@@ -409,22 +410,12 @@ nv.models.multiBar = function () {
                 ({ xFn, yFn, widthFn, heightFn } = getGroupedChartFns(data));
             }
 
-            if (stacked) {
-                barSelection
+            barSelection
                     .select('rect')
+                    .attr('x', xFn)
                     .attr('y', yFn)
-                    .attr('height', heightFn)
-                    .attr('x', xFn)
-                    .attr('width', widthFn);
-                
-            } else {
-                barSelection
-                    .select('rect')
-                    .attr('x', xFn)
                     .attr('width', widthFn)
-                    .attr('y', yFn)
                     .attr('height', heightFn);
-            }
 
             if (showValues) {
                 bars.select('text')
@@ -432,9 +423,23 @@ nv.models.multiBar = function () {
                     .attr('y', (d, i, j) => {
                         return stacked ? yFn(d, i, j) + heightFn(d, i, j) / 2 : yFn(d, i, j);
                     })
-                    .attr('dy', '-10')
-                    .text(function (d, _i) {
-                        return d3.format(',.1f')(d.y)
+                    .attr('dy', () => {
+                        return stacked ? 0 : -10
+                    })
+                    .attr('style', () => {
+                        if (stacked) {
+                            return 'fill: #fff; stroke: #fff';
+                        }
+                        return 'fill: #333; stroke: #333';
+                    })
+                    .text((d, i, j) => {
+                        if (stacked && heightFn(d, i, j) < 20) {
+                            return '';
+                        }
+                        if (widthFn(d, i, j) < 30) {
+                            // return '';
+                        }
+                        return valueFormat(getY(d));
                     });
 
                 (<any>bars).watchTransition(renderWatch, 'multibar')
@@ -483,6 +488,7 @@ nv.models.multiBar = function () {
         forceY: { get: function () { return forceY; }, set: function (_) { forceY = _; } },
         stacked: { get: function () { return stacked; }, set: function (_) { stacked = _; } },
         showValues: { get: function () { return showValues; }, set: function (_) { showValues = _; } },
+        valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
         stackOffset: { get: function () { return stackOffset; }, set: function (_) { stackOffset = _; } },
         clipEdge: { get: function () { return clipEdge; }, set: function (_) { clipEdge = _; } },
         disabled: { get: function () { return disabled; }, set: function (_) { disabled = _; } },
