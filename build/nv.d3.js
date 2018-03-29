@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-03-28 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-03-29 */
 (function(){
 // set up main nv object
 var nv = {};
@@ -9364,15 +9364,17 @@ nv.models.multiBar = function () {
             }
             if (showValues) {
                 bars.select('text')
-                    .attr('text-anchor', function (d, _i) { return getY(d) < 0 ? 'end' : 'start'; })
-                    .attr('y', yFn)
+                    .attr('text-anchor', 'middle')
+                    .attr('y', function (d, i, j) {
+                    return stacked ? yFn(d, i, j) + heightFn(d, i, j) / 2 : yFn(d, i, j);
+                })
                     .attr('dy', '-10')
                     .text(function (d, _i) {
                     return d3.format(',.1f')(d.y);
                 });
                 bars.watchTransition(renderWatch, 'multibar')
                     .select('text')
-                    .attr('x', function (d, i, j) { return widthFn(d, i, j) / 2; });
+                    .attr('x', function (d, i, j) { return xFn(d, i, j) + widthFn(d, i, j) / 2; });
             }
             else {
                 bars.selectAll('text').text('');

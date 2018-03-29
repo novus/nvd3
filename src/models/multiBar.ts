@@ -369,7 +369,7 @@ nv.models.multiBar = function () {
                         y(0) - 1 :
                         y(getY(d)) || 0;
             },
-            widthFn: (_d, _i, _j) => x.rangeBand() / data.length;
+            widthFn: (_d, _i, _j) => x.rangeBand() / data.length,
             heightFn: function (d, _i) {
                 return Math.max(Math.abs(y(getY(d)) - y(0)), 1) || 0;
             }
@@ -428,8 +428,10 @@ nv.models.multiBar = function () {
 
             if (showValues) {
                 bars.select('text')
-                    .attr('text-anchor', function (d, _i) { return getY(d) < 0 ? 'end' : 'start' })
-                    .attr('y', yFn)
+                    .attr('text-anchor', 'middle')
+                    .attr('y', (d, i, j) => {
+                        return stacked ? yFn(d, i, j) + heightFn(d, i, j) / 2 : yFn(d, i, j);
+                    })
                     .attr('dy', '-10')
                     .text(function (d, _i) {
                         return d3.format(',.1f')(d.y)
@@ -437,7 +439,7 @@ nv.models.multiBar = function () {
 
                 (<any>bars).watchTransition(renderWatch, 'multibar')
                     .select('text')
-                    .attr('x', (d, i, j) => widthFn(d, i, j) / 2)
+                    .attr('x', (d, i, j) => xFn(d, i, j) + widthFn(d, i, j) / 2);
             } else {
                 bars.selectAll('text').text('');
             }
