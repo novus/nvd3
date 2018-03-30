@@ -117,7 +117,7 @@ nv.models.multiBarHorizontal = function () {
             groups.enter().append('g')
                 .style('stroke-opacity', 1e-6)
                 .style('fill-opacity', 1e-6);
-            (<any>groups.exit()).watchTransition(renderWatch, 'multibarhorizontal: exit groups')
+            groups.exit().watchTransition(renderWatch, 'multibarhorizontal: exit groups')
                 .style('stroke-opacity', 1e-6)
                 .style('fill-opacity', 1e-6)
                 .remove();
@@ -126,7 +126,7 @@ nv.models.multiBarHorizontal = function () {
                 .classed('hover', function (d) { return d.hover })
                 .style('fill', function (d, i) { return color(d, i) })
                 .style('stroke', function (d, i) { return color(d, i) });
-            (<any>groups).watchTransition(renderWatch, 'multibarhorizontal: groups')
+            groups.watchTransition(renderWatch, 'multibarhorizontal: groups')
                 .style('stroke-opacity', 1)
                 .style('fill-opacity', fillOpacity);
 
@@ -217,8 +217,18 @@ nv.models.multiBarHorizontal = function () {
 
             if (showValues) {
                 bars.select('text')
-                    .attr('text-anchor', function (d, i) { return getY(d, i) < 0 ? 'end' : 'start' })
-                    .attr('y', x.rangeBand() / (data.length * 2))
+                    .attr('text-anchor', function (d, i) {
+                        if (stacked) {
+                            return 'middle';
+                        }
+                        return getY(d, i) < 0 ? 'end' : 'start' 
+                    })
+                    .attr('y', () => {
+                        if (stacked) {
+                            return x.rangeBand() / 2;
+                        }
+                        return x.rangeBand() / (data.length * 2)
+                    })
                     .attr('dy', '.32em')
                     // .attr('style', () => {
                     //     if (stacked) {
@@ -235,11 +245,14 @@ nv.models.multiBarHorizontal = function () {
                             return t + '±' + valueFormat(Math.abs(yerr));
                         return t + '+' + valueFormat(Math.abs(yerr[1])) + '-' + valueFormat(Math.abs(yerr[0]));
                     });
-                (<any>bars).watchTransition(renderWatch, 'multibarhorizontal: bars')
+                bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .select('text')
-                    .attr('x', function (d, i) {
+                    .attr('x', (d: any, i) => {
+                        if (stacked) {
+                            return (Math.abs(y(getY(d, i) + d.y0) - y(d.y0)) || 0) / 2
+                        }
                         return getY(d, i) < 0 ? -4 : y(getY(d, i)) - y(0) + 4
-                    })
+                    });
             } else {
                 bars.selectAll('text').text('');
             }

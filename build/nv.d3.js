@@ -10048,8 +10048,18 @@ nv.models.multiBarHorizontal = function () {
             barsEnter.append('text');
             if (showValues) {
                 bars.select('text')
-                    .attr('text-anchor', function (d, i) { return getY(d, i) < 0 ? 'end' : 'start'; })
-                    .attr('y', x.rangeBand() / (data.length * 2))
+                    .attr('text-anchor', function (d, i) {
+                    if (stacked) {
+                        return 'middle';
+                    }
+                    return getY(d, i) < 0 ? 'end' : 'start';
+                })
+                    .attr('y', function () {
+                    if (stacked) {
+                        return x.rangeBand() / 2;
+                    }
+                    return x.rangeBand() / (data.length * 2);
+                })
                     .attr('dy', '.32em')
                     .text(function (d, i) {
                     var t = valueFormat(getY(d, i)), yerr = getYerr(d, i);
@@ -10062,6 +10072,9 @@ nv.models.multiBarHorizontal = function () {
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .select('text')
                     .attr('x', function (d, i) {
+                    if (stacked) {
+                        return (Math.abs(y(getY(d, i) + d.y0) - y(d.y0)) || 0) / 2;
+                    }
                     return getY(d, i) < 0 ? -4 : y(getY(d, i)) - y(0) + 4;
                 });
             }

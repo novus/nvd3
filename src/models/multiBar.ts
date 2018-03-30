@@ -1,4 +1,3 @@
-declare var nv;
 nv.models.multiBar = function () {
     "use strict";
 
@@ -432,7 +431,7 @@ nv.models.multiBar = function () {
                         return valueFormat(getY(d, i));
                     });
 
-                (<any>bars).watchTransition(renderWatch, 'multibar')
+                bars.watchTransition(renderWatch, 'multibar')
                     .select('text')
                     .attr('x', (d, i, j) => xFn(d, i, j) + widthFn(d, i, j) / 2);
             } else {
