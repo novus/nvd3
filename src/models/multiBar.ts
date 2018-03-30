@@ -12,8 +12,8 @@ nv.models.multiBar = function () {
         , x = d3.scale.ordinal()
         , y = d3.scale.linear()
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
-        , getX = function (d) { return d.x }
-        , getY = function (d) { return d.y }
+        , getX = function (d, _i) { return d.x }
+        , getY = function (d, _i) { return d.y }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , clipEdge = true
         , stacked = false
@@ -121,8 +121,8 @@ nv.models.multiBar = function () {
     function scaleData(data: any[], availableWidth: number, availableHeight: number) {
         var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function (d, idx) {
-                return d.values.map(function (d, _i) {
-                    return { x: getX(d), y: getY(d), y0: d.y0, y1: d.y1, idx: idx }
+                return d.values.map(function (d, i) {
+                    return { x: getX(d, i), y: getY(d, i), y0: d.y0, y1: d.y1, idx: idx }
                 })
             });
 
@@ -162,16 +162,12 @@ nv.models.multiBar = function () {
         nv.utils.initSVG(container);
         var wrap = container.selectAll('g.nv-wrap.nv-multibar').data([data]);
         var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
-        var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
         var g = wrap.select('g');
 
         gEnter.append('g').attr('class', 'nv-groups');
         wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-        defsEnter.append('clipPath')
-            .attr('id', 'nv-edge-clip-' + id)
-            .append('rect');
         wrap.select('#nv-edge-clip-' + id + ' rect')
             .attr('width', availableWidth)
             .attr('height', availableHeight);
@@ -226,11 +222,11 @@ nv.models.multiBar = function () {
         bars.exit().remove();
 
         barsEnter = bars.enter().append('g')
-            .attr('class', function (d, _i) { return getY(d) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
-            .attr('transform', function (d, _i) { return 'translate(' + x(getX(d)) + ',0)'; })
+            .attr('class', function (d, i) { return getY(d, i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
+            .attr('transform', function (d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; })
 
         barsEnter.append('rect')
-            .attr('class', function (d, _i) { return getY(d) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
+            .attr('class', function (d, i) { return getY(d, i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
             .attr('width', function (_d, _i, j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length) })
             .attr('height', 0)
 
@@ -314,19 +310,19 @@ nv.models.multiBar = function () {
                 }
                 return width;
             },
-            yFn: function (d, _i, j) {
+            yFn: function (d, i, j) {
                 var yVal = 0;
                 // if stackable, stack it on top of the previous series
                 if (!data[j].nonStackable) {
                     yVal = y(d.y1);
                 } else {
-                    if (getY(d) < 0) {
+                    if (getY(d, i) < 0) {
                         yVal = y(0);
                     } else {
-                        if (y(0) - y(getY(d)) < -1) {
+                        if (y(0) - y(getY(d, i)) < -1) {
                             yVal = y(0) - 1;
                         } else {
-                            yVal = y(getY(d)) || 0;
+                            yVal = y(getY(d, i)) || 0;
                         }
                     }
                 }
@@ -348,11 +344,11 @@ nv.models.multiBar = function () {
                 }
             },
 
-            heightFn: function (d, _i, j) {
+            heightFn: function (d, i, j) {
                 if (!data[j].nonStackable) {
                     return Math.max(Math.abs(y(d.y + d.y0) - y(d.y0)), 0);
                 } else {
-                    return Math.max(Math.abs(y(getY(d)) - y(0)), 0) || 0;
+                    return Math.max(Math.abs(y(getY(d, i)) - y(0)), 0) || 0;
                 }
             }
         }
@@ -363,16 +359,16 @@ nv.models.multiBar = function () {
             xFn: function (d, _i) {
                 return d.series * x.rangeBand() / data.length;
             },
-            yFn: function (d, _i) {
-                return getY(d) < 0 ?
+            yFn: function (d, i) {
+                return getY(d, i) < 0 ?
                     y(0) :
-                    y(0) - y(getY(d)) < 1 ?
+                    y(0) - y(getY(d, i)) < 1 ?
                         y(0) - 1 :
-                        y(getY(d)) || 0;
+                        y(getY(d, i)) || 0;
             },
             widthFn: (_d, _i, _j) => x.rangeBand() / data.length,
-            heightFn: function (d, _i) {
-                return Math.max(Math.abs(y(getY(d)) - y(0)), 1) || 0;
+            heightFn: function (d, i) {
+                return Math.max(Math.abs(y(getY(d, i)) - y(0)), 1) || 0;
             }
         }
     }
@@ -432,14 +428,8 @@ nv.models.multiBar = function () {
                         }
                         return 'fill: #333; stroke: #333';
                     })
-                    .text((d, i, j) => {
-                        if (stacked && heightFn(d, i, j) < 20) {
-                            return '';
-                        }
-                        if (widthFn(d, i, j) < 30) {
-                            // return '';
-                        }
-                        return valueFormat(getY(d));
+                    .text((d, i, _j) => {
+                        return valueFormat(getY(d, i));
                     });
 
                 (<any>bars).watchTransition(renderWatch, 'multibar')

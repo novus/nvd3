@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-03-29 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-03-30 */
 (function(){
 // set up main nv object
 var nv = {};
@@ -3966,19 +3966,25 @@ nv.models.discreteBar = function () {
         id: { get: function () { return id; }, set: function (_) { id = _; } },
         rectClass: { get: function () { return rectClass; }, set: function (_) { rectClass = _; } },
         // options that require extra logic in the setter
-        margin: { get: function () { return margin; }, set: function (_) {
+        margin: {
+            get: function () { return margin; }, set: function (_) {
                 margin.top = _.top !== undefined ? _.top : margin.top;
                 margin.right = _.right !== undefined ? _.right : margin.right;
                 margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
                 margin.left = _.left !== undefined ? _.left : margin.left;
-            } },
-        color: { get: function () { return color; }, set: function (_) {
+            }
+        },
+        color: {
+            get: function () { return color; }, set: function (_) {
                 color = nv.utils.getColor(_);
-            } },
-        duration: { get: function () { return duration; }, set: function (_) {
+            }
+        },
+        duration: {
+            get: function () { return duration; }, set: function (_) {
                 duration = _;
                 renderWatch.reset(duration);
-            } }
+            }
+        }
     });
     nv.utils.initOptions(chart);
     return chart;
@@ -8998,7 +9004,7 @@ nv.models.multiBar = function () {
     // Public Variables with Default Settings
     //------------------------------------------------------------
     var margin = { top: 0, right: 0, bottom: 0, left: 0 }, width = 960, height = 500, x = d3.scale.ordinal(), y = d3.scale.linear(), id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
-    , getX = function (d) { return d.x; }, getY = function (d) { return d.y; }, forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
+    , getX = function (d, _i) { return d.x; }, getY = function (d, _i) { return d.y; }, forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , clipEdge = true, stacked = false, showValues = false, valueFormat = d3.format(',.1f'), stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
     , color = nv.utils.defaultColor(), hideable = false, barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
@@ -9081,8 +9087,8 @@ nv.models.multiBar = function () {
     function scaleData(data, availableWidth, availableHeight) {
         var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
             data.map(function (d, idx) {
-                return d.values.map(function (d, _i) {
-                    return { x: getX(d), y: getY(d), y0: d.y0, y1: d.y1, idx: idx };
+                return d.values.map(function (d, i) {
+                    return { x: getX(d, i), y: getY(d, i), y0: d.y0, y1: d.y1, idx: idx };
                 });
             });
         x.domain(xDomain || d3.merge(seriesData).map(function (d) { return d.x; }))
@@ -9118,14 +9124,10 @@ nv.models.multiBar = function () {
         nv.utils.initSVG(container);
         var wrap = container.selectAll('g.nv-wrap.nv-multibar').data([data]);
         var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
-        var defsEnter = wrapEnter.append('defs');
         var gEnter = wrapEnter.append('g');
         var g = wrap.select('g');
         gEnter.append('g').attr('class', 'nv-groups');
         wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-        defsEnter.append('clipPath')
-            .attr('id', 'nv-edge-clip-' + id)
-            .append('rect');
         wrap.select('#nv-edge-clip-' + id + ' rect')
             .attr('width', availableWidth)
             .attr('height', availableHeight);
@@ -9173,10 +9175,10 @@ nv.models.multiBar = function () {
             .data(function (d) { return (hideable && !data.length) ? hideable.values : d.values; });
         bars.exit().remove();
         barsEnter = bars.enter().append('g')
-            .attr('class', function (d, _i) { return getY(d) < 0 ? 'nv-bar negative' : 'nv-bar positive'; })
-            .attr('transform', function (d, _i) { return 'translate(' + x(getX(d)) + ',0)'; });
+            .attr('class', function (d, i) { return getY(d, i) < 0 ? 'nv-bar negative' : 'nv-bar positive'; })
+            .attr('transform', function (d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; });
         barsEnter.append('rect')
-            .attr('class', function (d, _i) { return getY(d) < 0 ? 'nv-bar negative' : 'nv-bar positive'; })
+            .attr('class', function (d, i) { return getY(d, i) < 0 ? 'nv-bar negative' : 'nv-bar positive'; })
             .attr('width', function (_d, _i, j) { return x.rangeBand() / (stacked && !data[j].nonStackable ? 1 : data.length); })
             .attr('height', 0);
         barsEnter.append('text');
@@ -9255,22 +9257,22 @@ nv.models.multiBar = function () {
                 }
                 return width;
             },
-            yFn: function (d, _i, j) {
+            yFn: function (d, i, j) {
                 var yVal = 0;
                 // if stackable, stack it on top of the previous series
                 if (!data[j].nonStackable) {
                     yVal = y(d.y1);
                 }
                 else {
-                    if (getY(d) < 0) {
+                    if (getY(d, i) < 0) {
                         yVal = y(0);
                     }
                     else {
-                        if (y(0) - y(getY(d)) < -1) {
+                        if (y(0) - y(getY(d, i)) < -1) {
                             yVal = y(0) - 1;
                         }
                         else {
-                            yVal = y(getY(d)) || 0;
+                            yVal = y(getY(d, i)) || 0;
                         }
                     }
                 }
@@ -9291,12 +9293,12 @@ nv.models.multiBar = function () {
                     return width;
                 }
             },
-            heightFn: function (d, _i, j) {
+            heightFn: function (d, i, j) {
                 if (!data[j].nonStackable) {
                     return Math.max(Math.abs(y(d.y + d.y0) - y(d.y0)), 0);
                 }
                 else {
-                    return Math.max(Math.abs(y(getY(d)) - y(0)), 0) || 0;
+                    return Math.max(Math.abs(y(getY(d, i)) - y(0)), 0) || 0;
                 }
             }
         };
@@ -9306,16 +9308,16 @@ nv.models.multiBar = function () {
             xFn: function (d, _i) {
                 return d.series * x.rangeBand() / data.length;
             },
-            yFn: function (d, _i) {
-                return getY(d) < 0 ?
+            yFn: function (d, i) {
+                return getY(d, i) < 0 ?
                     y(0) :
-                    y(0) - y(getY(d)) < 1 ?
+                    y(0) - y(getY(d, i)) < 1 ?
                         y(0) - 1 :
-                        y(getY(d)) || 0;
+                        y(getY(d, i)) || 0;
             },
             widthFn: function (_d, _i, _j) { return x.rangeBand() / data.length; },
-            heightFn: function (d, _i) {
-                return Math.max(Math.abs(y(getY(d)) - y(0)), 1) || 0;
+            heightFn: function (d, i) {
+                return Math.max(Math.abs(y(getY(d, i)) - y(0)), 1) || 0;
             }
         };
     }
@@ -9367,14 +9369,8 @@ nv.models.multiBar = function () {
                     }
                     return 'fill: #333; stroke: #333';
                 })
-                    .text(function (d, i, j) {
-                    if (stacked && heightFn(d, i, j) < 20) {
-                        return '';
-                    }
-                    if (widthFn(d, i, j) < 30) {
-                        // return '';
-                    }
-                    return valueFormat(getY(d));
+                    .text(function (d, i, _j) {
+                    return valueFormat(getY(d, i));
                 });
                 bars.watchTransition(renderWatch, 'multibar')
                     .select('text')
@@ -9889,10 +9885,10 @@ nv.models.multiBarHorizontal = function () {
     // Public Variables with Default Settings
     //------------------------------------------------------------
     var margin = { top: 0, right: 0, bottom: 0, left: 0 }, width = 960, height = 500, id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
-    , container = null, x = d3.scale.ordinal(), y = d3.scale.linear(), getX = function (d) { return d.x; }, getY = function (d) { return d.y; }, getYerr = function (d) { return d.yErr; }, forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
+    , container = null, x = d3.scale.ordinal(), y = d3.scale.linear(), getX = function (d, _i) { return d.x; }, getY = function (d, _i) { return d.y; }, getYerr = function (d, _i) { return d.yErr; }, forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , color = nv.utils.defaultColor(), barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-    , stacked = false, showValues = false, showBarLabels = false, valuePadding = 60, groupSpacing = 0.1, fillOpacity = 0.75, valueFormat = d3.format(',.2f'), delay = 1200, xDomain, yDomain, xRange, yRange, duration = 250, dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd');
+    , stacked = false, showValues = false, valuePadding = 60, groupSpacing = 0.1, fillOpacity = 0.75, valueFormat = d3.format(',.2f'), xDomain, yDomain, xRange, yRange, duration = 250, dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd');
     //============================================================
     // Private Variables
     //------------------------------------------------------------
@@ -9918,7 +9914,7 @@ nv.models.multiBarHorizontal = function () {
             });
             // HACK for negative value stacking
             if (stacked)
-                data[0].values.map(function (d, i) {
+                data[0].values.map(function (_d, i) {
                     var posBase = 0, negBase = 0;
                     data.map(function (d) {
                         var f = d.values[i];
@@ -9953,13 +9949,11 @@ nv.models.multiBarHorizontal = function () {
             // Setup containers and skeleton of chart
             var wrap = d3.select(this).selectAll('g.nv-wrap.nv-multibarHorizontal').data([data]);
             var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibarHorizontal');
-            var defsEnter = wrapEnter.append('defs');
             var gEnter = wrapEnter.append('g');
-            var g = wrap.select('g');
             gEnter.append('g').attr('class', 'nv-groups');
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
             var groups = wrap.select('.nv-groups').selectAll('.nv-group')
-                .data(function (d) { return d; }, function (d, i) { return i; });
+                .data(function (d) { return d; }, function (_d, i) { return i; });
             groups.enter().append('g')
                 .style('stroke-opacity', 1e-6)
                 .style('fill-opacity', 1e-6);
@@ -9968,7 +9962,7 @@ nv.models.multiBarHorizontal = function () {
                 .style('fill-opacity', 1e-6)
                 .remove();
             groups
-                .attr('class', function (d, i) { return 'nv-group nv-series-' + i; })
+                .attr('class', function (_d, i) { return 'nv-group nv-series-' + i; })
                 .classed('hover', function (d) { return d.hover; })
                 .style('fill', function (d, i) { return color(d, i); })
                 .style('stroke', function (d, i) { return color(d, i); });
@@ -10046,13 +10040,13 @@ nv.models.multiBarHorizontal = function () {
                     var a = [[xerr[0], -mid], [xerr[0], mid], [xerr[0], 0], [xerr[1], 0], [xerr[1], -mid], [xerr[1], mid]];
                     return a.map(function (path) { return path.join(','); }).join(' ');
                 })
-                    .attr('transform', function (d, i) {
+                    .attr('transform', function (_d, _i) {
                     var mid = x.rangeBand() / ((stacked ? 1 : data.length) * 2);
                     return 'translate(0, ' + mid + ')';
                 });
             }
             barsEnter.append('text');
-            if (showValues && !stacked) {
+            if (showValues) {
                 bars.select('text')
                     .attr('text-anchor', function (d, i) { return getY(d, i) < 0 ? 'end' : 'start'; })
                     .attr('y', x.rangeBand() / (data.length * 2))
@@ -10067,24 +10061,12 @@ nv.models.multiBarHorizontal = function () {
                 });
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .select('text')
-                    .attr('x', function (d, i) { return getY(d, i) < 0 ? -4 : y(getY(d, i)) - y(0) + 4; });
+                    .attr('x', function (d, i) {
+                    return getY(d, i) < 0 ? -4 : y(getY(d, i)) - y(0) + 4;
+                });
             }
             else {
                 bars.selectAll('text').text('');
-            }
-            if (showBarLabels && !stacked) {
-                barsEnter.append('text').classed('nv-bar-label', true);
-                bars.select('text.nv-bar-label')
-                    .attr('text-anchor', function (d, i) { return getY(d, i) < 0 ? 'start' : 'end'; })
-                    .attr('y', x.rangeBand() / (data.length * 2))
-                    .attr('dy', '.32em')
-                    .text(function (d, i) { return getX(d, i); });
-                bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
-                    .select('text.nv-bar-label')
-                    .attr('x', function (d, i) { return getY(d, i) < 0 ? y(0) - y(getY(d, i)) + 4 : -4; });
-            }
-            else {
-                bars.selectAll('text.nv-bar-label').text('');
             }
             bars
                 .attr('class', function (d, i) { return getY(d, i) < 0 ? 'nv-bar negative' : 'nv-bar positive'; });
@@ -10092,8 +10074,8 @@ nv.models.multiBarHorizontal = function () {
                 if (!disabled)
                     disabled = data.map(function () { return true; });
                 bars
-                    .style('fill', function (d, i, j) { return d3.rgb(barColor(d, i)).darker(disabled.map(function (d, i) { return i; }).filter(function (d, i) { return !disabled[i]; })[j]).toString(); })
-                    .style('stroke', function (d, i, j) { return d3.rgb(barColor(d, i)).darker(disabled.map(function (d, i) { return i; }).filter(function (d, i) { return !disabled[i]; })[j]).toString(); });
+                    .style('fill', function (d, i, j) { return d3.rgb(barColor(d, i)).darker(disabled.map(function (_d, i) { return i; }).filter(function (_d, i) { return !disabled[i]; })[j]).toString(); })
+                    .style('stroke', function (d, i, j) { return d3.rgb(barColor(d, i)).darker(disabled.map(function (_d, i) { return i; }).filter(function (_d, i) { return !disabled[i]; })[j]).toString(); });
             }
             if (stacked)
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
@@ -10109,13 +10091,9 @@ nv.models.multiBarHorizontal = function () {
                 bars.watchTransition(renderWatch, 'multibarhorizontal: bars')
                     .attr('transform', function (d, i) {
                     //TODO: stacked must be all positive or all negative, not both?
-                    return 'translate(' +
-                        (getY(d, i) < 0 ? y(getY(d, i)) : y(0))
-                        + ',' +
-                        (d.series * x.rangeBand() / data.length
-                            +
-                                x(getX(d, i)))
-                        + ')';
+                    var tx = (getY(d, i) < 0 ? y(getY(d, i)) : y(0));
+                    var ty = (d.series * x.rangeBand() / data.length + x(getX(d, i)));
+                    return "translate(" + tx + ", " + ty + ")";
                 })
                     .select('rect')
                     .attr('height', x.rangeBand() / data.length)
@@ -10150,8 +10128,6 @@ nv.models.multiBarHorizontal = function () {
         forceY: { get: function () { return forceY; }, set: function (_) { forceY = _; } },
         stacked: { get: function () { return stacked; }, set: function (_) { stacked = _; } },
         showValues: { get: function () { return showValues; }, set: function (_) { showValues = _; } },
-        // this shows the group name, seems pointless?
-        //showBarLabels:    {get: function(){return showBarLabels;}, set: function(_){showBarLabels=_;}},
         disabled: { get: function () { return disabled; }, set: function (_) { disabled = _; } },
         id: { get: function () { return id; }, set: function (_) { id = _; } },
         valueFormat: { get: function () { return valueFormat; }, set: function (_) { valueFormat = _; } },
@@ -10159,22 +10135,30 @@ nv.models.multiBarHorizontal = function () {
         groupSpacing: { get: function () { return groupSpacing; }, set: function (_) { groupSpacing = _; } },
         fillOpacity: { get: function () { return fillOpacity; }, set: function (_) { fillOpacity = _; } },
         // options that require extra logic in the setter
-        margin: { get: function () { return margin; }, set: function (_) {
+        margin: {
+            get: function () { return margin; }, set: function (_) {
                 margin.top = _.top !== undefined ? _.top : margin.top;
                 margin.right = _.right !== undefined ? _.right : margin.right;
                 margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
                 margin.left = _.left !== undefined ? _.left : margin.left;
-            } },
-        duration: { get: function () { return duration; }, set: function (_) {
+            }
+        },
+        duration: {
+            get: function () { return duration; }, set: function (_) {
                 duration = _;
                 renderWatch.reset(duration);
-            } },
-        color: { get: function () { return color; }, set: function (_) {
+            }
+        },
+        color: {
+            get: function () { return color; }, set: function (_) {
                 color = nv.utils.getColor(_);
-            } },
-        barColor: { get: function () { return barColor; }, set: function (_) {
+            }
+        },
+        barColor: {
+            get: function () { return barColor; }, set: function (_) {
                 barColor = _ ? nv.utils.getColor(_) : null;
-            } }
+            }
+        }
     });
     nv.utils.initOptions(chart);
     return chart;

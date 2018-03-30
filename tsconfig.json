@@ -9,6 +9,7 @@
     "outDir": "./ts-out"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "typings.d.ts"
   ]
 }
