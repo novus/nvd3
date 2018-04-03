@@ -18,6 +18,7 @@ nv.models.multiBar = function () {
         , stacked = false
         , showValues = false
         , valueFormat = d3.format(',.1f')
+        , valueColor = (_d, _i) => 'fill: #333; stroke: rgba(0,0,0,0)'
         , stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
         , color = nv.utils.defaultColor()
         , hideable: any = false
@@ -419,14 +420,9 @@ nv.models.multiBar = function () {
                         return stacked ? yFn(d, i, j) + heightFn(d, i, j) / 2 : yFn(d, i, j);
                     })
                     .attr('dy', () => {
-                        return stacked ? 0 : -10
+                        return stacked ? 0 : -5
                     })
-                    .attr('style', () => {
-                        if (stacked) {
-                            return 'fill: #fff; stroke: #fff';
-                        }
-                        return 'fill: #333; stroke: #333';
-                    })
+                    .attr('style', (d, i) => valueColor(d, i))
                     .text((d, i, _j) => {
                         return valueFormat(getY(d, i));
                     });
@@ -478,6 +474,7 @@ nv.models.multiBar = function () {
         stacked: { get: function () { return stacked; }, set: function (_) { stacked = _; } },
         showValues: { get: function () { return showValues; }, set: function (_) { showValues = _; } },
         valueFormat:    {get: function(){return valueFormat;}, set: function(_){valueFormat=_;}},
+        valueColor:    {get: function(){return valueColor;}, set: function(_){valueColor=_;}},
         stackOffset: { get: function () { return stackOffset; }, set: function (_) { stackOffset = _; } },
         clipEdge: { get: function () { return clipEdge; }, set: function (_) { clipEdge = _; } },
         disabled: { get: function () { return disabled; }, set: function (_) { disabled = _; } },

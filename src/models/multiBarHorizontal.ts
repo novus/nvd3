@@ -22,6 +22,7 @@ nv.models.multiBarHorizontal = function () {
         , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
         , stacked = false
         , showValues = false
+        , valueColor = (_d, _i) => 'fill: #333; stroke: rgba(0,0,0,0)'
         , valuePadding = 60
         , groupSpacing = 0.1
         , fillOpacity = 0.75
@@ -230,12 +231,7 @@ nv.models.multiBarHorizontal = function () {
                         return x.rangeBand() / (data.length * 2)
                     })
                     .attr('dy', '.32em')
-                    // .attr('style', () => {
-                    //     if (stacked) {
-                    //         return 'fill: #fff; stroke: #fff';
-                    //     }
-                    //     return 'fill: #333; stroke: #333';
-                    // })
+                    .attr('style', (d, i) => valueColor(d, i))
                     .text(function (d, i) {
                         var t = valueFormat(getY(d, i))
                             , yerr = getYerr(d, i);
@@ -325,6 +321,7 @@ nv.models.multiBarHorizontal = function () {
         forceY: { get: function () { return forceY; }, set: function (_) { forceY = _; } },
         stacked: { get: function () { return stacked; }, set: function (_) { stacked = _; } },
         showValues: { get: function () { return showValues; }, set: function (_) { showValues = _; } },
+        valueColor:    {get: function(){return valueColor;}, set: function(_){valueColor=_;}},
         disabled: { get: function () { return disabled; }, set: function (_) { disabled = _; } },
         id: { get: function () { return id; }, set: function (_) { id = _; } },
         valueFormat: { get: function () { return valueFormat; }, set: function (_) { valueFormat = _; } },

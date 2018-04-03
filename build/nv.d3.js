@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-03-30 */
+/* nvd3 version 1.8.7 (https://github.com/anjmao/nvd3) 2018-04-03 */
 (function(){
 // set up main nv object
 var nv = {};
@@ -9005,7 +9005,7 @@ nv.models.multiBar = function () {
     //------------------------------------------------------------
     var margin = { top: 0, right: 0, bottom: 0, left: 0 }, width = 960, height = 500, x = d3.scale.ordinal(), y = d3.scale.linear(), id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , getX = function (d, _i) { return d.x; }, getY = function (d, _i) { return d.y; }, forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
-    , clipEdge = true, stacked = false, showValues = false, valueFormat = d3.format(',.1f'), stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
+    , clipEdge = true, stacked = false, showValues = false, valueFormat = d3.format(',.1f'), valueColor = function (_d, _i) { return 'fill: #333; stroke: rgba(0,0,0,0)'; }, stackOffset = 'zero' // options include 'silhouette', 'wiggle', 'expand', 'zero', or a custom function
     , color = nv.utils.defaultColor(), hideable = false, barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
     , duration = 500, xDomain, yDomain, xRange, yRange, groupSpacing = 0.1, fillOpacity = 0.75, dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd');
@@ -9361,14 +9361,9 @@ nv.models.multiBar = function () {
                     return stacked ? yFn(d, i, j) + heightFn(d, i, j) / 2 : yFn(d, i, j);
                 })
                     .attr('dy', function () {
-                    return stacked ? 0 : -10;
+                    return stacked ? 0 : -5;
                 })
-                    .attr('style', function () {
-                    if (stacked) {
-                        return 'fill: #fff; stroke: #fff';
-                    }
-                    return 'fill: #333; stroke: #333';
-                })
+                    .attr('style', function (d, i) { return valueColor(d, i); })
                     .text(function (d, i, _j) {
                     return valueFormat(getY(d, i));
                 });
@@ -9412,6 +9407,7 @@ nv.models.multiBar = function () {
         stacked: { get: function () { return stacked; }, set: function (_) { stacked = _; } },
         showValues: { get: function () { return showValues; }, set: function (_) { showValues = _; } },
         valueFormat: { get: function () { return valueFormat; }, set: function (_) { valueFormat = _; } },
+        valueColor: { get: function () { return valueColor; }, set: function (_) { valueColor = _; } },
         stackOffset: { get: function () { return stackOffset; }, set: function (_) { stackOffset = _; } },
         clipEdge: { get: function () { return clipEdge; }, set: function (_) { clipEdge = _; } },
         disabled: { get: function () { return disabled; }, set: function (_) { disabled = _; } },
@@ -9888,7 +9884,7 @@ nv.models.multiBarHorizontal = function () {
     , container = null, x = d3.scale.ordinal(), y = d3.scale.linear(), getX = function (d, _i) { return d.x; }, getY = function (d, _i) { return d.y; }, getYerr = function (d, _i) { return d.yErr; }, forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , color = nv.utils.defaultColor(), barColor = null // adding the ability to set the color for each rather than the whole group
     , disabled // used in conjunction with barColor to communicate from multiBarHorizontalChart what series are disabled
-    , stacked = false, showValues = false, valuePadding = 60, groupSpacing = 0.1, fillOpacity = 0.75, valueFormat = d3.format(',.2f'), xDomain, yDomain, xRange, yRange, duration = 250, dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd');
+    , stacked = false, showValues = false, valueColor = function (_d, _i) { return 'fill: #333; stroke: rgba(0,0,0,0)'; }, valuePadding = 60, groupSpacing = 0.1, fillOpacity = 0.75, valueFormat = d3.format(',.2f'), xDomain, yDomain, xRange, yRange, duration = 250, dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd');
     //============================================================
     // Private Variables
     //------------------------------------------------------------
@@ -10061,6 +10057,7 @@ nv.models.multiBarHorizontal = function () {
                     return x.rangeBand() / (data.length * 2);
                 })
                     .attr('dy', '.32em')
+                    .attr('style', function (d, i) { return valueColor(d, i); })
                     .text(function (d, i) {
                     var t = valueFormat(getY(d, i)), yerr = getYerr(d, i);
                     if (yerr === undefined)
@@ -10141,6 +10138,7 @@ nv.models.multiBarHorizontal = function () {
         forceY: { get: function () { return forceY; }, set: function (_) { forceY = _; } },
         stacked: { get: function () { return stacked; }, set: function (_) { stacked = _; } },
         showValues: { get: function () { return showValues; }, set: function (_) { showValues = _; } },
+        valueColor: { get: function () { return valueColor; }, set: function (_) { valueColor = _; } },
         disabled: { get: function () { return disabled; }, set: function (_) { disabled = _; } },
         id: { get: function () { return id; }, set: function (_) { id = _; } },
         valueFormat: { get: function () { return valueFormat; }, set: function (_) { valueFormat = _; } },
@@ -15437,6 +15435,6 @@ nv.models.sunburstChart = function () {
     return chart;
 };
 
-nv.version = "1.8.6-dev";
+nv.version = "1.8.7";
 })();
 //# sourceMappingURL=nv.d3.js.map
