@@ -1,6 +1,6 @@
 {
   "name": "trackforce-nvd3",
-  "version": "1.8.7",
+  "version": "1.8.8",
   "description": "A reusable charting library written in d3.js",
   "url": "https://github.com/anjmao/nvd3",
   "main": "build/nv.d3.js",
