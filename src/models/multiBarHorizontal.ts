@@ -1,5 +1,5 @@
 
-nv.models.multiBarHorizontal = function () {
+(<any>nv.models).multiBarHorizontal = function () {
     "use strict";
 
     //============================================================
@@ -40,7 +40,7 @@ nv.models.multiBarHorizontal = function () {
     //------------------------------------------------------------
 
     var x0, y0; //used to store previous scales
-    var renderWatch = nv.utils.renderWatch(dispatch, duration);
+    var renderWatch: any = nv.utils.renderWatch(dispatch, duration);
 
     function chart(selection) {
         renderWatch.reset();

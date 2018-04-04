@@ -1,5 +1,3 @@
-declare var nv: any;
-
 declare namespace d3 {
     
     namespace selection {

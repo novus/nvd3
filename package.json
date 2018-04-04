@@ -1,6 +1,6 @@
 {
   "name": "trackforce-nvd3",
-  "version": "1.8.9",
+  "version": "1.8.10",
   "description": "A reusable charting library written in d3.js",
   "url": "https://github.com/anjmao/nvd3",
   "main": "build/nv.d3.js",
@@ -8,7 +8,8 @@
     "install:bower": "bower install",
     "test": "grunt",
     "watch": "grunt watch",
-    "release": "grunt release"
+    "build:ts": "rm -rf ts-out && tsc",
+    "release": "yarn build:ts && grunt release"
   },
   "repository": {
     "type": "git",

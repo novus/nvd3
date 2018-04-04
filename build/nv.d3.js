@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.8 (https://github.com/anjmao/nvd3) 2018-04-04 */
+/* nvd3 version 1.8.9 (https://github.com/anjmao/nvd3) 2018-04-04 */
 (function(){
 // set up main nv object
 var nv = {};
@@ -675,9 +675,11 @@ nv.models.tooltip = function () {
                     .interrupt() // cancel running transitions
                     .transition()
                     .duration(is_hidden ? 0 : duration)
+                    // using tween since some versions of d3 can't auto-tween a translate on a div
                     .styleTween('transform', function (d) {
                     return translateInterpolator;
                 }, 'important')
+                    // Safari has its own `-webkit-transform` and does not support `transform`
                     .styleTween('-webkit-transform', function (d) {
                     return translateInterpolator;
                 })
@@ -1577,6 +1579,7 @@ nv.models.axis = function () {
                     if (showMaxMin) {
                         //if (showMaxMin && !isOrdinal) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
+                            //.data(scale.domain())
                             .data([scale.domain()[0], scale.domain()[scale.domain().length - 1]]);
                         axisMaxMin.enter().append('g').attr('class', function (d, i) {
                             return ['nv-axisMaxMin', 'nv-axisMaxMin-x', (i == 0 ? 'nv-axisMin-x' : 'nv-axisMax-x')].join(' ');
@@ -1691,8 +1694,8 @@ nv.models.axis = function () {
                 g.selectAll('g') // the g's wrapping each tick
                     .each(function (d, i) {
                     d3.select(this).select('text').attr('opacity', 1);
-                    if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) {
-                        if (d > 1e-10 || d < -1e-10)
+                    if (scale(d) < scale.range()[1] + 10 || scale(d) > scale.range()[0] - 10) { // 10 is assuming text height is 16... if d is 0, leave it!
+                        if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                             d3.select(this).attr('opacity', 0);
                         d3.select(this).select('text').attr('opacity', 0); // Don't remove the ZERO line!!
                     }
@@ -1709,22 +1712,22 @@ nv.models.axis = function () {
                 wrap.selectAll('g.nv-axisMaxMin')
                     .each(function (d, i) {
                     try {
-                        if (i)
+                        if (i) // i== 1, max position
                             maxMinRange.push(scale(d) - this.getBoundingClientRect().width - 4); //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
-                        else
+                        else // i==0, min position
                             maxMinRange.push(scale(d) + this.getBoundingClientRect().width + 4);
                     }
                     catch (err) {
-                        if (i)
+                        if (i) // i== 1, max position
                             maxMinRange.push(scale(d) - 4); //assuming the max and min labels are as wide as the next tick (with an extra 4 pixels just in case)
-                        else
+                        else // i==0, min position
                             maxMinRange.push(scale(d) + 4);
                     }
                 });
                 // the g's wrapping each tick
                 g.selectAll('g').each(function (d, i) {
                     if (scale(d) < maxMinRange[0] || scale(d) > maxMinRange[1]) {
-                        if (d > 1e-10 || d < -1e-10)
+                        if (d > 1e-10 || d < -1e-10) // accounts for minor floating point errors... though could be problematic if the scale is EXTREMELY SMALL
                             d3.select(this).remove();
                         else
                             d3.select(this).select('text').remove(); // Don't remove the ZERO line!!
@@ -1927,6 +1930,7 @@ nv.models.boxPlot = function () {
             // boxes
             boxEnter.append('rect')
                 .attr('class', 'nv-boxplot-box')
+                // tooltip events
                 .on('mouseover', function (d, i) {
                 d3.select(this).classed('hover', true);
                 dispatch.elementMouseover({
@@ -3022,6 +3026,7 @@ nv.models.cumulativeLineChart = function () {
                 .attr('width', availableWidth)
                 .attr('height', availableHeight);
             lines
+                //.x(function(d) { return d.x })
                 .y(function (d) { return d.display.y; })
                 .width(availableWidth)
                 .height(availableHeight)
@@ -3923,6 +3928,7 @@ nv.models.discreteBar = function () {
                 .watchTransition(renderWatch, 'discreteBar: bars rect')
                 .attr('width', x.rangeBand() * .9 / data.length);
             bars.watchTransition(renderWatch, 'discreteBar: bars')
+                //.delay(function(d,i) { return i * 1200 / data[0].values.length })
                 .attr('transform', function (d, i) {
                 var left = x(getX(d, i)) + x.rangeBand() * .05, top = getY(d, i) < 0 ?
                     y(0) :
@@ -4246,6 +4252,7 @@ nv.models.distribution = function () {
                 .attr(axis + '1', function (d, i) { return scale0(getData(d, i)); })
                 .attr(axis + '2', function (d, i) { return scale0(getData(d, i)); });
             renderWatch.transition(distWrap.exit().selectAll('line.nv-dist' + axis), 'dist exit')
+                // .transition()
                 .attr(axis + '1', function (d, i) { return scale(getData(d, i)); })
                 .attr(axis + '2', function (d, i) { return scale(getData(d, i)); })
                 .style('stroke-opacity', 0)
@@ -4255,6 +4262,7 @@ nv.models.distribution = function () {
                 .attr(naxis + '1', 0)
                 .attr(naxis + '2', size);
             renderWatch.transition(dist, 'dist')
+                // .transition()
                 .attr(axis + '1', function (d, i) { return scale(getData(d, i)); })
                 .attr(axis + '2', function (d, i) { return scale(getData(d, i)); });
             scale0 = scale.copy();
@@ -4508,7 +4516,7 @@ nv.models.distroPlot = function () {
                 });
             }
             // calculate bandwidth if no number is provided
-            if (isNaN(parseFloat(bandwidth))) {
+            if (isNaN(parseFloat(bandwidth))) { // if not is float
                 var bandwidthCalc;
                 if (['scott', 'silverman'].indexOf(bandwidth) != -1) {
                     bandwidthCalc = calcBandwidth(v, bandwidth);
@@ -4842,6 +4850,7 @@ nv.models.distroPlot = function () {
                     ['left', 'right'].forEach(function (side) {
                         // line
                         distroplots.selectAll('.nv-distribution-line.nv-distribution-' + side)
+                            //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.line()
                             .x(function (e) { return plotType == 'box' ? e.y : yScale(e.x); })
                             .y(function (e) { return plotType == 'box' ? e.x : tmpScale(e.y); })
@@ -4850,6 +4859,7 @@ nv.models.distroPlot = function () {
                             .style('opacity', !plotType ? '0' : '1');
                         // area
                         distroplots.selectAll('.nv-distribution-area.nv-distribution-' + side)
+                            //.watchTransition(renderWatch, 'nv-distribution-line: distroplots') // disable transition for now because it's jaring
                             .attr("d", d3.svg.area()
                             .x(function (e) { return plotType == 'box' ? e.y : yScale(e.x); })
                             .y(function (e) { return plotType == 'box' ? e.x : tmpScale(e.y); })
@@ -4859,7 +4869,7 @@ nv.models.distroPlot = function () {
                             .style('opacity', !plotType ? '0' : '1');
                     });
                 }
-                else {
+                else { // scatter type, hide areas
                     distroplots.selectAll('.nv-distribution-area')
                         .watchTransition(renderWatch, 'nv-distribution-area: distroplots')
                         .style('opacity', !plotType ? '0' : '1');
@@ -4992,13 +5002,13 @@ nv.models.distroPlot = function () {
             }
             // set opacity on outliers/non-outliers
             // any circle/line entering has opacity 0
-            if (observationType !== false) {
-                if (!showOnlyOutliers) {
+            if (observationType !== false) { // observationType is False when hidding all circle/lines
+                if (!showOnlyOutliers) { // show all line/circle
                     distroplots.selectAll(observationType == 'line' ? 'line' : 'circle')
                         .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity', 1);
                 }
-                else {
+                else { // show only outliers
                     distroplots.selectAll('.nv-distroplot-outlier ' + (observationType == 'line' ? 'line' : 'circle'))
                         .watchTransition(renderWatch, 'nv-distroplot: nv-distroplot-observation')
                         .style('opacity', 1);
@@ -6081,7 +6091,7 @@ nv.models.heatMap = function () {
                     vals[getIX(cell)] = [];
                 vals[getIX(cell)].push(getCellValue(cell));
             }
-            else if (axis == null) {
+            else if (axis == null) { // if calculating stat over entire dataset
                 if (!(0 in vals))
                     vals[0] = [];
                 vals[0].push(getCellValue(cell));
@@ -6109,10 +6119,10 @@ nv.models.heatMap = function () {
     // returns the extent of the cell values
     // will take into account normalization if specified
     function getColorDomain() {
-        if (cellsAreNumeric()) {
+        if (cellsAreNumeric()) { // if cell values are numeric
             return normalize ? d3.extent(prepedData, function (d) { return getNorm(d); }) : d3.extent(uniqueColor);
         }
-        else if (!cellsAreNumeric()) {
+        else if (!cellsAreNumeric()) { // if cell values are ordinal
             return uniqueColor;
         }
     }
@@ -6171,7 +6181,7 @@ nv.models.heatMap = function () {
                     else if (axis == 'col') {
                         var key = getIX(cell);
                     }
-                    else if (axis == null) {
+                    else if (axis == null) { // if calculating stat over entire dataset
                         var key = 0;
                     }
                     var normVal = getCellValue(cell) - stat[key];
@@ -6755,10 +6765,10 @@ nv.models.heatMapChart = function () {
     // of color bin
     function quantizeLegendValues() {
         var e = heatMap.colorScale(), legendVals;
-        if (typeof e.domain()[0] === 'string') {
+        if (typeof e.domain()[0] === 'string') { // if color scale is ordinal
             legendVals = e.domain();
         }
-        else {
+        else { // if color scale is numeric
             legendVals = e.range().map(function (color) {
                 var d = e.invertExtent(color);
                 if (d[0] === null)
@@ -6853,7 +6863,7 @@ nv.models.heatMapChart = function () {
                 axisX
                     .watchTransition(renderWatch, 'heatMap: axisX')
                     .attr("transform", "translate(0," + (availableHeight - yPos) + ")");
-                if (heatMap.xMeta() !== false) {
+                if (heatMap.xMeta() !== false) { // if showing x metadata
                     var pos = availableHeight + heatMap.metaOffset() + heatMap.cellBorderWidth();
                     g.select('.xMetaWrap')
                         .watchTransition(renderWatch, 'heatMap: xMetaWrap')
@@ -6883,7 +6893,7 @@ nv.models.heatMapChart = function () {
             // adjust position of axis based on presence of metadata group
             if (alignYAxis == 'right') {
                 axisY.attr("transform", "translate(" + (availableWidth - xPos) + ",0)");
-                if (heatMap.yMeta() !== false) {
+                if (heatMap.yMeta() !== false) { // if showing y meatdata
                     var pos = availableWidth + heatMap.metaOffset() + heatMap.cellBorderWidth();
                     g.select('.yMetaWrap')
                         .watchTransition(renderWatch, 'heatMap: yMetaWrap')
@@ -6899,10 +6909,10 @@ nv.models.heatMapChart = function () {
                 .width(availableWidth)
                 .color(heatMap.colorScale().range());
             var legendVal = quantizeLegendValues().map(function (d) {
-                if (Array.isArray(d)) {
+                if (Array.isArray(d)) { // if cell values are numeric
                     return { key: d[0].toFixed(1) + " - " + d[1].toFixed(1) };
                 }
-                else {
+                else { // if cell values are ordinal
                     return { key: d };
                 }
             });
@@ -7104,6 +7114,7 @@ nv.models.historicalBar = function () {
                 .attr('class', function (d, i, j) { return (getY(d, i) < 0 ? 'nv-bar negative' : 'nv-bar positive') + ' nv-bar-' + j + '-' + i; })
                 .watchTransition(renderWatch, 'bars')
                 .attr('transform', function (d, i) { return 'translate(' + (x(getX(d, i)) - availableWidth / data[0].values.length * .45) + ',0)'; })
+                //TODO: better width calculations that don't assume always uniform data spacing;w
                 .attr('width', (availableWidth / data[0].values.length) * .9);
             bars.watchTransition(renderWatch, 'bars')
                 .attr('y', function (d, i) {
@@ -7747,6 +7758,7 @@ nv.models.legend = function () {
                 gEnter.insert('rect', ':first-child')
                     .attr('class', 'nv-legend-bg')
                     .attr('fill', '#eee')
+                    // .attr('stroke', '#444')
                     .attr('opacity', 0);
                 var seriesBG = g.select('.nv-legend-bg');
                 seriesBG
@@ -7916,6 +7928,7 @@ nv.models.line = function () {
                     .x(function (d, i) { return nv.utils.NaNtoZero(x0(getX(d, i))); })
                     .y0(function (d, i) { return nv.utils.NaNtoZero(y0(getY(d, i))); })
                     .y1(function (d, i) { return y0(y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0]); })
+                    //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                     .apply(this, [d.values]);
             });
             groups.exit().selectAll('path.nv-area')
@@ -7928,6 +7941,7 @@ nv.models.line = function () {
                     .x(function (d, i) { return nv.utils.NaNtoZero(x(getX(d, i))); })
                     .y0(function (d, i) { return nv.utils.NaNtoZero(y(getY(d, i))); })
                     .y1(function (d, i) { return y(y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0]); })
+                    //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
                     .apply(this, [d.values]);
             });
             var linePaths = groups.selectAll('path.nv-line')
@@ -8725,6 +8739,7 @@ nv.models.linePlusBarChart = function () {
             var gBrush = g.select('.nv-x.nv-brush')
                 .call(brush);
             gBrush.selectAll('rect')
+                //.attr('y', -5)
                 .attr('height', availableHeight2);
             gBrush.selectAll('.resize').append('path').attr('d', resizePath);
             //============================================================
@@ -11296,10 +11311,12 @@ nv.models.parallelCoordinates = function () {
                         min = y[d].domain()[0];
                         max = y[d].domain()[1];
                     }
+                    //If the brush extent is > max (< min), keep the extent value.
                     else if (!f[0].hasOnlyNaN && displayBrush) {
                         min = min > f[0].extent[0] ? f[0].extent[0] : min;
                         max = max < f[0].extent[1] ? f[0].extent[1] : max;
                     }
+                    //If there is NaN values brushed be sure the brush extent is on the domain.
                     else if (f[0].hasNaN) {
                         max = max < f[0].extent[1] ? f[0].extent[1] : max;
                         oldDomainMaxValue[d] = y[d].domain()[1];
@@ -11348,6 +11365,7 @@ nv.models.parallelCoordinates = function () {
                 missingValueslineText.enter().append('text');
                 missingValueslineText.exit().remove();
                 missingValueslineText.attr("y", availableHeight)
+                    //To have the text right align with the missingValues line, substract 92 representing the text size.
                     .attr("x", availableWidth - 92 - step / 2)
                     .text(function (d) { return d; });
             }
@@ -13068,6 +13086,7 @@ nv.models.scatter = function () {
             x.domain(xDomain || d3.extent(seriesData.map(function (d) { return d.x; }).concat(forceX)));
             if (padData && data[0])
                 x.range(xRange || [(availableWidth * padDataOuter + availableWidth) / (2 * data[0].values.length), availableWidth - availableWidth * (1 + padDataOuter) / (2 * data[0].values.length)]);
+            //x.range([availableWidth * .5 / data[0].values.length, availableWidth * (data[0].values.length - .5)  / data[0].values.length ]);
             else
                 x.range(xRange || [0, availableWidth]);
             if (logScale) {
@@ -13285,6 +13304,8 @@ nv.models.scatter = function () {
                     // add event handlers to points instead voronoi paths
                     wrap.select('.nv-groups').selectAll('.nv-group')
                         .selectAll('.nv-point')
+                        //.data(dataWithPoints)
+                        //.style('pointer-events', 'auto') // recativate events, disabled by css
                         .on('click', function (d, i) {
                         //nv.log('test', d, i);
                         if (needsUpdate || !data[d[0].series])
@@ -14327,15 +14348,15 @@ nv.models.stackedArea = function () {
                 var n = stackData.length, //How many series
                 m = stackData[0].length, //how many points per series
                 i, j, o, y0 = [];
-                for (j = 0; j < m; ++j) {
-                    for (i = 0, o = 0; i < dataRaw.length; i++) {
+                for (j = 0; j < m; ++j) { //Looping through all points
+                    for (i = 0, o = 0; i < dataRaw.length; i++) { //looping through all series
                         o += getY(dataRaw[i].values[j]); //total y value of all series at a certian point in time.
                     }
                     if (o)
-                        for (i = 0; i < n; i++) {
+                        for (i = 0; i < n; i++) { //(total y value of all series at point in time i) != 0
                             stackData[i][j][1] /= o;
                         }
-                    else {
+                    else { //(total y value of all series at point in time i) == 0
                         for (i = 0; i < n; i++) {
                             stackData[i][j][1] = 0;
                         }
@@ -15436,6 +15457,6 @@ nv.models.sunburstChart = function () {
     return chart;
 };
 
-nv.version = "1.8.8";
+nv.version = "1.8.9";
 })();
 //# sourceMappingURL=nv.d3.js.map

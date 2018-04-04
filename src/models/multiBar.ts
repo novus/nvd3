@@ -1,4 +1,4 @@
-nv.models.multiBar = function () {
+(<any>nv.models).multiBar = function () {
     "use strict";
 
     //============================================================
@@ -39,7 +39,7 @@ nv.models.multiBar = function () {
     //------------------------------------------------------------
 
     var x0, y0 //used to store previous scales
-        , renderWatch = nv.utils.renderWatch(dispatch, duration);
+        , renderWatch: any = nv.utils.renderWatch(dispatch, duration);
 
     var last_datalength = 0;
 
