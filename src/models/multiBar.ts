@@ -413,6 +413,8 @@ nv.models.multiBar = function () {
                     .attr('width', widthFn)
                     .attr('height', heightFn);
 
+            bars.attr('transform', function (d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; });
+
             if (showValues) {
                 bars.select('text')
                     .attr('text-anchor', 'middle')

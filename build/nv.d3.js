@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.7 (https://github.com/anjmao/nvd3) 2018-04-03 */
+/* nvd3 version 1.8.8 (https://github.com/anjmao/nvd3) 2018-04-04 */
 (function(){
 // set up main nv object
 var nv = {};
@@ -9354,6 +9354,7 @@ nv.models.multiBar = function () {
                 .attr('y', yFn)
                 .attr('width', widthFn)
                 .attr('height', heightFn);
+            bars.attr('transform', function (d, i) { return 'translate(' + x(getX(d, i)) + ',0)'; });
             if (showValues) {
                 bars.select('text')
                     .attr('text-anchor', 'middle')
@@ -15435,6 +15436,6 @@ nv.models.sunburstChart = function () {
     return chart;
 };
 
-nv.version = "1.8.7";
+nv.version = "1.8.8";
 })();
 //# sourceMappingURL=nv.d3.js.map
