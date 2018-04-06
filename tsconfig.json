@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "none",
+    "allowJs": true,
+    "checkJs": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "./ts-out"
+  },
+  "include": [
+    "src/**/*",
+    "src/typings.d.ts"
+  ]
+}
