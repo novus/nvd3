@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-02-24 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-04-20 */
 (function(){
 
 // set up main nv object
@@ -1330,11 +1330,32 @@ nv.utils.calcTicksX = function(numTicks, data) {
 
 
 /*
-returns number of ticks to actually use on Y axis, based on chart data
-*/
-nv.utils.calcTicksY = function(numTicks, data) {
-    // currently uses the same logic but we can adjust here if needed later
-    return nv.utils.calcTicksX(numTicks, data);
+ returns number of ticks to actually use on Y axis, based on chart data
+ */
+nv.utils.calcTicksY = function(numTicks, data, getY) {
+    if (getY) {
+        var numValues = 1;
+        for (var i=0; i < data.length; i += 1) {
+            var values = data[i] && data[i].values ? data[i].values : [];
+            var maxValue;
+            for (var j=0; j < values.length; j += 1) {
+                maxValue = values[j] && getY(values[j]) ? getY(values[j]): 0;
+                numValues = maxValue > numValues ? maxValue : numValues;
+            }
+        }
+        nv.log("Requested number of ticks: ", numTicks);
+        nv.log("Calculated max values to be: ", numValues);
+        // make sure we don't have more ticks than values to avoid duplicates
+        numTicks = numTicks > numValues ? numValues - 1 : numTicks;
+        // make sure we have at least one tick
+        numTicks = numTicks < 1 ? 1 : numTicks;
+        // make sure it's an integer
+        numTicks = Math.floor(numTicks);
+        nv.log("Calculating tick count as: ", numTicks);
+        return numTicks;
+    } else {
+        return nv.utils.calcTicksX(numTicks, data);
+    }
 };
 
 
@@ -1691,6 +1712,7 @@ nv.models.axis = function() {
             var w;
             switch (axis.orient()) {
                 case 'top':
+                    xLabelMargin = axisLabelDistance + 36;
                     axisLabel.enter().append('text').attr('class', 'nv-axislabel');
                   w = 0;
                   if (scale.range().length === 1) {
@@ -1702,7 +1724,7 @@ nv.models.axis = function() {
                   };
                     axisLabel
                         .attr('text-anchor', 'middle')
-                        .attr('y', 0)
+                        .attr('y', -xLabelMargin)
                         .attr('x', w/2);
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -3979,6 +4001,473 @@ nv.models.cumulativeLineChart = function() {
 
     return chart;
 };
+'use strict';
+
+nv.models.differenceChart = function () {
+  'use strict';
+
+  var container = void 0;
+  var multiChart = nv.models.multiChart();
+  var focus = nv.models.focus(nv.models.line());
+  // const dispatch = d3.dispatch();
+  // yAccessor for multi chart
+  // Not modifiable by end user. They can
+  // overload yAccessor which is used during the processData step
+  var yForMultiChart = function yForMultiChart(d) {
+    // check if the data is for an area chart
+    // which has y0 and y1 values
+    if (isDefined(d.y0)) {
+      return d.y0;
+    }
+    // otherwise assume it's for a line chart
+    return d.y;
+  };
+  var xForMultiChart = function xForMultiChart(d) {
+    return d.x;
+  };
+  var xAccessor = function xAccessor(d) {
+    return d.x;
+  };
+  var keyForXValue = 'x';
+  var yAccessor = function yAccessor(d) {
+    return d.y;
+  };
+  var duration = 300;
+  var keyForActualLessThanPredicted = null;
+  var keyForActualGreaterThanPredicted = null;
+  var height = null;
+  var width = null;
+  var margin = { top: 30, right: 50, bottom: 20, left: 70 };
+  var focusMargin = { top: 0, right: 0, bottom: 0, left: 0 };
+  var showPredictedLine = true;
+  var interpolate = 'linear';
+  var strokeWidth = 1;
+  var xScale = d3.time.scale();
+  var tickFormat = d3.time.format.multi([['%I:%M', function (d) {
+    return d.getMinutes();
+  }], ['%I %p', function (d) {
+    return d.getHours();
+  }], ['%a %d', function (d) {
+    return d.getDay() && d.getDate() != 1;
+  }], ['%b %d', function (d) {
+    return d.getDate() != 1;
+  }], ['%B', function (d) {
+    return d.getMonth();
+  }], ['%Y', function () {
+    return true;
+  }]]);
+
+  function chart(selection) {
+    selection.each(function (data) {
+      container = d3.select(this);
+      var dataWithoutDisabledSeries = (data || []).filter(function (dataset) {
+        return !dataset.disabled;
+      });
+      if (!data || !dataWithoutDisabledSeries.length) {
+        nv.utils.noData(chart, container);
+        return chart;
+      }
+      var processedData = processData(data);
+      var availableHeight = nv.utils.availableHeight(height, container, margin) - focus.height();
+      var availableWidth = nv.utils.availableWidth(width, container, margin);
+
+      container.attr('class', 'nv-differenceChart');
+
+      nv.utils.initSVG(container);
+
+      chart.container = this;
+
+      multiChart.margin(margin).color(d3.scale.category10().range()).y(yForMultiChart).width(width).height(availableHeight).interpolate(interpolate).useInteractiveGuideline(true);
+
+      multiChart.interactiveLayer.tooltip.valueFormatter(function (value, i, datum) {
+        if (datum.key === keyForActualGreaterThanPredicted || datum.key === keyForActualLessThanPredicted) {
+          var diff = Math.abs(datum.data.y0 - datum.data.y1);
+          if (diff === 0) {
+            return '-';
+          }
+          return diff;
+        }
+        return value;
+      });
+
+      multiChart.stack1.areaY1(function (d) {
+        return multiChart.stack1.scatter.yScale()(d.display.y);
+      });
+
+      multiChart.stack1.transformData(function (d) {
+        d.display = { y: d.y1, y0: d.y0 };
+      });
+      multiChart.xAxis.scale(xScale);
+      multiChart.xAxis.tickFormat(tickFormat);
+      var allValues = processedData.filter(function (dataset) {
+        return !dataset.disabled;
+      }).map(function (dataset) {
+        return dataset.values;
+      });
+      var dateExtent = d3.extent(d3.merge(allValues), function (d) {
+        return xForMultiChart(d);
+      });
+      multiChart.xAxis.domain(dateExtent).range([0, availableWidth]);
+
+      var yExtent = d3.extent(d3.merge(allValues), function (d) {
+        return yForMultiChart(d);
+      });
+      multiChart.yDomain1(yExtent);
+      multiChart.yAxis1.tickFormat(d3.format(',.1f'));
+      multiChart.yAxis2.tickFormat(d3.format(',.1f'));
+
+      focus.width(availableWidth);
+      focus.margin(focusMargin);
+      focus.xScale(xScale.copy());
+      focus.xAxis.tickFormat(tickFormat);
+      focus.xAxis.rotateLabels(0);
+
+      container.append('g').attr('class', 'nv-focusWrap').style('display', 'initial').attr('transform', 'translate(' + margin.left + ', ' + (availableHeight + focus.margin().top) + ')').datum(processedData.filter(function (dataset) {
+        return dataset.type === 'line';
+      })).call(focus);
+
+      container.datum(processedData).call(multiChart);
+
+      focus.dispatch.on('onBrush', function (extent) {
+        var filteredData = processedData.map(function (datum) {
+          var leftIndex = -1;
+          var rightIndex = -1;
+          datum.values.some(function (val, index) {
+            if (leftIndex === -1 && val.x >= extent[0]) {
+              leftIndex = index;
+            }
+
+            if (rightIndex === -1 && val.x >= extent[1]) {
+              rightIndex = index;
+              return true;
+            }
+            return false;
+          });
+          var filteredValues = datum.values.slice(leftIndex, rightIndex);
+          var iterations = 0;
+          // don't want to end up with an empty dataset as this will
+          // break the viewfinder.
+          while (filteredValues.length < 2 && iterations < 5) {
+            leftIndex -= 1;
+            rightIndex += 1;
+            filteredValues = datum.values.slice(leftIndex, rightIndex);
+            iterations++;
+          }
+
+          return Object.assign({}, datum, {
+            values: filteredValues
+          });
+        });
+
+        container.datum(filteredData);
+
+        multiChart.xAxis.domain(extent);
+
+        multiChart.update();
+      });
+
+      chart.update = function () {
+        container.selectAll('*').remove();
+
+        if (duration === 0) {
+          container.call(chart);
+        } else {
+          container.transition().duration(duration).call(chart);
+        }
+      };
+
+      return chart;
+    });
+  }
+
+  chart.options = nv.utils.optionsFunc.bind(chart);
+
+  chart._options = Object.create({}, {
+    width: {
+      get: function get() {
+        return width;
+      },
+      set: function set(_) {
+        width = _;
+      }
+    },
+    height: {
+      get: function get() {
+        return height;
+      },
+      set: function set(_) {
+        height = _;
+      }
+    },
+    strokeWidth: {
+      get: function get() {
+        return strokeWidth;
+      },
+      set: function set(_) {
+        strokeWidth = _;
+      }
+    },
+    x: {
+      get: function get() {
+        return xAccessor;
+      },
+      set: function set(_) {
+        xAccessor = _;
+      }
+    },
+    keyForXValue: {
+      get: function get() {
+        return keyForXValue;
+      },
+      set: function set(_) {
+        keyForXValue = _;
+      }
+    },
+    y: {
+      get: function get() {
+        return yAccessor;
+      },
+      set: function set(_) {
+        yAccessor = _;
+      }
+    },
+    xScale: {
+      get: function get() {
+        return xScale;
+      },
+      set: function set(_) {
+        xScale = _;
+      }
+    },
+    keyForActualLessThanPredicted: {
+      get: function get() {
+        return keyForActualLessThanPredicted;
+      },
+      set: function set(_) {
+        keyForActualLessThanPredicted = _;
+      }
+    },
+    keyForActualGreaterThanPredicted: {
+      get: function get() {
+        return keyForActualGreaterThanPredicted;
+      },
+      set: function set(_) {
+        keyForActualGreaterThanPredicted = _;
+      }
+    },
+    showPredictedLine: {
+      get: function get() {
+        return showPredictedLine;
+      },
+      set: function set(_) {
+        showPredictedLine = _;
+      }
+    },
+    tickFormat: {
+      get: function get() {
+        return tickFormat;
+      },
+      set: function set(_) {
+        tickFormat = _;
+      }
+    },
+    interpolate: {
+      get: function get() {
+        return interpolate;
+      },
+      set: function set(_) {
+        interpolate = _;
+      }
+    },
+    focusMargin: {
+      get: function get() {
+        return focusMargin;
+      },
+      set: function set(_) {
+        focusMargin.top = _.top !== undefined ? _.top : focusMargin.top;
+        focusMargin.right = _.right !== undefined ? _.right : focusMargin.right;
+        focusMargin.bottom = _.bottom !== undefined ? _.bottom : focusMargin.bottom;
+        focusMargin.left = _.left !== undefined ? _.left : focusMargin.left;
+      }
+    },
+    margin: {
+      get: function get() {
+        return margin;
+      },
+      set: function set(_) {
+        margin.top = _.top !== undefined ? _.top : margin.top;
+        margin.right = _.right !== undefined ? _.right : margin.right;
+        margin.bottom = _.bottom !== undefined ? _.bottom : margin.bottom;
+        margin.left = _.left !== undefined ? _.left : margin.left;
+      }
+    }
+  });
+
+  function processData(data) {
+    var clonedData = data.slice(0);
+    var allProcessed = clonedData.every(function (dataset) {
+      return dataset.processed;
+    });
+    var actualData = clonedData.filter(function (dataSet) {
+      return dataSet.type === 'actual';
+    });
+    var predictedData = clonedData.filter(function (dataSet) {
+      return dataSet.type === 'expected';
+    });
+
+    if (allProcessed) {
+      return clonedData;
+    } else if (!actualData.length || !predictedData.length) {
+      return [];
+    }
+
+    var defaultKeyForActualLessThanPredicted = predictedData[0].key + ' minus ' + actualData[0].key + ' (Predicted > Actual)';
+    var defaultKeyForActualGreaterThanPredicted = predictedData[0].key + ' minus ' + actualData[0].key + ' (Predicted < Actual)';
+    // processedData is mapped as follows:
+    //  [0] => Savings (actual under predicted) area
+    //  [1] => 'Loss' (actual over predicted) area
+    //  [2] => Actual profile
+    //  [3] => Predicted profile
+    var processedData = [{
+      key: keyForActualLessThanPredicted || defaultKeyForActualLessThanPredicted,
+      type: 'area',
+      values: [],
+      yAxis: 1,
+      color: 'rgba(44,160,44,.9)',
+      processed: true,
+      noHighlightSeries: true
+    }, {
+      key: keyForActualGreaterThanPredicted || defaultKeyForActualGreaterThanPredicted,
+      type: 'area',
+      values: [],
+      yAxis: 1,
+      color: 'rgba(234,39,40,.9)',
+      processed: true,
+      noHighlightSeries: true
+    }, {
+      key: actualData[0].key,
+      type: 'line',
+      values: [],
+      yAxis: 1,
+      color: '#666666',
+      processed: true,
+      strokeWidth: strokeWidth
+    }];
+
+    if (showPredictedLine) {
+      processedData[3] = {
+        key: predictedData[0].key,
+        type: 'line',
+        values: [],
+        yAxis: 1,
+        color: '#aec7e8',
+        processed: true,
+        strokeWidth: strokeWidth
+      };
+    }
+
+    var actualDataAsMap = actualData[0].values.reduce(function (result, datum, idx) {
+      result[xAccessor(datum)] = yAccessor(datum);
+      return result;
+    }, {});
+
+    var predictedDataAsMap = predictedData[0].values.reduce(function (result, datum, idx) {
+      result[xAccessor(datum)] = yAccessor(datum);
+      return result;
+    }, {});
+
+    Object.keys(actualDataAsMap).forEach(function (stringifiedXValue, idx) {
+      var actualUsage = actualDataAsMap[stringifiedXValue];
+      var predictedUsage = predictedDataAsMap[stringifiedXValue];
+      var fakeDatumToGetProperXValue = {};
+      // NB - stringifiedXValue will not be the correct data type
+      // e.g. you might want to use a number/date. Pass the stringified
+      // version back through xAccessor.
+      fakeDatumToGetProperXValue[keyForXValue] = stringifiedXValue;
+      var correctlyFormattedXValue = xAccessor(fakeDatumToGetProperXValue);
+
+      var predictedActualDelta = predictedUsage - actualUsage;
+      // The below code generates data for the difference chart.
+      // We have four series: two for the area (processedData[0] and processedData[1]) charts
+      // and two for the line charts ([2] and [3]). The way we achieve difference chart
+      // is that for each datapoint, we calculate whether it represents a 'savings'
+      // (actual less than predicted) or a 'loss' (actual greater than predicted).
+      // The two areas are different colours (e.g. out of the box, a loss is red and a
+      // saving is green).
+      // If it's a loss, then we add an area datapoint in the loss dataset ranging from actual to predicted
+      // (the area represents the magnitude of the loss).
+      // At the same time, for the savings dataset, we make the datapoint equivalent to actual usage so that
+      // a dot renders rather than a proper area. This basically makes the savings area invisible
+      // when there is a loss.
+      //
+      // The opposite occurs when predicted is greater than savings (a saving).
+      if (isNaN(predictedActualDelta)) {
+        // if there is no predicted value for this point, just use actual usage
+        processedData[1].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: actualUsage
+        };
+        processedData[0].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      }
+      else if (predictedActualDelta < 0) {
+        // actual greater than predicted - this is a loss
+        // add area for loss between actualUsage (y0) and predictedUsage(y1)
+        processedData[1].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: predictedUsage
+        };
+        // for the saving data series, render a dot (y0 and y1) at actualUsage - need
+        // this rather than NaN because otherwise if the next datapoint is a saving,
+        // D3 won't be able to link the two areas together
+        processedData[0].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      } else {
+        processedData[0].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: predictedUsage
+        };
+        processedData[1].values[idx] = {
+          x: correctlyFormattedXValue,
+          y0: actualUsage,
+          y1: actualUsage
+        };
+      }
+      // Set actual
+      processedData[2].values[idx] = { x: correctlyFormattedXValue, y: actualUsage };
+      // Set predicted
+      if (showPredictedLine) {
+        processedData[3].values[idx] = { x: correctlyFormattedXValue, y: predictedUsage };
+      }
+    });
+
+    return processedData;
+  }
+
+  function isDefined(thingToCheck) {
+    // NB: void 0 === undefined
+    return thingToCheck !== void 0;
+  }
+
+  chart.xAxis = multiChart.xAxis;
+  chart.yAxis = multiChart.yAxis1;
+  chart.multiChart = multiChart;
+  chart.focus = focus;
+  chart.processData = processData;
+  nv.utils.inheritOptions(chart, multiChart);
+  nv.utils.initOptions(chart);
+
+  return chart;
+};
 //TODO: consider deprecating by adding necessary features to multiBar model
 nv.models.discreteBar = function() {
     "use strict";
@@ -3998,6 +4487,7 @@ nv.models.discreteBar = function() {
         , getY = function(d) { return d.y }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , color = nv.utils.defaultColor()
+        , cornerRadius = 0 // sets corner radius (in pixels) to each bar
         , showValues = false
         , valueFormat = d3.format(',.2f')
         , xDomain
@@ -4157,6 +4647,7 @@ nv.models.discreteBar = function() {
                 .style('fill', function(d,i) { return d.color || color(d,i) })
                 .style('stroke', function(d,i) { return d.color || color(d,i) })
                 .select('rect')
+                .attr('rx', cornerRadius)
                 .attr('class', rectClass)
                 .watchTransition(renderWatch, 'discreteBar: bars rect')
                 .attr('width', x.rangeBand() * .9 / data.length);
@@ -4201,6 +4692,7 @@ nv.models.discreteBar = function() {
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
+        cornerRadius:      {get: function(){return cornerRadius;}, set: function(_){cornerRadius=_}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}},
         y:       {get: function(){return getY;}, set: function(_){getY=_;}},
         xScale:  {get: function(){return x;}, set: function(_){x=_;}},
@@ -4418,7 +4910,7 @@ nv.models.discreteBarChart = function() {
             if (showYAxis) {
                 yAxis
                     .scale(y)
-                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
+                    ._ticks( nv.utils.calcTicksY(availableHeight/36, data, discretebar.y()) )
                     .tickSize( -availableWidth, 0);
 
                 g.select('.nv-y.nv-axis').call(yAxis);
@@ -12366,7 +12858,7 @@ nv.models.multiChart = function() {
             var extraValue1BarStacked = [];
             if (bars1.stacked() && dataBars1.length) {
                 var extraValue1BarStacked = dataBars1.filter(function(d){return !d.disabled}).map(function(a){return a.values});
-                
+
                 if (extraValue1BarStacked.length > 0)
                     extraValue1BarStacked = extraValue1BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
@@ -12375,18 +12867,27 @@ nv.models.multiChart = function() {
             if (dataBars1.length) {
                 extraValue1BarStacked.push({x:0, y:0});
             }
-            
+
             var extraValue2BarStacked = [];
             if (bars2.stacked() && dataBars2.length) {
                 var extraValue2BarStacked = dataBars2.filter(function(d){return !d.disabled}).map(function(a){return a.values});
-                
+
                 if (extraValue2BarStacked.length > 0)
                     extraValue2BarStacked = extraValue2BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
                     });
             }
+
             if (dataBars2.length) {
-                extraValue2BarStacked.push({x:0, y:0});
+              extraValue2BarStacked.push({x:0, y:0});
+            }
+
+            function getStackedAreaYs(series) {
+                return d3.transpose(series).map(function(x) {
+                    return x.map(function(g) {
+                        return g.y;
+                        });
+                    }).map(function(x) {return d3.sum(x);})
             }
             
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
@@ -12397,12 +12898,22 @@ nv.models.multiChart = function() {
 
             lines1.yDomain(yScale1.domain());
             scatters1.yDomain(yScale1.domain());
-            bars1.yDomain(yScale1.domain());
+            if(bars1.stacked()) {
+                var yStackScale1 = yScale1.domain([0, d3.max(getStackedAreaYs(series1))]).range([0, availableHeight]);
+                bars1.yDomain(yStackScale1.domain())
+            } else {
+                bars1.yDomain(yScale1.domain());
+            }
             stack1.yDomain(yScale1.domain());
 
             lines2.yDomain(yScale2.domain());
             scatters2.yDomain(yScale2.domain());
-            bars2.yDomain(yScale2.domain());
+            if(bars2.stacked()) {
+                var yStackScale2 = yScale2.domain([0, d3.max(getStackedAreaYs(series2))]).range([0, availableHeight]);
+                bars2.yDomain(yStackScale2.domain())
+            } else {
+                bars2.yDomain(yScale2.domain());
+            }
             stack2.yDomain(yScale2.domain());
 
             if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
@@ -12555,13 +13066,60 @@ nv.models.multiChart = function() {
               }
             }
 
-            function highlightPoint(serieIndex, pointIndex, b){
-              for(var i=0, il=charts.length; i < il; i++){
-                var chart = charts[i];
-                try {
-                  chart.highlightPoint(serieIndex, pointIndex, b);
-                } catch(e){}
-              }
+            function highlightPoint(series, pointIndex, b, pointYValue) {
+
+              var chartMap = {
+                'line': {
+                  'yAxis1': {
+                    chart: lines1,
+                    data: dataLines1
+                  },
+                  'yAxis2': {
+                    chart: lines2,
+                    data: dataLines2
+                  }
+                },
+                'scatter': {
+                  'yAxis1': {
+                    chart: scatters1,
+                    data: dataScatters1
+                  },
+                  'yAxis2': {
+                    chart: scatters2,
+                    data: dataScatters2
+                  }
+                },
+                'bar': {
+                  'yAxis1': {
+                    chart: bars1,
+                    data: dataBars1
+                  },
+                  'yAxis2': {
+                    chart: bars2,
+                    data: dataBars2
+                  }
+                },
+                'area': {
+                  'yAxis1': {
+                    chart: stack1,
+                    data: dataStack1
+                  },
+                  'yAxis2': {
+                    chart: stack2,
+                    data: dataStack2
+                  }
+                }
+              };
+
+              var relevantChart = chartMap[series.type]['yAxis' + series.yAxis].chart;
+              var relevantDatasets = chartMap[series.type]['yAxis' + series.yAxis].data;
+              var seriesIndex = relevantDatasets.reduce(function (seriesIndex, dataSet, i) {
+                return dataSet.key === series.key ? i : seriesIndex;
+              }, 0);
+
+              try {
+                relevantChart.highlightPoint(seriesIndex, pointIndex, b, pointYValue);
+              } catch(e){}
             }
 
             if(useInteractiveGuideline){
@@ -12573,7 +13131,7 @@ nv.models.multiChart = function() {
                         series.seriesIndex = i;
                         return !series.disabled;
                     })
-                    .forEach(function(series,i) {
+                    .forEach(function(series, i) {
                         var extent = x.domain();
                         var currentValues = series.values.filter(function(d,i) {
                             return chart.x()(d,i) >= extent[0] && chart.x()(d,i) <= extent[1];
@@ -12582,8 +13140,8 @@ nv.models.multiChart = function() {
                         pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, chart.x());
                         var point = currentValues[pointIndex];
                         var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue !== null) {
-                            highlightPoint(i, pointIndex, true);
+                        if (pointYValue !== null && !isNaN(pointYValue) && !series.noHighlightSeries) {
+                          highlightPoint(series, pointIndex, true);
                         }
                         if (point === undefined) return;
                         if (singlePoint === undefined) singlePoint = point;
@@ -12601,7 +13159,6 @@ nv.models.multiChart = function() {
                         var yAxis = allData[i].yAxis;
                         return d == null ? "N/A" : yAxis.tickFormat()(d);
                     };
-
                     interactiveLayer.tooltip
                         .headerFormatter(function(d, i) {
                             return xAxis.tickFormat()(d, i);
@@ -16600,6 +17157,8 @@ nv.models.stackedArea = function() {
         , y //can be accessed via chart.yScale()
         , scatter = nv.models.scatter()
         , duration = 250
+        , transformData = function(d, y0, y) { d.display = { y: y, y0: y0 }; }
+        , areaY1 = function(d) { return y(d.display.y + d.display.y0) }
         , dispatch =  d3.dispatch('areaClick', 'areaMouseover', 'areaMouseout','renderEnd', 'elementClick', 'elementMouseover', 'elementMouseout')
         ;
 
@@ -16657,12 +17216,7 @@ nv.models.stackedArea = function() {
                 .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
                 .x(getX)
                 .y(getY)
-                .out(function(d, y0, y) {
-                    d.display = {
-                        y: y,
-                        y0: y0
-                    };
-                })
+                .out(transformData)
             (dataFiltered);
 
             // Setup containers and skeleton of chart
@@ -16676,13 +17230,13 @@ nv.models.stackedArea = function() {
             gEnter.append('g').attr('class', 'nv-scatterWrap');
 
             wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-            
+
             // If the user has not specified forceY, make sure 0 is included in the domain
             // Otherwise, use user-specified values for forceY
             if (scatter.forceY().length == 0) {
                 scatter.forceY().push(0);
             }
-            
+
             scatter
                 .width(availableWidth)
                 .height(availableHeight)
@@ -16716,9 +17270,7 @@ nv.models.stackedArea = function() {
                 .y0(function(d) {
                     return y(d.display.y0)
                 })
-                .y1(function(d) {
-                    return y(d.display.y + d.display.y0)
-                })
+                .y1(areaY1)
                 .interpolate(interpolate);
 
             var zeroArea = d3.svg.area()
@@ -16857,6 +17409,9 @@ nv.models.stackedArea = function() {
         // simple functor options
         x:     {get: function(){return getX;}, set: function(_){getX = d3.functor(_);}},
         y:     {get: function(){return getY;}, set: function(_){getY = d3.functor(_);}},
+
+        areaY1:     {get: function(){return areaY1;}, set: function(_){ areaY1 = d3.functor(_);}},
+        transformData:     {get: function(){return transformData;}, set: function(_){ transformData = d3.functor(_);}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){
@@ -17321,35 +17876,49 @@ nv.models.stackedAreaChart = function() {
                         return !series.disabled;
                     })
                     .forEach(function(series,i) {
-                        pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        var point = series.values[pointIndex];
-                        var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue != null && pointYValue > 0) {
-                            stacked.highlightPoint(i, pointIndex, true);
-                            atleastOnePoint = true;
-                        }
-
-                        // Draw at least one point if all values are zero.
-                        if (i === (data.length - 1) && !atleastOnePoint) {
-                            stacked.highlightPoint(i, pointIndex, true);
-                        }
-                        if (typeof point === 'undefined') return;
-                        if (typeof singlePoint === 'undefined') singlePoint = point;
-                        if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-
-                        //If we are in 'expand' mode, use the stacked percent value instead of raw value.
-                        var tooltipValue = (stacked.style() == 'expand') ? point.display.y : chart.y()(point,pointIndex);
-                        allData.push({
-                            key: series.key,
-                            value: tooltipValue,
-                            color: color(series,series.seriesIndex),
-                            point: point
+                      
+                        var extent = focus.brush.extent() !== null ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
+                        var currentValues = series.values.filter(function(d,i) {
+                            // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1]
+                            // (e.g. x domain is manually set to reverse the x-axis)
+                            if(extent[0] <= extent[1]) {
+                                return stacked.x()(d,i) >= extent[0] && stacked.x()(d,i) <= extent[1];
+                            } else {
+                                return stacked.x()(d,i) >= extent[1] && stacked.x()(d,i) <= extent[0];
+                            }
                         });
+                      
+                        if (currentValues.length > 0) {
+                          pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, chart.x());
+                          var point = currentValues[pointIndex];
+                          var pointYValue = chart.y()(point, pointIndex);
+                          if (pointYValue != null && pointYValue > 0) {
+                              stacked.highlightPoint(i, pointIndex, true);
+                              atleastOnePoint = true;
+                          }
 
-                        if (showTotalInTooltip && stacked.style() != 'expand' && tooltipValue != null) {
-                          valueSum += tooltipValue;
-                          allNullValues = false;
-                        };
+                          // Draw at least one point if all values are zero.
+                          if (i === (data.length - 1) && !atleastOnePoint) {
+                              stacked.highlightPoint(i, pointIndex, true);
+                          }
+                          if (typeof point === 'undefined') return;
+                          if (typeof singlePoint === 'undefined') singlePoint = point;
+                          if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+
+                          //If we are in 'expand' mode, use the stacked percent value instead of raw value.
+                          var tooltipValue = (stacked.style() == 'expand') ? point.display.y : chart.y()(point,pointIndex);
+                          allData.push({
+                              key: series.key,
+                              value: tooltipValue,
+                              color: color(series,series.seriesIndex),
+                              point: point
+                          });
+
+                          if (showTotalInTooltip && stacked.style() != 'expand' && tooltipValue != null) {
+                            valueSum += tooltipValue;
+                            allNullValues = false;
+                          };
+                        }
                     });
 
                 allData.reverse();
