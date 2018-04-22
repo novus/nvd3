@@ -217,7 +217,7 @@ nv.models.discreteBar = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
-        barWidth:{get: function(){return barWidth;}, set: function(_){barWidth=_;}},
+        barWidth:{get: function(){return barWidth;}, set: function(_){barWidth=nv.utils.setLimits(_, 0.1, 1);}},
         width:   {get: function(){return width;}, set: function(_){width=_;}},
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
