@@ -20,6 +20,31 @@
             height: 100%;
             width: 100%;
         }
+
+        .tick > line:not(.zero){
+            opacity: 0 !important;
+        }
+
+        .nvd3.multiChart .axis .nv-axis line {
+            stroke: none;
+            fill: none;
+        }
+
+        .nv-y1 {
+            opacity: 0!important;
+        }
+
+        /*.nv-point {*/
+            /*background-image: url("https://images.scholastic.co.uk/assets/a/bf/f1/499838.jpg");*/
+            /*background-position: center;*/
+            /*background-repeat: no-repeat;*/
+            /*background-size: contain;*/
+        /*}*/
+
+        /*.nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {*/
+            /*fill-opacity: 1 !important;*/
+        /*}*/
+
     </style>
 </head>
 <body class='with-3d-shadow with-transitions'>
@@ -30,47 +55,143 @@
 
 <script>
 
-    var testdata = stream_layers(9,10+Math.random()*100,.1).map(function(data, i) {
+    var testdata = stream_layers(2,10,.1).map(function(data, i) {
         return {
-            key: 'Stream' + i,
-            values: data.map(function(a){a.y = a.y * (i <= 1 ? -1 : 1); return a})
+            key: 'Graph' + i,
+            values: data.map(function(a){a.y = a.y; return a})
         };
     });
 
-    testdata[0].type = "area";
+
+    // bar1
+    testdata[0].type = "bar";
     testdata[0].yAxis = 1;
-    testdata[1].type = "area";
+
+    // lines1
+    testdata[1].type = "line";
     testdata[1].yAxis = 1;
-    testdata[2].type = "line";
-    testdata[2].yAxis = 1;
-    testdata[3].type = "line";
-    testdata[3].yAxis = 2;
-    testdata[4].type = "scatter";
-    testdata[4].yAxis = 1;
-    testdata[5].type = "scatter";
-    testdata[5].yAxis = 2;
-    testdata[6].type = "bar";
-    testdata[6].yAxis = 2;
-    testdata[7].type = "bar";
-    testdata[7].yAxis = 2;
-    testdata[8].type = "bar";
-    testdata[8].yAxis = 2;
+//    testdata[2].type = "line";
+//    testdata[2].yAxis = 1;
+//    testdata[3].type = "line";
+//    testdata[3].yAxis = 2;
+//    testdata[4].type = "scatter";
+//    testdata[4].yAxis = 1;
+//    testdata[5].type = "scatter";
+//    testdata[5].yAxis = 2;
+//    testdata[6].type = "bar";
+//    testdata[6].yAxis = 2;
+//    testdata[7].type = "bar";
+//    testdata[7].yAxis = 2;
+//    testdata[8].type = "bar";
+//    testdata[8].yAxis = 2;
 
     nv.addGraph(function() {
         var chart = nv.models.multiChart()
-            .margin({top: 30, right: 60, bottom: 50, left: 70})
-            .color(d3.scale.category10().range());
+            .margin({top: 50, right: 60, bottom: 50, left: 70})
+            .color(function(chart) {
 
-        chart.xAxis.tickFormat(d3.format(',f'));
+                if (chart.type == "line") {
+                    return "#d3d3d3";
+                } else if (chart.type == "bar") {
+                    return "#5E4A82";
+                }
+
+                return "#00FF00";
+            });
+
+//        .color(d3.scale.category10().range());
+
+//        chart.xAxis.tickFormat(d3.format(',f'));
+        chart.xAxis.tickFormat(function(d) { return d3.time.format('%b %d')(new Date(d)); })
         chart.yAxis1.tickFormat(d3.format(',.1f'));
-        chart.yAxis2.tickFormat(d3.format(',.1f'));
+
+        chart.lines1.clipRadius(function (d) {
+            return 20;
+        });
+
+        chart.bars1.fillOpacity(1.0); // puna boja
+//        chart.bars2.barColor(["#FF0000","#00FF00","#0000FF"]);
+
+//        chart.lines1.pointSize(1120);
+//        chart.scatters1.pointSize(1120);
 
         d3.select('#chart1 svg')
             .datum(testdata)
-            .transition().duration(500).call(chart);
+            .transition().each("end", stylizeChart).duration(500).call(chart);
+
+        function stylizeChart() {
+            d3.selectAll('rect').attr('rx', 5);
+            d3.selectAll('rect').attr('ry', 5);
+
+            d3.selectAll('path.nv-line').attr('stroke-dasharray', "5,5");
+
+            d3.select('#chart1 svg').append("defs")
+                    .append('pattern')
+                    .attr('id', 'locked2')
+                    .attr('patternUnits', 'objectBoundingBox')
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .attr('width', 38)
+                    .attr('height', 38)
+                    .append("image")
+                    .attr("xlink:href", "https://images.scholastic.co.uk/assets/a/bf/f1/499838.jpg")
+                    .attr('width', 38)
+                    .attr('height', 38);
+
+
+            var barsArray = d3.selectAll('rect.nv-bar');
+            d3.selectAll('path.nv-point').each(function(d,i) {
+//            console.log(this);
+//            console.log(d);
+//            console.log(i);
+                if (testdata[0].values[i].y >= testdata[1].values[i].y){
+                    // value is equal or greater than goal value
+//                    d3.select(this).attr('fill', "url(#locked2)");
+
+
+                    var star = {
+                        size: {
+                            width: 38,
+                            height: 38
+                        },
+                        x: 0,
+                        y: 0,
+                        transform: "",
+                        barOffset: 25
+                    };
+
+
+                    var currentBar = d3.select(barsArray[0][i]);
+
+                    console.log("bar height: " + currentBar.attr("height"));
+
+                    star.x = currentBar.attr("x");
+                    star.y = currentBar.attr("y") - star.size.height - star.barOffset;
+                    star.transform = currentBar.attr("transform");
+                    console.log(currentBar);
+
+
+                    d3.select(currentBar[0][0].parentNode).append('rect')
+                            .attr('width', star.size.width)
+                            .attr('height', star.size.height)
+                            .attr('x', star.x)
+                            .attr('y', star.y)
+                            .attr('transform', star.transform)
+                            .attr('fill', "url(#locked2)");
+
+
+                } else {
+                    d3.select(this).style('opacity', 0);
+                }
+            });
+        }
+
+        nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
+
 
         return chart;
     });
+
 
 </script>
 </body>
