@@ -217,35 +217,6 @@
       describe('Processing Data', function () {
         it('should does not process data if series toggled off', function () {
           builder.model.showPredictedLine(false);
-<<<<<<< HEAD
-          var expectedData = [{
-            key: 'Predicted Data minus Actual Data (Predicted > Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 10, y1: 15 }, { x: 124, y0: 20, y1: 25 }],
-            yAxis: 1,
-            color: 'rgba(44,160,44,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Predicted Data minus Actual Data (Predicted < Actual)',
-            type: 'area',
-            values: [{ x: 123, y0: 10, y1: 10 }, { x: 124, y0: 20, y1: 20 }],
-            yAxis: 1,
-            color: 'rgba(234,39,40,.9)',
-            processed: true,
-            noHighlightSeries: true
-          },
-          {
-            key: 'Actual Data',
-            type: 'line',
-            values: [{ x: 123, y: 10 }, { x: 124, y: 20 }],
-            yAxis: 1,
-            color: '#666666',
-            processed: true,
-            strokeWidth: 1
-          }];
-=======
           var expectedData = [
             {
               key: 'Predicted Data minus Actual Data (Predicted > Actual)',
