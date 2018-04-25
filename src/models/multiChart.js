@@ -215,9 +215,6 @@ nv.models.multiChart = function() {
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
                     });
             }
-            if (dataBars1.length) {
-                extraValue1BarStacked.push({x:0, y:0});
-            }
 
             var extraValue2BarStacked = [];
             if (bars2.stacked() && dataBars2.length) {
@@ -227,10 +224,6 @@ nv.models.multiChart = function() {
                     extraValue2BarStacked = extraValue2BarStacked.reduce(function(a,b){
                         return a.map(function(aVal,i){return {x: aVal.x, y: aVal.y + b[i].y}})
                     });
-            }
-
-            if (dataBars2.length) {
-              extraValue2BarStacked.push({x:0, y:0});
             }
 
             function getStackedAreaYs(series) {
