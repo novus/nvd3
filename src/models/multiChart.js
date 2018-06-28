@@ -249,23 +249,21 @@ nv.models.multiChart = function() {
 
             lines1.yDomain(yScale1.domain());
             scatters1.yDomain(yScale1.domain());
-            if(bars1.stacked()) {
-                var yStackScale1 = yScale1.domain([0, d3.max(getStackedAreaYs(series1))]).range([0, availableHeight]);
+            var yStackScale1 = yScale1.domain([0, d3.max(getStackedAreaYs(series1))]).range([0, availableHeight]);
+            if(bars1.stacked())
                 bars1.yDomain(yStackScale1.domain())
-            } else {
+            else
                 bars1.yDomain(yScale1.domain());
-            }
-            stack1.yDomain(yScale1.domain());
+            stack1.yDomain(yStackScale1.domain());
 
             lines2.yDomain(yScale2.domain());
             scatters2.yDomain(yScale2.domain());
-            if(bars2.stacked()) {
-                var yStackScale2 = yScale2.domain([0, d3.max(getStackedAreaYs(series2))]).range([0, availableHeight]);
+            var yStackScale2 = yScale2.domain([0, d3.max(getStackedAreaYs(series2))]).range([0, availableHeight]);
+            if(bars2.stacked())
                 bars2.yDomain(yStackScale2.domain())
-            } else {
+            else
                 bars2.yDomain(yScale2.domain());
-            }
-            stack2.yDomain(yScale2.domain());
+            stack2.yDomain(yStackScale2.domain());
 
             if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
             if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
