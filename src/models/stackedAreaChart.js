@@ -414,35 +414,49 @@ nv.models.stackedAreaChart = function() {
                         return !series.disabled;
                     })
                     .forEach(function(series,i) {
-                        pointIndex = nv.interactiveBisect(series.values, e.pointXValue, chart.x());
-                        var point = series.values[pointIndex];
-                        var pointYValue = chart.y()(point, pointIndex);
-                        if (pointYValue != null && pointYValue > 0) {
-                            stacked.highlightPoint(i, pointIndex, true);
-                            atleastOnePoint = true;
-                        }
-
-                        // Draw at least one point if all values are zero.
-                        if (i === (data.length - 1) && !atleastOnePoint) {
-                            stacked.highlightPoint(i, pointIndex, true);
-                        }
-                        if (typeof point === 'undefined') return;
-                        if (typeof singlePoint === 'undefined') singlePoint = point;
-                        if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
-
-                        //If we are in 'expand' mode, use the stacked percent value instead of raw value.
-                        var tooltipValue = (stacked.style() == 'expand') ? point.display.y : chart.y()(point,pointIndex);
-                        allData.push({
-                            key: series.key,
-                            value: tooltipValue,
-                            color: color(series,series.seriesIndex),
-                            point: point
+                      
+                        var extent = focus.brush.extent() !== null ? (focus.brush.empty() ? focus.xScale().domain() : focus.brush.extent()) : x.domain();
+                        var currentValues = series.values.filter(function(d,i) {
+                            // Checks if the x point is between the extents, handling case where extent[0] is greater than extent[1]
+                            // (e.g. x domain is manually set to reverse the x-axis)
+                            if(extent[0] <= extent[1]) {
+                                return stacked.x()(d,i) >= extent[0] && stacked.x()(d,i) <= extent[1];
+                            } else {
+                                return stacked.x()(d,i) >= extent[1] && stacked.x()(d,i) <= extent[0];
+                            }
                         });
+                      
+                        if (currentValues.length > 0) {
+                          pointIndex = nv.interactiveBisect(currentValues, e.pointXValue, chart.x());
+                          var point = currentValues[pointIndex];
+                          var pointYValue = chart.y()(point, pointIndex);
+                          if (pointYValue != null && pointYValue > 0) {
+                              stacked.highlightPoint(i, pointIndex, true);
+                              atleastOnePoint = true;
+                          }
 
-                        if (showTotalInTooltip && stacked.style() != 'expand' && tooltipValue != null) {
-                          valueSum += tooltipValue;
-                          allNullValues = false;
-                        };
+                          // Draw at least one point if all values are zero.
+                          if (i === (data.length - 1) && !atleastOnePoint) {
+                              stacked.highlightPoint(i, pointIndex, true);
+                          }
+                          if (typeof point === 'undefined') return;
+                          if (typeof singlePoint === 'undefined') singlePoint = point;
+                          if (typeof pointXLocation === 'undefined') pointXLocation = chart.xScale()(chart.x()(point,pointIndex));
+
+                          //If we are in 'expand' mode, use the stacked percent value instead of raw value.
+                          var tooltipValue = (stacked.style() == 'expand') ? point.display.y : chart.y()(point,pointIndex);
+                          allData.push({
+                              key: series.key,
+                              value: tooltipValue,
+                              color: color(series,series.seriesIndex),
+                              point: point
+                          });
+
+                          if (showTotalInTooltip && stacked.style() != 'expand' && tooltipValue != null) {
+                            valueSum += tooltipValue;
+                            allNullValues = false;
+                          };
+                        }
                     });
 
                 allData.reverse();
