@@ -17,6 +17,7 @@ nv.models.discreteBar = function() {
         , getY = function(d) { return d.y }
         , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
         , color = nv.utils.defaultColor()
+        , cornerRadius = 0 // sets corner radius (in pixels) to each bar
         , showValues = false
         , valueFormat = d3.format(',.2f')
         , xDomain
@@ -176,6 +177,7 @@ nv.models.discreteBar = function() {
                 .style('fill', function(d,i) { return d.color || color(d,i) })
                 .style('stroke', function(d,i) { return d.color || color(d,i) })
                 .select('rect')
+                .attr('rx', cornerRadius)
                 .attr('class', rectClass)
                 .watchTransition(renderWatch, 'discreteBar: bars rect')
                 .attr('width', x.rangeBand() * .9 / data.length);
@@ -220,6 +222,7 @@ nv.models.discreteBar = function() {
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},
         showValues: {get: function(){return showValues;}, set: function(_){showValues=_;}},
+        cornerRadius:      {get: function(){return cornerRadius;}, set: function(_){cornerRadius=_}},
         x:       {get: function(){return getX;}, set: function(_){getX=_;}},
         y:       {get: function(){return getY;}, set: function(_){getY=_;}},
         xScale:  {get: function(){return x;}, set: function(_){x=_;}},
