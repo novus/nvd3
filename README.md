@@ -22,6 +22,8 @@ NVD3 is recommended to go with [d3.js](http://d3js.org/) version 3.5.3 and later
 
 **Minimum D3 version required: 3.4.4**
 
+For a D3v4 Version, see the work in progress at the [nvd3 organization](http://github.com/nvd3/nvd3)
+
 Along with `pieChart` options `padAngle` and `cornerRadius`, the interactive guideline tooltip now requires these later versions of D3 (3.4.4+, specifically, to get interactive tooltips). The interactive guide lines rely on the more recent `d3.bisector()` method which treats accessors taking two parameters (the second being the element index) as comparators (see [d3.bisector()](https://github.com/mbostock/d3/wiki/Arrays#d3_bisector)).
 
 
