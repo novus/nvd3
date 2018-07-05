@@ -63,10 +63,24 @@ nv.models.furiousLegend = function() {
 
                 seriesShape = series.select('rect');
 
-                seriesEnter.append('g')
+//                 seriesEnter.append('g')
+//                     .attr('class', 'nv-check-box')
+//                     .property('innerHTML','<path d="M0.5,5 L22.5,5 L22.5,26.5 L0.5,26.5 L0.5,5 Z" class="nv-box"></path><path d="M5.5,12.8618467 L11.9185089,19.2803556 L31,0.198864511" class="nv-check"></path>')
+//                     .attr('transform', 'translate(-10,-8)scale(0.5)');
+                
+                var seriesFuriousBox = seriesEnter.append('g')
                     .attr('class', 'nv-check-box')
-                    .property('innerHTML','<path d="M0.5,5 L22.5,5 L22.5,26.5 L0.5,26.5 L0.5,5 Z" class="nv-box"></path><path d="M5.5,12.8618467 L11.9185089,19.2803556 L31,0.198864511" class="nv-check"></path>')
                     .attr('transform', 'translate(-10,-8)scale(0.5)');
+                
+                    // For Box
+                    seriesFuriousBox.append('path')
+                    .attr('d','M0.5,5 L22.5,5 L22.5,26.5 L0.5,26.5 L0.5,5 Z')
+                    .attr('class','nv-box');
+                
+                    // For Check
+                    seriesFuriousBox.append('path')
+                    .attr('d','M5.5,12.8618467 L11.9185089,19.2803556 L31,0.198864511')
+                    .attr('class','nv-check'); 
 
                 var seriesCheckbox = series.select('.nv-check-box');
 
