@@ -74,7 +74,7 @@ nv.log = function() {
 };
 
 // print console warning, should be used by deprecated functions
-nv.deprecated = function(name, info) {
+nv.deprecated = nv.warn = function(name, info) {
     if (console && console.warn) {
         console.warn('nvd3 warning: `' + name + '` has been deprecated. ', info || '');
     }

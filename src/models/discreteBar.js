@@ -7,6 +7,7 @@ nv.models.discreteBar = function() {
     //------------------------------------------------------------
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
+        , barWidth = 0.9 // default to 90% so that there is spacing in between each bar in the chart
         , width = 960
         , height = 500
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
@@ -62,7 +63,7 @@ nv.models.discreteBar = function() {
                 });
 
             x   .domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
-                .rangeBands(xRange || [0, availableWidth], .1);
+                .rangeBands(xRange || [0, availableWidth], 1 - barWidth);
             y   .domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d) { return d.y }).concat(forceY)));
 
             // If showValues, pad the Y axis range to account for label height
@@ -180,7 +181,7 @@ nv.models.discreteBar = function() {
                 .attr('rx', cornerRadius)
                 .attr('class', rectClass)
                 .watchTransition(renderWatch, 'discreteBar: bars rect')
-                .attr('width', x.rangeBand() * .9 / data.length);
+                .attr('width', x.rangeBand() * barWidth / data.length);
             bars.watchTransition(renderWatch, 'discreteBar: bars')
                 //.delay(function(d,i) { return i * 1200 / data[0].values.length })
                 .attr('transform', function(d,i) {
@@ -218,6 +219,7 @@ nv.models.discreteBar = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
+        barWidth:{get: function(){return barWidth;}, set: function(_){barWidth=nv.utils.setLimits(_, 0.1, 1);}},
         width:   {get: function(){return width;}, set: function(_){width=_;}},
         height:  {get: function(){return height;}, set: function(_){height=_;}},
         forceY:  {get: function(){return forceY;}, set: function(_){forceY=_;}},

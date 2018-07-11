@@ -752,3 +752,19 @@ nv.utils.pointIsInArc = function(pt, ptData, d3Arc) {
       (theta1 <= angle) && (angle <= theta2);
 };
 
+/**
+ * Given a number, value, reset its value if it is outside
+ * the limits of minValue or maxValue
+ * @param {number} value must be [minValue, maxValue]
+ * @param {number} minValue lower bound
+ * @param {number} maxValue upper bound
+ * @return {number} the original value if within the limits defined, otherwise either the min or max value
+ */
+nv.utils.setLimits = function (value, minValue, maxValue) {
+    if (minValue <= value && value <= maxValue) {
+        return value;
+    } else {
+        nv.warn('nvd3 warning: Value is out of bounds. Expected ' + value + ' to be within (' + minValue + ', ' + maxValue + ')');
+        return value < minValue ? minValue : maxValue;
+    }
+};
