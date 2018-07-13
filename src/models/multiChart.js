@@ -253,11 +253,17 @@ nv.models.multiChart = function() {
 
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
-            yScale1 .domain([0, Math.max(d3.max(getStackedAreaYs(series1_stacked)), yScale1.domain()[1])]).range([0, availableHeight]);
+            var series1_stacked_y_domain = d3.max(getStackedAreaYs(series1_stacked));
+            if(series1_stacked_y_domain) {
+                yScale1 .domain([0, Math.max(series1_stacked_y_domain, yScale1.domain()[1])]).range([0, availableHeight]);
+            }
 
             yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
-            yScale2 .domain([0, Math.max(d3.max(getStackedAreaYs(series2_stacked)), yScale2.domain()[1])]).range([0, availableHeight]);
+            var series2_stacked_y_domain = d3.max(getStackedAreaYs(series2_stacked))
+            if(series2_stacked_y_domain) {
+                yScale2 .domain([0, Math.max(series2_stacked_y_domain, yScale2.domain()[1])]).range([0, availableHeight]);
+            }
 
             lines1.yDomain(yScale1.domain());
             scatters1.yDomain(yScale1.domain());
