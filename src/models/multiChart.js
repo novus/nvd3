@@ -90,7 +90,9 @@ nv.models.multiChart = function() {
             }
 
             var is_stacked = function(d) {
-                return (d.type == 'area') || (d.type == 'bar');
+                return (d.type == 'area')
+                    || (d.type == 'bar' && d.yAxis == 1 && bars1.stacked())
+                    || (d.type == 'bar' && d.yAxis == 2 && bars2.stacked());
             }
 
             var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
@@ -248,7 +250,7 @@ nv.models.multiChart = function() {
                         });
                     }).map(function(x) {return d3.sum(x);})
             }
-            
+
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
 
