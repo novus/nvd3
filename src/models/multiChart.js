@@ -273,7 +273,6 @@ nv.models.multiChart = function() {
             lines2.yDomain(yScale2.domain());
             scatters2.yDomain(yScale2.domain());
             bars2.yDomain(yScale2.domain())
-            bars2.yDomain(yScale2.domain());
             stack2.yDomain(yScale2.domain());
 
             if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
