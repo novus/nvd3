@@ -221,7 +221,7 @@ nv.models.tooltip = function() {
             var pos = position(),
                 gravityOffset = calcGravityOffset(pos),
                 left = pos.left + gravityOffset.left,
-                top = pos.top + gravityOffset.top;
+                top = pos.top + gravityOffset.top + window.scrollY;
 
             // delay hiding a bit to avoid flickering
             if (hidden) {
