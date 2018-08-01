@@ -144,7 +144,8 @@ nv.models.stackedArea = function() {
                 .defined(defined)
                 .x(function(d,i)  { return x(getX(d,i)) })
                 .y0(function(d) { return y(d.display.y0) })
-                .y1(function(d) { return y(d.display.y0) });
+                .y1(function(d) { return y(d.display.y0) })
+                .interpolate(interpolate);
 
             var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
                 .data(function(d) { return d });
