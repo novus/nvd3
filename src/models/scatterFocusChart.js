@@ -234,7 +234,7 @@ nv.models.scatterFocusChart = function() {
             regLine.filter(function(d) {
                 return d.intercept && d.slope;
             })
-                .watchTransition(renderWatch, 'scatterFocusPlusLineChart: regline')
+                .watchTransition(renderWatch, 'scatterFocusChart: regline')
                 .attr('x1', x.range()[0])
                 .attr('x2', x.range()[1])
                 .attr('y1', function (d, i) {
@@ -257,9 +257,6 @@ nv.models.scatterFocusChart = function() {
                     ._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
                     .tickSize( -availableHeight , 0);
 
-                g.select('.nv-x.nv-axis')
-                    .attr('transform', 'translate(0,' + y.range()[0] + ')')
-                    .call(xAxis);
             }
 
             if (showYAxis) {
@@ -268,50 +265,14 @@ nv.models.scatterFocusChart = function() {
                     ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
 
-                g.select('.nv-y.nv-axis')
-                    .call(yAxis);
             }
-
-            // Setup Distribution
-            distX
-                .getData(scatter.x())
-                .scale(x)
-                .color(data.map(function(d,i) {
-                    return d.color || color(d, i);
-                }).filter(function(d,i) { return !d.disabled }));
-            wrap.select('.nv-focus .nv-distWrap').append('g')
-                .attr('class', 'nv-distributionX');
-            g.select('.nv-focus .nv-distributionX')
-                .attr('transform', 'translate(0,' + y.range()[0] + ')')
-                .datum(data.filter(function(d) { return !d.disabled }))
-                .call(distX)
-                .style('opacity', function() { return showDistX ? '1' : '1e-6'; })
-                .watchTransition(renderWatch, 'scatterPlusLineChart')
-                .style('opacity', function() { return showDistX ? '1' : '1e-6'; });
-
-
-
-            distY
-                .getData(scatter.y())
-                .scale(y)
-                .color(data.map(function(d,i) {
-                    return d.color || color(d, i);
-                }).filter(function(d,i) { return !d.disabled }));
-            wrap.select('.nv-focus .nv-distWrap').append('g')
-                .attr('class', 'nv-distributionY');
-            g.select('.nv-focus .nv-distributionY')
-                .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
-                .datum(data.filter(function(d) { return !d.disabled }))
-                .call(distY)
-                .style('opacity', function() { return showDistY ? '1' : '1e-6'; })
-                .watchTransition(renderWatch, 'scatterChartWithFocusChart')
-                .style('opacity', function() { return showDistY ? '1' : '1e-6'; });
 
             //============================================================
             // Update Axes
             //============================================================
             function updateXAxis() {
                 if(showXAxis) {
+
                     g.select('.nv-focus .nv-x.nv-axis')
                         .transition()
                         .duration(duration)
@@ -323,17 +284,17 @@ nv.models.scatterFocusChart = function() {
 
             function updateYAxis() {
                 if(showYAxis) {
+
                     g.select('.nv-focus .nv-y.nv-axis')
                         .transition()
                         .duration(duration)
                         .call(yAxis)
                     ;
-
                     // don't add lines unless we have slope and intercept to use
                     regLine.filter(function(d) {
                         return d.intercept && d.slope;
                     })
-                        .watchTransition(renderWatch, 'scatterFocusPlusLineChart: regline')
+                        .watchTransition(renderWatch, 'scatterFocusChart: regline')
                         .attr('x1', x.range()[0])
                         .attr('x2', x.range()[1])
                         .attr('y1', function (d, i) {
@@ -446,10 +407,7 @@ nv.models.scatterFocusChart = function() {
             //============================================================
             // Functions
             //------------------------------------------------------------
-
-
             function onBrush(extent) {
-
                 // Update Main (Focus)
                 var focusScatterWrap = g.select('.nv-focus .nv-scatterWrap')
                     .datum(
@@ -464,7 +422,6 @@ nv.models.scatterFocusChart = function() {
                             })
                     );
 
-
                 focusScatterWrap.transition().duration(duration).call(scatter);
 
                 // Update Main (Focus) Axes
@@ -472,9 +429,18 @@ nv.models.scatterFocusChart = function() {
                 updateYAxis();
 
                 // update distX and distY with new data based on focus brush selection
-                d3.selectAll('.nv-focus .nv-distWrap g').remove();
+                wrap.select('.nv-focus .nv-distWrap').selectAll('g').remove();
 
-                gEnter.select('.nv-focus .nv-distWrap').append('g')
+                distX
+                    .getData(scatter.x())
+                    .scale(x)
+                    .color(data.filter(function(d) { return !d.disabled; })
+                        .map(function(d,i) {
+                            return d.color || color(d, i);
+                        })
+                    );
+
+                wrap.select('.nv-focus .nv-distWrap').append('g')
                     .attr('class', 'nv-distributionX');
 
                 g.select('.nv-focus .nv-distributionX')
@@ -490,12 +456,21 @@ nv.models.scatterFocusChart = function() {
                         }))
                     .call(distX)
                     .style('opacity', function() { return showDistX ? '1' : '1e-6'; })
-                    .watchTransition(renderWatch, 'scatterChartWithFocusChart')
+                    .watchTransition(renderWatch, 'scatterFocusChart')
                     .style('opacity', function() { return showDistX ? '1' : '1e-6'; });
 
+                distY
+                    .getData(scatter.y())
+                    .scale(y)
+                    .color(data.filter(function(d) { return !d.disabled; })
+                        .map(function(d,i) {
+                            return d.color || color(d, i);
+                        })
+                    );
 
-                gEnter.select('.nv-focus .nv-distWrap').append('g')
+                wrap.select('.nv-focus .nv-distWrap').append('g')
                     .attr('class', 'nv-distributionY');
+
                 g.select('.nv-focus .nv-distributionY')
                     .attr('transform', 'translate(' + (rightAlignYAxis ? availableWidth : -distY.size() ) + ',0)')
                     .datum(data.filter(function(d) { return !d.disabled; })
@@ -509,10 +484,9 @@ nv.models.scatterFocusChart = function() {
                         }))
                     .call(distY)
                     .style('opacity', function() { return showDistY ? '1' : '1e-6'; })
-                    .watchTransition(renderWatch, 'scatterChartWithFocusChart')
+                    .watchTransition(renderWatch, 'scatterFocusChart')
                     .style('opacity', function() { return showDistY ? '1' : '1e-6'; });
             }
-
         });
 
         renderWatch.renderEnd('scatter with line immediate');

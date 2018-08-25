@@ -93,7 +93,8 @@ nv.models.focusScatter = function(content) {
             var contentWrap = g.select('.nv-contentWrap')
                 .datum(data.filter(function(d) { return !d.disabled; }));
 
-            d3.transition(contentWrap).call(content);
+            //d3.transition(contentWrap).call(content);
+            contentWrap.transition().duration(duration).call(content);
 
             /**
              * Add Regression line in focus chart
@@ -191,6 +192,7 @@ nv.models.focusScatter = function(content) {
   
                 g.select('.nv-x.nv-axis')
                     .attr('transform', 'translate(0,' + y.range()[0] + ')');
+
                 d3.transition(g.select('.nv-x.nv-axis'))
                     .call(xAxis);
             }
