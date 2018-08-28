@@ -217,7 +217,7 @@
       describe('Processing Data', function () {
         it('should does not process data if series toggled off', function () {
           builder.model.showPredictedLine(false);
-<<<<<<< HEAD
+/*<<<<<<< HEAD
           var expectedData = [{
             key: 'Predicted Data minus Actual Data (Predicted > Actual)',
             type: 'area',
@@ -245,7 +245,7 @@
             processed: true,
             strokeWidth: 1
           }];
-=======
+=======*/
           var expectedData = [
             {
               key: 'Predicted Data minus Actual Data (Predicted > Actual)',
