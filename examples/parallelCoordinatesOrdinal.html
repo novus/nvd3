@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+        html, body, #chart1, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chart1" class="chart">
+    <svg></svg>
+</div>
+
+<script>
+
+    sampleData3 = [
+        {
+            id: "",
+            year: 73,
+            weight: 25.5
+        },
+        {
+            id: "Tudor",
+            year: 62,
+            weight: 23.2
+        },
+        {
+            id: "Windsor",
+            year: 72,
+            weight: NaN
+        },
+        {
+            id: "Plantagenet",
+            year: 72,
+            weight: 20.3
+        },
+        {
+            id: "",
+            year: 71,
+            weight: 19.5
+        },
+        {
+            id: "Plantagenet",
+            year: 76,
+            weight: 29.8
+        }
+    ];
+
+var chart;
+nv.addGraph(function() {
+
+    chart = nv.models.parallelCoordinates()
+            .dimensionNames(['id', 'year', 'weight'])
+            .lineTension(0.85)
+            .enumerateNonNumericDimensions(true);
+		
+
+    d3.select('#chart1 svg')
+            .datum(sampleData3)
+            .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+});
+
+</script>
+</body>
+</html>

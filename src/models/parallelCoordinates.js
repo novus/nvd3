@@ -25,6 +25,8 @@ nv.models.parallelCoordinates = function() {
         , dragging = []
         , axisWithUndefinedValues = []
         , lineTension = 1
+        , dispatch = d3.dispatch('brush', 'elementMouseover', 'elementMouseout', 'renderEnd')
+        , enumerateNonNumericDimensions = false
         , foreground
         , background
         , dimensions
@@ -43,6 +45,12 @@ nv.models.parallelCoordinates = function() {
         renderWatch.reset();
         selection.each(function(data) {
             var container = d3.select(this);
+
+            // Watch a transition purely for the purposes of notifying on render complete.
+            container.watchTransition(renderWatch, 'nv-parallelCoordinates');
+
+            var availableWidth = nv.utils.availableWidth(width, container, margin),
+                availableHeight = nv.utils.availableHeight(height, container, margin);
             availableWidth = nv.utils.availableWidth(width, container, margin);
             availableHeight = nv.utils.availableHeight(height, container, margin);
 
@@ -72,51 +80,68 @@ nv.models.parallelCoordinates = function() {
             x.rangePoints([0, availableWidth], 1).domain(enabledDimensions.map(function (d) { return d.key; }));
 
             //Set as true if all values on an axis are missing.
+            var onlyNanValues = {};
+            var dimensionTypes = {};
             // Extract the list of dimensions and create a scale for each.
             var oldDomainMaxValue = {};
             var displayMissingValuesline = false;
             var currentTicks = [];
             
             dimensionNames.forEach(function(d) {
-                var extent = d3.extent(dataValues, function (p) { return +p[d]; });
-                var min = extent[0];
-                var max = extent[1];
-                var onlyUndefinedValues = false;
-                //If there is no values to display on an axis, set the extent to 0
-                if (isNaN(min) || isNaN(max)) {
-                    onlyUndefinedValues = true;
-                    min = 0;
-                    max = 0;
+                // First assume that the dimension is numeric and try to get
+                // the extent of it.
+                var extent = d3.extent(data, function(p) { return Number(p[d]); });
+                onlyNanValues[d] = false;
+
+                // The user can elect to enumerate each unique value for non
+                // numeric dimensions, rather than defining an extent of 0.
+                if (extent[0] === undefined && enumerateNonNumericDimensions) {
+                    // Record this dimension type as being an enumeration.
+                    dimensionTypes[d] = "enum";
+
+                    // Create an ordinal scale rather than a linear one. Treat
+                    // empty strings as undefined.
+                    y[d] = d3.scale.ordinal()
+                        .domain(dataValues.map(function(o) { return String(o[d]); }).filter(function(str) { return str !== ""; }).sort())
+                        .rangePoints([0, (availableHeight - 12) * 0.9]);
                 }
-                //Scale axis if there is only one value
-                if (min === max) {
-                    min = min - 1;
-                    max = max + 1;
-                }
-                var f = filters.filter(function (k) { return k.dimension == d; });
-                if (f.length !== 0) {
-                    //If there is only NaN values, keep the existing domain.
-                    if (onlyUndefinedValues) {
-                        min = y[d].domain()[0];
-                        max = y[d].domain()[1];
+                else {
+                    dimensionTypes[d] = "number";
+                    var extent = d3.extent(dataValues, function (p) { return +p[d]; });
+                    var min = extent[0];
+                    var max = extent[1];
+                    
+                    //Scale axis if there is only one value
+                    if (min === max) {
+                        min = min - 1;
+                        max = max + 1;
                     }
+                    var f = filters.filter(function (k) { return k.dimension == d; });
+                    if (f.length !== 0) {
+                        //If there is only NaN values, keep the existing domain.
+                        if (onlyUndefinedValues) {
+                            min = y[d].domain()[0];
+                            max = y[d].domain()[1];
+                        }
                         //If the brush extent is > max (< min), keep the extent value.
-                    else if (!f[0].hasOnlyNaN && displayBrush) {
-                        min = min > f[0].extent[0] ? f[0].extent[0] : min;
-                        max = max < f[0].extent[1] ? f[0].extent[1] : max;
-                    }
+                        else if (!f[0].hasOnlyNaN && displayBrush) {
+                            min = min > f[0].extent[0] ? f[0].extent[0] : min;
+                            max = max < f[0].extent[1] ? f[0].extent[1] : max;
+                        } 
                         //If there is NaN values brushed be sure the brush extent is on the domain.
-                    else if (f[0].hasNaN) {
-                        max = max < f[0].extent[1] ? f[0].extent[1] : max;
-                        oldDomainMaxValue[d] = y[d].domain()[1];
-                        displayMissingValuesline = true;
+                        else if (f[0].hasNaN) {
+                            max = max < f[0].extent[1] ? f[0].extent[1] : max;
+                            oldDomainMaxValue[d] = y[d].domain()[1];
+                            displayMissingValuesline = true;
+                        }
                     }
+
+                    //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
+                    //The remaining 10% are used to display the missingValue line.
+                    y[d] = d3.scale.linear()
+                        .domain([min, max])
+                        .range([(availableHeight - 12) * 0.9, 0]);
                 }
-                //Use 90% of (availableHeight - 12) for the axis range, 12 reprensenting the space necessary to display "undefined values" text.
-                //The remaining 10% are used to display the missingValue line.
-                y[d] = d3.scale.linear()
-                    .domain([min, max])
-                    .range([(availableHeight - 12) * 0.9, 0]);
 
                 axisWithUndefinedValues = [];
                 y[d].brush = d3.svg.brush().y(y[d]).on('brushstart', brushstart).on('brush', brush).on('brushend', brushend);
@@ -241,17 +266,22 @@ nv.models.parallelCoordinates = function() {
             restoreBrush(displayBrush);
 
             var actives = dimensionNames.filter(function (p) { return !y[p].brush.empty(); }),
-                    extents = actives.map(function (p) { return y[p].brush.extent(); });
+                extents = actives.map(function (p) { return y[p].brush.extent(); });
             var formerActive = active.slice(0);
 
             //Restore active values
             active = [];
             foreground.style("display", function (d) {
                 var isActive = actives.every(function (p, i) {
-                    if ((isNaN(d.values[p]) || isNaN(parseFloat(d.values[p]))) && extents[i][0] == y[p].brush.y().domain()[0]) {
+                    if (dimensionTypes[d] === "number" && !onlyNanValues[d]) {
+                        if ((isNaN(d.values[p]) || isNaN(parseFloat(d.values[p]))) && extents[i][0] == y[p].brush.y().domain()[0]) {
+                            return true;
+                        }
+                        return (extents[i][0] <= d.values[p] && d.values[p] <= extents[i][1]) && !isNaN(parseFloat(d.values[p]));
+                    } else if (dimensionTypes[d] === "enum") {
+                        //d3.select(this).call(axis.scale(y[d]));
                         return true;
                     }
-                    return (extents[i][0] <= d.values[p] && d.values[p] <= extents[i][1]) && !isNaN(parseFloat(d.values[p]));
                 });
                 if (isActive)
                     active.push(d);
@@ -267,7 +297,7 @@ nv.models.parallelCoordinates = function() {
             function path(d) {
                 return line(enabledDimensions.map(function (p) {
                     //If value if missing, put the value on the missing value line
-                    if (isNaN(d.values[p.key]) || isNaN(parseFloat(d.values[p.key])) || displayMissingValuesline) {
+                    if (dimensionTypes[p] === "number" && (isNaN(d.values[p.key]) || isNaN(parseFloat(d.values[p.key]))) || displayMissingValuesline) {
                         var domain = y[p.key].domain();
                         var range = y[p.key].range();
                         var min = domain[0] - (domain[1] - domain[0]) / 9;
@@ -351,8 +381,17 @@ nv.models.parallelCoordinates = function() {
                 active = []; //erase current active list
                 foreground.style('display', function(d) {
                     var isActive = actives.every(function(p, i) {
-                        if ((isNaN(d.values[p]) || isNaN(parseFloat(d.values[p]))) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
-                        return (extents[i][0] <= d.values[p] && d.values[p] <= extents[i][1]) && !isNaN(parseFloat(d.values[p]));
+                        if (dimensionTypes[p] === "number") {
+                            if ((isNaN(d.values[p]) || isNaN(parseFloat(d.values[p]))) && extents[i][0] == y[p].brush.y().domain()[0]) return true;
+                            return (extents[i][0] <= d.values[p] && d.values[p] <= extents[i][1]) && !isNaN(parseFloat(d.values[p]));
+                        } else if (dimensionTypes[p] === "enum") {
+                            // If the dimension type is an enum, then we check whether or not the
+                            // output value is in the range by using the ordinal scale.
+                            var rangeValue = y[p](d[p]);
+                            if (rangeValue === undefined && extents[i][1] === y[p].brush.y().range()[0]) return true;
+                            return extents[i][0] <= rangeValue && rangeValue <= extents[i][1];
+                        }
+                        
                     });
                     if (isActive) active.push(d);
                     return isActive ? null : 'none';
@@ -422,7 +461,10 @@ nv.models.parallelCoordinates = function() {
                 var v = dragging[d];
                 return v == null ? x(d) : v;
             }
+
         });
+
+        renderWatch.renderEnd("nv-parallelCoordinates immediate");
         return chart;
     }
 
@@ -484,7 +526,8 @@ nv.models.parallelCoordinates = function() {
         }},
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
-        }}
+        }},
+        enumerateNonNumericDimensions: {get: function(){return enumerateNonNumericDimensions;}, set: function(_){enumerateNonNumericDimensions=_;}}
     });
     nv.utils.initOptions(chart);
     return chart;
