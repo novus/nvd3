@@ -269,6 +269,12 @@ nv.models.sunburst = function() {
                     })
                 })
                 .on('mouseover', function(d,i){
+                    var startAngle = Math.max(0, Math.min(2 * Math.PI, x(d.x)));
+                    var endAngle = Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx)));
+                    if (startAngle == endAngle) {
+                        //this node is hidden from the current zoomed view, don't show its tooltip
+                        return;
+                    }
                     d3.select(this).classed('hover', true).style('opacity', 0.8);
                     dispatch.elementMouseover({
                         data: d,
