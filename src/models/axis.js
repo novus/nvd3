@@ -343,6 +343,17 @@ nv.models.axis = function() {
             //store old scales for use in transitions on update
             scale0 = scale.copy();
 
+            //calculate the maximum width of one axis tick by taking the entire width of the axis and dividing by the number of ticks
+            var maxTickWidth = wrap.node().getBoundingClientRect().width / g.selectAll('g').size();
+
+            g.selectAll('g').select('text').each(function (d,i) {
+                if (fmt(d) && this.getBoundingClientRect().width > maxTickWidth) {
+                    var maxKeyLength = Math.floor(maxTickWidth / (this.getBoundingClientRect().width / fmt(d).length)) - 3;
+                    var trimmedKey = fmt(d).toString().substring(0, maxKeyLength);
+                    d3.select(this).text(trimmedKey + "...");
+                }
+            })
+
         });
 
         renderWatch.renderEnd('axis immediate');
