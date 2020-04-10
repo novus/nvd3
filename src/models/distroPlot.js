@@ -341,7 +341,7 @@ nv.models.distroPlot = function() {
      * of the violin.
      *
      * @param (list) kde - x & y kde cooridinates
-     * @param (list) extent - min/max y-values used for clamping violing
+     * @param (list) extent - min/max y-values used for clamping violin
      */
     function clampViolinKDE(kde, extent) {
 
