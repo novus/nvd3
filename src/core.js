@@ -6,10 +6,7 @@ var nv = {};
 nv.dev = false; //set false when in production
 nv.tooltip = nv.tooltip || {}; // For the tooltip system
 nv.utils = nv.utils || {}; // Utility subsystem
-nv.models = nv.models || {}; //stores all the possible models/components
-nv.charts = {}; //stores all the ready to use charts
-nv.logs = {}; //stores some statistics and potential error messages
-nv.dom = {}; //DOM manipulation functions
+
 
 // Node/CommonJS - require D3
 if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined' && typeof(d3) == 'undefined') {
