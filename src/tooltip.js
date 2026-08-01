@@ -131,9 +131,12 @@ nv.models.tooltip = function() {
      }
      */
     var position = function() {
+        var pointer = d3.event && d3.event.touches && d3.event.touches.length ? d3.event.touches[0] :
+            d3.event && d3.event.changedTouches && d3.event.changedTouches.length ? d3.event.changedTouches[0] :
+            d3.event;
         var pos = {
-            left: d3.event !== null ? d3.event.clientX : 0,
-            top: d3.event !== null ? d3.event.clientY : 0
+            left: pointer !== null ? pointer.clientX : 0,
+            top: pointer !== null ? pointer.clientY : 0
         };
 
         if(getComputedStyle(document.body).transform != 'none') {

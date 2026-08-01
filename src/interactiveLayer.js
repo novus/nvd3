@@ -40,8 +40,18 @@ nv.interactiveGuideline = function() {
             }
 
             function mouseHandler() {
-                var mouseX = d3.event.clientX - this.getBoundingClientRect().left;
-                var mouseY = d3.event.clientY - this.getBoundingClientRect().top;
+                if (d3.event.type === 'touchend' || d3.event.type === 'touchcancel') {
+                    dispatch.elementMouseout({ mouseX: null, mouseY: null });
+                    layer.renderGuideLine(null);
+                    tooltip.hidden(true);
+                    return;
+                }
+
+                var pointer = d3.event.touches && d3.event.touches.length ? d3.event.touches[0] :
+                    d3.event.changedTouches && d3.event.changedTouches.length ? d3.event.changedTouches[0] :
+                    d3.event;
+                var mouseX = pointer.clientX - this.getBoundingClientRect().left;
+                var mouseY = pointer.clientY - this.getBoundingClientRect().top;
 
                 var subtractMargin = true;
                 var mouseOutAnyReason = false;
@@ -180,6 +190,8 @@ nv.interactiveGuideline = function() {
 
             svgContainer
                 .on("touchmove",mouseHandler)
+                .on("touchend",mouseHandler)
+                .on("touchcancel",mouseHandler)
                 .on("mousemove",mouseHandler, true)
                 .on("mouseout" ,mouseHandler,true)
                 .on("mousedown" ,mouseHandler,true)
